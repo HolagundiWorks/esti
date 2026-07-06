@@ -27,7 +27,7 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { VendorQuotes } from "../components/vendor/VendorQuotes.js";
 import { VendorRateCompare } from "../components/vendor/VendorRateCompare.js";
 import { trpc } from "../lib/trpc.js";
@@ -294,30 +294,30 @@ export function Vendors() {
   ];
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
+    <>
+      <RailLayout
         title="Vendors"
         description="Material supplier directory — categories, statutory ids, ratings and pricing history."
-        actions={<Button variant="contained" onClick={() => setForm({ ...EMPTY })}>New vendor</Button>}
-      />
-
-      <Stack direction="row" spacing={2}>
-        <TextField
-          id="vn-cat"
-          select
-          size="small"
-          label="Category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          sx={{ minWidth: 220 }}
-        >
-          <MenuItem value="">All categories</MenuItem>
-          {VendorCategory.options.map((c) => (
-            <MenuItem key={c} value={c}>{VENDOR_CATEGORIES[c]}</MenuItem>
-          ))}
-        </TextField>
-      </Stack>
-
+        aside={
+          <Stack spacing={1.5}>
+            <TextField
+              id="vn-cat"
+              select
+              size="small"
+              label="Category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              fullWidth
+            >
+              <MenuItem value="">All categories</MenuItem>
+              {VendorCategory.options.map((c) => (
+                <MenuItem key={c} value={c}>{VENDOR_CATEGORIES[c]}</MenuItem>
+              ))}
+            </TextField>
+            <Button variant="contained" fullWidth onClick={() => setForm({ ...EMPTY })}>New vendor</Button>
+          </Stack>
+        }
+      >
       {listQ.error && (
         <Alert severity="error">
           <strong>Could not load vendors</strong> — {listQ.error.message}
@@ -377,6 +377,7 @@ export function Vendors() {
       )}
 
       <VendorRateCompare />
+      </RailLayout>
 
       {/* create / edit vendor */}
       <Dialog open={form !== null} onClose={() => setForm(null)} fullWidth maxWidth="sm">
@@ -530,6 +531,6 @@ export function Vendors() {
         onConfirm={() => { if (confirmPriceId) removePrice.mutate({ id: confirmPriceId }); setConfirmPriceId(null); }}
         onClose={() => setConfirmPriceId(null)}
       />
-    </Stack>
+    </>
   );
 }

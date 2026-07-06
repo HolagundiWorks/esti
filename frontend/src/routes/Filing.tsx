@@ -3,7 +3,7 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { formatINR } from "@esti/contracts";
 import type { PeriodFilterInput } from "@esti/contracts";
 import { useState } from "react";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { PeriodFilter } from "../components/PeriodFilter.js";
 import { downloadXlsx } from "../lib/exportXlsx.js";
 import { trpc } from "../lib/trpc.js";
@@ -62,39 +62,46 @@ export function Filing() {
   }));
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
-        title="Filing abstracts"
-        description="GST output tax (GSTR-1 / GSTR-3B) and TDS deducted u/s 194J, aggregated by month from issued and paid invoices."
-      />
-
-      <PeriodFilter value={period} onChange={setPeriod} />
-
-      {gst.data && (
-        <Paper sx={{ p: 2 }}>
-          <Stack spacing={2} sx={{ alignItems: "flex-start" }}>
-            <Typography variant="body2">
-              <strong>{gst.data.label}</strong> · {gst.data.from} to {gst.data.to}
-            </Typography>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={async () => {
-                const r = await exportQ.refetch();
-                if (r.data?.rows.length) downloadXlsx(r.data.rows, "Register", `invoice-register-${r.data.from}`);
-              }}
-            >
-              Export invoice register (XLSX)
-            </Button>
-          </Stack>
-        </Paper>
-      )}
-
-      <Tabs value={tab} onChange={(_e, v: number) => setTab(v)} aria-label="Filing tabs">
-        <Tab label="GST abstract" />
-        <Tab label="TDS abstract" />
-      </Tabs>
-
+    <RailLayout
+      title="Filing abstracts"
+      description="GST output tax (GSTR-1 / GSTR-3B) and TDS deducted u/s 194J, aggregated by month from issued and paid invoices."
+      tabs={
+        <Tabs
+          orientation="vertical"
+          value={tab}
+          onChange={(_e, v: number) => setTab(v)}
+          aria-label="Filing tabs"
+        >
+          <Tab label="GST abstract" />
+          <Tab label="TDS abstract" />
+        </Tabs>
+      }
+      aside={
+        <Stack spacing={1.5}>
+          <PeriodFilter value={period} onChange={setPeriod} />
+          {gst.data && (
+            <Paper sx={{ p: 2 }}>
+              <Stack spacing={2} sx={{ alignItems: "flex-start" }}>
+                <Typography variant="body2">
+                  <strong>{gst.data.label}</strong> · {gst.data.from} to {gst.data.to}
+                </Typography>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  fullWidth
+                  onClick={async () => {
+                    const r = await exportQ.refetch();
+                    if (r.data?.rows.length) downloadXlsx(r.data.rows, "Register", `invoice-register-${r.data.from}`);
+                  }}
+                >
+                  Export invoice register (XLSX)
+                </Button>
+              </Stack>
+            </Paper>
+          )}
+        </Stack>
+      }
+    >
       {tab === 0 && (
         <Box>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>GST by month</Typography>
@@ -124,6 +131,6 @@ export function Filing() {
           />
         </Box>
       )}
-    </Stack>
+    </RailLayout>
   );
 }

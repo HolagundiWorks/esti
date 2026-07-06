@@ -29,7 +29,7 @@ import {
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { AccountsCarryForward } from "../components/accounting/AccountsCarryForward.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -311,23 +311,28 @@ export function OfficeExpenses() {
   const [open, setOpen] = useState(false);
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
+    <>
+      <RailLayout
         title="Office expenses"
         description="Firm overhead not tied to a single project. Always non-billable — separate from client GST invoices."
-        actions={
-          canManage ? (
-            <Button variant="contained" onClick={() => setOpen(true)}>New expense</Button>
-          ) : undefined
+        aside={
+          <Stack spacing={1.5}>
+            {canManage && (
+              <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
+                New expense
+              </Button>
+            )}
+            <AccountsCarryForward period={period} onPeriodChange={setPeriod} />
+          </Stack>
         }
-      />
-      <AccountsCarryForward period={period} onPeriodChange={setPeriod} />
-      {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
-      {listQ.data && (
-        <ExpenseTable rows={listQ.data as ExpenseRow[]} canManage={canManage} canAudit={canAudit} />
-      )}
+      >
+        {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
+        {listQ.data && (
+          <ExpenseTable rows={listQ.data as ExpenseRow[]} canManage={canManage} canAudit={canAudit} />
+        )}
+      </RailLayout>
       {open && <ExpenseFormModal open scope="OFFICE" onClose={() => setOpen(false)} />}
-    </Stack>
+    </>
   );
 }
 
@@ -349,27 +354,32 @@ export function CashBook() {
   const [open, setOpen] = useState(false);
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
+    <>
+      <RailLayout
         title="Cash book"
         description="Petty cash and physical cash outflows. Balance reflects closed cash vouchers in the selected financial year."
-        actions={
-          canManage ? (
-            <Button variant="contained" onClick={() => setOpen(true)}>New cash voucher</Button>
-          ) : undefined
+        aside={
+          <Stack spacing={1.5}>
+            {canManage && (
+              <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
+                New cash voucher
+              </Button>
+            )}
+            <AccountsCarryForward period={period} onPeriodChange={setPeriod} />
+            {cashAccount && (
+              <Typography variant="body2" className="esti-label">
+                <strong>Cash balance ({range.label}):</strong> {formatINR(cashAccount.balancePaise)}
+              </Typography>
+            )}
+          </Stack>
         }
-      />
-      <AccountsCarryForward period={period} onPeriodChange={setPeriod} />
-      {cashAccount && (
-        <Typography variant="body2" className="esti-label">
-          <strong>Cash balance ({range.label}):</strong> {formatINR(cashAccount.balancePaise)}
-        </Typography>
-      )}
-      {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
-      {listQ.data && (
-        <ExpenseTable rows={listQ.data as ExpenseRow[]} canManage={canManage} canAudit={canAudit} />
-      )}
+      >
+        {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
+        {listQ.data && (
+          <ExpenseTable rows={listQ.data as ExpenseRow[]} canManage={canManage} canAudit={canAudit} />
+        )}
+      </RailLayout>
       {open && <ExpenseFormModal open scope="OFFICE" onClose={() => setOpen(false)} />}
-    </Stack>
+    </>
   );
 }

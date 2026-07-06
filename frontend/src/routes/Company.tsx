@@ -38,7 +38,7 @@ import { EscalationSettingsPanel } from "../components/company/EscalationSetting
 import { Partners } from "../components/company/PartnersPanel.js";
 import { ReleaseMetadataPanel } from "../components/company/ReleaseMetadataPanel.js";
 import { UploadSecurityPanel } from "../components/company/UploadSecurityPanel.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { useAuth } from "../lib/auth.js";
 import { useCapabilities } from "../lib/capabilities.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
@@ -169,11 +169,10 @@ export function Company() {
   const districts = districtsFor(f.state);
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
-        title="Company profile"
-        description={isOwner ? undefined : "Read-only — only the owner can edit."}
-      />
+    <RailLayout
+      title="Company profile"
+      description={isOwner ? undefined : "Read-only — only the owner can edit."}
+    >
       {msg && (
         <Alert severity="success" onClose={() => setMsg(null)}>
           {msg}
@@ -512,6 +511,6 @@ export function Company() {
       {isOwner && <ConnectedDevicesPanel />}
       {isOwner && <ReleaseMetadataPanel />}
       {isOwner && <DataTools />}
-    </Stack>
+    </RailLayout>
   );
 }

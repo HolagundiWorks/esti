@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Box, Chip, Grid, Paper, Stack, Tab, Tabs } from "@mui/material";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { LessonsBank } from "../components/ProjectLessons.js";
 
 /**
@@ -35,23 +35,22 @@ const LAYERS = ["Internal Exchange", "Community Exchange", "Professional Identit
 export function Lxos() {
   const [tab, setTab] = useState(0);
   return (
-    <Stack spacing={3}>
-      <PageHeader
-        title="LXOS"
-        description="Learning Exchange Operating System — AORMS knowledge & professional exchange layer. Work and learning coexist; knowledge becomes infrastructure."
-      />
-      <Tabs
-        value={tab}
-        onChange={(_e, v) => setTab(v)}
-        variant="scrollable"
-        allowScrollButtonsMobile
-        aria-label="LXOS layers"
-      >
-        {LAYERS.map((l) => (
-          <Tab key={l} label={l} />
-        ))}
-      </Tabs>
-
+    <RailLayout
+      title="LXOS"
+      description="Learning Exchange Operating System — AORMS knowledge & professional exchange layer. Work and learning coexist; knowledge becomes infrastructure."
+      tabs={
+        <Tabs
+          orientation="vertical"
+          value={tab}
+          onChange={(_e, v) => setTab(v)}
+          aria-label="LXOS layers"
+        >
+          {LAYERS.map((l) => (
+            <Tab key={l} label={l} />
+          ))}
+        </Tabs>
+      }
+    >
       {tab === 0 && (
         <Stack spacing={3}>
           <LessonsBank />
@@ -93,6 +92,6 @@ export function Lxos() {
           ]}
         />
       )}
-    </Stack>
+    </RailLayout>
   );
 }

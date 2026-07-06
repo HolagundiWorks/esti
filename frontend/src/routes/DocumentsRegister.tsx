@@ -28,7 +28,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { DataState } from "../components/DataState.js";
 import { StatusTag } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
@@ -128,56 +128,54 @@ export function DocumentsRegister() {
 
   return (
     <>
-      <PageHeader
+      <RailLayout
         title="Document register"
         description="Unified view of issued office and project documents — numbers, versions, and PDF status."
-        actions={
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<Download />}
-            disabled={exportQ.isFetching}
-            onClick={async () => {
-              const data = await exportQ.refetch();
-              if (data.data?.length) downloadXlsx(data.data, "Register", "esti-document-register");
-            }}
-          >
-            Export XLSX
-          </Button>
+        aside={
+          <Stack spacing={1.5}>
+            <TextField
+              id="doc-type-filter"
+              select
+              size="small"
+              label="Type"
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              fullWidth
+            >
+              <MenuItem value="">All types</MenuItem>
+              {ENTITY_TYPES.map((t) => (
+                <MenuItem key={t} value={t}>{DOCUMENT_ENTITY_LABEL[t]}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="doc-status-filter"
+              select
+              size="small"
+              label="Status"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              fullWidth
+            >
+              <MenuItem value="">All statuses</MenuItem>
+              <MenuItem value="DRAFT">Draft</MenuItem>
+              <MenuItem value="ISSUED">Issued</MenuItem>
+            </TextField>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<Download />}
+              disabled={exportQ.isFetching}
+              fullWidth
+              onClick={async () => {
+                const data = await exportQ.refetch();
+                if (data.data?.length) downloadXlsx(data.data, "Register", "esti-document-register");
+              }}
+            >
+              Export XLSX
+            </Button>
+          </Stack>
         }
-      />
-
-      <Stack spacing={3} sx={{ mt: 3 }}>
-        <Stack direction="row" spacing={2}>
-          <TextField
-            id="doc-type-filter"
-            select
-            size="small"
-            label="Type"
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            sx={{ minWidth: 200 }}
-          >
-            <MenuItem value="">All types</MenuItem>
-            {ENTITY_TYPES.map((t) => (
-              <MenuItem key={t} value={t}>{DOCUMENT_ENTITY_LABEL[t]}</MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            id="doc-status-filter"
-            select
-            size="small"
-            label="Status"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            sx={{ minWidth: 200 }}
-          >
-            <MenuItem value="">All statuses</MenuItem>
-            <MenuItem value="DRAFT">Draft</MenuItem>
-            <MenuItem value="ISSUED">Issued</MenuItem>
-          </TextField>
-        </Stack>
-
+      >
         <DataState loading={listQ.isLoading} isEmpty={rows.length === 0} columnCount={7} empty={{ title: "No documents", description: "Create letters, site reports, BOQs, or MOM on a project." }}>
           <DataGrid
             rows={rows}
@@ -282,7 +280,7 @@ export function DocumentsRegister() {
             autoHeight
           />
         </Stack>
-      </Stack>
+      </RailLayout>
 
       <Dialog open={tplOpen} onClose={() => setTplOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>New office template</DialogTitle>

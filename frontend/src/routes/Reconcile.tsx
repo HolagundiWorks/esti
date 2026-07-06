@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
 import type { ReconcileColumnMapping } from "@esti/contracts";
 import { formatINR, formatINRShort } from "@esti/contracts";
 import { useState } from "react";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { downloadXlsx } from "../lib/exportXlsx.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
@@ -266,14 +266,11 @@ export function Reconcile() {
   ];
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
-        title="Reconciliation"
-        description="Match bank-statement credits against invoices (CSV / XLSX). Override column names when your bank export uses non-standard headers."
-      />
-
-      <Stack spacing={2}>
-        <Stack direction="row" spacing={2} sx={{ alignItems: "flex-end" }}>
+    <RailLayout
+      title="Reconciliation"
+      description="Match bank-statement credits against invoices (CSV / XLSX). Override column names when your bank export uses non-standard headers."
+      aside={
+        <Stack spacing={1.5}>
           <TextField
             id="rcn-label"
             label="Batch label"
@@ -281,8 +278,9 @@ export function Reconcile() {
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             className="esti-input-md"
+            fullWidth
           />
-          <Button variant="outlined" component="label">
+          <Button variant="outlined" component="label" fullWidth>
             {file ? file.name : "Choose statement"}
             <HiddenFileInput
               type="file"
@@ -292,11 +290,9 @@ export function Reconcile() {
               }
             />
           </Button>
-          <Button variant="contained" disabled={!file || !label || busy} onClick={upload}>
+          <Button variant="contained" fullWidth disabled={!file || !label || busy} onClick={upload}>
             {busy ? "Uploading…" : "Upload & reconcile"}
           </Button>
-        </Stack>
-        <Stack direction="row" spacing={2}>
           <TextField
             id="rcn-date-col"
             label="Date column (optional)"
@@ -304,6 +300,7 @@ export function Reconcile() {
             value={colMap.date ?? ""}
             onChange={(e) => setColMap((m) => ({ ...m, date: e.target.value || undefined }))}
             className="esti-input-sm"
+            fullWidth
           />
           <TextField
             id="rcn-desc-col"
@@ -312,6 +309,7 @@ export function Reconcile() {
             value={colMap.description ?? ""}
             onChange={(e) => setColMap((m) => ({ ...m, description: e.target.value || undefined }))}
             className="esti-input-sm"
+            fullWidth
           />
           <TextField
             id="rcn-amt-col"
@@ -320,20 +318,21 @@ export function Reconcile() {
             value={colMap.amount ?? ""}
             onChange={(e) => setColMap((m) => ({ ...m, amount: e.target.value || undefined }))}
             className="esti-input-sm"
+            fullWidth
           />
+          {error && (
+            <Alert severity="error">
+              <strong>Upload failed</strong> — {error}
+            </Alert>
+          )}
+          {settleMsg && (
+            <Alert severity="success" onClose={() => setSettleMsg(null)}>
+              <strong>Settled</strong> — {settleMsg}
+            </Alert>
+          )}
         </Stack>
-      </Stack>
-      {error && (
-        <Alert severity="error">
-          <strong>Upload failed</strong> — {error}
-        </Alert>
-      )}
-      {settleMsg && (
-        <Alert severity="success" onClose={() => setSettleMsg(null)}>
-          <strong>Settled</strong> — {settleMsg}
-        </Alert>
-      )}
-
+      }
+    >
       <DataGrid
         rows={listQ.data ?? []}
         columns={batchColumns}
@@ -406,6 +405,6 @@ export function Reconcile() {
           />
         </>
       )}
-    </Stack>
+    </RailLayout>
   );
 }

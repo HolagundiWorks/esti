@@ -19,7 +19,7 @@ import { LEAVE_TYPES, type LeaveTypeCode, formatINR, parseRupeeInput } from "@es
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PayslipPdfCell } from "../components/PayslipPdfCell.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { trpc } from "../lib/trpc.js";
 import { useCapabilities } from "../lib/capabilities.js";
 import { StaffProfilesTab } from "../components/hr/StaffProfilesTab.js";
@@ -220,22 +220,23 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
   ];
 
   return (
-    <Stack spacing={3}>
-      {!embedded && (
-        <PageHeader
-          title="HR"
-          description="Leave management, payroll, staff profiles, and the hiring pipeline."
-        />
-      )}
-
-      <Box>
-        <Tabs value={tab} onChange={(_e, v) => setTab(v)} aria-label="HR sections">
-          <Tab label="Operations" />
-          <Tab label="Staff profiles" />
-          <Tab label="Applications" />
-        </Tabs>
-      </Box>
-
+    <>
+      <RailLayout
+        title="HR"
+        description="Leave management, payroll, staff profiles, and the hiring pipeline."
+        tabs={
+          <Tabs
+            orientation="vertical"
+            value={tab}
+            onChange={(_e, v) => setTab(v)}
+            aria-label="HR sections"
+          >
+            <Tab label="Operations" />
+            <Tab label="Staff profiles" />
+            <Tab label="Applications" />
+          </Tabs>
+        }
+      >
       {/* ── Operations panel ── */}
       {tab === 0 && (
         <Stack spacing={3}>
@@ -320,6 +321,7 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
 
       {/* ── Applications panel ── */}
       {tab === 2 && <ApplicationsTab />}
+      </RailLayout>
 
       {/* Leave modal */}
       <Dialog open={lvOpen} onClose={() => setLvOpen(false)} fullWidth maxWidth="sm">
@@ -465,6 +467,6 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>
+    </>
   );
 }

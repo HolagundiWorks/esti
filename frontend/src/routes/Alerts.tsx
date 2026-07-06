@@ -1,7 +1,7 @@
 import { Box, Chip, Link, Paper, Stack, Typography } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { Link as RouterLink } from "react-router-dom";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { trpc } from "../lib/trpc.js";
 
 const KIND_LABEL: Record<string, string> = {
@@ -132,12 +132,10 @@ export function Alerts() {
   const digest = digestQ.data;
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
-        title="Alerts"
-        description="Immediate items needing action, plus a daily digest of lower-priority follow-ups."
-      />
-
+    <RailLayout
+      title="Alerts"
+      description="Immediate items needing action, plus a daily digest of lower-priority follow-ups."
+    >
       <AlertTable title={`Immediate action (${alerts.length})`} alerts={alerts} />
 
       {digest && (
@@ -155,6 +153,6 @@ export function Alerts() {
           </Stack>
         </Paper>
       )}
-    </Stack>
+    </RailLayout>
   );
 }

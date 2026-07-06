@@ -28,7 +28,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { PeriodFilter } from "../components/PeriodFilter.js";
 import { StatusTag } from "../components/StatusTag.js";
 import { useAuth } from "../lib/auth.js";
@@ -169,43 +169,46 @@ export function Invoices() {
   ];
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
+    <>
+      <RailLayout
         title="Invoices"
         description="GST tax invoices & bills of supply across all projects."
-        actions={
-          canInvoice ? (
-            <Button variant="contained" onClick={() => setOpen(true)}>New invoice</Button>
-          ) : undefined
+        aside={
+          <Stack spacing={1.5}>
+            {canInvoice && (
+              <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
+                New invoice
+              </Button>
+            )}
+            <PeriodFilter value={period} onChange={setPeriod} />
+          </Stack>
         }
-      />
-
-      <PeriodFilter value={period} onChange={setPeriod} />
-
-      <DataState
-        loading={listQ.isLoading}
-        isEmpty={(listQ.data ?? []).length === 0}
-        columnCount={8}
-        empty={{
-          title: "No invoices yet",
-          description: "Raise an invoice against any project.",
-          action: canInvoice ? (
-            <Button variant="contained" size="small" onClick={() => setOpen(true)}>
-              New invoice
-            </Button>
-          ) : undefined,
-        }}
       >
-        <DataGrid
-          rows={listQ.data ?? []}
-          columns={columns}
-          density="compact"
-          getRowHeight={() => "auto"}
-          disableRowSelectionOnClick
-          hideFooter
-          autoHeight
-        />
-      </DataState>
+        <DataState
+          loading={listQ.isLoading}
+          isEmpty={(listQ.data ?? []).length === 0}
+          columnCount={8}
+          empty={{
+            title: "No invoices yet",
+            description: "Raise an invoice against any project.",
+            action: canInvoice ? (
+              <Button variant="contained" size="small" onClick={() => setOpen(true)}>
+                New invoice
+              </Button>
+            ) : undefined,
+          }}
+        >
+          <DataGrid
+            rows={listQ.data ?? []}
+            columns={columns}
+            density="compact"
+            getRowHeight={() => "auto"}
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+          />
+        </DataState>
+      </RailLayout>
 
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>New invoice (GST / TDS)</DialogTitle>
@@ -304,6 +307,6 @@ export function Invoices() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>
+    </>
   );
 }

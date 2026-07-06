@@ -1,6 +1,5 @@
 import {
   Alert,
-  Box,
   Button,
   Chip,
   MenuItem,
@@ -12,7 +11,7 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { MasterPlanCategory } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -108,35 +107,32 @@ export function MasterPlanLibrary() {
   ];
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
-        title="Master Plan Library"
-        description="Reference master plans — PDF, DWG, zoning and development plans."
-      />
-
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "flex-start" }}>
-        <TextField
-          id="mp-name"
-          label="Name"
-          placeholder="e.g. Whitefield zoning plan"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          sx={{ flex: 2, minWidth: 220 }}
-        />
-        <TextField
-          id="mp-cat"
-          select
-          label="Category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          sx={{ flex: 1, minWidth: 160 }}
-        >
-          {MasterPlanCategory.options.map((c) => (
-            <MenuItem key={c} value={c}>{c}</MenuItem>
-          ))}
-        </TextField>
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center", height: 56 }}>
-          <Button variant="outlined" component="label">
+    <RailLayout
+      title="Master Plan Library"
+      description="Reference master plans — PDF, DWG, zoning and development plans."
+      aside={
+        <Stack spacing={1.5}>
+          <TextField
+            id="mp-name"
+            label="Name"
+            placeholder="e.g. Whitefield zoning plan"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            fullWidth
+          />
+          <TextField
+            id="mp-cat"
+            select
+            label="Category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            fullWidth
+          >
+            {MasterPlanCategory.options.map((c) => (
+              <MenuItem key={c} value={c}>{c}</MenuItem>
+            ))}
+          </TextField>
+          <Button variant="outlined" component="label" fullWidth>
             {file ? file.name : "Choose file"}
             <HiddenFileInput
               type="file"
@@ -144,16 +140,15 @@ export function MasterPlanLibrary() {
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
           </Button>
-          <Button variant="contained" disabled={!file || busy} onClick={upload}>
+          <Button variant="contained" fullWidth disabled={!file || busy} onClick={upload}>
             {busy ? "Uploading…" : "Upload"}
           </Button>
+          {error && (
+            <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>
+          )}
         </Stack>
-      </Box>
-
-      {error && (
-        <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>
-      )}
-
+      }
+    >
       <DataState
         loading={listQ.isLoading}
         isEmpty={(listQ.data ?? []).length === 0}
@@ -169,6 +164,6 @@ export function MasterPlanLibrary() {
           autoHeight
         />
       </DataState>
-    </Stack>
+    </RailLayout>
   );
 }

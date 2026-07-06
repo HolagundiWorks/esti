@@ -11,22 +11,23 @@
 // EXCLUDED_FILES) because the frosted-glass look inherently needs rgba/blur/
 // shadow the guard forbids in the staff workspace.
 //
-// MP025 tokens referenced here:
-//   Arctic Powder #F1F6F4 · Mystic Mint #D9E8E2 · Oceanic Noir #172B36
-//   Nocturnal #114C5A · Forsythia #FFC801 · Deep Saffron #FF9932
+// AORMS Branding Kit tokens referenced here (docs/esti/AORMS-BRANDING-KIT.md):
+//   Fog Gray #F2F4F7 · Pure White #FFFFFF · Coal Black #141517
+//   Radiant Orange #FF4F18 (accent) · deeper orange #DB3E0F (hover)
 
 // Brand-mark fill — both the ESTI mark and the AORMS wordmark render in the
-// Forsythia accent (recoloured via CSS mask in styles.scss; transparent bg).
+// Radiant Orange accent (recoloured via CSS mask in styles.scss; transparent bg).
 :root {
-  --esti-brand-yellow: #ffc801; // Forsythia — brand mark fill
+  --esti-brand-accent: #ff4f18; // Radiant Orange — brand mark fill
+  --esti-brand-yellow: #ff4f18; // legacy alias → accent (kept for older refs)
 }
 
 // ── Neumorphic (soft UI) — ESTI · Pomodoro · Calculator ──────────────────────
-// Panels/buttons that extrude softly from the flat Arctic-Powder canvas: same
+// Panels/buttons that extrude softly from the flat Fog-Gray canvas: same
 // base colour, a dark bottom-right shadow + a light top-left highlight. Square
 // corners kept (app rule). Exempt file → box-shadow/rgba allowed here.
-$neu-bg: #eef3f1;
-$neu-dark: rgba(23, 43, 54, 0.16);
+$neu-bg: #eceef2;
+$neu-dark: rgba(20, 21, 23, 0.16);
 $neu-light: rgba(255, 255, 255, 0.92);
 
 .esti-neu.MuiPaper-root,
@@ -147,12 +148,12 @@ $neu-light: rgba(255, 255, 255, 0.92);
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background: #f1f6f4; // Arctic Powder canvas
+  background: #f2f4f7; // Fog Gray canvas
 }
 .esti-ribbon {
   flex: 0 0 auto;
   // No bar background — blends with the page. Opaque because the shell canvas
-  // (#f1f6f4) sits behind it, so scrolling content never shows through.
+  // (#f2f4f7) sits behind it, so scrolling content never shows through.
   background-color: transparent;
   border-bottom: none;
 }

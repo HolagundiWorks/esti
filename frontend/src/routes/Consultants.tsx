@@ -1,6 +1,5 @@
 import {
   Alert,
-  Box,
   Button,
   Dialog,
   DialogActions,
@@ -17,7 +16,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { trpc } from "../lib/trpc.js";
 
 export function Consultants({ embedded = false }: { embedded?: boolean }) {
@@ -107,14 +106,25 @@ export function Consultants({ embedded = false }: { embedded?: boolean }) {
   ];
 
   return (
-    <Stack spacing={3}>
-      {!embedded && (
-        <PageHeader
-          title="Consultants"
-          description="Discipline specialists the office engages on projects."
-        />
-      )}
-
+    <>
+      <RailLayout
+        title="Consultants"
+        description="Discipline specialists the office engages on projects."
+        aside={
+          <Stack spacing={1.5}>
+            <TextField
+              size="small"
+              placeholder="Search consultants…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              fullWidth
+            />
+            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
+              New consultant
+            </Button>
+          </Stack>
+        }
+      >
       {loginMsg && (
         <Alert severity="success" onClose={() => setLoginMsg(null)}>
           {loginMsg}
@@ -136,36 +146,16 @@ export function Consultants({ embedded = false }: { embedded?: boolean }) {
           ),
         }}
       >
-        <Stack spacing={2}>
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 2,
-              alignItems: "center",
-            }}
-          >
-            <TextField
-              size="small"
-              placeholder="Search consultants…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              sx={{ flex: 1, minWidth: 240 }}
-            />
-            <Button variant="contained" onClick={() => setOpen(true)}>
-              New consultant
-            </Button>
-          </Box>
-          <DataGrid
-            rows={filtered}
-            columns={columns}
-            density="compact"
-            disableRowSelectionOnClick
-            hideFooter
-            autoHeight
-          />
-        </Stack>
+        <DataGrid
+          rows={filtered}
+          columns={columns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
+      </RailLayout>
 
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>New consultant</DialogTitle>
@@ -298,6 +288,6 @@ export function Consultants({ embedded = false }: { embedded?: boolean }) {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>
+    </>
   );
 }

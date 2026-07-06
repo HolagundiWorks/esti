@@ -27,7 +27,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { FeeProposalPdfCell } from "../components/FeeProposalPdfCell.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { trpc } from "../lib/trpc.js";
 
 /** Status badge rendered over the Carbon `--cds-tag-*` token vars (exact colours). */
@@ -147,37 +147,43 @@ export function Proposals() {
   ];
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
+    <>
+      <RailLayout
         title="Proposals"
         description="COA fee proposals and scope agreements across all projects."
-        actions={<Button variant="contained" onClick={() => setOpen(true)}>New proposal</Button>}
-      />
-
-      <DataState
-        loading={listQ.isLoading}
-        isEmpty={(listQ.data ?? []).length === 0}
-        columnCount={6}
-        empty={{
-          title: "No proposals",
-          description: "Prepare a COA-benchmarked proposal for a project.",
-          action: (
-            <Button variant="contained" size="small" onClick={() => setOpen(true)}>
+        aside={
+          <Stack spacing={1.5}>
+            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
               New proposal
             </Button>
-          ),
-        }}
+          </Stack>
+        }
       >
-        <DataGrid
-          rows={listQ.data ?? []}
-          columns={columns}
-          density="compact"
-          getRowHeight={() => "auto"}
-          disableRowSelectionOnClick
-          hideFooter
-          autoHeight
-        />
-      </DataState>
+        <DataState
+          loading={listQ.isLoading}
+          isEmpty={(listQ.data ?? []).length === 0}
+          columnCount={6}
+          empty={{
+            title: "No proposals",
+            description: "Prepare a COA-benchmarked proposal for a project.",
+            action: (
+              <Button variant="contained" size="small" onClick={() => setOpen(true)}>
+                New proposal
+              </Button>
+            ),
+          }}
+        >
+          <DataGrid
+            rows={listQ.data ?? []}
+            columns={columns}
+            density="compact"
+            getRowHeight={() => "auto"}
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+          />
+        </DataState>
+      </RailLayout>
 
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
         <DialogTitle>New proposal</DialogTitle>
@@ -355,6 +361,6 @@ export function Proposals() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>
+    </>
   );
 }

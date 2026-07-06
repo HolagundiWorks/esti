@@ -18,7 +18,7 @@ import {
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -439,15 +439,21 @@ export function ComplianceLibrary() {
   const [tab, setTab] = useState(0);
   const [ruleTab, setRuleTab] = useState(0);
   return (
-    <Stack spacing={3}>
-      <PageHeader
-        title="Compliance Library"
-        description="Statutory reference data — NBC rules, FAR, setbacks, fire compliance, and regulations."
-      />
-      <Tabs value={tab} onChange={(_e, v) => setTab(v)} aria-label="Compliance library sections">
-        <Tab label="Documents" />
-        <Tab label="Rules" />
-      </Tabs>
+    <RailLayout
+      title="Compliance Library"
+      description="Statutory reference data — NBC rules, FAR, setbacks, fire compliance, and regulations."
+      tabs={
+        <Tabs
+          orientation="vertical"
+          value={tab}
+          onChange={(_e, v) => setTab(v)}
+          aria-label="Compliance library sections"
+        >
+          <Tab label="Documents" />
+          <Tab label="Rules" />
+        </Tabs>
+      }
+    >
       {tab === 0 && <DocumentsTab />}
       {tab === 1 && (
         <Stack spacing={2}>
@@ -471,6 +477,6 @@ export function ComplianceLibrary() {
           {ruleTab === 4 && <RegulationPanel />}
         </Stack>
       )}
-    </Stack>
+    </RailLayout>
   );
 }

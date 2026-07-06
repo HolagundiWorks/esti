@@ -6,13 +6,12 @@
  * Three hard rules from the migration brief, encoded here so screens inherit them
  * for free and never re-specify them inline:
  *
- *  1. HYPER-MINIMALIST LIGHT PALETTE, YELLOW ACCENT. The product rides the **MP025**
- *     scheme (Alex Cristache): a soft off-white canvas, near-white frosted cards,
- *     deep-teal ink, with **Forsythia yellow the signature accent** (CTAs, active
- *     states, highlights) and Deep Saffron on hover. Yellow is used as a *fill*
- *     only — text and links stay dark/teal for legibility. Warm Mystic Mint marks
- *     selected surfaces. Airy whitespace, hairline separators, near-flat shadows —
- *     a deliberately un-Carbon, un-enterprise feel.
+ *  1. HYPER-MINIMALIST LIGHT PALETTE, RADIANT ORANGE ACCENT (AORMS Branding Kit).
+ *     A clean Fog-Gray canvas (`#F2F4F7`), Pure-White cards (`#FFFFFF`), Coal-Black
+ *     ink (`#141517`), with **Radiant Orange `#FF4F18` the signature accent** (CTAs,
+ *     active states, highlights) and a deeper orange on hover. Orange carries WHITE
+ *     text. Airy whitespace, hairline separators, near-flat shadows — a deliberately
+ *     un-Carbon, un-enterprise feel. Full spec: `docs/esti/AORMS-BRANDING-KIT.md`.
  *  2. SQUARE CORNERS EVERYWHERE. `shape.borderRadius = 0` plus explicit
  *     `borderRadius: 0` on every surface/control component. No rounded corners.
  *  3. LIQUID GLASS (light). Paper/Card/Drawer/AppBar/Menu surfaces are translucent
@@ -26,39 +25,39 @@ import { createTheme } from "@mui/material/styles";
 // Theme augmentation so `components.MuiDataGrid` (MUI X) is type-known here.
 import type {} from "@mui/x-data-grid/themeAugmentation";
 
-// ── Design language: MP025 — hyper-minimalist LIGHT, YELLOW accent. A cool
-// off-white canvas with near-white cards; deep-teal ink; Forsythia yellow is the
-// signature accent (fills only) with Deep Saffron on hover; Mystic Mint marks
-// selection. Status colours stay in the same family so state reads on light.
+// ── Design language: hyper-minimalist LIGHT, RADIANT ORANGE accent. A clean
+// Fog-Gray canvas with Pure-White cards; Coal-Black ink; Radiant Orange is the
+// signature accent (fills + active states) — carrying WHITE text, unlike the old
+// yellow which needed dark ink. Status colours stay coherent on light.
 const CDS = {
-  background:     "#F1F6F4", // Arctic Powder — soft off-white canvas
-  layer01:        "#FFFFFF", // near-white card surface
-  layer02:        "#D9E8E2", // Mystic Mint — secondary/quiet + selected surface
-  borderSubtle:   "rgba(23, 43, 54, 0.10)", // hairline separator (Oceanic Noir @ 10%)
-  borderStrong:   "rgba(23, 43, 54, 0.20)",
-  textPrimary:    "#172B36", // Oceanic Noir — ink
-  textSecondary:  "#516069", // muted teal-grey
-  textHelper:     "#8a969c", // quiet label grey
-  textOnColor:    "#FFFFFF", // on deep-teal / dark fills
-  ink:            "#172B36", // Oceanic Noir — text on the yellow accent
-  teal:           "#114C5A", // Nocturnal Expedition — links + info
-  accentYellow:   "#FFC801", // Forsythia — THE accent (fills, active states)
-  accentYellowSoft: "rgba(255, 200, 1, 0.16)", // yellow wash (selected rows)
-  accentOrange:   "#FF9932", // Deep Saffron — accent hover
-  mintSoft:       "rgba(217, 232, 226, 0.55)", // Mystic Mint wash (hover)
+  background:     "#F2F4F7", // Fog Gray — clean cool canvas
+  layer01:        "#FFFFFF", // Pure White — card surface
+  layer02:        "#E7EAF0", // quiet fog — secondary/quiet + selected surface
+  borderSubtle:   "rgba(20, 21, 23, 0.10)", // hairline separator (Coal Black @ 10%)
+  borderStrong:   "rgba(20, 21, 23, 0.20)",
+  textPrimary:    "#141517", // Coal Black — ink
+  textSecondary:  "#5b616b", // muted slate-grey
+  textHelper:     "#8a9099", // quiet label grey
+  textOnColor:    "#FFFFFF", // on orange / dark fills
+  ink:            "#141517", // Coal Black — primary text/ink
+  onAccent:       "#FFFFFF", // Pure White — text on the orange accent
+  accent:         "#FF4F18", // Radiant Orange — THE accent (fills, active states)
+  accentSoft:     "rgba(255, 79, 24, 0.14)", // orange wash (selected rows)
+  accentDark:     "#DB3E0F", // deeper orange — accent hover
+  hoverSoft:      "rgba(20, 21, 23, 0.04)", // neutral row/hover wash
   supportSuccess: "#1B7F5A", // deep teal-green (reads on light)
-  supportWarning: "#FF9932", // Deep Saffron
-  supportError:   "#C8442E", // burnt red (warm family)
-  supportInfo:    "#114C5A", // Nocturnal teal
+  supportWarning: "#FF9932", // saffron — distinct from the orange accent
+  supportError:   "#C8442E", // burnt red
+  supportInfo:    "#3B5568", // slate — links + info
 } as const;
 
 // ── Liquid-glass surface constants (light — shared with glass.scss) ──────────
 // Translucent white with a soft blur; near-flat shadow so cards read as clean
 // hyper-minimal panels rather than heavy floating glass.
 const GLASS_FILL   = "rgba(255, 255, 255, 0.72)";
-const GLASS_BORDER = "1px solid rgba(23, 43, 54, 0.08)";
+const GLASS_BORDER = "1px solid rgba(20, 21, 23, 0.08)";
 const GLASS_BLUR   = "blur(12px) saturate(1.06)";
-const GLASS_SHADOW = "0 1px 2px rgba(23, 43, 54, 0.05)";
+const GLASS_SHADOW = "0 1px 2px rgba(20, 21, 23, 0.05)";
 // Pop-over surfaces (menus, dialogs, app bar) sit over content, so they use a
 // near-opaque white fill for crisp legibility.
 const POP_FILL     = "rgba(255, 255, 255, 0.96)";
@@ -67,13 +66,13 @@ export const muiTheme = createTheme({
   shape: { borderRadius: 0 },
   palette: {
     mode: "light",
-    // Yellow is the signature accent (fills only); text/links use ink/teal.
-    primary:   { main: CDS.accentYellow, dark: CDS.accentOrange, contrastText: CDS.ink },
-    secondary: { main: CDS.accentOrange, contrastText: CDS.ink },
+    // Radiant Orange is the signature accent; it carries WHITE text (fills/CTAs).
+    primary:   { main: CDS.accent, dark: CDS.accentDark, contrastText: CDS.onAccent },
+    secondary: { main: CDS.accentDark, contrastText: CDS.onAccent },
     error:     { main: CDS.supportError },
     warning:   { main: CDS.supportWarning },
     success:   { main: CDS.supportSuccess },
-    info:      { main: CDS.teal },
+    info:      { main: CDS.supportInfo },
     background: { default: CDS.background, paper: CDS.layer01 },
     text: {
       primary:   CDS.textPrimary,
@@ -158,36 +157,36 @@ export const muiTheme = createTheme({
           borderRadius: 0,
           fontWeight: 600,
           ...(ownerState.color === "primary" && ownerState.variant === "contained" && {
-            color: CDS.ink,
-            backgroundColor: CDS.accentYellow,
-            "&:hover": { backgroundColor: CDS.accentOrange },
+            color: CDS.onAccent,
+            backgroundColor: CDS.accent,
+            "&:hover": { backgroundColor: CDS.accentDark },
           }),
           ...(ownerState.color === "primary" && ownerState.variant === "text" && {
             color: CDS.ink,
-            "&:hover": { backgroundColor: CDS.mintSoft },
+            "&:hover": { backgroundColor: CDS.hoverSoft },
           }),
           ...(ownerState.color === "primary" && ownerState.variant === "outlined" && {
             color: CDS.ink,
-            borderColor: CDS.accentYellow,
-            "&:hover": { borderColor: CDS.accentOrange, backgroundColor: "rgba(255,200,1,0.10)" },
+            borderColor: CDS.accent,
+            "&:hover": { borderColor: CDS.accentDark, backgroundColor: "rgba(255,79,24,0.10)" },
           }),
         }),
       },
     },
-    // Links use readable teal, never the yellow accent.
+    // Links use a readable slate, never the orange accent (which is a fill only).
     MuiLink: {
       defaultProps: { underline: "hover" },
-      styleOverrides: { root: { color: CDS.teal } },
+      styleOverrides: { root: { color: CDS.supportInfo } },
     },
     MuiChip: {
       styleOverrides: {
         root: { borderRadius: 0 },
-        colorPrimary: { backgroundColor: CDS.accentYellow, color: CDS.ink },
+        colorPrimary: { backgroundColor: CDS.accent, color: CDS.onAccent },
       },
     },
-    // Tabs: yellow indicator, but the selected label stays ink (not yellow).
+    // Tabs: orange indicator, but the selected label stays ink (not orange).
     MuiTabs: {
-      styleOverrides: { indicator: { backgroundColor: CDS.accentYellow, height: 3 } },
+      styleOverrides: { indicator: { backgroundColor: CDS.accent, height: 3 } },
     },
     MuiTab: {
       styleOverrides: {
@@ -226,7 +225,7 @@ export const muiTheme = createTheme({
     },
     MuiTableCell: {
       styleOverrides: {
-        root: { borderColor: "rgba(23, 43, 54, 0.08)" },
+        root: { borderColor: "rgba(20, 21, 23, 0.08)" },
         // Tiny uppercase eyebrow headers, matching the DataGrid.
         head: {
           textTransform: "uppercase",
@@ -241,9 +240,9 @@ export const muiTheme = createTheme({
       styleOverrides: {
         tooltip: {
           borderRadius: 0,
-          backgroundColor: "#172B36",
+          backgroundColor: "#141517",
           color: "#FFFFFF",
-          border: "1px solid rgba(23, 43, 54, 0.20)",
+          border: "1px solid rgba(20, 21, 23, 0.20)",
         },
       },
     },
@@ -257,9 +256,9 @@ export const muiTheme = createTheme({
           backdropFilter: GLASS_BLUR,
           WebkitBackdropFilter: GLASS_BLUR,
           border: GLASS_BORDER,
-          "--DataGrid-rowBorderColor": "rgba(23,43,54,0.07)",
+          "--DataGrid-rowBorderColor": "rgba(20,21,23,0.07)",
         },
-        columnHeaders: { backgroundColor: "rgba(217,232,226,0.55)" },
+        columnHeaders: { backgroundColor: "rgba(231,234,240,0.7)" },
         columnHeader: { backgroundColor: "transparent" },
         // Tiny uppercase eyebrow headers — the MP025 hyper-minimal table idiom.
         columnHeaderTitle: {
@@ -269,14 +268,14 @@ export const muiTheme = createTheme({
           fontWeight: 600,
           color: CDS.textSecondary,
         },
-        cell: { borderColor: "rgba(23,43,54,0.07)" },
-        footerContainer: { borderColor: "rgba(23,43,54,0.08)" },
+        cell: { borderColor: "rgba(20,21,23,0.07)" },
+        footerContainer: { borderColor: "rgba(20,21,23,0.08)" },
         // Mint hover, yellow-wash selection (the signature accent).
         row: {
-          "&:hover": { backgroundColor: CDS.mintSoft },
+          "&:hover": { backgroundColor: CDS.hoverSoft },
           "&.Mui-selected": {
-            backgroundColor: CDS.accentYellowSoft,
-            "&:hover": { backgroundColor: "rgba(255,200,1,0.22)" },
+            backgroundColor: CDS.accentSoft,
+            "&:hover": { backgroundColor: "rgba(255,79,24,0.20)" },
           },
         },
       },

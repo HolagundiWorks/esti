@@ -13,7 +13,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { PdfActionButtons } from "../components/PdfActionButtons.js";
 import { pdfPollInterval } from "../lib/pdfUi.js";
 import { trpc } from "../lib/trpc.js";
@@ -104,42 +104,44 @@ export function Letters() {
   ];
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
+    <>
+      <RailLayout
         title="Letters"
         description="Office correspondence on firm letterhead."
-        actions={
-          <Stack direction="row" spacing={1}>
-            <Button component={Link} to="/office/documents" variant="text" size="small">
-              Document register
-            </Button>
-            <Button variant="contained" onClick={() => setOpen(true)}>New letter</Button>
-          </Stack>
-        }
-      />
-
-      <DataState
-        loading={listQ.isLoading}
-        isEmpty={rows.length === 0}
-        columnCount={5}
-        empty={{
-          title: "No letters yet",
-          description: "Draft a letter and export it as a branded PDF.",
-          action: (
-            <Button variant="contained" size="small" onClick={() => setOpen(true)}>
+        aside={
+          <Stack spacing={1.5}>
+            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
               New letter
             </Button>
-          ),
-        }}
+            <Button component={Link} to="/office/documents" variant="text" size="small" fullWidth>
+              Document register
+            </Button>
+          </Stack>
+        }
       >
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          density="compact"
-          disableRowSelectionOnClick
-          autoHeight
-        />
-      </DataState>
+        <DataState
+          loading={listQ.isLoading}
+          isEmpty={rows.length === 0}
+          columnCount={5}
+          empty={{
+            title: "No letters yet",
+            description: "Draft a letter and export it as a branded PDF.",
+            action: (
+              <Button variant="contained" size="small" onClick={() => setOpen(true)}>
+                New letter
+              </Button>
+            ),
+          }}
+        >
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            density="compact"
+            disableRowSelectionOnClick
+            autoHeight
+          />
+        </DataState>
+      </RailLayout>
 
       <ConfirmModal
         open={!!confirmId}
@@ -238,6 +240,6 @@ export function Letters() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>
+    </>
   );
 }

@@ -14,7 +14,7 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import { QRCodeSVG } from "qrcode.react";
 import { type ChangeEvent, useEffect, useState } from "react";
 import { useAuth } from "../lib/auth.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { apiUrl, authHeaders } from "../lib/api-base.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -107,12 +107,10 @@ export function Settings() {
   }
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
-        title="My profile"
-        description={`Signed in as ${user?.email ?? ""}`}
-      />
-
+    <RailLayout
+      title="My profile"
+      description={`Signed in as ${user?.email ?? ""}`}
+    >
       {msg && (
         <Alert severity="success" onClose={() => setMsg(null)}>
           {msg}
@@ -357,6 +355,6 @@ export function Settings() {
           )}
         </Stack>
       </Paper>
-    </Stack>
+    </RailLayout>
   );
 }

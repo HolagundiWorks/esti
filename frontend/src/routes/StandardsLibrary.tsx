@@ -20,7 +20,7 @@ import {
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -239,15 +239,21 @@ export function StandardsLibrary() {
   const [tab, setTab] = useState(0);
   const [discTab, setDiscTab] = useState(0);
   return (
-    <Stack spacing={3}>
-      <PageHeader
-        title="Standards Library"
-        description="Office design standards by discipline — technical notes, drawings and standard details."
-      />
-      <Tabs value={tab} onChange={(_e, v) => setTab(v)} aria-label="Standards library sections">
-        <Tab label="Documents" />
-        <Tab label="Standards" />
-      </Tabs>
+    <RailLayout
+      title="Standards Library"
+      description="Office design standards by discipline — technical notes, drawings and standard details."
+      tabs={
+        <Tabs
+          orientation="vertical"
+          value={tab}
+          onChange={(_e, v) => setTab(v)}
+          aria-label="Standards library sections"
+        >
+          <Tab label="Documents" />
+          <Tab label="Standards" />
+        </Tabs>
+      }
+    >
       {tab === 0 && <DocumentsTab />}
       {tab === 1 && (
         <Stack spacing={2}>
@@ -259,6 +265,6 @@ export function StandardsLibrary() {
           )}
         </Stack>
       )}
-    </Stack>
+    </RailLayout>
   );
 }

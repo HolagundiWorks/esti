@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { trpc } from "../lib/trpc.js";
 
 const PAGE_SIZES = [10, 25, 50, 100];
@@ -82,52 +82,51 @@ export function AuditLog() {
   ];
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
+    <>
+      <RailLayout
         title="Audit log"
         description="Append-only record of security-sensitive and operational changes."
-      />
-
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "flex-start" }}>
-        <TextField
-          id="audit-search"
-          label="Search actor, entity, or action"
-          value={filters.search}
-          onChange={(e) => setFilters((c) => ({ ...c, search: e.target.value }))}
-          onKeyDown={(e) => e.key === "Enter" && applyFilters()}
-          sx={{ flex: 2, minWidth: 240 }}
-        />
-        <TextField
-          id="audit-entity"
-          select
-          label="Entity"
-          value={filters.entity}
-          onChange={(e) => setFilters((c) => ({ ...c, entity: e.target.value }))}
-          sx={{ flex: 1, minWidth: 160 }}
-        >
-          <MenuItem value="">All entities</MenuItem>
-          {(list.data?.filters.entities ?? []).map((entity) => (
-            <MenuItem key={entity} value={entity}>{entity}</MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          id="audit-action"
-          select
-          label="Action"
-          value={filters.action}
-          onChange={(e) => setFilters((c) => ({ ...c, action: e.target.value }))}
-          sx={{ flex: 1, minWidth: 160 }}
-        >
-          <MenuItem value="">All actions</MenuItem>
-          {(list.data?.filters.actions ?? []).map((action) => (
-            <MenuItem key={action} value={action}>{action}</MenuItem>
-          ))}
-        </TextField>
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center", height: 56 }}>
-          <Button variant="contained" onClick={applyFilters}>Apply filters</Button>
-          <Button variant="outlined" onClick={clearFilters}>Clear</Button>
-        </Stack>
-      </Box>
+        aside={
+          <Stack spacing={1.5}>
+            <TextField
+              id="audit-search"
+              label="Search actor, entity, or action"
+              value={filters.search}
+              onChange={(e) => setFilters((c) => ({ ...c, search: e.target.value }))}
+              onKeyDown={(e) => e.key === "Enter" && applyFilters()}
+              fullWidth
+            />
+            <TextField
+              id="audit-entity"
+              select
+              label="Entity"
+              value={filters.entity}
+              onChange={(e) => setFilters((c) => ({ ...c, entity: e.target.value }))}
+              fullWidth
+            >
+              <MenuItem value="">All entities</MenuItem>
+              {(list.data?.filters.entities ?? []).map((entity) => (
+                <MenuItem key={entity} value={entity}>{entity}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="audit-action"
+              select
+              label="Action"
+              value={filters.action}
+              onChange={(e) => setFilters((c) => ({ ...c, action: e.target.value }))}
+              fullWidth
+            >
+              <MenuItem value="">All actions</MenuItem>
+              {(list.data?.filters.actions ?? []).map((action) => (
+                <MenuItem key={action} value={action}>{action}</MenuItem>
+              ))}
+            </TextField>
+            <Button variant="contained" fullWidth onClick={applyFilters}>Apply filters</Button>
+            <Button variant="outlined" fullWidth onClick={clearFilters}>Clear</Button>
+          </Stack>
+        }
+      >
 
       {list.error && <Alert severity="error">{list.error.message}</Alert>}
 
@@ -143,6 +142,7 @@ export function AuditLog() {
         disableRowSelectionOnClick
         autoHeight
       />
+      </RailLayout>
 
       <Dialog open={selected !== null} onClose={() => setSelectedId(null)} fullWidth maxWidth="md">
         <DialogTitle>{selected ? `${selected.entity} · ${selected.action}` : "Audit details"}</DialogTitle>
@@ -180,6 +180,6 @@ export function AuditLog() {
           </DialogContent>
         )}
       </Dialog>
-    </Stack>
+    </>
   );
 }

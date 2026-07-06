@@ -14,7 +14,7 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { SEARCH_ENTITY_LABEL } from "@esti/contracts";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { SpecCatalogManager } from "../components/knowledge/SpecCatalogManager.js";
 import { ItemLibrary } from "../components/knowledge/kb/ItemLibrary.js";
 import { RateBookLibrary } from "../components/knowledge/kb/RateBookLibrary.js";
@@ -144,27 +144,27 @@ export function KnowledgeBank() {
   };
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
-        title="Knowledge Bank"
-        description="Governed office reference library — items, specifications, and the office rate book."
-      />
-
+    <RailLayout
+      title="Knowledge Bank"
+      description="Governed office reference library — items, specifications, and the office rate book."
+      tabs={
+        <Tabs
+          orientation="vertical"
+          value={tabIndex}
+          onChange={(_e, v) => selectTab(v)}
+          aria-label="Knowledge Bank sections"
+        >
+          <Tab label="Items" />
+          <Tab label="Specification" />
+          <Tab label="Rate Book" />
+        </Tabs>
+      }
+    >
       <KnowledgeBankSearch />
-
-      <Tabs
-        value={tabIndex}
-        onChange={(_e, v) => selectTab(v)}
-        aria-label="Knowledge Bank sections"
-      >
-        <Tab label="Items" />
-        <Tab label="Specification" />
-        <Tab label="Rate Book" />
-      </Tabs>
 
       {tabIndex === 0 && <ItemLibrary />}
       {tabIndex === 1 && <SpecCatalogManager embedded />}
       {tabIndex === 2 && <RateBookLibrary />}
-    </Stack>
+    </RailLayout>
   );
 }

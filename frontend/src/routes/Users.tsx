@@ -30,7 +30,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { trpc } from "../lib/trpc.js";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -275,23 +275,24 @@ export function Users() {
   ];
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
+    <>
+      <RailLayout
         title="Users & access"
         description="Owner / staff / portal logins. Client and consultant portal logins are created from their records (Clients / Consultants)."
-        actions={
-          <Stack direction="row" spacing={1}>
+        aside={
+          <Stack spacing={1.5}>
+            <Button variant="contained" fullWidth onClick={() => setAddOpen(true)}>Add staff login</Button>
             <Button
               variant="outlined"
+              fullWidth
               onClick={() => resync.mutate()}
               disabled={resync.isPending}
             >
               {resync.isPending ? "Syncing…" : "Resync identity types"}
             </Button>
-            <Button variant="contained" onClick={() => setAddOpen(true)}>Add staff login</Button>
           </Stack>
         }
-      />
+      >
 
       <Paper sx={{ p: 3 }}>
         <Stack spacing={2}>
@@ -345,6 +346,7 @@ export function Users() {
           />
         </Stack>
       </Paper>
+      </RailLayout>
 
       <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Add staff login</DialogTitle>
@@ -469,6 +471,6 @@ export function Users() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>
+    </>
   );
 }

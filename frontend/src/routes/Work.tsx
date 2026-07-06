@@ -1,7 +1,7 @@
 import { Box, Button, Stack, Tab, Tabs } from "@mui/material";
 import { useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { ActivityTab } from "../components/work/ActivityTab.js";
 import { AttendanceTab } from "../components/work/AttendanceTab.js";
 import { TaskBoardTab } from "../components/work/TaskBoardTab.js";
@@ -59,36 +59,36 @@ export function Work() {
   const activeTab = allTabs[tabIndex]?.slug ?? "tasks";
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
-        title="Work"
-        description={
-          hrEnabled && canHr
-            ? "Tasks, portal triage, workload, attendance, and office activity."
-            : "Tasks, client and consultant requests, and activity — enable Team & HR for workload and attendance."
-        }
-        actions={
-          activeTab === "tasks" ? (
-            <Button variant="contained" onClick={() => tasksRef.current?.openCreate()}>New task</Button>
-          ) : undefined
-        }
-      />
-
-      <Tabs
-        value={tabIndex}
-        onChange={(_e, v: number) =>
-          setSearchParams({ tab: allTabs[v]?.slug ?? "tasks" }, { replace: true })
-        }
-        variant="scrollable"
-        allowScrollButtonsMobile
-        aria-label="Work sections"
-      >
-        {allTabs.map((t) => (
-          <Tab key={t.slug} label={t.label} />
-        ))}
-      </Tabs>
-
+    <RailLayout
+      title="Work"
+      description={
+        hrEnabled && canHr
+          ? "Tasks, portal triage, workload, attendance, and office activity."
+          : "Tasks, client and consultant requests, and activity — enable Team & HR for workload and attendance."
+      }
+      tabs={
+        <Tabs
+          orientation="vertical"
+          value={tabIndex}
+          onChange={(_e, v: number) =>
+            setSearchParams({ tab: allTabs[v]?.slug ?? "tasks" }, { replace: true })
+          }
+          aria-label="Work sections"
+        >
+          {allTabs.map((t) => (
+            <Tab key={t.slug} label={t.label} />
+          ))}
+        </Tabs>
+      }
+      aside={
+        activeTab === "tasks" ? (
+          <Stack spacing={1.5}>
+            <Button variant="contained" fullWidth onClick={() => tasksRef.current?.openCreate()}>New task</Button>
+          </Stack>
+        ) : undefined
+      }
+    >
       <Box>{allTabs[tabIndex]?.panel}</Box>
-    </Stack>
+    </RailLayout>
   );
 }

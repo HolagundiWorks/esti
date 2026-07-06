@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import { useState, type ReactNode } from "react";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { AccountTab } from "../components/profile/AccountTab.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
@@ -295,23 +295,23 @@ export function Profile() {
   const activeTab = Math.min(tab, tabs.length - 1);
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
-        title={user?.fullName ?? "My profile"}
-        description="Your AORMS identity, work profile, certifications and preferences."
-      />
-      <Tabs
-        value={activeTab}
-        onChange={(_e, v) => setTab(v)}
-        variant="scrollable"
-        allowScrollButtonsMobile
-        aria-label="Profile sections"
-      >
-        {tabs.map((t) => (
-          <Tab key={t.label} label={t.label} />
-        ))}
-      </Tabs>
+    <RailLayout
+      title={user?.fullName ?? "My profile"}
+      description="Your AORMS identity, work profile, certifications and preferences."
+      tabs={
+        <Tabs
+          orientation="vertical"
+          value={activeTab}
+          onChange={(_e, v) => setTab(v)}
+          aria-label="Profile sections"
+        >
+          {tabs.map((t) => (
+            <Tab key={t.label} label={t.label} />
+          ))}
+        </Tabs>
+      }
+    >
       {tabs[activeTab]?.panel}
-    </Stack>
+    </RailLayout>
   );
 }

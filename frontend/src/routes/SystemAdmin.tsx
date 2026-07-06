@@ -18,7 +18,7 @@ import Settings from "@mui/icons-material/Settings";
 import Task from "@mui/icons-material/Task";
 import ManageAccounts from "@mui/icons-material/ManageAccounts";
 import Group from "@mui/icons-material/Group";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { trpc } from "../lib/trpc.js";
 import { useAuth } from "../lib/auth.js";
 import { Navigate } from "react-router-dom";
@@ -168,12 +168,10 @@ export function SystemAdmin() {
   ];
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
-        title="System administration"
-        description="Installation-level controls: module toggles and data management. Visible only to system administrators."
-      />
-
+    <RailLayout
+      title="System administration"
+      description="Installation-level controls: module toggles and data management. Visible only to system administrators."
+    >
       {(setHr.error || setPmc.error || setModule.error) && (
         <Alert severity="error">
           <strong>Could not update module</strong>
@@ -203,6 +201,6 @@ export function SystemAdmin() {
           Import demo data and purge operations are available on the Company settings page (Admin → Company) for system administrators only.
         </Typography>
       </Stack>
-    </Stack>
+    </RailLayout>
   );
 }

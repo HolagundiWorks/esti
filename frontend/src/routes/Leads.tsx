@@ -27,7 +27,7 @@ import {
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { StatusTag } from "../components/StatusTag.js";
 import { ComplianceCalculator } from "../components/compliance/ComplianceCalculator.js";
 import { trpc } from "../lib/trpc.js";
@@ -178,19 +178,28 @@ export function Leads() {
   ];
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
+    <>
+      <RailLayout
         title="Leads"
         description="Inbound enquiries — qualify, then convert to a draft project."
-        actions={<Button variant="contained" onClick={() => setOpen(true)}>New lead</Button>}
-      />
-
-      <Tabs value={tab} onChange={(_e, v) => setTab(v)} aria-label="Lead development sections">
-        <Tab label="Lead register" />
-        <Tab label="Permissible development" />
-      </Tabs>
-
-      {tab === 0 && (
+        tabs={
+          <Tabs
+            orientation="vertical"
+            value={tab}
+            onChange={(_e, v) => setTab(v)}
+            aria-label="Lead development sections"
+          >
+            <Tab label="Lead register" />
+            <Tab label="Permissible development" />
+          </Tabs>
+        }
+        aside={
+          <Stack spacing={1.5}>
+            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>New lead</Button>
+          </Stack>
+        }
+      >
+        {tab === 0 && (
         <DataState
           loading={listQ.isLoading}
           isEmpty={leads.length === 0}
@@ -212,7 +221,8 @@ export function Leads() {
           />
         </DataState>
       )}
-      {tab === 1 && <ComplianceCalculator />}
+        {tab === 1 && <ComplianceCalculator />}
+      </RailLayout>
 
       {/* Create lead */}
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
@@ -297,6 +307,6 @@ export function Leads() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>
+    </>
   );
 }

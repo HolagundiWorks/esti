@@ -1,6 +1,5 @@
 import {
   Alert,
-  Box,
   Button,
   Chip,
   Dialog,
@@ -22,7 +21,7 @@ import {
   parseRupeeInput,
 } from "@esti/contracts";
 import { type CSSProperties, useState } from "react";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { DataState } from "../components/DataState.js";
 import { CardGridSkeleton } from "../components/CardGridSkeleton.js";
 import { TeamsPanel } from "../components/TeamsPanel.js";
@@ -72,29 +71,26 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
   );
 
   return (
-    <Stack spacing={3}>
-      {!embedded && (
-        <PageHeader
-          title="Team"
-          description="Office team members, roles, employment type and monthly salary."
-        />
-      )}
-
-      {/* Toolbar */}
-      <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1.5 }}>
-        <TextField
-          id="team-search"
-          label="Search team"
-          placeholder="Search team…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          sx={{ flex: 1 }}
-        />
-        <Button variant="contained" onClick={() => setOpen(true)}>
-          New member
-        </Button>
-      </Box>
-
+    <>
+      <RailLayout
+        title="Team"
+        description="Office team members, roles, employment type and monthly salary."
+        aside={
+          <Stack spacing={1.5}>
+            <TextField
+              id="team-search"
+              label="Search team"
+              placeholder="Search team…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              fullWidth
+            />
+            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
+              New member
+            </Button>
+          </Stack>
+        }
+      >
       {/* Portrait tile grid */}
       <DataState
         loading={list.isLoading}
@@ -188,6 +184,7 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
       </DataState>
 
       <TeamsPanel />
+      </RailLayout>
 
       {/* Add member modal */}
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
@@ -276,6 +273,6 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>
+    </>
   );
 }

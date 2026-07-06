@@ -14,7 +14,7 @@ import { formatINR, parseRupeeInput } from "@esti/contracts";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { PayslipPdfCell } from "../components/PayslipPdfCell.js";
 import { useCapabilities } from "../lib/capabilities.js";
 import { trpc } from "../lib/trpc.js";
@@ -124,32 +124,34 @@ export function Payroll() {
   ];
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
+    <>
+      <RailLayout
         title="Payroll"
         description="Monthly payslips — gross, deductions and net pay."
-        actions={
-          <Button variant="contained" disabled={team.length === 0} onClick={() => setOpen(true)}>
-            Generate payslip
-          </Button>
+        aside={
+          <Stack spacing={1.5}>
+            <Button variant="contained" fullWidth disabled={team.length === 0} onClick={() => setOpen(true)}>
+              Generate payslip
+            </Button>
+          </Stack>
         }
-      />
-
-      <DataState
-        loading={payrollQ.isLoading}
-        isEmpty={rows.length === 0}
-        columnCount={5}
-        empty={{ title: "No payslips", description: "Generate a monthly payslip for a team member." }}
       >
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          density="compact"
-          disableRowSelectionOnClick
-          hideFooter
-          autoHeight
-        />
-      </DataState>
+        <DataState
+          loading={payrollQ.isLoading}
+          isEmpty={rows.length === 0}
+          columnCount={5}
+          empty={{ title: "No payslips", description: "Generate a monthly payslip for a team member." }}
+        >
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            density="compact"
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+          />
+        </DataState>
+      </RailLayout>
 
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Generate payslip</DialogTitle>
@@ -210,6 +212,6 @@ export function Payroll() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>
+    </>
   );
 }

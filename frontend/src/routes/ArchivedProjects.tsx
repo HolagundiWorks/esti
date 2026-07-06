@@ -15,7 +15,7 @@ import { styled } from "@mui/material/styles";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useRef, useState } from "react";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { trpc } from "../lib/trpc.js";
 
 const HiddenInput = styled("input")({ display: "none" });
@@ -293,13 +293,12 @@ export function ArchivedProjects() {
   ];
 
   return (
-    <Stack spacing={4}>
-      <PageHeader
+    <>
+      <RailLayout
         title="Archived projects"
         description="Retained projects hidden from active work. Restore preserves full history. Export downloads a JSON bundle before permanent purge. Purge is irreversible and requires the retention period to have expired (default 90 days after archive)."
-      />
-
-      {message && (
+      >
+        {message && (
         <Alert severity="success" onClose={() => setMessage(null)}>
           <AlertTitle>Done</AlertTitle>
           {message}
@@ -337,6 +336,7 @@ export function ArchivedProjects() {
           autoHeight
         />
       </DataState>
+      </RailLayout>
 
       {fileTarget && (
         <FileArchiveModal
@@ -399,6 +399,6 @@ export function ArchivedProjects() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>
+    </>
   );
 }

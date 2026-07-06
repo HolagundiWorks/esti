@@ -21,7 +21,7 @@ import {
 import { useState } from "react";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { trpc } from "../lib/trpc.js";
 
 type FormState = {
@@ -194,37 +194,30 @@ export function Contractors({ embedded = false }: { embedded?: boolean }) {
   ];
 
   return (
-    <Stack spacing={3}>
-      {embedded ? (
-        <Box className="esti-page-header" sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <div className="esti-grow" />
-          <Button variant="contained" onClick={() => setForm({ ...EMPTY })}>New contractor</Button>
-        </Box>
-      ) : (
-        <PageHeader
-          title="Contractors"
-          description="Construction contractor register — trades, statutory ids and on-site performance."
-          actions={<Button variant="contained" onClick={() => setForm({ ...EMPTY })}>New contractor</Button>}
-        />
-      )}
-
-      <Box sx={{ display: "flex", gap: 2 }}>
-        <TextField
-          id="ct-cat"
-          select
-          size="small"
-          label="Category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          sx={{ minWidth: 200 }}
-        >
-          <MenuItem value="">All categories</MenuItem>
-          {ContractorCategory.options.map((c) => (
-            <MenuItem key={c} value={c}>{CONTRACTOR_CATEGORIES[c]}</MenuItem>
-          ))}
-        </TextField>
-      </Box>
-
+    <>
+      <RailLayout
+        title="Contractors"
+        description="Construction contractor register — trades, statutory ids and on-site performance."
+        aside={
+          <Stack spacing={1.5}>
+            <TextField
+              id="ct-cat"
+              select
+              size="small"
+              label="Category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              fullWidth
+            >
+              <MenuItem value="">All categories</MenuItem>
+              {ContractorCategory.options.map((c) => (
+                <MenuItem key={c} value={c}>{CONTRACTOR_CATEGORIES[c]}</MenuItem>
+              ))}
+            </TextField>
+            <Button variant="contained" fullWidth onClick={() => setForm({ ...EMPTY })}>New contractor</Button>
+          </Stack>
+        }
+      >
       {listQ.error && (
         <Alert severity="error">{listQ.error.message}</Alert>
       )}
@@ -245,6 +238,7 @@ export function Contractors({ embedded = false }: { embedded?: boolean }) {
           autoHeight
         />
       </DataState>
+      </RailLayout>
 
       {/* create / edit */}
       <Dialog open={form !== null} onClose={() => setForm(null)} fullWidth maxWidth="sm">
@@ -321,6 +315,6 @@ export function Contractors({ embedded = false }: { embedded?: boolean }) {
         onConfirm={() => { if (confirmId) remove.mutate({ id: confirmId }); setConfirmId(null); }}
         onClose={() => setConfirmId(null)}
       />
-    </Stack>
+    </>
   );
 }

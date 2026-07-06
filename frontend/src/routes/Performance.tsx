@@ -31,7 +31,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { trpc } from "../lib/trpc.js";
 
 // ─── Shared tag chip (exact Carbon tag colours over --cds tokens) ─────────────
@@ -255,14 +255,22 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
   }, {});
 
   return (
-    <Stack spacing={4}>
-      {!embedded && (
-        <PageHeader
-          title="Performance"
-          description="ASPRF — Architectural Staff Performance and Recognition Framework. Rolling 30-day scores from tasks and decisions."
-        />
-      )}
-
+    <>
+      <RailLayout
+        title="Performance"
+        description="ASPRF — Architectural Staff Performance and Recognition Framework. Rolling 30-day scores from tasks and decisions."
+        tabs={
+          <Tabs
+            orientation="vertical"
+            value={tab}
+            onChange={(_e, v) => setTab(v)}
+            aria-label="Performance sections"
+          >
+            <Tab label="Scores" />
+            <Tab label="Recognition" />
+          </Tabs>
+        }
+      >
       {myScoreQ.data && (
         <Paper className="esti-form-panel" sx={{ p: 2 }}>
           <Stack spacing={1.5}>
@@ -327,13 +335,6 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
         </Grid>
       </Grid>
 
-      <Box>
-        <Tabs value={tab} onChange={(_e, v) => setTab(v)} aria-label="Performance sections">
-          <Tab label="Scores" />
-          <Tab label="Recognition" />
-        </Tabs>
-      </Box>
-
       {tab === 0 && (
         <DataState
           loading={scoresQ.isLoading}
@@ -353,6 +354,7 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
       )}
 
       {tab === 1 && <RecognitionTab />}
+      </RailLayout>
 
       {/* Grant modal */}
       <Dialog open={!!grantTarget} onClose={() => setGrantTarget(null)} fullWidth maxWidth="sm">
@@ -407,6 +409,6 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>
+    </>
   );
 }

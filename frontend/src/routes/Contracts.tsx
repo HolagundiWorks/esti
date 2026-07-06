@@ -20,7 +20,7 @@ import {
 import { useState } from "react";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { StatusTag } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -158,37 +158,43 @@ export function Contracts() {
   ];
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
+    <>
+      <RailLayout
         title="Contracts"
         description="Agreements with clients, consultants and vendors."
-        actions={<Button variant="contained" onClick={() => setOpen(true)}>New contract</Button>}
-      />
-
-      <DataState
-        loading={listQ.isLoading}
-        isEmpty={rows.length === 0}
-        columnCount={6}
-        empty={{
-          title: "No contracts yet",
-          description:
-            "Register an agreement to track parties, value and term.",
-          action: (
-            <Button variant="contained" size="small" onClick={() => setOpen(true)}>
+        aside={
+          <Stack spacing={1.5}>
+            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
               New contract
             </Button>
-          ),
-        }}
+          </Stack>
+        }
       >
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          density="compact"
-          disableRowSelectionOnClick
-          autoHeight
-          rowHeight={64}
-        />
-      </DataState>
+        <DataState
+          loading={listQ.isLoading}
+          isEmpty={rows.length === 0}
+          columnCount={6}
+          empty={{
+            title: "No contracts yet",
+            description:
+              "Register an agreement to track parties, value and term.",
+            action: (
+              <Button variant="contained" size="small" onClick={() => setOpen(true)}>
+                New contract
+              </Button>
+            ),
+          }}
+        >
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            density="compact"
+            disableRowSelectionOnClick
+            autoHeight
+            rowHeight={64}
+          />
+        </DataState>
+      </RailLayout>
 
       <ConfirmModal
         open={!!confirmId}
@@ -307,6 +313,6 @@ export function Contracts() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>
+    </>
   );
 }
