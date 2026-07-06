@@ -96,31 +96,15 @@ export function MarketingFooter({
               </Stack>
             </nav>
 
-            <div className="esti-landing-footer__studio">
-              <p className="esti-landing-footer__eyebrow">Developed by</p>
-              <img
-                src="/hcw-white.png"
-                alt="Holagundi Consulting Works"
-                className="esti-landing-footer__hcw"
-              />
-              <p className="esti-landing-footer__addr">
-                Holagundi Consulting Works<br />
-                Hospet, Karnataka, India<br />
-                +91 89510 89191
-              </p>
-            </div>
-
-            <div className="esti-landing-footer__bottom">
-              <span>AORMS</span>
-              <span>Architecture Office Resource Management System</span>
-              <span>© Holagundi Consulting Works</span>
-              <span>Built in Hospet for architectural practices that value disciplined records.</span>
-              {visitCount != null && visitCount > 0 ? (
+            {/* "Developed by" + the AORMS identity section moved to the fixed rail
+                (MarketingShell). Only the visit counter remains here. */}
+            {visitCount != null && visitCount > 0 ? (
+              <div className="esti-landing-footer__bottom">
                 <span className="esti-landing-footer__visits">
                   {formatVisitCount(visitCount)} visits
                 </span>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
           </footer>
         </LandingEditorial>
       </LandingBand>
