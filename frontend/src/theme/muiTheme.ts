@@ -6,10 +6,13 @@
  * Three hard rules from the migration brief, encoded here so screens inherit them
  * for free and never re-specify them inline:
  *
- *  1. HYPER-MINIMALIST LIGHT PALETTE. The product now rides the **MP025** scheme
- *     (Alex Cristache): a soft off-white canvas, near-white frosted cards, deep
- *     teal ink + primary, with Forsythia yellow / Deep Saffron orange as the only
- *     warm accents. Airy whitespace, hairline separators, near-flat shadows.
+ *  1. HYPER-MINIMALIST LIGHT PALETTE, YELLOW ACCENT. The product rides the **MP025**
+ *     scheme (Alex Cristache): a soft off-white canvas, near-white frosted cards,
+ *     deep-teal ink, with **Forsythia yellow the signature accent** (CTAs, active
+ *     states, highlights) and Deep Saffron on hover. Yellow is used as a *fill*
+ *     only — text and links stay dark/teal for legibility. Warm Mystic Mint marks
+ *     selected surfaces. Airy whitespace, hairline separators, near-flat shadows —
+ *     a deliberately un-Carbon, un-enterprise feel.
  *  2. SQUARE CORNERS EVERYWHERE. `shape.borderRadius = 0` plus explicit
  *     `borderRadius: 0` on every surface/control component. No rounded corners.
  *  3. LIQUID GLASS (light). Paper/Card/Drawer/AppBar/Menu surfaces are translucent
@@ -23,24 +26,26 @@ import { createTheme } from "@mui/material/styles";
 // Theme augmentation so `components.MuiDataGrid` (MUI X) is type-known here.
 import type {} from "@mui/x-data-grid/themeAugmentation";
 
-// ── Design language: MP025 — hyper-minimalist LIGHT. A cool off-white canvas
-// with near-white cards; deep teal is the ink and the primary; Forsythia yellow
-// and Deep Saffron orange are the only warm accents. Status colours stay in the
-// same family so state reads clearly on the light surface.
+// ── Design language: MP025 — hyper-minimalist LIGHT, YELLOW accent. A cool
+// off-white canvas with near-white cards; deep-teal ink; Forsythia yellow is the
+// signature accent (fills only) with Deep Saffron on hover; Mystic Mint marks
+// selection. Status colours stay in the same family so state reads on light.
 const CDS = {
   background:     "#F1F6F4", // Arctic Powder — soft off-white canvas
   layer01:        "#FFFFFF", // near-white card surface
-  layer02:        "#D9E8E2", // Mystic Mint — secondary/quiet surface
+  layer02:        "#D9E8E2", // Mystic Mint — secondary/quiet + selected surface
   borderSubtle:   "rgba(23, 43, 54, 0.10)", // hairline separator (Oceanic Noir @ 10%)
   borderStrong:   "rgba(23, 43, 54, 0.20)",
   textPrimary:    "#172B36", // Oceanic Noir — ink
   textSecondary:  "#516069", // muted teal-grey
   textHelper:     "#8a969c", // quiet label grey
   textOnColor:    "#FFFFFF", // on deep-teal / dark fills
-  interactive:    "#114C5A", // Nocturnal Expedition — deep teal primary
-  linkPrimary:    "#114C5A", // links share the teal primary
-  accentYellow:   "#FFC801", // Forsythia
-  accentOrange:   "#FF9932", // Deep Saffron
+  ink:            "#172B36", // Oceanic Noir — text on the yellow accent
+  teal:           "#114C5A", // Nocturnal Expedition — links + info
+  accentYellow:   "#FFC801", // Forsythia — THE accent (fills, active states)
+  accentYellowSoft: "rgba(255, 200, 1, 0.16)", // yellow wash (selected rows)
+  accentOrange:   "#FF9932", // Deep Saffron — accent hover
+  mintSoft:       "rgba(217, 232, 226, 0.55)", // Mystic Mint wash (hover)
   supportSuccess: "#1B7F5A", // deep teal-green (reads on light)
   supportWarning: "#FF9932", // Deep Saffron
   supportError:   "#C8442E", // burnt red (warm family)
@@ -62,12 +67,13 @@ export const muiTheme = createTheme({
   shape: { borderRadius: 0 },
   palette: {
     mode: "light",
-    primary:   { main: CDS.interactive, contrastText: CDS.textOnColor },
-    secondary: { main: CDS.accentYellow, contrastText: CDS.textPrimary },
+    // Yellow is the signature accent (fills only); text/links use ink/teal.
+    primary:   { main: CDS.accentYellow, dark: CDS.accentOrange, contrastText: CDS.ink },
+    secondary: { main: CDS.accentOrange, contrastText: CDS.ink },
     error:     { main: CDS.supportError },
     warning:   { main: CDS.supportWarning },
     success:   { main: CDS.supportSuccess },
-    info:      { main: CDS.supportInfo },
+    info:      { main: CDS.teal },
     background: { default: CDS.background, paper: CDS.layer01 },
     text: {
       primary:   CDS.textPrimary,
@@ -142,13 +148,72 @@ export const muiTheme = createTheme({
         },
       },
     },
-    // Controls — all square.
+    // Controls — all square. Yellow is the accent, but only as a FILL: the
+    // contained button is Forsythia with ink text (Saffron on hover). Text and
+    // outlined primary buttons keep ink text so labels stay legible on light.
     MuiButton: {
       defaultProps: { disableElevation: true },
-      styleOverrides: { root: { borderRadius: 0 } },
+      styleOverrides: {
+        root: ({ ownerState }) => ({
+          borderRadius: 0,
+          fontWeight: 600,
+          ...(ownerState.color === "primary" && ownerState.variant === "contained" && {
+            color: CDS.ink,
+            backgroundColor: CDS.accentYellow,
+            "&:hover": { backgroundColor: CDS.accentOrange },
+          }),
+          ...(ownerState.color === "primary" && ownerState.variant === "text" && {
+            color: CDS.ink,
+            "&:hover": { backgroundColor: CDS.mintSoft },
+          }),
+          ...(ownerState.color === "primary" && ownerState.variant === "outlined" && {
+            color: CDS.ink,
+            borderColor: CDS.accentYellow,
+            "&:hover": { borderColor: CDS.accentOrange, backgroundColor: "rgba(255,200,1,0.10)" },
+          }),
+        }),
+      },
+    },
+    // Links use readable teal, never the yellow accent.
+    MuiLink: {
+      defaultProps: { underline: "hover" },
+      styleOverrides: { root: { color: CDS.teal } },
     },
     MuiChip: {
-      styleOverrides: { root: { borderRadius: 0 } },
+      styleOverrides: {
+        root: { borderRadius: 0 },
+        colorPrimary: { backgroundColor: CDS.accentYellow, color: CDS.ink },
+      },
+    },
+    // Tabs: yellow indicator, but the selected label stays ink (not yellow).
+    MuiTabs: {
+      styleOverrides: { indicator: { backgroundColor: CDS.accentYellow, height: 3 } },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: { textTransform: "none", "&.Mui-selected": { color: CDS.ink, fontWeight: 600 } },
+      },
+    },
+    // Selected list rows (nav, menus) use a warm Mystic Mint wash, not grey.
+    MuiListItemButton: {
+      styleOverrides: {
+        root: {
+          "&.Mui-selected": {
+            backgroundColor: CDS.layer02,
+            "&:hover": { backgroundColor: CDS.layer02 },
+          },
+        },
+      },
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          "&.Mui-selected": {
+            backgroundColor: CDS.layer02,
+            "&:hover": { backgroundColor: CDS.layer02 },
+          },
+        },
+      },
     },
     MuiOutlinedInput: {
       styleOverrides: { root: { borderRadius: 0 } },
@@ -206,7 +271,14 @@ export const muiTheme = createTheme({
         },
         cell: { borderColor: "rgba(23,43,54,0.07)" },
         footerContainer: { borderColor: "rgba(23,43,54,0.08)" },
-        row: { "&:hover": { backgroundColor: "rgba(17,76,90,0.05)" } },
+        // Mint hover, yellow-wash selection (the signature accent).
+        row: {
+          "&:hover": { backgroundColor: CDS.mintSoft },
+          "&.Mui-selected": {
+            backgroundColor: CDS.accentYellowSoft,
+            "&:hover": { backgroundColor: "rgba(255,200,1,0.22)" },
+          },
+        },
       },
     },
   },
