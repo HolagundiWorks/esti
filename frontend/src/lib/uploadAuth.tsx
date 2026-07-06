@@ -1,4 +1,13 @@
-import { Modal, PasswordInput, Stack } from "@carbon/react";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { UPLOAD_PASSWORD_FIELD } from "@esti/contracts";
 import {
   createContext,
@@ -114,41 +123,46 @@ export function UploadAuthProvider({ children }: { children: ReactNode }) {
   return (
     <UploadAuthContext.Provider value={value}>
       {children}
-      <Modal
-        open={open}
-        modalHeading="Upload password required"
-        primaryButtonText="Continue"
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!password.trim()}
-        onRequestClose={() => closeModal(null)}
-        onRequestSubmit={() => closeModal(password.trim())}
-      >
+      <Dialog open={open} onClose={() => closeModal(null)} fullWidth maxWidth="xs">
+        <DialogTitle>Upload password required</DialogTitle>
         <form
           onSubmit={(e) => {
             e.preventDefault();
             if (password.trim()) closeModal(password.trim());
           }}
         >
-          <Stack gap={4}>
-            <p style={{ margin: 0 }}>
-              Your firm requires an upload password before files can be stored. The password is
-              remembered for this browser session.
-            </p>
-            {wrongHint ? (
-              <p style={{ margin: 0, color: "var(--cds-text-error)" }}>
-                Incorrect password — try again.
-              </p>
-            ) : null}
-            <PasswordInput
-              id="upload-password"
-              labelText="Upload password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="off"
-            />
-          </Stack>
+          <DialogContent>
+            <Stack spacing={2}>
+              <Typography variant="body2">
+                Your firm requires an upload password before files can be stored. The password is
+                remembered for this browser session.
+              </Typography>
+              {wrongHint ? (
+                <Typography variant="body2" color="error">
+                  Incorrect password — try again.
+                </Typography>
+              ) : null}
+              <TextField
+                id="upload-password"
+                label="Upload password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="off"
+                fullWidth
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button type="button" variant="text" onClick={() => closeModal(null)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="contained" disabled={!password.trim()}>
+              Continue
+            </Button>
+          </DialogActions>
         </form>
-      </Modal>
+      </Dialog>
     </UploadAuthContext.Provider>
   );
 }

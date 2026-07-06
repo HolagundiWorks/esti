@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
 import {
+  Alert,
+  AlertTitle,
+  Box,
   Button,
-  InlineNotification,
-  RadioButton,
-  RadioButtonGroup,
+  Chip,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Paper,
+  Radio,
+  RadioGroup,
   Stack,
-  Tag,
-  Tile,
-} from "@carbon/react";
+  Typography,
+} from "@mui/material";
 import { type PlanRequest, fetchMyRequest, requestPlan } from "./lib/auth";
 
 const PLANS = [
@@ -20,6 +26,19 @@ const STATUS_TAG: Record<string, "teal" | "green" | "red"> = {
   FULFILLED: "green",
   REJECTED: "red",
 };
+
+function TagChip({ color, label }: { color: string; label: string }) {
+  return (
+    <Chip
+      label={label}
+      size="small"
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
 
 /** Sign-up → request a plan; an admin fulfils it and emails the licence. */
 export default function RequestPlan() {
@@ -48,56 +67,68 @@ export default function RequestPlan() {
   const fulfilled = req?.status === "FULFILLED";
 
   return (
-    <Tile>
-      <Stack gap={5}>
-        <h3 className="esti-label">Request a workspace</h3>
+    <Paper sx={{ p: 3 }}>
+      <Stack spacing={2}>
+        <Typography variant="subtitle1" component="h3" className="esti-label">
+          Request a workspace
+        </Typography>
 
         {fulfilled ? (
-          <InlineNotification
-            kind="success"
-            lowContrast
-            hideCloseButton
-            title="Approved"
-            subtitle={`Your ${req?.planCode} licence has been emailed to you. Check your inbox and activate it in your AORMS install.`}
-          />
+          <Alert severity="success">
+            <AlertTitle>Approved</AlertTitle>
+            {`Your ${req?.planCode} licence has been emailed to you. Check your inbox and activate it in your AORMS install.`}
+          </Alert>
         ) : pending ? (
-          <Stack gap={3}>
-            <Stack gap={2} orientation="horizontal">
-              <p>Request received —</p>
-              <Tag type={STATUS_TAG[req!.status]}>{req!.planCode} · pending</Tag>
+          <Stack spacing={1}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+              <Typography variant="body2">Request received —</Typography>
+              <TagChip color={STATUS_TAG[req!.status] ?? "teal"} label={`${req!.planCode} · pending`} />
             </Stack>
-            <p className="esti-label esti-label--secondary">
+            <Typography variant="body2" className="esti-label esti-label--secondary">
               An admin will review it and email your access link. You can change the tier below.
-            </p>
+            </Typography>
           </Stack>
         ) : (
-          <p>Choose a plan and request access — we&apos;ll email your licence once approved.</p>
+          <Typography variant="body2">
+            Choose a plan and request access — we&apos;ll email your licence once approved.
+          </Typography>
         )}
 
         {!fulfilled && (
           <>
-            <RadioButtonGroup
-              legendText="Plan"
-              name="plan"
-              valueSelected={plan}
-              onChange={(v) => setPlan(String(v))}
-            >
-              {PLANS.map((p) => (
-                <RadioButton key={p.code} labelText={p.label} value={p.code} id={`plan-${p.code}`} />
-              ))}
-            </RadioButtonGroup>
-            <div>
-              <Button kind="primary" disabled={busy} onClick={submit}>
+            <FormControl>
+              <FormLabel id="plan-label">Plan</FormLabel>
+              <RadioGroup
+                aria-labelledby="plan-label"
+                name="plan"
+                value={plan}
+                onChange={(e) => setPlan(e.target.value)}
+              >
+                {PLANS.map((p) => (
+                  <FormControlLabel
+                    key={p.code}
+                    value={p.code}
+                    control={<Radio />}
+                    label={p.label}
+                  />
+                ))}
+              </RadioGroup>
+            </FormControl>
+            <Box>
+              <Button variant="contained" disabled={busy} onClick={submit}>
                 {pending ? "Update request" : "Request access"}
               </Button>
-            </div>
+            </Box>
           </>
         )}
 
         {error && (
-          <InlineNotification kind="error" title="Error" subtitle={error} lowContrast onCloseButtonClick={() => setError(null)} />
+          <Alert severity="error" onClose={() => setError(null)}>
+            <AlertTitle>Error</AlertTitle>
+            {error}
+          </Alert>
         )}
       </Stack>
-    </Tile>
+    </Paper>
   );
 }

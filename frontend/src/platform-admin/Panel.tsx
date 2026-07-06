@@ -1,7 +1,8 @@
-import { Suspense, lazy, useEffect, useState } from "react";
-import { Button, Loading, Stack, Tag, Theme } from "@carbon/react";
+import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
+import { Box, Button, Chip, CircularProgress, Stack, Typography } from "@mui/material";
 import Login from "./Login";
 import AdminApp from "./admin/AdminApp";
+import { MuiRoot } from "../theme/MuiRoot.js";
 import { fetchMe, logout, type Me } from "./lib/auth";
 
 const Companies = lazy(() => import("./Companies"));
@@ -12,6 +13,25 @@ const Security = lazy(() => import("./Security"));
 function backToSite() {
   window.location.hash = "";
 }
+
+function TagChip({ color, label }: { color: string; label: string }) {
+  return (
+    <Chip
+      label={label}
+      size="small"
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
+
+const Loading = () => (
+  <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+    <CircularProgress />
+  </Box>
+);
 
 /**
  * Licence / admin console (`/platform-admin`). Any signed-in account — a
@@ -33,19 +53,6 @@ export default function Panel() {
     });
   }, []);
 
-  if (loading) {
-    return (
-      <Theme theme="g100">
-        <main style={{ padding: "var(--cds-spacing-06)" }}>
-          <Loading withOverlay={false} description="Loading" />
-        </main>
-      </Theme>
-    );
-  }
-
-  if (!me?.account) return <Login onLogin={setMe} />;
-  const account = me.account;
-
   async function refreshMe() {
     setMe(await fetchMe());
   }
@@ -55,25 +62,38 @@ export default function Panel() {
     setMe(null);
   }
 
-  return (
-    <Theme theme="g100">
-      <main style={{ padding: "var(--cds-spacing-06)" }}>
-        <Stack gap={6}>
-          <Stack gap={3} orientation="horizontal">
-            <h1 className="esti-grow">AORMS Licensing Console</h1>
-            <Tag type={account.isPlatformAdmin ? "green" : "gray"} size="md">
-              {account.isPlatformAdmin ? "Platform admin" : "Member"}
-            </Tag>
-            <span>{account.email}</span>
+  let body: ReactNode;
+  if (loading) {
+    body = (
+      <Box component="main" sx={{ p: 3 }}>
+        <Loading />
+      </Box>
+    );
+  } else if (!me?.account) {
+    body = <Login onLogin={setMe} />;
+  } else {
+    const account = me.account;
+    body = (
+      <Box component="main" sx={{ p: 3 }}>
+        <Stack spacing={3}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+            <Typography variant="h4" component="h1" className="esti-grow">
+              AORMS Licensing Console
+            </Typography>
+            <TagChip
+              color={account.isPlatformAdmin ? "green" : "gray"}
+              label={account.isPlatformAdmin ? "Platform admin" : "Member"}
+            />
+            <Typography component="span">{account.email}</Typography>
             {account.isPlatformAdmin && (
-              <Button kind="ghost" size="sm" onClick={() => setShowAccount((s) => !s)}>
+              <Button variant="text" size="small" onClick={() => setShowAccount((s) => !s)}>
                 {showAccount ? "Back to console" : "My account (2FA, profile)"}
               </Button>
             )}
-            <Button kind="ghost" size="sm" onClick={backToSite}>
+            <Button variant="text" size="small" onClick={backToSite}>
               Back to site
             </Button>
-            <Button kind="ghost" size="sm" onClick={handleLogout}>
+            <Button variant="text" size="small" onClick={handleLogout}>
               Sign out
             </Button>
           </Stack>
@@ -81,13 +101,11 @@ export default function Panel() {
           {showAccount || !account.isPlatformAdmin ? (
             // Ordinary members land straight on their account page: plan,
             // companies (create / invites / join), security, credentials.
-            <Suspense fallback={<Loading withOverlay={false} description="Loading" />}>
-              <Stack gap={5}>
+            <Suspense fallback={<Loading />}>
+              <Stack spacing={2}>
                 {me.activeOrg && (
-                  <Stack gap={2} orientation="horizontal">
-                    <Tag type="blue" size="md">
-                      Working in: {me.activeOrg.name}
-                    </Tag>
+                  <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                    <TagChip color="blue" label={`Working in: ${me.activeOrg.name}`} />
                   </Stack>
                 )}
                 <RequestPlan />
@@ -100,7 +118,9 @@ export default function Panel() {
             <AdminApp />
           )}
         </Stack>
-      </main>
-    </Theme>
-  );
+      </Box>
+    );
+  }
+
+  return <MuiRoot>{body}</MuiRoot>;
 }

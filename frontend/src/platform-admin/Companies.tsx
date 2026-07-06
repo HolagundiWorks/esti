@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
 import {
-  ActionableNotification,
+  Alert,
+  AlertTitle,
+  Box,
   Button,
-  Form,
-  InlineNotification,
-  Modal,
-  ProgressBar,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  LinearProgress,
+  Paper,
   Stack,
-  Tag,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import {
   type CompanyIdStatus,
   type Me,
@@ -33,6 +37,19 @@ const CREATE_ERRORS: Record<string, string> = {
   domain_mismatch: "The login domain must match your own verified email's domain.",
   domain_unverified: "Verify your email first to claim a login domain.",
 };
+
+function TagChip({ color, label }: { color: string; label: string }) {
+  return (
+    <Chip
+      label={label}
+      size="small"
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
 
 /** Self-serve activation: create a company, join one, invite people, or leave. */
 export default function Companies({ me, onChange }: { me: Me; onChange: (m: Me) => void }) {
@@ -231,37 +248,47 @@ export default function Companies({ me, onChange }: { me: Me; onChange: (m: Me) 
   }
 
   return (
-    <Tile>
-      <Stack gap={5}>
-        <h3 className="esti-label">Your companies</h3>
+    <Paper sx={{ p: 3 }}>
+      <Stack spacing={2}>
+        <Typography variant="subtitle1" component="h3" className="esti-label">
+          Your companies
+        </Typography>
 
         {me.pendingInvites.length > 0 &&
           me.pendingInvites.map((inv) => {
             const handle = inv.org.publicId ?? inv.org.slug;
             return (
-              <ActionableNotification
+              <Alert
                 key={handle}
-                kind="info"
-                lowContrast
-                hideCloseButton
-                inline
-                title={`You've been invited to ${inv.org.name}`}
-                subtitle="Accept to join. If you already carry an AORMS ID under a different email, you can move this invitation onto that identity instead."
-                actionButtonLabel="Accept"
-                onActionButtonClick={() => void handleAccept(handle)}
-              />
+                severity="info"
+                action={
+                  <Button color="inherit" size="small" onClick={() => void handleAccept(handle)}>
+                    Accept
+                  </Button>
+                }
+              >
+                <AlertTitle>{`You've been invited to ${inv.org.name}`}</AlertTitle>
+                Accept to join. If you already carry an AORMS ID under a different email, you can
+                move this invitation onto that identity instead.
+              </Alert>
             );
           })}
         {me.pendingInvites.length > 0 && (
-          <Stack gap={2} orientation="horizontal">
+          <Stack direction="row" spacing={1}>
             {me.pendingInvites.map((inv) => {
               const handle = inv.org.publicId ?? inv.org.slug;
               return (
-                <Stack key={handle} gap={2} orientation="horizontal">
-                  <Button kind="tertiary" size="sm" disabled={busy} onClick={() => setAdoptFor(handle)}>
+                <Stack key={handle} direction="row" spacing={1}>
+                  <Button variant="outlined" size="small" disabled={busy} onClick={() => setAdoptFor(handle)}>
                     Use my existing AORMS ID ({inv.org.name})
                   </Button>
-                  <Button kind="danger--ghost" size="sm" disabled={busy} onClick={() => void handleDecline(handle)}>
+                  <Button
+                    variant="text"
+                    color="error"
+                    size="small"
+                    disabled={busy}
+                    onClick={() => void handleDecline(handle)}
+                  >
                     Decline
                   </Button>
                 </Stack>
@@ -271,87 +298,104 @@ export default function Companies({ me, onChange }: { me: Me; onChange: (m: Me) 
         )}
 
         {me.instantIdEligible && (
-          <ActionableNotification
-            kind="info"
-            lowContrast
-            hideCloseButton
-            inline
-            title="Generate your AORMS ID now"
-            subtitle="Being invited into a company waives the 100-hour requirement — you can mint your permanent identity handle immediately."
-            actionButtonLabel="Generate my AORMS ID"
-            onActionButtonClick={() => void handleInstantId()}
-          />
+          <Alert
+            severity="info"
+            action={
+              <Button color="inherit" size="small" onClick={() => void handleInstantId()}>
+                Generate my AORMS ID
+              </Button>
+            }
+          >
+            <AlertTitle>Generate your AORMS ID now</AlertTitle>
+            Being invited into a company waives the 100-hour requirement — you can mint your
+            permanent identity handle immediately.
+          </Alert>
         )}
 
         {me.memberships.length > 0 ? (
-          <Stack gap={2} orientation="horizontal">
+          <Stack direction="row" spacing={1}>
             {me.memberships.map((m) => (
-              <Tag key={m.org.publicId ?? m.org.slug} type={STATUS_TAG[m.role] ?? "cool-gray"}>
-                {m.org.name} · {m.role}
-              </Tag>
+              <TagChip
+                key={m.org.publicId ?? m.org.slug}
+                color={STATUS_TAG[m.role] ?? "cool-gray"}
+                label={`${m.org.name} · ${m.role}`}
+              />
             ))}
           </Stack>
         ) : (
-          <p>You aren't a member of any company yet — create one or join by its handle.</p>
+          <Typography variant="body2">
+            You aren&apos;t a member of any company yet — create one or join by its handle.
+          </Typography>
         )}
 
-        <Form onSubmit={handleCreate}>
-          <Stack gap={3} orientation="horizontal">
-            <TextInput
+        <Box component="form" onSubmit={handleCreate}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
+            <TextField
               id="co-name"
-              labelText="Create a company"
+              label="Create a company"
               placeholder="Acme Studio"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
-            <TextInput
+            <TextField
               id="co-domain"
-              labelText="Login domain (optional)"
+              label="Login domain (optional)"
               placeholder="acme.in"
               value={domain}
               onChange={(e) => setDomain(e.target.value)}
             />
-            <Button type="submit" kind="tertiary" disabled={busy || name.trim().length < 2}>
+            <Button type="submit" variant="outlined" disabled={busy || name.trim().length < 2}>
               Create
             </Button>
           </Stack>
-        </Form>
+        </Box>
         {ownedOrg && (
-          <Form onSubmit={handleInvite}>
-            <Stack gap={3} orientation="horizontal">
-              <TextInput
+          <Box component="form" onSubmit={handleInvite}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
+              <TextField
                 id="co-invite"
-                labelText={`Invite to ${ownedOrg.name}`}
+                label={`Invite to ${ownedOrg.name}`}
                 placeholder="person@example.in"
                 type="email"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
               />
-              <Button type="submit" kind="tertiary" disabled={busy || !inviteEmail.includes("@")}>
+              <Button type="submit" variant="outlined" disabled={busy || !inviteEmail.includes("@")}>
                 Invite
               </Button>
             </Stack>
-          </Form>
+          </Box>
         )}
 
         {ownedOrg && companyId && (
-          <Stack gap={3}>
+          <Stack spacing={1}>
             {companyId.publicId ? (
-              <p className="esti-label esti-label--secondary">
+              <Typography variant="body2" className="esti-label esti-label--secondary">
                 Company AORMS ID: {companyId.publicId}
-              </p>
+              </Typography>
             ) : (
               <>
-                <ProgressBar
-                  label={`${ownedOrg.name} — company use`}
-                  helperText={`${Math.floor(companyId.minutes / 60)} of ${Math.floor(companyId.requiredMinutes / 60)} hours — the permanent AORMS-C ID unlocks at 100 hours`}
-                  value={Math.min(companyId.minutes, companyId.requiredMinutes)}
-                  max={companyId.requiredMinutes}
-                />
-                <div>
+                <Stack spacing={0.5}>
+                  <Typography variant="body2" className="esti-label">
+                    {`${ownedOrg.name} — company use`}
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={Math.min(
+                      100,
+                      (Math.min(companyId.minutes, companyId.requiredMinutes) /
+                        companyId.requiredMinutes) *
+                        100,
+                    )}
+                  />
+                  <Typography variant="caption" color="text.secondary">
+                    {`${Math.floor(companyId.minutes / 60)} of ${Math.floor(companyId.requiredMinutes / 60)} hours — the permanent AORMS-C ID unlocks at 100 hours`}
+                  </Typography>
+                </Stack>
+                <Box>
                   <Button
-                    size="sm"
-                    kind="tertiary"
+                    size="small"
+                    variant="outlined"
                     disabled={busy || !companyId.eligible}
                     onClick={() => void handleCompanyId()}
                   >
@@ -359,90 +403,100 @@ export default function Companies({ me, onChange }: { me: Me; onChange: (m: Me) 
                       ? "Generate the company AORMS ID"
                       : "Unlocks at 100 hours of company use"}
                   </Button>
-                </div>
+                </Box>
               </>
             )}
           </Stack>
         )}
 
-        <Form onSubmit={handleJoin}>
-          <Stack gap={3} orientation="horizontal">
-            <TextInput
+        <Box component="form" onSubmit={handleJoin}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
+            <TextField
               id="co-join"
-              labelText="Join a company"
+              label="Join a company"
               placeholder="acme.in · AORMS-C-2K4P"
               value={joinHandle}
               onChange={(e) => setJoinHandle(e.target.value)}
             />
-            <Button type="submit" kind="tertiary" disabled={busy || !joinHandle.trim()}>
+            <Button type="submit" variant="outlined" disabled={busy || !joinHandle.trim()}>
               Join
             </Button>
           </Stack>
-        </Form>
+        </Box>
 
         {me.activeOrg && (
-          <div>
-            <Button kind="danger--ghost" size="sm" disabled={busy} onClick={handleLeave}>
+          <Box>
+            <Button variant="text" color="error" size="small" disabled={busy} onClick={handleLeave}>
               Leave {me.activeOrg.name}
             </Button>
-          </div>
+          </Box>
         )}
 
         {note && (
-          <InlineNotification
-            kind={note.kind}
-            title={note.kind === "success" ? "Done" : "Error"}
-            subtitle={note.text}
-            lowContrast
-            onCloseButtonClick={() => setNote(null)}
-          />
+          <Alert severity={note.kind} onClose={() => setNote(null)}>
+            <AlertTitle>{note.kind === "success" ? "Done" : "Error"}</AlertTitle>
+            {note.text}
+          </Alert>
         )}
 
-        <Modal
-          open={adoptFor !== null}
-          modalHeading="Use my existing AORMS ID"
-          modalLabel="AORMS identity"
-          primaryButtonText="Verify & move invitation"
-          secondaryButtonText="Cancel"
-          primaryButtonDisabled={busy || !adoptEmail.includes("@") || adoptPassword.length < 8}
-          onRequestSubmit={(e) => void handleAdopt(e as unknown as React.FormEvent)}
-          onRequestClose={() => setAdoptFor(null)}
-          size="sm"
-        >
-          <Stack gap={5}>
-            <p>
-              Sign in with the account that already holds your AORMS ID. The pending invitation
-              moves onto that identity, and you continue as that account — one ID across every
-              company you work with.
-            </p>
-            <TextInput
-              id="adopt-email"
-              labelText="Existing account email"
-              type="email"
-              value={adoptEmail}
-              onChange={(e) => setAdoptEmail(e.target.value)}
-            />
-            <TextInput
-              id="adopt-password"
-              labelText="Password"
-              type="password"
-              value={adoptPassword}
-              onChange={(e) => setAdoptPassword(e.target.value)}
-            />
-            <TextInput
-              id="adopt-code"
-              labelText="Authenticator code (if enabled)"
-              placeholder="123456"
-              inputMode="numeric"
-              value={adoptCode}
-              onChange={(e) => setAdoptCode(e.target.value)}
-            />
-            {adoptError && (
-              <InlineNotification kind="error" lowContrast hideCloseButton title="Verification failed" subtitle={adoptError} />
-            )}
-          </Stack>
-        </Modal>
+        <Dialog open={adoptFor !== null} onClose={() => setAdoptFor(null)} fullWidth maxWidth="xs">
+          <DialogTitle>Use my existing AORMS ID</DialogTitle>
+          <Box component="form" onSubmit={(e) => void handleAdopt(e)}>
+            <DialogContent>
+              <Stack spacing={2}>
+                <Typography variant="body2">
+                  Sign in with the account that already holds your AORMS ID. The pending invitation
+                  moves onto that identity, and you continue as that account — one ID across every
+                  company you work with.
+                </Typography>
+                <TextField
+                  id="adopt-email"
+                  label="Existing account email"
+                  type="email"
+                  value={adoptEmail}
+                  onChange={(e) => setAdoptEmail(e.target.value)}
+                  fullWidth
+                />
+                <TextField
+                  id="adopt-password"
+                  label="Password"
+                  type="password"
+                  value={adoptPassword}
+                  onChange={(e) => setAdoptPassword(e.target.value)}
+                  fullWidth
+                />
+                <TextField
+                  id="adopt-code"
+                  label="Authenticator code (if enabled)"
+                  placeholder="123456"
+                  slotProps={{ htmlInput: { inputMode: "numeric" } }}
+                  value={adoptCode}
+                  onChange={(e) => setAdoptCode(e.target.value)}
+                  fullWidth
+                />
+                {adoptError && (
+                  <Alert severity="error">
+                    <AlertTitle>Verification failed</AlertTitle>
+                    {adoptError}
+                  </Alert>
+                )}
+              </Stack>
+            </DialogContent>
+            <DialogActions>
+              <Button type="button" variant="text" onClick={() => setAdoptFor(null)}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={busy || !adoptEmail.includes("@") || adoptPassword.length < 8}
+              >
+                Verify &amp; move invitation
+              </Button>
+            </DialogActions>
+          </Box>
+        </Dialog>
       </Stack>
-    </Tile>
+    </Paper>
   );
 }

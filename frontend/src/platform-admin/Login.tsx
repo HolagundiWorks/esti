@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import {
+  Alert,
+  AlertTitle,
+  Box,
   Button,
-  Form,
-  InlineNotification,
+  Chip,
+  Paper,
   Stack,
-  Tag,
-  TextInput,
-  Theme,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import {
   type CompanyResolution,
   type Me,
@@ -32,6 +33,19 @@ const ERRORS: Record<string, string> = {
   register_failed: "Could not create the account. Please try again.",
   request_failed: "Something went wrong. Please try again.",
 };
+
+function TagChip({ color, label }: { color: string; label: string }) {
+  return (
+    <Chip
+      label={label}
+      size="small"
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
 
 /** A product "Create account" redirect adds ?onboard=<PRODUCT> to the panel URL. */
 function onboardProduct(): string | null {
@@ -154,196 +168,207 @@ export default function Login({
   const showCompanyStep = mode === "signin" && step === "company" && !skipCompany;
 
   return (
-    <Theme theme="g100">
-      <main className="esti-login-shell">
-        <div className="esti-login-panel">
-            <Tile>
-              <Stack gap={6}>
-                <Stack gap={2}>
-                  <h2>{portal ? "AORMS Account" : "Holagundi License Cloud"}</h2>
-                  <p>
-                    {product
-                      ? `Create your account to activate ${product}.`
-                      : mode === "register"
-                        ? portal
-                          ? "Create your AORMS account and request a workspace."
-                          : "Create the platform admin account."
-                        : portal
-                          ? showCompanyStep
-                            ? "Sign in — start with your company."
-                            : resolved
-                              ? `Signing in to ${companyLabel(resolved)}.`
-                              : "Sign in to your AORMS account."
-                          : "Sign in to manage licences."}
-                  </p>
-                </Stack>
+    <Box component="main" className="esti-login-shell">
+      <div className="esti-login-panel">
+        <Paper sx={{ p: 3 }}>
+          <Stack spacing={3}>
+            <Stack spacing={1}>
+              <Typography variant="h5" component="h2">
+                {portal ? "AORMS Account" : "Holagundi License Cloud"}
+              </Typography>
+              <Typography variant="body2">
+                {product
+                  ? `Create your account to activate ${product}.`
+                  : mode === "register"
+                    ? portal
+                      ? "Create your AORMS account and request a workspace."
+                      : "Create the platform admin account."
+                    : portal
+                      ? showCompanyStep
+                        ? "Sign in — start with your company."
+                        : resolved
+                          ? `Signing in to ${companyLabel(resolved)}.`
+                          : "Sign in to your AORMS account."
+                      : "Sign in to manage licences."}
+              </Typography>
+            </Stack>
 
-                {showCompanyStep ? (
-                  <Form onSubmit={handleCompany}>
-                    <Stack gap={5}>
-                      <TextInput
-                        id="auth-company"
-                        labelText="Company name, email, or ID"
-                        placeholder="acme.in · you@acme.in · AORMS-C-2K4P"
-                        helperText="Your company's domain, an email at that company, or its AORMS-C ID."
-                        value={company}
-                        onChange={(e) => setCompany(e.target.value)}
-                      />
-                      <Button type="submit" kind="primary" size="lg" disabled={busy || !company}>
-                        Continue
-                      </Button>
-                      <Button
-                        kind="ghost"
-                        size="sm"
-                        onClick={() => {
-                          // Solo / personal accounts have no company to name here —
-                          // sign in with just email + password (unscoped session).
-                          setCompany("");
-                          setResolved(null);
-                          setError(null);
-                          setStep("credentials");
-                        }}
-                      >
-                        No company yet? Sign in with just your email
-                      </Button>
-                    </Stack>
-                  </Form>
-                ) : (
-                  <Form onSubmit={handleSubmit}>
-                    <Stack gap={5}>
-                      <Stack gap={3}>
-                        <Button
-                          kind="tertiary"
-                          onClick={() => {
-                            window.location.href =
-                              "/platform/auth/google/start?return=" + encodeURIComponent("/account");
-                          }}
-                        >
-                          Continue with Google
-                        </Button>
-                        <p className="esti-label esti-label--secondary">or use email</p>
-                      </Stack>
-                      {mode === "signin" && !product && resolved && (
-                        <Stack gap={2} orientation="horizontal">
-                          <Tag type="cool-gray" size="md">
-                            {companyLabel(resolved)}
-                          </Tag>
-                          <Button
-                            kind="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setStep("company");
-                              setError(null);
-                            }}
-                          >
-                            Change
-                          </Button>
-                        </Stack>
-                      )}
-                      {mode === "register" && (
-                        <TextInput
-                          id="auth-name"
-                          labelText="Name (optional)"
-                          autoComplete="name"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                        />
-                      )}
-                      <TextInput
-                        id="auth-email"
-                        type="email"
-                        labelText="Email"
-                        autoComplete="email"
-                        placeholder="you@firm.in"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                      <TextInput
-                        id="auth-password"
-                        type="password"
-                        labelText="Password"
-                        autoComplete={mode === "register" ? "new-password" : "current-password"}
-                        helperText={mode === "register" ? "At least 8 characters." : undefined}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                      />
-                      {mode === "signin" && needCode && (
-                        <TextInput
-                          id="auth-code"
-                          labelText="Authenticator code"
-                          placeholder="123456"
-                          autoComplete="one-time-code"
-                          inputMode="numeric"
-                          helperText="6-digit code from your authenticator app."
-                          value={code}
-                          onChange={(e) => setCode(e.target.value)}
-                        />
-                      )}
-                      <Button
-                        type="submit"
-                        kind="primary"
-                        size="lg"
-                        disabled={busy || !email || !password || (needCode && code.length < 6)}
-                      >
-                        {mode === "register" ? "Create account" : needCode ? "Verify" : "Sign in"}
-                      </Button>
-                    </Stack>
-                  </Form>
-                )}
-
-                {registrationOpen && (
+            {showCompanyStep ? (
+              <Box component="form" onSubmit={handleCompany}>
+                <Stack spacing={2}>
+                  <TextField
+                    id="auth-company"
+                    label="Company name, email, or ID"
+                    placeholder="acme.in · you@acme.in · AORMS-C-2K4P"
+                    helperText="Your company's domain, an email at that company, or its AORMS-C ID."
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    fullWidth
+                  />
+                  <Button type="submit" variant="contained" size="large" disabled={busy || !company}>
+                    Continue
+                  </Button>
                   <Button
-                    kind="ghost"
-                    size="sm"
+                    type="button"
+                    variant="text"
+                    size="small"
                     onClick={() => {
-                      const next = mode === "register" ? "signin" : "register";
-                      setMode(next);
-                      setStep(next === "register" ? "credentials" : "company");
+                      // Solo / personal accounts have no company to name here —
+                      // sign in with just email + password (unscoped session).
+                      setCompany("");
+                      setResolved(null);
                       setError(null);
+                      setStep("credentials");
                     }}
                   >
-                    {mode === "register"
-                      ? "Already have an account? Sign in"
-                      : "Need an account? Create one"}
+                    No company yet? Sign in with just your email
                   </Button>
-                )}
-
-                {onBack && (
-                  <Button kind="ghost" size="sm" onClick={onBack}>
-                    Looking for your AORMS workspace sign-in instead?
-                  </Button>
-                )}
-
-                {error && (
-                  <InlineNotification
-                    kind="error"
-                    title="Sign-in failed"
-                    subtitle={error}
-                    lowContrast
-                    onCloseButtonClick={() => setError(null)}
-                  />
-                )}
-
-                {import.meta.env.DEV && (
-                  <Form onSubmit={handleDev}>
-                    <Stack gap={4}>
-                      <TextInput
-                        id="dev-email"
-                        labelText="Developer sign-in (local only)"
-                        placeholder="you@example.com"
-                        value={devEmail}
-                        onChange={(e) => setDevEmail(e.target.value)}
-                      />
-                      <Button type="submit" kind="tertiary" disabled={busy || !devEmail}>
-                        Dev sign-in
+                </Stack>
+              </Box>
+            ) : (
+              <Box component="form" onSubmit={handleSubmit}>
+                <Stack spacing={2}>
+                  <Stack spacing={1}>
+                    <Button
+                      type="button"
+                      variant="outlined"
+                      onClick={() => {
+                        window.location.href =
+                          "/platform/auth/google/start?return=" + encodeURIComponent("/account");
+                      }}
+                    >
+                      Continue with Google
+                    </Button>
+                    <Typography
+                      variant="body2"
+                      component="p"
+                      className="esti-label esti-label--secondary"
+                    >
+                      or use email
+                    </Typography>
+                  </Stack>
+                  {mode === "signin" && !product && resolved && (
+                    <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                      <TagChip color="cool-gray" label={companyLabel(resolved)} />
+                      <Button
+                        type="button"
+                        variant="text"
+                        size="small"
+                        onClick={() => {
+                          setStep("company");
+                          setError(null);
+                        }}
+                      >
+                        Change
                       </Button>
                     </Stack>
-                  </Form>
-                )}
-              </Stack>
-            </Tile>
-        </div>
-      </main>
-    </Theme>
+                  )}
+                  {mode === "register" && (
+                    <TextField
+                      id="auth-name"
+                      label="Name (optional)"
+                      autoComplete="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      fullWidth
+                    />
+                  )}
+                  <TextField
+                    id="auth-email"
+                    type="email"
+                    label="Email"
+                    autoComplete="email"
+                    placeholder="you@firm.in"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    fullWidth
+                  />
+                  <TextField
+                    id="auth-password"
+                    type="password"
+                    label="Password"
+                    autoComplete={mode === "register" ? "new-password" : "current-password"}
+                    helperText={mode === "register" ? "At least 8 characters." : undefined}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    fullWidth
+                  />
+                  {mode === "signin" && needCode && (
+                    <TextField
+                      id="auth-code"
+                      label="Authenticator code"
+                      placeholder="123456"
+                      autoComplete="one-time-code"
+                      slotProps={{ htmlInput: { inputMode: "numeric" } }}
+                      helperText="6-digit code from your authenticator app."
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      fullWidth
+                    />
+                  )}
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disabled={busy || !email || !password || (needCode && code.length < 6)}
+                  >
+                    {mode === "register" ? "Create account" : needCode ? "Verify" : "Sign in"}
+                  </Button>
+                </Stack>
+              </Box>
+            )}
+
+            {registrationOpen && (
+              <Button
+                type="button"
+                variant="text"
+                size="small"
+                onClick={() => {
+                  const next = mode === "register" ? "signin" : "register";
+                  setMode(next);
+                  setStep(next === "register" ? "credentials" : "company");
+                  setError(null);
+                }}
+              >
+                {mode === "register"
+                  ? "Already have an account? Sign in"
+                  : "Need an account? Create one"}
+              </Button>
+            )}
+
+            {onBack && (
+              <Button type="button" variant="text" size="small" onClick={onBack}>
+                Looking for your AORMS workspace sign-in instead?
+              </Button>
+            )}
+
+            {error && (
+              <Alert severity="error" onClose={() => setError(null)}>
+                <AlertTitle>Sign-in failed</AlertTitle>
+                {error}
+              </Alert>
+            )}
+
+            {import.meta.env.DEV && (
+              <Box component="form" onSubmit={handleDev}>
+                <Stack spacing={2}>
+                  <TextField
+                    id="dev-email"
+                    label="Developer sign-in (local only)"
+                    placeholder="you@example.com"
+                    value={devEmail}
+                    onChange={(e) => setDevEmail(e.target.value)}
+                    fullWidth
+                  />
+                  <Button type="submit" variant="outlined" disabled={busy || !devEmail}>
+                    Dev sign-in
+                  </Button>
+                </Stack>
+              </Box>
+            )}
+          </Stack>
+        </Paper>
+      </div>
+    </Box>
   );
 }

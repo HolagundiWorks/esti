@@ -1,15 +1,30 @@
 import { useState } from "react";
 import {
+  Alert,
+  AlertTitle,
+  Box,
   Button,
-  Form,
-  InlineNotification,
+  Chip,
+  Paper,
   Stack,
-  Tag,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import { QRCodeSVG } from "qrcode.react";
 import { type Me, totpDisable, totpEnable, totpSetup } from "./lib/auth";
+
+function TagChip({ color, label }: { color: string; label: string }) {
+  return (
+    <Chip
+      label={label}
+      size="small"
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
 
 /** Two-factor authenticator (TOTP) enrollment for the signed-in account. */
 export default function Security({ me, onChange }: { me: Me; onChange: () => void }) {
@@ -59,99 +74,118 @@ export default function Security({ me, onChange }: { me: Me; onChange: () => voi
   }
 
   return (
-    <Tile>
-      <Stack gap={5}>
-        <Stack gap={2} orientation="horizontal">
-          <h3 className="esti-label">Two-factor authentication</h3>
-          <Tag type={me.totpEnabled ? "green" : "gray"}>{me.totpEnabled ? "On" : "Off"}</Tag>
+    <Paper sx={{ p: 3 }}>
+      <Stack spacing={2}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <Typography variant="subtitle1" component="h3" className="esti-label">
+            Two-factor authentication
+          </Typography>
+          <TagChip color={me.totpEnabled ? "green" : "gray"} label={me.totpEnabled ? "On" : "Off"} />
         </Stack>
 
         {!me.totpEnabled && !setup && (
           <>
-            <p>Protect this account with an authenticator app (Google Authenticator, Authy, 1Password…).</p>
-            <div>
-              <Button kind="tertiary" disabled={busy} onClick={begin}>
+            <Typography variant="body2">
+              Protect this account with an authenticator app (Google Authenticator, Authy,
+              1Password…).
+            </Typography>
+            <Box>
+              <Button variant="outlined" disabled={busy} onClick={begin}>
                 Enable authenticator
               </Button>
-            </div>
+            </Box>
           </>
         )}
 
         {setup && (
-          <Form onSubmit={confirm}>
-            <Stack gap={4}>
-              <p>
-                Scan this QR with your authenticator app — or enter the secret key manually —
-                then type the 6-digit code to confirm.
-              </p>
+          <Box component="form" onSubmit={confirm}>
+            <Stack spacing={2}>
+              <Typography variant="body2">
+                Scan this QR with your authenticator app — or enter the secret key manually — then
+                type the 6-digit code to confirm.
+              </Typography>
               <QRCodeSVG value={setup.otpauthUrl} size={180} marginSize={4} />
-              <TextInput
+              <TextField
                 id="totp-secret"
-                labelText="Secret key"
+                label="Secret key"
                 value={setup.secret}
-                readOnly
+                slotProps={{ input: { readOnly: true } }}
                 helperText="Enter this in your app if you can't scan the QR."
+                fullWidth
               />
-              <TextInput id="totp-uri" labelText="otpauth URI" value={setup.otpauthUrl} readOnly />
-              <TextInput
+              <TextField
+                id="totp-uri"
+                label="otpauth URI"
+                value={setup.otpauthUrl}
+                slotProps={{ input: { readOnly: true } }}
+                fullWidth
+              />
+              <TextField
                 id="totp-confirm"
-                labelText="6-digit code"
+                label="6-digit code"
                 placeholder="123456"
-                inputMode="numeric"
+                slotProps={{ htmlInput: { inputMode: "numeric" } }}
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
+                fullWidth
               />
-              <Stack gap={3} orientation="horizontal">
-                <Button type="submit" kind="primary" disabled={busy || code.length < 6}>
+              <Stack direction="row" spacing={1}>
+                <Button type="submit" variant="contained" disabled={busy || code.length < 6}>
                   Confirm
                 </Button>
-                <Button kind="ghost" onClick={() => setSetup(null)}>
+                <Button type="button" variant="text" onClick={() => setSetup(null)}>
                   Cancel
                 </Button>
               </Stack>
             </Stack>
-          </Form>
+          </Box>
         )}
 
         {me.totpEnabled && !disabling && (
-          <div>
-            <Button kind="danger--ghost" size="sm" onClick={() => { setDisabling(true); setCode(""); setNote(null); }}>
+          <Box>
+            <Button
+              variant="text"
+              color="error"
+              size="small"
+              onClick={() => {
+                setDisabling(true);
+                setCode("");
+                setNote(null);
+              }}
+            >
               Disable
             </Button>
-          </div>
+          </Box>
         )}
 
         {me.totpEnabled && disabling && (
-          <Form onSubmit={turnOff}>
-            <Stack gap={3} orientation="horizontal">
-              <TextInput
+          <Box component="form" onSubmit={turnOff}>
+            <Stack direction="row" spacing={1}>
+              <TextField
                 id="totp-off"
-                labelText="Current code to disable"
+                label="Current code to disable"
                 placeholder="123456"
-                inputMode="numeric"
+                slotProps={{ htmlInput: { inputMode: "numeric" } }}
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
               />
-              <Button type="submit" kind="danger" disabled={busy || code.length < 6}>
+              <Button type="submit" variant="contained" color="error" disabled={busy || code.length < 6}>
                 Confirm disable
               </Button>
-              <Button kind="ghost" onClick={() => setDisabling(false)}>
+              <Button type="button" variant="text" onClick={() => setDisabling(false)}>
                 Cancel
               </Button>
             </Stack>
-          </Form>
+          </Box>
         )}
 
         {note && (
-          <InlineNotification
-            kind={note.kind}
-            title={note.kind === "success" ? "Done" : "Error"}
-            subtitle={note.text}
-            lowContrast
-            onCloseButtonClick={() => setNote(null)}
-          />
+          <Alert severity={note.kind} onClose={() => setNote(null)}>
+            <AlertTitle>{note.kind === "success" ? "Done" : "Error"}</AlertTitle>
+            {note.text}
+          </Alert>
         )}
       </Stack>
-    </Tile>
+    </Paper>
   );
 }
