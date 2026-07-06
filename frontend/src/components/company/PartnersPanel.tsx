@@ -1,18 +1,18 @@
 import {
+  Box,
   Button,
-  Select,
-  SelectItem,
+  MenuItem,
+  Paper,
   Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableHeader,
   TableRow,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import { STATES, districtsFor } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../../lib/trpc.js";
@@ -52,18 +52,19 @@ export function Partners({ isOwner }: { isOwner: boolean }) {
   const districts = districtsFor(p.state);
 
   return (
-    <Stack gap={6}>
-      <h2>Partners</h2>
-      <TableContainer title="Partner register">
-        <Table>
+    <Stack spacing={3}>
+      <Typography variant="h5" component="h2">Partners</Typography>
+      <TableContainer component={Paper} sx={{ p: 2 }}>
+        <Typography variant="h6" component="h3" sx={{ mb: 1 }}>Partner register</Typography>
+        <Table size="small">
           <TableHead>
             <TableRow>
-              <TableHeader>Name</TableHeader>
-              <TableHeader>COA no</TableHeader>
-              <TableHeader>PAN</TableHeader>
-              <TableHeader>DIN</TableHeader>
-              <TableHeader>Email</TableHeader>
-              <TableHeader></TableHeader>
+              <TableCell>Name</TableCell>
+              <TableCell>COA no</TableCell>
+              <TableCell>PAN</TableCell>
+              <TableCell>DIN</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -77,8 +78,8 @@ export function Partners({ isOwner }: { isOwner: boolean }) {
                 <TableCell>
                   {isOwner && (
                     <Button
-                      kind="ghost"
-                      size="sm"
+                      variant="text"
+                      size="small"
                       onClick={() => remove.mutate({ id: row.id })}
                     >
                       Remove
@@ -92,117 +93,132 @@ export function Partners({ isOwner }: { isOwner: boolean }) {
       </TableContainer>
 
       {isOwner && (
-        <Tile style={{ maxWidth: 760 }}>
-          <Stack gap={5}>
-            <h3>Add partner</h3>
-            <Stack orientation="horizontal" gap={5}>
-              <TextInput
+        <Paper sx={{ p: 3, maxWidth: 760 }}>
+          <Stack spacing={2}>
+            <Typography variant="h6" component="h3">Add partner</Typography>
+            <Stack direction="row" spacing={2}>
+              <TextField
                 id="pt-name"
-                labelText="Name"
+                label="Name"
                 value={p.name}
                 onChange={(e) => setP((x) => ({ ...x, name: e.target.value }))}
+                fullWidth
               />
-              <TextInput
+              <TextField
                 id="pt-coa"
-                labelText="COA no"
+                label="COA no"
                 value={p.coaRegNo}
                 onChange={(e) =>
                   setP((x) => ({ ...x, coaRegNo: e.target.value }))
                 }
+                fullWidth
               />
-              <TextInput
+              <TextField
                 id="pt-pan"
-                labelText="PAN"
+                label="PAN"
                 value={p.pan}
                 onChange={(e) => setP((x) => ({ ...x, pan: e.target.value }))}
+                fullWidth
               />
-              <TextInput
+              <TextField
                 id="pt-din"
-                labelText="DIN"
+                label="DIN"
                 value={p.din}
                 onChange={(e) => setP((x) => ({ ...x, din: e.target.value }))}
+                fullWidth
               />
             </Stack>
-            <Stack orientation="horizontal" gap={5}>
-              <TextInput
+            <Stack direction="row" spacing={2}>
+              <TextField
                 id="pt-email"
-                labelText="Email"
+                label="Email"
                 type="email"
                 value={p.email}
                 onChange={(e) => setP((x) => ({ ...x, email: e.target.value }))}
+                fullWidth
               />
-              <TextInput
+              <TextField
                 id="pt-phone"
-                labelText="Phone"
+                label="Phone"
                 value={p.phone1}
                 onChange={(e) =>
                   setP((x) => ({ ...x, phone1: e.target.value }))
                 }
+                fullWidth
               />
-              <TextInput
+              <TextField
                 id="pt-city"
-                labelText="City"
+                label="City"
                 value={p.city}
                 onChange={(e) => setP((x) => ({ ...x, city: e.target.value }))}
+                fullWidth
               />
-              <Select
+              <TextField
                 id="pt-state"
-                labelText="State"
+                select
+                label="State"
                 value={p.state}
                 onChange={(e) =>
                   setP((x) => ({ ...x, state: e.target.value, district: "" }))
                 }
+                fullWidth
               >
                 {STATES.map((s) => (
-                  <SelectItem key={s} value={s} text={s} />
+                  <MenuItem key={s} value={s}>{s}</MenuItem>
                 ))}
-              </Select>
+              </TextField>
               {districts.length > 0 ? (
-                <Select
+                <TextField
                   id="pt-dist"
-                  labelText="District"
+                  select
+                  label="District"
                   value={p.district}
                   onChange={(e) =>
                     setP((x) => ({ ...x, district: e.target.value }))
                   }
+                  fullWidth
                 >
-                  <SelectItem value="" text="Select…" />
+                  <MenuItem value="">Select…</MenuItem>
                   {districts.map((d) => (
-                    <SelectItem key={d} value={d} text={d} />
+                    <MenuItem key={d} value={d}>{d}</MenuItem>
                   ))}
-                </Select>
+                </TextField>
               ) : (
-                <TextInput
+                <TextField
                   id="pt-dist"
-                  labelText="District"
+                  label="District"
                   value={p.district}
                   onChange={(e) =>
                     setP((x) => ({ ...x, district: e.target.value }))
                   }
+                  fullWidth
                 />
               )}
             </Stack>
-            <Button
-              disabled={!p.name || add.isPending}
-              onClick={() =>
-                add.mutate({
-                  name: p.name,
-                  coaRegNo: p.coaRegNo,
-                  pan: p.pan,
-                  din: p.din,
-                  email: p.email,
-                  phone1Type: "MOBILE",
-                  phone1: p.phone1,
-                  city: p.city,
-                  state: p.state,
-                  district: p.district,
-                })
-              }
-            >
-              {add.isPending ? "Adding…" : "Add partner"}
-            </Button>
+            <Box>
+              <Button
+                variant="contained"
+                disabled={!p.name || add.isPending}
+                onClick={() =>
+                  add.mutate({
+                    name: p.name,
+                    coaRegNo: p.coaRegNo,
+                    pan: p.pan,
+                    din: p.din,
+                    email: p.email,
+                    phone1Type: "MOBILE",
+                    phone1: p.phone1,
+                    city: p.city,
+                    state: p.state,
+                    district: p.district,
+                  })
+                }
+              >
+                {add.isPending ? "Adding…" : "Add partner"}
+              </Button>
+            </Box>
           </Stack>
-        </Tile>
+        </Paper>
       )}
     </Stack>
   );

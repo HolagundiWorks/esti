@@ -1,9 +1,12 @@
 /**
  * Shared Carbon-spec Gantt layout
  * (https://carbondesignsystem.com/data-visualization/gantt-charts/).
+ * Presentation migrated to Material UI; the custom bar/track rendering and
+ * `--cds-*` token colours are unchanged.
  */
-import { ChevronDown, ChevronRight } from "@carbon/icons-react";
-import { IconButton, Stack, Tag, Tile } from "@carbon/react";
+import ExpandMore from "@mui/icons-material/ExpandMore";
+import ChevronRight from "@mui/icons-material/ChevronRight";
+import { Chip, IconButton, Paper, Stack } from "@mui/material";
 import type { ReactNode } from "react";
 
 export type GanttChartRow = {
@@ -21,6 +24,11 @@ export type GanttChartRow = {
   indent?: boolean;
   expandable?: { expanded: boolean; onToggle: () => void };
 };
+
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 const BAR_COLORS = [
   "var(--cds-support-info)",
@@ -81,9 +89,9 @@ export function GanttChart({
 }) {
   if (rows.length === 0) {
     return (
-      <Tile className="esti-gantt esti-gantt--empty">
+      <Paper className="esti-gantt esti-gantt--empty">
         <p>{emptyMessage}</p>
-      </Tile>
+      </Paper>
     );
   }
 
@@ -102,7 +110,7 @@ export function GanttChart({
   }
 
   return (
-    <Stack gap={4}>
+    <Stack spacing={1.5}>
       {intro}
       <div className="esti-gantt" role="region" aria-label={ariaLabel}>
         <div className="esti-gantt__header">
@@ -136,20 +144,19 @@ export function GanttChart({
                 className={`esti-gantt__row${row.indent ? " esti-gantt__row--child" : ""}`}
               >
                 <div className="esti-gantt__card-col">
-                  <Tile className={`esti-gantt__card${row.indent ? " esti-gantt__card--sub" : ""}`}>
+                  <Paper className={`esti-gantt__card${row.indent ? " esti-gantt__card--sub" : ""}`}>
                     <div className="esti-gantt__card-inner">
                       {row.expandable ? (
                         <IconButton
-                          kind="ghost"
-                          size="sm"
+                          size="small"
                           className="esti-gantt__expand"
-                          label={row.expandable.expanded ? "Collapse row" : "Expand row"}
+                          aria-label={row.expandable.expanded ? "Collapse row" : "Expand row"}
                           aria-expanded={row.expandable.expanded}
                           onClick={row.expandable.onToggle}
                         >
                           {row.expandable.expanded ?
-                            <ChevronDown size={16} />
-                          : <ChevronRight size={16} />}
+                            <ExpandMore sx={{ fontSize: 16 }} />
+                          : <ChevronRight sx={{ fontSize: 16 }} />}
                         </IconButton>
                       ) : (
                         <span className="esti-gantt__expand esti-gantt__expand--spacer" aria-hidden />
@@ -157,16 +164,14 @@ export function GanttChart({
                       <div className="esti-gantt__card-text">
                         <div className="esti-gantt__card-title">
                           {row.tag && (
-                            <Tag type={row.tag.type} size="sm">
-                              {row.tag.text}
-                            </Tag>
+                            <Chip size="small" label={row.tag.text} sx={chipSx(row.tag.type)} />
                           )}
                           <span>{row.label}</span>
                         </div>
                         <p className="esti-gantt__card-meta">{row.meta}</p>
                       </div>
                     </div>
-                  </Tile>
+                  </Paper>
                 </div>
                 <div className="esti-gantt__timeline-col">
                   <div className="esti-gantt__track" aria-hidden>

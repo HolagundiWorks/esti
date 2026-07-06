@@ -1,11 +1,13 @@
-import { Close, Send } from "@carbon/icons-react";
+import Close from "@mui/icons-material/Close";
+import Send from "@mui/icons-material/Send";
 import {
-  Button,
-  InlineLoading,
+  CircularProgress,
+  IconButton,
+  Paper,
   Stack,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
@@ -90,7 +92,7 @@ export function AiAgentCommand() {
     generate.mutate({ kind: "SUMMARY", mode: "agent", projectId, prompt });
   }
 
-  function handleInputKey(e: KeyboardEvent<HTMLInputElement>) {
+  function handleInputKey(e: KeyboardEvent<HTMLDivElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       submit();
@@ -118,14 +120,16 @@ export function AiAgentCommand() {
           aria-modal
           aria-label="Ask ESTI"
         >
-          <Stack gap={5}>
-            <Stack orientation="horizontal" gap={4} className="esti-landing-ai__cmd-input-row">
-              <TextInput
-                ref={inputRef}
+          <Stack spacing={2}>
+            <Stack
+              direction="row"
+              spacing={1.5}
+              className="esti-landing-ai__cmd-input-row"
+              sx={{ alignItems: "center" }}
+            >
+              <TextField
+                inputRef={inputRef}
                 id="esti-agent-command"
-                labelText=""
-                hideLabel
-                size="lg"
                 className="esti-grow"
                 placeholder={
                   projectId
@@ -137,36 +141,35 @@ export function AiAgentCommand() {
                 onKeyDown={handleInputKey}
                 disabled={generate.isPending || settingsQ.isLoading}
               />
-              <Button
-                kind="primary"
-                size="lg"
-                renderIcon={Send}
-                iconDescription="Send"
-                hasIconOnly
+              <IconButton
+                color="primary"
+                aria-label="Send"
                 onClick={() => submit()}
                 disabled={!input.trim() || generate.isPending}
-              />
-              <Button
-                kind="ghost"
-                size="lg"
-                renderIcon={Close}
-                iconDescription="Close"
-                hasIconOnly
-                onClick={() => setOpen(false)}
-              />
+              >
+                <Send />
+              </IconButton>
+              <IconButton aria-label="Close" onClick={() => setOpen(false)}>
+                <Close />
+              </IconButton>
             </Stack>
 
             {(turns.length > 0 || generate.isPending) && (
-              <Stack gap={3} className="esti-landing-ai__thread">
+              <Stack spacing={1} className="esti-landing-ai__thread">
                 {turns.map((t, i) => (
-                  <Tile key={`${t.role}-${i}`} className="esti-landing-ai__turn">
-                    <p className="esti-landing-eyebrow">
+                  <Paper key={`${t.role}-${i}`} className="esti-landing-ai__turn" sx={{ p: 2 }}>
+                    <Typography component="p" className="esti-landing-eyebrow">
                       {t.role === "user" ? "You" : "ESTI"}
-                    </p>
-                    <p>{t.text}</p>
-                  </Tile>
+                    </Typography>
+                    <Typography variant="body2" component="p">{t.text}</Typography>
+                  </Paper>
                 ))}
-                {generate.isPending && <InlineLoading description="Thinking…" />}
+                {generate.isPending && (
+                  <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                    <CircularProgress size={16} />
+                    <Typography variant="body2">Thinking…</Typography>
+                  </Stack>
+                )}
                 <div ref={endRef} />
               </Stack>
             )}
@@ -181,15 +184,14 @@ export function AiAgentCommand() {
       )}
 
       <div className="esti-landing-ai">
-        <Button
-          kind="ghost"
+        <IconButton
           className="esti-landing-ai__fab"
           onClick={() => setOpen((o) => !o)}
           aria-label={open ? "Close ESTI" : "Ask ESTI (Alt+A)"}
           aria-expanded={open}
         >
           {open ? (
-            <Close size={20} aria-hidden />
+            <Close sx={{ fontSize: 20 }} aria-hidden />
           ) : (
             <img
               src="/esti-logo.png"
@@ -198,7 +200,7 @@ export function AiAgentCommand() {
               className="esti-landing-ai__fab-logo"
             />
           )}
-        </Button>
+        </IconButton>
       </div>
     </>
   );

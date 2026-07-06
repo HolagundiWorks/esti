@@ -1,22 +1,22 @@
 import {
+  Alert,
+  AlertTitle,
+  Box,
   Button,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  MenuItem,
+  Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextInput,
-  Tile,
-  Toggle,
-} from "@carbon/react";
+  Switch,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
   EXPENSE_BILLING_CLASS_LABEL,
   EXPENSE_CATEGORY_LABEL,
@@ -38,6 +38,13 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red" | "teal"> = {
   CLOSED: "green",
   REJECTED: "red",
 };
+
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
+
+const shrink = { slotProps: { inputLabel: { shrink: true } } } as const;
 
 type Filter = "ALL" | "BILLABLE" | "NON_BILLABLE" | "PENDING_RECOVERY";
 
@@ -104,40 +111,127 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
 
   const amountPaise = Math.round(parseFloat(form.amount || "0") * 100);
 
+  const columns: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 0.8, minWidth: 110 },
+    { field: "expenseDate", headerName: "Date", flex: 0.8, minWidth: 110 },
+    {
+      field: "category",
+      headerName: "Category",
+      flex: 1,
+      minWidth: 120,
+      renderCell: (p) =>
+        EXPENSE_CATEGORY_LABEL[p.row.category as keyof typeof EXPENSE_CATEGORY_LABEL] ?? p.row.category,
+    },
+    {
+      field: "billingClass",
+      headerName: "Billing",
+      flex: 1,
+      minWidth: 110,
+      renderCell: (p) =>
+        EXPENSE_BILLING_CLASS_LABEL[p.row.billingClass as keyof typeof EXPENSE_BILLING_CLASS_LABEL] ??
+        p.row.billingClass,
+    },
+    {
+      field: "amountPaise",
+      headerName: "Amount",
+      flex: 0.8,
+      minWidth: 110,
+      renderCell: (p) => formatINR(p.row.amountPaise),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.9,
+      minWidth: 110,
+      renderCell: (p) => (
+        <Chip
+          size="small"
+          sx={chipSx(STATUS_TAG[p.row.status] ?? "gray")}
+          label={EXPENSE_STATUS_LABEL[p.row.status as keyof typeof EXPENSE_STATUS_LABEL] ?? p.row.status}
+        />
+      ),
+    },
+    {
+      field: "recoveryStatus",
+      headerName: "Recovery",
+      flex: 1,
+      minWidth: 120,
+      renderCell: (p) =>
+        EXPENSE_RECOVERY_STATUS_LABEL[
+          p.row.recoveryStatus as keyof typeof EXPENSE_RECOVERY_STATUS_LABEL
+        ] ?? p.row.recoveryStatus,
+    },
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      flex: 1,
+      minWidth: 150,
+      renderCell: (p) => (
+        <>
+          {canManage && p.row.status === "DRAFT" && (
+            <Button variant="text" size="small" onClick={() => submit.mutate({ id: p.row.id })}>
+              Submit
+            </Button>
+          )}
+          {canAudit && p.row.status === "SUBMITTED" && (
+            <Button variant="text" size="small" onClick={() => audit.mutate({ id: p.row.id, approved: true })}>
+              Audit
+            </Button>
+          )}
+          {canAudit && p.row.status === "AUDITED" && (
+            <Button variant="text" size="small" onClick={() => close.mutate({ id: p.row.id })}>
+              Close
+            </Button>
+          )}
+          {canAudit &&
+            p.row.status === "CLOSED" &&
+            p.row.billingClass === "BILLABLE" &&
+            p.row.recoveryStatus === "PENDING" && (
+              <Button variant="text" size="small" onClick={() => setRecoverId(p.row.id)}>
+                Mark recovered
+              </Button>
+            )}
+        </>
+      ),
+    },
+  ];
+
   return (
-    <div style={{ marginTop: "var(--cds-spacing-06)" }}>
-      <h4>Project expenses</h4>
+    <Box sx={{ mt: 3 }}>
+      <Typography variant="h6" component="h4">Project expenses</Typography>
       <p>Site travel, food, accommodation, and misc — tracked separately from client GST invoices.</p>
 
       {summaryQ.data && (
-        <div style={{ display: "flex", gap: "var(--cds-spacing-04)", flexWrap: "wrap", margin: "var(--cds-spacing-05) 0" }}>
-          <Tile style={{ minWidth: 180 }}>
+        <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", my: 2 }}>
+          <Paper sx={{ minWidth: 180, p: 2 }}>
             <div>Non-billable spend</div>
             <strong>{formatINR(summaryQ.data.nonBillablePaise)}</strong>
-          </Tile>
-          <Tile style={{ minWidth: 180 }}>
+          </Paper>
+          <Paper sx={{ minWidth: 180, p: 2 }}>
             <div>Billable (pending recovery)</div>
             <strong>{formatINR(summaryQ.data.billablePendingPaise)}</strong>
-          </Tile>
-          <Tile style={{ minWidth: 180 }}>
+          </Paper>
+          <Paper sx={{ minWidth: 180, p: 2 }}>
             <div>Billable (recovered)</div>
             <strong>{formatINR(summaryQ.data.billableRecoveredPaise)}</strong>
-          </Tile>
+          </Paper>
           {summaryQ.data.contractValuePaise > 0 && (
-            <Tile style={{ minWidth: 180 }}>
+            <Paper sx={{ minWidth: 180, p: 2 }}>
               <div>Contract value (info)</div>
               <strong>{formatINR(summaryQ.data.contractValuePaise)}</strong>
-            </Tile>
+            </Paper>
           )}
-        </div>
+        </Box>
       )}
 
-      <Stack orientation="horizontal" gap={3} style={{ marginBottom: "var(--cds-spacing-04)" }}>
+      <Stack direction="row" spacing={1} sx={{ mb: 1.5 }}>
         {(["ALL", "BILLABLE", "NON_BILLABLE", "PENDING_RECOVERY"] as const).map((f) => (
           <Button
             key={f}
-            kind={filter === f ? "primary" : "tertiary"}
-            size="sm"
+            variant={filter === f ? "contained" : "outlined"}
+            size="small"
             onClick={() => setFilter(f)}
           >
             {f === "ALL"
@@ -148,179 +242,151 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
           </Button>
         ))}
         {canManage && (
-          <Button size="sm" onClick={() => setOpen(true)}>
+          <Button size="small" variant="contained" onClick={() => setOpen(true)}>
             New expense
           </Button>
         )}
       </Stack>
 
-      <TableContainer>
-        <Table size="sm">
-          <TableHead>
-            <TableRow>
-              <TableHeader>Ref</TableHeader>
-              <TableHeader>Date</TableHeader>
-              <TableHeader>Category</TableHeader>
-              <TableHeader>Billing</TableHeader>
-              <TableHeader>Amount</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Recovery</TableHeader>
-              <TableHeader></TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(listQ.data ?? []).map((r) => (
-              <TableRow key={r.id}>
-                <TableCell>{r.ref}</TableCell>
-                <TableCell>{r.expenseDate}</TableCell>
-                <TableCell>
-                  {EXPENSE_CATEGORY_LABEL[r.category as keyof typeof EXPENSE_CATEGORY_LABEL] ?? r.category}
-                </TableCell>
-                <TableCell>
-                  {EXPENSE_BILLING_CLASS_LABEL[r.billingClass as keyof typeof EXPENSE_BILLING_CLASS_LABEL] ??
-                    r.billingClass}
-                </TableCell>
-                <TableCell>{formatINR(r.amountPaise)}</TableCell>
-                <TableCell>
-                  <Tag type={STATUS_TAG[r.status] ?? "gray"} size="sm">
-                    {EXPENSE_STATUS_LABEL[r.status as keyof typeof EXPENSE_STATUS_LABEL] ?? r.status}
-                  </Tag>
-                </TableCell>
-                <TableCell>
-                  {EXPENSE_RECOVERY_STATUS_LABEL[r.recoveryStatus as keyof typeof EXPENSE_RECOVERY_STATUS_LABEL] ??
-                    r.recoveryStatus}
-                </TableCell>
-                <TableCell>
-                  {canManage && r.status === "DRAFT" && (
-                    <Button kind="ghost" size="sm" onClick={() => submit.mutate({ id: r.id })}>
-                      Submit
-                    </Button>
-                  )}
-                  {canAudit && r.status === "SUBMITTED" && (
-                    <Button kind="ghost" size="sm" onClick={() => audit.mutate({ id: r.id, approved: true })}>
-                      Audit
-                    </Button>
-                  )}
-                  {canAudit && r.status === "AUDITED" && (
-                    <Button kind="ghost" size="sm" onClick={() => close.mutate({ id: r.id })}>
-                      Close
-                    </Button>
-                  )}
-                  {canAudit &&
-                    r.status === "CLOSED" &&
-                    r.billingClass === "BILLABLE" &&
-                    r.recoveryStatus === "PENDING" && (
-                      <Button kind="ghost" size="sm" onClick={() => setRecoverId(r.id)}>
-                        Mark recovered
-                      </Button>
-                    )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <DataGrid
+        rows={listQ.data ?? []}
+        columns={columns}
+        density="compact"
+        disableRowSelectionOnClick
+        hideFooter
+        autoHeight
+      />
 
-      <Modal
-        open={open}
-        modalHeading="New project expense"
-        primaryButtonText={create.isPending ? "Saving…" : "Save draft"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={create.isPending || !amountPaise}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            scope: "PROJECT",
-            projectId,
-            category: form.category as (typeof ExpenseCategory.options)[number],
-            paymentMethod: (form.cashVoucher ? "CASH" : form.paymentMethod) as (typeof ExpensePaymentMethod.options)[number],
-            amountPaise,
-            expenseDate: form.expenseDate,
-            payee: form.payee || undefined,
-            description: form.description || undefined,
-            billingClass: form.billable ? "BILLABLE" : "NON_BILLABLE",
-          })
-        }
-      >
-        <Stack gap={5}>
-          <Select
-            id="pe-cat"
-            labelText="Category"
-            value={form.category}
-            onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>New project expense</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="pe-cat"
+              select
+              label="Category"
+              value={form.category}
+              onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+              fullWidth
+            >
+              {ExpenseCategory.options.map((c) => (
+                <MenuItem key={c} value={c}>
+                  {EXPENSE_CATEGORY_LABEL[c]}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="pe-amt"
+              label="Amount (₹)"
+              type="number"
+              value={form.amount}
+              onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
+              fullWidth
+            />
+            <TextField
+              id="pe-date"
+              label="Expense date"
+              type="date"
+              value={form.expenseDate}
+              onChange={(e) => setForm((f) => ({ ...f, expenseDate: e.target.value }))}
+              fullWidth
+              {...shrink}
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  id="pe-billable"
+                  checked={form.billable}
+                  onChange={(e) => setForm((f) => ({ ...f, billable: e.target.checked }))}
+                />
+              }
+              label="Client-recoverable (billable)"
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  id="pe-cash"
+                  checked={form.cashVoucher}
+                  onChange={(e) => setForm((f) => ({ ...f, cashVoucher: e.target.checked }))}
+                />
+              }
+              label="Cash voucher"
+            />
+            {create.error && (
+              <Alert severity="error">
+                <AlertTitle>Error</AlertTitle>
+                {create.error.message}
+              </Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={create.isPending || !amountPaise}
+            onClick={() =>
+              create.mutate({
+                scope: "PROJECT",
+                projectId,
+                category: form.category as (typeof ExpenseCategory.options)[number],
+                paymentMethod: (form.cashVoucher ? "CASH" : form.paymentMethod) as (typeof ExpensePaymentMethod.options)[number],
+                amountPaise,
+                expenseDate: form.expenseDate,
+                payee: form.payee || undefined,
+                description: form.description || undefined,
+                billingClass: form.billable ? "BILLABLE" : "NON_BILLABLE",
+              })
+            }
           >
-            {ExpenseCategory.options.map((c) => (
-              <SelectItem key={c} value={c} text={EXPENSE_CATEGORY_LABEL[c]} />
-            ))}
-          </Select>
-          <TextInput
-            id="pe-amt"
-            labelText="Amount (₹)"
-            type="number"
-            value={form.amount}
-            onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
-          />
-          <TextInput
-            id="pe-date"
-            labelText="Expense date"
-            type="date"
-            value={form.expenseDate}
-            onChange={(e) => setForm((f) => ({ ...f, expenseDate: e.target.value }))}
-          />
-          <Toggle
-            id="pe-billable"
-            labelText="Client-recoverable (billable)"
-            labelA="Non-billable"
-            labelB="Billable"
-            toggled={form.billable}
-            onToggle={(checked) => setForm((f) => ({ ...f, billable: checked }))}
-          />
-          <Toggle
-            id="pe-cash"
-            labelText="Cash voucher"
-            labelA="No"
-            labelB="Yes"
-            toggled={form.cashVoucher}
-            onToggle={(checked) => setForm((f) => ({ ...f, cashVoucher: checked }))}
-          />
-          {create.error && (
-            <InlineNotification kind="error" lowContrast title="Error" subtitle={create.error.message} />
-          )}
-        </Stack>
-      </Modal>
+            {create.isPending ? "Saving…" : "Save draft"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      <Modal
-        open={!!recoverId}
-        modalHeading="Mark billable expense recovered"
-        primaryButtonText="Mark invoiced"
-        secondaryButtonText="Cancel"
-        onRequestClose={() => setRecoverId(null)}
-        onRequestSubmit={() => {
-          if (!recoverId) return;
-          markRecovered.mutate({
-            id: recoverId,
-            recoveryStatus: "INVOICED",
-          });
-        }}
-      >
-        <p>Link to a client invoice ref manually in v1, or mark as recovered once absorbed into a GST invoice.</p>
-        <TextInput
-          id="pe-inv"
-          labelText="Invoice ref (optional note)"
-          value={invoiceRef}
-          onChange={(e) => setInvoiceRef(e.target.value)}
-        />
-        <Button
-          kind="danger--ghost"
-          style={{ marginTop: "var(--cds-spacing-04)" }}
-          onClick={() =>
-            recoverId &&
-            markRecovered.mutate({ id: recoverId, recoveryStatus: "WRITTEN_OFF" })
-          }
-        >
-          Write off instead
-        </Button>
-      </Modal>
-    </div>
+      <Dialog open={!!recoverId} onClose={() => setRecoverId(null)} fullWidth maxWidth="xs">
+        <DialogTitle>Mark billable expense recovered</DialogTitle>
+        <DialogContent>
+          <p>Link to a client invoice ref manually in v1, or mark as recovered once absorbed into a GST invoice.</p>
+          <TextField
+            id="pe-inv"
+            label="Invoice ref (optional note)"
+            value={invoiceRef}
+            onChange={(e) => setInvoiceRef(e.target.value)}
+            fullWidth
+          />
+          <Button
+            variant="text"
+            color="error"
+            sx={{ mt: 1.5 }}
+            onClick={() =>
+              recoverId &&
+              markRecovered.mutate({ id: recoverId, recoveryStatus: "WRITTEN_OFF" })
+            }
+          >
+            Write off instead
+          </Button>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setRecoverId(null)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              if (!recoverId) return;
+              markRecovered.mutate({
+                id: recoverId,
+                recoveryStatus: "INVOICED",
+              });
+            }}
+          >
+            Mark invoiced
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }

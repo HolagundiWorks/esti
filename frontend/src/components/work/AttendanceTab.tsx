@@ -1,18 +1,13 @@
 import {
   Button,
-  Select,
-  SelectItem,
+  Chip,
+  MenuItem,
+  Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
   ATTENDANCE_STATUS,
   type AttendanceStatusCode,
@@ -29,6 +24,11 @@ const STATUS_TAG: Record<AttendanceStatusCode, "green" | "red" | "blue" | "teal"
   WFH: "blue",
   ON_LEAVE: "gray",
 };
+
+const tagSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 export function AttendanceTab() {
   const utils = trpc.useUtils();
@@ -60,18 +60,89 @@ export function AttendanceTab() {
 
   const rows = registerQ.data?.rows ?? [];
 
+  const statusFor = (teamMemberId: string, rowStatus: string | null | undefined): AttendanceStatusCode =>
+    draft[teamMemberId] ?? (rowStatus as AttendanceStatusCode | undefined) ?? "PRESENT";
+
+  const columns: GridColDef[] = [
+    { field: "memberName", headerName: "Member", flex: 1.2, minWidth: 160 },
+    { field: "memberRole", headerName: "Role", flex: 1, minWidth: 120 },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 1,
+      minWidth: 170,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) => {
+        const status = statusFor(p.row.teamMemberId as string, p.row.status as string | null);
+        return (
+          <TextField
+            id={`att-${p.row.teamMemberId}`}
+            select
+            size="small"
+            sx={{ minWidth: 150 }}
+            value={status}
+            onChange={(e) =>
+              setDraft((d) => ({
+                ...d,
+                [p.row.teamMemberId as string]: e.target.value as AttendanceStatusCode,
+              }))
+            }
+            slotProps={{ htmlInput: { "aria-label": "Status" } }}
+          >
+            {(Object.keys(ATTENDANCE_STATUS) as AttendanceStatusCode[]).map((k) => (
+              <MenuItem key={k} value={k}>{ATTENDANCE_STATUS[k]}</MenuItem>
+            ))}
+          </TextField>
+        );
+      },
+    },
+    {
+      field: "actions",
+      headerName: "",
+      flex: 1,
+      minWidth: 190,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) => {
+        const status = statusFor(p.row.teamMemberId as string, p.row.status as string | null);
+        return (
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+            <Chip size="small" label={ATTENDANCE_STATUS[status]} sx={tagSx(STATUS_TAG[status])} />
+            <Button
+              variant="text"
+              size="small"
+              disabled={mark.isPending}
+              onClick={() =>
+                mark.mutate({
+                  teamMemberId: p.row.teamMemberId as string,
+                  attendanceDate: date,
+                  status,
+                })
+              }
+            >
+              Save
+            </Button>
+          </Stack>
+        );
+      },
+    },
+  ];
+
   return (
-    <Stack gap={5}>
-      <Stack orientation="horizontal" gap={5}>
-        <TextInput
+    <Stack spacing={2}>
+      <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+        <TextField
           id="att-date"
-          labelText="Date"
+          label="Date"
           type="date"
+          size="small"
           value={date}
+          slotProps={{ inputLabel: { shrink: true } }}
           onChange={(e) => setDate(e.target.value)}
         />
         <Button
-          kind="secondary"
+          variant="outlined"
           disabled={saveAll.isPending || rows.length === 0}
           onClick={() =>
             saveAll.mutate({
@@ -86,7 +157,7 @@ export function AttendanceTab() {
           Save register
         </Button>
       </Stack>
-      <p>Daily office attendance — present, absent, half-day, WFH, or on leave. Architecture firms use a simple register, not hourly timesheets.</p>
+      <Typography variant="body2">Daily office attendance — present, absent, half-day, WFH, or on leave. Architecture firms use a simple register, not hourly timesheets.</Typography>
 
       <DataState
         loading={registerQ.isLoading}
@@ -97,69 +168,19 @@ export function AttendanceTab() {
           description: "Add staff in Team before marking attendance.",
         }}
       >
-        <TableContainer title={`Attendance · ${date}`}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Member</TableHeader>
-                <TableHeader>Role</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader></TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((r) => {
-                const status = draft[r.teamMemberId] ?? (r.status as AttendanceStatusCode | undefined) ?? "PRESENT";
-                return (
-                  <TableRow key={r.teamMemberId}>
-                    <TableCell>{r.memberName}</TableCell>
-                    <TableCell>{r.memberRole}</TableCell>
-                    <TableCell>
-                      <Select
-                        id={`att-${r.teamMemberId}`}
-                        labelText="Status"
-                        hideLabel
-                        size="sm"
-                        value={status}
-                        onChange={(e) =>
-                          setDraft((d) => ({
-                            ...d,
-                            [r.teamMemberId]: e.target.value as AttendanceStatusCode,
-                          }))
-                        }
-                      >
-                        {(Object.keys(ATTENDANCE_STATUS) as AttendanceStatusCode[]).map((k) => (
-                          <SelectItem key={k} value={k} text={ATTENDANCE_STATUS[k]} />
-                        ))}
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Stack orientation="horizontal" gap={2}>
-                        <Tag type={STATUS_TAG[status]} size="sm">
-                          {ATTENDANCE_STATUS[status]}
-                        </Tag>
-                        <Button
-                          kind="ghost"
-                          size="sm"
-                          disabled={mark.isPending}
-                          onClick={() =>
-                            mark.mutate({
-                              teamMemberId: r.teamMemberId,
-                              attendanceDate: date,
-                              status,
-                            })
-                          }
-                        >
-                          Save
-                        </Button>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Paper>
+          <Typography variant="h6" sx={{ p: 2, pb: 1 }}>{`Attendance · ${date}`}</Typography>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            getRowId={(r) => r.teamMemberId}
+            getRowHeight={() => "auto"}
+            density="compact"
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+          />
+        </Paper>
       </DataState>
     </Stack>
   );

@@ -1,29 +1,31 @@
 import { useState } from "react";
 import {
+  Box,
   Button,
-  Modal,
-  NumberInput,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  MenuItem,
   Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableHeader,
   TableRow,
-  Tag,
-  TextInput,
-} from "@carbon/react";
-import {
-  Add,
-  Certificate,
-  Checkmark,
-  Pause,
-  SendAlt,
-  TrashCan,
-} from "@carbon/icons-react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import Add from "@mui/icons-material/Add";
+import Check from "@mui/icons-material/Check";
+import DeleteOutline from "@mui/icons-material/DeleteOutlineOutlined";
+import Pause from "@mui/icons-material/Pause";
+import Send from "@mui/icons-material/Send";
+import Verified from "@mui/icons-material/Verified";
 import { can, formatINR } from "@esti/contracts";
 import { DataState } from "../DataState.js";
 import { trpc } from "../../lib/trpc.js";
@@ -36,6 +38,15 @@ const BILL_STATUS_TAG: Record<string, "gray" | "blue" | "green" | "warm-gray" | 
   HELD: "warm-gray",
   REJECTED: "red",
 };
+
+// Preserve exact Carbon tag colours by rendering an MUI Chip over the
+// `--cds-tag-*` token vars (still defined by the Carbon token layer).
+const tagSx = (color: string) => ({
+  backgroundColor: `var(--cds-tag-background-${color}, var(--cds-layer-01))`,
+  color: `var(--cds-tag-color-${color}, var(--cds-text-primary))`,
+});
+
+const shrink = { slotProps: { inputLabel: { shrink: true } } } as const;
 
 const EMPTY_BILL = {
   workOrderId: "",
@@ -121,11 +132,106 @@ export function ProjectContractorBills({ projectId }: { projectId: string }) {
     else rejectM.mutate(input);
   }
 
+  const billColumns: GridColDef[] = [
+    { field: "billNo", headerName: "Bill No.", flex: 0.8, minWidth: 100 },
+    {
+      field: "contractorName",
+      headerName: "Contractor",
+      flex: 1,
+      minWidth: 140,
+      valueGetter: (_v, row) => row.contractorName ?? "—",
+    },
+    {
+      field: "period",
+      headerName: "Period",
+      flex: 1.2,
+      minWidth: 190,
+      sortable: false,
+      valueGetter: (_v, row) => `${row.periodFrom} — ${row.periodTo}`,
+    },
+    {
+      field: "claimedAmountPaise",
+      headerName: "Claimed",
+      flex: 0.9,
+      minWidth: 120,
+      renderCell: (p) => formatINR(p.row.claimedAmountPaise),
+    },
+    {
+      field: "certifiedAmountPaise",
+      headerName: "Certified",
+      flex: 0.9,
+      minWidth: 120,
+      renderCell: (p) => (p.row.certifiedAmountPaise > 0 ? formatINR(p.row.certifiedAmountPaise) : "—"),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.8,
+      minWidth: 110,
+      renderCell: (p) => (
+        <Chip label={p.row.status} size="small" sx={tagSx(BILL_STATUS_TAG[p.row.status] ?? "gray")} />
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      filterable: false,
+      width: 130,
+      renderCell: (p) => {
+        const b = p.row;
+        return (
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", height: 1 }}>
+            {b.status === "DRAFT" && (
+              <IconButton
+                size="small"
+                aria-label="Submit"
+                onClick={(e) => { e.stopPropagation(); submitM.mutate({ id: b.id }); }}
+                disabled={submitM.isPending}
+              >
+                <Send fontSize="small" />
+              </IconButton>
+            )}
+            {b.status === "SUBMITTED" && canApprove && (
+              <>
+                <IconButton
+                  size="small"
+                  aria-label="Certify"
+                  onClick={(e) => { e.stopPropagation(); setActionForm({ billId: b.id, action: "certify", remarks: "" }); }}
+                >
+                  <Verified fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  aria-label="Hold"
+                  onClick={(e) => { e.stopPropagation(); setActionForm({ billId: b.id, action: "hold", remarks: "" }); }}
+                >
+                  <Pause fontSize="small" />
+                </IconButton>
+              </>
+            )}
+            {b.status === "DRAFT" && (
+              <IconButton
+                size="small"
+                color="error"
+                aria-label="Remove"
+                onClick={(e) => { e.stopPropagation(); removeM.mutate({ id: b.id }); }}
+                disabled={removeM.isPending}
+              >
+                <DeleteOutline fontSize="small" />
+              </IconButton>
+            )}
+          </Stack>
+        );
+      },
+    },
+  ];
+
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <div className="esti-row-between">
-        <h3>Contractor Bills</h3>
-        <Button size="sm" renderIcon={Add} onClick={() => setAddBillOpen(true)}>
+        <Typography variant="h6" component="h3">Contractor Bills</Typography>
+        <Button size="small" variant="contained" startIcon={<Add />} onClick={() => setAddBillOpen(true)}>
           New Bill
         </Button>
       </div>
@@ -139,107 +245,30 @@ export function ProjectContractorBills({ projectId }: { projectId: string }) {
         }}
         columnCount={7}
       >
-        <TableContainer title="Contractor Bills">
-          <Table size="sm">
-            <TableHead>
-              <TableRow>
-                <TableHeader>Bill No.</TableHeader>
-                <TableHeader>Contractor</TableHeader>
-                <TableHeader>Period</TableHeader>
-                <TableHeader>Claimed</TableHeader>
-                <TableHeader>Certified</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Actions</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {bills.map((b) => {
-                const isSelected = selectedId === b.id;
-                return (
-                  <TableRow
-                    key={b.id}
-                    onClick={() => setSelectedId(isSelected ? null : b.id)}
-                    style={{
-                      cursor: "pointer",
-                      background: isSelected ? "var(--cds-layer-selected)" : undefined,
-                    }}
-                  >
-                    <TableCell>{b.billNo}</TableCell>
-                    <TableCell>{b.contractorName ?? "—"}</TableCell>
-                    <TableCell>
-                      {b.periodFrom} — {b.periodTo}
-                    </TableCell>
-                    <TableCell>{formatINR(b.claimedAmountPaise)}</TableCell>
-                    <TableCell>
-                      {b.certifiedAmountPaise > 0 ? formatINR(b.certifiedAmountPaise) : "—"}
-                    </TableCell>
-                    <TableCell>
-                      <Tag type={BILL_STATUS_TAG[b.status] ?? "gray"} size="sm">
-                        {b.status}
-                      </Tag>
-                    </TableCell>
-                    <TableCell>
-                      <Stack orientation="horizontal" gap={2}>
-                        {b.status === "DRAFT" && (
-                          <Button
-                            kind="ghost"
-                            size="sm"
-                            renderIcon={SendAlt}
-                            hasIconOnly
-                            iconDescription="Submit"
-                            onClick={(e) => { e.stopPropagation(); submitM.mutate({ id: b.id }); }}
-                            disabled={submitM.isPending}
-                          />
-                        )}
-                        {b.status === "SUBMITTED" && canApprove && (
-                          <>
-                            <Button
-                              kind="ghost"
-                              size="sm"
-                              renderIcon={Certificate}
-                              hasIconOnly
-                              iconDescription="Certify"
-                              onClick={(e) => { e.stopPropagation(); setActionForm({ billId: b.id, action: "certify", remarks: "" }); }}
-                            />
-                            <Button
-                              kind="ghost"
-                              size="sm"
-                              renderIcon={Pause}
-                              hasIconOnly
-                              iconDescription="Hold"
-                              onClick={(e) => { e.stopPropagation(); setActionForm({ billId: b.id, action: "hold", remarks: "" }); }}
-                            />
-                          </>
-                        )}
-                        {b.status === "DRAFT" && (
-                          <Button
-                            kind="danger--ghost"
-                            size="sm"
-                            renderIcon={TrashCan}
-                            hasIconOnly
-                            iconDescription="Remove"
-                            onClick={(e) => { e.stopPropagation(); removeM.mutate({ id: b.id }); }}
-                            disabled={removeM.isPending}
-                          />
-                        )}
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={bills}
+          columns={billColumns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+          onRowClick={(params) => setSelectedId(selectedId === params.id ? null : (params.id as string))}
+          getRowClassName={(params) => (params.id === selectedId ? "esti-cms-row-selected" : "")}
+          sx={{
+            "& .MuiDataGrid-row": { cursor: "pointer" },
+            "& .esti-cms-row-selected": { backgroundColor: "var(--cds-layer-selected)" },
+          }}
+        />
       </DataState>
 
       {selectedBill && (
-        <Stack gap={4}>
+        <Stack spacing={2}>
           <div className="esti-row-between">
-            <h4>
+            <Typography variant="subtitle1" component="h4">
               {selectedBill.billNo} — Line Items
-            </h4>
+            </Typography>
             {selectedBill.status === "DRAFT" && (
-              <Button size="sm" renderIcon={Add} onClick={() => setAddLineOpen(true)}>
+              <Button size="small" variant="contained" startIcon={<Add />} onClick={() => setAddLineOpen(true)}>
                 Add line
               </Button>
             )}
@@ -251,18 +280,19 @@ export function ProjectContractorBills({ projectId }: { projectId: string }) {
             empty={{ title: "No lines", description: "Add line items to the bill." }}
             columnCount={7}
           >
+            {/* Per-row certify-qty inputs — stays an MUI Table (not DataGrid). */}
             <TableContainer>
-              <Table size="sm">
+              <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableHeader>Element</TableHeader>
-                    <TableHeader>Description</TableHeader>
-                    <TableHeader>Unit</TableHeader>
-                    <TableHeader>Rate</TableHeader>
-                    <TableHeader>Claimed qty</TableHeader>
-                    <TableHeader>Claimed amount</TableHeader>
-                    <TableHeader>Certified qty</TableHeader>
-                    <TableHeader>Certified amount</TableHeader>
+                    <TableCell>Element</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Unit</TableCell>
+                    <TableCell>Rate</TableCell>
+                    <TableCell>Claimed qty</TableCell>
+                    <TableCell>Claimed amount</TableCell>
+                    <TableCell>Certified qty</TableCell>
+                    <TableCell>Certified amount</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -298,165 +328,191 @@ export function ProjectContractorBills({ projectId }: { projectId: string }) {
         </Stack>
       )}
 
-      {/* New Bill Modal */}
-      <Modal
-        open={addBillOpen}
-        modalHeading="New Contractor Bill"
-        primaryButtonText={createBillM.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          createBillM.isPending || !billForm.workOrderId || !billForm.billNo || !billForm.periodFrom || !billForm.periodTo
-        }
-        onRequestSubmit={() =>
-          createBillM.mutate({
-            projectId,
-            workOrderId: billForm.workOrderId,
-            billNo: billForm.billNo,
-            periodFrom: billForm.periodFrom,
-            periodTo: billForm.periodTo,
-            remarks: billForm.remarks || undefined,
-          })
-        }
-        onRequestClose={() => setAddBillOpen(false)}
-        onSecondarySubmit={() => setAddBillOpen(false)}
-      >
-        <Stack gap={5}>
-          <Select
-            id="bill-wo"
-            labelText="Work Order"
-            value={billForm.workOrderId}
-            onChange={(e) => setBillForm((f) => ({ ...f, workOrderId: e.target.value }))}
+      {/* New Bill Dialog */}
+      <Dialog open={addBillOpen} onClose={() => setAddBillOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New Contractor Bill</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="bill-wo"
+              select
+              label="Work Order"
+              value={billForm.workOrderId}
+              onChange={(e) => setBillForm((f) => ({ ...f, workOrderId: e.target.value }))}
+              fullWidth
+            >
+              <MenuItem value="">Select issued work order…</MenuItem>
+              {workOrders.map((w) => (
+                <MenuItem key={w.id} value={w.id}>{`${w.ref} — ${w.contractorName ?? "Contractor"}`}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="bill-no"
+              label="Bill No."
+              placeholder="RA-01"
+              value={billForm.billNo}
+              onChange={(e) => setBillForm((f) => ({ ...f, billNo: e.target.value }))}
+              fullWidth
+            />
+            <TextField
+              id="bill-from"
+              label="Period from"
+              type="date"
+              value={billForm.periodFrom}
+              onChange={(e) => setBillForm((f) => ({ ...f, periodFrom: e.target.value }))}
+              fullWidth
+              {...shrink}
+            />
+            <TextField
+              id="bill-to"
+              label="Period to"
+              type="date"
+              value={billForm.periodTo}
+              onChange={(e) => setBillForm((f) => ({ ...f, periodTo: e.target.value }))}
+              fullWidth
+              {...shrink}
+            />
+            <TextField
+              id="bill-remarks"
+              label="Remarks (optional)"
+              value={billForm.remarks}
+              onChange={(e) => setBillForm((f) => ({ ...f, remarks: e.target.value }))}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setAddBillOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={
+              createBillM.isPending || !billForm.workOrderId || !billForm.billNo || !billForm.periodFrom || !billForm.periodTo
+            }
+            onClick={() =>
+              createBillM.mutate({
+                projectId,
+                workOrderId: billForm.workOrderId,
+                billNo: billForm.billNo,
+                periodFrom: billForm.periodFrom,
+                periodTo: billForm.periodTo,
+                remarks: billForm.remarks || undefined,
+              })
+            }
           >
-            <SelectItem value="" text="Select issued work order…" />
-            {workOrders.map((w) => (
-              <SelectItem key={w.id} value={w.id} text={`${w.ref} — ${w.contractorName ?? "Contractor"}`} />
-            ))}
-          </Select>
-          <TextInput
-            id="bill-no"
-            labelText="Bill No."
-            placeholder="RA-01"
-            value={billForm.billNo}
-            onChange={(e) => setBillForm((f) => ({ ...f, billNo: e.target.value }))}
-          />
-          <TextInput
-            id="bill-from"
-            labelText="Period from"
-            type="date"
-            value={billForm.periodFrom}
-            onChange={(e) => setBillForm((f) => ({ ...f, periodFrom: e.target.value }))}
-          />
-          <TextInput
-            id="bill-to"
-            labelText="Period to"
-            type="date"
-            value={billForm.periodTo}
-            onChange={(e) => setBillForm((f) => ({ ...f, periodTo: e.target.value }))}
-          />
-          <TextInput
-            id="bill-remarks"
-            labelText="Remarks (optional)"
-            value={billForm.remarks}
-            onChange={(e) => setBillForm((f) => ({ ...f, remarks: e.target.value }))}
-          />
-        </Stack>
-      </Modal>
+            {createBillM.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      {/* Add Line Modal */}
-      <Modal
-        open={addLineOpen}
-        modalHeading="Add Bill Line"
-        primaryButtonText={addLineM.isPending ? "Adding…" : "Add"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={addLineM.isPending || !lineForm.elementId || !lineForm.woItemId || lineForm.claimedQty <= 0}
-        onRequestSubmit={() => {
-          if (!selectedId) return;
-          addLineM.mutate({
-            billId: selectedId,
-            elementId: lineForm.elementId,
-            woItemId: lineForm.woItemId,
-            claimedQty: lineForm.claimedQty,
-          });
-        }}
-        onRequestClose={() => setAddLineOpen(false)}
-        onSecondarySubmit={() => setAddLineOpen(false)}
-      >
-        <Stack gap={5}>
-          <Select
-            id="line-element"
-            labelText="Element"
-            value={lineForm.elementId}
-            onChange={(e) => setLineForm((f) => ({ ...f, elementId: e.target.value }))}
+      {/* Add Line Dialog */}
+      <Dialog open={addLineOpen} onClose={() => setAddLineOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Add Bill Line</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="line-element"
+              select
+              label="Element"
+              value={lineForm.elementId}
+              onChange={(e) => setLineForm((f) => ({ ...f, elementId: e.target.value }))}
+              fullWidth
+            >
+              <MenuItem value="">Select element…</MenuItem>
+              {elements.map((el) => (
+                <MenuItem key={el.id} value={el.id}>{`${el.code} — ${el.description}`}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="line-wo-item"
+              select
+              label="WO Line Item (rate source)"
+              value={lineForm.woItemId}
+              onChange={(e) => setLineForm((f) => ({ ...f, woItemId: e.target.value }))}
+              fullWidth
+            >
+              <MenuItem value="">Select WO item…</MenuItem>
+              {woItems.map((item) => (
+                <MenuItem key={item.id} value={item.id}>
+                  {`${item.description} (${item.unit}) — ${formatINR(item.agreedRatePaise)}`}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="line-qty"
+              label="Claimed quantity"
+              type="number"
+              value={lineForm.claimedQty}
+              onChange={(e) => setLineForm((f) => ({ ...f, claimedQty: Number(e.target.value) }))}
+              slotProps={{ htmlInput: { min: 0, step: 0.001 } }}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setAddLineOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={addLineM.isPending || !lineForm.elementId || !lineForm.woItemId || lineForm.claimedQty <= 0}
+            onClick={() => {
+              if (!selectedId) return;
+              addLineM.mutate({
+                billId: selectedId,
+                elementId: lineForm.elementId,
+                woItemId: lineForm.woItemId,
+                claimedQty: lineForm.claimedQty,
+              });
+            }}
           >
-            <SelectItem value="" text="Select element…" />
-            {elements.map((el) => (
-              <SelectItem key={el.id} value={el.id} text={`${el.code} — ${el.description}`} />
-            ))}
-          </Select>
-          <Select
-            id="line-wo-item"
-            labelText="WO Line Item (rate source)"
-            value={lineForm.woItemId}
-            onChange={(e) => setLineForm((f) => ({ ...f, woItemId: e.target.value }))}
-          >
-            <SelectItem value="" text="Select WO item…" />
-            {woItems.map((item) => (
-              <SelectItem key={item.id} value={item.id} text={`${item.description} (${item.unit}) — ${formatINR(item.agreedRatePaise)}`} />
-            ))}
-          </Select>
-          <NumberInput
-            id="line-qty"
-            label="Claimed quantity"
-            value={lineForm.claimedQty}
-            onChange={(_e, { value }) => setLineForm((f) => ({ ...f, claimedQty: Number(value) }))}
-            min={0}
-            step={0.001}
-          />
-        </Stack>
-      </Modal>
+            {addLineM.isPending ? "Adding…" : "Add"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      {/* Action Modal (certify / hold / reject) */}
-      <Modal
-        open={!!actionForm}
-        modalHeading={
-          actionForm?.action === "certify"
+      {/* Action Dialog (certify / hold / reject) */}
+      <Dialog open={!!actionForm} onClose={() => setActionForm(null)} fullWidth maxWidth="sm">
+        <DialogTitle>
+          {actionForm?.action === "certify"
             ? "Certify Bill"
             : actionForm?.action === "hold"
             ? "Hold Bill"
-            : "Reject Bill"
-        }
-        primaryButtonText={
-          certifyM.isPending || holdM.isPending || rejectM.isPending
-            ? "Processing…"
-            : actionForm?.action === "certify"
-            ? "Certify"
-            : actionForm?.action === "hold"
-            ? "Hold"
-            : "Reject"
-        }
-        secondaryButtonText="Cancel"
-        danger={actionForm?.action === "reject"}
-        onRequestSubmit={() => doAction(actionForm?.remarks ?? "")}
-        onRequestClose={() => setActionForm(null)}
-        onSecondarySubmit={() => setActionForm(null)}
-      >
-        <Stack gap={5}>
-          {actionForm?.action === "certify" && (
-            <p>
-              Ensure line-item certified quantities have been set. The bill's certified total will be
-              computed from the line items.
-            </p>
-          )}
-          <TextInput
-            id="action-remarks"
-            labelText="Remarks (optional)"
-            value={actionForm?.remarks ?? ""}
-            onChange={(e) =>
-              setActionForm((f) => f ? { ...f, remarks: e.target.value } : f)
-            }
-          />
-        </Stack>
-      </Modal>
+            : "Reject Bill"}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {actionForm?.action === "certify" && (
+              <Typography variant="body2" component="p">
+                Ensure line-item certified quantities have been set. The bill's certified total will be
+                computed from the line items.
+              </Typography>
+            )}
+            <TextField
+              id="action-remarks"
+              label="Remarks (optional)"
+              value={actionForm?.remarks ?? ""}
+              onChange={(e) =>
+                setActionForm((f) => f ? { ...f, remarks: e.target.value } : f)
+              }
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setActionForm(null)}>Cancel</Button>
+          <Button
+            variant="contained"
+            color={actionForm?.action === "reject" ? "error" : "primary"}
+            onClick={() => doAction(actionForm?.remarks ?? "")}
+          >
+            {certifyM.isPending || holdM.isPending || rejectM.isPending
+              ? "Processing…"
+              : actionForm?.action === "certify"
+              ? "Certify"
+              : actionForm?.action === "hold"
+              ? "Hold"
+              : "Reject"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }
@@ -476,29 +532,26 @@ function CertifyQtyInput({
   const updateM = trpc.cms.bills.updateLine.useMutation({ onSuccess: onSaved });
 
   return (
-    <Stack orientation="horizontal" gap={2}>
-      <div className="esti-input-sm">
-        <NumberInput
+    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+      <Box className="esti-input-sm">
+        <TextField
           id={`cq-${lineId}`}
-          label=""
-          hideLabel
+          type="number"
+          size="small"
+          hiddenLabel
           value={val}
-          onChange={(_e, { value }) => setVal(Number(value))}
-          min={0}
-          max={max}
-          step={0.001}
-          size="sm"
+          onChange={(e) => setVal(Number(e.target.value))}
+          slotProps={{ htmlInput: { min: 0, max, step: 0.001, "aria-label": "Certified quantity" } }}
         />
-      </div>
-      <Button
-        kind="ghost"
-        size="sm"
-        renderIcon={Checkmark}
-        hasIconOnly
-        iconDescription="Set certified qty"
+      </Box>
+      <IconButton
+        size="small"
+        aria-label="Set certified qty"
         onClick={() => updateM.mutate({ id: lineId, certifiedQty: val })}
         disabled={updateM.isPending}
-      />
+      >
+        <Check fontSize="small" />
+      </IconButton>
     </Stack>
   );
 }

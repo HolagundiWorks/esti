@@ -1,56 +1,44 @@
 import {
+  Alert,
+  Box,
   Button,
-  DataTable,
-  InlineNotification,
-  Modal,
-  Pagination,
-  Select,
-  SelectItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  InputAdornment,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TableToolbar,
-  TableToolbarContent,
-  TableToolbarSearch,
-  Tag,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import SearchIcon from "@mui/icons-material/Search";
 import {
   PROJECT_STATUS_LABEL,
+  PROJECT_STATUS_TAG,
   ProjectStatus,
   ProjectType,
   formatINR,
 } from "@esti/contracts";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { StatusTag } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
-
-const HEADERS = [
-  { key: "ref", header: "Ref" },
-  { key: "title", header: "Title" },
-  { key: "projectType", header: "Type" },
-  { key: "status", header: "Status" },
-  { key: "value", header: "Contract value" },
-];
 
 const PAGE_SIZES = [10, 25, 50];
 
+type ProjectStatusCode = (typeof ProjectStatus.options)[number];
+
 export function Projects() {
   const utils = trpc.useUtils();
+  const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState("");
   const list = trpc.projectOffice.list.useQuery({
     limit: 200,
     offset: 0,
-    status: statusFilter
-      ? (statusFilter as (typeof ProjectStatus.options)[number])
-      : undefined,
+    status: statusFilter ? (statusFilter as ProjectStatusCode) : undefined,
   });
 
   const [open, setOpen] = useState(false);
@@ -59,8 +47,11 @@ export function Projects() {
   const [clientId, setClientId] = useState("");
   const clientsQ = trpc.clients.list.useQuery({ limit: 200, offset: 0 });
 
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState<number>(PAGE_SIZES[0] ?? 10);
+  const [search, setSearch] = useState("");
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: PAGE_SIZES[0] ?? 10,
+  });
 
   const create = trpc.projectOffice.create.useMutation({
     onSuccess: () => {
@@ -70,36 +61,62 @@ export function Projects() {
     },
   });
 
-  const allRows =
-    list.data?.map((p) => ({
-      id: p.id,
-      ref: <Link to={`/projects/${p.id}`}>{p.ref}</Link>,
-      title: p.title,
-      projectType: p.projectType,
-      status: (
-        <Tag
-          type={
-            p.status === "COMPLETED"
-              ? "green"
-              : p.status === "CANCELLED"
-                ? "red"
-                : p.status === "ACTIVE"
-                  ? "blue"
-                  : p.status === "PROPOSAL"
-                    ? "teal"
-                    : "gray"
-          }
-        >
-          {PROJECT_STATUS_LABEL[
-            p.status as keyof typeof PROJECT_STATUS_LABEL
-          ] ?? p.status}
-        </Tag>
+  const allRows = list.data ?? [];
+  const q = search.trim().toLowerCase();
+  const rows = q
+    ? allRows.filter((p) =>
+        [
+          p.ref,
+          p.title,
+          p.projectType,
+          PROJECT_STATUS_LABEL[p.status as ProjectStatusCode] ?? p.status,
+          formatINR(p.contractValuePaise, { paise: false }),
+        ].some((v) => String(v ?? "").toLowerCase().includes(q)),
+      )
+    : allRows;
+
+  const columns: GridColDef[] = [
+    {
+      field: "ref",
+      headerName: "Ref",
+      flex: 0.7,
+      minWidth: 110,
+      renderCell: (p) => (
+        <Link to={`/projects/${p.row.id}`} onClick={(e) => e.stopPropagation()}>
+          {p.row.ref}
+        </Link>
       ),
-      value: formatINR(p.contractValuePaise, { paise: false }),
-    })) ?? [];
+    },
+    { field: "title", headerName: "Title", flex: 1.6, minWidth: 200 },
+    { field: "projectType", headerName: "Type", flex: 1, minWidth: 130 },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.9,
+      minWidth: 130,
+      valueGetter: (_v, row) =>
+        PROJECT_STATUS_LABEL[row.status as ProjectStatusCode] ?? row.status,
+      renderCell: (p) => (
+        <StatusTag
+          value={p.row.status as ProjectStatusCode}
+          map={PROJECT_STATUS_TAG}
+          label={
+            PROJECT_STATUS_LABEL[p.row.status as ProjectStatusCode] ?? p.row.status
+          }
+        />
+      ),
+    },
+    {
+      field: "value",
+      headerName: "Contract value",
+      flex: 0.9,
+      minWidth: 150,
+      valueGetter: (_v, row) => formatINR(row.contractValuePaise, { paise: false }),
+    },
+  ];
 
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <PageHeader
         title="Projects"
         description="Architecture project offices — phases, fees, drawings and delivery."
@@ -114,156 +131,136 @@ export function Projects() {
           description:
             "Create your first project office to start tracking phases, fees and invoices.",
           action: (
-            <Button size="sm" onClick={() => setOpen(true)}>
+            <Button variant="contained" size="small" onClick={() => setOpen(true)}>
               New project
             </Button>
           ),
         }}
       >
-        <DataTable rows={allRows} headers={HEADERS} isSortable>
-          {({
-            rows,
-            headers,
-            getTableProps,
-            getHeaderProps,
-            getRowProps,
-            onInputChange,
-          }) => {
-            const pagedRows = rows.slice(
-              (page - 1) * pageSize,
-              page * pageSize,
-            );
-            return (
-              <TableContainer>
-                <TableToolbar>
-                  <TableToolbarContent>
-                    <TableToolbarSearch
-                      placeholder="Search projects…"
-                      persistent
-                      onChange={(e) => {
-                        setPage(1);
-                        onInputChange(e);
-                      }}
-                    />
-                    <Select
-                      id="project-status-filter"
-                      labelText="Project status"
-                      hideLabel
-                      size="sm"
-                      value={statusFilter}
-                      onChange={(e) => {
-                        setPage(1);
-                        setStatusFilter(e.target.value);
-                      }}
-                    >
-                      <SelectItem value="" text="All statuses" />
-                      {ProjectStatus.options.map((status) => (
-                        <SelectItem
-                          key={status}
-                          value={status}
-                          text={PROJECT_STATUS_LABEL[status]}
-                        />
-                      ))}
-                    </Select>
-                    <Button onClick={() => setOpen(true)}>New project</Button>
-                  </TableToolbarContent>
-                </TableToolbar>
-                <Table {...getTableProps()}>
-                  <TableHead>
-                    <TableRow>
-                      {headers.map((header) => {
-                        const { key, ...rest } = getHeaderProps({ header });
-                        return (
-                          <TableHeader key={key} {...rest}>
-                            {header.header}
-                          </TableHeader>
-                        );
-                      })}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {pagedRows.map((row) => {
-                      const { key, ...rest } = getRowProps({ row });
-                      return (
-                        <TableRow key={key} {...rest}>
-                          {row.cells.map((cell) => (
-                            <TableCell key={cell.id}>{cell.value}</TableCell>
-                          ))}
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-                <Pagination
-                  totalItems={rows.length}
-                  pageSize={pageSize}
-                  pageSizes={PAGE_SIZES}
-                  page={page}
-                  onChange={({ page: p, pageSize: ps }) => {
-                    setPage(p);
-                    setPageSize(ps);
-                  }}
-                />
-              </TableContainer>
-            );
-          }}
-        </DataTable>
+        <Stack spacing={2}>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "center" }}>
+            <TextField
+              id="project-search"
+              size="small"
+              placeholder="Search projects…"
+              value={search}
+              onChange={(e) => {
+                setPaginationModel((m) => ({ ...m, page: 0 }));
+                setSearch(e.target.value);
+              }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+              sx={{ flex: 1, minWidth: 240 }}
+            />
+            <TextField
+              id="project-status-filter"
+              select
+              size="small"
+              label="Project status"
+              value={statusFilter}
+              onChange={(e) => {
+                setPaginationModel((m) => ({ ...m, page: 0 }));
+                setStatusFilter(e.target.value);
+              }}
+              sx={{ minWidth: 180 }}
+            >
+              <MenuItem value="">All statuses</MenuItem>
+              {ProjectStatus.options.map((status) => (
+                <MenuItem key={status} value={status}>
+                  {PROJECT_STATUS_LABEL[status]}
+                </MenuItem>
+              ))}
+            </TextField>
+            <Button variant="contained" onClick={() => setOpen(true)}>
+              New project
+            </Button>
+          </Box>
+
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            density="compact"
+            disableRowSelectionOnClick
+            autoHeight
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            pageSizeOptions={PAGE_SIZES}
+            onRowClick={(params) => navigate(`/projects/${params.id}`)}
+            sx={{ "& .MuiDataGrid-row": { cursor: "pointer" } }}
+          />
+        </Stack>
       </DataState>
 
-      <Modal
-        open={open}
-        modalHeading="New project"
-        primaryButtonText={create.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!title || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            title,
-            projectType: projectType as (typeof ProjectType.options)[number],
-            clientId: clientId || undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <TextInput
-            id="title"
-            labelText="Project title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <Select
-            id="projectType"
-            labelText="Project type"
-            value={projectType}
-            onChange={(e) => setProjectType(e.target.value)}
-          >
-            {ProjectType.options.map((t) => (
-              <SelectItem key={t} value={t} text={t} />
-            ))}
-          </Select>
-          <Select
-            id="client"
-            labelText="Client (optional)"
-            value={clientId}
-            onChange={(e) => setClientId(e.target.value)}
-          >
-            <SelectItem value="" text="— none —" />
-            {(clientsQ.data ?? []).map((c) => (
-              <SelectItem key={c.id} value={c.id} text={c.name} />
-            ))}
-          </Select>
-          {create.error && (
-            <InlineNotification
-              kind="error"
-              title="Could not create"
-              subtitle={create.error.message}
-              hideCloseButton
-              lowContrast
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New project</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="title"
+              label="Project title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
             />
-          )}
-        </Stack>
-      </Modal>
+            <TextField
+              id="projectType"
+              select
+              label="Project type"
+              value={projectType}
+              onChange={(e) => setProjectType(e.target.value)}
+            >
+              {ProjectType.options.map((t) => (
+                <MenuItem key={t} value={t}>
+                  {t}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="client"
+              select
+              label="Client (optional)"
+              value={clientId}
+              onChange={(e) => setClientId(e.target.value)}
+            >
+              <MenuItem value="">— none —</MenuItem>
+              {(clientsQ.data ?? []).map((c) => (
+                <MenuItem key={c.id} value={c.id}>
+                  {c.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            {create.error && (
+              <Alert severity="error">
+                <strong>Could not create</strong> — {create.error.message}
+              </Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!title || create.isPending}
+            onClick={() =>
+              create.mutate({
+                title,
+                projectType: projectType as (typeof ProjectType.options)[number],
+                clientId: clientId || undefined,
+              })
+            }
+          >
+            {create.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

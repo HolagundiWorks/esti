@@ -1,13 +1,14 @@
 import {
+  Alert,
+  AlertTitle,
   Button,
-  Column,
+  Chip,
   Grid,
-  InlineNotification,
+  Paper,
   Stack,
-  Tag,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import { PLAN_LABEL, type LicenseStatus } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../../lib/trpc.js";
@@ -25,6 +26,20 @@ const STATUS_LABEL: Record<LicenseStatus, string> = {
   EXPIRED: "Expired",
   UNLICENSED: "Not activated",
 };
+
+/** Status/plan badge rendered over the Carbon `--cds-tag-*` token vars (exact colours). */
+function TagChip({ color, label }: { color: string; label: string }) {
+  return (
+    <Chip
+      size="small"
+      label={label}
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
 
 const cap = (n: number | null) => (n === null ? "Unlimited" : String(n));
 const fmtDate = (iso: string | null) =>
@@ -51,79 +66,75 @@ export function LicensePanel() {
   const status = view?.status ?? "UNLICENSED";
 
   return (
-    <Tile>
-      <Stack gap={5}>
-        <Stack orientation="horizontal" gap={3}>
-          <h3 className="esti-label">Licence</h3>
-          {view && <Tag type="blue">{PLAN_LABEL[view.plan]}</Tag>}
-          <Tag type={STATUS_TAG[status]}>{STATUS_LABEL[status]}</Tag>
+    <Paper sx={{ p: 3, maxWidth: 760 }}>
+      <Stack spacing={2}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <Typography component="h3" className="esti-label">Licence</Typography>
+          {view && <TagChip color="blue" label={PLAN_LABEL[view.plan]} />}
+          <TagChip color={STATUS_TAG[status]} label={STATUS_LABEL[status]} />
         </Stack>
 
         {view && view.status !== "UNLICENSED" && (
-          <Grid narrow>
-            <Column sm={2} md={2} lg={4}>
-              <Stack gap={3}>
-                <p className="esti-label esti-label--secondary">Staff seats</p>
-                <p>{cap(view.seats.staff)}</p>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <Stack spacing={1}>
+                <Typography component="p" className="esti-label esti-label--secondary">Staff seats</Typography>
+                <Typography variant="body2">{cap(view.seats.staff)}</Typography>
               </Stack>
-            </Column>
-            <Column sm={2} md={2} lg={4}>
-              <Stack gap={3}>
-                <p className="esti-label esti-label--secondary">Accountant seats</p>
-                <p>{cap(view.seats.accountants)}</p>
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <Stack spacing={1}>
+                <Typography component="p" className="esti-label esti-label--secondary">Accountant seats</Typography>
+                <Typography variant="body2">{cap(view.seats.accountants)}</Typography>
               </Stack>
-            </Column>
-            <Column sm={2} md={2} lg={4}>
-              <Stack gap={3}>
-                <p className="esti-label esti-label--secondary">HR seats</p>
-                <p>{cap(view.seats.hrManagers)}</p>
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <Stack spacing={1}>
+                <Typography component="p" className="esti-label esti-label--secondary">HR seats</Typography>
+                <Typography variant="body2">{cap(view.seats.hrManagers)}</Typography>
               </Stack>
-            </Column>
-            <Column sm={2} md={2} lg={4}>
-              <Stack gap={3}>
-                <p className="esti-label esti-label--secondary">Valid until</p>
-                <p>{fmtDate(view.expiresAt)}</p>
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <Stack spacing={1}>
+                <Typography component="p" className="esti-label esti-label--secondary">Valid until</Typography>
+                <Typography variant="body2">{fmtDate(view.expiresAt)}</Typography>
               </Stack>
-            </Column>
+            </Grid>
           </Grid>
         )}
 
         {status === "GRACE" && view?.graceDaysLeft != null && (
-          <InlineNotification
-            kind="warning"
-            lowContrast
-            hideCloseButton
-            title="Licence expired — grace period"
-            subtitle={`Reconnect to renew. ${view.graceDaysLeft} day(s) of grace remaining before writes are blocked.`}
-          />
+          <Alert severity="warning">
+            <AlertTitle>Licence expired — grace period</AlertTitle>
+            {`Reconnect to renew. ${view.graceDaysLeft} day(s) of grace remaining before writes are blocked.`}
+          </Alert>
         )}
         {status === "EXPIRED" && (
-          <InlineNotification
-            kind="error"
-            lowContrast
-            hideCloseButton
-            title="Licence expired"
-            subtitle="Writes are blocked until the licence is renewed. Activate a current key below."
-          />
+          <Alert severity="error">
+            <AlertTitle>Licence expired</AlertTitle>
+            Writes are blocked until the licence is renewed. Activate a current key below.
+          </Alert>
         )}
 
-        <Stack gap={3}>
-          <TextInput
+        <Stack spacing={1}>
+          <TextField
             id="lic-key"
-            labelText="Activation key"
+            label="Activation key"
             placeholder="ESTI-XXXX-XXXX-XXXX-XXXX"
             value={key}
             onChange={(e) => setKey(e.target.value)}
+            fullWidth
           />
-          <Stack orientation="horizontal" gap={3}>
+          <Stack direction="row" spacing={1}>
             <Button
+              variant="contained"
               onClick={() => activate.mutate({ key })}
               disabled={!key.trim() || activate.isPending}
             >
               {activate.isPending ? "Activating…" : "Activate"}
             </Button>
             <Button
-              kind="ghost"
+              variant="text"
               onClick={() => refresh.mutate()}
               disabled={refresh.isPending || status === "UNLICENSED"}
             >
@@ -131,21 +142,18 @@ export function LicensePanel() {
             </Button>
           </Stack>
           {activate.error && (
-            <InlineNotification
-              kind="error"
-              lowContrast
-              hideCloseButton
-              title="Could not activate"
-              subtitle={activate.error.message}
-            />
+            <Alert severity="error">
+              <AlertTitle>Could not activate</AlertTitle>
+              {activate.error.message}
+            </Alert>
           )}
         </Stack>
 
-        <p className="esti-label esti-label--helper">
+        <Typography component="p" className="esti-label esti-label--helper">
           Your plan reflects this licence — billing is handled by Holagundi
           Consulting Works. Keys are issued when you purchase or change a plan.
-        </p>
+        </Typography>
       </Stack>
-    </Tile>
+    </Paper>
   );
 }

@@ -1,26 +1,25 @@
 import {
+  Alert,
+  AlertTitle,
+  Box,
   Button,
-  Column,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
-  InlineNotification,
-  Modal,
-  ProgressBar,
-  Select,
-  SelectItem,
+  IconButton,
+  LinearProgress,
+  MenuItem,
+  Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextArea,
-  TextInput,
-  Tile,
-} from "@carbon/react";
-import { Add, TrashCan } from "@carbon/icons-react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import Add from "@mui/icons-material/Add";
+import Delete from "@mui/icons-material/Delete";
 import {
   PROGRAM_SPACE_CATEGORY_LABEL,
   PROGRAM_STATUS_LABEL,
@@ -32,6 +31,12 @@ import {
 import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
+import { StatusTag } from "./StatusTag.js";
+
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 function area(n: number): string {
   return (Number.isInteger(n) ? n : Number(n.toFixed(2))).toLocaleString("en-IN");
@@ -68,8 +73,8 @@ export function ProjectProgram({ projectId }: { projectId: string }) {
   // No program yet — offer to start one.
   if (!data) {
     return (
-      <Stack gap={5}>
-        <h4 style={{ margin: 0 }}>Program formulation</h4>
+      <Stack spacing={2}>
+        <Typography variant="h6" component="h4">Program formulation</Typography>
         <p className="esti-label--secondary">
           The program is the space schedule formulated within the feasibility envelope.
           Record the pre-project assessment in the Pipeline tab to set the maximum built
@@ -77,7 +82,7 @@ export function ProjectProgram({ projectId }: { projectId: string }) {
         </p>
         {canWrite && (
           <div>
-            <Button onClick={() => getOrCreate.mutate({ projectId })} disabled={getOrCreate.isPending}>
+            <Button variant="contained" onClick={() => getOrCreate.mutate({ projectId })} disabled={getOrCreate.isPending}>
               {getOrCreate.isPending ? "Starting…" : "Start program"}
             </Button>
           </div>
@@ -91,155 +96,177 @@ export function ProjectProgram({ projectId }: { projectId: string }) {
   const frozen = status === "FROZEN";
   const editable = canWrite && !frozen;
 
+  const spaceColumns: GridColDef[] = [
+    { field: "name", headerName: "Space", flex: 1.2, minWidth: 140 },
+    {
+      field: "category",
+      headerName: "Category",
+      flex: 1,
+      minWidth: 130,
+      renderCell: (p) =>
+        PROGRAM_SPACE_CATEGORY_LABEL[p.row.category as keyof typeof PROGRAM_SPACE_CATEGORY_LABEL] ?? p.row.category,
+    },
+    { field: "floorLevel", headerName: "Floor", flex: 0.7, minWidth: 100, renderCell: (p) => floorLabel(p.row.floorLevel) },
+    { field: "unitAreaSqm", headerName: "Unit area", flex: 0.8, minWidth: 110, renderCell: (p) => `${area(p.row.unitAreaSqm)} sqm` },
+    { field: "count", headerName: "Count", flex: 0.5, minWidth: 80 },
+    { field: "areaSqm", headerName: "Area", flex: 0.8, minWidth: 110, renderCell: (p) => `${area(p.row.areaSqm)} sqm` },
+    ...(editable
+      ? [
+          {
+            field: "actions",
+            headerName: "",
+            sortable: false,
+            filterable: false,
+            width: 60,
+            renderCell: (p) => (
+              <IconButton
+                size="small"
+                aria-label="Remove"
+                disabled={removeSpace.isPending}
+                onClick={() => removeSpace.mutate({ id: p.row.id, programId: program.id })}
+              >
+                <Delete sx={{ fontSize: 16 }} />
+              </IconButton>
+            ),
+          } satisfies GridColDef,
+        ]
+      : []),
+  ];
+
+  const byFloorColumns: GridColDef[] = [
+    { field: "floorLevel", headerName: "Floor", flex: 1, minWidth: 110, renderCell: (p) => floorLabel(p.row.floorLevel) },
+    { field: "spaceCount", headerName: "Spaces", flex: 0.7, minWidth: 90 },
+    { field: "areaSqm", headerName: "Area", flex: 1, minWidth: 110, renderCell: (p) => `${area(p.row.areaSqm)} sqm` },
+  ];
+  const byCategoryColumns: GridColDef[] = [
+    {
+      field: "category",
+      headerName: "Category",
+      flex: 1,
+      minWidth: 110,
+      renderCell: (p) =>
+        PROGRAM_SPACE_CATEGORY_LABEL[p.row.category as keyof typeof PROGRAM_SPACE_CATEGORY_LABEL] ?? p.row.category,
+    },
+    { field: "spaceCount", headerName: "Spaces", flex: 0.7, minWidth: 90 },
+    { field: "areaSqm", headerName: "Area", flex: 1, minWidth: 110, renderCell: (p) => `${area(p.row.areaSqm)} sqm` },
+  ];
+
   return (
-    <Stack gap={6}>
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--cds-spacing-04)", flexWrap: "wrap" }}>
-        <h4 style={{ margin: 0 }}>Program formulation</h4>
-        <Tag type="gray" size="sm">v{program.version}</Tag>
-        <Tag type={PROGRAM_STATUS_TAG[status] ?? "gray"} size="sm">{PROGRAM_STATUS_LABEL[status] ?? status}</Tag>
-        {overEnvelope && <Tag type="red" size="sm">Over feasibility envelope</Tag>}
-      </div>
+    <Stack spacing={3}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
+        <Typography variant="h6" component="h4">Program formulation</Typography>
+        <Chip size="small" label={`v${program.version}`} sx={chipSx("gray")} />
+        <StatusTag value={status} map={PROGRAM_STATUS_TAG} label={PROGRAM_STATUS_LABEL[status] ?? status} />
+        {overEnvelope && <Chip size="small" label="Over feasibility envelope" sx={chipSx("red")} />}
+      </Stack>
 
       {/* KPI strip — feasibility envelope is the source of truth */}
-      <Grid condensed>
+      <Grid container spacing={1}>
         {[
           { label: "Max built extent (feasibility)", value: maxBuiltAreaSqm > 0 ? `${area(maxBuiltAreaSqm)} sqm` : "—" },
           { label: "Programmed area", value: `${area(totalProgrammedAreaSqm)} sqm` },
           { label: "Remaining", value: remainingAreaSqm == null ? "—" : `${area(remainingAreaSqm)} sqm` },
           { label: "Floors used", value: String(floorsUsed) },
         ].map((k) => (
-          <Column key={k.label} sm={2} md={4} lg={4}>
-            <Tile style={{ padding: "var(--cds-spacing-04)" }}>
+          <Grid key={k.label} size={{ xs: 6, md: 3 }}>
+            <Paper className="esti-fill" sx={{ p: 1.5 }}>
               <p className="esti-label--secondary">{k.label}</p>
-              <p style={{ fontSize: "1.125rem", fontWeight: 600, marginTop: "var(--cds-spacing-02)" }}>{k.value}</p>
-            </Tile>
-          </Column>
+              <Typography variant="h6" sx={{ mt: 0.5 }}>{k.value}</Typography>
+            </Paper>
+          </Grid>
         ))}
       </Grid>
 
       {utilizationPct != null && (
-        <ProgressBar
-          label="Envelope utilization"
-          helperText={`${utilizationPct.toFixed(1)}% of the feasibility max built extent`}
-          value={Math.min(100, utilizationPct)}
-          max={100}
-          status={overEnvelope ? "error" : "active"}
-        />
+        <Box>
+          <Typography variant="body2">Envelope utilization</Typography>
+          <LinearProgress
+            variant="determinate"
+            value={Math.min(100, utilizationPct)}
+            color={overEnvelope ? "error" : "primary"}
+            sx={{ my: 0.5 }}
+          />
+          <p className="esti-label--helper">{`${utilizationPct.toFixed(1)}% of the feasibility max built extent`}</p>
+        </Box>
       )}
       {maxBuiltAreaSqm <= 0 && (
-        <InlineNotification
-          kind="info"
-          lowContrast
-          hideCloseButton
-          title="No feasibility envelope"
-          subtitle="Record a pre-project assessment (Pipeline tab) so the program can be checked against the max built extent."
-        />
+        <Alert severity="info">
+          <AlertTitle>No feasibility envelope</AlertTitle>
+          Record a pre-project assessment (Pipeline tab) so the program can be checked against the max built extent.
+        </Alert>
       )}
       {overEnvelope && (
-        <InlineNotification
-          kind="warning"
-          lowContrast
-          hideCloseButton
-          title="Program exceeds the feasibility envelope"
-          subtitle="The programmed area is larger than the feasible max built extent. Reduce the program or revisit the assessment — this is advisory, not blocking."
-        />
+        <Alert severity="warning">
+          <AlertTitle>Program exceeds the feasibility envelope</AlertTitle>
+          The programmed area is larger than the feasible max built extent. Reduce the program or revisit the assessment — this is advisory, not blocking.
+        </Alert>
       )}
 
       {/* Spaces */}
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--cds-spacing-04)" }}>
-        <h5 style={{ margin: 0 }}>Spaces</h5>
-        {editable && <Button kind="ghost" size="sm" renderIcon={Add} onClick={() => setOpen(true)}>Add space</Button>}
-      </div>
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+        <Typography variant="subtitle1" component="h5">Spaces</Typography>
+        {editable && <Button variant="text" size="small" startIcon={<Add />} onClick={() => setOpen(true)}>Add space</Button>}
+      </Stack>
       {spaces.length === 0 ? (
         <p className="esti-label--secondary">No spaces yet. Add rooms/spaces from the client requirements.</p>
       ) : (
-        <TableContainer>
-          <Table size="sm">
-            <TableHead>
-              <TableRow>
-                <TableHeader>Space</TableHeader>
-                <TableHeader>Category</TableHeader>
-                <TableHeader>Floor</TableHeader>
-                <TableHeader>Unit area</TableHeader>
-                <TableHeader>Count</TableHeader>
-                <TableHeader>Area</TableHeader>
-                <TableHeader></TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {spaces.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell>{s.name}</TableCell>
-                  <TableCell>{PROGRAM_SPACE_CATEGORY_LABEL[s.category as keyof typeof PROGRAM_SPACE_CATEGORY_LABEL] ?? s.category}</TableCell>
-                  <TableCell>{floorLabel(s.floorLevel)}</TableCell>
-                  <TableCell>{area(s.unitAreaSqm)} sqm</TableCell>
-                  <TableCell>{s.count}</TableCell>
-                  <TableCell>{area(s.areaSqm)} sqm</TableCell>
-                  <TableCell>
-                    {editable && (
-                      <Button kind="ghost" size="sm" hasIconOnly renderIcon={TrashCan} iconDescription="Remove"
-                        disabled={removeSpace.isPending}
-                        onClick={() => removeSpace.mutate({ id: s.id, programId: program.id })} />
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={spaces}
+          columns={spaceColumns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       )}
 
       {/* Rollups */}
       {spaces.length > 0 && (
-        <Grid condensed>
-          <Column sm={4} md={4} lg={8}>
-            <TableContainer title="By floor">
-              <Table size="sm">
-                <TableHead><TableRow><TableHeader>Floor</TableHeader><TableHeader>Spaces</TableHeader><TableHeader>Area</TableHeader></TableRow></TableHead>
-                <TableBody>
-                  {byFloor.map((f) => (
-                    <TableRow key={f.floorLevel}>
-                      <TableCell>{floorLabel(f.floorLevel)}</TableCell>
-                      <TableCell>{f.spaceCount}</TableCell>
-                      <TableCell>{area(f.areaSqm)} sqm</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Column>
-          <Column sm={4} md={4} lg={8}>
-            <TableContainer title="By category">
-              <Table size="sm">
-                <TableHead><TableRow><TableHeader>Category</TableHeader><TableHeader>Spaces</TableHeader><TableHeader>Area</TableHeader></TableRow></TableHead>
-                <TableBody>
-                  {byCategory.map((c) => (
-                    <TableRow key={c.category}>
-                      <TableCell>{PROGRAM_SPACE_CATEGORY_LABEL[c.category as keyof typeof PROGRAM_SPACE_CATEGORY_LABEL] ?? c.category}</TableCell>
-                      <TableCell>{c.spaceCount}</TableCell>
-                      <TableCell>{area(c.areaSqm)} sqm</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Column>
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Stack spacing={0.5}>
+              <Typography variant="subtitle1">By floor</Typography>
+              <DataGrid
+                rows={byFloor}
+                columns={byFloorColumns}
+                getRowId={(r) => r.floorLevel}
+                density="compact"
+                disableRowSelectionOnClick
+                hideFooter
+                autoHeight
+              />
+            </Stack>
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Stack spacing={0.5}>
+              <Typography variant="subtitle1">By category</Typography>
+              <DataGrid
+                rows={byCategory}
+                columns={byCategoryColumns}
+                getRowId={(r) => r.category}
+                density="compact"
+                disableRowSelectionOnClick
+                hideFooter
+                autoHeight
+              />
+            </Stack>
+          </Grid>
         </Grid>
       )}
 
       {/* Version controls */}
       {canWrite && (
-        <div style={{ display: "flex", gap: "var(--cds-spacing-04)", flexWrap: "wrap" }}>
+        <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
           {!frozen ? (
-            <Button kind="primary" size="sm" disabled={freeze.isPending} onClick={() => freeze.mutate({ programId: program.id })}>
+            <Button variant="contained" size="small" disabled={freeze.isPending} onClick={() => freeze.mutate({ programId: program.id })}>
               {freeze.isPending ? "Freezing…" : "Freeze program (set revision baseline)"}
             </Button>
           ) : (
-            <Button kind="secondary" size="sm" disabled={newVersion.isPending} onClick={() => newVersion.mutate({ projectId })}>
+            <Button variant="outlined" size="small" disabled={newVersion.isPending} onClick={() => newVersion.mutate({ projectId })}>
               {newVersion.isPending ? "Creating…" : "Start new version"}
             </Button>
           )}
-        </div>
+        </Box>
       )}
       {frozen && (
         <p className="esti-label--secondary">
@@ -247,38 +274,48 @@ export function ProjectProgram({ projectId }: { projectId: string }) {
         </p>
       )}
 
-      {/* Add space modal */}
-      <Modal
-        open={open}
-        modalHeading="Add program space"
-        primaryButtonText={addSpace.isPending ? "Adding…" : "Add space"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!form.name || !form.unitAreaSqm || addSpace.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          addSpace.mutate({
-            programId: program.id,
-            name: form.name,
-            category: form.category as (typeof ProgramSpaceCategory.options)[number],
-            floorLevel: Number(form.floorLevel || 0),
-            unitAreaSqm: Number(form.unitAreaSqm || 0),
-            count: Number(form.count || 1),
-            notes: form.notes || undefined,
-          })
-        }
-      >
-        <Stack gap={4}>
-          <TextInput id="ps-name" labelText="Space name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <Select id="ps-cat" labelText="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
-            {ProgramSpaceCategory.options.map((c) => <SelectItem key={c} value={c} text={PROGRAM_SPACE_CATEGORY_LABEL[c]} />)}
-          </Select>
-          <TextInput id="ps-floor" type="number" labelText="Floor level (0 = ground, -1 = basement)" value={form.floorLevel} onChange={(e) => setForm({ ...form, floorLevel: e.target.value })} />
-          <TextInput id="ps-area" type="number" labelText="Unit area (sqm)" value={form.unitAreaSqm} onChange={(e) => setForm({ ...form, unitAreaSqm: e.target.value })} />
-          <TextInput id="ps-count" type="number" labelText="Count" value={form.count} onChange={(e) => setForm({ ...form, count: e.target.value })} />
-          <TextArea id="ps-notes" labelText="Notes (optional)" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-          {addSpace.error && <InlineNotification kind="error" title="Error" subtitle={addSpace.error.message} lowContrast />}
-        </Stack>
-      </Modal>
+      {/* Add space dialog */}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Add program space</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField id="ps-name" label="Space name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} fullWidth />
+            <TextField id="ps-cat" select label="Category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} fullWidth>
+              {ProgramSpaceCategory.options.map((c) => <MenuItem key={c} value={c}>{PROGRAM_SPACE_CATEGORY_LABEL[c]}</MenuItem>)}
+            </TextField>
+            <TextField id="ps-floor" type="number" label="Floor level (0 = ground, -1 = basement)" value={form.floorLevel} onChange={(e) => setForm({ ...form, floorLevel: e.target.value })} fullWidth />
+            <TextField id="ps-area" type="number" label="Unit area (sqm)" value={form.unitAreaSqm} onChange={(e) => setForm({ ...form, unitAreaSqm: e.target.value })} fullWidth />
+            <TextField id="ps-count" type="number" label="Count" value={form.count} onChange={(e) => setForm({ ...form, count: e.target.value })} fullWidth />
+            <TextField id="ps-notes" label="Notes (optional)" multiline rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} fullWidth />
+            {addSpace.error && (
+              <Alert severity="error">
+                <AlertTitle>Error</AlertTitle>
+                {addSpace.error.message}
+              </Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!form.name || !form.unitAreaSqm || addSpace.isPending}
+            onClick={() =>
+              addSpace.mutate({
+                programId: program.id,
+                name: form.name,
+                category: form.category as (typeof ProgramSpaceCategory.options)[number],
+                floorLevel: Number(form.floorLevel || 0),
+                unitAreaSqm: Number(form.unitAreaSqm || 0),
+                count: Number(form.count || 1),
+                notes: form.notes || undefined,
+              })
+            }
+          >
+            {addSpace.isPending ? "Adding…" : "Add space"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

@@ -1,13 +1,13 @@
 import {
+  Alert,
   Button,
-  InlineNotification,
-  Select,
-  SelectItem,
+  Chip,
+  MenuItem,
+  Paper,
   Stack,
-  Tag,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import {
   STORAGE_MODE_LABEL,
   StorageMode,
@@ -89,77 +89,90 @@ export function StorageSettingsPanel() {
   const isNas = form.mode === "NAS";
 
   return (
-    <Tile>
-      <Stack gap={5}>
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--cds-spacing-04)" }}>
-          <h2 style={{ margin: 0 }}>Storage (BYOS)</h2>
-          <Tag type="purple" size="sm">Pro</Tag>
-        </div>
-        <p>
+    <Paper sx={{ p: 3, maxWidth: 760 }}>
+      <Stack spacing={2}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <Typography variant="h5" component="h2">Storage (BYOS)</Typography>
+          <Chip
+            size="small"
+            label="Pro"
+            sx={{
+              backgroundColor: "var(--cds-tag-background-purple)",
+              color: "var(--cds-tag-color-purple)",
+            }}
+          />
+        </Stack>
+        <Typography variant="body2">
           By default your files live on ESTI-managed storage. Pro firms can
           point object storage at their own <strong>NAS / mounted folder</strong> or an{" "}
           <strong>S3-compatible hosting engine</strong>. Drawings, documents and generated PDFs
           all follow this setting.
-        </p>
+        </Typography>
         {msg && (
-          <InlineNotification kind={msg.kind} title={msg.kind === "success" ? "OK" : msg.kind === "error" ? "Error" : "Info"} subtitle={msg.text} lowContrast onClose={() => setMsg(null)} />
+          <Alert severity={msg.kind} onClose={() => setMsg(null)}>{msg.text}</Alert>
         )}
 
-        <Select
+        <TextField
           id="st-mode"
-          labelText="Storage target"
+          select
+          label="Storage target"
           value={form.mode}
           onChange={(e) => setForm((f) => ({ ...f, mode: e.target.value }))}
+          fullWidth
         >
           {StorageMode.options.map((m) => (
-            <SelectItem key={m} value={m} text={STORAGE_MODE_LABEL[m]} />
+            <MenuItem key={m} value={m}>{STORAGE_MODE_LABEL[m]}</MenuItem>
           ))}
-        </Select>
+        </TextField>
 
         {isNas && (
-          <TextInput
+          <TextField
             id="st-nas"
-            labelText="Folder path"
+            label="Folder path"
             helperText="An absolute path mounted on the server (and the worker host), e.g. /mnt/nas/esti"
             value={form.nasPath}
             onChange={(e) => setForm((f) => ({ ...f, nasPath: e.target.value }))}
+            fullWidth
           />
         )}
 
         {isS3 && (
           <>
-            <TextInput
+            <TextField
               id="st-endpoint"
-              labelText="Endpoint URL"
+              label="Endpoint URL"
               helperText="e.g. https://s3.eu-central.example.com or http://nas.local:9000"
               value={form.s3Endpoint}
               onChange={(e) => setForm((f) => ({ ...f, s3Endpoint: e.target.value }))}
+              fullWidth
             />
-            <TextInput id="st-bucket" labelText="Bucket" value={form.s3Bucket} onChange={(e) => setForm((f) => ({ ...f, s3Bucket: e.target.value }))} />
-            <TextInput id="st-region" labelText="Region (optional)" placeholder="us-east-1" value={form.s3Region} onChange={(e) => setForm((f) => ({ ...f, s3Region: e.target.value }))} />
-            <TextInput id="st-access" labelText="Access key" value={form.s3AccessKey} onChange={(e) => setForm((f) => ({ ...f, s3AccessKey: e.target.value }))} />
-            <TextInput
+            <TextField id="st-bucket" label="Bucket" value={form.s3Bucket} onChange={(e) => setForm((f) => ({ ...f, s3Bucket: e.target.value }))} fullWidth />
+            <TextField id="st-region" label="Region (optional)" placeholder="us-east-1" value={form.s3Region} onChange={(e) => setForm((f) => ({ ...f, s3Region: e.target.value }))} fullWidth />
+            <TextField id="st-access" label="Access key" value={form.s3AccessKey} onChange={(e) => setForm((f) => ({ ...f, s3AccessKey: e.target.value }))} fullWidth />
+            <TextField
               id="st-secret"
               type="password"
-              labelText="Secret key"
+              label="Secret key"
               helperText={secretConfigured ? "A secret is stored — leave blank to keep it." : "Stored encrypted at rest; never shown again."}
               value={form.s3SecretKey}
               onChange={(e) => setForm((f) => ({ ...f, s3SecretKey: e.target.value }))}
+              autoComplete="new-password"
+              fullWidth
             />
           </>
         )}
 
-        <div style={{ display: "flex", gap: "var(--cds-spacing-04)", flexWrap: "wrap" }}>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
           {form.mode !== "DEFAULT" && (
-            <Button kind="tertiary" disabled={test.isPending} onClick={() => test.mutate(payload())}>
+            <Button variant="outlined" disabled={test.isPending} onClick={() => test.mutate(payload())}>
               {test.isPending ? "Testing…" : "Test connection"}
             </Button>
           )}
-          <Button disabled={save.isPending} onClick={() => save.mutate(payload())}>
+          <Button variant="contained" disabled={save.isPending} onClick={() => save.mutate(payload())}>
             {save.isPending ? "Saving…" : "Save storage settings"}
           </Button>
-        </div>
+        </Stack>
       </Stack>
-    </Tile>
+    </Paper>
   );
 }

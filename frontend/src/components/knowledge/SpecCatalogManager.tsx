@@ -1,19 +1,15 @@
 import {
   Button,
-  Modal,
-  Select,
-  SelectItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { ConfirmModal } from "../ConfirmModal.js";
 import { DataState } from "../DataState.js";
@@ -81,44 +77,91 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
 
   const activeVersion = versionsQ.data?.find((v) => v.id === versionId);
 
+  const columns: GridColDef[] = [
+    {
+      field: "category",
+      headerName: "Category",
+      flex: 1,
+      valueGetter: (value: string | null) => value ?? "—",
+    },
+    { field: "item", headerName: "Item", flex: 1 },
+    {
+      field: "make",
+      headerName: "Make",
+      flex: 1,
+      valueGetter: (value: string | null) => value ?? "—",
+    },
+    {
+      field: "specification",
+      headerName: "Specification",
+      flex: 2,
+      valueGetter: (value: string | null) => value ?? "—",
+    },
+    {
+      field: "finish",
+      headerName: "Finish",
+      flex: 1,
+      valueGetter: (value: string | null) => value ?? "—",
+    },
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      width: 110,
+      renderCell: (params) => (
+        <Button
+          variant="text"
+          color="error"
+          size="small"
+          onClick={() => setConfirmId(params.row.id)}
+        >
+          Remove
+        </Button>
+      ),
+    },
+  ];
+
   return (
-    <Stack gap={5}>
-      <Stack orientation="horizontal" gap={4}>
-        <Stack gap={2} className="esti-grow">
-          {embedded ? <h2>Brand catalogue</h2> : <h1>Brand catalogue</h1>}
-          <p>
+    <Stack spacing={2}>
+      <Stack direction="row" spacing={2} sx={{ alignItems: "flex-start" }}>
+        <Stack spacing={1} className="esti-grow">
+          <Typography variant={embedded ? "h5" : "h4"} component={embedded ? "h2" : "h1"}>
+            Brand catalogue
+          </Typography>
+          <Typography variant="body2">
             Versioned make / brand and finish schedule rows used when creating
             project spec sheets.
-          </p>
+          </Typography>
         </Stack>
-        <Button onClick={() => setVOpen(true)}>New version</Button>
+        <Button variant="contained" onClick={() => setVOpen(true)}>New version</Button>
       </Stack>
 
-      <Stack orientation="horizontal" gap={4}>
-        <Select
+      <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+        <TextField
           id="spec-catalog-ver"
-          labelText="Catalogue version"
+          select
+          label="Catalogue version"
           value={versionId}
           onChange={(e) => setVersionId(e.target.value)}
+          sx={{ minWidth: 240 }}
         >
-          <SelectItem value="" text="Select…" />
+          <MenuItem value="">Select…</MenuItem>
           {(versionsQ.data ?? []).map((v) => (
-            <SelectItem
-              key={v.id}
-              value={v.id}
-              text={`${v.label}${v.active ? " (active)" : ""}`}
-            />
+            <MenuItem key={v.id} value={v.id}>
+              {`${v.label}${v.active ? " (active)" : ""}`}
+            </MenuItem>
           ))}
-        </Select>
+        </TextField>
         {activeVersion && !activeVersion.active && (
           <Button
-            kind="tertiary"
+            variant="outlined"
             onClick={() => setActive.mutate({ id: versionId })}
           >
             Set active
           </Button>
         )}
-        <Button disabled={!versionId} onClick={() => setIOpen(true)}>
+        <Button variant="contained" disabled={!versionId} onClick={() => setIOpen(true)}>
           Add item
         </Button>
       </Stack>
@@ -135,49 +178,29 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
             ? "Add category, item, make, specification, and finish rows."
             : undefined,
           action: versionId ? (
-            <Button size="sm" onClick={() => setIOpen(true)}>
+            <Button size="small" variant="contained" onClick={() => setIOpen(true)}>
               Add item
             </Button>
           ) : undefined,
         }}
       >
-        <TableContainer
-          title="Catalogue items"
-          description={activeVersion?.description ?? ""}
-        >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeader>Category</TableHeader>
-                <TableHeader>Item</TableHeader>
-                <TableHeader>Make</TableHeader>
-                <TableHeader>Specification</TableHeader>
-                <TableHeader>Finish</TableHeader>
-                <TableHeader></TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(itemsQ.data ?? []).map((it) => (
-                <TableRow key={it.id}>
-                  <TableCell>{it.category ?? "—"}</TableCell>
-                  <TableCell>{it.item}</TableCell>
-                  <TableCell>{it.make ?? "—"}</TableCell>
-                  <TableCell>{it.specification ?? "—"}</TableCell>
-                  <TableCell>{it.finish ?? "—"}</TableCell>
-                  <TableCell>
-                    <Button
-                      kind="danger--ghost"
-                      size="sm"
-                      onClick={() => setConfirmId(it.id)}
-                    >
-                      Remove
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Stack spacing={1}>
+          <Stack spacing={0.5}>
+            <Typography variant="h6" component="h3">Catalogue items</Typography>
+            {activeVersion?.description && (
+              <Typography variant="body2">{activeVersion.description}</Typography>
+            )}
+          </Stack>
+          <DataGrid
+            rows={itemsQ.data ?? []}
+            columns={columns}
+            density="compact"
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+            getRowHeight={() => "auto"}
+          />
+        </Stack>
       </DataState>
 
       <ConfirmModal
@@ -193,111 +216,133 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
         onClose={() => setConfirmId(null)}
       />
 
-      <Modal
-        open={vOpen}
-        modalHeading="New catalogue version"
-        primaryButtonText={createVersion.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!vForm.label || createVersion.isPending}
-        onRequestClose={() => setVOpen(false)}
-        onRequestSubmit={() =>
-          createVersion.mutate({
-            label: vForm.label,
-            description: vForm.description || undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <TextInput
-            id="sc-label"
-            labelText="Version label"
-            placeholder="e.g. Office standard 2026"
-            value={vForm.label}
-            onChange={(e) => setVForm((f) => ({ ...f, label: e.target.value }))}
-          />
-          <TextInput
-            id="sc-desc"
-            labelText="Description (optional)"
-            value={vForm.description}
-            onChange={(e) =>
-              setVForm((f) => ({ ...f, description: e.target.value }))
+      <Dialog open={vOpen} onClose={() => setVOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New catalogue version</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="sc-label"
+              label="Version label"
+              placeholder="e.g. Office standard 2026"
+              value={vForm.label}
+              onChange={(e) => setVForm((f) => ({ ...f, label: e.target.value }))}
+              fullWidth
+            />
+            <TextField
+              id="sc-desc"
+              label="Description (optional)"
+              value={vForm.description}
+              onChange={(e) =>
+                setVForm((f) => ({ ...f, description: e.target.value }))
+              }
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setVOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!vForm.label || createVersion.isPending}
+            onClick={() =>
+              createVersion.mutate({
+                label: vForm.label,
+                description: vForm.description || undefined,
+              })
             }
-          />
-        </Stack>
-      </Modal>
+          >
+            {createVersion.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      <Modal
-        open={iOpen}
-        modalHeading="Add catalogue item"
-        primaryButtonText={createItem.isPending ? "Adding…" : "Add"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!iForm.item.trim() || createItem.isPending}
-        onRequestClose={() => setIOpen(false)}
-        onRequestSubmit={() =>
-          createItem.mutate({
-            versionId,
-            category: iForm.category || undefined,
-            item: iForm.item,
-            make: iForm.make || undefined,
-            specification: iForm.specification || undefined,
-            finish: iForm.finish || undefined,
-            remarks: iForm.remarks || undefined,
-          })
-        }
-        size="lg"
-      >
-        <Stack gap={5}>
-          <Stack orientation="horizontal" gap={5}>
-            <TextInput
-              id="sci-category"
-              labelText="Category"
-              value={iForm.category}
+      <Dialog open={iOpen} onClose={() => setIOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle>Add catalogue item</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="sci-category"
+                label="Category"
+                value={iForm.category}
+                onChange={(e) =>
+                  setIForm((f) => ({ ...f, category: e.target.value }))
+                }
+                fullWidth
+              />
+              <TextField
+                id="sci-item"
+                label="Item"
+                value={iForm.item}
+                onChange={(e) => setIForm((f) => ({ ...f, item: e.target.value }))}
+                fullWidth
+              />
+              <TextField
+                id="sci-make"
+                label="Make"
+                value={iForm.make}
+                onChange={(e) => setIForm((f) => ({ ...f, make: e.target.value }))}
+                fullWidth
+              />
+            </Stack>
+            <TextField
+              id="sci-spec"
+              label="Specification"
+              multiline
+              minRows={3}
+              value={iForm.specification}
               onChange={(e) =>
-                setIForm((f) => ({ ...f, category: e.target.value }))
+                setIForm((f) => ({ ...f, specification: e.target.value }))
               }
+              fullWidth
             />
-            <TextInput
-              id="sci-item"
-              labelText="Item"
-              value={iForm.item}
-              onChange={(e) => setIForm((f) => ({ ...f, item: e.target.value }))}
-            />
-            <TextInput
-              id="sci-make"
-              labelText="Make"
-              value={iForm.make}
-              onChange={(e) => setIForm((f) => ({ ...f, make: e.target.value }))}
-            />
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="sci-finish"
+                label="Finish"
+                value={iForm.finish}
+                onChange={(e) =>
+                  setIForm((f) => ({ ...f, finish: e.target.value }))
+                }
+                fullWidth
+              />
+              <TextField
+                id="sci-remarks"
+                label="Remarks"
+                value={iForm.remarks}
+                onChange={(e) =>
+                  setIForm((f) => ({ ...f, remarks: e.target.value }))
+                }
+                fullWidth
+              />
+            </Stack>
           </Stack>
-          <TextArea
-            id="sci-spec"
-            labelText="Specification"
-            rows={3}
-            value={iForm.specification}
-            onChange={(e) =>
-              setIForm((f) => ({ ...f, specification: e.target.value }))
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setIOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!iForm.item.trim() || createItem.isPending}
+            onClick={() =>
+              createItem.mutate({
+                versionId,
+                category: iForm.category || undefined,
+                item: iForm.item,
+                make: iForm.make || undefined,
+                specification: iForm.specification || undefined,
+                finish: iForm.finish || undefined,
+                remarks: iForm.remarks || undefined,
+              })
             }
-          />
-          <Stack orientation="horizontal" gap={5}>
-            <TextInput
-              id="sci-finish"
-              labelText="Finish"
-              value={iForm.finish}
-              onChange={(e) =>
-                setIForm((f) => ({ ...f, finish: e.target.value }))
-              }
-            />
-            <TextInput
-              id="sci-remarks"
-              labelText="Remarks"
-              value={iForm.remarks}
-              onChange={(e) =>
-                setIForm((f) => ({ ...f, remarks: e.target.value }))
-              }
-            />
-          </Stack>
-        </Stack>
-      </Modal>
+          >
+            {createItem.isPending ? "Adding…" : "Add"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

@@ -1,18 +1,24 @@
 import {
+  Alert,
   Button,
-  Column,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
-  InlineLoading,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  MenuItem,
+  Paper,
   Stack,
-  Tag,
-  TextInput,
-  Tile,
-} from "@carbon/react";
-import { Checkmark, Document, TrashCan, Upload } from "@carbon/icons-react";
+  TextField,
+  Typography,
+  styled,
+} from "@mui/material";
+import CheckIcon from "@mui/icons-material/Check";
+import DeleteIcon from "@mui/icons-material/Delete";
+import DescriptionIcon from "@mui/icons-material/Description";
+import UploadIcon from "@mui/icons-material/Upload";
 import {
   HR_DOCUMENT_TYPES,
   STAFF_LEVEL_DESCRIPTION,
@@ -21,10 +27,12 @@ import {
   TEAM_ROLES,
   type TeamRoleCode,
 } from "@esti/contracts";
-import React, { createElement, type CSSProperties, useRef, useState } from "react";
+import { type CSSProperties, useState } from "react";
 import { StaffAvatar, resolveColor } from "../StaffAvatar.js";
 import { apiUrl, authHeaders } from "../../lib/api-base.js";
 import { trpc } from "../../lib/trpc.js";
+
+const HiddenFileInput = styled("input")({ display: "none" });
 
 type DocType = keyof typeof HR_DOCUMENT_TYPES;
 
@@ -46,7 +54,6 @@ export function StaffProfilesTab() {
     expiryDate: "",
     notes: "",
   });
-  const fileRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const profileQ = trpc.hrProfile.getProfile.useQuery(
@@ -91,20 +98,26 @@ export function StaffProfilesTab() {
     }
   }
 
+  const chipSx = (c: string) => ({
+    backgroundColor: `var(--cds-tag-background-${c})`,
+    color: `var(--cds-tag-color-${c})`,
+  });
+
   return (
-    <Grid narrow>
+    <Grid container spacing={2}>
       {/* Left: member list */}
-      <Column lg={4} md={3} sm={4}>
-        <Stack gap={2}>
+      <Grid size={{ xs: 12, md: 4, lg: 3 }}>
+        <Stack spacing={1}>
           <p className="esti-label esti-label--secondary">Select a staff member</p>
           {members.map((m) => {
             const color = resolveColor({ staffLevel: m.staffLevel ?? null, name: m.name });
             const isSelected = m.id === selectedId;
             return (
-              <Tile
+              <Paper
                 key={m.id}
                 className={`esti-profile-member-tile${isSelected ? " esti-profile-member-tile--active" : ""}`}
                 onClick={() => setSelectedId(m.id)}
+                sx={{ p: 2, cursor: "pointer" }}
                 style={{ "--esti-staff-color": color } as CSSProperties}
               >
                 <div className="esti-avatar-name-cell">
@@ -121,29 +134,30 @@ export function StaffProfilesTab() {
                     </span>
                   )}
                 </div>
-              </Tile>
+              </Paper>
             );
           })}
         </Stack>
-      </Column>
+      </Grid>
 
       {/* Right: profile detail */}
-      <Column lg={12} md={5} sm={4}>
+      <Grid size={{ xs: 12, md: 8, lg: 9 }}>
         {!selected ? (
-          <Tile>
+          <Paper sx={{ p: 2 }}>
             <p className="esti-label esti-label--secondary">Select a staff member to view their profile and documents.</p>
-          </Tile>
+          </Paper>
         ) : (
-          <Stack gap={5}>
+          <Stack spacing={2}>
             {/* Level assignment */}
-            <Tile>
-              <Stack gap={4}>
-                <h3>{selected.name}</h3>
-                <Grid narrow>
-                  <Column lg={4} md={4} sm={4}>
-                    <Select
+            <Paper sx={{ p: 2 }}>
+              <Stack spacing={2}>
+                <Typography variant="h6" component="h3">{selected.name}</Typography>
+                <Grid container spacing={2}>
+                  <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                    <TextField
                       id="hr-level"
-                      labelText="Staff level"
+                      select
+                      label="Staff level"
                       value={selected.staffLevel ?? ""}
                       onChange={(e) =>
                         updateLevel.mutate({
@@ -152,17 +166,20 @@ export function StaffProfilesTab() {
                           jobTitle: selected.jobTitle,
                         })
                       }
+                      fullWidth
                     >
-                      <SelectItem value="" text="— Not set —" />
+                      <MenuItem value="">— Not set —</MenuItem>
                       {STAFF_LEVELS.map((l) => (
-                        <SelectItem key={l} value={l} text={`${STAFF_LEVEL_LABEL[l]} · ${STAFF_LEVEL_DESCRIPTION[l]?.split("—")[0]?.trim()}`} />
+                        <MenuItem key={l} value={l}>
+                          {`${STAFF_LEVEL_LABEL[l]} · ${STAFF_LEVEL_DESCRIPTION[l]?.split("—")[0]?.trim()}`}
+                        </MenuItem>
                       ))}
-                    </Select>
-                  </Column>
-                  <Column lg={4} md={4} sm={4}>
-                    <TextInput
+                    </TextField>
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                    <TextField
                       id="hr-jobtitle"
-                      labelText="Job title"
+                      label="Job title"
                       placeholder="e.g. Senior Architect"
                       defaultValue={selected.jobTitle ?? ""}
                       onBlur={(e) =>
@@ -172,39 +189,52 @@ export function StaffProfilesTab() {
                           jobTitle: e.target.value || null,
                         })
                       }
+                      fullWidth
                     />
-                  </Column>
+                  </Grid>
                 </Grid>
-                {updateLevel.isPending && <InlineLoading description="Saving…" />}
+                {updateLevel.isPending && (
+                  <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                    <CircularProgress size={16} />
+                    <Typography variant="body2">Saving…</Typography>
+                  </Stack>
+                )}
               </Stack>
-            </Tile>
+            </Paper>
 
             {/* Document vault */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h4>Document vault</h4>
-              <Button size="sm" renderIcon={Upload} onClick={() => setUploadOpen(true)}>
+            <div className="esti-row-between">
+              <Typography variant="subtitle1" component="h4">Document vault</Typography>
+              <Button size="small" variant="contained" startIcon={<UploadIcon />} onClick={() => setUploadOpen(true)}>
                 Upload document
               </Button>
             </div>
 
-            {profileQ.isLoading && <InlineLoading description="Loading documents…" />}
-
-            {profileQ.data?.documents.length === 0 && (
-              <Tile>
-                <p className="esti-label esti-label--secondary">No documents uploaded yet.</p>
-              </Tile>
+            {profileQ.isLoading && (
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                <CircularProgress size={16} />
+                <Typography variant="body2">Loading documents…</Typography>
+              </Stack>
             )}
 
-            <Grid narrow>
+            {profileQ.data?.documents.length === 0 && (
+              <Paper sx={{ p: 2 }}>
+                <p className="esti-label esti-label--secondary">No documents uploaded yet.</p>
+              </Paper>
+            )}
+
+            <Grid container spacing={2}>
               {(profileQ.data?.documents ?? []).map((doc) => (
-                <Column key={doc.id} lg={4} md={4} sm={4}>
-                  <Tile className="esti-doc-tile">
-                    <Stack gap={2}>
+                <Grid key={doc.id} size={{ xs: 12, md: 6, lg: 4 }}>
+                  <Paper className="esti-doc-tile" sx={{ p: 2 }}>
+                    <Stack spacing={1}>
                       <div className="esti-doc-tile__header">
-                        <Document size={20} />
-                        <Tag type={doc.verifiedAt ? "green" : "gray"} size="sm">
-                          {doc.verifiedAt ? "Verified" : "Unverified"}
-                        </Tag>
+                        <DescriptionIcon sx={{ fontSize: 20 }} />
+                        <Chip
+                          size="small"
+                          label={doc.verifiedAt ? "Verified" : "Unverified"}
+                          sx={chipSx(doc.verifiedAt ? "green" : "gray")}
+                        />
                       </div>
                       <p className="esti-label"><strong>{doc.documentName}</strong></p>
                       <p className="esti-label esti-label--secondary">
@@ -221,9 +251,9 @@ export function StaffProfilesTab() {
                       <div className="esti-doc-tile__actions">
                         {!doc.verifiedAt && (
                           <Button
-                            kind="ghost"
-                            size="sm"
-                            renderIcon={Checkmark}
+                            variant="text"
+                            size="small"
+                            startIcon={<CheckIcon />}
                             disabled={verifyDoc.isPending}
                             onClick={() => verifyDoc.mutate({ docId: doc.id })}
                           >
@@ -231,9 +261,10 @@ export function StaffProfilesTab() {
                           </Button>
                         )}
                         <Button
-                          kind="danger--ghost"
-                          size="sm"
-                          renderIcon={TrashCan}
+                          variant="text"
+                          color="error"
+                          size="small"
+                          startIcon={<DeleteIcon />}
                           disabled={deleteDoc.isPending}
                           onClick={() => deleteDoc.mutate({ docId: doc.id })}
                         >
@@ -241,89 +272,103 @@ export function StaffProfilesTab() {
                         </Button>
                       </div>
                     </Stack>
-                  </Tile>
-                </Column>
+                  </Paper>
+                </Grid>
               ))}
             </Grid>
           </Stack>
         )}
-      </Column>
+      </Grid>
 
       {/* Upload document modal */}
-      <Modal
+      <Dialog
         open={uploadOpen}
-        modalHeading={`Upload document${selected ? ` — ${selected.name}` : ""}`}
-        primaryButtonText={uploading ? "Uploading…" : "Upload"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!selectedFile || uploading}
-        onRequestClose={() => { setUploadOpen(false); setSelectedFile(null); }}
-        onRequestSubmit={handleUpload}
+        onClose={() => { setUploadOpen(false); setSelectedFile(null); }}
+        fullWidth
+        maxWidth="sm"
       >
-        <Stack gap={5}>
-          <Select
-            id="doc-type"
-            labelText="Document type"
-            value={uploadForm.documentType}
-            onChange={(e) => setUploadForm((f) => ({ ...f, documentType: e.target.value as DocType }))}
-          >
-            {(Object.keys(HR_DOCUMENT_TYPES) as DocType[]).map((k) => (
-              <SelectItem key={k} value={k} text={HR_DOCUMENT_TYPES[k]} />
-            ))}
-          </Select>
-          <TextInput
-            id="doc-name"
-            labelText="Label (optional)"
-            placeholder={HR_DOCUMENT_TYPES[uploadForm.documentType]}
-            value={uploadForm.documentName}
-            onChange={(e) => setUploadForm((f) => ({ ...f, documentName: e.target.value }))}
-          />
-          <Grid narrow>
-            <Column lg={8} md={4} sm={4}>
-              <TextInput
-                id="doc-issue"
-                labelText="Issue date (optional)"
-                type="date"
-                value={uploadForm.issueDate}
-                onChange={(e) => setUploadForm((f) => ({ ...f, issueDate: e.target.value }))}
-              />
-            </Column>
-            <Column lg={8} md={4} sm={4}>
-              <TextInput
-                id="doc-expiry"
-                labelText="Expiry date (optional)"
-                type="date"
-                value={uploadForm.expiryDate}
-                onChange={(e) => setUploadForm((f) => ({ ...f, expiryDate: e.target.value }))}
-              />
-            </Column>
-          </Grid>
-          <TextInput
-            id="doc-notes"
-            labelText="Notes (optional)"
-            value={uploadForm.notes}
-            onChange={(e) => setUploadForm((f) => ({ ...f, notes: e.target.value }))}
-          />
-          <Stack gap={2}>
-            <Button kind="secondary" size="sm" onClick={() => fileRef.current?.click()}>
-              {selectedFile ? selectedFile.name : "Choose file (PDF, JPG, PNG — max 10 MB)"}
-            </Button>
-            {createElement("input", {
-              ref: fileRef,
-              type: "file",
-              accept: ".pdf,.jpg,.jpeg,.png,.webp",
-              style: { display: "none" },
-              onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                const f = e.target.files?.[0];
-                if (f) setSelectedFile(f);
-                e.target.value = "";
-              },
-            })}
+        <DialogTitle>{`Upload document${selected ? ` — ${selected.name}` : ""}`}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="doc-type"
+              select
+              label="Document type"
+              value={uploadForm.documentType}
+              onChange={(e) => setUploadForm((f) => ({ ...f, documentType: e.target.value as DocType }))}
+              fullWidth
+            >
+              {(Object.keys(HR_DOCUMENT_TYPES) as DocType[]).map((k) => (
+                <MenuItem key={k} value={k}>{HR_DOCUMENT_TYPES[k]}</MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="doc-name"
+              label="Label (optional)"
+              placeholder={HR_DOCUMENT_TYPES[uploadForm.documentType]}
+              value={uploadForm.documentName}
+              onChange={(e) => setUploadForm((f) => ({ ...f, documentName: e.target.value }))}
+              fullWidth
+            />
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  id="doc-issue"
+                  label="Issue date (optional)"
+                  type="date"
+                  value={uploadForm.issueDate}
+                  onChange={(e) => setUploadForm((f) => ({ ...f, issueDate: e.target.value }))}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  fullWidth
+                />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  id="doc-expiry"
+                  label="Expiry date (optional)"
+                  type="date"
+                  value={uploadForm.expiryDate}
+                  onChange={(e) => setUploadForm((f) => ({ ...f, expiryDate: e.target.value }))}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  fullWidth
+                />
+              </Grid>
+            </Grid>
+            <TextField
+              id="doc-notes"
+              label="Notes (optional)"
+              value={uploadForm.notes}
+              onChange={(e) => setUploadForm((f) => ({ ...f, notes: e.target.value }))}
+              fullWidth
+            />
+            <Stack direction="row">
+              <Button variant="outlined" size="small" component="label">
+                {selectedFile ? selectedFile.name : "Choose file (PDF, JPG, PNG — max 10 MB)"}
+                <HiddenFileInput
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.webp"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) setSelectedFile(f);
+                    e.target.value = "";
+                  }}
+                />
+              </Button>
+            </Stack>
+            {uploadMsg && (
+              <Alert severity="error">{uploadMsg}</Alert>
+            )}
           </Stack>
-          {uploadMsg && (
-            <InlineNotification kind="error" title="Upload error" subtitle={uploadMsg} hideCloseButton lowContrast />
-          )}
-        </Stack>
-      </Modal>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => { setUploadOpen(false); setSelectedFile(null); }}>
+            Cancel
+          </Button>
+          <Button variant="contained" disabled={!selectedFile || uploading} onClick={handleUpload}>
+            {uploading ? "Uploading…" : "Upload"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Grid>
   );
 }

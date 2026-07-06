@@ -1,19 +1,22 @@
 import {
+  Box,
   Button,
-  Modal,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableHeader,
   TableRow,
-  Tag,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import {
   CONSULTANT_DISCIPLINES,
   type ConsultantDisciplineCode,
@@ -23,6 +26,11 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
+
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 export function ProjectEngagements({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
@@ -65,172 +73,196 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
 
   return (
     <>
-      <div
-        style={{
+      <Box
+        sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginTop: "var(--cds-spacing-07)",
+          mt: 4,
         }}
       >
-        <h3>Consultants engaged</h3>
+        <Typography variant="h6" component="h3">Consultants engaged</Typography>
         <Button
-          size="sm"
+          size="small"
+          variant="contained"
           disabled={consultants.length === 0}
           onClick={() => setOpen(true)}
         >
           Engage consultant
         </Button>
-      </div>
+      </Box>
       {consultants.length === 0 && (
         <p>Add consultants in the Consultants register first.</p>
       )}
-      <TableContainer
-        title="Sub-consultant engagements"
-        description="Agreed fee, paid, and balance"
-      >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader>Consultant</TableHeader>
-              <TableHeader>Discipline</TableHeader>
-              <TableHeader>Agreed</TableHeader>
-              <TableHeader>Paid</TableHeader>
-              <TableHeader>Balance</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader></TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(listQ.data?.rows ?? []).map((e) => {
-              const balance = e.agreedFeePaise - e.paidPaise;
-              return (
-                <TableRow key={e.id}>
-                  <TableCell>{e.consultantName}</TableCell>
-                  <TableCell>
-                    {CONSULTANT_DISCIPLINES[
-                      e.discipline as ConsultantDisciplineCode
-                    ] ?? e.discipline}
-                  </TableCell>
-                  <TableCell>
-                    {formatINR(e.agreedFeePaise, { paise: false })}
-                  </TableCell>
-                  <TableCell>
-                    {formatINR(e.paidPaise, { paise: false })}
-                  </TableCell>
-                  <TableCell>{formatINR(balance, { paise: false })}</TableCell>
-                  <TableCell>
-                    <Select
-                      id={`eng-${e.id}`}
-                      labelText="Engagement status"
-                      hideLabel
-                      size="sm"
-                      value={e.status}
-                      onChange={(ev) =>
-                        updateStatus.mutate({
-                          id: e.id,
-                          status: ev.target
-                            .value as (typeof EngagementStatus.options)[number],
-                        })
-                      }
-                    >
-                      {EngagementStatus.options.map((st) => (
-                        <SelectItem key={st} value={st} text={st} />
-                      ))}
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      kind="ghost"
-                      size="sm"
-                      disabled={pay.isPending || e.status === "CANCELLED"}
-                      onClick={() => {
-                        setPayId(e.id);
-                        setPayAmt("");
-                      }}
-                    >
-                      Record payment
-                    </Button>
-                    {balance <= 0 && e.agreedFeePaise > 0 && (
-                      <Tag type="green">Settled</Tag>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Stack spacing={0.5}>
+        <Typography variant="subtitle1" component="h4">
+          Sub-consultant engagements
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Agreed fee, paid, and balance
+        </Typography>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Consultant</TableCell>
+                <TableCell>Discipline</TableCell>
+                <TableCell>Agreed</TableCell>
+                <TableCell>Paid</TableCell>
+                <TableCell>Balance</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(listQ.data?.rows ?? []).map((e) => {
+                const balance = e.agreedFeePaise - e.paidPaise;
+                return (
+                  <TableRow key={e.id}>
+                    <TableCell>{e.consultantName}</TableCell>
+                    <TableCell>
+                      {CONSULTANT_DISCIPLINES[
+                        e.discipline as ConsultantDisciplineCode
+                      ] ?? e.discipline}
+                    </TableCell>
+                    <TableCell>
+                      {formatINR(e.agreedFeePaise, { paise: false })}
+                    </TableCell>
+                    <TableCell>
+                      {formatINR(e.paidPaise, { paise: false })}
+                    </TableCell>
+                    <TableCell>{formatINR(balance, { paise: false })}</TableCell>
+                    <TableCell>
+                      <TextField
+                        id={`eng-${e.id}`}
+                        select
+                        size="small"
+                        slotProps={{ htmlInput: { "aria-label": "Engagement status" } }}
+                        value={e.status}
+                        onChange={(ev) =>
+                          updateStatus.mutate({
+                            id: e.id,
+                            status: ev.target
+                              .value as (typeof EngagementStatus.options)[number],
+                          })
+                        }
+                      >
+                        {EngagementStatus.options.map((st) => (
+                          <MenuItem key={st} value={st}>
+                            {st}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="text"
+                        size="small"
+                        disabled={pay.isPending || e.status === "CANCELLED"}
+                        onClick={() => {
+                          setPayId(e.id);
+                          setPayAmt("");
+                        }}
+                      >
+                        Record payment
+                      </Button>
+                      {balance <= 0 && e.agreedFeePaise > 0 && (
+                        <Chip size="small" label="Settled" sx={chipSx("green")} />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Stack>
 
-      <Modal
-        open={open}
-        modalHeading="Engage a consultant"
-        primaryButtonText={create.isPending ? "Saving…" : "Engage"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          !consultantId || agreedFee === "" || create.isPending
-        }
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            projectId,
-            consultantId,
-            scope: scope || undefined,
-            agreedFeePaise: parseRupeeInput(agreedFee),
-          })
-        }
-      >
-        <Stack gap={5}>
-          <Select
-            id="eng-consultant"
-            labelText="Consultant"
-            value={consultantId}
-            onChange={(e) => setConsultantId(e.target.value)}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Engage a consultant</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="eng-consultant"
+              select
+              label="Consultant"
+              value={consultantId}
+              onChange={(e) => setConsultantId(e.target.value)}
+              fullWidth
+            >
+              <MenuItem value="">Select…</MenuItem>
+              {consultants.map((c) => (
+                <MenuItem key={c.id} value={c.id}>
+                  {`${c.name} — ${CONSULTANT_DISCIPLINES[c.discipline as ConsultantDisciplineCode] ?? c.discipline}`}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="eng-fee"
+              label="Agreed fee (₹)"
+              type="number"
+              value={agreedFee}
+              onChange={(e) => setAgreedFee(e.target.value)}
+              fullWidth
+            />
+            <TextField
+              id="eng-scope"
+              label="Scope (optional)"
+              value={scope}
+              onChange={(e) => setScope(e.target.value)}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!consultantId || agreedFee === "" || create.isPending}
+            onClick={() =>
+              create.mutate({
+                projectId,
+                consultantId,
+                scope: scope || undefined,
+                agreedFeePaise: parseRupeeInput(agreedFee),
+              })
+            }
           >
-            <SelectItem value="" text="Select…" />
-            {consultants.map((c) => (
-              <SelectItem
-                key={c.id}
-                value={c.id}
-                text={`${c.name} — ${CONSULTANT_DISCIPLINES[c.discipline as ConsultantDisciplineCode] ?? c.discipline}`}
-              />
-            ))}
-          </Select>
-          <TextInput
-            id="eng-fee"
-            labelText="Agreed fee (₹)"
-            type="number"
-            value={agreedFee}
-            onChange={(e) => setAgreedFee(e.target.value)}
-          />
-          <TextInput
-            id="eng-scope"
-            labelText="Scope (optional)"
-            value={scope}
-            onChange={(e) => setScope(e.target.value)}
-          />
-        </Stack>
-      </Modal>
+            {create.isPending ? "Saving…" : "Engage"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      <Modal
-        open={payId !== null}
-        modalHeading="Record payment"
-        primaryButtonText={pay.isPending ? "Saving…" : "Record"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!payAmt || Number(payAmt) <= 0 || pay.isPending}
-        onRequestClose={() => setPayId(null)}
-        onRequestSubmit={() =>
-          payId && pay.mutate({ id: payId, amountPaise: parseRupeeInput(payAmt) })
-        }
-      >
-        <TextInput
-          id="eng-pay"
-          labelText="Payment amount (₹)"
-          type="number"
-          value={payAmt}
-          onChange={(e) => setPayAmt(e.target.value)}
-        />
-      </Modal>
+      <Dialog open={payId !== null} onClose={() => setPayId(null)} fullWidth maxWidth="xs">
+        <DialogTitle>Record payment</DialogTitle>
+        <DialogContent>
+          <TextField
+            id="eng-pay"
+            label="Payment amount (₹)"
+            type="number"
+            value={payAmt}
+            onChange={(e) => setPayAmt(e.target.value)}
+            fullWidth
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setPayId(null)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!payAmt || Number(payAmt) <= 0 || pay.isPending}
+            onClick={() =>
+              payId && pay.mutate({ id: payId, amountPaise: parseRupeeInput(payAmt) })
+            }
+          >
+            {pay.isPending ? "Saving…" : "Record"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

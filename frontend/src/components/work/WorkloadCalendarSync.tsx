@@ -1,14 +1,15 @@
 import {
+  Alert,
+  AlertTitle,
   Button,
-  CopyButton,
-  InlineNotification,
-  Select,
-  SelectItem,
+  MenuItem,
+  Paper,
   Stack,
-  TextInput,
-  Tile,
-} from "@carbon/react";
-import { Calendar } from "@carbon/icons-react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import CalendarMonth from "@mui/icons-material/CalendarMonth";
+import ContentCopy from "@mui/icons-material/ContentCopy";
 import type { WorkloadCalendarScope } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../../lib/trpc.js";
@@ -37,56 +38,61 @@ export function WorkloadCalendarSync() {
     "Google Calendar → Other calendars → + → From URL → paste the HTTPS link below.";
 
   return (
-    <Tile>
-      <Stack gap={5}>
-        <Stack orientation="horizontal" gap={3}>
-          <Calendar size={20} aria-hidden />
-          <h4>Sync with Google Calendar</h4>
+    <Paper sx={{ p: 2 }}>
+      <Stack spacing={2}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <CalendarMonth sx={{ fontSize: 20 }} aria-hidden />
+          <Typography variant="h6">Sync with Google Calendar</Typography>
         </Stack>
-        <p>
+        <Typography variant="body2">
           Subscribe to your open task due dates as an iCal feed. Google refreshes
           subscribed calendars about once per hour.
-        </p>
+        </Typography>
 
         {canOffice && (
-          <Select
+          <TextField
             id="cal-scope"
-            labelText="Calendar scope"
+            select
+            label="Calendar scope"
             value={scope}
             onChange={(e) => setScope(e.target.value as WorkloadCalendarScope)}
           >
-            <SelectItem value="mine" text="My tasks" />
-            <SelectItem value="office" text="Whole office (all due tasks)" />
-          </Select>
+            <MenuItem value="mine">My tasks</MenuItem>
+            <MenuItem value="office">Whole office (all due tasks)</MenuItem>
+          </TextField>
         )}
 
-        <TextInput
+        <TextField
           id="cal-https"
-          labelText="Subscription URL (HTTPS)"
+          label="Subscription URL (HTTPS)"
           helperText={googleHelp}
-          readOnly
           value={httpsUrl}
+          slotProps={{ input: { readOnly: true }, inputLabel: { shrink: true } }}
         />
-        <Stack orientation="horizontal" gap={3}>
-          <CopyButton
-            iconDescription="Copy subscription URL"
-            feedback={copied ? "Copied" : "Copy URL"}
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<ContentCopy />}
+            aria-label="Copy subscription URL"
             onClick={() => {
               if (!httpsUrl) return;
               void navigator.clipboard.writeText(httpsUrl).then(() => setCopied(true));
             }}
-          />
+          >
+            {copied ? "Copied" : "Copy URL"}
+          </Button>
           <Button
-            kind="tertiary"
-            size="sm"
+            variant="outlined"
+            size="small"
             disabled={!webcalUrl}
             onClick={() => window.open(webcalUrl, "_blank", "noopener,noreferrer")}
           >
             Open webcal link
           </Button>
           <Button
-            kind="ghost"
-            size="sm"
+            variant="text"
+            size="small"
             disabled={regenerate.isPending}
             onClick={() => regenerate.mutate()}
           >
@@ -95,13 +101,10 @@ export function WorkloadCalendarSync() {
         </Stack>
 
         {copied && (
-          <InlineNotification
-            kind="success"
-            title="Link copied"
-            subtitle="Paste it in Google Calendar under Other calendars → From URL."
-            lowContrast
-            onCloseButtonClick={() => setCopied(false)}
-          />
+          <Alert severity="success" onClose={() => setCopied(false)}>
+            <AlertTitle>Link copied</AlertTitle>
+            Paste it in Google Calendar under Other calendars → From URL.
+          </Alert>
         )}
 
         <p className="esti-label--secondary">
@@ -109,6 +112,6 @@ export function WorkloadCalendarSync() {
           with it can read task titles and due dates in the feed scope you chose.
         </p>
       </Stack>
-    </Tile>
+    </Paper>
   );
 }

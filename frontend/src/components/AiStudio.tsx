@@ -1,23 +1,22 @@
 import {
+  Alert,
+  AlertTitle,
   Button,
-  Column,
+  Chip,
   Grid,
-  InlineNotification,
-  Select,
-  SelectItem,
+  InputAdornment,
+  MenuItem,
+  Paper,
   Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableHeader,
   TableRow,
-  Tag,
-  TextArea,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import { AI_DRAFT_KIND_LABEL, AiDraftKind, can } from "@esti/contracts";
 import { useState } from "react";
 import { EstiAiExplainLabel } from "./AiCarbon.js";
@@ -63,51 +62,57 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
   if (user?.isDemo) {
     if (compact) return null;
     return (
-      <InlineNotification
-        kind="info"
-        lowContrast
-        hideCloseButton
-        title="Document drafts unavailable on demo"
-        subtitle="Press Alt+A to open ESTI — read-only answers from live AORMS data."
-      />
+      <Alert severity="info">
+        <AlertTitle>Document drafts unavailable on demo</AlertTitle>
+        Press Alt+A to open ESTI — read-only answers from live AORMS data.
+      </Alert>
     );
   }
   if (settingsQ.data && !draftsEnabled) {
     return (
-      <InlineNotification
-        kind="info"
-        lowContrast
-        hideCloseButton
-        title="AI Studio disabled"
-        subtitle="Owner can enable AI Studio under Company → AI settings."
-      />
+      <Alert severity="info">
+        <AlertTitle>AI Studio disabled</AlertTitle>
+        Owner can enable AI Studio under Company → AI settings.
+      </Alert>
     );
   }
 
   const body = (
-    <Stack gap={5}>
-      <Select
+    <Stack spacing={2}>
+      <TextField
         id="ai-kind"
-        labelText="Draft type"
+        select
+        label="Draft type"
         value={kind}
         onChange={(e) => setKind(e.target.value as AiDraftKind)}
-        size={compact ? "sm" : "md"}
+        size={compact ? "small" : "medium"}
       >
         {DRAFT_KINDS.map((k) => (
-          <SelectItem key={k} value={k} text={AI_DRAFT_KIND_LABEL[k]} />
+          <MenuItem key={k} value={k}>
+            {AI_DRAFT_KIND_LABEL[k]}
+          </MenuItem>
         ))}
-      </Select>
-      <TextInput
+      </TextField>
+      <TextField
         id="ai-prompt"
-        labelText="Instructions (optional)"
+        label="Instructions (optional)"
         placeholder="e.g. emphasise billing for phase 2"
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
-        size={compact ? "sm" : "md"}
-        decorator={<EstiAiExplainLabel scope="draft" />}
+        size={compact ? "small" : "medium"}
+        slotProps={{
+          input: {
+            endAdornment: (
+              <InputAdornment position="end">
+                <EstiAiExplainLabel scope="draft" />
+              </InputAdornment>
+            ),
+          },
+        }}
       />
       <Button
-        size={compact ? "sm" : "md"}
+        variant="contained"
+        size={compact ? "small" : "medium"}
         disabled={generate.isPending}
         onClick={() =>
           generate.mutate({
@@ -120,35 +125,42 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
         {generate.isPending ? "Generating…" : "Generate draft"}
       </Button>
       {generate.error && (
-        <InlineNotification
-          kind="error"
-          lowContrast
-          title="Generation failed"
-          subtitle={generate.error.message}
-        />
+        <Alert severity="error">
+          <AlertTitle>Generation failed</AlertTitle>
+          {generate.error.message}
+        </Alert>
       )}
       {output && (
         <>
-          <TextArea
+          <TextField
             id="ai-output"
-            labelText="Editable draft"
+            label="Editable draft"
+            multiline
             value={output}
             onChange={(e) => setOutput(e.target.value)}
             rows={compact ? 10 : 14}
-            decorator={<EstiAiExplainLabel scope="draft" />}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <EstiAiExplainLabel scope="draft" />
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
-          <Stack orientation="horizontal" gap={3}>
+          <Stack direction="row" spacing={1}>
             <Button
-              kind="secondary"
-              size="sm"
+              variant="outlined"
+              size="small"
               disabled={!runId || updateRun.isPending}
               onClick={() => runId && updateRun.mutate({ id: runId, output })}
             >
               Save edits
             </Button>
             <Button
-              kind="tertiary"
-              size="sm"
+              variant="text"
+              size="small"
               disabled={!runId || updateRun.isPending}
               onClick={() => runId && updateRun.mutate({ id: runId, approvalState: "APPROVED" })}
             >
@@ -156,24 +168,27 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
             </Button>
           </Stack>
           {sources.length > 0 && (
-            <Stack gap={2}>
+            <Stack spacing={0.5}>
               <span className="esti-label">Sources</span>
-              <Stack orientation="horizontal" gap={2}>
+              <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap" }}>
                 {sources.map((s, i) => (
-                  <Tag key={i} type="gray" size="sm">
-                    {s.entityType}: {s.label}
-                  </Tag>
+                  <Chip
+                    key={i}
+                    size="small"
+                    label={`${s.entityType}: ${s.label}`}
+                    sx={{
+                      backgroundColor: "var(--cds-tag-background-gray)",
+                      color: "var(--cds-tag-color-gray)",
+                    }}
+                  />
                 ))}
               </Stack>
             </Stack>
           )}
-          <InlineNotification
-            kind="info"
-            lowContrast
-            hideCloseButton
-            title="Draft only"
-            subtitle="Copy into the target document and issue manually. No automatic transmission."
-          />
+          <Alert severity="info">
+            <AlertTitle>Draft only</AlertTitle>
+            Copy into the target document and issue manually. No automatic transmission.
+          </Alert>
         </>
       )}
     </Stack>
@@ -182,10 +197,15 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
   if (compact) return body;
 
   return (
-    <Tile decorator={<EstiAiExplainLabel scope="draft" />}>
-      <h4 className="esti-ai-studio__title">AI draft assistant</h4>
-      {body}
-    </Tile>
+    <Paper sx={{ p: 2 }}>
+      <Stack spacing={2}>
+        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+          <h4 className="esti-ai-studio__title">AI draft assistant</h4>
+          <EstiAiExplainLabel scope="draft" />
+        </Stack>
+        {body}
+      </Stack>
+    </Paper>
   );
 }
 
@@ -198,13 +218,10 @@ export function AiStudioPage() {
     return (
       <>
         <PageHeader title="AI Studio" description="Permission-filtered drafts with source tracking and human approval" />
-        <InlineNotification
-          kind="info"
-          lowContrast
-          hideCloseButton
-          title="Document drafts unavailable on demo"
-          subtitle="Press Alt+A anywhere in AORMS to open ESTI — it reads live data and suggests next steps (no uploads or auto-actions)."
-        />
+        <Alert severity="info">
+          <AlertTitle>Document drafts unavailable on demo</AlertTitle>
+          Press Alt+A anywhere in AORMS to open ESTI — it reads live data and suggests next steps (no uploads or auto-actions).
+        </Alert>
       </>
     );
   }
@@ -213,44 +230,45 @@ export function AiStudioPage() {
     <>
       <PageHeader title="AI Studio" description="Permission-filtered drafts with source tracking and human approval" />
       {!settingsQ.data?.enabled && (
-        <InlineNotification
-          kind="warning"
-          lowContrast
-          hideCloseButton
-          title="AI Studio is off"
-          subtitle="Enable under Company settings. Uses Ollama on your server — no API keys."
-        />
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          <AlertTitle>AI Studio is off</AlertTitle>
+          Enable under Company settings. Uses Ollama on your server — no API keys.
+        </Alert>
       )}
-      <Grid narrow>
-        <Column sm={4} md={4} lg={8}>
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <AiDraftPanel defaultKind="SUMMARY" />
-        </Column>
-        <Column sm={4} md={4} lg={8}>
-        <TableContainer title="Recent AI runs" description="Provenance: user, model, approval state">
-          <Table size="sm">
-            <TableHead>
-              <TableRow>
-                <TableHeader>Kind</TableHeader>
-                <TableHeader>Provider</TableHeader>
-                <TableHeader>State</TableHeader>
-                <TableHeader>External</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(runsQ.data ?? []).map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell>{AI_DRAFT_KIND_LABEL[r.kind as AiDraftKind] ?? r.kind}</TableCell>
-                  <TableCell>
-                    {r.provider}/{r.model}
-                  </TableCell>
-                  <TableCell>{r.approvalState}</TableCell>
-                  <TableCell>{r.usedExternalApi === "true" ? "Yes" : "No"}</TableCell>
+        </Grid>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <TableContainer component={Paper} sx={{ p: 2 }}>
+            <Stack spacing={0.5} sx={{ mb: 1 }}>
+              <Typography variant="h6" component="h4">Recent AI runs</Typography>
+              <Typography variant="body2">Provenance: user, model, approval state</Typography>
+            </Stack>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Kind</TableCell>
+                  <TableCell>Provider</TableCell>
+                  <TableCell>State</TableCell>
+                  <TableCell>External</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        </Column>
+              </TableHead>
+              <TableBody>
+                {(runsQ.data ?? []).map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell>{AI_DRAFT_KIND_LABEL[r.kind as AiDraftKind] ?? r.kind}</TableCell>
+                    <TableCell>
+                      {r.provider}/{r.model}
+                    </TableCell>
+                    <TableCell>{r.approvalState}</TableCell>
+                    <TableCell>{r.usedExternalApi === "true" ? "Yes" : "No"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Grid>
       </Grid>
     </>
   );

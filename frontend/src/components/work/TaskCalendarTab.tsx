@@ -1,11 +1,15 @@
 import {
-  Button,
+  ButtonBase,
   Checkbox,
+  Chip,
+  FormControlLabel,
+  IconButton,
+  Paper,
   Stack,
-  Tag,
-  Tile,
-} from "@carbon/react";
-import { ChevronLeft, ChevronRight } from "@carbon/icons-react";
+  Typography,
+} from "@mui/material";
+import ChevronLeft from "@mui/icons-material/ChevronLeft";
+import ChevronRight from "@mui/icons-material/ChevronRight";
 import {
   TASK_PRIORITY_LABEL,
   TASK_STATUS_LABEL,
@@ -16,6 +20,11 @@ import { Link } from "react-router-dom";
 import { DataState } from "../DataState.js";
 import { trpc } from "../../lib/trpc.js";
 import { MONTHS, PRIORITY_TAG, toISO, WEEKDAYS } from "./workHelpers.js";
+
+const tagSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 type TaskRow = {
   id: string;
@@ -89,44 +98,44 @@ export function TaskCalendarTab() {
   });
 
   return (
-    <Stack gap={5}>
-      <Stack orientation="horizontal" gap={5}>
-        <Checkbox
-          id="cal-open"
-          labelText="Open only"
-          checked={openOnly}
-          onChange={(_e, { checked }) => setOpenOnly(checked)}
+    <Stack spacing={2}>
+      <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+        <FormControlLabel
+          control={
+            <Checkbox id="cal-open" checked={openOnly}
+              onChange={(e) => setOpenOnly(e.target.checked)} />
+          }
+          label="Open only"
         />
-        <Checkbox
-          id="cal-mine"
-          labelText="My tasks"
-          checked={myTasks}
-          onChange={(_e, { checked }) => setMyTasks(checked)}
+        <FormControlLabel
+          control={
+            <Checkbox id="cal-mine" checked={myTasks}
+              onChange={(e) => setMyTasks(e.target.checked)} />
+          }
+          label="My tasks"
         />
       </Stack>
 
-      <Tile>
-        <Stack gap={4}>
-          <Stack orientation="horizontal" gap={4}>
-            <Button
-              kind="ghost"
-              size="sm"
-              hasIconOnly
-              renderIcon={ChevronLeft}
-              iconDescription="Previous month"
+      <Paper sx={{ p: 2 }}>
+        <Stack spacing={1.5}>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+            <IconButton
+              size="small"
+              aria-label="Previous month"
               onClick={() => shiftMonth(-1)}
-            />
-            <h4 className="esti-grow">
+            >
+              <ChevronLeft />
+            </IconButton>
+            <Typography variant="h6" className="esti-grow">
               {MONTHS[view.month]} {view.year}
-            </h4>
-            <Button
-              kind="ghost"
-              size="sm"
-              hasIconOnly
-              renderIcon={ChevronRight}
-              iconDescription="Next month"
+            </Typography>
+            <IconButton
+              size="small"
+              aria-label="Next month"
               onClick={() => shiftMonth(1)}
-            />
+            >
+              <ChevronRight />
+            </IconButton>
           </Stack>
 
           <div className="esti-cal">
@@ -142,12 +151,12 @@ export function TaskCalendarTab() {
               const selected = iso === selectedDate;
               const isToday = iso === today;
               return (
-                <Button
+                <ButtonBase
                   key={iso}
-                  kind="ghost"
                   className={`esti-cal-cell esti-cal-cell--task${selected ? " esti-cal-cell--selected" : ""}${isToday ? " esti-cal-cell--today" : ""}`}
                   onClick={() => setSelectedDate(iso)}
                   aria-label={`${iso}, ${dayTasks.length} tasks`}
+                  sx={{ display: "flex", flexDirection: "column", alignItems: "stretch", justifyContent: "flex-start", textAlign: "start" }}
                 >
                   <span className="esti-cal-cell__day">{d}</span>
                   <div className="esti-cal-cell__tasks">
@@ -164,16 +173,16 @@ export function TaskCalendarTab() {
                       <span className="esti-cal-task esti-cal-task--more">+{dayTasks.length - 3}</span>
                     )}
                   </div>
-                </Button>
+                </ButtonBase>
               );
             })}
           </div>
         </Stack>
-      </Tile>
+      </Paper>
 
-      <Tile>
-        <Stack gap={4}>
-          <h4>{selectedLabel}</h4>
+      <Paper sx={{ p: 2 }}>
+        <Stack spacing={1.5}>
+          <Typography variant="h6">{selectedLabel}</Typography>
           <DataState
             loading={listQ.isLoading}
             isEmpty={selectedTasks.length === 0}
@@ -183,19 +192,23 @@ export function TaskCalendarTab() {
               description: "Nothing is scheduled for this day with the current filters.",
             }}
           >
-            <Stack gap={3}>
+            <Stack spacing={1}>
               {selectedTasks.map((t) => {
                 const overdue = t.dueDate && t.dueDate < today && t.status !== "DONE";
                 return (
-                  <Stack key={t.id} orientation="horizontal" gap={3} className="esti-cal-day-row">
+                  <Stack key={t.id} direction="row" spacing={1} className="esti-cal-day-row">
                     <strong className="esti-grow">{t.title}</strong>
-                    <Tag type={PRIORITY_TAG[t.priority] ?? "gray"} size="sm">
-                      {TASK_PRIORITY_LABEL[t.priority as keyof typeof TASK_PRIORITY_LABEL] ?? t.priority}
-                    </Tag>
-                    <Tag type="gray" size="sm">
-                      {TASK_STATUS_LABEL[t.status as keyof typeof TASK_STATUS_LABEL] ?? t.status}
-                    </Tag>
-                    {overdue && <Tag type="red" size="sm">Overdue</Tag>}
+                    <Chip
+                      size="small"
+                      label={TASK_PRIORITY_LABEL[t.priority as keyof typeof TASK_PRIORITY_LABEL] ?? t.priority}
+                      sx={tagSx(PRIORITY_TAG[t.priority] ?? "gray")}
+                    />
+                    <Chip
+                      size="small"
+                      label={TASK_STATUS_LABEL[t.status as keyof typeof TASK_STATUS_LABEL] ?? t.status}
+                      sx={tagSx("gray")}
+                    />
+                    {overdue && <Chip size="small" label="Overdue" sx={tagSx("red")} />}
                     {t.projectId && (
                       <Link to={`/projects/${t.projectId}`}>{t.projectRef ?? "Project"}</Link>
                     )}
@@ -208,14 +221,14 @@ export function TaskCalendarTab() {
             </Stack>
           </DataState>
         </Stack>
-      </Tile>
+      </Paper>
 
       {unscheduled.length > 0 && (
-        <Tile>
-          <Stack gap={3}>
-            <h4>No due date ({unscheduled.length})</h4>
+        <Paper sx={{ p: 2 }}>
+          <Stack spacing={1}>
+            <Typography variant="h6">No due date ({unscheduled.length})</Typography>
             {unscheduled.slice(0, 8).map((t) => (
-              <Stack key={t.id} orientation="horizontal" gap={3}>
+              <Stack key={t.id} direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <span className="esti-grow">{t.title}</span>
                 {t.projectId && (
                   <Link to={`/projects/${t.projectId}`}>{t.projectRef ?? "Project"}</Link>
@@ -228,7 +241,7 @@ export function TaskCalendarTab() {
               </p>
             )}
           </Stack>
-        </Tile>
+        </Paper>
       )}
     </Stack>
   );

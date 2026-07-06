@@ -1,15 +1,13 @@
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  Loading,
+  Box,
+  Breadcrumbs,
+  Chip,
+  CircularProgress,
   Stack,
   Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
   Tabs,
-  Tag,
-} from "@carbon/react";
+  Typography,
+} from "@mui/material";
 import {
   PROJECT_STATUS_LABEL,
   PROJECT_STATUS_TAG,
@@ -41,6 +39,7 @@ import { ProjectSiteMeasurement } from "../components/cms/ProjectSiteMeasurement
 import { ProjectWorkOrders } from "../components/cms/ProjectWorkOrders.js";
 import { ProjectContractorBills } from "../components/cms/ProjectContractorBills.js";
 import { ProjectCostIntelligence } from "../components/cms/ProjectCostIntelligence.js";
+import { StatusTag } from "../components/StatusTag.js";
 import { useCapabilities } from "../lib/capabilities.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -152,12 +151,12 @@ export function ProjectDetail() {
   }, [tabSlug, activeTab, setSearchParams]);
 
   if (project.isLoading)
-    return <Loading description="Loading project" withOverlay={false} />;
+    return <CircularProgress aria-label="Loading project" />;
   if (!project.data)
     return (
-      <p>
+      <Typography component="p">
         Project not found. <Link to="/projects">Back</Link>
-      </p>
+      </Typography>
     );
   const p = project.data;
   const phases = phasesQ.data ?? [];
@@ -166,8 +165,8 @@ export function ProjectDetail() {
 
   return (
     <div>
-      <div
-        style={{
+      <Box
+        sx={{
           position: "sticky",
           top: "var(--esti-sticky-top, 48px)",
           zIndex: 100,
@@ -175,17 +174,15 @@ export function ProjectDetail() {
           background: "var(--cds-background)",
         }}
       >
-        <Breadcrumb noTrailingSlash>
-          <BreadcrumbItem>
-            <Link to="/projects">Projects</Link>
-          </BreadcrumbItem>
-          <BreadcrumbItem isCurrentPage>{p.ref}</BreadcrumbItem>
-        </Breadcrumb>
-        <h1>
+        <Breadcrumbs aria-label="Breadcrumb">
+          <Link to="/projects">Projects</Link>
+          <Typography>{p.ref}</Typography>
+        </Breadcrumbs>
+        <Typography variant="h4" component="h1">
           {p.ref} — {p.title}
-        </h1>
-        <Stack orientation="horizontal" gap={2} style={{ flexWrap: "wrap" }}>
-          <span>
+        </Typography>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", alignItems: "center" }}>
+          <Typography variant="body2" component="span">
             {
               PROJECT_WORK_TYPE_LABEL[
                 (p as { workType?: keyof typeof PROJECT_WORK_TYPE_LABEL })
@@ -193,65 +190,81 @@ export function ProjectDetail() {
               ]
             }{" "}
             · {p.projectType} · {p.jurisdiction}
-          </span>
-          <Tag type={PROJECT_STATUS_TAG[p.status as ProjectStatus] ?? "gray"} size="sm">
-            {PROJECT_STATUS_LABEL[
-              p.status as keyof typeof PROJECT_STATUS_LABEL
-            ] ?? p.status}
-          </Tag>
+          </Typography>
+          <StatusTag
+            value={p.status as ProjectStatus}
+            map={PROJECT_STATUS_TAG}
+            label={
+              PROJECT_STATUS_LABEL[
+                p.status as keyof typeof PROJECT_STATUS_LABEL
+              ] ?? p.status
+            }
+          />
         </Stack>
         {phases.length > 0 && currentPhase && (
-          <div style={{ marginTop: "var(--cds-spacing-03)" }}>
+          <Box sx={{ marginTop: "var(--cds-spacing-03)" }}>
             <Link to={`/projects/${id}?tab=info`}>
-              <Tag type="blue" size="md">
-                Stage: {currentPhase.label}
-              </Tag>
+              <Chip
+                size="medium"
+                clickable
+                label={`Stage: ${currentPhase.label}`}
+                sx={{
+                  backgroundColor: "var(--cds-tag-background-blue)",
+                  color: "var(--cds-tag-color-blue)",
+                }}
+              />
             </Link>
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
 
       <Tabs
-        selectedIndex={groupIndex}
-        onChange={({ selectedIndex }) =>
+        value={groupIndex}
+        onChange={(_e, selectedIndex: number) =>
           setSearchParams(
             { tab: projectGroups[selectedIndex]?.tabs[0]?.slug ?? "overview" },
             { replace: true },
           )
         }
+        variant="scrollable"
+        scrollButtons="auto"
+        aria-label="Project sections"
       >
-        <TabList aria-label="Project sections" contained>
-          {projectGroups.map((group) => (
-            <Tab key={group.slug}>{group.label}</Tab>
-          ))}
-        </TabList>
-        <TabPanels>
-          {projectGroups.map((group) => (
-            <TabPanel key={group.slug}>
+        {projectGroups.map((group) => (
+          <Tab key={group.slug} label={group.label} />
+        ))}
+      </Tabs>
+      {projectGroups.map(
+        (group, gi) =>
+          gi === groupIndex && (
+            <Box key={group.slug}>
               <Tabs
-                selectedIndex={group.slug === activeGroup.slug ? innerIndex : 0}
-                onChange={({ selectedIndex }) =>
+                value={innerIndex}
+                onChange={(_e, selectedIndex: number) =>
                   setSearchParams(
                     { tab: group.tabs[selectedIndex]?.slug ?? group.tabs[0]?.slug ?? "overview" },
                     { replace: true },
                   )
                 }
+                variant="scrollable"
+                scrollButtons="auto"
+                aria-label={`${group.label} project sections`}
               >
-                <TabList aria-label={`${group.label} project sections`} contained>
-                  {group.tabs.map((t) => (
-                    <Tab key={t.slug}>{t.label}</Tab>
-                  ))}
-                </TabList>
-                <TabPanels>
-                  {group.tabs.map((t) => (
-                    <TabPanel key={t.slug}>{t.panel}</TabPanel>
-                  ))}
-                </TabPanels>
+                {group.tabs.map((t) => (
+                  <Tab key={t.slug} label={t.label} />
+                ))}
               </Tabs>
-            </TabPanel>
-          ))}
-        </TabPanels>
-      </Tabs>
+              {group.tabs.map(
+                (t, ti) =>
+                  ti === innerIndex && (
+                    <Box key={t.slug} sx={{ pt: 2 }}>
+                      {t.panel}
+                    </Box>
+                  ),
+              )}
+            </Box>
+          ),
+      )}
     </div>
   );
 }

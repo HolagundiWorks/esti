@@ -1,13 +1,13 @@
 import {
+  Alert,
+  Box,
   Button,
-  Form,
-  InlineNotification,
-  Loading,
+  Chip,
+  CircularProgress,
+  Paper,
   Stack,
-  Tag,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
 import { Suspense, lazy, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link as RouterLink } from "react-router-dom";
@@ -78,86 +78,109 @@ export function AccountTab() {
   // Community edition has no online account — show only the offline upgrade path.
   if (community) return <UpgradeToPro />;
 
-  if (checking) return <Loading withOverlay={false} description="Loading" />;
+  if (checking) {
+    return (
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+        <CircularProgress size={16} />
+        <span>Loading</span>
+      </Stack>
+    );
+  }
 
   if (!me?.account) {
     return (
-      <Stack gap={5}>
+      <Stack spacing={2}>
         <UpgradeToPro />
-        <Tile className="esti-fill">
-          <Stack gap={5}>
+        <Paper className="esti-fill" sx={{ p: 2 }}>
+          <Stack spacing={2}>
             <p>
               Sign in to your AORMS account to manage your plan, companies, security and
               credentials from here.
             </p>
-          <Form onSubmit={handleSubmit}>
-            <Stack gap={5}>
-              <TextInput
-                id="account-email"
-                labelText="Email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <TextInput
-                id="account-password"
-                labelText="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              {needCode && (
-                <TextInput
-                  id="account-code"
-                  labelText="Authenticator code"
-                  placeholder="123456"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  helperText="6-digit code from your authenticator app."
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
+            <Box component="form" onSubmit={handleSubmit}>
+              <Stack spacing={2}>
+                <TextField
+                  id="account-email"
+                  label="Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  fullWidth
                 />
-              )}
-              {error && (
-                <InlineNotification
-                  kind="error"
-                  title="Sign-in failed"
-                  subtitle={error}
-                  hideCloseButton
-                  lowContrast
+                <TextField
+                  id="account-password"
+                  label="Password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  fullWidth
                 />
-              )}
-              <Button type="submit" disabled={busy || (needCode && code.length < 6)}>
-                {busy ? "Signing in..." : needCode ? "Verify" : "Sign in"}
-              </Button>
-            </Stack>
-          </Form>
+                {needCode && (
+                  <TextField
+                    id="account-code"
+                    label="Authenticator code"
+                    placeholder="123456"
+                    helperText="6-digit code from your authenticator app."
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    slotProps={{
+                      htmlInput: { inputMode: "numeric", autoComplete: "one-time-code" },
+                    }}
+                    fullWidth
+                  />
+                )}
+                {error && (
+                  <Alert severity="error">Sign-in failed — {error}</Alert>
+                )}
+                <Stack direction="row">
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={busy || (needCode && code.length < 6)}
+                  >
+                    {busy ? "Signing in..." : needCode ? "Verify" : "Sign in"}
+                  </Button>
+                </Stack>
+              </Stack>
+            </Box>
             <p className="esti-label esti-label--secondary">
               Don&apos;t have an account? <RouterLink to="/account?mode=create">Create one</RouterLink>.
             </p>
           </Stack>
-        </Tile>
+        </Paper>
       </Stack>
     );
   }
 
   return (
-    <Stack gap={5}>
+    <Stack spacing={2}>
       <UpgradeToPro />
-      <Stack gap={3} orientation="horizontal">
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
         <span className="esti-grow">{me.account.email}</span>
         {me.account.publicId && (
-          <Tag type="cool-gray" size="md">
-            {me.account.publicId}
-          </Tag>
+          <Chip
+            size="medium"
+            label={me.account.publicId}
+            sx={{
+              backgroundColor: "var(--cds-tag-background-cool-gray)",
+              color: "var(--cds-tag-color-cool-gray)",
+            }}
+          />
         )}
-        <Button kind="ghost" size="sm" onClick={handleSignOut}>
+        <Button variant="text" size="small" onClick={handleSignOut}>
           Sign out
         </Button>
       </Stack>
-      <Suspense fallback={<Loading withOverlay={false} description="Loading" />}>
+      <Suspense
+        fallback={
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+            <CircularProgress size={16} />
+            <span>Loading</span>
+          </Stack>
+        }
+      >
         <RequestPlan />
         <Companies me={me} onChange={setMe} />
         <Security me={me} onChange={refresh} />

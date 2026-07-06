@@ -1,24 +1,17 @@
 import { useState } from "react";
 import {
+  Alert,
   Button,
-  Column,
+  Chip,
   Grid,
-  InlineNotification,
-  NumberInput,
-  Select,
-  SelectItem,
+  MenuItem,
+  Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  Tile,
-} from "@carbon/react";
-import { Calculator } from "@carbon/icons-react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import CalculateIcon from "@mui/icons-material/Calculate";
 import {
   NBC_ZONES,
   computeNbcPermissible,
@@ -27,11 +20,42 @@ import {
 
 const EMPTY = { landUseCode: "R-1", siteAreaSqm: 1000, siteWidthM: 25, siteDepthM: 40, frontageM: 25 };
 
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
+
+type ReportItem = { label: string; value: string | number; unit?: string; basis: string; ruleRef: string };
+
+const reportColumns: GridColDef[] = [
+  { field: "label", headerName: "Parameter", flex: 1 },
+  {
+    field: "value",
+    headerName: "Value",
+    flex: 1,
+    renderCell: (params) => (
+      <span>
+        <strong>{(params.row as ReportItem).value}</strong> {(params.row as ReportItem).unit}
+      </span>
+    ),
+  },
+  { field: "basis", headerName: "Basis", flex: 2 },
+  {
+    field: "ruleRef",
+    headerName: "Rule",
+    flex: 1,
+    renderCell: (params) => (
+      <Chip size="small" label={(params.row as ReportItem).ruleRef} sx={chipSx("gray")} />
+    ),
+  },
+];
+
 /**
  * NBC permissible-development calculator — a client-only feature module.
  * The engine (computeNbcPermissible) is pure and lives in @esti/contracts;
- * this is just its Carbon presentation. Derives the max development envelope
- * (FAR, coverage, setbacks, height/floors, parking) for a site from its zone.
+ * this is just its Material UI presentation. Derives the max development
+ * envelope (FAR, coverage, setbacks, height/floors, parking) for a site
+ * from its zone.
  */
 export function ComplianceCalculator() {
   const [form, setForm] = useState(EMPTY);
@@ -41,9 +65,9 @@ export function ComplianceCalculator() {
   const calc = () => setReport(computeNbcPermissible(form));
 
   return (
-    <Stack gap={6}>
-      <Stack gap={2}>
-        <h3>Permissible development calculator</h3>
+    <Stack spacing={3}>
+      <Stack spacing={1}>
+        <Typography variant="h6" component="h3">Permissible development calculator</Typography>
         <p className="esti-label esti-label--secondary">
           Derives the maximum permissible building envelope for a site from NBC-IND-2016
           development-control limits — FAR, ground coverage, setbacks, height/floors and parking.
@@ -52,83 +76,110 @@ export function ComplianceCalculator() {
         </p>
       </Stack>
 
-      <Grid narrow>
-        <Column sm={4} md={4} lg={6}>
-          <Tile>
-            <Stack gap={5}>
-              <Select id="cc-zone" labelText="Land-use zone" value={form.landUseCode}
-                onChange={(e) => set("landUseCode", e.target.value)}>
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+          <Paper sx={{ p: 2 }}>
+            <Stack spacing={2}>
+              <TextField
+                id="cc-zone"
+                select
+                label="Land-use zone"
+                value={form.landUseCode}
+                onChange={(e) => set("landUseCode", e.target.value)}
+                fullWidth
+              >
                 {NBC_ZONES.map((z) => (
-                  <SelectItem key={z.code} value={z.code} text={`${z.code} · ${z.category} — ${z.subCategory}`} />
+                  <MenuItem key={z.code} value={z.code}>
+                    {`${z.code} · ${z.category} — ${z.subCategory}`}
+                  </MenuItem>
                 ))}
-              </Select>
-              <NumberInput id="cc-area" label="Site area (m²)" min={0} step={10}
-                value={form.siteAreaSqm} onChange={(_e, { value }) => set("siteAreaSqm", Number(value))} />
-              <Stack orientation="horizontal" gap={5}>
-                <NumberInput id="cc-width" label="Site width (m)" min={0} step={0.5}
-                  value={form.siteWidthM} onChange={(_e, { value }) => set("siteWidthM", Number(value))} />
-                <NumberInput id="cc-depth" label="Site depth (m)" min={0} step={0.5}
-                  value={form.siteDepthM} onChange={(_e, { value }) => set("siteDepthM", Number(value))} />
+              </TextField>
+              <TextField
+                id="cc-area"
+                label="Site area (m²)"
+                type="number"
+                slotProps={{ htmlInput: { min: 0, step: 10 } }}
+                value={form.siteAreaSqm}
+                onChange={(e) => set("siteAreaSqm", Number(e.target.value))}
+                fullWidth
+              />
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  id="cc-width"
+                  label="Site width (m)"
+                  type="number"
+                  slotProps={{ htmlInput: { min: 0, step: 0.5 } }}
+                  value={form.siteWidthM}
+                  onChange={(e) => set("siteWidthM", Number(e.target.value))}
+                  fullWidth
+                />
+                <TextField
+                  id="cc-depth"
+                  label="Site depth (m)"
+                  type="number"
+                  slotProps={{ htmlInput: { min: 0, step: 0.5 } }}
+                  value={form.siteDepthM}
+                  onChange={(e) => set("siteDepthM", Number(e.target.value))}
+                  fullWidth
+                />
               </Stack>
-              <NumberInput id="cc-frontage" label="Road frontage (m)" min={0} step={0.5}
-                value={form.frontageM} onChange={(_e, { value }) => set("frontageM", Number(value))} />
-              <Button renderIcon={Calculator} onClick={calc}>Calculate</Button>
+              <TextField
+                id="cc-frontage"
+                label="Road frontage (m)"
+                type="number"
+                slotProps={{ htmlInput: { min: 0, step: 0.5 } }}
+                value={form.frontageM}
+                onChange={(e) => set("frontageM", Number(e.target.value))}
+                fullWidth
+              />
+              <Button variant="contained" startIcon={<CalculateIcon />} onClick={calc}>
+                Calculate
+              </Button>
             </Stack>
-          </Tile>
-        </Column>
+          </Paper>
+        </Grid>
 
-        <Column sm={4} md={4} lg={10}>
+        <Grid size={{ xs: 12, md: 6, lg: 8 }}>
           {!report && (
-            <Tile className="esti-fill">
+            <Paper className="esti-fill" sx={{ p: 2 }}>
               <p className="esti-label esti-label--secondary">
                 Enter the site parameters and choose a land-use zone, then Calculate.
               </p>
-            </Tile>
+            </Paper>
           )}
           {report && !report.ok && (
-            <InlineNotification kind="error" lowContrast hideCloseButton title="Cannot calculate" subtitle={report.error} />
+            <Alert severity="error">Cannot calculate — {report.error}</Alert>
           )}
           {report && report.ok && (
-            <Stack gap={5}>
-              <Stack orientation="horizontal" gap={3} className="esti-row">
-                <Tag type="blue">{report.zoneLabel}</Tag>
-                <Tag type="cool-gray" size="sm">{report.siteAreaSqm} m²</Tag>
-                <Tag type="outline" size="sm">{report.rulesVersion}</Tag>
+            <Stack spacing={2}>
+              <Stack direction="row" spacing={1} className="esti-row">
+                <Chip size="small" label={report.zoneLabel} sx={chipSx("blue")} />
+                <Chip size="small" label={`${report.siteAreaSqm} m²`} sx={chipSx("cool-gray")} />
+                <Chip size="small" label={report.rulesVersion} variant="outlined" />
               </Stack>
 
               {Object.entries(report.groups).map(([group, items]) => (
-                <TableContainer key={group} title={group}>
-                  <Table size="sm">
-                    <TableHead>
-                      <TableRow>
-                        <TableHeader>Parameter</TableHeader>
-                        <TableHeader>Value</TableHeader>
-                        <TableHeader>Basis</TableHeader>
-                        <TableHeader>Rule</TableHeader>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {items.map((i) => (
-                        <TableRow key={i.label}>
-                          <TableCell>{i.label}</TableCell>
-                          <TableCell>
-                            <strong>{i.value}</strong> {i.unit}
-                          </TableCell>
-                          <TableCell>{i.basis}</TableCell>
-                          <TableCell><Tag type="gray" size="sm">{i.ruleRef}</Tag></TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                <Stack key={group} spacing={1}>
+                  <Typography variant="subtitle2" component="h4">{group}</Typography>
+                  <DataGrid
+                    rows={items}
+                    columns={reportColumns}
+                    getRowId={(row) => (row as ReportItem).label}
+                    density="compact"
+                    disableRowSelectionOnClick
+                    hideFooter
+                    autoHeight
+                    getRowHeight={() => "auto"}
+                  />
+                </Stack>
               ))}
 
               {report.notes.map((n, idx) => (
-                <InlineNotification key={idx} kind="info" lowContrast hideCloseButton title="Note" subtitle={n} />
+                <Alert key={idx} severity="info">{n}</Alert>
               ))}
             </Stack>
           )}
-        </Column>
+        </Grid>
       </Grid>
     </Stack>
   );

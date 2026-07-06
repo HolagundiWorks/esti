@@ -1,25 +1,29 @@
 import {
   Button,
   Checkbox,
-  FileUploaderButton,
-  Modal,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  IconButton,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
-import { Add, Download, Edit, TrashCan } from "@carbon/icons-react";
+  TextField,
+  Typography,
+  styled,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
+import DownloadIcon from "@mui/icons-material/Download";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useState, type ChangeEvent } from "react";
 import { formatINR } from "@esti/contracts";
 import { ConfirmModal } from "../../ConfirmModal.js";
 import { DataState } from "../../DataState.js";
 import { csvToRows, downloadCsv, rowsToCsv } from "./csv.js";
+
+const HiddenFileInput = styled("input")({ display: "none" });
 
 export type KbFieldType = "text" | "textarea" | "number" | "money" | "boolean";
 
@@ -134,33 +138,68 @@ export function KbLibraryTable({
     setOpen(false);
   }
 
-  return (
-    <Stack gap={5}>
-      <Stack orientation="horizontal" gap={4}>
-        <Stack gap={2} className="esti-grow">
-          <h2>{title}</h2>
-          {description ? <p>{description}</p> : null}
+  const columns: GridColDef[] = [
+    ...fields.map(
+      (f): GridColDef => ({
+        field: f.key,
+        headerName: f.label,
+        flex: f.type === "textarea" ? 2 : 1,
+        valueGetter: (_value, row) => display(row as KbRow, f),
+      }),
+    ),
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      width: 110,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={0.5}>
+          <IconButton
+            size="small"
+            aria-label="Edit"
+            title="Edit"
+            onClick={() => openEdit(params.row as KbRow)}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            color="error"
+            aria-label="Remove"
+            title="Remove"
+            onClick={() => setConfirmId((params.row as KbRow).id)}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
         </Stack>
-        <Stack orientation="horizontal" gap={3}>
+      ),
+    },
+  ];
+
+  return (
+    <Stack spacing={2}>
+      <Stack direction="row" spacing={2} sx={{ alignItems: "flex-start" }}>
+        <Stack spacing={1} className="esti-grow">
+          <Typography variant="h5" component="h2">{title}</Typography>
+          {description ? <Typography variant="body2">{description}</Typography> : null}
+        </Stack>
+        <Stack direction="row" spacing={1}>
           <Button
-            kind="ghost"
-            renderIcon={Download}
+            variant="text"
+            startIcon={<DownloadIcon />}
             onClick={exportCsv}
             disabled={rows.length === 0}
           >
             Export CSV
           </Button>
           {onImport ? (
-            <FileUploaderButton
-              labelText="Import CSV"
-              accept={[".csv"]}
-              buttonKind="ghost"
-              size="md"
-              disableLabelChanges
-              onChange={handleImportFile}
-            />
+            <Button variant="text" component="label">
+              Import CSV
+              <HiddenFileInput type="file" accept=".csv" onChange={handleImportFile} />
+            </Button>
           ) : null}
-          <Button renderIcon={Add} onClick={openNew}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={openNew}>
             {newLabel}
           </Button>
         </Stack>
@@ -174,105 +213,80 @@ export function KbLibraryTable({
           title: "No entries yet",
           description: `Add your first ${newLabel.toLowerCase()}.`,
           action: (
-            <Button size="sm" renderIcon={Add} onClick={openNew}>
+            <Button size="small" variant="contained" startIcon={<AddIcon />} onClick={openNew}>
               {newLabel}
             </Button>
           ),
         }}
       >
-        <TableContainer title={title}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                {fields.map((f) => (
-                  <TableHeader key={f.key}>{f.label}</TableHeader>
-                ))}
-                <TableHeader></TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((row) => (
-                <TableRow key={row.id}>
-                  {fields.map((f) => (
-                    <TableCell key={f.key}>{display(row, f)}</TableCell>
-                  ))}
-                  <TableCell>
-                    <Stack orientation="horizontal" gap={2}>
-                      <Button
-                        kind="ghost"
-                        size="sm"
-                        hasIconOnly
-                        renderIcon={Edit}
-                        iconDescription="Edit"
-                        tooltipPosition="left"
-                        onClick={() => openEdit(row)}
-                      />
-                      <Button
-                        kind="danger--ghost"
-                        size="sm"
-                        hasIconOnly
-                        renderIcon={TrashCan}
-                        iconDescription="Remove"
-                        tooltipPosition="left"
-                        onClick={() => setConfirmId(row.id)}
-                      />
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+          getRowHeight={() => "auto"}
+        />
       </DataState>
 
-      <Modal
-        open={open}
-        modalHeading={editId ? `Edit ${newLabel.toLowerCase()}` : newLabel}
-        primaryButtonText={saving ? "Saving…" : "Save"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!requiredOk || !!saving}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={submit}
-        size="md"
-      >
-        <Stack gap={5}>
-          {fields.map((f) =>
-            f.type === "boolean" ? (
-              <Checkbox
-                key={f.key}
-                id={`kb-${f.key}`}
-                labelText={f.label}
-                checked={(form[f.key] ?? "") === "true"}
-                onChange={(_evt, { checked }) =>
-                  setForm((s) => ({ ...s, [f.key]: checked ? "true" : "" }))
-                }
-              />
-            ) : f.type === "textarea" ? (
-              <TextArea
-                key={f.key}
-                id={`kb-${f.key}`}
-                labelText={f.label}
-                rows={3}
-                value={form[f.key] ?? ""}
-                placeholder={f.placeholder}
-                helperText={f.helper}
-                onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
-              />
-            ) : (
-              <TextInput
-                key={f.key}
-                id={`kb-${f.key}`}
-                labelText={f.type === "money" ? `${f.label} (₹)` : f.label}
-                type={f.type === "number" || f.type === "money" ? "number" : "text"}
-                value={form[f.key] ?? ""}
-                placeholder={f.placeholder}
-                helperText={f.helper}
-                onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
-              />
-            ),
-          )}
-        </Stack>
-      </Modal>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>{editId ? `Edit ${newLabel.toLowerCase()}` : newLabel}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {fields.map((f) =>
+              f.type === "boolean" ? (
+                <FormControlLabel
+                  key={f.key}
+                  control={
+                    <Checkbox
+                      id={`kb-${f.key}`}
+                      checked={(form[f.key] ?? "") === "true"}
+                      onChange={(_evt, checked) =>
+                        setForm((s) => ({ ...s, [f.key]: checked ? "true" : "" }))
+                      }
+                    />
+                  }
+                  label={f.label}
+                />
+              ) : f.type === "textarea" ? (
+                <TextField
+                  key={f.key}
+                  id={`kb-${f.key}`}
+                  label={f.label}
+                  multiline
+                  minRows={3}
+                  value={form[f.key] ?? ""}
+                  placeholder={f.placeholder}
+                  helperText={f.helper}
+                  onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
+                  fullWidth
+                />
+              ) : (
+                <TextField
+                  key={f.key}
+                  id={`kb-${f.key}`}
+                  label={f.type === "money" ? `${f.label} (₹)` : f.label}
+                  type={f.type === "number" || f.type === "money" ? "number" : "text"}
+                  value={form[f.key] ?? ""}
+                  placeholder={f.placeholder}
+                  helperText={f.helper}
+                  onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
+                  fullWidth
+                />
+              ),
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant="contained" disabled={!requiredOk || !!saving} onClick={submit}>
+            {saving ? "Saving…" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <ConfirmModal
         open={!!confirmId}

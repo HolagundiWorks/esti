@@ -1,20 +1,30 @@
 import {
+  Alert,
+  AlertTitle,
+  Box,
   Button,
   Checkbox,
-  Column,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
   FormGroup,
   Grid,
-  InlineNotification,
-  Modal,
+  Paper,
   Stack,
-  Tag,
-  TextArea,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import { TEAM_ROLES, type TeamRoleCode } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
+
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 type TeamRow = {
   id: string;
@@ -65,115 +75,130 @@ export function TeamsPanel() {
   const editTeam = teams.find((t) => t.id === editId) ?? null;
 
   return (
-    <Stack gap={5}>
-      <div className="esti-row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-        <h3>Teams</h3>
-        <Button size="sm" disabled={staff.length === 0} onClick={() => setOpen(true)}>
+    <Stack spacing={2}>
+      <Box className="esti-row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+        <Typography variant="h6" component="h3">Teams</Typography>
+        <Button variant="contained" size="small" disabled={staff.length === 0} onClick={() => setOpen(true)}>
           New team
         </Button>
-      </div>
+      </Box>
 
       {teamsQ.isLoading ? (
         <p className="esti-label esti-label--secondary">Loading…</p>
       ) : teams.length === 0 ? (
-        <Tile>
+        <Paper sx={{ p: 2 }}>
           <p>
             No teams yet. Create a team to group staff and staff them onto a project in one action.
           </p>
-        </Tile>
+        </Paper>
       ) : (
-        <Grid narrow>
+        <Grid container spacing={1.5}>
           {teams.map((t) => (
-            <Column key={t.id} lg={4} md={4} sm={4}>
-              <Tile className="esti-fill">
-                <Stack gap={3}>
-                  <div className="esti-row" style={{ justifyContent: "space-between", alignItems: "center" }}>
+            <Grid key={t.id} size={{ xs: 12, md: 6, lg: 3 }}>
+              <Paper className="esti-fill" sx={{ p: 2 }}>
+                <Stack spacing={1}>
+                  <Box className="esti-row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                     <strong>{t.name}</strong>
-                    <Tag type="cool-gray" size="sm">
-                      {t.members.length} member{t.members.length === 1 ? "" : "s"}
-                    </Tag>
-                  </div>
+                    <Chip size="small" sx={chipSx("cool-gray")}
+                      label={`${t.members.length} member${t.members.length === 1 ? "" : "s"}`} />
+                  </Box>
                   {t.description && <p className="esti-label esti-label--secondary">{t.description}</p>}
-                  <div className="esti-row" style={{ flexWrap: "wrap", gap: "var(--cds-spacing-02)" }}>
+                  <Box className="esti-row" sx={{ flexWrap: "wrap", gap: 0.5 }}>
                     {t.members.map((m) => (
-                      <Tag key={m.teamMemberId} type="blue" size="sm">{m.name}</Tag>
+                      <Chip key={m.teamMemberId} size="small" sx={chipSx("blue")} label={m.name} />
                     ))}
-                  </div>
-                  <div className="esti-row" style={{ gap: "var(--cds-spacing-02)" }}>
-                    <Button kind="ghost" size="sm" onClick={() => openEdit(t)}>Manage members</Button>
-                    <Button kind="danger--ghost" size="sm" disabled={remove.isPending}
+                  </Box>
+                  <Box className="esti-row" sx={{ gap: 0.5 }}>
+                    <Button variant="text" size="small" onClick={() => openEdit(t)}>Manage members</Button>
+                    <Button variant="text" color="error" size="small" disabled={remove.isPending}
                       onClick={() => remove.mutate({ id: t.id })}>Delete</Button>
-                  </div>
+                  </Box>
                 </Stack>
-              </Tile>
-            </Column>
+              </Paper>
+            </Grid>
           ))}
         </Grid>
       )}
 
       {/* Create team */}
-      <Modal
-        open={open}
-        modalHeading="New team"
-        primaryButtonText={create.isPending ? "Creating…" : "Create team"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!name || create.isPending}
-        onRequestClose={closeCreate}
-        onRequestSubmit={() =>
-          create.mutate({ name, description: desc || undefined, memberIds: [...picked] })
-        }
-      >
-        <Stack gap={5}>
-          <TextInput id="tg-name" labelText="Team name" value={name}
-            onChange={(e) => setName(e.target.value)} />
-          <TextArea id="tg-desc" labelText="Description (optional)" rows={2} value={desc}
-            onChange={(e) => setDesc(e.target.value)} />
-          <FormGroup legendText="Members">
-            <Stack gap={2}>
-              {staff.map((m) => (
-                <Checkbox
-                  key={m.id}
-                  id={`tg-m-${m.id}`}
-                  labelText={`${m.name} (${TEAM_ROLES[m.role as TeamRoleCode] ?? m.role})`}
-                  checked={picked.has(m.id)}
-                  onChange={() => setPicked((s) => toggle(s, m.id))}
-                />
-              ))}
-            </Stack>
-          </FormGroup>
-          {create.error && (
-            <InlineNotification kind="error" title="Could not create" subtitle={create.error.message}
-              hideCloseButton lowContrast />
-          )}
-        </Stack>
-      </Modal>
+      <Dialog open={open} onClose={closeCreate} fullWidth maxWidth="sm">
+        <DialogTitle>New team</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField id="tg-name" label="Team name" value={name}
+              onChange={(e) => setName(e.target.value)} fullWidth />
+            <TextField id="tg-desc" label="Description (optional)" multiline rows={2} value={desc}
+              onChange={(e) => setDesc(e.target.value)} fullWidth />
+            <div>
+              <Typography variant="subtitle2" component="legend">Members</Typography>
+              <FormGroup>
+                {staff.map((m) => (
+                  <FormControlLabel
+                    key={m.id}
+                    control={
+                      <Checkbox
+                        id={`tg-m-${m.id}`}
+                        checked={picked.has(m.id)}
+                        onChange={() => setPicked((s) => toggle(s, m.id))}
+                      />
+                    }
+                    label={`${m.name} (${TEAM_ROLES[m.role as TeamRoleCode] ?? m.role})`}
+                  />
+                ))}
+              </FormGroup>
+            </div>
+            {create.error && (
+              <Alert severity="error">
+                <AlertTitle>Could not create</AlertTitle>
+                {create.error.message}
+              </Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={closeCreate}>Cancel</Button>
+          <Button variant="contained" disabled={!name || create.isPending}
+            onClick={() =>
+              create.mutate({ name, description: desc || undefined, memberIds: [...picked] })
+            }>
+            {create.isPending ? "Creating…" : "Create team"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Manage members */}
-      <Modal
-        open={editTeam !== null}
-        modalHeading={editTeam ? `Manage members — ${editTeam.name}` : "Manage members"}
-        primaryButtonText={update.isPending ? "Saving…" : "Save"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={update.isPending}
-        onRequestClose={() => setEditId(null)}
-        onRequestSubmit={() => {
-          if (editId) update.mutate({ id: editId, memberIds: [...editPicked] });
-        }}
-      >
-        <FormGroup legendText="Members">
-          <Stack gap={2}>
-            {staff.map((m) => (
-              <Checkbox
-                key={m.id}
-                id={`tg-e-${m.id}`}
-                labelText={`${m.name} (${TEAM_ROLES[m.role as TeamRoleCode] ?? m.role})`}
-                checked={editPicked.has(m.id)}
-                onChange={() => setEditPicked((s) => toggle(s, m.id))}
-              />
-            ))}
-          </Stack>
-        </FormGroup>
-      </Modal>
+      <Dialog open={editTeam !== null} onClose={() => setEditId(null)} fullWidth maxWidth="sm">
+        <DialogTitle>{editTeam ? `Manage members — ${editTeam.name}` : "Manage members"}</DialogTitle>
+        <DialogContent>
+          <div>
+            <Typography variant="subtitle2" component="legend" sx={{ mt: 1 }}>Members</Typography>
+            <FormGroup>
+              {staff.map((m) => (
+                <FormControlLabel
+                  key={m.id}
+                  control={
+                    <Checkbox
+                      id={`tg-e-${m.id}`}
+                      checked={editPicked.has(m.id)}
+                      onChange={() => setEditPicked((s) => toggle(s, m.id))}
+                    />
+                  }
+                  label={`${m.name} (${TEAM_ROLES[m.role as TeamRoleCode] ?? m.role})`}
+                />
+              ))}
+            </FormGroup>
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setEditId(null)}>Cancel</Button>
+          <Button variant="contained" disabled={update.isPending}
+            onClick={() => {
+              if (editId) update.mutate({ id: editId, memberIds: [...editPicked] });
+            }}>
+            {update.isPending ? "Saving…" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

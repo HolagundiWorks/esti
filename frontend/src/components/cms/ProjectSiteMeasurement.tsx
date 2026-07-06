@@ -1,25 +1,35 @@
 import { useState } from "react";
 import {
+  Box,
   Button,
-  Modal,
-  NumberInput,
-  ProgressBar,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  LinearProgress,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextInput,
-} from "@carbon/react";
-import { Add, Checkmark, TrashCan } from "@carbon/icons-react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import Add from "@mui/icons-material/Add";
+import Check from "@mui/icons-material/Check";
+import DeleteOutline from "@mui/icons-material/DeleteOutlineOutlined";
 import { can } from "@esti/contracts";
 import { DataState } from "../DataState.js";
 import { trpc } from "../../lib/trpc.js";
 import { useAuth } from "../../lib/auth.js";
+
+// Preserve exact Carbon tag colours by rendering an MUI Chip over the
+// `--cds-tag-*` token vars (still defined by the Carbon token layer).
+const tagSx = (color: string) => ({
+  backgroundColor: `var(--cds-tag-background-${color}, var(--cds-layer-01))`,
+  color: `var(--cds-tag-color-${color}, var(--cds-text-primary))`,
+});
+
+const shrink = { slotProps: { inputLabel: { shrink: true } } } as const;
 
 export function ProjectSiteMeasurement({ projectId }: { projectId: string }) {
   const { user } = useAuth();
@@ -60,62 +70,162 @@ export function ProjectSiteMeasurement({ projectId }: { projectId: string }) {
     return summary.find((s) => s.elementId === elementId);
   }
 
+  const elementColumns: GridColDef[] = [
+    { field: "code", headerName: "Code", flex: 0.6, minWidth: 90 },
+    { field: "description", headerName: "Description", flex: 1.6, minWidth: 200 },
+    {
+      field: "unit",
+      headerName: "Unit",
+      flex: 0.5,
+      minWidth: 80,
+      valueGetter: (_v, row) => row.unit ?? "—",
+    },
+    {
+      field: "quantity",
+      headerName: "Estimated qty",
+      flex: 0.8,
+      minWidth: 120,
+      renderCell: (p) => p.row.quantity.toFixed(3),
+    },
+    {
+      field: "verifiedQty",
+      headerName: "Verified qty",
+      flex: 0.8,
+      minWidth: 120,
+      sortable: false,
+      renderCell: (p) => (getSummary(p.row.id)?.cumulativeVerifiedQty ?? 0).toFixed(3),
+    },
+    {
+      field: "progress",
+      headerName: "Progress",
+      flex: 0.9,
+      minWidth: 120,
+      sortable: false,
+      renderCell: (p) => {
+        const pct = getSummary(p.row.id)?.percentComplete ?? 0;
+        return (
+          <Box sx={{ width: 1, minWidth: 120, display: "flex", alignItems: "center", height: 1 }}>
+            <LinearProgress
+              variant="determinate"
+              value={Math.min(100, Math.max(0, pct))}
+              sx={{ width: 1 }}
+            />
+          </Box>
+        );
+      },
+    },
+  ];
+
+  const recordColumns: GridColDef[] = [
+    { field: "date", headerName: "Date", flex: 0.7, minWidth: 110 },
+    {
+      field: "description",
+      headerName: "Description",
+      flex: 1.4,
+      minWidth: 180,
+      valueGetter: (_v, row) => row.description ?? "—",
+    },
+    {
+      field: "executedQty",
+      headerName: "Executed qty",
+      flex: 0.8,
+      minWidth: 120,
+      renderCell: (p) => p.row.executedQty.toFixed(3),
+    },
+    {
+      field: "remarks",
+      headerName: "Remarks",
+      flex: 1,
+      minWidth: 140,
+      valueGetter: (_v, row) => row.remarks ?? "—",
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.7,
+      minWidth: 110,
+      renderCell: (p) => (
+        <Chip
+          label={p.row.status}
+          size="small"
+          sx={tagSx(p.row.status === "VERIFIED" ? "green" : "cool-gray")}
+        />
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      filterable: false,
+      width: 110,
+      renderCell: (p) => {
+        const rec = p.row;
+        return (
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", height: 1 }}>
+            {rec.status === "DRAFT" && canApprove && (
+              <IconButton
+                size="small"
+                aria-label="Verify measurement"
+                onClick={() => verifyM.mutate({ id: rec.id })}
+                disabled={verifyM.isPending}
+              >
+                <Check fontSize="small" />
+              </IconButton>
+            )}
+            {rec.status === "DRAFT" && (
+              <IconButton
+                size="small"
+                color="error"
+                aria-label="Remove"
+                onClick={() => removeM.mutate({ id: rec.id })}
+                disabled={removeM.isPending}
+              >
+                <DeleteOutline fontSize="small" />
+              </IconButton>
+            )}
+          </Stack>
+        );
+      },
+    },
+  ];
+
   return (
-    <Stack gap={6}>
-      <h3>Site Measurement Book</h3>
+    <Stack spacing={3}>
+      <Typography variant="h6" component="h3">Site Measurement Book</Typography>
       <DataState
         loading={elementsQ.isLoading}
         isEmpty={!elementsQ.isLoading && (elementsQ.data?.elements.length ?? 0) === 0}
         empty={{ title: "No elements", description: "Add elements in the Estimate tab first." }}
         columnCount={6}
       >
-        <TableContainer title="Elements — execution progress">
-          <Table size="sm">
-            <TableHead>
-              <TableRow>
-                <TableHeader>Code</TableHeader>
-                <TableHeader>Description</TableHeader>
-                <TableHeader>Unit</TableHeader>
-                <TableHeader>Estimated qty</TableHeader>
-                <TableHeader>Verified qty</TableHeader>
-                <TableHeader>Progress</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {elements.map((el) => {
-                const s = getSummary(el.id);
-                const verifiedQty = s?.cumulativeVerifiedQty ?? 0;
-                const pct = s?.percentComplete ?? 0;
-                const isSelected = selectedId === el.id;
-                return (
-                  <TableRow
-                    key={el.id}
-                    onClick={() => setSelectedId(isSelected ? null : el.id)}
-                    style={{ cursor: "pointer", background: isSelected ? "var(--cds-layer-selected)" : undefined }}
-                  >
-                    <TableCell>{el.code}</TableCell>
-                    <TableCell>{el.description}</TableCell>
-                    <TableCell>{el.unit ?? "—"}</TableCell>
-                    <TableCell>{el.quantity.toFixed(3)}</TableCell>
-                    <TableCell>{verifiedQty.toFixed(3)}</TableCell>
-                    <TableCell style={{ minWidth: "120px" }}>
-                      <ProgressBar label=" " value={pct} max={100} size="small" hideLabel />
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Stack spacing={1}>
+          <Typography variant="caption" color="text.secondary">
+            Elements — execution progress
+          </Typography>
+          <DataGrid
+            rows={elements}
+            columns={elementColumns}
+            density="compact"
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+            onRowClick={(params) => setSelectedId(selectedId === params.id ? null : (params.id as string))}
+            getRowClassName={(params) => (params.id === selectedId ? "esti-cms-row-selected" : "")}
+            sx={{
+              "& .MuiDataGrid-row": { cursor: "pointer" },
+              "& .esti-cms-row-selected": { backgroundColor: "var(--cds-layer-selected)" },
+            }}
+          />
+        </Stack>
       </DataState>
 
       {selectedElement && (
-        <Stack gap={4}>
+        <Stack spacing={2}>
           <div className="esti-row-between">
-            <h4>
+            <Typography variant="subtitle1" component="h4">
               {selectedElement.code}: {selectedElement.description}
-            </h4>
-            <Button size="sm" renderIcon={Add} onClick={() => setAddOpen(true)}>
+            </Typography>
+            <Button size="small" variant="contained" startIcon={<Add />} onClick={() => setAddOpen(true)}>
               Add measurement
             </Button>
           </div>
@@ -125,117 +235,77 @@ export function ProjectSiteMeasurement({ projectId }: { projectId: string }) {
             empty={{ title: "No measurements", description: "Record the first site measurement for this element." }}
             columnCount={6}
           >
-            <TableContainer>
-              <Table size="sm">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Date</TableHeader>
-                    <TableHeader>Description</TableHeader>
-                    <TableHeader>Executed qty</TableHeader>
-                    <TableHeader>Remarks</TableHeader>
-                    <TableHeader>Status</TableHeader>
-                    <TableHeader>Actions</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {(recordsQ.data ?? []).map((rec) => (
-                    <TableRow key={rec.id}>
-                      <TableCell>{rec.date}</TableCell>
-                      <TableCell>{rec.description ?? "—"}</TableCell>
-                      <TableCell>{rec.executedQty.toFixed(3)}</TableCell>
-                      <TableCell>{rec.remarks ?? "—"}</TableCell>
-                      <TableCell>
-                        <Tag type={rec.status === "VERIFIED" ? "green" : "cool-gray"} size="sm">
-                          {rec.status}
-                        </Tag>
-                      </TableCell>
-                      <TableCell>
-                        <Stack orientation="horizontal" gap={2}>
-                          {rec.status === "DRAFT" && canApprove && (
-                            <Button
-                              kind="ghost"
-                              size="sm"
-                              renderIcon={Checkmark}
-                              hasIconOnly
-                              iconDescription="Verify measurement"
-                              onClick={() => verifyM.mutate({ id: rec.id })}
-                              disabled={verifyM.isPending}
-                            />
-                          )}
-                          {rec.status === "DRAFT" && (
-                            <Button
-                              kind="danger--ghost"
-                              size="sm"
-                              renderIcon={TrashCan}
-                              hasIconOnly
-                              iconDescription="Remove"
-                              onClick={() => removeM.mutate({ id: rec.id })}
-                              disabled={removeM.isPending}
-                            />
-                          )}
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <DataGrid
+              rows={recordsQ.data ?? []}
+              columns={recordColumns}
+              density="compact"
+              disableRowSelectionOnClick
+              hideFooter
+              autoHeight
+            />
           </DataState>
         </Stack>
       )}
 
-      <Modal
-        open={addOpen}
-        modalHeading={`Add measurement — ${selectedElement?.code ?? ""}`}
-        primaryButtonText={createM.isPending ? "Saving…" : "Save"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={createM.isPending || form.executedQty <= 0 || !form.date}
-        onRequestSubmit={() => {
-          if (!selectedId) return;
-          createM.mutate({
-            projectId,
-            elementId: selectedId,
-            date: form.date,
-            description: form.description || undefined,
-            executedQty: form.executedQty,
-            remarks: form.remarks || undefined,
-          });
-        }}
-        onRequestClose={() => setAddOpen(false)}
-        onSecondarySubmit={() => setAddOpen(false)}
-      >
-        <Stack gap={5}>
-          <TextInput
-            id="sm-date"
-            labelText="Date"
-            type="date"
-            value={form.date}
-            onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-          />
-          <TextInput
-            id="sm-desc"
-            labelText="Description (optional)"
-            value={form.description}
-            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-          />
-          <NumberInput
-            id="sm-qty"
-            label={`Executed quantity${selectedElement?.unit ? ` (${selectedElement.unit})` : ""}`}
-            value={form.executedQty}
-            onChange={(_e, { value }) =>
-              setForm((f) => ({ ...f, executedQty: Number(value) }))
-            }
-            min={0}
-            step={0.001}
-          />
-          <TextInput
-            id="sm-remarks"
-            labelText="Remarks (optional)"
-            value={form.remarks}
-            onChange={(e) => setForm((f) => ({ ...f, remarks: e.target.value }))}
-          />
-        </Stack>
-      </Modal>
+      <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>{`Add measurement — ${selectedElement?.code ?? ""}`}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="sm-date"
+              label="Date"
+              type="date"
+              value={form.date}
+              onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+              fullWidth
+              {...shrink}
+            />
+            <TextField
+              id="sm-desc"
+              label="Description (optional)"
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              fullWidth
+            />
+            <TextField
+              id="sm-qty"
+              label={`Executed quantity${selectedElement?.unit ? ` (${selectedElement.unit})` : ""}`}
+              type="number"
+              value={form.executedQty}
+              onChange={(e) => setForm((f) => ({ ...f, executedQty: Number(e.target.value) }))}
+              slotProps={{ htmlInput: { min: 0, step: 0.001 } }}
+              fullWidth
+            />
+            <TextField
+              id="sm-remarks"
+              label="Remarks (optional)"
+              value={form.remarks}
+              onChange={(e) => setForm((f) => ({ ...f, remarks: e.target.value }))}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setAddOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={createM.isPending || form.executedQty <= 0 || !form.date}
+            onClick={() => {
+              if (!selectedId) return;
+              createM.mutate({
+                projectId,
+                elementId: selectedId,
+                date: form.date,
+                description: form.description || undefined,
+                executedQty: form.executedQty,
+                remarks: form.remarks || undefined,
+              });
+            }}
+          >
+            {createM.isPending ? "Saving…" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

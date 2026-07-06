@@ -1,25 +1,29 @@
 import {
+  Box,
   Button,
-  Modal,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextArea,
-  TextInput,
-} from "@carbon/react";
-import { Add } from "@carbon/icons-react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import Add from "@mui/icons-material/Add";
 import { useEffect, useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { DataState } from "./DataState.js";
 import { AiDraftPanel } from "./AiStudio.js";
+
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
+
+const shrink = { slotProps: { inputLabel: { shrink: true } } } as const;
 
 export function ProjectMom({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
@@ -46,121 +50,161 @@ export function ProjectMom({ projectId }: { projectId: string }) {
     setEditMinutes("");
   }, [detailId]);
 
+  const columns: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 0.8, minWidth: 110 },
+    { field: "title", headerName: "Title", flex: 1.5, minWidth: 160 },
+    {
+      field: "meetingDate",
+      headerName: "Date",
+      flex: 0.8,
+      minWidth: 110,
+      renderCell: (p) => p.row.meetingDate ?? "—",
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.8,
+      minWidth: 110,
+      renderCell: (p) => (
+        <Chip size="small" label={p.row.status} sx={chipSx(p.row.status === "ISSUED" ? "green" : "gray")} />
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      flex: 1,
+      minWidth: 140,
+      renderCell: (p) => (
+        <>
+          <Button variant="text" size="small" onClick={() => setDetailId(p.row.id)}>Open</Button>
+          {p.row.status === "DRAFT" && (
+            <Button variant="text" size="small" disabled={issue.isPending} onClick={() => issue.mutate({ id: p.row.id })}>Issue</Button>
+          )}
+        </>
+      ),
+    },
+  ];
+
   return (
     <div>
-      <Stack orientation="horizontal" gap={3} style={{ justifyContent: "space-between", marginBottom: "var(--cds-spacing-03)" }}>
-        <h3>Meeting minutes</h3>
-        <Button size="sm" renderIcon={Add} onClick={() => setOpen(true)}>New MOM</Button>
+      <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", mb: 1 }}>
+        <Typography variant="h6" component="h3">Meeting minutes</Typography>
+        <Button size="small" variant="contained" startIcon={<Add />} onClick={() => setOpen(true)}>New MOM</Button>
       </Stack>
-      <div style={{ marginBottom: "var(--cds-spacing-05)" }}>
+      <Box sx={{ mb: 2 }}>
         <AiDraftPanel projectId={projectId} defaultKind="MOM" compact />
-      </div>
+      </Box>
       <DataState loading={listQ.isLoading} isEmpty={(listQ.data ?? []).length === 0} columnCount={4} empty={{ title: "No meeting minutes", description: "Record decisions and convert action items to tasks." }}>
-        <TableContainer>
-          <Table size="sm">
-            <TableHead>
-              <TableRow>
-                <TableHeader>Ref</TableHeader>
-                <TableHeader>Title</TableHeader>
-                <TableHeader>Date</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader></TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(listQ.data ?? []).map((m) => (
-                <TableRow key={m.id}>
-                  <TableCell>{m.ref}</TableCell>
-                  <TableCell>{m.title}</TableCell>
-                  <TableCell>{m.meetingDate ?? "—"}</TableCell>
-                  <TableCell><Tag type={m.status === "ISSUED" ? "green" : "gray"} size="sm">{m.status}</Tag></TableCell>
-                  <TableCell>
-                    <Button kind="ghost" size="sm" onClick={() => setDetailId(m.id)}>Open</Button>
-                    {m.status === "DRAFT" && (
-                      <Button kind="ghost" size="sm" disabled={issue.isPending} onClick={() => issue.mutate({ id: m.id })}>Issue</Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={listQ.data ?? []}
+          columns={columns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+        />
       </DataState>
 
-      <Modal open={open} modalHeading="New meeting minutes" primaryButtonText="Create" secondaryButtonText="Cancel"
-        primaryButtonDisabled={!form.title || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() => create.mutate({ projectId, ...form, meetingDate: form.meetingDate || undefined }, { onSuccess: () => setOpen(false) })}
-      >
-        <Stack gap={4}>
-          <Select
-            id="mom-tpl"
-            labelText="Start from template (optional)"
-            value=""
-            onChange={(e) => {
-              const t = (templatesQ.data ?? []).find((x) => x.id === e.target.value);
-              if (t) setForm((f) => ({ ...f, title: t.title, minutes: t.body }));
-            }}
-          >
-            <SelectItem value="" text="— blank MOM —" />
-            {(templatesQ.data ?? []).map((t) => (
-              <SelectItem key={t.id} value={t.id} text={t.title} />
-            ))}
-          </Select>
-          <TextInput id="mom-title" labelText="Title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
-          <TextInput id="mom-date" labelText="Meeting date" type="date" value={form.meetingDate} onChange={(e) => setForm((f) => ({ ...f, meetingDate: e.target.value }))} />
-          <TextInput id="mom-venue" labelText="Venue" value={form.venue} onChange={(e) => setForm((f) => ({ ...f, venue: e.target.value }))} />
-          <TextArea id="mom-att" labelText="Attendees" value={form.attendees} onChange={(e) => setForm((f) => ({ ...f, attendees: e.target.value }))} />
-          <TextArea id="mom-min" labelText="Minutes" rows={6} value={form.minutes} onChange={(e) => setForm((f) => ({ ...f, minutes: e.target.value }))} />
-        </Stack>
-      </Modal>
-
-      <Modal open={!!detailId} modalHeading={detailQ.data?.title ?? "MOM"} primaryButtonText="Close" onRequestClose={() => setDetailId(null)} onRequestSubmit={() => setDetailId(null)} size="lg">
-        {detailQ.data && (
-          <Stack gap={4}>
-            {detailQ.data.status === "DRAFT" ? (
-              <>
-                <TextArea
-                  id="mom-edit-min"
-                  labelText="Minutes"
-                  rows={8}
-                  value={editMinutes || detailQ.data.minutes}
-                  onChange={(e) => setEditMinutes(e.target.value)}
-                />
-                <Button
-                  size="sm"
-                  disabled={update.isPending}
-                  onClick={() => {
-                    if (!detailId) return;
-                    update.mutate({ id: detailId, minutes: editMinutes || detailQ.data!.minutes });
-                  }}
-                >
-                  Save minutes
-                </Button>
-              </>
-            ) : (
-              <p>{detailQ.data.minutes || "No minutes text yet."}</p>
-            )}
-            <h4>Action items</h4>
-            {(detailQ.data.actions ?? []).map((a) => (
-              <Stack key={a.id} orientation="horizontal" gap={3}>
-                <span className="esti-grow">{a.description}</span>
-                {!a.taskId && (
-                  <Button kind="ghost" size="sm" onClick={() => convert.mutate({ actionId: a.id })}>→ Task</Button>
-                )}
-              </Stack>
-            ))}
-            {detailQ.data.status === "DRAFT" && (
-              <Stack orientation="horizontal" gap={3}>
-                <TextInput id="act-desc" labelText="Action" hideLabel placeholder="New action item" value={actionText} onChange={(e) => setActionText(e.target.value)} />
-                <Button size="sm" disabled={!actionText || !detailId} onClick={() => {
-                  if (detailId) addAction.mutate({ momId: detailId, description: actionText }, { onSuccess: () => setActionText("") });
-                }}>Add</Button>
-              </Stack>
-            )}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>New meeting minutes</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1.5} sx={{ mt: 1 }}>
+            <TextField
+              id="mom-tpl"
+              select
+              label="Start from template (optional)"
+              value=""
+              onChange={(e) => {
+                const t = (templatesQ.data ?? []).find((x) => x.id === e.target.value);
+                if (t) setForm((f) => ({ ...f, title: t.title, minutes: t.body }));
+              }}
+              fullWidth
+            >
+              <MenuItem value="">— blank MOM —</MenuItem>
+              {(templatesQ.data ?? []).map((t) => (
+                <MenuItem key={t.id} value={t.id}>{t.title}</MenuItem>
+              ))}
+            </TextField>
+            <TextField id="mom-title" label="Title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} fullWidth />
+            <TextField id="mom-date" label="Meeting date" type="date" value={form.meetingDate} onChange={(e) => setForm((f) => ({ ...f, meetingDate: e.target.value }))} fullWidth {...shrink} />
+            <TextField id="mom-venue" label="Venue" value={form.venue} onChange={(e) => setForm((f) => ({ ...f, venue: e.target.value }))} fullWidth />
+            <TextField id="mom-att" label="Attendees" multiline minRows={4} value={form.attendees} onChange={(e) => setForm((f) => ({ ...f, attendees: e.target.value }))} fullWidth />
+            <TextField id="mom-min" label="Minutes" multiline rows={6} value={form.minutes} onChange={(e) => setForm((f) => ({ ...f, minutes: e.target.value }))} fullWidth />
           </Stack>
-        )}
-      </Modal>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!form.title || create.isPending}
+            onClick={() => create.mutate({ projectId, ...form, meetingDate: form.meetingDate || undefined }, { onSuccess: () => setOpen(false) })}
+          >
+            Create
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={!!detailId} onClose={() => setDetailId(null)} fullWidth maxWidth="md">
+        <DialogTitle>{detailQ.data?.title ?? "MOM"}</DialogTitle>
+        <DialogContent>
+          {detailQ.data && (
+            <Stack spacing={1.5} sx={{ mt: 1 }}>
+              {detailQ.data.status === "DRAFT" ? (
+                <>
+                  <TextField
+                    id="mom-edit-min"
+                    label="Minutes"
+                    multiline
+                    rows={8}
+                    value={editMinutes || detailQ.data.minutes}
+                    onChange={(e) => setEditMinutes(e.target.value)}
+                    fullWidth
+                  />
+                  <Box>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      disabled={update.isPending}
+                      onClick={() => {
+                        if (!detailId) return;
+                        update.mutate({ id: detailId, minutes: editMinutes || detailQ.data!.minutes });
+                      }}
+                    >
+                      Save minutes
+                    </Button>
+                  </Box>
+                </>
+              ) : (
+                <p>{detailQ.data.minutes || "No minutes text yet."}</p>
+              )}
+              <Typography variant="subtitle1" component="h4">Action items</Typography>
+              {(detailQ.data.actions ?? []).map((a) => (
+                <Stack key={a.id} direction="row" spacing={1}>
+                  <span className="esti-grow">{a.description}</span>
+                  {!a.taskId && (
+                    <Button variant="text" size="small" onClick={() => convert.mutate({ actionId: a.id })}>→ Task</Button>
+                  )}
+                </Stack>
+              ))}
+              {detailQ.data.status === "DRAFT" && (
+                <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                  <TextField id="act-desc" placeholder="New action item" value={actionText}
+                    slotProps={{ htmlInput: { "aria-label": "Action" } }}
+                    onChange={(e) => setActionText(e.target.value)} fullWidth />
+                  <Button size="small" variant="contained" disabled={!actionText || !detailId} onClick={() => {
+                    if (detailId) addAction.mutate({ momId: detailId, description: actionText }, { onSuccess: () => setActionText("") });
+                  }}>Add</Button>
+                </Stack>
+              )}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button variant="contained" onClick={() => setDetailId(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

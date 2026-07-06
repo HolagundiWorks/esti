@@ -1,13 +1,17 @@
 import {
+  Alert,
+  AlertTitle,
   Button,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
+  Paper,
   Stack,
-  Tag,
-  Tile,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
 import {
   PULSE_ACTION_LABEL,
   STANDUP_RESPONSE_LABEL,
@@ -26,6 +30,11 @@ const ANSWER_OPTIONS: { value: Exclude<StandupResponseStatus, "PENDING">; text: 
   { value: "ATTACHED_DOCUMENT", text: "Document attached" },
   { value: "COMMENT_ONLY", text: "Comment only" },
 ];
+
+const tagSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 /** ESTI Pulse — Project Standup Engine (Module 3/4). See docs/esti/ESTI-PULSE.md. */
 export function PulseStandupModal({
@@ -84,149 +93,157 @@ export function PulseStandupModal({
   const proposedActions = actionsQ.data ?? [];
 
   return (
-    <Modal open={open} modalHeading={`Standup — ${projectLabel}`} passiveModal size="lg" onRequestClose={onClose}>
-      <Stack gap={5}>
-        <Stack orientation="horizontal" gap={3}>
-          <Button size="sm" kind="primary" disabled={run.isPending} onClick={() => run.mutate({ projectId, sessionType: "AD_HOC" })}>
-            {run.isPending ? "Running…" : "Run standup now"}
-          </Button>
-          {sessions.length > 0 && (
-            <Select
-              id="standup-session"
-              labelText="Session"
-              hideLabel
-              size="sm"
-              value={activeSessionId ?? ""}
-              onChange={(e) => setSelectedSessionId(e.target.value)}
-            >
-              {sessions.map((s) => (
-                <SelectItem
-                  key={s.id}
-                  value={s.id}
-                  text={`${STANDUP_SESSION_LABEL[s.sessionType as keyof typeof STANDUP_SESSION_LABEL] ?? s.sessionType} — ${new Date(s.scheduledAt).toLocaleString()}`}
-                />
-              ))}
-            </Select>
-          )}
-        </Stack>
-
-        {run.isSuccess && run.data.questionCount === 0 && (
-          <InlineNotification
-            kind="success"
-            lowContrast
-            hideCloseButton
-            title="Nothing to ask"
-            subtitle="Every active task on this project has what it needs."
-          />
-        )}
-
-        {activeSessionId && questions.length > 0 && (
-          <p className="esti-label esti-label--secondary">
-            {pendingCount} of {questions.length} question{questions.length === 1 ? "" : "s"} pending
-          </p>
-        )}
-
-        {questions.map((q) => {
-          const draft = drafts[q.id] ?? { status: "", text: "" };
-          const answered = q.responseStatus !== "PENDING";
-          return (
-            <Tile key={q.id}>
-              <Stack gap={3}>
-                <Stack gap={1}>
-                  {q.questionText.split("\n").map((line, i) => (
-                    <p key={i}>{line}</p>
-                  ))}
-                </Stack>
-                <Tag type={answered ? "green" : "gray"} size="sm">
-                  {STANDUP_RESPONSE_LABEL[q.responseStatus as keyof typeof STANDUP_RESPONSE_LABEL] ?? q.responseStatus}
-                </Tag>
-                {q.responseText && <p className="esti-label esti-label--secondary">{q.responseText}</p>}
-                {!answered && (
-                  <Stack orientation="horizontal" gap={3}>
-                    <Select
-                      id={`standup-ans-${q.id}`}
-                      labelText="Response"
-                      hideLabel
-                      size="sm"
-                      value={draft.status}
-                      onChange={(e) => setDraft(q.id, { status: e.target.value })}
-                    >
-                      <SelectItem value="" text="— choose response —" />
-                      {ANSWER_OPTIONS.map((o) => (
-                        <SelectItem key={o.value} value={o.value} text={o.text} />
-                      ))}
-                    </Select>
-                    <Button
-                      size="sm"
-                      disabled={!draft.status || answer.isPending}
-                      onClick={() =>
-                        answer.mutate({
-                          questionId: q.id,
-                          responseStatus: draft.status as Exclude<StandupResponseStatus, "PENDING">,
-                          responseText: draft.text || undefined,
-                        })
-                      }
-                    >
-                      Answer
-                    </Button>
-                  </Stack>
-                )}
-              </Stack>
-            </Tile>
-          );
-        })}
-
-        {activeSessionId && questions.length === 0 && !questionsQ.isLoading && (
-          <p className="esti-label esti-label--secondary">No questions in this session.</p>
-        )}
-
-        <Stack gap={3}>
-          <Stack orientation="horizontal" gap={3}>
-            <span className="esti-label esti-label--secondary esti-grow">PENDING ACTIONS</span>
-            <Button
-              kind="ghost"
-              size="sm"
-              disabled={proposeActions.isPending}
-              onClick={() => proposeActions.mutate({})}
-            >
-              {proposeActions.isPending ? "Checking…" : "Check for actions"}
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+      <DialogTitle>{`Standup — ${projectLabel}`}</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2} sx={{ pt: 1 }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+            <Button size="small" variant="contained" disabled={run.isPending} onClick={() => run.mutate({ projectId, sessionType: "AD_HOC" })}>
+              {run.isPending ? "Running…" : "Run standup now"}
             </Button>
+            {sessions.length > 0 && (
+              <TextField
+                id="standup-session"
+                select
+                size="small"
+                sx={{ minWidth: 260 }}
+                value={activeSessionId ?? ""}
+                onChange={(e) => setSelectedSessionId(e.target.value)}
+                slotProps={{ htmlInput: { "aria-label": "Session" } }}
+              >
+                {sessions.map((s) => (
+                  <MenuItem key={s.id} value={s.id}>
+                    {`${STANDUP_SESSION_LABEL[s.sessionType as keyof typeof STANDUP_SESSION_LABEL] ?? s.sessionType} — ${new Date(s.scheduledAt).toLocaleString()}`}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
           </Stack>
 
-          {proposedActions.length === 0 ? (
-            <p className="esti-label esti-label--secondary">No pending actions.</p>
-          ) : (
-            proposedActions.map((a) => (
-              <Tile key={a.id}>
-                <Stack gap={3}>
-                  <Tag type="purple" size="sm">
-                    {PULSE_ACTION_LABEL[a.actionType as PulseActionType] ?? a.actionType}
-                  </Tag>
-                  <p>{a.description}</p>
-                  <Stack orientation="horizontal" gap={3}>
-                    <Button
-                      size="sm"
-                      kind="primary"
-                      disabled={decideAction.isPending}
-                      onClick={() => decideAction.mutate({ id: a.id, decision: "APPROVED" })}
-                    >
-                      Approve
-                    </Button>
-                    <Button
-                      size="sm"
-                      kind="ghost"
-                      disabled={decideAction.isPending}
-                      onClick={() => decideAction.mutate({ id: a.id, decision: "REJECTED" })}
-                    >
-                      Reject
-                    </Button>
-                  </Stack>
-                </Stack>
-              </Tile>
-            ))
+          {run.isSuccess && run.data.questionCount === 0 && (
+            <Alert severity="success">
+              <AlertTitle>Nothing to ask</AlertTitle>
+              Every active task on this project has what it needs.
+            </Alert>
           )}
+
+          {activeSessionId && questions.length > 0 && (
+            <p className="esti-label esti-label--secondary">
+              {pendingCount} of {questions.length} question{questions.length === 1 ? "" : "s"} pending
+            </p>
+          )}
+
+          {questions.map((q) => {
+            const draft = drafts[q.id] ?? { status: "", text: "" };
+            const answered = q.responseStatus !== "PENDING";
+            return (
+              <Paper key={q.id} sx={{ p: 2 }}>
+                <Stack spacing={1}>
+                  <Stack spacing={0.5}>
+                    {q.questionText.split("\n").map((line, i) => (
+                      <p key={i}>{line}</p>
+                    ))}
+                  </Stack>
+                  <Chip
+                    size="small"
+                    label={STANDUP_RESPONSE_LABEL[q.responseStatus as keyof typeof STANDUP_RESPONSE_LABEL] ?? q.responseStatus}
+                    sx={{ ...tagSx(answered ? "green" : "gray"), alignSelf: "flex-start" }}
+                  />
+                  {q.responseText && <p className="esti-label esti-label--secondary">{q.responseText}</p>}
+                  {!answered && (
+                    <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                      <TextField
+                        id={`standup-ans-${q.id}`}
+                        select
+                        size="small"
+                        sx={{ minWidth: 200 }}
+                        value={draft.status}
+                        onChange={(e) => setDraft(q.id, { status: e.target.value })}
+                        slotProps={{ htmlInput: { "aria-label": "Response" } }}
+                      >
+                        <MenuItem value="">— choose response —</MenuItem>
+                        {ANSWER_OPTIONS.map((o) => (
+                          <MenuItem key={o.value} value={o.value}>{o.text}</MenuItem>
+                        ))}
+                      </TextField>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        disabled={!draft.status || answer.isPending}
+                        onClick={() =>
+                          answer.mutate({
+                            questionId: q.id,
+                            responseStatus: draft.status as Exclude<StandupResponseStatus, "PENDING">,
+                            responseText: draft.text || undefined,
+                          })
+                        }
+                      >
+                        Answer
+                      </Button>
+                    </Stack>
+                  )}
+                </Stack>
+              </Paper>
+            );
+          })}
+
+          {activeSessionId && questions.length === 0 && !questionsQ.isLoading && (
+            <p className="esti-label esti-label--secondary">No questions in this session.</p>
+          )}
+
+          <Stack spacing={1}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+              <span className="esti-label esti-label--secondary esti-grow">PENDING ACTIONS</span>
+              <Button
+                variant="text"
+                size="small"
+                disabled={proposeActions.isPending}
+                onClick={() => proposeActions.mutate({})}
+              >
+                {proposeActions.isPending ? "Checking…" : "Check for actions"}
+              </Button>
+            </Stack>
+
+            {proposedActions.length === 0 ? (
+              <p className="esti-label esti-label--secondary">No pending actions.</p>
+            ) : (
+              proposedActions.map((a) => (
+                <Paper key={a.id} sx={{ p: 2 }}>
+                  <Stack spacing={1}>
+                    <Chip
+                      size="small"
+                      label={PULSE_ACTION_LABEL[a.actionType as PulseActionType] ?? a.actionType}
+                      sx={{ ...tagSx("purple"), alignSelf: "flex-start" }}
+                    />
+                    <p>{a.description}</p>
+                    <Stack direction="row" spacing={1}>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        disabled={decideAction.isPending}
+                        onClick={() => decideAction.mutate({ id: a.id, decision: "APPROVED" })}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="text"
+                        disabled={decideAction.isPending}
+                        onClick={() => decideAction.mutate({ id: a.id, decision: "REJECTED" })}
+                      >
+                        Reject
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Paper>
+              ))
+            )}
+          </Stack>
         </Stack>
-      </Stack>
-    </Modal>
+      </DialogContent>
+      <DialogActions>
+        <Button variant="contained" onClick={onClose}>Close</Button>
+      </DialogActions>
+    </Dialog>
   );
 }

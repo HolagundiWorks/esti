@@ -1,24 +1,27 @@
 import {
+  Alert,
+  AlertTitle,
+  Box,
   Button,
-  InlineNotification,
-  Modal,
-  PasswordInput,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  MenuItem,
+  Paper,
   Stack,
+  Switch,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableHeader,
   TableRow,
-  Tag,
-  TextArea,
-  TextInput,
-  Tile,
-  Toggle,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
 import {
   Jurisdiction,
   PROJECT_STATUS_LABEL,
@@ -34,6 +37,7 @@ import { derivePhaseStageStatus, PHASE_STAGE_TAG } from "../lib/currentPhase.js"
 import { trpc } from "../lib/trpc.js";
 import { CurrentPhaseSelect } from "./CurrentPhaseSelect.js";
 import { ProjectEngagements } from "./ProjectEngagements.js";
+import { StatusTag } from "./StatusTag.js";
 
 const ACTIVITY_TAG: Record<
   string,
@@ -42,6 +46,11 @@ const ACTIVITY_TAG: Record<
   "project.created": "green",
   "note.created": "blue",
 };
+
+const tagSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 export function ProjectSettings({ projectId }: { projectId: string }) {
   const { canProjectDelete } = useCapabilities();
@@ -122,113 +131,132 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   const p = projectQ.data;
 
   return (
-    <div style={{ marginTop: "var(--cds-spacing-05)" }}>
+    <Box sx={{ mt: 2 }}>
       {msg && (
-        <InlineNotification
-          kind="success"
-          title="Saved"
-          subtitle={msg}
-          lowContrast
-          onCloseButtonClick={() => setMsg(null)}
-        />
+        <Alert severity="success" onClose={() => setMsg(null)} sx={{ mb: 2 }}>
+          <AlertTitle>Saved</AlertTitle>
+          {msg}
+        </Alert>
       )}
 
       {p && (
-        <Tile style={{ maxWidth: 640 }}>
-          <Stack gap={5}>
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--cds-spacing-03)" }}>
-              <h4 className="esti-grow">Project status</h4>
-              <Tag type={PROJECT_STATUS_TAG[p.status as ProjectStatus]} size="md">
-                {PROJECT_STATUS_LABEL[p.status as ProjectStatus]}
-              </Tag>
-            </div>
+        <Paper sx={{ maxWidth: 640, p: 2 }}>
+          <Stack spacing={2}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography variant="subtitle1" component="h4" className="esti-grow">
+                Project status
+              </Typography>
+              <StatusTag
+                value={p.status as ProjectStatus}
+                map={PROJECT_STATUS_TAG}
+                label={PROJECT_STATUS_LABEL[p.status as ProjectStatus]}
+                size="md"
+              />
+            </Box>
             {(() => {
               const targets = PROJECT_TRANSITIONS[p.status as ProjectStatus] ?? [];
               if (targets.length === 0)
-                return <p>This project is in a terminal stage — its status can no longer change.</p>;
+                return (
+                  <Typography variant="body2">
+                    This project is in a terminal stage — its status can no longer change.
+                  </Typography>
+                );
               return (
                 <>
-                  <p>
+                  <Typography variant="body2">
                     Move this project to its next stage. Initial activation runs through the
                     activation gate under “Pipeline”, not here.
-                  </p>
-                  <Select
+                  </Typography>
+                  <TextField
                     id="ps-status"
-                    labelText="Change status to"
+                    select
+                    label="Change status to"
                     value={statusDraft}
                     onChange={(e) => setStatusDraft(e.target.value as ProjectStatus | "")}
+                    fullWidth
                   >
-                    <SelectItem value="" text="— select —" />
+                    <MenuItem value="">— select —</MenuItem>
                     {targets.map((s) => (
-                      <SelectItem key={s} value={s} text={PROJECT_STATUS_LABEL[s]} />
+                      <MenuItem key={s} value={s}>
+                        {PROJECT_STATUS_LABEL[s]}
+                      </MenuItem>
                     ))}
-                  </Select>
+                  </TextField>
                   {updateStatus.error && (
-                    <InlineNotification
-                      kind="error"
-                      lowContrast
-                      title="Status change failed"
-                      subtitle={updateStatus.error.message}
-                      onCloseButtonClick={() => updateStatus.reset()}
-                    />
+                    <Alert severity="error" onClose={() => updateStatus.reset()}>
+                      <AlertTitle>Status change failed</AlertTitle>
+                      {updateStatus.error.message}
+                    </Alert>
                   )}
-                  <Button
-                    disabled={!statusDraft || updateStatus.isPending}
-                    onClick={() => {
-                      if (statusDraft) updateStatus.mutate({ id: projectId, status: statusDraft });
-                    }}
-                  >
-                    Update status
-                  </Button>
+                  <div>
+                    <Button
+                      variant="contained"
+                      disabled={!statusDraft || updateStatus.isPending}
+                      onClick={() => {
+                        if (statusDraft) updateStatus.mutate({ id: projectId, status: statusDraft });
+                      }}
+                    >
+                      Update status
+                    </Button>
+                  </div>
                 </>
               );
             })()}
           </Stack>
-        </Tile>
+        </Paper>
       )}
 
       {firmPmcEnabled && (
-      <Tile style={{ maxWidth: 640, marginTop: "var(--cds-spacing-05)" }}>
-        <Stack gap={5}>
-          <h4>PMC</h4>
-          <Toggle
-            id="ps-pmc"
-            labelText="PMC on this project"
-            labelA="Off"
-            labelB="On"
-            toggled={pmcEnabled}
-            onToggle={setPmcEnabled}
+      <Paper sx={{ maxWidth: 640, p: 2, mt: 2 }}>
+        <Stack spacing={2}>
+          <Typography variant="subtitle1" component="h4">
+            PMC
+          </Typography>
+          <FormControlLabel
+            control={
+              <Switch
+                id="ps-pmc"
+                checked={pmcEnabled}
+                onChange={(e) => setPmcEnabled(e.target.checked)}
+              />
+            }
+            label="PMC on this project"
           />
-          <Button
-            disabled={update.isPending || !projectQ.data}
-            onClick={() => {
-              const p = projectQ.data;
-              if (!p) return;
-              update.mutate({
-                id: projectId,
-                title: p.title,
-                status: p.status as ProjectStatus,
-                projectType: p.projectType as (typeof ProjectType.options)[number],
-                workType: ((p as { workType?: string }).workType ?? "ARCHITECTURE") as "ARCHITECTURE" | "INTERIOR" | "LANDSCAPE" | "MISC",
-                jurisdiction: p.jurisdiction as (typeof Jurisdiction.options)[number],
-                dateStart: p.dateStart ?? null,
-                pmcEnabled,
-              });
-            }}
-          >
-            Save PMC setting
-          </Button>
+          <div>
+            <Button
+              variant="contained"
+              disabled={update.isPending || !projectQ.data}
+              onClick={() => {
+                const p = projectQ.data;
+                if (!p) return;
+                update.mutate({
+                  id: projectId,
+                  title: p.title,
+                  status: p.status as ProjectStatus,
+                  projectType: p.projectType as (typeof ProjectType.options)[number],
+                  workType: ((p as { workType?: string }).workType ?? "ARCHITECTURE") as "ARCHITECTURE" | "INTERIOR" | "LANDSCAPE" | "MISC",
+                  jurisdiction: p.jurisdiction as (typeof Jurisdiction.options)[number],
+                  dateStart: p.dateStart ?? null,
+                  pmcEnabled,
+                });
+              }}
+            >
+              Save PMC setting
+            </Button>
+          </div>
         </Stack>
-      </Tile>
+      </Paper>
       )}
 
-      <Tile style={{ maxWidth: 760, marginTop: "var(--cds-spacing-05)" }}>
-        <Stack gap={4}>
-          <h4>Project stages</h4>
-          <p>
+      <Paper sx={{ maxWidth: 760, p: 2, mt: 2 }}>
+        <Stack spacing={2}>
+          <Typography variant="subtitle1" component="h4">
+            Project stages
+          </Typography>
+          <Typography variant="body2">
             Pick the stage currently in progress. Earlier stages are complete; later stages are
             pending.
-          </p>
+          </Typography>
           <CurrentPhaseSelect
             id="ps-current-stage"
             projectId={projectId}
@@ -236,13 +264,13 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
             currentPhaseId={projectQ.data?.currentPhaseId}
           />
           <TableContainer>
-            <Table size="sm">
+            <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableHeader>Stage</TableHeader>
-                  <TableHeader>Fee allocation %</TableHeader>
-                  <TableHeader>Rev. budget</TableHeader>
-                  <TableHeader>Status</TableHeader>
+                  <TableCell>Stage</TableCell>
+                  <TableCell>Fee allocation %</TableCell>
+                  <TableCell>Rev. budget</TableCell>
+                  <TableCell>Status</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -255,13 +283,15 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
                       <TableCell>{ph.label}</TableCell>
                       <TableCell>{ph.billingPct}%</TableCell>
                       <TableCell>
-                        <TextInput
+                        <TextField
                           id={`rev-budget-${ph.id}`}
-                          labelText=""
-                          hideLabel
+                          hiddenLabel
                           type="number"
-                          size="sm"
+                          size="small"
                           placeholder="—"
+                          slotProps={{
+                            htmlInput: { "aria-label": "Revision budget" },
+                          }}
                           value={revBudgetDraft[ph.id] ?? (ph.revisionBudget != null ? String(ph.revisionBudget) : "")}
                           onChange={(e) =>
                             setRevBudgetDraft((prev) => ({ ...prev, [ph.id]: e.target.value }))
@@ -273,13 +303,15 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
                             if (val !== null && (isNaN(val) || val < 0 || val > 99)) return;
                             setRevisionBudget.mutate({ phaseId: ph.id, projectId, revisionBudget: val });
                           }}
-                          style={{ width: 72 }}
+                          sx={{ width: 72 }}
                         />
                       </TableCell>
                       <TableCell>
-                        <Tag type={PHASE_STAGE_TAG[stageStatus]} size="sm">
-                          {stageStatus}
-                        </Tag>
+                        <Chip
+                          size="small"
+                          label={stageStatus}
+                          sx={tagSx(PHASE_STAGE_TAG[stageStatus])}
+                        />
                       </TableCell>
                     </TableRow>
                   );
@@ -288,142 +320,155 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
             </Table>
           </TableContainer>
         </Stack>
-      </Tile>
+      </Paper>
 
-      <div style={{ maxWidth: 760, marginTop: "var(--cds-spacing-05)" }}>
+      <Box sx={{ maxWidth: 760, mt: 2 }}>
         <ProjectEngagements projectId={projectId} />
-      </div>
+      </Box>
 
-      <Tile style={{ maxWidth: 640, marginTop: "var(--cds-spacing-05)" }}>
-        <Stack gap={5}>
-          <h4>Internal log (audit)</h4>
-          <p>Office-internal notes for audit — not visible to clients.</p>
-          <TextArea
+      <Paper sx={{ maxWidth: 640, p: 2, mt: 2 }}>
+        <Stack spacing={2}>
+          <Typography variant="subtitle1" component="h4">
+            Internal log (audit)
+          </Typography>
+          <Typography variant="body2">
+            Office-internal notes for audit — not visible to clients.
+          </Typography>
+          <TextField
             id="ps-note"
-            labelText="Add a note"
+            label="Add a note"
+            multiline
             rows={2}
             value={note}
             onChange={(e) => setNote(e.target.value)}
+            fullWidth
           />
-          <Button
-            kind="tertiary"
-            disabled={!note || addLog.isPending}
-            onClick={() => addLog.mutate({ projectId, note })}
-          >
-            Add note
-          </Button>
+          <div>
+            <Button
+              variant="outlined"
+              disabled={!note || addLog.isPending}
+              onClick={() => addLog.mutate({ projectId, note })}
+            >
+              Add note
+            </Button>
+          </div>
           <div>
             {(logsQ.data ?? []).map((l) => (
-              <div
-                key={l.id}
-                style={{ padding: "var(--cds-spacing-02) 0 var(--cds-spacing-02) var(--cds-spacing-04)", marginTop: "var(--cds-spacing-03)" }}
-              >
-                <div style={{ whiteSpace: "pre-wrap" }}>{l.note}</div>
-                <div>
+              <Box key={l.id} sx={{ py: 0.5, pl: 1.5, mt: 1 }}>
+                <Box sx={{ whiteSpace: "pre-wrap" }}>{l.note}</Box>
+                <Typography variant="body2" color="text.secondary">
                   {l.authorName ?? "—"} ·{" "}
                   {new Date(l.createdAt as unknown as string).toLocaleString()}
-                </div>
-              </div>
+                </Typography>
+              </Box>
             ))}
           </div>
         </Stack>
-      </Tile>
+      </Paper>
 
-      <Tile style={{ maxWidth: 640, marginTop: "var(--cds-spacing-05)" }}>
-        <Stack gap={5}>
-          <h4>Activity feed</h4>
-          <p>
+      <Paper sx={{ maxWidth: 640, p: 2, mt: 2 }}>
+        <Stack spacing={2}>
+          <Typography variant="subtitle1" component="h4">
+            Activity feed
+          </Typography>
+          <Typography variant="body2">
             Project timeline entries for change control, internal notes, and
             future revision intelligence.
-          </p>
+          </Typography>
           <div>
             {(activityQ.data ?? []).map((item) => (
-              <div
-                key={item.id}
-                style={{ padding: "var(--cds-spacing-02) 0 var(--cds-spacing-02) var(--cds-spacing-04)", marginTop: "var(--cds-spacing-03)" }}
-              >
-                <div
-                  style={{
+              <Box key={item.id} sx={{ py: 0.5, pl: 1.5, mt: 1 }}>
+                <Box
+                  sx={{
                     display: "flex",
-                    gap: "var(--cds-spacing-03)",
+                    gap: 1,
                     alignItems: "center",
                     flexWrap: "wrap",
                   }}
                 >
-                  <Tag size="sm" type={ACTIVITY_TAG[item.eventType] ?? "gray"}>
-                    {item.eventType}
-                  </Tag>
+                  <Chip
+                    size="small"
+                    label={item.eventType}
+                    sx={tagSx(ACTIVITY_TAG[item.eventType] ?? "gray")}
+                  />
                   <span>{item.summary}</span>
-                </div>
-                <div>
+                </Box>
+                <Typography variant="body2" color="text.secondary">
                   {item.actorName ?? "—"} ·{" "}
                   {new Date(
                     item.createdAt as unknown as string,
                   ).toLocaleString()}
-                </div>
-              </div>
+                </Typography>
+              </Box>
             ))}
           </div>
         </Stack>
-      </Tile>
+      </Paper>
 
       {canProjectDelete && (
-        <Tile style={{ maxWidth: 640, marginTop: "var(--cds-spacing-05)" }}>
-          <h4>Danger zone</h4>
-          <p style={{ margin: "var(--cds-spacing-03) 0 var(--cds-spacing-04)" }}>
+        <Paper sx={{ maxWidth: 640, p: 2, mt: 2 }}>
+          <Typography variant="subtitle1" component="h4">
+            Danger zone
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 1, mb: 1.5 }}>
             Archive this project from active work while retaining its phases,
             fees, invoices, drawings, estimates, and audit history. Authorized
             managers can restore it later.
-          </p>
-          <Button kind="danger" onClick={() => setConfirmDelete(true)}>
+          </Typography>
+          <Button variant="contained" color="error" onClick={() => setConfirmDelete(true)}>
             Archive project
           </Button>
-        </Tile>
+        </Paper>
       )}
 
-      <Modal
-        open={confirmDelete}
-        danger
-        modalHeading="Archive project?"
-        primaryButtonText={remove.isPending ? "Archiving…" : "Archive project"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={remove.isPending || adminPwd.length === 0}
-        onRequestClose={closeDelete}
-        onRequestSubmit={() =>
-          remove.mutate({ id: projectId, password: adminPwd })
-        }
-      >
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!remove.isPending && adminPwd.length > 0) {
-              remove.mutate({ id: projectId, password: adminPwd });
-            }
-          }}
-        >
-          <Stack gap={5}>
-            <p>
-              This removes <strong>{p?.title}</strong> from active project lists
-              while retaining every related record for audit and later
-              restoration.
-            </p>
-            <PasswordInput
-              id="ps-admin-pwd"
-              labelText="Enter your admin password to confirm"
-              value={adminPwd}
-              onChange={(e) => setAdminPwd(e.target.value)}
-            />
-            {remove.error && (
-              <InlineNotification
-                kind="error"
-                lowContrast
-                title="Archive failed"
-                subtitle={remove.error.message}
+      <Dialog open={confirmDelete} onClose={closeDelete} fullWidth maxWidth="sm">
+        <DialogTitle>Archive project?</DialogTitle>
+        <DialogContent>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!remove.isPending && adminPwd.length > 0) {
+                remove.mutate({ id: projectId, password: adminPwd });
+              }
+            }}
+          >
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <Typography variant="body2">
+                This removes <strong>{p?.title}</strong> from active project lists
+                while retaining every related record for audit and later
+                restoration.
+              </Typography>
+              <TextField
+                id="ps-admin-pwd"
+                label="Enter your admin password to confirm"
+                type="password"
+                value={adminPwd}
+                onChange={(e) => setAdminPwd(e.target.value)}
+                fullWidth
               />
-            )}
-          </Stack>
-        </form>
-      </Modal>
-    </div>
+              {remove.error && (
+                <Alert severity="error">
+                  <AlertTitle>Archive failed</AlertTitle>
+                  {remove.error.message}
+                </Alert>
+              )}
+            </Stack>
+          </form>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={closeDelete}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            disabled={remove.isPending || adminPwd.length === 0}
+            onClick={() => remove.mutate({ id: projectId, password: adminPwd })}
+          >
+            {remove.isPending ? "Archiving…" : "Archive project"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }

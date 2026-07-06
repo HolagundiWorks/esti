@@ -1,21 +1,33 @@
-import {
-  Column,
-  Grid,
-  ProgressBar,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  Tile,
-} from "@carbon/react";
+import { Chip, Grid, LinearProgress, Paper, Stack, Typography } from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { formatINR } from "@esti/contracts";
 import { DataState } from "../DataState.js";
 import { trpc } from "../../lib/trpc.js";
+
+// Preserve exact Carbon tag colours by rendering an MUI Chip over the
+// `--cds-tag-*` token vars (still defined by the Carbon token layer).
+const tagSx = (color: string) => ({
+  backgroundColor: `var(--cds-tag-background-${color}, var(--cds-layer-01))`,
+  color: `var(--cds-tag-color-${color}, var(--cds-text-primary))`,
+});
+
+const forecastColumns = (resourceLabel: string): GridColDef[] => [
+  { field: "itemName", headerName: resourceLabel, flex: 1.5, minWidth: 180 },
+  {
+    field: "unit",
+    headerName: "Unit",
+    flex: 0.6,
+    minWidth: 90,
+    valueGetter: (_v, row) => row.unit ?? "—",
+  },
+  {
+    field: "forecastQty",
+    headerName: "Forecast qty",
+    flex: 0.8,
+    minWidth: 120,
+    renderCell: (p) => p.row.forecastQty.toFixed(3),
+  },
+];
 
 export function ProjectCostIntelligence({ projectId }: { projectId: string }) {
   const dashQ = trpc.cms.intelligence.costDashboard.useQuery({ projectId });
@@ -26,12 +38,12 @@ export function ProjectCostIntelligence({ projectId }: { projectId: string }) {
   const labour = (matQ.data ?? []).filter((l) => l.type === "LABOUR");
 
   return (
-    <Stack gap={7}>
-      <h3>Cost Intelligence</h3>
+    <Stack spacing={4}>
+      <Typography variant="h6" component="h3">Cost Intelligence</Typography>
 
       {/* CMS-8: Cost Dashboard */}
-      <Stack gap={4}>
-        <h4>Cost Dashboard</h4>
+      <Stack spacing={2}>
+        <Typography variant="subtitle1" component="h4">Cost Dashboard</Typography>
         <DataState
           loading={dashQ.isLoading}
           isEmpty={!dashQ.isLoading && !d}
@@ -39,57 +51,51 @@ export function ProjectCostIntelligence({ projectId }: { projectId: string }) {
           columnCount={4}
         >
           {d && (
-            <Grid>
-              <Column sm={4} md={4} lg={4}>
-                <Tile>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                <Paper sx={{ p: 2, height: 1 }}>
                   <p className="esti-label--secondary">Estimated Total</p>
                   <p>{formatINR(d.estimatedTotalPaise)}</p>
                   <p className="esti-label--helper">{d.elementCount} elements</p>
-                </Tile>
-              </Column>
-              <Column sm={4} md={4} lg={4}>
-                <Tile>
+                </Paper>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                <Paper sx={{ p: 2, height: 1 }}>
                   <p className="esti-label--secondary">Executed (Est. Value)</p>
                   <p>{formatINR(d.executedEstimatedPaise)}</p>
-                  <ProgressBar
-                    label=" "
-                    value={d.percentExecuted}
-                    max={100}
-                    size="small"
-                    hideLabel
+                  <LinearProgress
+                    variant="determinate"
+                    value={Math.min(100, Math.max(0, d.percentExecuted))}
                   />
                   <p className="esti-label--helper">{d.percentExecuted}% complete</p>
-                </Tile>
-              </Column>
-              <Column sm={4} md={4} lg={4}>
-                <Tile>
+                </Paper>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                <Paper sx={{ p: 2, height: 1 }}>
                   <p className="esti-label--secondary">Certified Total</p>
                   <p>{formatINR(d.certifiedTotalPaise)}</p>
-                  <ProgressBar
-                    label=" "
-                    value={d.percentCertified}
-                    max={100}
-                    size="small"
-                    hideLabel
+                  <LinearProgress
+                    variant="determinate"
+                    value={Math.min(100, Math.max(0, d.percentCertified))}
                   />
                   <p className="esti-label--helper">{d.percentCertified}% of estimated</p>
-                </Tile>
-              </Column>
-              <Column sm={4} md={4} lg={4}>
-                <Tile>
+                </Paper>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+                <Paper sx={{ p: 2, height: 1 }}>
                   <p className="esti-label--secondary">Balance to Certify</p>
                   <p>
                     {formatINR(Math.max(0, d.estimatedTotalPaise - d.certifiedTotalPaise))}
                   </p>
                   <div className="esti-label--helper">
                     {d.certifiedTotalPaise >= d.estimatedTotalPaise ? (
-                      <Tag type="green" size="sm">Fully certified</Tag>
+                      <Chip label="Fully certified" size="small" sx={tagSx("green")} />
                     ) : (
-                      <Tag type="cool-gray" size="sm">Pending</Tag>
+                      <Chip label="Pending" size="small" sx={tagSx("cool-gray")} />
                     )}
                   </div>
-                </Tile>
-              </Column>
+                </Paper>
+              </Grid>
             </Grid>
           )}
         </DataState>
@@ -97,54 +103,38 @@ export function ProjectCostIntelligence({ projectId }: { projectId: string }) {
 
       {/* CMS-7: Material Intelligence */}
       {materials.length > 0 && (
-        <Stack gap={4}>
-          <h4>Material Forecast</h4>
-          <TableContainer title="Materials required (from element qty × spec recipe)">
-            <Table size="sm">
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Material</TableHeader>
-                  <TableHeader>Unit</TableHeader>
-                  <TableHeader>Forecast qty</TableHeader>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {materials.map((m) => (
-                  <TableRow key={m.itemId ?? m.itemName}>
-                    <TableCell>{m.itemName}</TableCell>
-                    <TableCell>{m.unit ?? "—"}</TableCell>
-                    <TableCell>{m.forecastQty.toFixed(3)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+        <Stack spacing={2}>
+          <Typography variant="subtitle1" component="h4">Material Forecast</Typography>
+          <Typography variant="caption" color="text.secondary">
+            Materials required (from element qty × spec recipe)
+          </Typography>
+          <DataGrid
+            rows={materials}
+            columns={forecastColumns("Material")}
+            getRowId={(row) => row.itemId ?? row.itemName}
+            density="compact"
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+          />
         </Stack>
       )}
 
       {labour.length > 0 && (
-        <Stack gap={4}>
-          <h4>Labour Forecast</h4>
-          <TableContainer title="Labour required (from element qty × spec recipe)">
-            <Table size="sm">
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Labour resource</TableHeader>
-                  <TableHeader>Unit</TableHeader>
-                  <TableHeader>Forecast qty</TableHeader>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {labour.map((l) => (
-                  <TableRow key={l.itemId ?? l.itemName}>
-                    <TableCell>{l.itemName}</TableCell>
-                    <TableCell>{l.unit ?? "—"}</TableCell>
-                    <TableCell>{l.forecastQty.toFixed(3)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+        <Stack spacing={2}>
+          <Typography variant="subtitle1" component="h4">Labour Forecast</Typography>
+          <Typography variant="caption" color="text.secondary">
+            Labour required (from element qty × spec recipe)
+          </Typography>
+          <DataGrid
+            rows={labour}
+            columns={forecastColumns("Labour resource")}
+            getRowId={(row) => row.itemId ?? row.itemName}
+            density="compact"
+            disableRowSelectionOnClick
+            hideFooter
+            autoHeight
+          />
         </Stack>
       )}
 

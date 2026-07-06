@@ -1,20 +1,26 @@
 import {
   Accordion,
-  AccordionItem,
+  AccordionDetails,
+  AccordionSummary,
+  Alert,
+  AlertTitle,
   Button,
   Checkbox,
-  InlineNotification,
-  RadioButton,
-  RadioButtonGroup,
-  Select,
-  SelectItem,
+  Chip,
+  FormControl,
+  FormControlLabel,
+  FormGroup,
+  FormLabel,
+  MenuItem,
+  Paper,
+  Radio,
+  RadioGroup,
   Slider,
   Stack,
-  Tag,
-  TextArea,
-  TextInput,
-  Tile,
-} from "@carbon/react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 import {
   CPI_REPORT_FIELDS,
   CPI_SECTIONS,
@@ -349,6 +355,11 @@ const SECTION_TITLE = new Map(CPI_SECTIONS.map((s) => [s.id, `${s.no} — ${s.ti
 
 type Answers = Record<string, unknown>;
 
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
+
 function FieldControl({ field, value, onChange }: {
   field: Field;
   value: unknown;
@@ -358,103 +369,134 @@ function FieldControl({ field, value, onChange }: {
   switch (field.kind) {
     case "text":
       return (
-        <TextInput
+        <TextField
           id={idBase}
-          labelText={field.label}
+          label={field.label}
           value={typeof value === "string" ? value : ""}
           onChange={(e) => onChange(e.target.value)}
+          fullWidth
         />
       );
     case "textarea":
       return (
-        <TextArea
+        <TextField
           id={idBase}
-          labelText={field.label}
+          label={field.label}
+          multiline
           rows={2}
           value={typeof value === "string" ? value : ""}
           onChange={(e) => onChange(e.target.value)}
+          fullWidth
         />
       );
     case "rating":
       return (
-        <RadioButtonGroup
-          name={idBase}
-          legendText={field.label}
-          valueSelected={typeof value === "number" ? String(value) : undefined}
-          onChange={(v) => onChange(Number(v))}
-        >
-          {[1, 2, 3, 4, 5].map((n) => (
-            <RadioButton key={n} id={`${idBase}-${n}`} labelText={String(n)} value={String(n)} />
-          ))}
-        </RadioButtonGroup>
+        <FormControl>
+          <FormLabel id={`${idBase}-label`}>{field.label}</FormLabel>
+          <RadioGroup
+            row
+            aria-labelledby={`${idBase}-label`}
+            name={idBase}
+            value={typeof value === "number" ? String(value) : ""}
+            onChange={(e) => onChange(Number(e.target.value))}
+          >
+            {[1, 2, 3, 4, 5].map((n) => (
+              <FormControlLabel
+                key={n}
+                value={String(n)}
+                control={<Radio id={`${idBase}-${n}`} size="small" />}
+                label={String(n)}
+              />
+            ))}
+          </RadioGroup>
+        </FormControl>
       );
     case "scale":
       return (
-        <Slider
-          id={idBase}
-          labelText={field.label}
-          min={field.min ?? 1}
-          max={field.max ?? 10}
-          step={1}
-          value={typeof value === "number" ? value : Math.ceil(((field.min ?? 1) + (field.max ?? 10)) / 2)}
-          onChange={({ value: v }) => onChange(v)}
-        />
+        <FormControl fullWidth>
+          <FormLabel id={`${idBase}-label`}>{field.label}</FormLabel>
+          <Slider
+            id={idBase}
+            aria-labelledby={`${idBase}-label`}
+            min={field.min ?? 1}
+            max={field.max ?? 10}
+            step={1}
+            valueLabelDisplay="auto"
+            value={typeof value === "number" ? value : Math.ceil(((field.min ?? 1) + (field.max ?? 10)) / 2)}
+            onChange={(_, v) => onChange(v as number)}
+          />
+        </FormControl>
       );
     case "single":
       return (
-        <RadioButtonGroup
-          name={idBase}
-          legendText={field.label}
-          orientation={field.options.some((o) => o.length > 24) ? "vertical" : "horizontal"}
-          valueSelected={typeof value === "string" ? value : undefined}
-          onChange={(v) => onChange(String(v))}
-        >
-          {field.options.map((o) => (
-            <RadioButton key={o} id={`${idBase}-${o}`} labelText={o} value={o} />
-          ))}
-        </RadioButtonGroup>
+        <FormControl>
+          <FormLabel id={`${idBase}-label`}>{field.label}</FormLabel>
+          <RadioGroup
+            row={!field.options.some((o) => o.length > 24)}
+            aria-labelledby={`${idBase}-label`}
+            name={idBase}
+            value={typeof value === "string" ? value : ""}
+            onChange={(e) => onChange(String(e.target.value))}
+          >
+            {field.options.map((o) => (
+              <FormControlLabel
+                key={o}
+                value={o}
+                control={<Radio id={`${idBase}-${o}`} size="small" />}
+                label={o}
+              />
+            ))}
+          </RadioGroup>
+        </FormControl>
       );
     case "multi": {
       const selected = Array.isArray(value) ? (value as string[]) : [];
       const limit = field.max;
       return (
-        <fieldset>
-          <legend className="esti-label esti-label--secondary">
+        <FormControl component="fieldset">
+          <FormLabel component="legend" className="esti-label esti-label--secondary">
             {field.label}
             {limit ? ` (${selected.length}/${limit})` : ""}
-          </legend>
-          {field.options.map((o) => {
-            const checked = selected.includes(o);
-            return (
-              <Checkbox
-                key={o}
-                id={`${idBase}-${o}`}
-                labelText={o}
-                checked={checked}
-                disabled={!checked && !!limit && selected.length >= limit}
-                onChange={(_, { checked: on }) =>
-                  onChange(on ? [...selected, o] : selected.filter((x) => x !== o))
-                }
-              />
-            );
-          })}
-        </fieldset>
+          </FormLabel>
+          <FormGroup>
+            {field.options.map((o) => {
+              const checked = selected.includes(o);
+              return (
+                <FormControlLabel
+                  key={o}
+                  control={
+                    <Checkbox
+                      id={`${idBase}-${o}`}
+                      size="small"
+                      checked={checked}
+                      disabled={!checked && !!limit && selected.length >= limit}
+                      onChange={(e) =>
+                        onChange(e.target.checked ? [...selected, o] : selected.filter((x) => x !== o))
+                      }
+                    />
+                  }
+                  label={o}
+                />
+              );
+            })}
+          </FormGroup>
+        </FormControl>
       );
     }
     case "rank": {
       const ranks = (value ?? {}) as Record<string, number>;
       return (
-        <Stack gap={3}>
+        <Stack spacing={1}>
           <p className="esti-label esti-label--secondary">{field.label}</p>
           {field.items.map((item) => (
             <div key={item} className="esti-row-between">
               <span>{item}</span>
-              <Select
+              <TextField
                 id={`${idBase}-${item}`}
-                labelText=""
-                hideLabel
-                size="sm"
+                select
+                size="small"
                 className="esti-input-sm"
+                slotProps={{ htmlInput: { "aria-label": `${field.label} — ${item}` } }}
                 value={ranks[item] != null ? String(ranks[item]) : ""}
                 onChange={(e) => {
                   const v = e.target.value;
@@ -464,11 +506,13 @@ function FieldControl({ field, value, onChange }: {
                   onChange(next);
                 }}
               >
-                <SelectItem value="" text="—" />
+                <MenuItem value="">—</MenuItem>
                 {field.items.map((_, i) => (
-                  <SelectItem key={i + 1} value={String(i + 1)} text={String(i + 1)} />
+                  <MenuItem key={i + 1} value={String(i + 1)}>
+                    {String(i + 1)}
+                  </MenuItem>
                 ))}
-              </Select>
+              </TextField>
             </div>
           ))}
         </Stack>
@@ -498,17 +542,26 @@ export function ProjectCpi({ projectId }: { projectId: string }) {
   const report = reportDraft ?? savedReport;
   const answeredCount = Object.keys(sections).length;
 
+  // Mirror Carbon AccordionItem's `open` prop: the report item opens whenever
+  // a report exists (drafted or saved) and stays user-togglable.
+  const [reportOpen, setReportOpen] = useState(!!report);
+  useEffect(() => setReportOpen(!!report), [report]);
+
   if (!row) return null;
 
   return (
-    <Stack gap={6}>
-      <Tile className="esti-fill">
-        <Stack gap={3}>
+    <Stack spacing={3}>
+      <Paper className="esti-fill" sx={{ p: 2 }}>
+        <Stack spacing={1}>
           <div className="esti-row-between">
-            <h4>Client–Project Intelligence (CPI)</h4>
-            <Tag type={row.status === "COMPLETE" ? "green" : "gray"} size="sm">
-              {row.status === "COMPLETE" ? "Report saved" : `${answeredCount}/${SECTION_DEFS.length} sections`}
-            </Tag>
+            <Typography variant="h6" component="h4">Client–Project Intelligence (CPI)</Typography>
+            <Chip
+              size="small"
+              sx={chipSx(row.status === "COMPLETE" ? "green" : "gray")}
+              label={
+                row.status === "COMPLETE" ? "Report saved" : `${answeredCount}/${SECTION_DEFS.length} sections`
+              }
+            />
           </div>
           <p className="esti-label esti-label--secondary">
             Residential onboarding & program formulation — uncovers how the client lives,
@@ -516,85 +569,91 @@ export function ProjectCpi({ projectId }: { projectId: string }) {
             Intelligence Report, the foundation of the design brief.
           </p>
         </Stack>
-      </Tile>
+      </Paper>
 
-      <Accordion>
+      <div>
         {SECTION_DEFS.map((def) => (
-          <AccordionItem
-            key={def.id}
-            title={`${SECTION_TITLE.get(def.id) ?? def.id}${sections[def.id] ? " ✓" : ""}`}
-          >
-            <CpiSectionBody
-              projectId={projectId}
-              def={def}
-              saved={sections[def.id] ?? {}}
-              onSaved={() => void utils.cpi.get.invalidate({ projectId })}
-            />
-          </AccordionItem>
-        ))}
-        <AccordionItem title="21 — Designer's Intelligence Report" open={!!report}>
-          <Stack gap={5}>
-            <p className="esti-label esti-label--secondary">
-              The CPI deliverable: not a completed questionnaire but a synthesized design
-              brief. ESTI drafts it from the saved responses; review, edit and save.
-            </p>
-            <div className="esti-row">
-              <Button
-                size="sm"
-                kind="tertiary"
-                disabled={answeredCount === 0 || generate.isPending}
-                onClick={() => generate.mutate({ projectId })}
-              >
-                {generate.isPending ? "ESTI is synthesizing…" : "Draft report with ESTI"}
-              </Button>
-            </div>
-            {generate.isError && (
-              <InlineNotification
-                kind="error"
-                lowContrast
-                hideCloseButton
-                title="Could not draft the report"
-                subtitle={generate.error.message}
+          <Accordion key={def.id}>
+            <AccordionSummary expandIcon={<ExpandMore />}>
+              {`${SECTION_TITLE.get(def.id) ?? def.id}${sections[def.id] ? " ✓" : ""}`}
+            </AccordionSummary>
+            <AccordionDetails>
+              <CpiSectionBody
+                projectId={projectId}
+                def={def}
+                saved={sections[def.id] ?? {}}
+                onSaved={() => void utils.cpi.get.invalidate({ projectId })}
               />
-            )}
-            {report && (
-              <Stack gap={4}>
-                {CPI_REPORT_FIELDS.map(({ key, label }) => (
-                  <TextArea
-                    key={key}
-                    id={`cpi-report-${key}`}
-                    labelText={label}
-                    rows={key === "summary" ? 4 : 2}
-                    value={report[key]}
-                    onChange={(e) =>
-                      setReportDraft({ ...(reportDraft ?? savedReport ?? report), [key]: e.target.value })
-                    }
-                  />
-                ))}
-                <div className="esti-row">
-                  <Button
-                    size="sm"
-                    disabled={!reportDraft || saveReport.isPending}
-                    onClick={() => reportDraft && saveReport.mutate({ projectId, report: reportDraft })}
-                  >
-                    Save report
-                  </Button>
-                  {savedReport && !reportDraft && <Tag type="green" size="sm">Saved</Tag>}
-                </div>
-                {saveReport.isError && (
-                  <InlineNotification
-                    kind="error"
-                    lowContrast
-                    hideCloseButton
-                    title="Could not save the report"
-                    subtitle={saveReport.error.message}
-                  />
-                )}
-              </Stack>
-            )}
-          </Stack>
-        </AccordionItem>
-      </Accordion>
+            </AccordionDetails>
+          </Accordion>
+        ))}
+        <Accordion expanded={reportOpen} onChange={(_, expanded) => setReportOpen(expanded)}>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            21 — Designer's Intelligence Report
+          </AccordionSummary>
+          <AccordionDetails>
+            <Stack spacing={2}>
+              <p className="esti-label esti-label--secondary">
+                The CPI deliverable: not a completed questionnaire but a synthesized design
+                brief. ESTI drafts it from the saved responses; review, edit and save.
+              </p>
+              <div className="esti-row">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  disabled={answeredCount === 0 || generate.isPending}
+                  onClick={() => generate.mutate({ projectId })}
+                >
+                  {generate.isPending ? "ESTI is synthesizing…" : "Draft report with ESTI"}
+                </Button>
+              </div>
+              {generate.isError && (
+                <Alert severity="error">
+                  <AlertTitle>Could not draft the report</AlertTitle>
+                  {generate.error.message}
+                </Alert>
+              )}
+              {report && (
+                <Stack spacing={1.5}>
+                  {CPI_REPORT_FIELDS.map(({ key, label }) => (
+                    <TextField
+                      key={key}
+                      id={`cpi-report-${key}`}
+                      label={label}
+                      multiline
+                      rows={key === "summary" ? 4 : 2}
+                      value={report[key]}
+                      onChange={(e) =>
+                        setReportDraft({ ...(reportDraft ?? savedReport ?? report), [key]: e.target.value })
+                      }
+                      fullWidth
+                    />
+                  ))}
+                  <div className="esti-row">
+                    <Button
+                      size="small"
+                      variant="contained"
+                      disabled={!reportDraft || saveReport.isPending}
+                      onClick={() => reportDraft && saveReport.mutate({ projectId, report: reportDraft })}
+                    >
+                      Save report
+                    </Button>
+                    {savedReport && !reportDraft && (
+                      <Chip size="small" label="Saved" sx={chipSx("green")} />
+                    )}
+                  </div>
+                  {saveReport.isError && (
+                    <Alert severity="error">
+                      <AlertTitle>Could not save the report</AlertTitle>
+                      {saveReport.error.message}
+                    </Alert>
+                  )}
+                </Stack>
+              )}
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
+      </div>
     </Stack>
   );
 }
@@ -613,7 +672,7 @@ function CpiSectionBody({ projectId, def, saved, onSaved }: {
   const answered = Object.keys(saved).length > 0;
 
   return (
-    <Stack gap={5}>
+    <Stack spacing={2}>
       {def.intro && <p className="esti-label esti-label--secondary">{def.intro}</p>}
       {def.fields.map((f) => (
         <FieldControl
@@ -625,17 +684,20 @@ function CpiSectionBody({ projectId, def, saved, onSaved }: {
       ))}
       <div className="esti-row">
         <Button
-          size="sm"
-          kind={dirty ? "primary" : "tertiary"}
+          size="small"
+          variant={dirty ? "contained" : "outlined"}
           disabled={!dirty || save.isPending}
           onClick={() => save.mutate({ projectId, section: def.id, data: answers })}
         >
           Save section
         </Button>
-        {answered && !dirty && <Tag type="green" size="sm">Saved</Tag>}
+        {answered && !dirty && <Chip size="small" label="Saved" sx={chipSx("green")} />}
       </div>
       {save.isError && (
-        <InlineNotification kind="error" lowContrast hideCloseButton title="Could not save" subtitle={save.error.message} />
+        <Alert severity="error">
+          <AlertTitle>Could not save</AlertTitle>
+          {save.error.message}
+        </Alert>
       )}
     </Stack>
   );

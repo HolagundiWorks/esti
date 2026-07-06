@@ -1,14 +1,17 @@
 import {
+  Alert,
+  AlertTitle,
+  Box,
   Button,
-  InlineNotification,
-  Select,
-  SelectItem,
+  Chip,
+  FormControlLabel,
+  MenuItem,
+  Paper,
   Stack,
-  Tag,
-  TextInput,
-  Tile,
-  Toggle,
-} from "@carbon/react";
+  Switch,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { DEFAULT_AI_SETTINGS, type AiSettings } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { EstiAiExplainLabel } from "../AiCarbon.js";
@@ -52,107 +55,126 @@ export function AiStudioSettingsPanel({ isEnterprise = false }: { isEnterprise?:
   const showCloudOption = isEnterprise || isCloud;
 
   return (
-    <Tile decorator={<EstiAiExplainLabel scope="draft" />} className="esti-ai-settings-tile">
-      <Stack gap={5}>
-        <h2>AI Studio</h2>
-        <p>
+    <Paper className="esti-ai-settings-tile" sx={{ p: 3, maxWidth: 760 }}>
+      <Stack spacing={2}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+          <Typography variant="h5" component="h2">AI Studio</Typography>
+          <EstiAiExplainLabel scope="draft" />
+        </Stack>
+        <Typography variant="body2">
           Drafts run on <strong>Ollama</strong> on your server — no cloud keys. Pro firms
           may instead plug in their own <strong>OpenAI-compatible</strong> provider.
-        </p>
-        <InlineNotification
-          kind="info"
-          lowContrast
-          hideCloseButton
-          title="Ollama endpoint"
-          subtitle={settingsQ.data?.ollamaDefaultUrl ?? "http://127.0.0.1:11434"}
+        </Typography>
+        <Alert severity="info">
+          <AlertTitle>Ollama endpoint</AlertTitle>
+          {settingsQ.data?.ollamaDefaultUrl ?? "http://127.0.0.1:11434"}
+        </Alert>
+        {msg && <Alert severity="success" onClose={() => setMsg(null)}>{msg}</Alert>}
+        {err && <Alert severity="error" onClose={() => setErr(null)}>{err}</Alert>}
+        <FormControlLabel
+          control={
+            <Switch
+              checked={form.enabled}
+              onChange={(e) => setForm((f) => ({ ...f, enabled: e.target.checked }))}
+            />
+          }
+          label="Enable AI Studio"
         />
-        {msg && (
-          <InlineNotification kind="success" title="Saved" subtitle={msg} lowContrast onClose={() => setMsg(null)} />
-        )}
-        {err && (
-          <InlineNotification kind="error" title="Error" subtitle={err} lowContrast onClose={() => setErr(null)} />
-        )}
-        <Toggle
-          id="ai-enabled"
-          labelText="Enable AI Studio"
-          labelB="On"
-          labelA="Off"
-          toggled={form.enabled}
-          onToggle={(checked) => setForm((f) => ({ ...f, enabled: checked }))}
-        />
-        <Select
+        <TextField
           id="ai-provider"
-          labelText="Provider"
+          select
+          label="Provider"
           value={form.provider}
           onChange={(e) => setForm((f) => ({ ...f, provider: e.target.value as AiSettings["provider"] }))}
+          fullWidth
         >
-          <SelectItem value="ollama" text="Ollama (on-server)" />
-          <SelectItem value="mock" text="Template only (offline / demo)" />
-          {showCloudOption && <SelectItem value="cloud" text="Cloud — bring your own API (OpenAI-compatible)" />}
-        </Select>
+          <MenuItem value="ollama">Ollama (on-server)</MenuItem>
+          <MenuItem value="mock">Template only (offline / demo)</MenuItem>
+          {showCloudOption && <MenuItem value="cloud">Cloud — bring your own API (OpenAI-compatible)</MenuItem>}
+        </TextField>
 
         {!isCloud && (
           <>
-            <TextInput
+            <TextField
               id="ai-ollama-url"
-              labelText="Ollama base URL"
+              label="Ollama base URL"
               helperText="Docker service name, e.g. http://ollama:11434"
               value={form.ollamaBaseUrl ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, ollamaBaseUrl: e.target.value.trim() || undefined }))}
+              fullWidth
             />
-            <TextInput
+            <TextField
               id="ai-model"
-              labelText="Ollama model name"
+              label="Ollama model name"
               helperText="Must match a model pulled on the server, e.g. llama3.2"
               value={form.model}
               onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))}
+              fullWidth
             />
           </>
         )}
 
         {isCloud && (
           <>
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--cds-spacing-04)" }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
               <span className="esti-label--secondary">Bring-your-own AI provider</span>
-              <Tag type="purple" size="sm">Pro</Tag>
-            </div>
-            <TextInput
+              <Chip
+                size="small"
+                label="Pro"
+                sx={{
+                  backgroundColor: "var(--cds-tag-background-purple)",
+                  color: "var(--cds-tag-color-purple)",
+                }}
+              />
+            </Stack>
+            <TextField
               id="ai-cloud-url"
-              labelText="Endpoint URL"
+              label="Endpoint URL"
               helperText="OpenAI-compatible base ending in /v1, e.g. https://api.openai.com/v1"
               value={form.cloudBaseUrl ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, cloudBaseUrl: e.target.value.trim() || undefined }))}
+              fullWidth
             />
-            <TextInput
+            <TextField
               id="ai-cloud-model"
-              labelText="Model id"
+              label="Model id"
               helperText="e.g. gpt-4o-mini"
               value={form.cloudModel ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, cloudModel: e.target.value.trim() || undefined }))}
+              fullWidth
             />
-            <TextInput
+            <TextField
               id="ai-cloud-key"
               type="password"
-              labelText="API key"
+              label="API key"
               helperText={secretConfigured ? "A key is stored — leave blank to keep it." : "Stored at rest; never shown again."}
               value={form.cloudApiKey ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, cloudApiKey: e.target.value || undefined }))}
+              autoComplete="new-password"
+              fullWidth
             />
           </>
         )}
 
-        <Toggle
-          id="ai-redact"
-          labelText="Redact PII in stored output"
-          labelB="On"
-          labelA="Off"
-          toggled={form.redactPii}
-          onToggle={(checked) => setForm((f) => ({ ...f, redactPii: checked }))}
+        <FormControlLabel
+          control={
+            <Switch
+              checked={form.redactPii}
+              onChange={(e) => setForm((f) => ({ ...f, redactPii: e.target.checked }))}
+            />
+          }
+          label="Redact PII in stored output"
         />
-        <Button disabled={save.isPending} onClick={() => save.mutate({ ...form, cloudApiKey: form.cloudApiKey?.trim() ? form.cloudApiKey : undefined })}>
-          {save.isPending ? "Saving…" : "Save AI settings"}
-        </Button>
+        <Box>
+          <Button
+            variant="contained"
+            disabled={save.isPending}
+            onClick={() => save.mutate({ ...form, cloudApiKey: form.cloudApiKey?.trim() ? form.cloudApiKey : undefined })}
+          >
+            {save.isPending ? "Saving…" : "Save AI settings"}
+          </Button>
+        </Box>
       </Stack>
-    </Tile>
+    </Paper>
   );
 }

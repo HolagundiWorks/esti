@@ -1,22 +1,21 @@
 import { useState } from "react";
 import {
   Button,
-  Modal,
-  NumberInput,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  TextInput,
-} from "@carbon/react";
-import { Add, Checkmark, TrashCan } from "@carbon/icons-react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import Add from "@mui/icons-material/Add";
+import Check from "@mui/icons-material/Check";
+import DeleteOutline from "@mui/icons-material/DeleteOutlineOutlined";
 import { formatINR } from "@esti/contracts";
 import { DataState } from "../DataState.js";
 import { trpc } from "../../lib/trpc.js";
@@ -36,6 +35,15 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "green"> = {
   ISSUED: "blue",
   CLOSED: "green",
 };
+
+// Preserve exact Carbon tag colours by rendering an MUI Chip over the
+// `--cds-tag-*` token vars (still defined by the Carbon token layer).
+const tagSx = (color: string) => ({
+  backgroundColor: `var(--cds-tag-background-${color}, var(--cds-layer-01))`,
+  color: `var(--cds-tag-color-${color}, var(--cds-text-primary))`,
+});
+
+const shrink = { slotProps: { inputLabel: { shrink: true } } } as const;
 
 const EMPTY_WO = {
   contractorId: "",
@@ -100,11 +108,104 @@ export function ProjectWorkOrders({ projectId }: { projectId: string }) {
   const items: WoItem[] = selectedWo?.items ?? [];
   const woEditable = selectedWo?.status === "DRAFT" || selectedWo?.status === "ISSUED";
 
+  const woColumns: GridColDef[] = [
+    { field: "ref", headerName: "Ref", flex: 0.8, minWidth: 120 },
+    {
+      field: "contractorName",
+      headerName: "Contractor",
+      flex: 1.2,
+      minWidth: 160,
+      valueGetter: (_v, row) => row.contractorName ?? "—",
+    },
+    { field: "date", headerName: "Date", flex: 0.8, minWidth: 110 },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.7,
+      minWidth: 100,
+      renderCell: (p) => (
+        <Chip label={p.row.status} size="small" sx={tagSx(STATUS_TAG[p.row.status] ?? "gray")} />
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      filterable: false,
+      width: 110,
+      renderCell: (p) => {
+        const wo = p.row;
+        return (
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", height: 1 }}>
+            {wo.status === "DRAFT" && (
+              <IconButton
+                size="small"
+                aria-label="Issue Work Order"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  issueM.mutate({ id: wo.id });
+                }}
+                disabled={issueM.isPending}
+              >
+                <Check fontSize="small" />
+              </IconButton>
+            )}
+            {wo.status === "DRAFT" && (
+              <IconButton
+                size="small"
+                color="error"
+                aria-label="Remove"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeWoM.mutate({ id: wo.id });
+                }}
+                disabled={removeWoM.isPending}
+              >
+                <DeleteOutline fontSize="small" />
+              </IconButton>
+            )}
+          </Stack>
+        );
+      },
+    },
+  ];
+
+  const itemColumns: GridColDef[] = [
+    { field: "description", headerName: "Description", flex: 1.6, minWidth: 200 },
+    { field: "unit", headerName: "Unit", flex: 0.5, minWidth: 80 },
+    {
+      field: "agreedRatePaise",
+      headerName: "Agreed rate",
+      flex: 0.8,
+      minWidth: 130,
+      renderCell: (p) => formatINR(p.row.agreedRatePaise),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      sortable: false,
+      filterable: false,
+      width: 90,
+      renderCell: (p) =>
+        woEditable ? (
+          <IconButton
+            size="small"
+            color="error"
+            aria-label="Remove line item"
+            onClick={() => removeItemM.mutate({ id: p.row.id })}
+            disabled={removeItemM.isPending}
+          >
+            <DeleteOutline fontSize="small" />
+          </IconButton>
+        ) : null,
+    },
+  ];
+
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       <div className="esti-row-between">
-        <h3>Work Orders</h3>
-        <Button size="sm" renderIcon={Add} onClick={() => setAddWoOpen(true)}>
+        <Typography variant="h6" component="h3">Work Orders</Typography>
+        <Button size="small" variant="contained" startIcon={<Add />} onClick={() => setAddWoOpen(true)}>
           New Work Order
         </Button>
       </div>
@@ -118,92 +219,35 @@ export function ProjectWorkOrders({ projectId }: { projectId: string }) {
         }}
         columnCount={6}
       >
-        <TableContainer title="Work Orders">
-          <Table size="sm">
-            <TableHead>
-              <TableRow>
-                <TableHeader>Ref</TableHeader>
-                <TableHeader>Contractor</TableHeader>
-                <TableHeader>Date</TableHeader>
-                <TableHeader>Status</TableHeader>
-                <TableHeader>Actions</TableHeader>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {workOrders.map((wo) => {
-                const isSelected = selectedWoId === wo.id;
-                return (
-                  <TableRow
-                    key={wo.id}
-                    onClick={() => setSelectedWoId(isSelected ? null : wo.id)}
-                    style={{
-                      cursor: "pointer",
-                      background: isSelected ? "var(--cds-layer-selected)" : undefined,
-                    }}
-                  >
-                    <TableCell>{wo.ref}</TableCell>
-                    <TableCell>{wo.contractorName ?? "—"}</TableCell>
-                    <TableCell>{wo.date}</TableCell>
-                    <TableCell>
-                      <Tag type={STATUS_TAG[wo.status] ?? "gray"} size="sm">
-                        {wo.status}
-                      </Tag>
-                    </TableCell>
-                    <TableCell>
-                      <Stack orientation="horizontal" gap={2}>
-                        {wo.status === "DRAFT" && (
-                          <Button
-                            kind="ghost"
-                            size="sm"
-                            renderIcon={Checkmark}
-                            hasIconOnly
-                            iconDescription="Issue Work Order"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              issueM.mutate({ id: wo.id });
-                            }}
-                            disabled={issueM.isPending}
-                          />
-                        )}
-                        {wo.status === "DRAFT" && (
-                          <Button
-                            kind="danger--ghost"
-                            size="sm"
-                            renderIcon={TrashCan}
-                            hasIconOnly
-                            iconDescription="Remove"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeWoM.mutate({ id: wo.id });
-                            }}
-                            disabled={removeWoM.isPending}
-                          />
-                        )}
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DataGrid
+          rows={workOrders}
+          columns={woColumns}
+          density="compact"
+          disableRowSelectionOnClick
+          hideFooter
+          autoHeight
+          onRowClick={(params) => setSelectedWoId(selectedWoId === params.id ? null : (params.id as string))}
+          getRowClassName={(params) => (params.id === selectedWoId ? "esti-cms-row-selected" : "")}
+          sx={{
+            "& .MuiDataGrid-row": { cursor: "pointer" },
+            "& .esti-cms-row-selected": { backgroundColor: "var(--cds-layer-selected)" },
+          }}
+        />
       </DataState>
 
       {selectedWo && (
-        <Stack gap={4}>
+        <Stack spacing={2}>
           <div className="esti-row-between">
-            <h4>
+            <Typography variant="subtitle1" component="h4">
               {selectedWo.ref} — Line Items
               {selectedWo.scope && (
-                <span
-                  style={{ display: "block", fontWeight: 400, fontSize: "var(--cds-body-01-font-size)" }}
-                >
+                <Typography variant="body2" component="span" sx={{ display: "block" }}>
                   {selectedWo.scope}
-                </span>
+                </Typography>
               )}
-            </h4>
+            </Typography>
             {woEditable && (
-              <Button size="sm" renderIcon={Add} onClick={() => setAddItemOpen(true)}>
+              <Button size="small" variant="contained" startIcon={<Add />} onClick={() => setAddItemOpen(true)}>
                 Add line item
               </Button>
             )}
@@ -218,147 +262,136 @@ export function ProjectWorkOrders({ projectId }: { projectId: string }) {
             }}
             columnCount={5}
           >
-            <TableContainer>
-              <Table size="sm">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Description</TableHeader>
-                    <TableHeader>Unit</TableHeader>
-                    <TableHeader>Agreed rate</TableHeader>
-                    <TableHeader>Actions</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.description}</TableCell>
-                      <TableCell>{item.unit}</TableCell>
-                      <TableCell>{formatINR(item.agreedRatePaise)}</TableCell>
-                      <TableCell>
-                        {woEditable && (
-                          <Button
-                            kind="danger--ghost"
-                            size="sm"
-                            renderIcon={TrashCan}
-                            hasIconOnly
-                            iconDescription="Remove line item"
-                            onClick={() => removeItemM.mutate({ id: item.id })}
-                            disabled={removeItemM.isPending}
-                          />
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <DataGrid
+              rows={items}
+              columns={itemColumns}
+              density="compact"
+              disableRowSelectionOnClick
+              hideFooter
+              autoHeight
+            />
           </DataState>
         </Stack>
       )}
 
-      {/* New Work Order Modal */}
-      <Modal
-        open={addWoOpen}
-        modalHeading="New Work Order"
-        primaryButtonText={createWoM.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          createWoM.isPending ||
-          !woForm.contractorId ||
-          !woForm.ref ||
-          !woForm.date
-        }
-        onRequestSubmit={() => {
-          createWoM.mutate({
-            projectId,
-            contractorId: woForm.contractorId,
-            ref: woForm.ref,
-            date: woForm.date,
-            scope: woForm.scope || undefined,
-          });
-        }}
-        onRequestClose={() => setAddWoOpen(false)}
-        onSecondarySubmit={() => setAddWoOpen(false)}
-      >
-        <Stack gap={5}>
-          <ContractorSelect
-            value={woForm.contractorId}
-            onChange={(id) => setWoForm((f) => ({ ...f, contractorId: id }))}
-          />
-          <TextInput
-            id="wo-ref"
-            labelText="Work Order Ref"
-            placeholder="WO-2026-001"
-            value={woForm.ref}
-            onChange={(e) => setWoForm((f) => ({ ...f, ref: e.target.value }))}
-          />
-          <TextInput
-            id="wo-date"
-            labelText="Date"
-            type="date"
-            value={woForm.date}
-            onChange={(e) => setWoForm((f) => ({ ...f, date: e.target.value }))}
-          />
-          <TextInput
-            id="wo-scope"
-            labelText="Scope summary (optional)"
-            value={woForm.scope}
-            onChange={(e) => setWoForm((f) => ({ ...f, scope: e.target.value }))}
-          />
-        </Stack>
-      </Modal>
-
-      {/* Add Line Item Modal */}
-      <Modal
-        open={addItemOpen}
-        modalHeading="Add Line Item"
-        primaryButtonText={addItemM.isPending ? "Adding…" : "Add"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          addItemM.isPending ||
-          !itemForm.description ||
-          !itemForm.unit
-        }
-        onRequestSubmit={() => {
-          if (!selectedWoId) return;
-          addItemM.mutate({
-            workOrderId: selectedWoId,
-            description: itemForm.description,
-            unit: itemForm.unit,
-            agreedRatePaise: itemForm.agreedRatePaise,
-          });
-        }}
-        onRequestClose={() => setAddItemOpen(false)}
-        onSecondarySubmit={() => setAddItemOpen(false)}
-      >
-        <Stack gap={5}>
-          <TextInput
-            id="wi-desc"
-            labelText="Description"
-            placeholder="M30 Concrete (Foundation)"
-            value={itemForm.description}
-            onChange={(e) => setItemForm((f) => ({ ...f, description: e.target.value }))}
-          />
-          <TextInput
-            id="wi-unit"
-            labelText="Unit"
-            placeholder="m³"
-            value={itemForm.unit}
-            onChange={(e) => setItemForm((f) => ({ ...f, unit: e.target.value }))}
-          />
-          <NumberInput
-            id="wi-rate"
-            label="Agreed rate (₹)"
-            helperText="Enter in rupees; stored as paise."
-            value={itemForm.agreedRatePaise / 100}
-            onChange={(_e, { value }) =>
-              setItemForm((f) => ({ ...f, agreedRatePaise: Math.round(Number(value) * 100) }))
+      {/* New Work Order Dialog */}
+      <Dialog open={addWoOpen} onClose={() => setAddWoOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New Work Order</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <ContractorSelect
+              value={woForm.contractorId}
+              onChange={(id) => setWoForm((f) => ({ ...f, contractorId: id }))}
+            />
+            <TextField
+              id="wo-ref"
+              label="Work Order Ref"
+              placeholder="WO-2026-001"
+              value={woForm.ref}
+              onChange={(e) => setWoForm((f) => ({ ...f, ref: e.target.value }))}
+              fullWidth
+            />
+            <TextField
+              id="wo-date"
+              label="Date"
+              type="date"
+              value={woForm.date}
+              onChange={(e) => setWoForm((f) => ({ ...f, date: e.target.value }))}
+              fullWidth
+              {...shrink}
+            />
+            <TextField
+              id="wo-scope"
+              label="Scope summary (optional)"
+              value={woForm.scope}
+              onChange={(e) => setWoForm((f) => ({ ...f, scope: e.target.value }))}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setAddWoOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={
+              createWoM.isPending ||
+              !woForm.contractorId ||
+              !woForm.ref ||
+              !woForm.date
             }
-            min={0}
-            step={0.5}
-          />
-        </Stack>
-      </Modal>
+            onClick={() => {
+              createWoM.mutate({
+                projectId,
+                contractorId: woForm.contractorId,
+                ref: woForm.ref,
+                date: woForm.date,
+                scope: woForm.scope || undefined,
+              });
+            }}
+          >
+            {createWoM.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Line Item Dialog */}
+      <Dialog open={addItemOpen} onClose={() => setAddItemOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Add Line Item</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="wi-desc"
+              label="Description"
+              placeholder="M30 Concrete (Foundation)"
+              value={itemForm.description}
+              onChange={(e) => setItemForm((f) => ({ ...f, description: e.target.value }))}
+              fullWidth
+            />
+            <TextField
+              id="wi-unit"
+              label="Unit"
+              placeholder="m³"
+              value={itemForm.unit}
+              onChange={(e) => setItemForm((f) => ({ ...f, unit: e.target.value }))}
+              fullWidth
+            />
+            <TextField
+              id="wi-rate"
+              label="Agreed rate (₹)"
+              type="number"
+              helperText="Enter in rupees; stored as paise."
+              value={itemForm.agreedRatePaise / 100}
+              onChange={(e) =>
+                setItemForm((f) => ({ ...f, agreedRatePaise: Math.round(Number(e.target.value) * 100) }))
+              }
+              slotProps={{ htmlInput: { min: 0, step: 0.5 } }}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setAddItemOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={
+              addItemM.isPending ||
+              !itemForm.description ||
+              !itemForm.unit
+            }
+            onClick={() => {
+              if (!selectedWoId) return;
+              addItemM.mutate({
+                workOrderId: selectedWoId,
+                description: itemForm.description,
+                unit: itemForm.unit,
+                agreedRatePaise: itemForm.agreedRatePaise,
+              });
+            }}
+          >
+            {addItemM.isPending ? "Adding…" : "Add"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }
@@ -373,16 +406,18 @@ function ContractorSelect({
   const contractorsQ = trpc.contractors.list.useQuery();
   const contractors = contractorsQ.data ?? [];
   return (
-    <Select
+    <TextField
       id="wo-contractor"
-      labelText="Contractor"
+      select
+      label="Contractor"
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      fullWidth
     >
-      <SelectItem value="" text="Select contractor…" />
+      <MenuItem value="">Select contractor…</MenuItem>
       {contractors.map((c) => (
-        <SelectItem key={c.id} value={c.id} text={c.name} />
+        <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
       ))}
-    </Select>
+    </TextField>
   );
 }

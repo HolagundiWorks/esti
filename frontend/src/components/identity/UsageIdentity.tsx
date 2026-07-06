@@ -1,4 +1,14 @@
-import { Button, InlineNotification, Modal, ProgressBar } from "@carbon/react";
+import {
+  Alert,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  LinearProgress,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { USAGE_PING_INTERVAL_MS } from "@esti/contracts";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../lib/auth.js";
@@ -58,85 +68,104 @@ export function UsageIdentity() {
 
   const hours = s ? Math.floor(s.minutes / 60) : 0;
 
+  const handleClose = () => {
+    setClosed(true);
+    if (!generatedId) dismiss.mutate();
+  };
+
   return (
-    <Modal
+    <Dialog
       open={open || (!closed && !!generatedId)}
-      modalHeading={generatedId ? "Your AORMS ID is ready" : "Generate your AORMS ID"}
-      modalLabel="AORMS identity"
-      primaryButtonText={generatedId ? "Done" : "Generate my AORMS ID"}
-      secondaryButtonText={generatedId ? undefined : "Later"}
-      primaryButtonDisabled={generate.isPending}
-      onRequestSubmit={() => {
-        if (generatedId) setClosed(true);
-        else generate.mutate();
-      }}
-      onRequestClose={() => {
-        setClosed(true);
-        if (!generatedId) dismiss.mutate();
-      }}
-      size="sm"
+      onClose={handleClose}
+      fullWidth
+      maxWidth="xs"
     >
-      {generatedId ? (
-        <>
-          <p>
-            Your permanent AORMS identity handle is <strong>{generatedId}</strong>. It never
-            changes — certifications and your professional growth record key to it. You can
-            always find it under Profile › AORMS Identity.
-          </p>
-          <p>
-            Your welcome kit is ready — a printable certificate and your ID card at
-            credit-card size:
-          </p>
-          <div className="esti-row">
-            <Button
-              size="sm"
-              kind="tertiary"
-              href={welcomeKitUrl("certificate", { name: user?.fullName, id: generatedId })}
-              target="_blank"
-              rel="noopener"
-            >
-              Certificate
-            </Button>
-            <Button
-              size="sm"
-              kind="tertiary"
-              href={welcomeKitUrl("card", { name: user?.fullName, id: generatedId })}
-              target="_blank"
-              rel="noopener"
-            >
-              ID card
-            </Button>
-          </div>
-        </>
-      ) : (
-        <>
-          <p>
-            You have crossed {hours} hours of active use in AORMS. That earns your permanent
-            AORMS identity handle (AORMS-U-…) — a portable professional ID that never changes.
-          </p>
-          <p>
-            Generate it now, or choose Later — the option stays available under Profile › AORMS
-            Identity.
-          </p>
-          {generate.isError && (
-            <InlineNotification
-              kind="error"
-              lowContrast
-              hideCloseButton
-              title="Could not generate the ID"
-              subtitle={generate.error.message}
-            />
-          )}
-          {s && (
-            <ProgressBar
-              label="Active use"
-              helperText={`${hours} of ${Math.floor(s.requiredMinutes / 60)} hours`}
-              value={Math.min(s.minutes, s.requiredMinutes)}
-              max={s.requiredMinutes}
-            />
-          )}
-        </>
-      )}
-    </Modal>
+      <DialogTitle>
+        <Stack spacing={0.5}>
+          <Typography variant="overline" component="span">AORMS identity</Typography>
+          <span>{generatedId ? "Your AORMS ID is ready" : "Generate your AORMS ID"}</span>
+        </Stack>
+      </DialogTitle>
+      <DialogContent>
+        {generatedId ? (
+          <Stack spacing={2}>
+            <p>
+              Your permanent AORMS identity handle is <strong>{generatedId}</strong>. It never
+              changes — certifications and your professional growth record key to it. You can
+              always find it under Profile › AORMS Identity.
+            </p>
+            <p>
+              Your welcome kit is ready — a printable certificate and your ID card at
+              credit-card size:
+            </p>
+            <div className="esti-row">
+              <Button
+                size="small"
+                variant="outlined"
+                href={welcomeKitUrl("certificate", { name: user?.fullName, id: generatedId })}
+                target="_blank"
+                rel="noopener"
+              >
+                Certificate
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                href={welcomeKitUrl("card", { name: user?.fullName, id: generatedId })}
+                target="_blank"
+                rel="noopener"
+              >
+                ID card
+              </Button>
+            </div>
+          </Stack>
+        ) : (
+          <Stack spacing={2}>
+            <p>
+              You have crossed {hours} hours of active use in AORMS. That earns your permanent
+              AORMS identity handle (AORMS-U-…) — a portable professional ID that never changes.
+            </p>
+            <p>
+              Generate it now, or choose Later — the option stays available under Profile › AORMS
+              Identity.
+            </p>
+            {generate.isError && (
+              <Alert severity="error">
+                Could not generate the ID — {generate.error.message}
+              </Alert>
+            )}
+            {s && (
+              <Stack spacing={0.5}>
+                <Typography variant="body2">Active use</Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={Math.min(100, (Math.min(s.minutes, s.requiredMinutes) / s.requiredMinutes) * 100)}
+                />
+                <Typography variant="caption">
+                  {`${hours} of ${Math.floor(s.requiredMinutes / 60)} hours`}
+                </Typography>
+              </Stack>
+            )}
+          </Stack>
+        )}
+      </DialogContent>
+      <DialogActions>
+        {!generatedId && (
+          <Button variant="text" color="inherit" onClick={handleClose}>
+            Later
+          </Button>
+        )}
+        <Button
+          variant="contained"
+          disabled={generate.isPending}
+          onClick={() => {
+            if (generatedId) setClosed(true);
+            else generate.mutate();
+          }}
+        >
+          {generatedId ? "Done" : "Generate my AORMS ID"}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }

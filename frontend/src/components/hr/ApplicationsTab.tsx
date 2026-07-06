@@ -1,17 +1,20 @@
 import {
+  Alert,
   Button,
-  Column,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
-  InlineNotification,
-  Modal,
-  Select,
-  SelectItem,
+  MenuItem,
+  Paper,
   Stack,
-  Tag,
-  TextInput,
-  Tile,
-} from "@carbon/react";
-import { Add, CheckmarkOutline } from "@carbon/icons-react";
+  TextField,
+  Typography,
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutlined";
 import {
   APPLICATION_STATUSES,
   APPLICATION_STATUS_LABEL,
@@ -20,6 +23,7 @@ import {
   type TeamRoleCode,
 } from "@esti/contracts";
 import { useState } from "react";
+import { StatusTag } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
 
 type AppStatus = (typeof APPLICATION_STATUSES)[number];
@@ -63,10 +67,12 @@ export function ApplicationsTab() {
   const apps = listQ.data ?? [];
 
   return (
-    <Stack gap={5}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h4>{apps.length} application{apps.length !== 1 ? "s" : ""}</h4>
-        <Button size="sm" renderIcon={Add} onClick={() => setCreateOpen(true)}>
+    <Stack spacing={2}>
+      <div className="esti-row-between">
+        <Typography variant="subtitle1" component="h4">
+          {apps.length} application{apps.length !== 1 ? "s" : ""}
+        </Typography>
+        <Button size="small" variant="contained" startIcon={<AddIcon />} onClick={() => setCreateOpen(true)}>
           New application
         </Button>
       </div>
@@ -74,26 +80,25 @@ export function ApplicationsTab() {
       {listQ.isLoading && <p className="esti-label esti-label--secondary">Loading…</p>}
 
       {apps.length === 0 && !listQ.isLoading && (
-        <Tile>
+        <Paper sx={{ p: 2 }}>
           <p className="esti-label esti-label--secondary">
             No job applications yet. Add one to start the onboarding pipeline.
           </p>
-        </Tile>
+        </Paper>
       )}
 
-      <Grid narrow>
+      <Grid container spacing={2}>
         {apps.map((a) => (
-          <Column key={a.id} lg={4} md={4} sm={4}>
-            <Tile className="esti-app-tile">
-              <Stack gap={3}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <Grid key={a.id} size={{ xs: 12, md: 6, lg: 3 }}>
+            <Paper className="esti-app-tile" sx={{ p: 2 }}>
+              <Stack spacing={1}>
+                <div className="esti-row-between">
                   <p><strong>{a.name}</strong></p>
-                  <Tag
-                    type={APPLICATION_STATUS_TAG[a.status as AppStatus] ?? "gray"}
-                    size="sm"
-                  >
-                    {APPLICATION_STATUS_LABEL[a.status as AppStatus] ?? a.status}
-                  </Tag>
+                  <StatusTag
+                    value={a.status as AppStatus}
+                    map={APPLICATION_STATUS_TAG}
+                    label={APPLICATION_STATUS_LABEL[a.status as AppStatus] ?? a.status}
+                  />
                 </div>
 
                 <p className="esti-label esti-label--secondary">
@@ -103,7 +108,7 @@ export function ApplicationsTab() {
                 {a.email && <p className="esti-label esti-label--secondary">{a.email}</p>}
                 {a.phone && <p className="esti-label esti-label--secondary">{a.phone}</p>}
                 {a.notes && (
-                  <p className="esti-label" style={{ fontStyle: "italic" }}>{a.notes}</p>
+                  <p className="esti-label"><em>{a.notes}</em></p>
                 )}
                 {a.appliedAt && (
                   <p className="esti-label esti-label--secondary">
@@ -115,7 +120,7 @@ export function ApplicationsTab() {
                 <div className="esti-app-tile__actions">
                   {a.status === "APPLIED" && (
                     <Button
-                      kind="ghost" size="sm"
+                      variant="text" size="small"
                       disabled={updateStatus.isPending}
                       onClick={() => updateStatus.mutate({ appId: a.id, status: "SCREENING" })}
                     >
@@ -124,7 +129,7 @@ export function ApplicationsTab() {
                   )}
                   {a.status === "SCREENING" && (
                     <Button
-                      kind="ghost" size="sm"
+                      variant="text" size="small"
                       disabled={updateStatus.isPending}
                       onClick={() => updateStatus.mutate({ appId: a.id, status: "INTERVIEW" })}
                     >
@@ -133,7 +138,7 @@ export function ApplicationsTab() {
                   )}
                   {a.status === "INTERVIEW" && (
                     <Button
-                      kind="ghost" size="sm"
+                      variant="text" size="small"
                       disabled={updateStatus.isPending}
                       onClick={() => updateStatus.mutate({ appId: a.id, status: "OFFERED" })}
                     >
@@ -143,8 +148,8 @@ export function ApplicationsTab() {
                   {a.status === "OFFERED" && !a.memberId && (
                     <>
                       <Button
-                        kind="primary" size="sm"
-                        renderIcon={CheckmarkOutline}
+                        variant="contained" size="small"
+                        startIcon={<CheckCircleOutlineIcon />}
                         onClick={() => {
                           setOnboardTeamMemberId("");
                           setOnboardOpen(a.id);
@@ -153,7 +158,7 @@ export function ApplicationsTab() {
                         Onboard
                       </Button>
                       <Button
-                        kind="danger--ghost" size="sm"
+                        variant="text" color="error" size="small"
                         disabled={updateStatus.isPending}
                         onClick={() => updateStatus.mutate({ appId: a.id, status: "REJECTED" })}
                       >
@@ -162,11 +167,18 @@ export function ApplicationsTab() {
                     </>
                   )}
                   {a.memberId && (
-                    <Tag type="green" size="sm">Onboarded</Tag>
+                    <Chip
+                      size="small"
+                      label="Onboarded"
+                      sx={{
+                        backgroundColor: "var(--cds-tag-background-green)",
+                        color: "var(--cds-tag-color-green)",
+                      }}
+                    />
                   )}
                   {(a.status === "APPLIED" || a.status === "SCREENING" || a.status === "INTERVIEW") && (
                     <Button
-                      kind="danger--ghost" size="sm"
+                      variant="text" color="error" size="small"
                       disabled={updateStatus.isPending}
                       onClick={() => updateStatus.mutate({ appId: a.id, status: "REJECTED" })}
                     >
@@ -175,80 +187,106 @@ export function ApplicationsTab() {
                   )}
                 </div>
               </Stack>
-            </Tile>
-          </Column>
+            </Paper>
+          </Grid>
         ))}
       </Grid>
 
       {/* New application modal */}
-      <Modal
+      <Dialog
         open={createOpen}
-        modalHeading="New job application"
-        primaryButtonText={createApp.isPending ? "Saving…" : "Save"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!form.name || createApp.isPending}
-        onRequestClose={() => { setCreateOpen(false); resetForm(); }}
-        onRequestSubmit={() => createApp.mutate({
-          name: form.name,
-          email: form.email || undefined,
-          phone: form.phone || undefined,
-          appliedRole: form.appliedRole,
-          notes: form.notes || undefined,
-        })}
+        onClose={() => { setCreateOpen(false); resetForm(); }}
+        fullWidth
+        maxWidth="sm"
       >
-        <Stack gap={5}>
-          <TextInput id="app-name" labelText="Applicant name" value={form.name} onChange={set("name")} />
-          <Select id="app-role" labelText="Applied for" value={form.appliedRole} onChange={set("appliedRole")}>
-            {(Object.keys(TEAM_ROLES) as TeamRoleCode[]).map((k) => (
-              <SelectItem key={k} value={k} text={TEAM_ROLES[k]} />
-            ))}
-          </Select>
-          <TextInput id="app-email" labelText="Email" type="email" value={form.email} onChange={set("email")} />
-          <TextInput id="app-phone" labelText="Phone" value={form.phone} onChange={set("phone")} />
-          <TextInput id="app-notes" labelText="Notes" value={form.notes} onChange={set("notes")} />
-          {createApp.error && (
-            <InlineNotification kind="error" title="Error" subtitle={createApp.error.message} hideCloseButton lowContrast />
-          )}
-        </Stack>
-      </Modal>
+        <DialogTitle>New job application</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField id="app-name" label="Applicant name" value={form.name} onChange={set("name")} fullWidth />
+            <TextField id="app-role" select label="Applied for" value={form.appliedRole} onChange={set("appliedRole")} fullWidth>
+              {(Object.keys(TEAM_ROLES) as TeamRoleCode[]).map((k) => (
+                <MenuItem key={k} value={k}>{TEAM_ROLES[k]}</MenuItem>
+              ))}
+            </TextField>
+            <TextField id="app-email" label="Email" type="email" value={form.email} onChange={set("email")} fullWidth />
+            <TextField id="app-phone" label="Phone" value={form.phone} onChange={set("phone")} fullWidth />
+            <TextField id="app-notes" label="Notes" value={form.notes} onChange={set("notes")} fullWidth />
+            {createApp.error && (
+              <Alert severity="error">{createApp.error.message}</Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => { setCreateOpen(false); resetForm(); }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!form.name || createApp.isPending}
+            onClick={() => createApp.mutate({
+              name: form.name,
+              email: form.email || undefined,
+              phone: form.phone || undefined,
+              appliedRole: form.appliedRole,
+              notes: form.notes || undefined,
+            })}
+          >
+            {createApp.isPending ? "Saving…" : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Onboard modal — link to existing team member or create new */}
-      <Modal
+      <Dialog
         open={!!onboardOpen}
-        modalHeading="Onboard applicant"
-        primaryButtonText={onboard.isPending ? "Onboarding…" : "Onboard"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={onboard.isPending}
-        onRequestClose={() => setOnboardOpen(null)}
-        onRequestSubmit={() => {
-          if (!onboardOpen) return;
-          onboard.mutate({
-            appId: onboardOpen,
-            memberId: onboardTeamMemberId || undefined,
-          });
-        }}
+        onClose={() => setOnboardOpen(null)}
+        fullWidth
+        maxWidth="sm"
       >
-        <Stack gap={5}>
-          <p>
-            Linking the application to a team member marks it as onboarded. Select an existing
-            member record if one was already created, or leave blank to create a new one automatically.
-          </p>
-          <Select
-            id="ob-member"
-            labelText="Link to existing team member (optional)"
-            value={onboardTeamMemberId}
-            onChange={(e) => setOnboardTeamMemberId(e.target.value)}
+        <DialogTitle>Onboard applicant</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <p>
+              Linking the application to a team member marks it as onboarded. Select an existing
+              member record if one was already created, or leave blank to create a new one automatically.
+            </p>
+            <TextField
+              id="ob-member"
+              select
+              label="Link to existing team member (optional)"
+              value={onboardTeamMemberId}
+              onChange={(e) => setOnboardTeamMemberId(e.target.value)}
+              fullWidth
+            >
+              <MenuItem value="">— Create new team member —</MenuItem>
+              {(teamQ.data ?? []).map((m) => (
+                <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>
+              ))}
+            </TextField>
+            {onboard.error && (
+              <Alert severity="error">{onboard.error.message}</Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setOnboardOpen(null)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={onboard.isPending}
+            onClick={() => {
+              if (!onboardOpen) return;
+              onboard.mutate({
+                appId: onboardOpen,
+                memberId: onboardTeamMemberId || undefined,
+              });
+            }}
           >
-            <SelectItem value="" text="— Create new team member —" />
-            {(teamQ.data ?? []).map((m) => (
-              <SelectItem key={m.id} value={m.id} text={m.name} />
-            ))}
-          </Select>
-          {onboard.error && (
-            <InlineNotification kind="error" title="Error" subtitle={onboard.error.message} hideCloseButton lowContrast />
-          )}
-        </Stack>
-      </Modal>
+            {onboard.isPending ? "Onboarding…" : "Onboard"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

@@ -1,42 +1,41 @@
 import {
+  Alert,
+  Box,
   Button,
-  DataTable,
-  InlineNotification,
-  Modal,
-  Pagination,
-  Select,
-  SelectItem,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  InputAdornment,
+  MenuItem,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TableToolbar,
-  TableToolbarContent,
-  TableToolbarSearch,
-  Tag,
-  TextInput,
-} from "@carbon/react";
+  TextField,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import SearchIcon from "@mui/icons-material/Search";
 import { ClientKind } from "@esti/contracts";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
 import { trpc } from "../lib/trpc.js";
 
-const HEADERS = [
-  { key: "name", header: "Name" },
-  { key: "kind", header: "Type" },
-  { key: "city", header: "City" },
-  { key: "gstin", header: "GSTIN" },
-  { key: "email", header: "Email" },
-  { key: "status", header: "Status" },
-  { key: "actions", header: "" },
-];
-
 const PAGE_SIZES = [10, 25, 50];
+
+/** Status badge rendered over the Carbon `--cds-tag-*` token vars (exact colours). */
+function TagChip({ color, label }: { color: string; label: ReactNode }) {
+  return (
+    <Chip
+      size="small"
+      label={label}
+      sx={{
+        backgroundColor: `var(--cds-tag-background-${color})`,
+        color: `var(--cds-tag-color-${color})`,
+      }}
+    />
+  );
+}
 
 export function Clients({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
@@ -90,25 +89,70 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
     },
   });
 
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState<number>(PAGE_SIZES[0] ?? 10);
+  const [search, setSearch] = useState("");
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: PAGE_SIZES[0] ?? 10,
+  });
 
-  const allRows =
-    list.data?.map((c) => ({
-      id: c.id,
-      name: c.name,
-      kind: c.kind,
-      city: c.city ?? "—",
-      gstin: c.gstin ?? "—",
-      email: c.email ?? "—",
-      status: c.disabled ? "Deactivated" : "Active",
-      actions: "",
-    })) ?? [];
-  // Look up the disabled state by id for the per-row activate/deactivate toggle.
-  const disabledById = new Map((list.data ?? []).map((c) => [c.id, c.disabled]));
+  const clients = list.data ?? [];
+  const q = search.trim().toLowerCase();
+  const rows = q
+    ? clients.filter((c) =>
+        [
+          c.name,
+          c.kind,
+          c.city ?? "—",
+          c.gstin ?? "—",
+          c.email ?? "—",
+          c.disabled ? "Deactivated" : "Active",
+        ].some((v) => String(v).toLowerCase().includes(q)),
+      )
+    : clients;
+
+  const columns: GridColDef[] = [
+    { field: "name", headerName: "Name", flex: 1.4, minWidth: 180 },
+    { field: "kind", headerName: "Type", flex: 0.8, minWidth: 110 },
+    { field: "city", headerName: "City", flex: 0.8, minWidth: 110, valueGetter: (v) => v ?? "—" },
+    { field: "gstin", headerName: "GSTIN", flex: 1, minWidth: 140, valueGetter: (v) => v ?? "—" },
+    { field: "email", headerName: "Email", flex: 1.2, minWidth: 160, valueGetter: (v) => v ?? "—" },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 0.8,
+      minWidth: 120,
+      valueGetter: (_v, row) => (row.disabled ? "Deactivated" : "Active"),
+      renderCell: (p) => (
+        <TagChip
+          color={p.row.disabled ? "gray" : "green"}
+          label={p.row.disabled ? "Deactivated" : "Active"}
+        />
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "",
+      flex: 0.8,
+      minWidth: 130,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) => (
+        <Button
+          variant="text"
+          size="small"
+          disabled={setDisabled.isPending}
+          onClick={() =>
+            setDisabled.mutate({ id: p.row.id, disabled: !p.row.disabled })
+          }
+        >
+          {p.row.disabled ? "Activate" : "Deactivate"}
+        </Button>
+      ),
+    },
+  ];
 
   return (
-    <Stack gap={6}>
+    <Stack spacing={3}>
       {!embedded && (
         <PageHeader
           title="Clients"
@@ -117,254 +161,183 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
       )}
 
       {portalMsg && (
-        <InlineNotification
-          kind="success"
-          title="Portal login"
-          subtitle={portalMsg}
-          lowContrast
-          onCloseButtonClick={() => setPortalMsg(null)}
-        />
+        <Alert severity="success" onClose={() => setPortalMsg(null)}>
+          <strong>Portal login</strong> — {portalMsg}
+        </Alert>
       )}
 
       <DataState
         loading={list.isLoading}
-        isEmpty={allRows.length === 0}
+        isEmpty={clients.length === 0}
         columnCount={7}
         empty={{
           title: "No clients yet",
           description:
             "Add a client or lead to attach projects, invoices and a portal login.",
           action: (
-            <Button size="sm" onClick={() => setOpen(true)}>
+            <Button variant="contained" size="small" onClick={() => setOpen(true)}>
               New client
             </Button>
           ),
         }}
       >
-        <DataTable rows={allRows} headers={HEADERS} isSortable>
-          {({
-            rows,
-            headers,
-            getTableProps,
-            getHeaderProps,
-            getRowProps,
-            onInputChange,
-          }) => {
-            const pagedRows = rows.slice(
-              (page - 1) * pageSize,
-              page * pageSize,
-            );
-            return (
-              <TableContainer>
-                <TableToolbar>
-                  <TableToolbarContent>
-                    <TableToolbarSearch
-                      placeholder="Search clients…"
-                      persistent
-                      onChange={(e) => {
-                        setPage(1);
-                        onInputChange(e);
-                      }}
-                    />
-                    <Button kind="tertiary" onClick={() => setPortalOpen(true)}>
-                      Create portal login
-                    </Button>
-                    <Button onClick={() => setOpen(true)}>New client</Button>
-                  </TableToolbarContent>
-                </TableToolbar>
-                <Table {...getTableProps()}>
-                  <TableHead>
-                    <TableRow>
-                      {headers.map((header) => {
-                        const { key, ...rest } = getHeaderProps({ header });
-                        return (
-                          <TableHeader key={key} {...rest}>
-                            {header.header}
-                          </TableHeader>
-                        );
-                      })}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {pagedRows.map((row) => {
-                      const { key, ...rest } = getRowProps({ row });
-                      const off = disabledById.get(row.id) ?? false;
-                      return (
-                        <TableRow key={key} {...rest}>
-                          {row.cells.map((cell) => {
-                            if (cell.info.header === "status") {
-                              return (
-                                <TableCell key={cell.id}>
-                                  <Tag type={off ? "gray" : "green"} size="sm">
-                                    {off ? "Deactivated" : "Active"}
-                                  </Tag>
-                                </TableCell>
-                              );
-                            }
-                            if (cell.info.header === "actions") {
-                              return (
-                                <TableCell key={cell.id}>
-                                  <Button
-                                    size="sm"
-                                    kind="ghost"
-                                    disabled={setDisabled.isPending}
-                                    onClick={() =>
-                                      setDisabled.mutate({ id: row.id, disabled: !off })
-                                    }
-                                  >
-                                    {off ? "Activate" : "Deactivate"}
-                                  </Button>
-                                </TableCell>
-                              );
-                            }
-                            return <TableCell key={cell.id}>{cell.value}</TableCell>;
-                          })}
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-                <Pagination
-                  totalItems={rows.length}
-                  pageSize={pageSize}
-                  pageSizes={PAGE_SIZES}
-                  page={page}
-                  onChange={({ page: p, pageSize: ps }) => {
-                    setPage(p);
-                    setPageSize(ps);
-                  }}
-                />
-              </TableContainer>
-            );
-          }}
-        </DataTable>
+        <Stack spacing={2}>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "center" }}>
+            <TextField
+              id="client-search"
+              size="small"
+              placeholder="Search clients…"
+              value={search}
+              onChange={(e) => {
+                setPaginationModel((m) => ({ ...m, page: 0 }));
+                setSearch(e.target.value);
+              }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+              sx={{ flex: 1, minWidth: 240 }}
+            />
+            <Button variant="outlined" onClick={() => setPortalOpen(true)}>
+              Create portal login
+            </Button>
+            <Button variant="contained" onClick={() => setOpen(true)}>
+              New client
+            </Button>
+          </Box>
+
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            density="compact"
+            disableRowSelectionOnClick
+            autoHeight
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            pageSizeOptions={PAGE_SIZES}
+          />
+        </Stack>
       </DataState>
 
-      <Modal
-        open={open}
-        modalHeading="New client"
-        primaryButtonText={create.isPending ? "Creating…" : "Create"}
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={!form.name || create.isPending}
-        onRequestClose={() => setOpen(false)}
-        onRequestSubmit={() =>
-          create.mutate({
-            name: form.name,
-            kind: form.kind as (typeof ClientKind.options)[number],
-            gstin: form.gstin || undefined,
-            city: form.city || undefined,
-            email: form.email || undefined,
-            phone: form.phone || undefined,
-          })
-        }
-      >
-        <Stack gap={5}>
-          <TextInput
-            id="c-name"
-            labelText="Name"
-            value={form.name}
-            onChange={set("name")}
-          />
-          <Select
-            id="c-kind"
-            labelText="Type"
-            value={form.kind}
-            onChange={set("kind")}
-          >
-            {ClientKind.options.map((k) => (
-              <SelectItem key={k} value={k} text={k} />
-            ))}
-          </Select>
-          <TextInput
-            id="c-gstin"
-            labelText="GSTIN (optional)"
-            value={form.gstin}
-            onChange={set("gstin")}
-          />
-          <TextInput
-            id="c-city"
-            labelText="City"
-            value={form.city}
-            onChange={set("city")}
-          />
-          <TextInput
-            id="c-email"
-            labelText="Email"
-            type="email"
-            value={form.email}
-            onChange={set("email")}
-          />
-          <TextInput
-            id="c-phone"
-            labelText="Phone"
-            value={form.phone}
-            onChange={set("phone")}
-          />
-          {create.error && (
-            <InlineNotification
-              kind="error"
-              title="Could not create"
-              subtitle={create.error.message}
-              hideCloseButton
-              lowContrast
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>New client</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField id="c-name" label="Name" value={form.name} onChange={set("name")} />
+            <TextField id="c-kind" select label="Type" value={form.kind} onChange={set("kind")}>
+              {ClientKind.options.map((k) => (
+                <MenuItem key={k} value={k}>
+                  {k}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="c-gstin"
+              label="GSTIN (optional)"
+              value={form.gstin}
+              onChange={set("gstin")}
             />
-          )}
-        </Stack>
-      </Modal>
+            <TextField id="c-city" label="City" value={form.city} onChange={set("city")} />
+            <TextField
+              id="c-email"
+              label="Email"
+              type="email"
+              value={form.email}
+              onChange={set("email")}
+            />
+            <TextField id="c-phone" label="Phone" value={form.phone} onChange={set("phone")} />
+            {create.error && (
+              <Alert severity="error">
+                <strong>Could not create</strong> — {create.error.message}
+              </Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!form.name || create.isPending}
+            onClick={() =>
+              create.mutate({
+                name: form.name,
+                kind: form.kind as (typeof ClientKind.options)[number],
+                gstin: form.gstin || undefined,
+                city: form.city || undefined,
+                email: form.email || undefined,
+                phone: form.phone || undefined,
+              })
+            }
+          >
+            {create.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      <Modal
-        open={portalOpen}
-        modalHeading="Create client portal login"
-        primaryButtonText={
-          createPortal.isPending ? "Creating…" : "Create login"
-        }
-        secondaryButtonText="Cancel"
-        primaryButtonDisabled={
-          !portalForm.clientId ||
-          !portalForm.email ||
-          portalForm.password.length < 8 ||
-          createPortal.isPending
-        }
-        onRequestClose={() => setPortalOpen(false)}
-        onRequestSubmit={() => createPortal.mutate(portalForm)}
-      >
-        <Stack gap={5}>
-          <Select
-            id="pl-client"
-            labelText="Client"
-            value={portalForm.clientId}
-            onChange={setP("clientId")}
-          >
-            <SelectItem value="" text="Select…" />
-            {(list.data ?? []).map((c) => (
-              <SelectItem key={c.id} value={c.id} text={c.name} />
-            ))}
-          </Select>
-          <TextInput
-            id="pl-email"
-            labelText="Login email"
-            type="email"
-            value={portalForm.email}
-            onChange={setP("email")}
-          />
-          <TextInput
-            id="pl-password"
-            labelText="Temporary password (min 8 chars)"
-            type="password"
-            value={portalForm.password}
-            onChange={setP("password")}
-          />
-          {createPortal.error && (
-            <InlineNotification
-              kind="error"
-              title="Could not create login"
-              subtitle={createPortal.error.message}
-              hideCloseButton
-              lowContrast
+      <Dialog open={portalOpen} onClose={() => setPortalOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Create client portal login</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="pl-client"
+              select
+              label="Client"
+              value={portalForm.clientId}
+              onChange={setP("clientId")}
+            >
+              <MenuItem value="">Select…</MenuItem>
+              {clients.map((c) => (
+                <MenuItem key={c.id} value={c.id}>
+                  {c.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="pl-email"
+              label="Login email"
+              type="email"
+              value={portalForm.email}
+              onChange={setP("email")}
             />
-          )}
-        </Stack>
-      </Modal>
+            <TextField
+              id="pl-password"
+              label="Temporary password (min 8 chars)"
+              type="password"
+              value={portalForm.password}
+              onChange={setP("password")}
+            />
+            {createPortal.error && (
+              <Alert severity="error">
+                <strong>Could not create login</strong> — {createPortal.error.message}
+              </Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" onClick={() => setPortalOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={
+              !portalForm.clientId ||
+              !portalForm.email ||
+              portalForm.password.length < 8 ||
+              createPortal.isPending
+            }
+            onClick={() => createPortal.mutate(portalForm)}
+          >
+            {createPortal.isPending ? "Creating…" : "Create login"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }
