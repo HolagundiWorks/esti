@@ -1,19 +1,14 @@
 import { useEffect, useState } from "react";
-import {
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-} from "@carbon/react";
+import { Chip, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
 import { trpc } from "../lib/trpc";
 
 type Products = Awaited<ReturnType<typeof trpc.admin.products.list.query>>;
 
 const fmt = (n: number | null) => (n === null ? "∞" : String(n));
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 export default function ProductsTab() {
   const [products, setProducts] = useState<Products>([]);
@@ -23,23 +18,21 @@ export default function ProductsTab() {
   }, []);
 
   return (
-    <Stack gap={7}>
+    <Stack spacing={4}>
       {products.map((p) => (
-        <Stack key={p.id} gap={3}>
-          <Stack gap={2} orientation="horizontal">
-            <h3 className="esti-grow">{p.name}</h3>
-            <Tag type={p.kind === "API" ? "purple" : "blue"} size="md">
-              {p.kind}
-            </Tag>
+        <Stack key={p.id} spacing={1}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+            <Typography variant="h6" sx={{ flex: 1 }}>{p.name}</Typography>
+            <Chip size="small" label={p.kind} sx={chipSx(p.kind === "API" ? "purple" : "blue")} />
           </Stack>
-          <Table size="lg">
+          <Table size="small">
             <TableHead>
               <TableRow>
-                <TableHeader>Plan</TableHeader>
-                <TableHeader>Seats</TableHeader>
-                <TableHeader>Devices</TableHeader>
-                <TableHeader>Meter</TableHeader>
-                <TableHeader>Features</TableHeader>
+                <TableCell>Plan</TableCell>
+                <TableCell>Seats</TableCell>
+                <TableCell>Devices</TableCell>
+                <TableCell>Meter</TableCell>
+                <TableCell>Features</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

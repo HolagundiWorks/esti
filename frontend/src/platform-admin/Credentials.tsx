@@ -1,21 +1,15 @@
 import { useEffect, useState } from "react";
-import {
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  Tile,
-} from "@carbon/react";
+import { Chip, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
 import { type Credentials as Creds, fetchCredentials } from "./lib/auth";
 
 function fmt(d: string | null): string {
   if (!d) return "—";
   return new Date(d).toLocaleDateString();
 }
+const chipSx = (c: string) => ({
+  backgroundColor: `var(--cds-tag-background-${c})`,
+  color: `var(--cds-tag-color-${c})`,
+});
 
 /** The signed-in person's portable credentials — certifications + growth timeline. */
 export default function Credentials() {
@@ -26,19 +20,21 @@ export default function Credentials() {
   }, []);
 
   return (
-    <Tile>
-      <Stack gap={5}>
-        <h3 className="esti-label">My credentials</h3>
-        <p>Certifications and growth stay on you (AORMS-U) and follow you across companies.</p>
+    <Paper sx={{ p: 3 }}>
+      <Stack spacing={2}>
+        <Typography variant="h6" component="h3">My credentials</Typography>
+        <Typography variant="body2">
+          Certifications and growth stay on you (AORMS-U) and follow you across companies.
+        </Typography>
 
         {creds.certifications.length > 0 ? (
-          <Table size="lg">
+          <Table size="small">
             <TableHead>
               <TableRow>
-                <TableHeader>Certification</TableHeader>
-                <TableHeader>Issuer</TableHeader>
-                <TableHeader>Issued</TableHeader>
-                <TableHeader>Status</TableHeader>
+                <TableCell>Certification</TableCell>
+                <TableCell>Issuer</TableCell>
+                <TableCell>Issued</TableCell>
+                <TableCell>Status</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -48,26 +44,24 @@ export default function Credentials() {
                   <TableCell>{c.issuer ?? "—"}</TableCell>
                   <TableCell>{fmt(c.issuedAt)}</TableCell>
                   <TableCell>
-                    <Tag type={c.status === "ACTIVE" ? "green" : "gray"}>{c.status}</Tag>
+                    <Chip size="small" label={c.status} sx={chipSx(c.status === "ACTIVE" ? "green" : "gray")} />
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         ) : (
-          <p>No certifications yet.</p>
+          <Typography variant="body2">No certifications yet.</Typography>
         )}
 
         {creds.growth.length > 0 && (
-          <Stack gap={2} orientation="horizontal">
+          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
             {creds.growth.slice(0, 12).map((g) => (
-              <Tag key={g.id} type="cool-gray">
-                {g.kind} · {fmt(g.at)}
-              </Tag>
+              <Chip key={g.id} size="small" label={`${g.kind} · ${fmt(g.at)}`} sx={chipSx("cool-gray")} />
             ))}
           </Stack>
         )}
       </Stack>
-    </Tile>
+    </Paper>
   );
 }
