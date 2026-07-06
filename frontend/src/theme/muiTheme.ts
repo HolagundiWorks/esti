@@ -77,6 +77,15 @@ const NEU_INSET_FOCUS = "inset 2.5px 2.5px 5.5px rgba(20, 21, 23, 0.20), inset -
 const NEU_INSET_ERROR = "inset 2px 2px 4.5px rgba(20, 21, 23, 0.16), inset -2px -2px 4.5px rgba(255, 255, 255, 0.92), inset 0 0 0 1.5px rgba(200, 68, 46, 0.55)";
 const NEU_INPUT_RADIUS = 0; // square corners (matches the app's square-corner rule).
 
+// ── Neumorphic EXTRUDED pop surfaces (soft UI) — anything that pops up ────────
+// Dialogs (New task/project…), menus, popovers, autocomplete dropdowns render as
+// a raised neu card: same-colour panel, a dark drop shadow bottom-right + a light
+// highlight top-left, no border, soft rounded corners. (Recessed inputs inside a
+// dialog then read as wells carved into this raised card.) Matches glass.scss neu.
+const NEU_POP_FILL   = "#eceef2";
+const NEU_POP_SHADOW = "9px 9px 22px rgba(20, 21, 23, 0.18), -9px -9px 22px rgba(255, 255, 255, 0.92)";
+const NEU_POP_RADIUS = 18;
+
 export const muiTheme = createTheme({
   shape: { borderRadius: 0 },
   palette: {
@@ -157,22 +166,30 @@ export const muiTheme = createTheme({
     MuiAccordionDetails: {
       styleOverrides: { root: { paddingInline: 0 } },
     },
-    // Pop surfaces — near-opaque white for crisp readability over content.
+    // Pop surfaces — NEUMORPHIC raised cards (anything that pops up: dialogs,
+    // menus, dropdowns, popovers). Same-colour panel, soft neu drop shadow, no
+    // border, rounded corners.
     MuiMenu: {
       styleOverrides: {
-        paper: { backgroundColor: POP_FILL, border: GLASS_BORDER, borderRadius: 0 },
+        paper: { backgroundColor: NEU_POP_FILL, border: "none", borderRadius: NEU_POP_RADIUS, boxShadow: NEU_POP_SHADOW },
       },
     },
     MuiPopover: {
       styleOverrides: {
-        paper: { backgroundColor: POP_FILL, border: GLASS_BORDER, borderRadius: 0 },
+        paper: { backgroundColor: NEU_POP_FILL, border: "none", borderRadius: NEU_POP_RADIUS, boxShadow: NEU_POP_SHADOW },
       },
     },
     MuiDialog: {
       styleOverrides: {
-        paper: { backgroundColor: POP_FILL, border: GLASS_BORDER, borderRadius: 0 },
+        paper: { backgroundColor: NEU_POP_FILL, border: "none", borderRadius: NEU_POP_RADIUS, boxShadow: NEU_POP_SHADOW },
       },
     },
+    MuiAutocomplete: {
+      styleOverrides: {
+        paper: { backgroundColor: NEU_POP_FILL, border: "none", borderRadius: NEU_POP_RADIUS, boxShadow: NEU_POP_SHADOW },
+      },
+    },
+    // Drawer is an edge-docked panel (not a floating card) — keep it flat white.
     MuiDrawer: {
       styleOverrides: {
         paper: { backgroundColor: POP_FILL, border: GLASS_BORDER, borderRadius: 0 },

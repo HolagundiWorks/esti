@@ -83,8 +83,11 @@ Intelligence, now everywhere):
   (`components/FlatSection.tsx` — an uppercase eyebrow title + optional action +
   content) and separate stacked sections with **`<Hairline />`** (or a plain
   `<Divider>`). Small metric/KPI tiles keep only a hairline `border` for definition.
-  Pop surfaces (Dialog / Menu / Drawer) and interactive launcher tiles are the
-  exceptions that keep a surface.
+  Interactive launcher tiles keep a surface. **Anything that pops up — Dialogs
+  (New task/project…), Menus, Popovers, Autocomplete dropdowns — is a NEUMORPHIC
+  raised card** (same-colour panel, soft neu drop shadow, no border, rounded
+  corners); recessed inputs inside then read as wells carved into that card.
+  (Drawer is edge-docked, so it stays flat white.)
 - **The only elevated surfaces are the floating widgets** (ESTI · Pomodoro ·
   Calculator), which use the **neumorphic** soft-UI treatment: same-colour panel
   with a dark bottom-right shadow + a light top-left highlight. **Neu is the one
