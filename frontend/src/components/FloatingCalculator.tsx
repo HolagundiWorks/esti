@@ -23,7 +23,7 @@ export function FloatingCalculator({ open, onClose, triggerRef }: FloatingCalcul
       onClose={onClose}
       anchorOrigin={{ vertical: "top", horizontal: "center" }}
       transformOrigin={{ vertical: "bottom", horizontal: "center" }}
-      slotProps={{ paper: { sx: { width: 260, p: 2 } } }}
+      slotProps={{ paper: { className: "esti-neu", sx: { width: 260, p: 2 } } }}
     >
       <Stack spacing={1.5}>
         <Typography variant="subtitle2">Calculator</Typography>
@@ -43,7 +43,7 @@ export function FloatingCalculator({ open, onClose, triggerRef }: FloatingCalcul
         {result === null && expr.trim() ? (
           <Alert severity="error">Invalid expression</Alert>
         ) : (
-          <Paper sx={{ p: 1.5 }}>
+          <Paper className="esti-neu-inset" sx={{ p: 1.5 }}>
             <Typography variant="h6">
               {expr.trim() === "" ? "0" : `= ${formatNum(result ?? 0)}`}
             </Typography>

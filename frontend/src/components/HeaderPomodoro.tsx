@@ -58,7 +58,7 @@ export function HeaderPomodoro() {
         onClose={() => setOpen(false)}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
         transformOrigin={{ vertical: "bottom", horizontal: "center" }}
-        slotProps={{ paper: { sx: { width: 260, p: 2 } } }}
+        slotProps={{ paper: { className: "esti-neu", sx: { width: 260, p: 2 } } }}
       >
         <Stack spacing={2}>
           <Typography variant="subtitle2">Focus timer</Typography>

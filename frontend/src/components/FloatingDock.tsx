@@ -82,9 +82,10 @@ export function FloatingDock() {
 
           <Divider orientation="vertical" flexItem />
 
-          {/* ESTI AI agent — ESTI mark */}
+          {/* ESTI AI agent — ESTI mark (neumorphic soft button) */}
           <Tooltip title="Ask ESTI">
             <IconButton
+              className="esti-neu-btn"
               size="small"
               onClick={() => navigate("/office/ai-studio")}
               aria-label="Ask ESTI AI"

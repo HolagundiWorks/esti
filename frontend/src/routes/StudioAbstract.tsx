@@ -555,21 +555,25 @@ export function StudioAbstract() {
             ))}
           </Box>
 
-          {/* Zone health — single column, one row per zone, below the status section */}
+          {/* Zone health — single row, each zone a square unit */}
           <Box>
             <Typography variant="overline" color="text.secondary">Zone health</Typography>
-            <Stack spacing={1} sx={{ mt: 0.5 }}>
-              {zones.map((z) => (
-                <Stack key={z.label} direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                  <OfficeHealthGlyph state={z.state} size={12} />
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="body2">{z.label}</Typography>
-                    <Typography variant="caption" color="text.secondary" noWrap>{z.signal}</Typography>
-                  </Box>
-                  <ZoneChip state={z.state} />
-                </Stack>
+            <Box sx={{ mt: 0.5, display: "grid", gridTemplateColumns: `repeat(${zones.length}, 1fr)` }}>
+              {zones.map((z, i) => (
+                <Box
+                  key={z.label}
+                  title={z.signal}
+                  sx={{
+                    aspectRatio: "1 / 1", minWidth: 0, p: 0.5,
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0.5,
+                    borderLeft: i > 0 ? 1 : 0, borderColor: "divider",
+                  }}
+                >
+                  <OfficeHealthGlyph state={z.state} size={14} />
+                  <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "0.65rem", maxWidth: 1 }}>{z.label}</Typography>
+                </Box>
               ))}
-            </Stack>
+            </Box>
           </Box>
         </Box>
 
