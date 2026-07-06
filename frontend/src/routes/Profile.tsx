@@ -6,7 +6,6 @@ import {
   Chip,
   Grid,
   LinearProgress,
-  Paper,
   Stack,
   Tab,
   Tabs,
@@ -34,12 +33,12 @@ function Field({ label, value }: { label: string; value: string }) {
 function Stat({ label, value }: { label: string; value: number | string }) {
   return (
     <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-      <Paper className="esti-fill" sx={{ p: 2 }}>
+      <Box className="esti-fill" sx={{ p: 2, border: 1, borderColor: "divider" }}>
         <Stack spacing={1}>
           <Typography variant="body2" component="span" className="esti-label esti-label--secondary">{label}</Typography>
           <Typography variant="h5" component="h3">{value}</Typography>
         </Stack>
-      </Paper>
+      </Box>
     </Grid>
   );
 }
@@ -49,7 +48,7 @@ function PlannedGrid({ items }: { items: { title: string; description: string }[
     <Grid container spacing={1}>
       {items.map((m) => (
         <Grid key={m.title} size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Paper className="esti-fill" sx={{ p: 2 }}>
+          <Box className="esti-fill" sx={{ p: 2, border: 1, borderColor: "divider" }}>
             <Stack spacing={1}>
               <Typography variant="h6" component="h4">{m.title}</Typography>
               <Typography variant="body2" component="p" className="esti-label esti-label--secondary">{m.description}</Typography>
@@ -57,7 +56,7 @@ function PlannedGrid({ items }: { items: { title: string; description: string }[
                 <Chip label="Planned" size="small" variant="outlined" />
               </Box>
             </Stack>
-          </Paper>
+          </Box>
         </Grid>
       ))}
     </Grid>
@@ -92,14 +91,14 @@ export function Profile() {
     {
       label: "Personal",
       panel: (
-        <Paper className="esti-fill" sx={{ p: 2 }}>
+        <Box className="esti-fill" sx={{ p: 2 }}>
           <Stack spacing={2}>
             <Field label="Full name" value={user?.fullName ?? "—"} />
             <Field label="Email" value={user?.email ?? "—"} />
             <Field label="Role" value={user?.role ?? "—"} />
             {w?.hasTeamMember && <Field label="Team role" value={w.teamRole ?? "—"} />}
           </Stack>
-        </Paper>
+        </Box>
       ),
     },
     {
@@ -121,7 +120,7 @@ export function Profile() {
       label: "AORMS Identity",
       panel: (
         <Stack spacing={2}>
-          <Paper className="esti-fill" sx={{ p: 2 }}>
+          <Box className="esti-fill" sx={{ p: 2 }}>
             <Stack spacing={2}>
               <Field
                 label="AORMS Unique ID"
@@ -170,9 +169,9 @@ export function Profile() {
               )}
               <Field label="Professional role" value={user?.role ?? "—"} />
             </Stack>
-          </Paper>
+          </Box>
           {aormsId && (
-            <Paper className="esti-fill" sx={{ p: 2 }}>
+            <Box className="esti-fill" sx={{ p: 2 }}>
               <Stack spacing={1.5}>
                 <Typography variant="h6" component="h4">Welcome kit</Typography>
                 <Typography variant="body2" component="p" className="esti-label esti-label--secondary">
@@ -202,7 +201,7 @@ export function Profile() {
                   </Button>
                 </div>
               </Stack>
-            </Paper>
+            </Box>
           )}
           <PlannedGrid
             items={[
@@ -245,7 +244,7 @@ export function Profile() {
           {
             label: "Downloads",
             panel: (
-              <Paper className="esti-fill" sx={{ p: 2 }}>
+              <Box className="esti-fill" sx={{ p: 2 }}>
                 <Stack spacing={1.5}>
                   <Typography variant="h6" component="h4">Desktop installers</Typography>
                   <Typography variant="body2" component="p" className="esti-label esti-label--secondary">
@@ -272,7 +271,7 @@ export function Profile() {
                     )}
                   </Stack>
                 </Stack>
-              </Paper>
+              </Box>
             ),
           },
         ]
@@ -280,14 +279,14 @@ export function Profile() {
     {
       label: "Preferences",
       panel: (
-        <Paper className="esti-fill" sx={{ p: 2 }}>
+        <Box className="esti-fill" sx={{ p: 2 }}>
           <Stack spacing={1.5}>
             <Typography component="p">Theme, dashboard layout, notification preferences and security settings.</Typography>
             <Box>
               <Button component={Link} to="/settings" variant="contained">Open settings</Button>
             </Box>
           </Stack>
-        </Paper>
+        </Box>
       ),
     },
   ];

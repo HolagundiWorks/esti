@@ -10,7 +10,6 @@ import {
   Grid,
   LinearProgress,
   MenuItem,
-  Paper,
   Stack,
   Switch,
   Tab,
@@ -85,7 +84,7 @@ function MemberScoreCard({
   const band = member.band as PerformanceBand | null;
   return (
     <Grid size={{ xs: 12, md: 6 }}>
-      <Paper sx={{ p: 2 }}>
+      <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
         <Stack spacing={2}>
           <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
             <Stack spacing={1} sx={{ flexGrow: 1 }}>
@@ -148,7 +147,7 @@ function MemberScoreCard({
             </Button>
           </Box>
         </Stack>
-      </Paper>
+      </Box>
     </Grid>
   );
 }
@@ -170,7 +169,7 @@ function RecognitionTab() {
   return (
     <Grid container spacing={2}>
       <Grid size={{ xs: 12, lg: 6 }}>
-        <Paper sx={{ p: 2 }}>
+        <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
           <Stack spacing={2}>
             <Stack spacing={0.5}>
               <Box><TagChip color="teal" label="Awards" /></Box>
@@ -185,11 +184,11 @@ function RecognitionTab() {
               ))}
             </Stack>
           </Stack>
-        </Paper>
+        </Box>
       </Grid>
 
       <Grid size={{ xs: 12, lg: 6 }}>
-        <Paper sx={{ p: 2 }}>
+        <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
           <Stack spacing={2}>
             <Stack spacing={0.5}>
               <Box><TagChip color="blue" label="Rewards" /></Box>
@@ -205,7 +204,7 @@ function RecognitionTab() {
               ))}
             </Stack>
           </Stack>
-        </Paper>
+        </Box>
       </Grid>
     </Grid>
   );
@@ -272,7 +271,7 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
         }
       >
       {myScoreQ.data && (
-        <Paper className="esti-form-panel" sx={{ p: 2 }}>
+        <Box className="esti-form-panel" sx={{ p: 2 }}>
           <Stack spacing={1.5}>
             <Typography variant="h6" component="h3">Wellbeing dimension (optional)</Typography>
             <Typography variant="body2">
@@ -292,46 +291,46 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
               label="Include wellbeing in my ASPRF score"
             />
           </Stack>
-        </Paper>
+        </Box>
       )}
 
       {/* KPI summary */}
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Paper sx={{ p: 2 }}>
+          <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
             <Stack spacing={0.5}>
               <Box><TagChip color="gray" label="Team" /></Box>
               <Typography variant="h5" component="p">{teamSize}</Typography>
               <Typography variant="body2" color="text.secondary">Active members</Typography>
             </Stack>
-          </Paper>
+          </Box>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Paper sx={{ p: 2 }}>
+          <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
             <Stack spacing={0.5}>
               <Box><TagChip color="blue" label="Average score" /></Box>
               <Typography variant="h5" component="p">{avgScore > 0 ? avgScore : "—"}</Typography>
               <Typography variant="body2" color="text.secondary">30-day rolling</Typography>
             </Stack>
-          </Paper>
+          </Box>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Paper sx={{ p: 2 }}>
+          <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
             <Stack spacing={0.5}>
               <Box><TagChip color="teal" label="Platinum" /></Box>
               <Typography variant="h5" component="p">{bandCounts["PLATINUM"] ?? 0}</Typography>
               <Typography variant="body2" color="text.secondary">Score ≥ 96</Typography>
             </Stack>
-          </Paper>
+          </Box>
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Paper sx={{ p: 2 }}>
+          <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
             <Stack spacing={0.5}>
               <Box><TagChip color="warm-gray" label="Gold" /></Box>
               <Typography variant="h5" component="p">{bandCounts["GOLD"] ?? 0}</Typography>
               <Typography variant="body2" color="text.secondary">Score 91–95</Typography>
             </Stack>
-          </Paper>
+          </Box>
         </Grid>
       </Grid>
 

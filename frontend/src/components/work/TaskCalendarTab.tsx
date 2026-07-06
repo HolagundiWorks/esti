@@ -1,10 +1,11 @@
 import {
+  Box,
   ButtonBase,
   Checkbox,
   Chip,
+  Divider,
   FormControlLabel,
   IconButton,
-  Paper,
   Stack,
   Typography,
 } from "@mui/material";
@@ -116,7 +117,7 @@ export function TaskCalendarTab() {
         />
       </Stack>
 
-      <Paper sx={{ p: 2 }}>
+      <Box sx={{ p: 2 }}>
         <Stack spacing={1.5}>
           <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
             <IconButton
@@ -178,9 +179,11 @@ export function TaskCalendarTab() {
             })}
           </div>
         </Stack>
-      </Paper>
+      </Box>
 
-      <Paper sx={{ p: 2 }}>
+      <Divider />
+
+      <Box sx={{ p: 2 }}>
         <Stack spacing={1.5}>
           <Typography variant="h6">{selectedLabel}</Typography>
           <DataState
@@ -221,27 +224,30 @@ export function TaskCalendarTab() {
             </Stack>
           </DataState>
         </Stack>
-      </Paper>
+      </Box>
 
       {unscheduled.length > 0 && (
-        <Paper sx={{ p: 2 }}>
-          <Stack spacing={1}>
-            <Typography variant="h6">No due date ({unscheduled.length})</Typography>
-            {unscheduled.slice(0, 8).map((t) => (
-              <Stack key={t.id} direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                <span className="esti-grow">{t.title}</span>
-                {t.projectId && (
-                  <Link to={`/projects/${t.projectId}`}>{t.projectRef ?? "Project"}</Link>
-                )}
-              </Stack>
-            ))}
-            {unscheduled.length > 8 && (
-              <p className="esti-label esti-label--helper">
-                +{unscheduled.length - 8} more — set due dates on the Tasks tab
-              </p>
-            )}
-          </Stack>
-        </Paper>
+        <>
+          <Divider />
+          <Box sx={{ p: 2 }}>
+            <Stack spacing={1}>
+              <Typography variant="h6">No due date ({unscheduled.length})</Typography>
+              {unscheduled.slice(0, 8).map((t) => (
+                <Stack key={t.id} direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                  <span className="esti-grow">{t.title}</span>
+                  {t.projectId && (
+                    <Link to={`/projects/${t.projectId}`}>{t.projectRef ?? "Project"}</Link>
+                  )}
+                </Stack>
+              ))}
+              {unscheduled.length > 8 && (
+                <p className="esti-label esti-label--helper">
+                  +{unscheduled.length - 8} more — set due dates on the Tasks tab
+                </p>
+              )}
+            </Stack>
+          </Box>
+        </>
       )}
     </Stack>
   );

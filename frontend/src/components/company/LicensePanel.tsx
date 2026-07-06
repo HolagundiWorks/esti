@@ -1,10 +1,10 @@
 import {
   Alert,
   AlertTitle,
+  Box,
   Button,
   Chip,
   Grid,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -66,7 +66,7 @@ export function LicensePanel() {
   const status = view?.status ?? "UNLICENSED";
 
   return (
-    <Paper sx={{ p: 3, maxWidth: 760 }}>
+    <Box sx={{ p: 3, maxWidth: 760 }}>
       <Stack spacing={2}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <Typography component="h3" className="esti-label">Licence</Typography>
@@ -154,6 +154,6 @@ export function LicensePanel() {
           Consulting Works. Keys are issued when you purchase or change a plan.
         </Typography>
       </Stack>
-    </Paper>
+    </Box>
   );
 }

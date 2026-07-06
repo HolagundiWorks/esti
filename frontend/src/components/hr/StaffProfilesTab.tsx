@@ -1,5 +1,6 @@
 import {
   Alert,
+  Box,
   Button,
   Chip,
   CircularProgress,
@@ -7,6 +8,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   Grid,
   MenuItem,
   Paper,
@@ -143,13 +145,13 @@ export function StaffProfilesTab() {
       {/* Right: profile detail */}
       <Grid size={{ xs: 12, md: 8, lg: 9 }}>
         {!selected ? (
-          <Paper sx={{ p: 2 }}>
+          <Box sx={{ p: 2 }}>
             <p className="esti-label esti-label--secondary">Select a staff member to view their profile and documents.</p>
-          </Paper>
+          </Box>
         ) : (
           <Stack spacing={2}>
             {/* Level assignment */}
-            <Paper sx={{ p: 2 }}>
+            <Box sx={{ p: 2 }}>
               <Stack spacing={2}>
                 <Typography variant="h6" component="h3">{selected.name}</Typography>
                 <Grid container spacing={2}>
@@ -200,7 +202,9 @@ export function StaffProfilesTab() {
                   </Stack>
                 )}
               </Stack>
-            </Paper>
+            </Box>
+
+            <Divider sx={{ my: 2 }} />
 
             {/* Document vault */}
             <div className="esti-row-between">
@@ -218,15 +222,15 @@ export function StaffProfilesTab() {
             )}
 
             {profileQ.data?.documents.length === 0 && (
-              <Paper sx={{ p: 2 }}>
+              <Box sx={{ p: 2 }}>
                 <p className="esti-label esti-label--secondary">No documents uploaded yet.</p>
-              </Paper>
+              </Box>
             )}
 
             <Grid container spacing={2}>
               {(profileQ.data?.documents ?? []).map((doc) => (
                 <Grid key={doc.id} size={{ xs: 12, md: 6, lg: 4 }}>
-                  <Paper className="esti-doc-tile" sx={{ p: 2 }}>
+                  <Box className="esti-doc-tile" sx={{ p: 2, border: 1, borderColor: "divider" }}>
                     <Stack spacing={1}>
                       <div className="esti-doc-tile__header">
                         <DescriptionIcon sx={{ fontSize: 20 }} />
@@ -272,7 +276,7 @@ export function StaffProfilesTab() {
                         </Button>
                       </div>
                     </Stack>
-                  </Paper>
+                  </Box>
                 </Grid>
               ))}
             </Grid>

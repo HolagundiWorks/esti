@@ -1,12 +1,12 @@
 import {
   Alert,
   AlertTitle,
+  Box,
   Button,
   Chip,
   Grid,
   InputAdornment,
   MenuItem,
-  Paper,
   Stack,
   Table,
   TableBody,
@@ -197,7 +197,7 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
   if (compact) return body;
 
   return (
-    <Paper sx={{ p: 2 }}>
+    <Box sx={{ p: 2 }}>
       <Stack spacing={2}>
         <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
           <h4 className="esti-ai-studio__title">AI draft assistant</h4>
@@ -205,7 +205,7 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
         </Stack>
         {body}
       </Stack>
-    </Paper>
+    </Box>
   );
 }
 
@@ -240,7 +240,7 @@ export function AiStudioPage() {
           <AiDraftPanel defaultKind="SUMMARY" />
         </Grid>
         <Grid size={{ xs: 12, lg: 6 }}>
-          <TableContainer component={Paper} sx={{ p: 2 }}>
+          <TableContainer sx={{ p: 2 }}>
             <Stack spacing={0.5} sx={{ mb: 1 }}>
               <Typography variant="h6" component="h4">Recent AI runs</Typography>
               <Typography variant="body2">Provenance: user, model, approval state</Typography>

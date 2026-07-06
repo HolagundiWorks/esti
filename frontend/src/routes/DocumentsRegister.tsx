@@ -5,7 +5,6 @@ import {
   DialogContent,
   DialogTitle,
   MenuItem,
-  Paper,
   Stack,
   Table,
   TableBody,
@@ -211,7 +210,7 @@ export function DocumentsRegister() {
                 Save numbering defaults
               </Button>
             </div>
-            <TableContainer component={Paper}>
+            <TableContainer>
               <Table size="small">
                 <TableHead>
                   <TableRow>

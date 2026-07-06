@@ -1,4 +1,4 @@
-import { Alert, Chip, Paper, Stack, Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
+import { Alert, Box, Chip, Stack, Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 
 export function ReleaseMetadataPanel() {
@@ -36,7 +36,7 @@ export function ReleaseMetadataPanel() {
   };
 
   return (
-    <Paper sx={{ p: 3, maxWidth: 760 }}>
+    <Box sx={{ p: 3, maxWidth: 760 }}>
       <Stack spacing={2}>
         <Typography variant="h5" component="h2">Release &amp; readiness</Typography>
         <Typography variant="body2">Build revision and backing-service checks for production operations.</Typography>
@@ -79,6 +79,6 @@ export function ReleaseMetadataPanel() {
           </>
         )}
       </Stack>
-    </Paper>
+    </Box>
   );
 }

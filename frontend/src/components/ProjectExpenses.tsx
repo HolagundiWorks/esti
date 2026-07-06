@@ -10,7 +10,6 @@ import {
   DialogTitle,
   FormControlLabel,
   MenuItem,
-  Paper,
   Stack,
   Switch,
   TextField,
@@ -205,23 +204,23 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
 
       {summaryQ.data && (
         <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", my: 2 }}>
-          <Paper sx={{ minWidth: 180, p: 2 }}>
+          <Box sx={{ minWidth: 180, p: 2, border: 1, borderColor: "divider" }}>
             <div>Non-billable spend</div>
             <strong>{formatINR(summaryQ.data.nonBillablePaise)}</strong>
-          </Paper>
-          <Paper sx={{ minWidth: 180, p: 2 }}>
+          </Box>
+          <Box sx={{ minWidth: 180, p: 2, border: 1, borderColor: "divider" }}>
             <div>Billable (pending recovery)</div>
             <strong>{formatINR(summaryQ.data.billablePendingPaise)}</strong>
-          </Paper>
-          <Paper sx={{ minWidth: 180, p: 2 }}>
+          </Box>
+          <Box sx={{ minWidth: 180, p: 2, border: 1, borderColor: "divider" }}>
             <div>Billable (recovered)</div>
             <strong>{formatINR(summaryQ.data.billableRecoveredPaise)}</strong>
-          </Paper>
+          </Box>
           {summaryQ.data.contractValuePaise > 0 && (
-            <Paper sx={{ minWidth: 180, p: 2 }}>
+            <Box sx={{ minWidth: 180, p: 2, border: 1, borderColor: "divider" }}>
               <div>Contract value (info)</div>
               <strong>{formatINR(summaryQ.data.contractValuePaise)}</strong>
-            </Paper>
+            </Box>
           )}
         </Box>
       )}

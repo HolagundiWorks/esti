@@ -1,5 +1,6 @@
 import {
   Alert,
+  Box,
   Button,
   Chip,
   Dialog,
@@ -8,7 +9,6 @@ import {
   DialogTitle,
   Grid,
   MenuItem,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -80,17 +80,17 @@ export function ApplicationsTab() {
       {listQ.isLoading && <p className="esti-label esti-label--secondary">Loading…</p>}
 
       {apps.length === 0 && !listQ.isLoading && (
-        <Paper sx={{ p: 2 }}>
+        <Box sx={{ p: 2 }}>
           <p className="esti-label esti-label--secondary">
             No job applications yet. Add one to start the onboarding pipeline.
           </p>
-        </Paper>
+        </Box>
       )}
 
       <Grid container spacing={2}>
         {apps.map((a) => (
           <Grid key={a.id} size={{ xs: 12, md: 6, lg: 3 }}>
-            <Paper className="esti-app-tile" sx={{ p: 2 }}>
+            <Box className="esti-app-tile" sx={{ p: 2, border: 1, borderColor: "divider" }}>
               <Stack spacing={1}>
                 <div className="esti-row-between">
                   <p><strong>{a.name}</strong></p>
@@ -187,7 +187,7 @@ export function ApplicationsTab() {
                   )}
                 </div>
               </Stack>
-            </Paper>
+            </Box>
           </Grid>
         ))}
       </Grid>

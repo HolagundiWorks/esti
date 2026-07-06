@@ -6,7 +6,6 @@ import {
   Chip,
   FormControlLabel,
   MenuItem,
-  Paper,
   Stack,
   Switch,
   TextField,
@@ -55,7 +54,7 @@ export function AiStudioSettingsPanel({ isEnterprise = false }: { isEnterprise?:
   const showCloudOption = isEnterprise || isCloud;
 
   return (
-    <Paper className="esti-ai-settings-tile" sx={{ p: 3, maxWidth: 760 }}>
+    <Box className="esti-ai-settings-tile" sx={{ p: 3, maxWidth: 760 }}>
       <Stack spacing={2}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
           <Typography variant="h5" component="h2">AI Studio</Typography>
@@ -175,6 +174,6 @@ export function AiStudioSettingsPanel({ isEnterprise = false }: { isEnterprise?:
           </Button>
         </Box>
       </Stack>
-    </Paper>
+    </Box>
   );
 }

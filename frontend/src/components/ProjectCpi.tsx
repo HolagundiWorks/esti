@@ -4,6 +4,7 @@ import {
   AccordionSummary,
   Alert,
   AlertTitle,
+  Box,
   Button,
   Checkbox,
   Chip,
@@ -12,7 +13,6 @@ import {
   FormGroup,
   FormLabel,
   MenuItem,
-  Paper,
   Radio,
   RadioGroup,
   Slider,
@@ -551,7 +551,7 @@ export function ProjectCpi({ projectId }: { projectId: string }) {
 
   return (
     <Stack spacing={3}>
-      <Paper className="esti-fill" sx={{ p: 2 }}>
+      <Box className="esti-fill" sx={{ p: 2 }}>
         <Stack spacing={1}>
           <div className="esti-row-between">
             <Typography variant="h6" component="h4">Client–Project Intelligence (CPI)</Typography>
@@ -569,7 +569,7 @@ export function ProjectCpi({ projectId }: { projectId: string }) {
             Intelligence Report, the foundation of the design brief.
           </p>
         </Stack>
-      </Paper>
+      </Box>
 
       <div>
         {SECTION_DEFS.map((def) => (

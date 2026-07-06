@@ -6,7 +6,7 @@
  * itself never scrolls). Material UI; status is the ●▲■ glyph in its alert colour
  * (zoneState.ts). Colour only from `--cds-*` tokens.
  */
-import { Paper, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
+import { Box, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { GLYPH_CLASS, glyphFor, STATE_WORD } from "./zoneState.js";
@@ -85,14 +85,14 @@ export function AbstractScreenShell({
 
       <div className="esti-kpi-row">
         {kpis.slice(0, 4).map((k) => (
-          <Paper key={k.label} className="esti-kpi-card" sx={{ p: 2, borderTop: 2, borderTopColor: "primary.main" }}>
+          <Box key={k.label} className="esti-kpi-card" sx={{ p: 2, border: 1, borderColor: "divider", borderTop: 2, borderTopColor: "primary.main" }}>
             <span className="esti-label--helper">{k.label}</span>
             <h3 className={k.state ? `esti-state-${k.state}` : undefined}>{k.value}</h3>
-          </Paper>
+          </Box>
         ))}
       </div>
 
-      <Paper className="esti-abstract-table" sx={{ p: 2 }}>
+      <Box className="esti-abstract-table" sx={{ p: 2 }}>
         {tableTitle && <span className="esti-label esti-label--secondary">{tableTitle}</span>}
         <div className="esti-abstract-table__scroll">
           {rows.length === 0 ? (
@@ -129,7 +129,7 @@ export function AbstractScreenShell({
             </Table>
           )}
         </div>
-      </Paper>
+      </Box>
     </div>
   );
 }

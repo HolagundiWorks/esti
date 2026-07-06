@@ -1,9 +1,9 @@
 import {
   Alert,
+  Box,
   Button,
   Chip,
   MenuItem,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -89,7 +89,7 @@ export function StorageSettingsPanel() {
   const isNas = form.mode === "NAS";
 
   return (
-    <Paper sx={{ p: 3, maxWidth: 760 }}>
+    <Box sx={{ p: 3, maxWidth: 760 }}>
       <Stack spacing={2}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <Typography variant="h5" component="h2">Storage (BYOS)</Typography>
@@ -173,6 +173,6 @@ export function StorageSettingsPanel() {
           </Button>
         </Stack>
       </Stack>
-    </Paper>
+    </Box>
   );
 }

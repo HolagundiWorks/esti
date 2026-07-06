@@ -1,11 +1,11 @@
 import {
+  Box,
   Button,
   Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -62,12 +62,12 @@ export function ProjectSiteVisits({ projectId }: { projectId: string }) {
 
       {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
       {visits.length === 0 && !listQ.isLoading && (
-        <Paper sx={{ p: 2 }}><Typography variant="body2">No site visits scheduled yet.</Typography></Paper>
+        <Box sx={{ p: 2 }}><Typography variant="body2">No site visits scheduled yet.</Typography></Box>
       )}
 
       <Stack spacing={1}>
         {visits.map((v) => (
-          <Paper key={v.id} sx={{ p: 2 }}>
+          <Box key={v.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
             <Stack spacing={1}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <strong>{v.plannedDate}</strong>
@@ -104,7 +104,7 @@ export function ProjectSiteVisits({ projectId }: { projectId: string }) {
                 </Stack>
               )}
             </Stack>
-          </Paper>
+          </Box>
         ))}
       </Stack>
 

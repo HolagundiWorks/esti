@@ -7,7 +7,6 @@ import {
   DialogContent,
   DialogTitle,
   MenuItem,
-  Paper,
   Stack,
   Tab,
   Tabs,
@@ -267,7 +266,7 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
               Request leave
             </Button>
           </Box>
-          <Paper sx={{ p: 2 }}>
+          <Box sx={{ p: 2 }}>
             <Stack spacing={1}>
               <Typography variant="subtitle2">Leave register</Typography>
               <DataGrid
@@ -280,7 +279,7 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
                 autoHeight
               />
             </Stack>
-          </Paper>
+          </Box>
 
           {/* Payroll */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -296,7 +295,7 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
               Generate payslip
             </Button>
           </Box>
-          <Paper sx={{ p: 2 }}>
+          <Box sx={{ p: 2 }}>
             <Stack spacing={1}>
               <Typography variant="subtitle2">Payslips</Typography>
               <Typography variant="caption" color="text.secondary">
@@ -312,7 +311,7 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
                 autoHeight
               />
             </Stack>
-          </Paper>
+          </Box>
         </Stack>
       )}
 

@@ -8,7 +8,6 @@ import {
   DialogTitle,
   FormControlLabel,
   MenuItem,
-  Paper,
   Stack,
   Table,
   TableBody,
@@ -203,7 +202,7 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
             action: <Button variant="contained" size="small" onClick={() => setOpen(true)}>New task</Button>,
           }}
         >
-          <TableContainer component={Paper}>
+          <TableContainer>
             <Typography variant="h6" sx={{ p: 2, pb: 1 }}>Task list</Typography>
             <Table size="small">
               <TableHead>

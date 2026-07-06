@@ -11,7 +11,6 @@ import {
   DialogTitle,
   Grid,
   MenuItem,
-  Paper,
   Stack,
   Table,
   TableBody,
@@ -328,7 +327,7 @@ export function CollaboratorPortal() {
 
             <Stack spacing={1}>
               <Typography variant="h6" component="h3">Your engagement</Typography>
-              <TableContainer component={Paper}>
+              <TableContainer>
                 <Table size="small">
                   <TableHead>
                     <TableRow>

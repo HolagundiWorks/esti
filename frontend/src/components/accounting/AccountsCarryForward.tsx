@@ -1,4 +1,4 @@
-import { Chip, Grid, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
+import { Box, Chip, Grid, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
 import { formatINR, type PeriodFilterInput } from "@esti/contracts";
 import { PeriodFilter } from "../PeriodFilter.js";
 import { trpc } from "../../lib/trpc.js";
@@ -31,7 +31,7 @@ export function AccountsCarryForward({
 
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Paper className="esti-fill" sx={{ p: 2 }}>
+          <Box className="esti-fill" sx={{ p: 2, border: 1, borderColor: "divider" }}>
             <Stack spacing={1}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <Chip size="small" label="Carried forward" sx={chipSx("teal")} />
@@ -44,10 +44,10 @@ export function AccountsCarryForward({
                 Contract value in play: {cf ? formatINR(cf.runningContractPaise) : "—"}
               </p>
             </Stack>
-          </Paper>
+          </Box>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Paper className="esti-fill" sx={{ p: 2 }}>
+          <Box className="esti-fill" sx={{ p: 2, border: 1, borderColor: "divider" }}>
             <Stack spacing={1}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <Chip size="small" label="Carried forward" sx={chipSx("magenta")} />
@@ -62,7 +62,7 @@ export function AccountsCarryForward({
                   : "—"}
               </p>
             </Stack>
-          </Paper>
+          </Box>
         </Grid>
       </Grid>
 

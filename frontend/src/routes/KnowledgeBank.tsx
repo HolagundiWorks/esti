@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   Chip,
-  Paper,
   Stack,
   Tab,
   Tabs,
@@ -68,7 +67,7 @@ function KnowledgeBankSearch() {
   }));
 
   return (
-    <Paper sx={{ p: 3 }}>
+    <Box sx={{ p: 3 }}>
       <Stack spacing={2}>
         <Stack spacing={1}>
           <Typography variant="h6" component="h3">Search Knowledge Bank</Typography>
@@ -125,7 +124,7 @@ function KnowledgeBankSearch() {
           </DataState>
         )}
       </Stack>
-    </Paper>
+    </Box>
   );
 }
 

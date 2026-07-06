@@ -1,5 +1,5 @@
 import ArrowBack from "@mui/icons-material/ArrowBack";
-import { Box, Button, Chip, CircularProgress, Paper, Stack, Typography } from "@mui/material";
+import { Box, Button, Chip, CircularProgress, Stack, Typography } from "@mui/material";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { fetchMe, fetchMyLicense, logout, type Me, type MyLicense } from "../platform-admin/lib/auth.js";
@@ -98,7 +98,7 @@ export function AccountPortal() {
           </Stack>
 
           {license && (
-            <Paper sx={{ p: 3 }}>
+            <Box sx={{ p: 3 }}>
               <Stack spacing={1.5}>
                 <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                   <Typography variant="h6" component="h4" className="esti-grow">
@@ -123,7 +123,7 @@ export function AccountPortal() {
                   </Typography>
                 </Stack>
               </Stack>
-            </Paper>
+            </Box>
           )}
 
           <Suspense fallback={<Box sx={{ display: "flex" }}><CircularProgress /></Box>}>

@@ -1,6 +1,7 @@
 import {
   Alert,
   AlertTitle,
+  Box,
   Button,
   Chip,
   Dialog,
@@ -8,7 +9,6 @@ import {
   DialogContent,
   DialogTitle,
   MenuItem,
-  Paper,
   Stack,
   TextField,
 } from "@mui/material";
@@ -137,7 +137,7 @@ export function PulseStandupModal({
             const draft = drafts[q.id] ?? { status: "", text: "" };
             const answered = q.responseStatus !== "PENDING";
             return (
-              <Paper key={q.id} sx={{ p: 2 }}>
+              <Box key={q.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
                 <Stack spacing={1}>
                   <Stack spacing={0.5}>
                     {q.questionText.split("\n").map((line, i) => (
@@ -183,7 +183,7 @@ export function PulseStandupModal({
                     </Stack>
                   )}
                 </Stack>
-              </Paper>
+              </Box>
             );
           })}
 
@@ -208,7 +208,7 @@ export function PulseStandupModal({
               <p className="esti-label esti-label--secondary">No pending actions.</p>
             ) : (
               proposedActions.map((a) => (
-                <Paper key={a.id} sx={{ p: 2 }}>
+                <Box key={a.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
                   <Stack spacing={1}>
                     <Chip
                       size="small"
@@ -235,7 +235,7 @@ export function PulseStandupModal({
                       </Button>
                     </Stack>
                   </Stack>
-                </Paper>
+                </Box>
               ))
             )}
           </Stack>

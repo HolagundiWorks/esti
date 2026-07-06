@@ -1,4 +1,4 @@
-import { Box, Chip, Link, Paper, Stack, Typography } from "@mui/material";
+import { Box, Chip, Divider, Link, Stack, Typography } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { Link as RouterLink } from "react-router-dom";
 import { RailLayout } from "../components/RailLayout.js";
@@ -139,19 +139,22 @@ export function Alerts() {
       <AlertTable title={`Immediate action (${alerts.length})`} alerts={alerts} />
 
       {digest && (
-        <Paper sx={{ p: 2 }}>
-          <Stack spacing={2}>
-            <Typography variant="h6" component="h3">Daily digest · {digest.date}</Typography>
-            <Typography variant="body2">
-              Medium-priority follow-ups and upcoming leave — configured in Company → Alert
-              escalation.
-            </Typography>
-            <AlertTable
-              title={`Digest items (${digest.count})`}
-              alerts={digest.items}
-            />
-          </Stack>
-        </Paper>
+        <>
+          <Divider sx={{ my: 2 }} />
+          <Box sx={{ p: 2 }}>
+            <Stack spacing={2}>
+              <Typography variant="h6" component="h3">Daily digest · {digest.date}</Typography>
+              <Typography variant="body2">
+                Medium-priority follow-ups and upcoming leave — configured in Company → Alert
+                escalation.
+              </Typography>
+              <AlertTable
+                title={`Digest items (${digest.count})`}
+                alerts={digest.items}
+              />
+            </Stack>
+          </Box>
+        </>
       )}
     </RailLayout>
   );

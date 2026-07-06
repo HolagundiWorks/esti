@@ -15,7 +15,6 @@ import {
   FormControlLabel,
   Grid,
   MenuItem,
-  Paper,
   Stack,
   Table,
   TableBody,
@@ -500,7 +499,7 @@ export function Portal() {
             </Stack>
 
             <Section title="Stages">
-              <Paper>
+              <Box>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
@@ -519,7 +518,7 @@ export function Portal() {
                     ))}
                   </TableBody>
                 </Table>
-              </Paper>
+              </Box>
             </Section>
 
             <Section title="Invoices">
@@ -588,7 +587,7 @@ export function Portal() {
               <Typography variant="h6" component="h4">Revision dashboard</Typography>
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, lg: 6 }}>
-                  <Paper className="esti-fill" sx={{ p: 2 }}>
+                  <Box className="esti-fill" sx={{ p: 2 }}>
                     <Stack spacing={1.5}>
                       <span className="esti-label">Change requests by category</span>
                       {revisionStatsQ.isLoading ? (
@@ -614,10 +613,10 @@ export function Portal() {
                         </Table>
                       )}
                     </Stack>
-                  </Paper>
+                  </Box>
                 </Grid>
                 <Grid size={{ xs: 12, lg: 6 }}>
-                  <Paper className="esti-fill" sx={{ p: 2 }}>
+                  <Box className="esti-fill" sx={{ p: 2 }}>
                     <Stack spacing={1.5}>
                       <span className="esti-label">Drawing revisions by type</span>
                       {revisionStatsQ.isLoading ? (
@@ -643,7 +642,7 @@ export function Portal() {
                         </Table>
                       )}
                     </Stack>
-                  </Paper>
+                  </Box>
                 </Grid>
               </Grid>
             </Stack>
@@ -949,14 +948,14 @@ export function Portal() {
                   />
                 </Stack>
                 {impactResponse.architectComment && (
-                  <Paper sx={{ p: 2 }}>
+                  <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
                     <Stack spacing={1}>
                       <Typography variant="body2" color="text.secondary">
                         Architect's note
                       </Typography>
                       <Typography variant="body1">{impactResponse.architectComment}</Typography>
                     </Stack>
-                  </Paper>
+                  </Box>
                 )}
                 <TextField
                   id="ia-remarks"

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import {
   Alert,
+  Box,
   Button,
   Chip,
   Grid,
   MenuItem,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -78,7 +78,7 @@ export function ComplianceCalculator() {
 
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-          <Paper sx={{ p: 2 }}>
+          <Box sx={{ p: 2 }}>
             <Stack spacing={2}>
               <TextField
                 id="cc-zone"
@@ -136,16 +136,16 @@ export function ComplianceCalculator() {
                 Calculate
               </Button>
             </Stack>
-          </Paper>
+          </Box>
         </Grid>
 
         <Grid size={{ xs: 12, md: 6, lg: 8 }}>
           {!report && (
-            <Paper className="esti-fill" sx={{ p: 2 }}>
+            <Box className="esti-fill" sx={{ p: 2 }}>
               <p className="esti-label esti-label--secondary">
                 Enter the site parameters and choose a land-use zone, then Calculate.
               </p>
-            </Paper>
+            </Box>
           )}
           {report && !report.ok && (
             <Alert severity="error">Cannot calculate — {report.error}</Alert>

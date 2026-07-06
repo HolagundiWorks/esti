@@ -10,7 +10,6 @@ import {
   DialogTitle,
   FormControlLabel,
   MenuItem,
-  Paper,
   Stack,
   Switch,
   Table,
@@ -140,7 +139,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
       )}
 
       {p && (
-        <Paper sx={{ maxWidth: 640, p: 2 }}>
+        <Box sx={{ maxWidth: 640, p: 2 }}>
           <Stack spacing={2}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Typography variant="subtitle1" component="h4" className="esti-grow">
@@ -203,11 +202,11 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
               );
             })()}
           </Stack>
-        </Paper>
+        </Box>
       )}
 
       {firmPmcEnabled && (
-      <Paper sx={{ maxWidth: 640, p: 2, mt: 2 }}>
+      <Box sx={{ maxWidth: 640, p: 2, mt: 2 }}>
         <Stack spacing={2}>
           <Typography variant="subtitle1" component="h4">
             PMC
@@ -245,10 +244,10 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
             </Button>
           </div>
         </Stack>
-      </Paper>
+      </Box>
       )}
 
-      <Paper sx={{ maxWidth: 760, p: 2, mt: 2 }}>
+      <Box sx={{ maxWidth: 760, p: 2, mt: 2 }}>
         <Stack spacing={2}>
           <Typography variant="subtitle1" component="h4">
             Project stages
@@ -320,13 +319,13 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
             </Table>
           </TableContainer>
         </Stack>
-      </Paper>
+      </Box>
 
       <Box sx={{ maxWidth: 760, mt: 2 }}>
         <ProjectEngagements projectId={projectId} />
       </Box>
 
-      <Paper sx={{ maxWidth: 640, p: 2, mt: 2 }}>
+      <Box sx={{ maxWidth: 640, p: 2, mt: 2 }}>
         <Stack spacing={2}>
           <Typography variant="subtitle1" component="h4">
             Internal log (audit)
@@ -364,9 +363,9 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
             ))}
           </div>
         </Stack>
-      </Paper>
+      </Box>
 
-      <Paper sx={{ maxWidth: 640, p: 2, mt: 2 }}>
+      <Box sx={{ maxWidth: 640, p: 2, mt: 2 }}>
         <Stack spacing={2}>
           <Typography variant="subtitle1" component="h4">
             Activity feed
@@ -403,10 +402,10 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
             ))}
           </div>
         </Stack>
-      </Paper>
+      </Box>
 
       {canProjectDelete && (
-        <Paper sx={{ maxWidth: 640, p: 2, mt: 2 }}>
+        <Box sx={{ maxWidth: 640, p: 2, mt: 2 }}>
           <Typography variant="subtitle1" component="h4">
             Danger zone
           </Typography>
@@ -418,7 +417,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
           <Button variant="contained" color="error" onClick={() => setConfirmDelete(true)}>
             Archive project
           </Button>
-        </Paper>
+        </Box>
       )}
 
       <Dialog open={confirmDelete} onClose={closeDelete} fullWidth maxWidth="sm">

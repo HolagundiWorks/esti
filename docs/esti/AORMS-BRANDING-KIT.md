@@ -78,6 +78,13 @@ Intelligence, now everywhere):
   hairline between Rail and Stage.
 - **Tables sit flat on the canvas** — MUI X `DataGrid` with no surface fill and no
   outer border, just hairline row rules and tiny uppercase eyebrow headers.
+- **Card-less content.** Do not wrap content in an elevated/bordered `<Paper>` or
+  `<Card>`. Group a section with the shared **`FlatSection`** primitive
+  (`components/FlatSection.tsx` — an uppercase eyebrow title + optional action +
+  content) and separate stacked sections with **`<Hairline />`** (or a plain
+  `<Divider>`). Small metric/KPI tiles keep only a hairline `border` for definition.
+  Pop surfaces (Dialog / Menu / Drawer) and interactive launcher tiles are the
+  exceptions that keep a surface.
 - **The only elevated surfaces are the floating widgets** (ESTI · Pomodoro ·
   Calculator), which use the **neumorphic** soft-UI treatment: same-colour panel
   with a dark bottom-right shadow + a light top-left highlight. **Neu is the one

@@ -1,8 +1,8 @@
 import {
+  Box,
   Button,
   Chip,
   MenuItem,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -168,7 +168,7 @@ export function AttendanceTab() {
           description: "Add staff in Team before marking attendance.",
         }}
       >
-        <Paper>
+        <Box>
           <Typography variant="h6" sx={{ p: 2, pb: 1 }}>{`Attendance · ${date}`}</Typography>
           <DataGrid
             rows={rows}
@@ -180,7 +180,7 @@ export function AttendanceTab() {
             hideFooter
             autoHeight
           />
-        </Paper>
+        </Box>
       </DataState>
     </Stack>
   );

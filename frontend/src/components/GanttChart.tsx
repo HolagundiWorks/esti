@@ -6,7 +6,7 @@
  */
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import ChevronRight from "@mui/icons-material/ChevronRight";
-import { Chip, IconButton, Paper, Stack } from "@mui/material";
+import { Box, Chip, IconButton, Stack } from "@mui/material";
 import type { ReactNode } from "react";
 
 export type GanttChartRow = {
@@ -89,9 +89,9 @@ export function GanttChart({
 }) {
   if (rows.length === 0) {
     return (
-      <Paper className="esti-gantt esti-gantt--empty">
+      <Box className="esti-gantt esti-gantt--empty">
         <p>{emptyMessage}</p>
-      </Paper>
+      </Box>
     );
   }
 
@@ -144,7 +144,7 @@ export function GanttChart({
                 className={`esti-gantt__row${row.indent ? " esti-gantt__row--child" : ""}`}
               >
                 <div className="esti-gantt__card-col">
-                  <Paper className={`esti-gantt__card${row.indent ? " esti-gantt__card--sub" : ""}`}>
+                  <Box className={`esti-gantt__card${row.indent ? " esti-gantt__card--sub" : ""}`}>
                     <div className="esti-gantt__card-inner">
                       {row.expandable ? (
                         <IconButton
@@ -171,7 +171,7 @@ export function GanttChart({
                         <p className="esti-gantt__card-meta">{row.meta}</p>
                       </div>
                     </div>
-                  </Paper>
+                  </Box>
                 </div>
                 <div className="esti-gantt__timeline-col">
                   <div className="esti-gantt__track" aria-hidden>

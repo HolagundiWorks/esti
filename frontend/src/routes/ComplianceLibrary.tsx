@@ -7,7 +7,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Paper,
   Stack,
   Tab,
   Tabs,
@@ -367,7 +366,7 @@ function DocumentsTab() {
       </Box>
 
       {showUpload && (
-        <Paper sx={{ p: 2 }}>
+        <Box sx={{ p: 2 }}>
           <Stack spacing={2}>
             <TextField
               id="cdoc-title"
@@ -408,7 +407,7 @@ function DocumentsTab() {
               </Button>
             </Box>
           </Stack>
-        </Paper>
+        </Box>
       )}
 
       {error && (

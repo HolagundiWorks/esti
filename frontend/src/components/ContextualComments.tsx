@@ -1,4 +1,4 @@
-import { Button, Chip, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Chip, Stack, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 
@@ -30,7 +30,7 @@ export function ContextualComments({
   });
 
   return (
-    <Paper sx={{ p: 3 }}>
+    <Box sx={{ p: 3 }}>
       <Stack spacing={2}>
         <Stack spacing={1}>
           <Typography variant="h6" component="h3">{heading}</Typography>
@@ -75,6 +75,6 @@ export function ContextualComments({
           ))}
         </Stack>
       </Stack>
-    </Paper>
+    </Box>
   );
 }

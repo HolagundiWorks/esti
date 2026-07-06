@@ -1,8 +1,8 @@
 import {
+  Box,
   Chip,
   Grid,
   IconButton,
-  Paper,
   Stack,
   Typography,
 } from "@mui/material";
@@ -88,7 +88,7 @@ export function WorkloadTab() {
   return (
     <Grid container spacing={2} className="esti-dash">
       <Grid size={{ xs: 12 }}>
-        <Paper sx={{ p: 2 }}>
+        <Box sx={{ p: 2 }}>
           <Stack spacing={1.5}>
             <Typography variant="h6">Heatmap scale</Typography>
             <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap" }}>
@@ -106,7 +106,7 @@ export function WorkloadTab() {
               ))}
             </Stack>
           </Stack>
-        </Paper>
+        </Box>
       </Grid>
 
       <Grid size={{ xs: 12 }}>
@@ -114,7 +114,7 @@ export function WorkloadTab() {
       </Grid>
 
       <Grid size={{ xs: 12, lg: 7 }}>
-        <Paper className="esti-fill" sx={{ p: 2 }}>
+        <Box className="esti-fill" sx={{ p: 2 }}>
           <Stack spacing={2}>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
               <IconButton size="small" aria-label="Previous month" onClick={() => shiftMonth(-1)}>
@@ -159,12 +159,12 @@ export function WorkloadTab() {
             </div>
             <Typography variant="body2">Open tasks due each day. Darker cell = higher workload.</Typography>
           </Stack>
-        </Paper>
+        </Box>
       </Grid>
 
       <Grid size={{ xs: 12, lg: 5 }}>
         <Stack spacing={2}>
-          <Paper sx={{ p: 2 }}>
+          <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
             <Stack spacing={1.5}>
               <Stack spacing={0.5}>
                 <p>Office — {selectedLabel}</p>
@@ -175,9 +175,9 @@ export function WorkloadTab() {
                 <p>{headcount} staff · {avg} avg</p>
               </Stack>
             </Stack>
-          </Paper>
+          </Box>
 
-          <Paper className="esti-fill" sx={{ p: 2 }}>
+          <Box className="esti-fill" sx={{ p: 2 }}>
             <Stack spacing={1.5}>
               <Typography variant="h6">Individual workload</Typography>
               {day && day.people.length > 0 ? (
@@ -195,9 +195,9 @@ export function WorkloadTab() {
                 <p>No assignees for this day.</p>
               )}
             </Stack>
-          </Paper>
+          </Box>
 
-          <Paper sx={{ p: 2 }}>
+          <Box sx={{ p: 2 }}>
             <Stack spacing={1}>
               <Typography variant="h6">Workload bands</Typography>
               {(["light", "balanced", "heavy"] as const).map((band) => (
@@ -207,7 +207,7 @@ export function WorkloadTab() {
                 </Stack>
               ))}
             </Stack>
-          </Paper>
+          </Box>
         </Stack>
       </Grid>
     </Grid>

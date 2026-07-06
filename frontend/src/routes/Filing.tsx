@@ -1,4 +1,4 @@
-import { Box, Button, Paper, Stack, Tab, Tabs, Typography } from "@mui/material";
+import { Box, Button, Stack, Tab, Tabs, Typography } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { formatINR } from "@esti/contracts";
 import type { PeriodFilterInput } from "@esti/contracts";
@@ -80,7 +80,7 @@ export function Filing() {
         <Stack spacing={1.5}>
           <PeriodFilter value={period} onChange={setPeriod} />
           {gst.data && (
-            <Paper sx={{ p: 2 }}>
+            <Box sx={{ p: 2 }}>
               <Stack spacing={2} sx={{ alignItems: "flex-start" }}>
                 <Typography variant="body2">
                   <strong>{gst.data.label}</strong> · {gst.data.from} to {gst.data.to}
@@ -97,7 +97,7 @@ export function Filing() {
                   Export invoice register (XLSX)
                 </Button>
               </Stack>
-            </Paper>
+            </Box>
           )}
         </Stack>
       }

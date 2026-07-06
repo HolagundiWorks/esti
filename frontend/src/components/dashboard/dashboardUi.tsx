@@ -1,5 +1,5 @@
 import ArrowForward from "@mui/icons-material/ArrowForward";
-import { Card, CardActionArea, Chip, Grid, Paper, Stack } from "@mui/material";
+import { Box, Card, CardActionArea, Chip, Grid, Stack } from "@mui/material";
 import type { ReactNode } from "react";
 
 export const CHART_HEIGHT = "240px";
@@ -147,7 +147,7 @@ export function ZoneTile({
       <CardActionArea sx={{ height: 1, p: 2 }} onClick={() => navigate(to)}>{inner}</CardActionArea>
     </Card>
   ) : (
-    <Paper className="esti-fill" sx={{ p: 2 }}>{inner}</Paper>
+    <Box className="esti-fill" sx={{ p: 2, border: 1, borderColor: "divider" }}>{inner}</Box>
   );
 }
 
@@ -203,9 +203,9 @@ export function KpiChip({
       <CardActionArea sx={{ height: 1, p: 2 }} onClick={onClick}>{body}</CardActionArea>
     </Card>
   ) : (
-    <Paper className="esti-fill" style={edge(health)} sx={{ p: 2 }}>
+    <Box className="esti-fill" style={edge(health)} sx={{ p: 2 }}>
       {body}
-    </Paper>
+    </Box>
   );
 }
 

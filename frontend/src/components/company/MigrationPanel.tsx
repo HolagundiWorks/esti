@@ -1,4 +1,4 @@
-import { Alert, Button, Paper, Stack, Typography } from "@mui/material";
+import { Alert, Box, Button, Stack, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useState } from "react";
 import type { ChangeEvent } from "react";
@@ -61,7 +61,7 @@ export function MigrationPanel() {
 
   const pf = preflightQ.data;
   return (
-    <Paper sx={{ p: 3 }}>
+    <Box sx={{ p: 3 }}>
       <Stack spacing={2}>
         <Typography variant="h6" component="h3">{community ? "Move to AORMS Pro" : "Cloud migration"}</Typography>
         <Typography variant="body2" color="text.secondary">
@@ -90,6 +90,6 @@ export function MigrationPanel() {
         {msg && <Alert severity="success" onClose={() => setMsg(null)}>{msg}</Alert>}
         {err && <Alert severity="error" onClose={() => setErr(null)}>{err}</Alert>}
       </Stack>
-    </Paper>
+    </Box>
   );
 }

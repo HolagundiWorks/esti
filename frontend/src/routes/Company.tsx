@@ -4,7 +4,6 @@ import {
   Button,
   FormControlLabel,
   MenuItem,
-  Paper,
   Stack,
   Switch,
   Table,
@@ -179,7 +178,7 @@ export function Company() {
         </Alert>
       )}
 
-      <Paper className="esti-form-panel--wide" sx={{ p: 3 }}>
+      <Box className="esti-form-panel--wide" sx={{ p: 3 }}>
         <Stack spacing={2}>
           <TextField
             id="co-name"
@@ -434,11 +433,11 @@ export function Company() {
             </Button>
           </Box>
         </Stack>
-      </Paper>
+      </Box>
 
       {f.firmType === "PARTNERSHIP" && <Partners isOwner={isOwner} />}
 
-      <Paper className="esti-form-panel--wide" sx={{ p: 3 }}>
+      <Box className="esti-form-panel--wide" sx={{ p: 3 }}>
         <Stack spacing={2}>
           <Typography variant="h6" component="h2">Team &amp; HR module</Typography>
           <Typography variant="body2">
@@ -478,9 +477,9 @@ export function Company() {
             </Stack>
           )}
         </Stack>
-      </Paper>
+      </Box>
 
-      <Paper className="esti-form-panel--wide" sx={{ p: 3 }}>
+      <Box className="esti-form-panel--wide" sx={{ p: 3 }}>
         <Stack spacing={2}>
           <Typography variant="h6" component="h2">PMC module</Typography>
           <Typography variant="body2">
@@ -500,7 +499,7 @@ export function Company() {
           />
           {!isOwner && <Typography variant="body2">Only the owner can change this.</Typography>}
         </Stack>
-      </Paper>
+      </Box>
 
       {isOwner && !community && <LicensePanel />}
       {isOwner && <MigrationPanel />}

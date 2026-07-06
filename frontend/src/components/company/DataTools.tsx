@@ -6,7 +6,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -35,7 +34,7 @@ export function DataTools() {
   };
 
   return (
-    <Paper sx={{ p: 3, maxWidth: 760 }}>
+    <Box sx={{ p: 3, maxWidth: 760 }}>
       <Stack spacing={2}>
         <Typography variant="h5" component="h2">Data tools</Typography>
         {msg && <Alert severity="success" onClose={() => setMsg(null)}>{msg}</Alert>}
@@ -82,6 +81,6 @@ export function DataTools() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Paper>
+    </Box>
   );
 }

@@ -12,7 +12,6 @@ import {
   FormControlLabel,
   FormGroup,
   Grid,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -86,16 +85,16 @@ export function TeamsPanel() {
       {teamsQ.isLoading ? (
         <p className="esti-label esti-label--secondary">Loading…</p>
       ) : teams.length === 0 ? (
-        <Paper sx={{ p: 2 }}>
+        <Box sx={{ p: 2 }}>
           <p>
             No teams yet. Create a team to group staff and staff them onto a project in one action.
           </p>
-        </Paper>
+        </Box>
       ) : (
         <Grid container spacing={1.5}>
           {teams.map((t) => (
             <Grid key={t.id} size={{ xs: 12, md: 6, lg: 3 }}>
-              <Paper className="esti-fill" sx={{ p: 2 }}>
+              <Box className="esti-fill" sx={{ p: 2, border: 1, borderColor: "divider" }}>
                 <Stack spacing={1}>
                   <Box className="esti-row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                     <strong>{t.name}</strong>
@@ -114,7 +113,7 @@ export function TeamsPanel() {
                       onClick={() => remove.mutate({ id: t.id })}>Delete</Button>
                   </Box>
                 </Stack>
-              </Paper>
+              </Box>
             </Grid>
           ))}
         </Grid>

@@ -1,11 +1,11 @@
 import {
   Alert,
   AlertTitle,
+  Box,
   Button,
   Chip,
   CircularProgress,
   MenuItem,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -131,9 +131,9 @@ export function PortalMinutes({
 
       {momsQ.isLoading && <p className="esti-label esti-label--secondary">Loading…</p>}
       {!momsQ.isLoading && moms.length === 0 && (
-        <Paper sx={{ p: 2 }}>
+        <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
           <Typography variant="body1">No issued meeting minutes yet.</Typography>
-        </Paper>
+        </Box>
       )}
 
       <Stack spacing={1}>
@@ -141,7 +141,7 @@ export function PortalMinutes({
           const momDrafts = drafts[m.id] ?? [];
           const hasRun = suggestedFor.has(m.id);
           return (
-            <Paper key={m.id} sx={{ p: 2 }}>
+            <Box key={m.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
               <Stack spacing={1}>
                 <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", alignItems: "center" }}>
                   <Typography variant="body1">
@@ -189,7 +189,7 @@ export function PortalMinutes({
                 )}
 
                 {momDrafts.map((draft) => (
-                  <Paper key={draft.key} sx={{ p: 2 }}>
+                  <Box key={draft.key} sx={{ p: 2, border: 1, borderColor: "divider" }}>
                     <Stack spacing={1.5}>
                       <Stack direction="row">
                         <Chip
@@ -251,10 +251,10 @@ export function PortalMinutes({
                         </Button>
                       </Stack>
                     </Stack>
-                  </Paper>
+                  </Box>
                 ))}
               </Stack>
-            </Paper>
+            </Box>
           );
         })}
       </Stack>

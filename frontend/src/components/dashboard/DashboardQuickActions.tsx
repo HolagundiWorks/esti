@@ -11,13 +11,13 @@ import ReceiptLong from "@mui/icons-material/ReceiptLong";
 import TaskAlt from "@mui/icons-material/TaskAlt";
 import {
   Alert,
+  Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   MenuItem,
-  Paper,
   Stack,
   TextField,
 } from "@mui/material";
@@ -82,7 +82,7 @@ export function DashboardQuickActions() {
   };
 
   return (
-    <Paper className="esti-fill" sx={{ p: 2 }}>
+    <Box className="esti-fill" sx={{ p: 2 }}>
       <Stack spacing={1.5}>
         <span className="esti-label esti-label--secondary">QUICK ACTIONS</span>
         <div className="esti-row">
@@ -235,6 +235,6 @@ export function DashboardQuickActions() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Paper>
+    </Box>
   );
 }

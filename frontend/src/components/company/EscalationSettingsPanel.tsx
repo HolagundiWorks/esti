@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   FormControlLabel,
-  Paper,
   Stack,
   Switch,
   TextField,
@@ -37,7 +36,7 @@ export function EscalationSettingsPanel() {
   });
 
   return (
-    <Paper sx={{ p: 3, maxWidth: 760 }}>
+    <Box sx={{ p: 3, maxWidth: 760 }}>
       <Stack spacing={2}>
         <Typography variant="h5" component="h2">Alert escalation</Typography>
         <Typography variant="body2">
@@ -103,6 +102,6 @@ export function EscalationSettingsPanel() {
           </Button>
         </Box>
       </Stack>
-    </Paper>
+    </Box>
   );
 }

@@ -1,6 +1,6 @@
 import ArrowForward from "@mui/icons-material/ArrowForward";
 import Check from "@mui/icons-material/Check";
-import { Button, Chip, Paper, Stack, Typography } from "@mui/material";
+import { Box, Button, Chip, Stack, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { PLAN_LABEL } from "@esti/contracts";
 import { Link as RouterLink } from "react-router-dom";
@@ -24,7 +24,7 @@ export function UpgradeToPro() {
 
   if (community) {
     return (
-      <Paper sx={{ p: 3 }}>
+      <Box sx={{ p: 3 }}>
         <Stack spacing={1}>
           <Typography variant="h6" component="h3">Upgrade to AORMS Pro</Typography>
           <Typography variant="body2" color="text.secondary">
@@ -34,7 +34,7 @@ export function UpgradeToPro() {
             new Pro workspace. Migration is one-way.
           </Typography>
         </Stack>
-      </Paper>
+      </Box>
     );
   }
 
@@ -46,7 +46,7 @@ export function UpgradeToPro() {
 
   if (isPro) {
     return (
-      <Paper sx={{ p: 3 }}>
+      <Box sx={{ p: 3 }}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <Check fontSize="small" />
           <Typography variant="body2" sx={{ flex: 1 }}>
@@ -54,7 +54,7 @@ export function UpgradeToPro() {
           </Typography>
           <Chip size="small" label={PLAN_LABEL[view.plan]} sx={tagSx("green")} />
         </Stack>
-      </Paper>
+      </Box>
     );
   }
 
@@ -73,7 +73,7 @@ export function UpgradeToPro() {
   ];
 
   return (
-    <Paper sx={{ p: 3 }}>
+    <Box sx={{ p: 3 }}>
       <Stack spacing={2}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <Typography variant="h6" component="h3" sx={{ flex: 1 }}>Upgrade to Pro</Typography>
@@ -96,6 +96,6 @@ export function UpgradeToPro() {
           ))}
         </Stack>
       </Stack>
-    </Paper>
+    </Box>
   );
 }

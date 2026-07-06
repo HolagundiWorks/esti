@@ -1,12 +1,12 @@
 import {
   Alert,
   AlertTitle,
+  Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -117,14 +117,14 @@ export function ProjectMinutes({ projectId }: { projectId: string }) {
 
       {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
       {rows.length === 0 && !listQ.isLoading && (
-        <Paper sx={{ p: 2 }}>
+        <Box sx={{ p: 2, border: 1, borderColor: "divider" }}>
           <Typography variant="body2">No meeting minutes recorded for this project yet.</Typography>
-        </Paper>
+        </Box>
       )}
 
       <Stack spacing={1}>
         {rows.map((m) => (
-          <Paper key={m.id} sx={{ p: 2 }}>
+          <Box key={m.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
             <Stack spacing={1}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <strong>
@@ -172,7 +172,7 @@ export function ProjectMinutes({ projectId }: { projectId: string }) {
                 )}
               </Stack>
             </Stack>
-          </Paper>
+          </Box>
         ))}
       </Stack>
 

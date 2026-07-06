@@ -1,9 +1,9 @@
 import {
   Alert,
   AlertTitle,
+  Box,
   Button,
   MenuItem,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -38,7 +38,7 @@ export function WorkloadCalendarSync() {
     "Google Calendar → Other calendars → + → From URL → paste the HTTPS link below.";
 
   return (
-    <Paper sx={{ p: 2 }}>
+    <Box sx={{ p: 2 }}>
       <Stack spacing={2}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <CalendarMonth sx={{ fontSize: 20 }} aria-hidden />
@@ -112,6 +112,6 @@ export function WorkloadCalendarSync() {
           with it can read task titles and due dates in the feed scope you chose.
         </p>
       </Stack>
-    </Paper>
+    </Box>
   );
 }

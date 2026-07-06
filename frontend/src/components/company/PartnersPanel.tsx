@@ -1,8 +1,8 @@
 import {
   Box,
   Button,
+  Divider,
   MenuItem,
-  Paper,
   Stack,
   Table,
   TableBody,
@@ -54,7 +54,7 @@ export function Partners({ isOwner }: { isOwner: boolean }) {
   return (
     <Stack spacing={3}>
       <Typography variant="h5" component="h2">Partners</Typography>
-      <TableContainer component={Paper} sx={{ p: 2 }}>
+      <TableContainer sx={{ p: 2 }}>
         <Typography variant="h6" component="h3" sx={{ mb: 1 }}>Partner register</Typography>
         <Table size="small">
           <TableHead>
@@ -93,8 +93,10 @@ export function Partners({ isOwner }: { isOwner: boolean }) {
       </TableContainer>
 
       {isOwner && (
-        <Paper sx={{ p: 3, maxWidth: 760 }}>
-          <Stack spacing={2}>
+        <>
+          <Divider />
+          <Box sx={{ p: 3, maxWidth: 760 }}>
+            <Stack spacing={2}>
             <Typography variant="h6" component="h3">Add partner</Typography>
             <Stack direction="row" spacing={2}>
               <TextField
@@ -218,7 +220,8 @@ export function Partners({ isOwner }: { isOwner: boolean }) {
               </Button>
             </Box>
           </Stack>
-        </Paper>
+          </Box>
+        </>
       )}
     </Stack>
   );

@@ -1,4 +1,4 @@
-import { Chip, Grid, LinearProgress, Paper, Stack, Typography } from "@mui/material";
+import { Box, Chip, Grid, LinearProgress, Stack, Typography } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { formatINR } from "@esti/contracts";
 import { DataState } from "../DataState.js";
@@ -53,14 +53,14 @@ export function ProjectCostIntelligence({ projectId }: { projectId: string }) {
           {d && (
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, md: 6, lg: 3 }}>
-                <Paper sx={{ p: 2, height: 1 }}>
+                <Box sx={{ p: 2, height: 1, border: 1, borderColor: "divider" }}>
                   <p className="esti-label--secondary">Estimated Total</p>
                   <p>{formatINR(d.estimatedTotalPaise)}</p>
                   <p className="esti-label--helper">{d.elementCount} elements</p>
-                </Paper>
+                </Box>
               </Grid>
               <Grid size={{ xs: 12, md: 6, lg: 3 }}>
-                <Paper sx={{ p: 2, height: 1 }}>
+                <Box sx={{ p: 2, height: 1, border: 1, borderColor: "divider" }}>
                   <p className="esti-label--secondary">Executed (Est. Value)</p>
                   <p>{formatINR(d.executedEstimatedPaise)}</p>
                   <LinearProgress
@@ -68,10 +68,10 @@ export function ProjectCostIntelligence({ projectId }: { projectId: string }) {
                     value={Math.min(100, Math.max(0, d.percentExecuted))}
                   />
                   <p className="esti-label--helper">{d.percentExecuted}% complete</p>
-                </Paper>
+                </Box>
               </Grid>
               <Grid size={{ xs: 12, md: 6, lg: 3 }}>
-                <Paper sx={{ p: 2, height: 1 }}>
+                <Box sx={{ p: 2, height: 1, border: 1, borderColor: "divider" }}>
                   <p className="esti-label--secondary">Certified Total</p>
                   <p>{formatINR(d.certifiedTotalPaise)}</p>
                   <LinearProgress
@@ -79,10 +79,10 @@ export function ProjectCostIntelligence({ projectId }: { projectId: string }) {
                     value={Math.min(100, Math.max(0, d.percentCertified))}
                   />
                   <p className="esti-label--helper">{d.percentCertified}% of estimated</p>
-                </Paper>
+                </Box>
               </Grid>
               <Grid size={{ xs: 12, md: 6, lg: 3 }}>
-                <Paper sx={{ p: 2, height: 1 }}>
+                <Box sx={{ p: 2, height: 1, border: 1, borderColor: "divider" }}>
                   <p className="esti-label--secondary">Balance to Certify</p>
                   <p>
                     {formatINR(Math.max(0, d.estimatedTotalPaise - d.certifiedTotalPaise))}
@@ -94,7 +94,7 @@ export function ProjectCostIntelligence({ projectId }: { projectId: string }) {
                       <Chip label="Pending" size="small" sx={tagSx("cool-gray")} />
                     )}
                   </div>
-                </Paper>
+                </Box>
               </Grid>
             </Grid>
           )}

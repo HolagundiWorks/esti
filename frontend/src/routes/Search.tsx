@@ -4,7 +4,6 @@ import {
   Chip,
   InputAdornment,
   MenuItem,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -195,7 +194,10 @@ export function SearchPage() {
             <Typography variant="subtitle1" component="h3">{`Results for “${appliedQ}”`}</Typography>
             <Stack spacing={1}>
               {hits.map((h) => (
-                <Paper key={`${h.entityType}-${h.entityId}`} sx={{ p: 2 }}>
+                <Box
+                  key={`${h.entityType}-${h.entityId}`}
+                  sx={{ p: 2, border: 1, borderColor: "divider" }}
+                >
                   <Stack spacing={1}>
                     <Stack
                       direction="row"
@@ -222,7 +224,7 @@ export function SearchPage() {
                       )}
                     </Typography>
                   </Stack>
-                </Paper>
+                </Box>
               ))}
             </Stack>
           </Stack>

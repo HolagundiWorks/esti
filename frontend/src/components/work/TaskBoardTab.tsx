@@ -1,10 +1,10 @@
 import {
+  Box,
   Checkbox,
   Chip,
   FormControlLabel,
   Grid,
   MenuItem,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -75,7 +75,7 @@ export function TaskBoardTab() {
                     colTasks.map((t) => {
                       const overdue = t.dueDate && t.dueDate < today && t.status !== "DONE";
                       return (
-                        <Paper key={t.id} sx={{ p: 2 }}>
+                        <Box key={t.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
                           <Stack spacing={1}>
                             <strong>{t.title}</strong>
                             <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
@@ -115,7 +115,7 @@ export function TaskBoardTab() {
                               ))}
                             </TextField>
                           </Stack>
-                        </Paper>
+                        </Box>
                       );
                     })
                   )}

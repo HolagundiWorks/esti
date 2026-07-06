@@ -78,7 +78,9 @@ function StatCard({
       </CardActionArea>
     </Card>
   ) : (
-    <Card className="esti-fill">{body}</Card>
+    <Box className="esti-fill" sx={{ border: 1, borderColor: "divider" }}>
+      {body}
+    </Box>
   );
 }
 

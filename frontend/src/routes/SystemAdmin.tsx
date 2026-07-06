@@ -3,7 +3,6 @@ import {
   Box,
   CircularProgress,
   Grid,
-  Paper,
   Stack,
   Switch,
   Typography,
@@ -34,7 +33,7 @@ type ModuleTileProps = {
 
 function ModuleTile({ icon: Icon, title, description, enabled, loading, onToggle }: ModuleTileProps) {
   return (
-    <Paper sx={{ p: 2, height: 1 }}>
+    <Box sx={{ p: 2, height: 1, border: 1, borderColor: "divider" }}>
       <Stack spacing={2}>
         <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
           <Stack spacing={1.5}>
@@ -58,7 +57,7 @@ function ModuleTile({ icon: Icon, title, description, enabled, loading, onToggle
           </Stack>
         )}
       </Stack>
-    </Paper>
+    </Box>
   );
 }
 

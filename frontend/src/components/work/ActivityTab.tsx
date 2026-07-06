@@ -1,4 +1,4 @@
-import { Alert, Button, Chip, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Chip, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { ACTIVITY_DOMAIN_TAG, activityDomain } from "@esti/contracts";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -45,7 +45,7 @@ export function ActivityTab() {
             const domain = activityDomain(item.eventType);
             const dcolor = ACTIVITY_DOMAIN_TAG[domain];
             return (
-              <Paper key={item.id} sx={{ p: 2 }}>
+              <Box key={item.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
                 <Stack spacing={1}>
                   <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                     <Chip
@@ -70,7 +70,7 @@ export function ActivityTab() {
                     )}
                   </p>
                 </Stack>
-              </Paper>
+              </Box>
             );
           })}
           {listQ.hasNextPage && (

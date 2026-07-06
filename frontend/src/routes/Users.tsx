@@ -7,10 +7,10 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   Grid,
   LinearProgress,
   MenuItem,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -294,7 +294,7 @@ export function Users() {
         }
       >
 
-      <Paper sx={{ p: 3 }}>
+      <Box sx={{ p: 3 }}>
         <Stack spacing={2}>
           <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
             <Typography variant="subtitle1" component="h3" className="esti-label">Seat usage</Typography>
@@ -323,7 +323,7 @@ export function Users() {
             ))}
           </Grid>
         </Stack>
-      </Paper>
+      </Box>
 
       {msg && (
         <Alert severity="success" onClose={() => setMsg(null)}>
@@ -331,7 +331,9 @@ export function Users() {
         </Alert>
       )}
 
-      <Paper sx={{ p: 3 }}>
+      <Divider sx={{ my: 2 }} />
+
+      <Box sx={{ p: 3 }}>
         <Stack spacing={2}>
           <Typography variant="subtitle1" component="h3">Logins</Typography>
           <DataGrid
@@ -345,7 +347,7 @@ export function Users() {
             autoHeight
           />
         </Stack>
-      </Paper>
+      </Box>
       </RailLayout>
 
       <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm">

@@ -1,7 +1,7 @@
 import {
   Alert,
+  Box,
   Button,
-  Paper,
   Stack,
   Table,
   TableBody,
@@ -22,7 +22,7 @@ export function ConnectedDevicesPanel() {
   const rows = devicesQ.data ?? [];
 
   return (
-    <Paper sx={{ p: 3, maxWidth: 760 }}>
+    <Box sx={{ p: 3, maxWidth: 760 }}>
       <Stack spacing={2}>
         <Typography variant="h5" component="h2">Connected devices</Typography>
         <Typography variant="body2">
@@ -73,6 +73,6 @@ export function ConnectedDevicesPanel() {
           </Table>
         )}
       </Stack>
-    </Paper>
+    </Box>
   );
 }

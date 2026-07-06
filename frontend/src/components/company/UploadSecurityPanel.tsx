@@ -1,4 +1,4 @@
-import { Alert, Box, Button, FormControlLabel, Paper, Stack, Switch, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, FormControlLabel, Stack, Switch, TextField, Typography } from "@mui/material";
 import { UPLOAD_PASSWORD_MIN_LENGTH } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { trpc } from "../../lib/trpc.js";
@@ -28,7 +28,7 @@ export function UploadSecurityPanel() {
   const configured = settingsQ.data?.uploadPasswordConfigured ?? false;
 
   return (
-    <Paper sx={{ p: 3, maxWidth: 760 }}>
+    <Box sx={{ p: 3, maxWidth: 760 }}>
       <Stack spacing={2}>
         <Typography variant="h5" component="h2">Upload protection</Typography>
         <Typography variant="body2">
@@ -74,6 +74,6 @@ export function UploadSecurityPanel() {
           </Button>
         </Box>
       </Stack>
-    </Paper>
+    </Box>
   );
 }

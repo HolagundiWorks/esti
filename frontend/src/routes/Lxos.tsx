@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Chip, Grid, Paper, Stack, Tab, Tabs } from "@mui/material";
+import { Box, Chip, Grid, Stack, Tab, Tabs } from "@mui/material";
 import { RailLayout } from "../components/RailLayout.js";
 import { LessonsBank } from "../components/ProjectLessons.js";
 
@@ -15,7 +15,7 @@ function PlannedGrid({ items }: { items: { title: string; description: string }[
     <Grid container spacing={1}>
       {items.map((m) => (
         <Grid key={m.title} size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Paper sx={{ p: 2, height: "100%" }}>
+          <Box sx={{ p: 2, height: "100%", border: 1, borderColor: "divider" }}>
             <Stack spacing={1}>
               <h4>{m.title}</h4>
               <p className="esti-label esti-label--secondary">{m.description}</p>
@@ -23,7 +23,7 @@ function PlannedGrid({ items }: { items: { title: string; description: string }[
                 <Chip label="Planned" size="small" variant="outlined" />
               </Box>
             </Stack>
-          </Paper>
+          </Box>
         </Grid>
       ))}
     </Grid>

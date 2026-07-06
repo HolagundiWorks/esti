@@ -4,7 +4,6 @@ import {
   Button,
   Chip,
   CircularProgress,
-  Paper,
   Stack,
   TextField,
 } from "@mui/material";
@@ -91,7 +90,7 @@ export function AccountTab() {
     return (
       <Stack spacing={2}>
         <UpgradeToPro />
-        <Paper className="esti-fill" sx={{ p: 2 }}>
+        <Box className="esti-fill" sx={{ p: 2 }}>
           <Stack spacing={2}>
             <p>
               Sign in to your AORMS account to manage your plan, companies, security and
@@ -149,7 +148,7 @@ export function AccountTab() {
               Don&apos;t have an account? <RouterLink to="/account?mode=create">Create one</RouterLink>.
             </p>
           </Stack>
-        </Paper>
+        </Box>
       </Stack>
     );
   }

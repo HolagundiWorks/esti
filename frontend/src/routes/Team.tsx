@@ -1,5 +1,6 @@
 import {
   Alert,
+  Box,
   Button,
   Chip,
   Dialog,
@@ -8,7 +9,6 @@ import {
   DialogTitle,
   Grid,
   MenuItem,
-  Paper,
   Stack,
   TextField,
 } from "@mui/material";
@@ -117,9 +117,9 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
             const contact = m.email ?? m.phone ?? null;
             return (
               <Grid key={m.id} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
-                <Paper
+                <Box
                   className="esti-staff-tile"
-                  sx={{ p: 0, overflow: "hidden", height: 1 }}
+                  sx={{ p: 0, overflow: "hidden", height: 1, border: 1, borderColor: "divider" }}
                   style={{ "--esti-staff-color": color } as CSSProperties}
                 >
                   {/* Portrait photo area — color fill + large initials */}
@@ -176,7 +176,7 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
                       </Button>
                     </div>
                   </div>
-                </Paper>
+                </Box>
               </Grid>
             );
           })}

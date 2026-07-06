@@ -4,7 +4,7 @@ import {
   Button,
   Chip,
   CircularProgress,
-  Paper,
+  Divider,
   Stack,
   TextField,
   Typography,
@@ -118,7 +118,7 @@ export function Settings() {
       )}
 
       {/* Profile photo */}
-      <Paper className="esti-form-panel" sx={{ p: 3 }}>
+      <Box className="esti-form-panel" sx={{ p: 3 }}>
         <Stack spacing={2}>
           <Typography variant="h6" component="h2">Profile photo</Typography>
           <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
@@ -160,9 +160,11 @@ export function Settings() {
             </Stack>
           </Stack>
         </Stack>
-      </Paper>
+      </Box>
 
-      <Paper className="esti-form-panel" sx={{ p: 3 }}>
+      <Divider sx={{ my: 2 }} />
+
+      <Box className="esti-form-panel" sx={{ p: 3 }}>
         <Stack spacing={1}>
           <Typography variant="h6" component="h2">Workspace preferences</Typography>
           <Typography variant="body2" color="text.secondary">
@@ -171,9 +173,11 @@ export function Settings() {
             icon or press Alt+S.
           </Typography>
         </Stack>
-      </Paper>
+      </Box>
 
-      <Paper className="esti-form-panel" sx={{ p: 3 }}>
+      <Divider sx={{ my: 2 }} />
+
+      <Box className="esti-form-panel" sx={{ p: 3 }}>
         <Stack spacing={2}>
           <Typography variant="h6" component="h2">Display name</Typography>
           <TextField
@@ -199,9 +203,11 @@ export function Settings() {
             </Button>
           </Box>
         </Stack>
-      </Paper>
+      </Box>
 
-      <Paper className="esti-form-panel" sx={{ p: 3 }}>
+      <Divider sx={{ my: 2 }} />
+
+      <Box className="esti-form-panel" sx={{ p: 3 }}>
         <Stack spacing={2}>
           <Typography variant="h6" component="h2">Change password</Typography>
           <TextField
@@ -251,9 +257,11 @@ export function Settings() {
             <Alert severity="error">{changePassword.error.message}</Alert>
           )}
         </Stack>
-      </Paper>
+      </Box>
 
-      <Paper className="esti-form-panel" sx={{ p: 3 }}>
+      <Divider sx={{ my: 2 }} />
+
+      <Box className="esti-form-panel" sx={{ p: 3 }}>
         <Stack spacing={2}>
           <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
             <Typography variant="h6" component="h2">Two-factor authentication</Typography>
@@ -354,7 +362,7 @@ export function Settings() {
             </>
           )}
         </Stack>
-      </Paper>
+      </Box>
     </RailLayout>
   );
 }

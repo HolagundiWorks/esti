@@ -10,7 +10,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -91,9 +90,9 @@ export function SitePortal() {
             </Stack>
           )}
           {(projectsQ.data ?? []).length === 0 && !projectsQ.isLoading && (
-            <Paper sx={{ p: 3 }}>
+            <Box sx={{ p: 3 }}>
               <Typography variant="body2">No projects assigned yet.</Typography>
-            </Paper>
+            </Box>
           )}
           <Stack spacing={1.5}>
             {(projectsQ.data ?? []).map((p) => (
@@ -133,7 +132,7 @@ export function SitePortal() {
             {(visitsQ.data ?? [])
               .filter((v) => v.status === "PLANNED" && !v.supervisorConfirmedAt)
               .map((v) => (
-                <Paper key={v.id} sx={{ p: 2 }}>
+                <Box key={v.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
                   <Stack spacing={1.5}>
                     <Typography variant="body1"><strong>{v.plannedDate}</strong></Typography>
                     {v.notes && <Typography variant="body2" color="text.secondary">{v.notes}</Typography>}
@@ -148,7 +147,7 @@ export function SitePortal() {
                       </Button>
                     </Box>
                   </Stack>
-                </Paper>
+                </Box>
               ))}
           </Stack>
         )}
@@ -167,16 +166,16 @@ export function SitePortal() {
           </Stack>
         )}
         {inspections.length === 0 && !inspectionsQ.isLoading && (
-          <Paper sx={{ p: 3 }}>
+          <Box sx={{ p: 3 }}>
             <Typography variant="body2">
               No inspection reports yet. Tap "New inspection report" to create one.
             </Typography>
-          </Paper>
+          </Box>
         )}
 
         <Stack spacing={1.5}>
           {inspections.map((insp) => (
-            <Paper key={insp.id} sx={{ p: 2 }}>
+            <Box key={insp.id} sx={{ p: 2, border: 1, borderColor: "divider" }}>
               <Stack spacing={1.5}>
                 <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
                   <Typography variant="body1"><strong>{insp.ref}</strong></Typography>
@@ -212,7 +211,7 @@ export function SitePortal() {
                   </Box>
                 )}
               </Stack>
-            </Paper>
+            </Box>
           ))}
         </Stack>
       </Stack>
