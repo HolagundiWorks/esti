@@ -1,31 +1,24 @@
 /**
  * AORMS Studio Intelligence — home screen of the system.
  *
- * IBM Carbon dashboard layout: attention band · connected KPI grid ·
- * action items + zone health · project health · work + approvals.
- * Single scrolling page, no tabs. Pure Carbon components only.
- *
- * Route: /  (root)
+ * Material UI + MUI X dashboard: attention banner · KPI cards · module launcher ·
+ * billed-vs-collected chart (x-charts) · side signal panels · DataGrids for action
+ * items, project health, work queue, approvals and team capacity. Liquid-glass
+ * surface (dark g100). Route: /  (root)
  */
 import {
-  ClickableTile,
-  Column,
+  Box,
+  Card,
+  CardActionArea,
+  CardContent,
+  Chip,
   Grid,
-  ProgressBar,
+  LinearProgress,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tag,
-  Theme,
-  Tile,
-} from "@carbon/react";
-import "@carbon/charts-react/styles.css";
-import { LineChart } from "@carbon/charts-react";
-import { ScaleTypes } from "@carbon/charts";
+  Typography,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import { LineChart } from "@mui/x-charts/LineChart";
 import {
   Bot,
   Building,
@@ -37,9 +30,9 @@ import {
   UserMultiple,
 } from "@carbon/icons-react";
 import type { CarbonIconType } from "@carbon/icons-react";
+import type { ReactNode } from "react";
 import { can, formatINRShort } from "@esti/contracts";
-import { StatusSymbol } from "../components/dashboard/abstractShell.js";
-import { DashboardQuickActions } from "../components/dashboard/DashboardQuickActions.js";
+import { OfficeHealthGlyph } from "../components/shell/OfficeHealthGlyph.js";
 import { STATE_WORD } from "../components/dashboard/zoneState.js";
 import type { ZoneState } from "../components/dashboard/zoneState.js";
 import { CAPACITY_LABEL } from "../components/dashboard/dashboardUi.js";
@@ -59,9 +52,6 @@ const ZCOLOR: Record<ZoneState, string> = {
   inactive: "var(--cds-text-disabled)",
 };
 
-// Identity colours per tile — Carbon tag-background tokens
-
-// Team load colours and capacity bar mapping — shared by DetailRow / ScreenProjects / ScreenTeam
 const loadPct = (c: string): number =>
   ({ OVERLOADED: 95, HIGH: 75, MODERATE: 55, AVAILABLE: 30 }[c] ?? 50);
 
@@ -98,10 +88,6 @@ function teamState(overloaded: number, total: number, hrEnabled: boolean): ZoneS
   return "stable";
 }
 
-// ── Health percentages ────────────────────────────────────────────────────────
-
-// ── GST status ────────────────────────────────────────────────────────────────
-
 function gstStatus(): { label: string; daysUntil: number; state: "stable" | "watch" | "friction" } {
   const today    = new Date();
   const m        = today.getMonth();
@@ -117,16 +103,10 @@ function gstStatus(): { label: string; daysUntil: number; state: "stable" | "wat
 
 // ── Attention vector ──────────────────────────────────────────────────────────
 
-interface AttnResult {
-  issue:      string;
-  action:     string;
-  chain:      Array<{ id: string; on: boolean }>;
-  chainColor: string;
-}
+interface AttnResult { issue: string; action: string; chainColor: string }
 
 function deriveAttn({
-  cs, fs, ps, ts,
-  pendingCount, maxWaitDays, riskProjects,
+  cs, fs, ps, ts, pendingCount, maxWaitDays, riskProjects,
   overduePaise, billingReadyCount, overloadedCount,
 }: {
   cs: ZoneState; fs: ZoneState; ps: ZoneState; ts: ZoneState;
@@ -134,98 +114,58 @@ function deriveAttn({
   riskProjects: Array<{ ref: string }>;
   overduePaise: number; billingReadyCount: number; overloadedCount: number;
 }): AttnResult {
-
   if (pendingCount > 0 && riskProjects.length > 0 && billingReadyCount > 0)
     return {
       issue:  `Client approval delay cascading into ${riskProjects.length > 1 ? `${riskProjects.length} projects` : (riskProjects[0]?.ref ?? "active delivery")} — billing queue blocked`,
       action: "Escalate pending client approvals today",
-      chain:  [{ id: "CLIENTS", on: true }, { id: "PROJECTS", on: true }, { id: "FINANCE", on: true }, { id: "TEAM", on: false }],
       chainColor: ZCOLOR["friction"],
     };
-
   if (pendingCount > 0 && riskProjects.length > 0)
     return {
       issue:  `Client approval pending ${maxWaitDays > 0 ? `(${maxWaitDays}d oldest)` : ""} — ${riskProjects.length} project${riskProjects.length > 1 ? "s" : ""} at delivery risk`,
       action: "Follow up on client response to unblock delivery",
-      chain:  [{ id: "CLIENTS", on: true }, { id: "PROJECTS", on: true }, { id: "FINANCE", on: false }, { id: "TEAM", on: false }],
       chainColor: ZCOLOR[cs === "critical" ? "critical" : "friction"],
     };
-
   if (fs === "critical" || fs === "friction")
     return {
       issue:  `${formatINRShort(overduePaise)} overdue — collection delay increasing`,
       action: "Contact clients on overdue invoices before end of week",
-      chain:  [{ id: "CLIENTS", on: false }, { id: "PROJECTS", on: false }, { id: "FINANCE", on: true }, { id: "TEAM", on: false }],
       chainColor: ZCOLOR[fs],
     };
-
   if (overloadedCount > 0 && riskProjects.length > 0)
     return {
       issue:  `${overloadedCount} member${overloadedCount > 1 ? "s" : ""} overloaded — delivery risk spreading to ${riskProjects.length} project${riskProjects.length > 1 ? "s" : ""}`,
       action: "Redistribute task load before delivery deadlines",
-      chain:  [{ id: "CLIENTS", on: false }, { id: "PROJECTS", on: true }, { id: "FINANCE", on: false }, { id: "TEAM", on: true }],
       chainColor: ZCOLOR[ts],
     };
-
   if (cs === "watch" || fs === "watch" || ps === "watch" || ts === "watch") {
     const which = [cs==="watch"&&"CLIENT", fs==="watch"&&"FINANCE", ps==="watch"&&"PROJECT", ts==="watch"&&"TEAM"].filter(Boolean).join(" + ");
     return {
       issue:  `${which} signals at watch level — monitor for escalation`,
       action: "Review flagged items before end of day",
-      chain:  [{ id: "CLIENTS", on: cs==="watch" }, { id: "PROJECTS", on: ps==="watch" }, { id: "FINANCE", on: fs==="watch" }, { id: "TEAM", on: ts==="watch" }],
       chainColor: ZCOLOR["watch"],
     };
   }
-
   return {
     issue:  "Practice operating normally. No immediate intervention required.",
     action: "Review weekly performance and plan next sprint",
-    chain:  [{ id: "CLIENTS", on: false }, { id: "PROJECTS", on: false }, { id: "FINANCE", on: false }, { id: "TEAM", on: false }],
     chainColor: ZCOLOR["stable"],
   };
 }
 
-// ── Cognitive overview primitives ────────────────────────────────────────────
+// ── Signal copy ───────────────────────────────────────────────────────────────
 
-// ── Cognitive load protection helpers ─────────────────────────────────────────
-
-// Neutral by design — recovery readout stays white, not colour-coded.
-
-type SignalCopy = {
-  value: string;
-  detail: string;
-};
-
-function clientSignal(state: ZoneState): SignalCopy {
-  if (state === "stable") return { value: "Responsive", detail: "Client communication is healthy." };
-  if (state === "watch") return { value: "Waiting", detail: "A normal client response is pending." };
-  if (state === "friction") return { value: "Approval blocking", detail: "A client decision is affecting progress." };
-  if (state === "critical") return { value: "Escalate today", detail: "A follow-up is needed to unblock work." };
-  return { value: "No client signal", detail: "Client activity is not available yet." };
+function clientSignal(state: ZoneState): string {
+  return { stable: "Responsive", watch: "Waiting", friction: "Approval blocking", critical: "Escalate today", inactive: "No client signal" }[state];
 }
-
-function financeSignal(state: ZoneState): SignalCopy {
-  if (state === "stable") return { value: "Cash flow stable", detail: "Billing is moving normally." };
-  if (state === "watch") return { value: "Follow-up pending", detail: "A payment reminder is recommended." };
-  if (state === "friction") return { value: "Recovery delayed", detail: "The billing cycle is slowing down." };
-  if (state === "critical") return { value: "Recover payment", detail: "Payment recovery needs attention today." };
-  return { value: "Finance restricted", detail: "Finance signals are not available for this role." };
+function financeSignal(state: ZoneState): string {
+  return { stable: "Cash flow stable", watch: "Follow-up pending", friction: "Recovery delayed", critical: "Recover payment", inactive: "Finance restricted" }[state];
 }
-
-function projectSignal(state: ZoneState): SignalCopy {
-  if (state === "stable") return { value: "On track", detail: "Project delivery is moving normally." };
-  if (state === "watch") return { value: "Starting to slow", detail: "Early delay signals are appearing." };
-  if (state === "friction") return { value: "Waiting on dependency", detail: "A blocker is slowing project progress." };
-  if (state === "critical") return { value: "Intervention needed", detail: "A project is stalled and needs review." };
-  return { value: "No project signal", detail: "No active project signal is available." };
+function projectSignal(state: ZoneState): string {
+  return { stable: "On track", watch: "Starting to slow", friction: "Waiting on dependency", critical: "Intervention needed", inactive: "No project signal" }[state];
 }
-
-function teamSignal(state: ZoneState): SignalCopy {
-  if (state === "stable") return { value: "Workload balanced", detail: "Team capacity is distributed well." };
-  if (state === "watch") return { value: "Team is busy", detail: "Workload is increasing but manageable." };
-  if (state === "friction") return { value: "Load is uneven", detail: "Reallocation is recommended." };
-  if (state === "critical") return { value: "Team bottlenecked", detail: "Overload is blocking progress." };
-  return { value: "No team signal", detail: "Team capacity data is not available." };
+function teamSignal(state: ZoneState): string {
+  return { stable: "Workload balanced", watch: "Team is busy", friction: "Load is uneven", critical: "Team bottlenecked", inactive: "No team signal" }[state];
 }
 
 function taskHref(taskId?: string | null, projectId?: string | null): string {
@@ -244,7 +184,7 @@ function projectIssueHref(p: any): string {
   return `/projects/${p.id}?tab=overview`;
 }
 
-// ── Tag type helper ─────────────────────────────────────────────────────────
+// ── Chip helpers (exact Carbon tag colours over the g100 tokens) ──────────────
 
 function tagKind(state: ZoneState): "green" | "warm-gray" | "magenta" | "red" | "gray" {
   if (state === "stable")   return "green";
@@ -254,38 +194,79 @@ function tagKind(state: ZoneState): "green" | "warm-gray" | "magenta" | "red" | 
   return "gray";
 }
 
-// ── Module launcher ("My applications") ─────────────────────────────────────
+const chipSx = (color: string) => ({
+  backgroundColor: `var(--cds-tag-background-${color})`,
+  color: `var(--cds-tag-color-${color})`,
+});
+
+function ZoneChip({ state, label }: { state: ZoneState; label?: string }) {
+  return <Chip size="small" label={label ?? STATE_WORD[state]} sx={chipSx(tagKind(state))} />;
+}
+
+// ── Card scaffold ─────────────────────────────────────────────────────────────
+
+function SectionCard({
+  title, action, children,
+}: { title: string; action?: ReactNode; children: ReactNode }) {
+  return (
+    <Card sx={{ height: 1 }}>
+      <CardContent>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 1.5 }}>
+          <Typography variant="overline" color="text.secondary" sx={{ flex: 1, letterSpacing: 1 }}>
+            {title}
+          </Typography>
+          {action}
+        </Stack>
+        {children}
+      </CardContent>
+    </Card>
+  );
+}
+
+const GRID_SX = {
+  border: 0,
+  "& .MuiDataGrid-columnHeaders": { textTransform: "uppercase" },
+  "& .MuiDataGrid-row": { cursor: "pointer" },
+} as const;
+
+const gridProps = {
+  density: "compact" as const,
+  autoHeight: true,
+  hideFooter: true,
+  disableColumnMenu: true,
+  disableRowSelectionOnClick: true,
+  sx: GRID_SX,
+};
+
+const glyphCell = (state: ZoneState, text: ReactNode) => (
+  <Stack direction="row" spacing={1} sx={{ alignItems: "center", height: 1 }}>
+    <OfficeHealthGlyph state={state} size={10} />
+    <span>{text}</span>
+  </Stack>
+);
+
+// ── Module launcher ───────────────────────────────────────────────────────────
 
 type LauncherApp = {
   label: string;
   route: string;
   icon: CarbonIconType;
-  /** Live count for the card subtitle, or null to show no count. */
   count: (h: any, g: any) => number | null;
   subtitle: ((n: number) => string) | null;
 };
 
 const LAUNCHER_APPS: LauncherApp[] = [
-  { label: "Projects", route: "/projects", icon: Building,
-    count: (h) => h.summary?.projects?.byStatus?.ACTIVE ?? h.summary?.projects?.total ?? null,
-    subtitle: (n) => `${n} active` },
-  { label: "Tasks", route: "/tasks", icon: TaskComplete,
-    count: (_h, g) => g?.pendingTasks ?? null, subtitle: (n) => `${n} open` },
-  { label: "Invoices", route: "/invoices", icon: Receipt,
-    count: (h) => h.actionCenter?.overdueInvoices?.length ?? null, subtitle: (n) => `${n} overdue` },
-  { label: "Clients", route: "/clients", icon: Partnership,
-    count: (h) => h.clientIntelligence?.length ?? null, subtitle: (n) => `${n} active` },
-  { label: "Proposals", route: "/office/proposals", icon: Document,
-    count: (h) => h.summary?.proposals?.total ?? null, subtitle: (n) => `${n} total` },
-  { label: "Team", route: "/team", icon: UserMultiple,
-    count: (h) => h.summary?.hr?.headcount ?? null, subtitle: (n) => `${n} members` },
-  { label: "Library", route: "/knowledge-bank", icon: Catalog,
-    count: () => null, subtitle: null },
-  { label: "AI Studio", route: "/office/ai-studio", icon: Bot,
-    count: () => null, subtitle: null },
+  { label: "Projects", route: "/projects", icon: Building, count: (h) => h.summary?.projects?.byStatus?.ACTIVE ?? h.summary?.projects?.total ?? null, subtitle: (n) => `${n} active` },
+  { label: "Tasks", route: "/tasks", icon: TaskComplete, count: (_h, g) => g?.pendingTasks ?? null, subtitle: (n) => `${n} open` },
+  { label: "Invoices", route: "/invoices", icon: Receipt, count: (h) => h.actionCenter?.overdueInvoices?.length ?? null, subtitle: (n) => `${n} overdue` },
+  { label: "Clients", route: "/clients", icon: Partnership, count: (h) => h.clientIntelligence?.length ?? null, subtitle: (n) => `${n} active` },
+  { label: "Proposals", route: "/office/proposals", icon: Document, count: (h) => h.summary?.proposals?.total ?? null, subtitle: (n) => `${n} total` },
+  { label: "Team", route: "/team", icon: UserMultiple, count: (h) => h.summary?.hr?.headcount ?? null, subtitle: (n) => `${n} members` },
+  { label: "Library", route: "/knowledge-bank", icon: Catalog, count: () => null, subtitle: null },
+  { label: "AI Studio", route: "/office/ai-studio", icon: Bot, count: () => null, subtitle: null },
 ];
 
-// ── Studio Intelligence shell ───────────────────────────────────────────────
+// ── Studio Intelligence ───────────────────────────────────────────────────────
 
 export function StudioAbstract() {
   const { user }  = useAuth();
@@ -299,8 +280,6 @@ export function StudioAbstract() {
   const queueQ    = trpc.tasks.todayQueue.useQuery({ myTasks: false, limit: 20 }, { staleTime: 30_000 });
   const glanceQ   = trpc.dashboard.todayGlance.useQuery(undefined, { staleTime: 60_000 });
   const trendQ    = trpc.dashboard.trend.useQuery(undefined, { staleTime: 300_000 });
-  // Studio Intelligence is reskinned dark (liquid glass) — chart matches g100.
-  const chartTheme = "g100" as const;
 
   const home = homeQ.data;
   const ac   = home?.actionCenter;
@@ -313,7 +292,6 @@ export function StudioAbstract() {
 
   const canInvoice = can(user?.role, "invoice:manage");
 
-  // ── Zone state derivation ──────────────────────────────────────────────
   const pending      = ac?.pendingApprovals   ?? [];
   const pendingCount = pending.length;
   const maxWaitDays  = pendingCount > 0 ? Math.max(...pending.map((a: any) => a.daysWaiting ?? 0)) : 0;
@@ -340,44 +318,6 @@ export function StudioAbstract() {
     attn.chainColor === ZCOLOR["friction"] ? "friction" :
     attn.chainColor === ZCOLOR["watch"]    ? "watch" : "stable";
 
-  // ── Unified action items ───────────────────────────────────────────────
-  type ActionRow = { key: string; item: string; detail: string; when: string; href?: string; state: ZoneState };
-  const actionRows: ActionRow[] = [
-    ...overdueInvs.slice(0, 5).map((inv: any): ActionRow => ({
-      key: `inv-${inv.id}`,
-      item: `Invoice ${inv.ref}`,
-      detail: formatINRShort(inv.netReceivablePaise),
-      when: `${inv.daysOverdue}d overdue`,
-      href: `/projects/${inv.projectId}?tab=invoices&invoiceId=${inv.id}`,
-      state: inv.daysOverdue > 30 ? "critical" : "friction",
-    })),
-    ...pending.slice(0, 5).map((ap: any): ActionRow => ({
-      key: `ap-${ap.id}`,
-      item: `${ap.projectRef} — ${ap.title}`,
-      detail: "Approval pending",
-      when: `${ap.daysWaiting}d`,
-      href: `/projects/${ap.projectId}?tab=approvals&approvalId=${ap.id}`,
-      state: ap.daysWaiting > 14 ? "critical" : "friction",
-    })),
-    ...riskProjects.slice(0, 5).map((p: any): ActionRow => ({
-      key: `proj-${p.id}`,
-      item: `${p.ref} — ${p.title}`,
-      detail: "Delivery risk",
-      when: "—",
-      href: projectIssueHref(p),
-      state: "critical",
-    })),
-    ...(billingReady.length > 0 ? [{
-      key: "billing-ready",
-      item: `${billingReady.length} phase${billingReady.length > 1 ? "s" : ""} ready to invoice`,
-      detail: fh?.readyToBillPaise ? formatINRShort(fh.readyToBillPaise) : "—",
-      when: "—",
-      href: "/invoices",
-      state: "watch" as ZoneState,
-    }] : []),
-  ];
-
-  // ── KPIs ───────────────────────────────────────────────────────────────
   const today = new Date().toISOString().slice(0, 10);
   const tasksOverdue = tasks.filter((t) => t.dueDate && t.dueDate < today).length;
 
@@ -390,7 +330,6 @@ export function StudioAbstract() {
 
   const gst = gstStatus();
 
-  // ── Hero KPIs — finance when visible, else operational (honest fallback) ──
   const heroKpis: { label: string; value: string; sub: string; danger: string | null }[] =
     canInvoice && fh
       ? [
@@ -406,506 +345,294 @@ export function StudioAbstract() {
           { label: "Tasks Overdue", value: String(tasksOverdue), sub: "Past due", danger: tasksOverdue > 0 ? "Behind" : null },
         ];
 
-  // ── Top risks rail — at-risk projects + high-risk clients ────────────────
-  type RiskRow = { key: string; label: string; detail: string; state: ZoneState; href: string };
+  // Top risks
   const clientRisks = (home?.clientIntelligence ?? []).filter((c: any) => c.risk === "HIGH");
-  const topRisks: RiskRow[] = [
-    ...riskProjects.map((p: any): RiskRow => ({ key: `rp-${p.id}`, label: `${p.ref} — ${p.title}`, detail: "Delivery at risk", state: "critical", href: projectIssueHref(p) })),
-    ...watchProjects.slice(0, 3).map((p: any): RiskRow => ({ key: `wp-${p.id}`, label: `${p.ref} — ${p.title}`, detail: "Needs watching", state: "watch", href: projectIssueHref(p) })),
-    ...clientRisks.slice(0, 3).map((c: any): RiskRow => ({ key: `cr-${c.id}`, label: c.name, detail: `${c.oldestInvoiceDays ?? 0}d oldest invoice`, state: "friction", href: "/clients" })),
+  const topRisks = [
+    ...riskProjects.map((p: any) => ({ key: `rp-${p.id}`, label: `${p.ref} — ${p.title}`, detail: "Delivery at risk", state: "critical" as ZoneState, href: projectIssueHref(p) })),
+    ...watchProjects.slice(0, 3).map((p: any) => ({ key: `wp-${p.id}`, label: `${p.ref} — ${p.title}`, detail: "Needs watching", state: "watch" as ZoneState, href: projectIssueHref(p) })),
+    ...clientRisks.slice(0, 3).map((c: any) => ({ key: `cr-${c.id}`, label: c.name, detail: `${c.oldestInvoiceDays ?? 0}d oldest invoice`, state: "friction" as ZoneState, href: "/clients" })),
   ].slice(0, 7);
 
-  // ── Trend chart — billed vs collected, last 12 months ────────────────────
+  // Action items
+  const actionRows = [
+    ...overdueInvs.slice(0, 5).map((inv: any) => ({ id: `inv-${inv.id}`, item: `Invoice ${inv.ref}`, detail: formatINRShort(inv.netReceivablePaise), when: `${inv.daysOverdue}d overdue`, href: `/projects/${inv.projectId}?tab=invoices&invoiceId=${inv.id}`, state: (inv.daysOverdue > 30 ? "critical" : "friction") as ZoneState })),
+    ...pending.slice(0, 5).map((ap: any) => ({ id: `ap-${ap.id}`, item: `${ap.projectRef} — ${ap.title}`, detail: "Approval pending", when: `${ap.daysWaiting}d`, href: `/projects/${ap.projectId}?tab=approvals&approvalId=${ap.id}`, state: (ap.daysWaiting > 14 ? "critical" : "friction") as ZoneState })),
+    ...riskProjects.slice(0, 5).map((p: any) => ({ id: `proj-${p.id}`, item: `${p.ref} — ${p.title}`, detail: "Delivery risk", when: "—", href: projectIssueHref(p), state: "critical" as ZoneState })),
+    ...(billingReady.length > 0 ? [{ id: "billing-ready", item: `${billingReady.length} phase${billingReady.length > 1 ? "s" : ""} ready to invoice`, detail: fh?.readyToBillPaise ? formatINRShort(fh.readyToBillPaise) : "—", when: "—", href: "/invoices", state: "watch" as ZoneState }] : []),
+  ];
+
+  // Trend
   const trend = trendQ.data;
-  const trendData = (trend?.series ?? []).flatMap((r) => [
-    { group: "Billed", date: `${r.month}-01`, value: r.billedPaise / 100 },
-    { group: "Collected", date: `${r.month}-01`, value: r.collectedPaise / 100 },
-  ]);
+  const months = (trend?.series ?? []).map((r) => r.month);
+  const billed = (trend?.series ?? []).map((r) => r.billedPaise / 100);
+  const collected = (trend?.series ?? []).map((r) => r.collectedPaise / 100);
+  const showTrend = Boolean(trend && trend.financialEnabled && months.length > 0);
+
+  // ── DataGrid column definitions ─────────────────────────────────────────────
+  const actionCols: GridColDef[] = [
+    { field: "item", headerName: "Item", flex: 2, minWidth: 200, renderCell: (p) => glyphCell(p.row.state, p.row.item) },
+    { field: "detail", headerName: "Detail", flex: 1, minWidth: 120 },
+    { field: "when", headerName: "Age", width: 120 },
+  ];
+
+  const phRows = atRiskProjects.slice(0, 12).map((p: any) => ({ ...p, id: p.id }));
+  const phCols: GridColDef[] = [
+    { field: "title", headerName: "Project", flex: 2, minWidth: 200, renderCell: (p) => glyphCell(p.row.health === "RED" ? "critical" : "watch", `${p.row.ref} — ${p.row.title}`) },
+    { field: "currentPhase", headerName: "Phase", flex: 1, minWidth: 110, valueGetter: (v) => v ?? "—" },
+    { field: "signals", headerName: "Signals", flex: 1, minWidth: 120, valueGetter: (_v, row: any) => [row.overdueTasks > 0 ? `${row.overdueTasks} late` : null, row.staleApprovals > 0 ? `${row.staleApprovals} stale` : null, canInvoice && row.overdueInvoices > 0 ? `${row.overdueInvoices} inv` : null].filter(Boolean).join(" · ") || "—" },
+    { field: "progressPct", headerName: "Progress", width: 150, sortable: false, renderCell: (p) => (
+      <Box sx={{ width: 1, display: "flex", alignItems: "center", height: 1 }}>
+        <LinearProgress variant="determinate" value={p.row.progressPct ?? 0} color={p.row.health === "RED" ? "error" : p.row.health === "YELLOW" ? "warning" : "success"} sx={{ width: 1 }} />
+      </Box>
+    ) },
+  ];
+
+  const wqRows = tasks.slice(0, 10).map((t) => ({ ...t, id: t.id }));
+  const wqCols: GridColDef[] = [
+    { field: "title", headerName: "Task", flex: 2, minWidth: 200, renderCell: (p) => glyphCell(p.row.status === "BLOCKED" ? "critical" : p.row.dueDate && p.row.dueDate < today ? "friction" : "watch", p.row.title) },
+    { field: "projectRef", headerName: "Project", flex: 1, minWidth: 100, valueGetter: (v) => v ?? "—" },
+    { field: "confidenceScore", headerName: "Conf.", width: 90, renderCell: (p) => <Chip size="small" label={`${p.row.confidenceScore}%`} sx={chipSx(confidenceTag(p.row.confidenceScore))} /> },
+    { field: "dueDate", headerName: "Due", width: 110, valueGetter: (v) => v ?? "—" },
+  ];
+
+  const apRows = pending.slice(0, 10).map((ap: any) => ({ ...ap, id: ap.id }));
+  const apCols: GridColDef[] = [
+    { field: "title", headerName: "Item", flex: 2, minWidth: 200, renderCell: (p) => glyphCell(p.row.daysWaiting > 14 ? "critical" : "watch", `${p.row.projectRef} — ${p.row.title}`) },
+    { field: "daysWaiting", headerName: "Waiting", width: 110, renderCell: (p) => <Chip size="small" label={`${p.row.daysWaiting}d`} sx={chipSx(p.row.daysWaiting > 14 ? "red" : p.row.daysWaiting > 7 ? "magenta" : "warm-gray")} /> },
+  ];
+
+  const tcRows = ti.slice(0, 10).map((m: any) => ({ ...m, id: m.memberId ?? m.assignee }));
+  const tcCols: GridColDef[] = [
+    { field: "assignee", headerName: "Member", flex: 1, minWidth: 140 },
+    { field: "totalOpen", headerName: "Open", width: 80, type: "number" },
+    { field: "overdueCount", headerName: "Late", width: 80, renderCell: (p) => ((p.row.overdueCount ?? 0) > 0 ? <Chip size="small" label={p.row.overdueCount} sx={chipSx("magenta")} /> : <span>—</span>) },
+    { field: "load", headerName: "Load", width: 130, sortable: false, renderCell: (p) => {
+      const st: ZoneState = p.row.capacity === "OVERLOADED" ? "critical" : p.row.capacity === "HIGH" ? "watch" : "stable";
+      return (
+        <Box sx={{ width: 1, display: "flex", alignItems: "center", height: 1 }}>
+          <LinearProgress variant="determinate" value={loadPct(p.row.capacity)} color={st === "critical" ? "error" : st === "watch" ? "warning" : "success"} sx={{ width: 1 }} />
+        </Box>
+      );
+    } },
+    { field: "capacity", headerName: "Capacity", width: 130, renderCell: (p) => {
+      const st: ZoneState = p.row.capacity === "OVERLOADED" ? "critical" : p.row.capacity === "HIGH" ? "watch" : "stable";
+      return <Chip size="small" label={CAPACITY_LABEL[p.row.capacity] ?? p.row.capacity} sx={chipSx(tagKind(st))} />;
+    } },
+  ];
+
+  const emptyText = (t: string) => <Typography variant="body2" color="text.secondary">{t}</Typography>;
 
   return (
-    <Theme theme="g100" className="esti-glass-dash">
-    <Stack gap={6} className="esti-studio-abstract-page">
+    <Box className="esti-glass-dash">
+      <Stack spacing={3} sx={{ width: 1 }}>
+        <PageHeader
+          title="Studio Intelligence"
+          description="Practice health · action items · project, finance and team signals"
+        />
 
-      {/* ── Page title ──────────────────────────────────────────────────── */}
-      <PageHeader
-        title="Studio Intelligence"
-        description="Practice health · action items · project, finance and team signals"
-      />
+        {/* Attention banner */}
+        <Card sx={{ borderLeft: 4, borderLeftColor: attn.chainColor }}>
+          <CardContent>
+            <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+              <OfficeHealthGlyph state={officeState} size={22} />
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="body1">{attn.issue}</Typography>
+                <Typography variant="body2" color="text.secondary">{attn.action}</Typography>
+              </Box>
+              <ZoneChip state={officeState} />
+            </Stack>
+          </CardContent>
+        </Card>
 
-      {/* ── Attention band ──────────────────────────────────────────────── */}
-      <Tile>
-        <Stack orientation="horizontal" gap={5}>
-          <StatusSymbol state={officeState} />
-          <Stack gap={2} className="esti-grow">
-            <p>{attn.issue}</p>
-            <p className="esti-label--helper">{attn.action}</p>
-          </Stack>
-          <Tag type={tagKind(officeState)} size="md">
-            {STATE_WORD[officeState]}
-          </Tag>
-        </Stack>
-      </Tile>
+        {/* KPI cards */}
+        <Grid container spacing={2}>
+          {heroKpis.map((k) => (
+            <Grid key={k.label} size={{ xs: 6, md: 3 }}>
+              <Card sx={{ height: 1 }}>
+                <CardContent>
+                  <Typography variant="overline" color="text.secondary">{k.label}</Typography>
+                  <Typography variant="h4" sx={{ my: 0.5 }}>{k.value}</Typography>
+                  <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>{k.sub}</Typography>
+                    {k.danger && <Chip size="small" label={k.danger} sx={chipSx("red")} />}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
 
-      {/* ── Launcher: quick actions (Pinned) + module cards ──────────────── */}
-      <Grid narrow>
-        <Column sm={4} md={8} lg={4}>
-          <DashboardQuickActions />
-        </Column>
-        <Column sm={4} md={8} lg={12}>
-          <Grid narrow>
-            {LAUNCHER_APPS.map((app) => {
-              const Icon = app.icon;
-              const n = home ? app.count(home, glanceQ.data) : null;
-              return (
-                <Column key={app.label} sm={2} md={4} lg={4}>
-                  <ClickableTile className="esti-fill" onClick={() => navigate(app.route)}>
-                    <Stack gap={3}>
+        {/* Module launcher */}
+        <Grid container spacing={2}>
+          {LAUNCHER_APPS.map((app) => {
+            const Icon = app.icon;
+            const n = home ? app.count(home, glanceQ.data) : null;
+            return (
+              <Grid key={app.label} size={{ xs: 6, sm: 3, lg: 1.5 }}>
+                <Card sx={{ height: 1 }}>
+                  <CardActionArea onClick={() => navigate(app.route)} sx={{ height: 1, p: 2 }}>
+                    <Stack spacing={1}>
                       <Icon size={24} />
-                      <Stack gap={1}>
-                        <span className="esti-label">{app.label}</span>
+                      <Box>
+                        <Typography variant="body2">{app.label}</Typography>
                         {n != null && app.subtitle && (
-                          <span className="esti-label--helper">{app.subtitle(n)}</span>
+                          <Typography variant="caption" color="text.secondary">{app.subtitle(n)}</Typography>
                         )}
-                      </Stack>
+                      </Box>
                     </Stack>
-                  </ClickableTile>
-                </Column>
-              );
-            })}
-          </Grid>
-        </Column>
-      </Grid>
+                  </CardActionArea>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
 
-      {/* ── Hero KPI row (oversized numbers) ─────────────────────────────── */}
-      <Grid narrow className="esti-kpi-grid">
-        {heroKpis.map((k) => (
-          <Column key={k.label} sm={2} md={4} lg={4}>
-            <Tile>
-              <Stack gap={2}>
-                <span className="esti-label--helper">{k.label}</span>
-                <p className="esti-kpi-hero">{k.value}</p>
-                <Stack orientation="horizontal" gap={2}>
-                  <span className="esti-label--helper esti-grow">{k.sub}</span>
-                  {k.danger && <Tag type="red" size="sm">{k.danger}</Tag>}
-                </Stack>
-              </Stack>
-            </Tile>
-          </Column>
-        ))}
-      </Grid>
-
-      {/* ── Billed vs collected · last 12 months ─────────────────────────── */}
-      <Grid narrow>
-        <Column sm={4} md={8} lg={16}>
-          <Tile>
-            <Stack gap={4}>
-              <span className="esti-label esti-label--secondary">BILLED vs COLLECTED · LAST 12 MONTHS</span>
-              {trend && trend.financialEnabled && trendData.length > 0 ? (
-                <div className="esti-chart-lg">
-                  <LineChart
-                    data={trendData}
-                    options={{
-                      theme: chartTheme,
-                      height: "384px",
-                      data: { groupMapsTo: "group" },
-                      axes: {
-                        bottom: { mapsTo: "date", scaleType: ScaleTypes.TIME, title: "Month" },
-                        left: {
-                          mapsTo: "value",
-                          scaleType: ScaleTypes.LINEAR,
-                          title: "Amount (₹)",
-                          ticks: { formatter: (v: any) => formatINRShort(Number(v) * 100) },
-                        },
-                      },
-                      curve: "curveMonotoneX",
-                      points: { enabled: true },
-                      toolbar: { enabled: false },
-                      legend: { enabled: true },
-                      accessibility: { svgAriaLabel: "Billed vs collected, last 12 months" },
-                    }}
-                  />
-                </div>
+        {/* Trend chart + side signal panels */}
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, lg: 8 }}>
+            <SectionCard title="Billed vs collected · last 12 months">
+              {showTrend ? (
+                <LineChart
+                  height={320}
+                  series={[
+                    { data: billed, label: "Billed", curve: "monotoneX", showMark: false },
+                    { data: collected, label: "Collected", curve: "monotoneX", showMark: false },
+                  ]}
+                  xAxis={[{ scaleType: "point", data: months }]}
+                  yAxis={[{ valueFormatter: (v: number) => formatINRShort(v * 100) }]}
+                  margin={{ left: 70 }}
+                />
               ) : (
-                <p className="esti-label--secondary">
-                  {trend && !trend.financialEnabled
+                emptyText(
+                  trend && !trend.financialEnabled
                     ? "Financials are turned off for this workspace."
-                    : "No invoice history yet — raise your first invoice to see the trend."}
-                </p>
+                    : "No invoice history yet — raise your first invoice to see the trend.",
+                )
+              )}
+            </SectionCard>
+          </Grid>
+          <Grid size={{ xs: 12, lg: 4 }}>
+            <Stack spacing={2}>
+              <SectionCard title="Zone health">
+                <Stack spacing={1.5}>
+                  {zones.map((z) => (
+                    <Stack key={z.label} direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                      <OfficeHealthGlyph state={z.state} size={12} />
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="body2">{z.label}</Typography>
+                        <Typography variant="caption" color="text.secondary">{z.signal}</Typography>
+                      </Box>
+                      <ZoneChip state={z.state} />
+                    </Stack>
+                  ))}
+                </Stack>
+              </SectionCard>
+              <SectionCard title="Today">
+                <Stack direction="row" spacing={2}>
+                  {[
+                    { label: "Pending tasks", value: glanceQ.data?.pendingTasks },
+                    { label: "Meetings", value: glanceQ.data?.meetingsToday },
+                    { label: "Site visits", value: glanceQ.data?.siteVisitsToday },
+                  ].map((s) => (
+                    <Box key={s.label} sx={{ flex: 1 }}>
+                      <Typography variant="caption" color="text.secondary">{s.label}</Typography>
+                      <Typography variant="h5">{s.value ?? "—"}</Typography>
+                    </Box>
+                  ))}
+                </Stack>
+              </SectionCard>
+              <SectionCard title="GST filing" action={<ZoneChip state={gst.state} label={gst.label} />}>
+                <Typography variant="body2">
+                  {gst.state === "stable" ? "On schedule" : `Due in ${gst.daysUntil} days`}
+                </Typography>
+              </SectionCard>
+              {ri && (
+                <SectionCard
+                  title="Revisions"
+                  action={ri.totalDecisions && Math.round((ri.clientDriven / ri.totalDecisions) * 100) > 60
+                    ? <Chip size="small" label={`${Math.round((ri.clientDriven / ri.totalDecisions) * 100)}% client-driven`} sx={chipSx("magenta")} />
+                    : undefined}
+                >
+                  <Typography variant="body2">{ri.totalDecisions ?? 0} logged this cycle</Typography>
+                </SectionCard>
               )}
             </Stack>
-          </Tile>
-        </Column>
-      </Grid>
+          </Grid>
+        </Grid>
 
-      {/* ── Masonry grid — all content tiles pack vertically without gaps ── */}
-      <div className="esti-dash-masonry">
-
-        {/* Top risks — the reference's "Top threats" rail */}
-        <Tile>
-          <Stack gap={4}>
-            <span className="esti-label esti-label--secondary">TOP RISKS</span>
-            {topRisks.length === 0 ? (
-              <Stack orientation="horizontal" gap={3}>
-                <StatusSymbol state="stable" sm />
-                <p className="esti-label--secondary">No elevated risks right now.</p>
-              </Stack>
-            ) : (
-              <Stack gap={3}>
-                {topRisks.map((r) => (
-                  <Stack
-                    key={r.key}
-                    orientation="horizontal"
-                    gap={3}
-                    className="esti-row-clickable"
-                    onClick={() => navigate(r.href)}
-                  >
-                    <StatusSymbol state={r.state} sm />
-                    <Stack gap={1} className="esti-grow">
-                      <span className="esti-label">{r.label}</span>
-                      <span className="esti-label--helper">{r.detail}</span>
+        {/* Action items + top risks */}
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, lg: 6 }}>
+            <SectionCard title="Action items">
+              {actionRows.length === 0
+                ? emptyText("No action items — the office is operating normally.")
+                : <DataGrid rows={actionRows} columns={actionCols} onRowClick={(p) => p.row.href && navigate(p.row.href)} {...gridProps} />}
+            </SectionCard>
+          </Grid>
+          <Grid size={{ xs: 12, lg: 6 }}>
+            <SectionCard title="Top risks">
+              {topRisks.length === 0 ? emptyText("No elevated risks right now.") : (
+                <Stack spacing={1.5}>
+                  {topRisks.map((r) => (
+                    <Stack key={r.key} direction="row" spacing={1} sx={{ alignItems: "center", cursor: "pointer" }} onClick={() => navigate(r.href)}>
+                      <OfficeHealthGlyph state={r.state} size={12} />
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="body2">{r.label}</Typography>
+                        <Typography variant="caption" color="text.secondary">{r.detail}</Typography>
+                      </Box>
+                      <ZoneChip state={r.state} />
                     </Stack>
-                    <Tag type={tagKind(r.state)} size="sm">{STATE_WORD[r.state]}</Tag>
-                  </Stack>
-                ))}
-              </Stack>
-            )}
-          </Stack>
-        </Tile>
-
-        {/* Today — pending tasks + meetings scheduled today */}
-        <Tile>
-          <Stack gap={4}>
-            <span className="esti-label esti-label--secondary">TODAY</span>
-            <Stack orientation="horizontal" gap={6}>
-              <Stack gap={1} className="esti-grow">
-                <span className="esti-label--helper">Pending tasks</span>
-                <h3>{glanceQ.data?.pendingTasks ?? "—"}</h3>
-              </Stack>
-              <Stack gap={1} className="esti-grow">
-                <span className="esti-label--helper">Meetings today</span>
-                <h3>{glanceQ.data?.meetingsToday ?? "—"}</h3>
-              </Stack>
-              <Stack gap={1} className="esti-grow">
-                <span className="esti-label--helper">Site visits</span>
-                <h3>{glanceQ.data?.siteVisitsToday ?? "—"}</h3>
-              </Stack>
-            </Stack>
-          </Stack>
-        </Tile>
-
-        {/* Action items — primary content, column 1 top */}
-        <Tile>
-          <Stack gap={4}>
-            <span className="esti-label esti-label--secondary">ACTION ITEMS</span>
-            {actionRows.length === 0 ? (
-              <Stack orientation="horizontal" gap={3}>
-                <StatusSymbol state="stable" sm />
-                <p className="esti-label--secondary">No action items — the office is operating normally.</p>
-              </Stack>
-            ) : (
-              <Table size="sm">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Item</TableHeader>
-                    <TableHeader>Detail</TableHeader>
-                    <TableHeader>Age</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {actionRows.map((row) => (
-                    <TableRow
-                      key={row.key}
-                      className={row.href ? "esti-row-clickable" : undefined}
-                      onClick={row.href ? () => navigate(row.href!) : undefined}
-                    >
-                      <TableCell>
-                        <Stack orientation="horizontal" gap={3}>
-                          <StatusSymbol state={row.state} sm />
-                          <span>{row.item}</span>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>{row.detail}</TableCell>
-                      <TableCell>{row.when}</TableCell>
-                    </TableRow>
                   ))}
-                </TableBody>
-              </Table>
-            )}
-          </Stack>
-        </Tile>
-
-        {/* Zone health — compact signals tile, column 2 top */}
-        <Tile>
-          <Stack gap={5}>
-            <span className="esti-label esti-label--secondary">ZONE HEALTH</span>
-            {zones.map((z) => (
-              <Stack key={z.label} orientation="horizontal" gap={3}>
-                <StatusSymbol state={z.state} sm />
-                <Stack gap={1} className="esti-grow">
-                  <span className="esti-label">{z.label}</span>
-                  <span className="esti-label--helper">{z.signal.value}</span>
                 </Stack>
-                <Tag type={tagKind(z.state)} size="sm">{STATE_WORD[z.state]}</Tag>
-              </Stack>
-            ))}
-          </Stack>
-        </Tile>
+              )}
+            </SectionCard>
+          </Grid>
+        </Grid>
 
-        {/* GST filing */}
-        <Tile>
-          <Stack gap={3}>
-            <span className="esti-label esti-label--secondary">GST FILING</span>
-            <Stack orientation="horizontal" gap={3}>
-              <StatusSymbol state={gst.state} sm />
-              <span className="esti-label esti-grow">
-                {gst.state === "stable" ? "On schedule" : `Due in ${gst.daysUntil} days`}
-              </span>
-              <Tag type={tagKind(gst.state)} size="sm">{gst.label}</Tag>
-            </Stack>
-          </Stack>
-        </Tile>
-
-        {/* Revisions */}
-        {ri && (
-          <Tile>
-            <Stack gap={3}>
-              <span className="esti-label esti-label--secondary">REVISIONS</span>
-              {(() => {
-                const clientDrivenPct = ri.totalDecisions
-                  ? Math.round((ri.clientDriven / ri.totalDecisions) * 100)
-                  : 0;
-                return (
-                  <Stack orientation="horizontal" gap={3}>
-                    <span className="esti-label esti-grow">{ri.totalDecisions ?? 0} logged this cycle</span>
-                    {clientDrivenPct > 60 && (
-                      <Tag type="magenta" size="sm">{clientDrivenPct}% client-driven</Tag>
-                    )}
-                  </Stack>
-                );
-              })()}
-            </Stack>
-          </Tile>
-        )}
-
-        {/* Project health — large, conditional */}
+        {/* Project health */}
         {atRiskProjects.length > 0 && (
-          <Tile>
-            <Stack gap={4}>
-              <Stack orientation="horizontal" gap={5} className="esti-zone-head">
-                <Stack orientation="horizontal" gap={3} className="esti-grow">
-                  <StatusSymbol state={ps} />
-                  <span className="esti-label esti-label--secondary">
-                    PROJECT HEALTH — {riskProjects.length} critical · {watchProjects.length} watch
-                  </span>
-                </Stack>
-                <Tag type={tagKind(ps)} size="sm">{projectSignal(ps).value}</Tag>
-              </Stack>
-              <Table size="sm">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Project</TableHeader>
-                    <TableHeader>Phase</TableHeader>
-                    <TableHeader>Signals</TableHeader>
-                    <TableHeader>Progress</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {atRiskProjects.slice(0, 12).map((p: any) => (
-                    <TableRow
-                      key={p.id}
-                      className="esti-row-clickable"
-                      onClick={() => navigate(projectIssueHref(p))}
-                    >
-                      <TableCell>
-                        <Stack orientation="horizontal" gap={3}>
-                          <StatusSymbol state={p.health === "RED" ? "critical" : "watch"} sm />
-                          <span>{p.ref} — {p.title}</span>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>{p.currentPhase ?? "—"}</TableCell>
-                      <TableCell className="esti-label--secondary">
-                        {[
-                          p.overdueTasks > 0 ? `${p.overdueTasks} late` : null,
-                          p.staleApprovals > 0 ? `${p.staleApprovals} stale` : null,
-                          canInvoice && p.overdueInvoices > 0 ? `${p.overdueInvoices} inv` : null,
-                        ].filter(Boolean).join(" · ") || "—"}
-                      </TableCell>
-                      <TableCell style={{ minWidth: "8rem" }}>
-                        <ProgressBar
-                          label="Project progress"
-                          value={p.progressPct ?? 0}
-                          max={100}
-                          size="small"
-                          hideLabel
-                          status={p.health === "RED" ? "error" : p.health === "YELLOW" ? "active" : "finished"}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Stack>
-          </Tile>
+          <SectionCard
+            title={`Project health — ${riskProjects.length} critical · ${watchProjects.length} watch`}
+            action={<ZoneChip state={ps} label={projectSignal(ps)} />}
+          >
+            <DataGrid rows={phRows} columns={phCols} onRowClick={(p) => navigate(projectIssueHref(p.row))} {...gridProps} />
+          </SectionCard>
         )}
 
-        {/* Work queue */}
-        <Tile>
-          <Stack gap={4}>
-            <Stack orientation="horizontal" gap={3} className="esti-zone-head">
-              <span className="esti-label esti-label--secondary esti-grow">WORK QUEUE</span>
-              <Tag type={tasksOverdue > 0 ? "warm-gray" : "green"} size="sm">
-                {tasks.length} open · {tasksOverdue} overdue
-              </Tag>
-            </Stack>
-            {tasks.length === 0 ? (
-              <p className="esti-label--secondary">No active tasks.</p>
-            ) : (
-              <Table size="sm">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Task</TableHeader>
-                    <TableHeader>Project</TableHeader>
-                    <TableHeader>Confidence</TableHeader>
-                    <TableHeader>Due</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {tasks.slice(0, 8).map((t) => (
-                    <TableRow
-                      key={t.id}
-                      className="esti-row-clickable"
-                      onClick={() => navigate(taskHref(t.id))}
-                    >
-                      <TableCell>
-                        <Stack orientation="horizontal" gap={3}>
-                          <StatusSymbol
-                            state={t.status === "BLOCKED" ? "critical" : t.dueDate && t.dueDate < today ? "friction" : "watch"}
-                            sm
-                          />
-                          <span>{t.title}</span>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>{t.projectRef ?? "—"}</TableCell>
-                      <TableCell>
-                        <Tag type={confidenceTag(t.confidenceScore)} size="sm">
-                          {t.confidenceScore}%
-                        </Tag>
-                      </TableCell>
-                      <TableCell>{t.dueDate ?? "—"}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </Stack>
-        </Tile>
-
-        {/* Approvals */}
-        <Tile>
-          <Stack gap={4}>
-            <Stack orientation="horizontal" gap={3} className="esti-zone-head">
-              <span className="esti-label esti-label--secondary esti-grow">APPROVALS</span>
-              <Tag type={pendingCount > 0 ? tagKind(cs) : "green"} size="sm">
-                {pendingCount} pending
-              </Tag>
-            </Stack>
-            {pending.length === 0 ? (
-              <p className="esti-label--secondary">No approvals pending.</p>
-            ) : (
-              <Table size="sm">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Item</TableHeader>
-                    <TableHeader>Waiting</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {pending.slice(0, 8).map((ap: any) => (
-                    <TableRow
-                      key={ap.id}
-                      className="esti-row-clickable"
-                      onClick={() => navigate(`/projects/${ap.projectId}?tab=approvals&approvalId=${ap.id}`)}
-                    >
-                      <TableCell>
-                        <Stack orientation="horizontal" gap={3}>
-                          <StatusSymbol state={ap.daysWaiting > 14 ? "critical" : "watch"} sm />
-                          <span>{ap.projectRef} — {ap.title}</span>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        <Tag type={ap.daysWaiting > 14 ? "red" : ap.daysWaiting > 7 ? "magenta" : "warm-gray"} size="sm">
-                          {ap.daysWaiting}d
-                        </Tag>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </Stack>
-        </Tile>
+        {/* Work queue + approvals */}
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, lg: 7 }}>
+            <SectionCard
+              title="Work queue"
+              action={<Chip size="small" label={`${tasks.length} open · ${tasksOverdue} overdue`} sx={chipSx(tasksOverdue > 0 ? "warm-gray" : "green")} />}
+            >
+              {tasks.length === 0 ? emptyText("No active tasks.") : (
+                <DataGrid rows={wqRows} columns={wqCols} onRowClick={(p) => navigate(taskHref(p.row.id))} {...gridProps} />
+              )}
+            </SectionCard>
+          </Grid>
+          <Grid size={{ xs: 12, lg: 5 }}>
+            <SectionCard
+              title="Approvals"
+              action={<Chip size="small" label={`${pendingCount} pending`} sx={chipSx(pendingCount > 0 ? tagKind(cs) : "green")} />}
+            >
+              {pending.length === 0 ? emptyText("No approvals pending.") : (
+                <DataGrid rows={apRows} columns={apCols} onRowClick={(p) => navigate(`/projects/${p.row.projectId}?tab=approvals&approvalId=${p.row.id}`)} {...gridProps} />
+              )}
+            </SectionCard>
+          </Grid>
+        </Grid>
 
         {/* Team capacity */}
         {hrEnabled && ti.length > 0 && (
-          <Tile>
-            <Stack gap={4}>
-              <Stack orientation="horizontal" gap={3} className="esti-zone-head">
-                <StatusSymbol state={ts} />
-                <span className="esti-label esti-label--secondary esti-grow">
-                  TEAM CAPACITY — {att ? `${att.present}/${att.headcount} present` : `${ti.length} members`}
-                </span>
-                <Tag type={tagKind(ts)} size="sm">{teamSignal(ts).value}</Tag>
-              </Stack>
-              <Table size="sm">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Member</TableHeader>
-                    <TableHeader>Open</TableHeader>
-                    <TableHeader>Late</TableHeader>
-                    <TableHeader>Load</TableHeader>
-                    <TableHeader>Capacity</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {ti.slice(0, 10).map((m: any) => {
-                    const mState: ZoneState = m.capacity === "OVERLOADED" ? "critical" : m.capacity === "HIGH" ? "watch" : "stable";
-                    return (
-                      <TableRow key={m.memberId ?? m.assignee}>
-                        <TableCell>{m.assignee}</TableCell>
-                        <TableCell>{m.totalOpen}</TableCell>
-                        <TableCell>
-                          {(m.overdueCount ?? 0) > 0
-                            ? <Tag type="magenta" size="sm">{m.overdueCount}</Tag>
-                            : "—"
-                          }
-                        </TableCell>
-                        <TableCell style={{ minWidth: "6rem" }}>
-                          <ProgressBar
-                            label="Team member load"
-                            value={loadPct(m.capacity)}
-                            max={100}
-                            size="small"
-                            hideLabel
-                            status={mState === "critical" ? "error" : mState === "watch" ? "active" : "finished"}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Tag type={tagKind(mState)} size="sm">
-                            {CAPACITY_LABEL[m.capacity] ?? m.capacity}
-                          </Tag>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </Stack>
-          </Tile>
+          <SectionCard
+            title={`Team capacity — ${att ? `${att.present}/${att.headcount} present` : `${ti.length} members`}`}
+            action={<ZoneChip state={ts} label={teamSignal(ts)} />}
+          >
+            <DataGrid rows={tcRows} columns={tcCols} {...gridProps} sx={{ ...GRID_SX, "& .MuiDataGrid-row": { cursor: "default" } }} />
+          </SectionCard>
         )}
-
-      </div>
-
-    </Stack>
-    </Theme>
+      </Stack>
+    </Box>
   );
 }
