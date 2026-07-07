@@ -41,19 +41,22 @@ const HEAD = `<!doctype html>
   .field { margin-bottom:.9rem; }
   /* Glass buttons — white liquid-glass slab; hover floods orange-30% + orange
      label; pressed/active label turns orange. One family across the product. */
-  /* Simple floating buttons — CTA is orange bg / white text; the rest are white
-     bg / orange text. 4px corners, soft drop shadow, no neumorphism. */
+  /* Simple buttons — FLAT at rest. CTA = orange bg / white text; the rest are
+     white bg / orange text. On hover the button lifts + gets a bottom orange line. */
   .btn { border:1px solid transparent; border-radius:4px; color:#fff;
-    text-transform:capitalize; background:var(--accent);
-    box-shadow:0 2px 6px rgba(20,21,23,.12);
+    text-transform:capitalize; background:var(--accent); box-shadow:none;
     padding:.55rem 1rem; font-weight:600; font-size:.85rem;
-    transition:background .13s ease,color .13s ease,box-shadow .13s ease; }
-  .btn:hover { background:var(--accent-h); box-shadow:0 4px 10px rgba(20,21,23,.16); }
-  .btn:active { background:var(--accent-h); box-shadow:0 2px 6px rgba(20,21,23,.12); }
+    transition:transform .13s ease,box-shadow .13s ease,background .13s ease,color .13s ease; }
+  .btn:hover { background:var(--accent-h); transform:translateY(-2px);
+    box-shadow:inset 0 -2px 0 0 rgba(255,255,255,.7), 0 5px 12px rgba(20,21,23,.22); }
+  .btn:active { transform:none; background:var(--accent-h);
+    box-shadow:inset 0 -2px 0 0 rgba(255,255,255,.7); }
   .btn--ghost { background:#fff; color:var(--accent); border-color:var(--line); }
-  .btn--ghost:hover { background:rgba(255,79,24,.08); color:var(--accent-h); border-color:var(--accent); }
+  .btn--ghost:hover { background:#fff; color:var(--accent-h); border-color:var(--accent);
+    box-shadow:inset 0 -2px 0 0 #ff4f18, 0 5px 12px rgba(20,21,23,.16); }
   .btn--danger { background:#fff; color:#B00020; border-color:var(--line); }
-  .btn--danger:hover { background:rgba(176,0,32,.18); color:#B00020; }
+  .btn--danger:hover { background:#fff; color:#B00020; transform:translateY(-2px);
+    box-shadow:inset 0 -2px 0 0 #B00020, 0 5px 12px rgba(20,21,23,.16); }
   .btn:disabled { opacity:.5; cursor:not-allowed; box-shadow:none; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); }
   /* Popups (modal panes) — translucent liquid glass. */

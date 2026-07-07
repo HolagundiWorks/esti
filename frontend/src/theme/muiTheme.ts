@@ -89,17 +89,19 @@ const GLASS_PANE = {
   boxShadow: GLASS_PANE_SHADOW,
 } as const;
 
-// ── SIMPLE FLOATING BUTTONS — no neumorphism ─────────────────────────────────
-// Every button is a plain floating box with 4px corners and a soft drop shadow:
+// ── SIMPLE BUTTONS — FLAT at rest, FLOAT + orange underline on hover ─────────
+// Every button is a plain box with 4px corners and NO resting shadow:
 //   • CTA (contained)  → ORANGE background, WHITE text.
 //   • everything else  → WHITE background, ORANGE text (red for error/delete).
+// On HOVER the button lifts (float) and grows a bottom orange line.
 const BTN_RADIUS = 4;
-const BTN_FLOAT = "0 2px 6px rgba(20, 21, 23, 0.12)";
-const BTN_FLOAT_HOVER = "0 4px 10px rgba(20, 21, 23, 0.16)";
 const BTN_WHITE = "#ffffff";
-const ORANGE_WASH_08 = "rgba(255, 79, 24, 0.08)"; // white-button hover tint
-const ORANGE_WASH_14 = "rgba(255, 79, 24, 0.14)"; // white-button pressed tint
-const RED_WASH_08 = "rgba(200, 68, 46, 0.08)";
+const BTN_LIFT = "translateY(-2px)"; // the float — hover only
+const BTN_HOVER_SHADOW = "0 5px 12px rgba(20, 21, 23, 0.16)";
+const BTN_HOVER_SHADOW_CTA = "0 5px 12px rgba(20, 21, 23, 0.22)";
+const UNDERLINE_ORANGE = "inset 0 -2px 0 0 #ff4f18"; // bottom line (no layout shift)
+const UNDERLINE_RED = "inset 0 -2px 0 0 #c8442e";
+const UNDERLINE_LIGHT = "inset 0 -2px 0 0 rgba(255, 255, 255, 0.7)"; // on the orange CTA
 // Orange translucent wash — selected toggle buttons.
 const GLASS_ORANGE_30 = "rgba(255, 79, 24, 0.30)";
 
@@ -262,33 +264,43 @@ export const muiTheme = createTheme({
             borderRadius: BTN_RADIUS,
             fontWeight: 600,
             textTransform: "capitalize" as const, // Title Case
-            boxShadow: BTN_FLOAT,
+            boxShadow: "none", // FLAT at rest — float only appears on hover
             transition:
-              "background 130ms ease, color 130ms ease, box-shadow 130ms ease",
-            "&.Mui-disabled": { boxShadow: "none", opacity: 0.5 },
+              "transform 130ms ease, box-shadow 130ms ease, background 130ms ease, color 130ms ease",
+            "&.Mui-disabled": { boxShadow: "none", opacity: 0.5, transform: "none" },
           };
           if (isCta) {
-            // CTA — ORANGE background, WHITE text.
+            // CTA — ORANGE background, WHITE text; hover lifts + a light underline.
             return {
               ...base,
               color: CDS.onAccent,
               backgroundColor: CDS.accent,
               border: "1px solid transparent",
-              "&:hover": { backgroundColor: CDS.accentDark, boxShadow: BTN_FLOAT_HOVER },
-              "&:active": { backgroundColor: CDS.accentDark, boxShadow: BTN_FLOAT },
+              "&:hover": {
+                backgroundColor: CDS.accentDark,
+                transform: BTN_LIFT,
+                boxShadow: `${UNDERLINE_LIGHT}, ${BTN_HOVER_SHADOW_CTA}`,
+              },
+              "&:active": { transform: "none", backgroundColor: CDS.accentDark, boxShadow: UNDERLINE_LIGHT },
             };
           }
-          // Everything else — WHITE box, ORANGE text (red for error/delete).
+          // Everything else — WHITE box, ORANGE text (red for error/delete);
+          // hover lifts + grows a bottom orange line.
           const ink = isError ? CDS.supportError : CDS.accent;
-          const wash = isError ? RED_WASH_08 : ORANGE_WASH_08;
+          const underline = isError ? UNDERLINE_RED : UNDERLINE_ORANGE;
           return {
             ...base,
             color: ink,
             backgroundColor: BTN_WHITE,
             border: `1px solid ${CDS.borderSubtle}`,
-            "&:hover": { backgroundColor: wash, borderColor: ink, boxShadow: BTN_FLOAT_HOVER },
-            "&:active": { backgroundColor: isError ? wash : ORANGE_WASH_14, boxShadow: BTN_FLOAT },
-            "&.Mui-disabled": { boxShadow: "none", opacity: 0.5, backgroundColor: BTN_WHITE },
+            "&:hover": {
+              backgroundColor: BTN_WHITE,
+              borderColor: ink,
+              transform: BTN_LIFT,
+              boxShadow: `${underline}, ${BTN_HOVER_SHADOW}`,
+            },
+            "&:active": { transform: "none", boxShadow: underline },
+            "&.Mui-disabled": { boxShadow: "none", opacity: 0.5, transform: "none", backgroundColor: BTN_WHITE },
           };
         },
       },
