@@ -17,6 +17,7 @@ import {
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { trpc } from "../lib/trpc.js";
 
 export function Consultants({ embedded = false }: { embedded?: boolean }) {
@@ -94,13 +95,14 @@ export function Consultants({ embedded = false }: { embedded?: boolean }) {
       filterable: false,
       width: 140,
       renderCell: (p) => (
-        <Button
-          variant="text"
-          size="small"
-          onClick={() => setLogin({ id: p.row.id, name: p.row.name })}
-        >
-          Create login
-        </Button>
+        <RowActionsMenu
+          actions={[
+            {
+              label: "Create login",
+              onClick: () => setLogin({ id: p.row.id, name: p.row.name }),
+            },
+          ]}
+        />
       ),
     },
   ];

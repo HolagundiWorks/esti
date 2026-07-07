@@ -6,7 +6,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  IconButton,
   MenuItem,
   Stack,
   TextField,
@@ -14,7 +13,6 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import Add from "@mui/icons-material/Add";
-import DeleteOutline from "@mui/icons-material/DeleteOutlineOutlined";
 import {
   VENDOR_CATEGORIES,
   VendorCategory,
@@ -27,6 +25,7 @@ import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { VendorQuotes } from "../components/vendor/VendorQuotes.js";
 import { VendorRateCompare } from "../components/vendor/VendorRateCompare.js";
 import { trpc } from "../lib/trpc.js";
@@ -193,47 +192,32 @@ export function Vendors() {
       renderCell: (p) => {
         const v = p.row;
         return (
-          <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", height: 1 }}>
-            <Button
-              variant="text"
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                setForm({
-                  id: v.id, name: v.name, category: v.category as VendorCategoryCode,
-                  companyName: v.companyName ?? "", contactPerson: v.contactPerson ?? "",
-                  gstin: v.gstin ?? "", pan: v.pan ?? "", email: v.email ?? "", phone: v.phone ?? "",
-                  city: v.city ?? "", state: v.state ?? "",
-                });
-              }}
-            >
-              Edit
-            </Button>
-            <Button
-              variant="text"
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                setRating({
-                  id: v.id, name: v.name,
-                  quality: v.qualityRating ? String(v.qualityRating) : "",
-                  reliability: v.reliabilityRating ? String(v.reliabilityRating) : "",
-                  pricing: v.pricingRating ? String(v.pricingRating) : "",
-                  notes: v.notes ?? "",
-                });
-              }}
-            >
-              Rate
-            </Button>
-            <Button
-              variant="text"
-              size="small"
-              color="error"
-              onClick={(e) => { e.stopPropagation(); setConfirmId(v.id); }}
-            >
-              Remove
-            </Button>
-          </Stack>
+          <RowActionsMenu
+            actions={[
+              {
+                label: "Edit",
+                onClick: () =>
+                  setForm({
+                    id: v.id, name: v.name, category: v.category as VendorCategoryCode,
+                    companyName: v.companyName ?? "", contactPerson: v.contactPerson ?? "",
+                    gstin: v.gstin ?? "", pan: v.pan ?? "", email: v.email ?? "", phone: v.phone ?? "",
+                    city: v.city ?? "", state: v.state ?? "",
+                  }),
+              },
+              {
+                label: "Rate",
+                onClick: () =>
+                  setRating({
+                    id: v.id, name: v.name,
+                    quality: v.qualityRating ? String(v.qualityRating) : "",
+                    reliability: v.reliabilityRating ? String(v.reliabilityRating) : "",
+                    pricing: v.pricingRating ? String(v.pricingRating) : "",
+                    notes: v.notes ?? "",
+                  }),
+              },
+              { label: "Remove", onClick: () => setConfirmId(v.id), danger: true },
+            ]}
+          />
         );
       },
     },
@@ -266,14 +250,11 @@ export function Vendors() {
       sortable: false,
       filterable: false,
       renderCell: (p) => (
-        <IconButton
-          size="small"
-          color="error"
-          aria-label="Remove price"
-          onClick={() => setConfirmPriceId(p.row.id)}
-        >
-          <DeleteOutline fontSize="small" />
-        </IconButton>
+        <RowActionsMenu
+          actions={[
+            { label: "Remove", onClick: () => setConfirmPriceId(p.row.id), danger: true },
+          ]}
+        />
       ),
     },
   ];
@@ -283,7 +264,16 @@ export function Vendors() {
       <RailLayout
         title="Vendors"
         description="Material supplier directory — categories, statutory ids, ratings and pricing history."
-        actions={<Button variant="contained" fullWidth onClick={() => setForm({ ...EMPTY })}>New vendor</Button>}
+        actions={
+          <>
+            <Button variant="contained" fullWidth onClick={() => setForm({ ...EMPTY })}>New vendor</Button>
+            {selected && (
+              <Button variant="outlined" fullWidth startIcon={<Add />} onClick={() => setPriceForm({ ...EMPTY_PRICE })}>
+                Add price
+              </Button>
+            )}
+          </>
+        }
         aside={
           <Stack spacing={1.5}>
             <TextField
@@ -337,9 +327,6 @@ export function Vendors() {
         <Stack spacing={2}>
           <Box className="esti-row-between">
             <Typography variant="h6" component="h4">{selected.name} — Pricing history</Typography>
-            <Button size="small" startIcon={<Add />} onClick={() => setPriceForm({ ...EMPTY_PRICE })}>
-              Add price
-            </Button>
           </Box>
           <DataState
             loading={pricesQ.isLoading}

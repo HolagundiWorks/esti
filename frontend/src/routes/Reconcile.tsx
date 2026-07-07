@@ -11,6 +11,7 @@ import type { ReconcileColumnMapping } from "@esti/contracts";
 import { formatINR, formatINRShort } from "@esti/contracts";
 import { useState } from "react";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { downloadXlsx } from "../lib/exportXlsx.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
@@ -162,62 +163,43 @@ export function Reconcile() {
     {
       field: "actions",
       headerName: "",
-      flex: 1.4,
-      minWidth: 260,
+      width: 60,
       sortable: false,
       filterable: false,
       renderCell: (p) => {
         const r = p.row;
         return (
-          <>
-            {r.status === "READY" && (
-              <Stack direction="row" spacing={1}>
-                <Button
-                  variant="text"
-                  size="small"
-                  onClick={() => {
-                    setOpenId(openId === r.id ? null : r.id);
-                    setRemapCols((r.columnMapping as ReconcileColumnMapping) ?? {});
-                  }}
-                >
-                  {openId === r.id ? "Hide" : "Lines"}
-                </Button>
-                <Button
-                  variant="text"
-                  size="small"
-                  onClick={() => {
-                    void utils.reconcile.exportRows.fetch({ id: r.id }).then((data) => {
-                      if (data.rows.length) downloadXlsx(data.rows, "Reconcile", `${data.ref}-reconcile`);
-                    });
-                  }}
-                >
-                  Export XLSX
-                </Button>
-                {r.matchedCount > 0 && (
-                  <Button
-                    variant="text"
-                    size="small"
-                    disabled={settle.isPending}
-                    onClick={() => settle.mutate({ id: r.id })}
-                  >
-                    Settle matched
-                  </Button>
-                )}
-              </Stack>
-            )}
-            {r.status === "FAILED" && (
-              <Button
-                variant="text"
-                size="small"
-                onClick={() => {
+          <RowActionsMenu
+            actions={[
+              r.status === "READY" && {
+                label: openId === r.id ? "Hide" : "Lines",
+                onClick: () => {
+                  setOpenId(openId === r.id ? null : r.id);
+                  setRemapCols((r.columnMapping as ReconcileColumnMapping) ?? {});
+                },
+              },
+              r.status === "READY" && {
+                label: "Export XLSX",
+                onClick: () => {
+                  void utils.reconcile.exportRows.fetch({ id: r.id }).then((data) => {
+                    if (data.rows.length) downloadXlsx(data.rows, "Reconcile", `${data.ref}-reconcile`);
+                  });
+                },
+              },
+              r.status === "READY" && r.matchedCount > 0 && {
+                label: "Settle matched",
+                onClick: () => settle.mutate({ id: r.id }),
+                disabled: settle.isPending,
+              },
+              r.status === "FAILED" && {
+                label: "Remap columns",
+                onClick: () => {
                   setOpenId(r.id);
                   setRemapCols((r.columnMapping as ReconcileColumnMapping) ?? {});
-                }}
-              >
-                Remap columns
-              </Button>
-            )}
-          </>
+                },
+              },
+            ]}
+          />
         );
       },
     },

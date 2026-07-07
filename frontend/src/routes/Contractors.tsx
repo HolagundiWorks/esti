@@ -21,6 +21,7 @@ import { useState } from "react";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -167,22 +168,34 @@ export function Contractors({ embedded = false }: { embedded?: boolean }) {
       renderCell: (p) => {
         const c = p.row;
         return (
-          <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", height: 1 }}>
-            <Button variant="text" size="small" onClick={() => setForm({
-              id: c.id, name: c.name, category: c.category as ContractorCategoryCode,
-              companyName: c.companyName ?? "", contactPerson: c.contactPerson ?? "",
-              gstin: c.gstin ?? "", pan: c.pan ?? "", email: c.email ?? "", phone: c.phone ?? "",
-              city: c.city ?? "", state: c.state ?? "",
-            })}>Edit</Button>
-            <Button variant="text" size="small" onClick={() => setRating({
-              id: c.id, name: c.name,
-              quality: c.qualityRating ? String(c.qualityRating) : "",
-              timeliness: c.timelinessRating ? String(c.timelinessRating) : "",
-              safety: c.safetyRating ? String(c.safetyRating) : "",
-              notes: c.notes ?? "",
-            })}>Rate</Button>
-            <Button variant="text" size="small" color="error" onClick={() => setConfirmId(c.id)}>Remove</Button>
-          </Stack>
+          <RowActionsMenu
+            actions={[
+              {
+                label: "Edit",
+                onClick: () => setForm({
+                  id: c.id, name: c.name, category: c.category as ContractorCategoryCode,
+                  companyName: c.companyName ?? "", contactPerson: c.contactPerson ?? "",
+                  gstin: c.gstin ?? "", pan: c.pan ?? "", email: c.email ?? "", phone: c.phone ?? "",
+                  city: c.city ?? "", state: c.state ?? "",
+                }),
+              },
+              {
+                label: "Rate",
+                onClick: () => setRating({
+                  id: c.id, name: c.name,
+                  quality: c.qualityRating ? String(c.qualityRating) : "",
+                  timeliness: c.timelinessRating ? String(c.timelinessRating) : "",
+                  safety: c.safetyRating ? String(c.safetyRating) : "",
+                  notes: c.notes ?? "",
+                }),
+              },
+              {
+                label: "Remove",
+                danger: true,
+                onClick: () => setConfirmId(c.id),
+              },
+            ]}
+          />
         );
       },
     },

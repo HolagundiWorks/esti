@@ -28,6 +28,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusTag } from "../components/StatusTag.js";
 import { ComplianceCalculator } from "../components/compliance/ComplianceCalculator.js";
 import { trpc } from "../lib/trpc.js";
@@ -157,21 +158,22 @@ export function Leads() {
         const l = p.row;
         if (TERMINAL.has(l.status)) return null;
         return (
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => {
-              // A lead's project type is free text — only carry it over
-              // if it matches a real ProjectType, else pick a valid default.
-              const carried = (ProjectType.options as readonly string[]).includes(l.projectType ?? "")
-                ? (l.projectType as string)
-                : ProjectType.options[0];
-              setConv({ projectTitle: l.projectType || l.clientName, projectType: carried, workType: "ARCHITECTURE", clientId: "" });
-              setConvertId(l.id);
-            }}
-          >
-            Convert
-          </Button>
+          <RowActionsMenu
+            actions={[
+              {
+                label: "Convert",
+                onClick: () => {
+                  // A lead's project type is free text — only carry it over
+                  // if it matches a real ProjectType, else pick a valid default.
+                  const carried = (ProjectType.options as readonly string[]).includes(l.projectType ?? "")
+                    ? (l.projectType as string)
+                    : ProjectType.options[0];
+                  setConv({ projectTitle: l.projectType || l.clientName, projectType: carried, workType: "ARCHITECTURE", clientId: "" });
+                  setConvertId(l.id);
+                },
+              },
+            ]}
+          />
         );
       },
     },

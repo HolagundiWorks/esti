@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { PdfActionButtons } from "../components/PdfActionButtons.js";
 import { pdfPollInterval } from "../lib/pdfUi.js";
 import { trpc } from "../lib/trpc.js";
@@ -96,9 +97,11 @@ export function Letters() {
       filterable: false,
       width: 100,
       renderCell: (p) => (
-        <Button variant="text" color="error" size="small" onClick={() => setConfirmId(p.row.id)}>
-          Delete
-        </Button>
+        <RowActionsMenu
+          actions={[
+            { label: "Delete", onClick: () => setConfirmId(p.row.id), danger: true },
+          ]}
+        />
       ),
     },
   ];

@@ -28,6 +28,7 @@ import {
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { DataState } from "../components/DataState.js";
 import { StatusTag } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
@@ -269,9 +270,13 @@ export function DocumentsRegister() {
                 headerName: "",
                 sortable: false,
                 filterable: false,
-                width: 110,
+                width: 60,
                 renderCell: (p) => (
-                  <Button variant="text" color="error" size="small" onClick={() => removeTemplate.mutate({ id: p.row.id })}>Remove</Button>
+                  <RowActionsMenu
+                    actions={[
+                      { label: "Remove", onClick: () => removeTemplate.mutate({ id: p.row.id }), danger: true },
+                    ]}
+                  />
                 ),
               },
             ]}

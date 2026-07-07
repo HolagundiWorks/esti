@@ -29,6 +29,7 @@ import { useState } from "react";
 import { AccountsCarryForward } from "../components/accounting/AccountsCarryForward.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -238,33 +239,35 @@ function ExpenseTable({
     {
       field: "actions",
       headerName: "",
-      flex: 1,
-      minWidth: 200,
+      width: 60,
       sortable: false,
       filterable: false,
       renderCell: (p) => (
-        <>
-          {canManage && p.row.status === "DRAFT" && (
-            <Button variant="text" size="small" disabled={submit.isPending} onClick={() => submit.mutate({ id: p.row.id })}>
-              Submit
-            </Button>
-          )}
-          {canAudit && p.row.status === "SUBMITTED" && (
-            <>
-              <Button variant="text" size="small" disabled={audit.isPending} onClick={() => audit.mutate({ id: p.row.id, approved: true })}>
-                Audit
-              </Button>
-              <Button variant="text" color="error" size="small" disabled={audit.isPending} onClick={() => audit.mutate({ id: p.row.id, approved: false })}>
-                Reject
-              </Button>
-            </>
-          )}
-          {canAudit && p.row.status === "AUDITED" && (
-            <Button variant="text" size="small" disabled={close.isPending} onClick={() => close.mutate({ id: p.row.id })}>
-              Close
-            </Button>
-          )}
-        </>
+        <RowActionsMenu
+          actions={[
+            canManage && p.row.status === "DRAFT" && {
+              label: "Submit",
+              onClick: () => submit.mutate({ id: p.row.id }),
+              disabled: submit.isPending,
+            },
+            canAudit && p.row.status === "SUBMITTED" && {
+              label: "Audit",
+              onClick: () => audit.mutate({ id: p.row.id, approved: true }),
+              disabled: audit.isPending,
+            },
+            canAudit && p.row.status === "SUBMITTED" && {
+              label: "Reject",
+              onClick: () => audit.mutate({ id: p.row.id, approved: false }),
+              danger: true,
+              disabled: audit.isPending,
+            },
+            canAudit && p.row.status === "AUDITED" && {
+              label: "Close",
+              onClick: () => close.mutate({ id: p.row.id }),
+              disabled: close.isPending,
+            },
+          ]}
+        />
       ),
     },
   ];

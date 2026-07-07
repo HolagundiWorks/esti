@@ -13,6 +13,7 @@ import {
 } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { DataState } from "../DataState.js";
+import { RowActionsMenu } from "../RowActionsMenu.js";
 import { StatusDot } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
 import { toISO } from "./workHelpers.js";
@@ -104,20 +105,20 @@ export function AttendanceTab() {
         return (
           <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
             <StatusDot color={STATUS_TAG[status]} label={ATTENDANCE_STATUS[status]} />
-            <Button
-              variant="text"
-              size="small"
-              disabled={mark.isPending}
-              onClick={() =>
-                mark.mutate({
-                  teamMemberId: p.row.teamMemberId as string,
-                  attendanceDate: date,
-                  status,
-                })
-              }
-            >
-              Save
-            </Button>
+            <RowActionsMenu
+              actions={[
+                {
+                  label: "Save",
+                  disabled: mark.isPending,
+                  onClick: () =>
+                    mark.mutate({
+                      teamMemberId: p.row.teamMemberId as string,
+                      attendanceDate: date,
+                      status,
+                    }),
+                },
+              ]}
+            />
           </Stack>
         );
       },

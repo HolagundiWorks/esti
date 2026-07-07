@@ -18,6 +18,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PayslipPdfCell } from "../components/PayslipPdfCell.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 import { useCapabilities } from "../lib/capabilities.js";
@@ -118,30 +119,24 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
     },
     {
       field: "action",
-      headerName: "Action",
+      headerName: "",
       sortable: false,
       filterable: false,
-      minWidth: 180,
-      flex: 1,
-      renderCell: (p) =>
-        p.row.status === "REQUESTED" ? (
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center", height: 1 }}>
-            <Button
-              variant="text"
-              size="small"
-              onClick={() => setLeave.mutate({ id: p.row.id, status: "APPROVED" })}
-            >
-              Approve
-            </Button>
-            <Button
-              variant="text"
-              size="small"
-              onClick={() => setLeave.mutate({ id: p.row.id, status: "REJECTED" })}
-            >
-              Reject
-            </Button>
-          </Stack>
-        ) : null,
+      width: 60,
+      renderCell: (p) => (
+        <RowActionsMenu
+          actions={[
+            p.row.status === "REQUESTED" && {
+              label: "Approve",
+              onClick: () => setLeave.mutate({ id: p.row.id, status: "APPROVED" }),
+            },
+            p.row.status === "REQUESTED" && {
+              label: "Reject",
+              onClick: () => setLeave.mutate({ id: p.row.id, status: "REJECTED" }),
+            },
+          ]}
+        />
+      ),
     },
   ];
 
@@ -184,16 +179,17 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
     },
     {
       field: "action",
-      headerName: "Action",
+      headerName: "",
       sortable: false,
       filterable: false,
-      width: 130,
-      renderCell: (p) =>
-        !p.row.paid ? (
-          <Button variant="text" size="small" onClick={() => markPaid.mutate({ id: p.row.id })}>
-            Mark paid
-          </Button>
-        ) : null,
+      width: 60,
+      renderCell: (p) => (
+        <RowActionsMenu
+          actions={[
+            !p.row.paid && { label: "Mark paid", onClick: () => markPaid.mutate({ id: p.row.id }) },
+          ]}
+        />
+      ),
     },
     {
       field: "slip",

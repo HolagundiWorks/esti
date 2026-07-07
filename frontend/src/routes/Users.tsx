@@ -30,6 +30,7 @@ import {
 import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -232,30 +233,22 @@ export function Users() {
         const u = p.row;
         const isSelf = u.id === user?.id;
         return (
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center", height: 1 }}>
-            <Button variant="text" size="small" onClick={() => setReset({ id: u.id, email: u.email })}>
-              Reset password
-            </Button>
-            <Button
-              variant="text"
-              size="small"
-              onClick={() => {
-                setLink({ id: u.id, email: u.email });
-                setLinkVal(u.accountPublicId ?? "");
-              }}
-            >
-              Link ID
-            </Button>
-            {!isSelf && (
-              <Button
-                variant="text"
-                size="small"
-                onClick={() => setDisabled.mutate({ id: u.id, disabled: !u.disabled })}
-              >
-                {u.disabled ? "Enable" : "Disable"}
-              </Button>
-            )}
-          </Stack>
+          <RowActionsMenu
+            actions={[
+              { label: "Reset password", onClick: () => setReset({ id: u.id, email: u.email }) },
+              {
+                label: "Link ID",
+                onClick: () => {
+                  setLink({ id: u.id, email: u.email });
+                  setLinkVal(u.accountPublicId ?? "");
+                },
+              },
+              !isSelf && {
+                label: u.disabled ? "Enable" : "Disable",
+                onClick: () => setDisabled.mutate({ id: u.id, disabled: !u.disabled }),
+              },
+            ]}
+          />
         );
       },
     },

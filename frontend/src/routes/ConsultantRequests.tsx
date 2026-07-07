@@ -24,6 +24,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusTag } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
@@ -146,29 +147,24 @@ export function ConsultantRequests({ embedded = false }: { embedded?: boolean })
       minWidth: 170,
       flex: 1,
       renderCell: (p) => (
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center", height: 1 }}>
-          <Button
-            variant="text"
-            size="small"
-            onClick={() =>
-              setTriage({
-                id: p.row.id,
-                subject: p.row.subject,
-                status: p.row.status as SubmissionStatus,
-                responseNote: p.row.responseNote ?? "",
-              })
-            }
-          >
-            Triage
-          </Button>
-          <Button
-            variant="text"
-            size="small"
-            onClick={() => setThreadFor({ id: p.row.id, subject: p.row.subject })}
-          >
-            Reply
-          </Button>
-        </Stack>
+        <RowActionsMenu
+          actions={[
+            {
+              label: "Triage",
+              onClick: () =>
+                setTriage({
+                  id: p.row.id,
+                  subject: p.row.subject,
+                  status: p.row.status as SubmissionStatus,
+                  responseNote: p.row.responseNote ?? "",
+                }),
+            },
+            {
+              label: "Reply",
+              onClick: () => setThreadFor({ id: p.row.id, subject: p.row.subject }),
+            },
+          ]}
+        />
       ),
     },
   ];

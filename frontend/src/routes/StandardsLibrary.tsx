@@ -20,6 +20,7 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -88,15 +89,16 @@ function DisciplinePanel({ discipline }: { discipline: string }) {
                 <Stack spacing={1}>
                   <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
                     <h4 className="esti-grow">{s.title}</h4>
-                    <Button
-                      variant="text"
-                      color="error"
-                      size="small"
-                      disabled={remove.isPending}
-                      onClick={() => remove.mutate({ id: s.id })}
-                    >
-                      Delete
-                    </Button>
+                    <RowActionsMenu
+                      actions={[
+                        {
+                          label: "Delete",
+                          danger: true,
+                          disabled: remove.isPending,
+                          onClick: () => remove.mutate({ id: s.id }),
+                        },
+                      ]}
+                    />
                   </Box>
                   {s.notes && <p className="esti-label esti-label--secondary">{s.notes}</p>}
                   <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>

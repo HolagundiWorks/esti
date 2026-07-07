@@ -43,6 +43,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PortalHeader } from "../components/PortalHeader.js";
 import { PortalMinutes } from "../components/PortalMinutes.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot, StatusTag } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
@@ -214,15 +215,15 @@ export function Portal() {
       filterable: false,
       renderCell: (p) =>
         p.row.pdfUrl ? (
-          <Button
-            variant="text"
-            size="small"
-            onClick={() =>
-              window.open(p.row.pdfUrl!, "_blank", "noopener,noreferrer")
-            }
-          >
-            Download
-          </Button>
+          <RowActionsMenu
+            actions={[
+              {
+                label: "Download",
+                onClick: () =>
+                  window.open(p.row.pdfUrl!, "_blank", "noopener,noreferrer"),
+              },
+            ]}
+          />
         ) : p.row.pdfStatus === "PENDING" || p.row.pdfStatus === "PROCESSING" ? (
           "Preparing…"
         ) : (
@@ -251,38 +252,41 @@ export function Portal() {
       filterable: false,
       renderCell: (p) =>
         RESPONDABLE.includes(p.row.status) ? (
-          <Stack direction="row" spacing={1}>
-            <Button variant="text" size="small"
-              onClick={() => setDecision({
-                approvalId: p.row.id,
-                title: p.row.title,
-                decision: "APPROVED",
-                remarks: "",
-                revisionCategory: "",
-              })}>
-              Approve
-            </Button>
-            <Button variant="text" size="small"
-              onClick={() => setDecision({
-                approvalId: p.row.id,
-                title: p.row.title,
-                decision: "REVISIONS",
-                remarks: "",
-                revisionCategory: "MINOR",
-              })}>
-              Request revisions
-            </Button>
-            <Button variant="text" size="small" color="error"
-              onClick={() => setDecision({
-                approvalId: p.row.id,
-                title: p.row.title,
-                decision: "REJECTED",
-                remarks: "",
-                revisionCategory: "",
-              })}>
-              Reject
-            </Button>
-          </Stack>
+          <RowActionsMenu
+            actions={[
+              {
+                label: "Approve",
+                onClick: () => setDecision({
+                  approvalId: p.row.id,
+                  title: p.row.title,
+                  decision: "APPROVED",
+                  remarks: "",
+                  revisionCategory: "",
+                }),
+              },
+              {
+                label: "Request revisions",
+                onClick: () => setDecision({
+                  approvalId: p.row.id,
+                  title: p.row.title,
+                  decision: "REVISIONS",
+                  remarks: "",
+                  revisionCategory: "MINOR",
+                }),
+              },
+              {
+                label: "Reject",
+                danger: true,
+                onClick: () => setDecision({
+                  approvalId: p.row.id,
+                  title: p.row.title,
+                  decision: "REJECTED",
+                  remarks: "",
+                  revisionCategory: "",
+                }),
+              },
+            ]}
+          />
         ) : "—",
     },
   ];
@@ -297,13 +301,18 @@ export function Portal() {
       sortable: false,
       filterable: false,
       renderCell: (p) => (
-        <Button variant="text" size="small" disabled={acknowledge.isPending}
-          onClick={() => acknowledge.mutate({
-            projectId: openId!, objectType: "drawing", objectId: p.row.id,
-            subject: `Drawing ${p.row.ref} — ${p.row.title}`,
-          })}>
-          Acknowledge receipt
-        </Button>
+        <RowActionsMenu
+          actions={[
+            {
+              label: "Acknowledge receipt",
+              disabled: acknowledge.isPending,
+              onClick: () => acknowledge.mutate({
+                projectId: openId!, objectType: "drawing", objectId: p.row.id,
+                subject: `Drawing ${p.row.ref} — ${p.row.title}`,
+              }),
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -374,10 +383,11 @@ export function Portal() {
       sortable: false,
       filterable: false,
       renderCell: (p) => (
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          {p.row.status === "IMPACT_SENT" && (
-            <Button variant="contained" size="small"
-              onClick={() => setImpactResponse({
+        <RowActionsMenu
+          actions={[
+            p.row.status === "IMPACT_SENT" && {
+              label: "Review & respond",
+              onClick: () => setImpactResponse({
                 submissionId: p.row.id,
                 subject: p.row.subject,
                 affectsCosting: p.row.affectsCosting ?? false,
@@ -385,14 +395,14 @@ export function Portal() {
                 isBillable: p.row.isBillable ?? false,
                 architectComment: p.row.architectComment,
                 remarks: "",
-              })}>
-              Review &amp; respond
-            </Button>
-          )}
-          <Button variant="text" size="small" onClick={() => setThreadFor({ id: p.row.id, subject: p.row.subject })}>
-            Conversation
-          </Button>
-        </Stack>
+              }),
+            },
+            {
+              label: "Conversation",
+              onClick: () => setThreadFor({ id: p.row.id, subject: p.row.subject }),
+            },
+          ]}
+        />
       ),
     },
   ];

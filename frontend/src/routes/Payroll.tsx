@@ -13,6 +13,7 @@ import { formatINR, parseRupeeInput } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { PayslipPdfCell } from "../components/PayslipPdfCell.js";
 import { useCapabilities } from "../lib/capabilities.js";
@@ -85,17 +86,17 @@ export function Payroll() {
     },
     {
       field: "action",
-      headerName: "Action",
-      flex: 0.8,
-      minWidth: 120,
+      headerName: "",
+      width: 60,
       sortable: false,
       filterable: false,
-      renderCell: (p) =>
-        !p.row.paid ? (
-          <Button variant="text" size="small" onClick={() => markPaid.mutate({ id: p.row.id })}>
-            Mark paid
-          </Button>
-        ) : null,
+      renderCell: (p) => (
+        <RowActionsMenu
+          actions={[
+            !p.row.paid && { label: "Mark paid", onClick: () => markPaid.mutate({ id: p.row.id }) },
+          ]}
+        />
+      ),
     },
     {
       field: "slip",

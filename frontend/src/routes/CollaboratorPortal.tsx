@@ -34,6 +34,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PortalHeader } from "../components/PortalHeader.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
@@ -141,14 +142,15 @@ export function CollaboratorPortal() {
       sortable: false,
       renderCell: ({ row }) =>
         row.status !== "RESOLVED" ? (
-          <Button
-            variant="text"
-            size="small"
-            disabled={completeTask.isPending}
-            onClick={() => completeTask.mutate({ submissionId: row.id })}
-          >
-            Mark done
-          </Button>
+          <RowActionsMenu
+            actions={[
+              {
+                label: "Mark done",
+                disabled: completeTask.isPending,
+                onClick: () => completeTask.mutate({ submissionId: row.id }),
+              },
+            ]}
+          />
         ) : null,
     },
   ];
@@ -195,9 +197,14 @@ export function CollaboratorPortal() {
       width: 130,
       sortable: false,
       renderCell: ({ row }) => (
-        <Button variant="text" size="small" onClick={() => setThreadFor({ id: row.id, subject: row.subject })}>
-          Open
-        </Button>
+        <RowActionsMenu
+          actions={[
+            {
+              label: "Open",
+              onClick: () => setThreadFor({ id: row.id, subject: row.subject }),
+            },
+          ]}
+        />
       ),
     },
   ];

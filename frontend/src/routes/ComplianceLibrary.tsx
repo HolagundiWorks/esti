@@ -18,6 +18,7 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
@@ -76,15 +77,16 @@ function CrudPanel({
       sortable: false,
       filterable: false,
       renderCell: (p) => (
-        <Button
-          variant="text"
-          color="error"
-          size="small"
-          disabled={removing}
-          onClick={() => onRemove(String(p.row.id))}
-        >
-          Delete
-        </Button>
+        <RowActionsMenu
+          actions={[
+            {
+              label: "Delete",
+              danger: true,
+              disabled: removing,
+              onClick: () => onRemove(String(p.row.id)),
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -338,15 +340,16 @@ function DocumentsTab() {
       sortable: false,
       filterable: false,
       renderCell: (p) => (
-        <Button
-          variant="text"
-          color="error"
-          size="small"
-          disabled={remove.isPending}
-          onClick={() => remove.mutate({ id: p.row.id })}
-        >
-          Delete
-        </Button>
+        <RowActionsMenu
+          actions={[
+            {
+              label: "Delete",
+              danger: true,
+              disabled: remove.isPending,
+              onClick: () => remove.mutate({ id: p.row.id }),
+            },
+          ]}
+        />
       ),
     },
   ];

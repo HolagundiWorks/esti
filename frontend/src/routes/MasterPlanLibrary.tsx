@@ -12,6 +12,7 @@ import { useState } from "react";
 import { StatusDot } from "../components/StatusTag.js";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -72,9 +73,9 @@ export function MasterPlanLibrary() {
       minWidth: 180,
       renderCell: (p) =>
         p.row.url ? (
-          <Button variant="text" size="small" href={p.row.url} target="_blank" rel="noreferrer">
+          <a href={p.row.url} target="_blank" rel="noreferrer">
             {p.row.fileName}
-          </Button>
+          </a>
         ) : (
           p.row.fileName
         ),
@@ -82,19 +83,20 @@ export function MasterPlanLibrary() {
     {
       field: "actions",
       headerName: "",
-      width: 100,
+      width: 90,
       sortable: false,
       filterable: false,
       renderCell: (p) => (
-        <Button
-          variant="text"
-          color="error"
-          size="small"
-          disabled={remove.isPending}
-          onClick={() => remove.mutate({ id: p.row.id })}
-        >
-          Delete
-        </Button>
+        <RowActionsMenu
+          actions={[
+            {
+              label: "Delete",
+              danger: true,
+              disabled: remove.isPending,
+              onClick: () => remove.mutate({ id: p.row.id }),
+            },
+          ]}
+        />
       ),
     },
   ];

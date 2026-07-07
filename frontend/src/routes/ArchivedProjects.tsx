@@ -15,6 +15,7 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useRef, useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -231,55 +232,42 @@ export function ArchivedProjects() {
     },
     {
       field: "actions",
-      headerName: "Actions",
+      headerName: "",
       sortable: false,
       filterable: false,
-      flex: 1.8,
-      minWidth: 340,
+      width: 90,
       renderCell: (params) => {
         const project = params.row;
         const pastRetention = project.purgeAfter ? project.purgeAfter <= today : true;
         return (
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center", height: 1 }}>
-            <Button
-              variant="text"
-              size="small"
-              disabled={restore.isPending}
-              onClick={() => restore.mutate({ id: project.id })}
-            >
-              Restore
-            </Button>
-            <Button
-              variant="text"
-              size="small"
-              onClick={async () => {
-                const data = await utils.projectOffice.exportData.fetch({ id: project.id });
-                downloadJson(data, `esti-export-${project.ref}-${today}.json`);
-              }}
-            >
-              Export
-            </Button>
-            <Button
-              variant="text"
-              size="small"
-              onClick={() =>
-                setFileTarget({ id: project.id, ref: project.ref, title: project.title })
-              }
-            >
-              Files
-            </Button>
-            <Button
-              variant="text"
-              size="small"
-              color="error"
-              disabled={!pastRetention}
-              onClick={() =>
-                setPurgeTarget({ id: project.id, ref: project.ref, title: project.title })
-              }
-            >
-              Purge
-            </Button>
-          </Stack>
+          <RowActionsMenu
+            actions={[
+              {
+                label: "Restore",
+                disabled: restore.isPending,
+                onClick: () => restore.mutate({ id: project.id }),
+              },
+              {
+                label: "Export",
+                onClick: async () => {
+                  const data = await utils.projectOffice.exportData.fetch({ id: project.id });
+                  downloadJson(data, `esti-export-${project.ref}-${today}.json`);
+                },
+              },
+              {
+                label: "Files",
+                onClick: () =>
+                  setFileTarget({ id: project.id, ref: project.ref, title: project.title }),
+              },
+              {
+                label: "Purge",
+                danger: true,
+                disabled: !pastRetention,
+                onClick: () =>
+                  setPurgeTarget({ id: project.id, ref: project.ref, title: project.title }),
+              },
+            ]}
+          />
         );
       },
     },

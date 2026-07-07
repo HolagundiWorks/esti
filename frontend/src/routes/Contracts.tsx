@@ -21,6 +21,7 @@ import { useState } from "react";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusTag } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -151,9 +152,15 @@ export function Contracts() {
       filterable: false,
       width: 100,
       renderCell: (p) => (
-        <Button variant="text" color="error" size="small" onClick={() => setConfirmId(p.row.id)}>
-          Delete
-        </Button>
+        <RowActionsMenu
+          actions={[
+            {
+              label: "Delete",
+              danger: true,
+              onClick: () => setConfirmId(p.row.id),
+            },
+          ]}
+        />
       ),
     },
   ];

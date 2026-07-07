@@ -29,6 +29,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot, StatusTag } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
@@ -205,13 +206,12 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
       renderCell: (p) => {
         const r = p.row;
         return (
-          <Stack spacing={0.5} sx={{ py: 1 }}>
-            {r.kind === "CHANGE_REQUEST" &&
-              !["IMPACT_SENT", "CLIENT_APPROVED", "CLIENT_REJECTED", "RESOLVED", "DECLINED"].includes(r.status) && (
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={() =>
+          <RowActionsMenu
+            actions={[
+              r.kind === "CHANGE_REQUEST" &&
+                !["IMPACT_SENT", "CLIENT_APPROVED", "CLIENT_REJECTED", "RESOLVED", "DECLINED"].includes(r.status) && {
+                  label: "Send impact",
+                  onClick: () =>
                     setImpact({
                       id: r.id,
                       subject: r.subject,
@@ -223,34 +223,24 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
                       affectsTimeline: r.affectsTimeline ?? false,
                       isBillable: r.isBillable ?? false,
                       architectComment: r.architectComment ?? "",
-                    })
-                  }
-                >
-                  Send impact
-                </Button>
-              )}
-            <Button
-              variant="text"
-              size="small"
-              onClick={() =>
-                setTriage({
-                  id: r.id,
-                  subject: r.subject,
-                  status: r.status as PortalSubmissionStatusT,
-                  responseNote: r.responseNote ?? "",
-                })
-              }
-            >
-              Triage
-            </Button>
-            <Button
-              variant="text"
-              size="small"
-              onClick={() => setThreadFor({ id: r.id, subject: r.subject })}
-            >
-              Reply
-            </Button>
-          </Stack>
+                    }),
+                },
+              {
+                label: "Triage",
+                onClick: () =>
+                  setTriage({
+                    id: r.id,
+                    subject: r.subject,
+                    status: r.status as PortalSubmissionStatusT,
+                    responseNote: r.responseNote ?? "",
+                  }),
+              },
+              {
+                label: "Reply",
+                onClick: () => setThreadFor({ id: r.id, subject: r.subject }),
+              },
+            ]}
+          />
         );
       },
     },

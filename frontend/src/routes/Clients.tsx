@@ -19,6 +19,7 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { trpc } from "../lib/trpc.js";
 
 const PAGE_SIZES = [10, 25, 50];
@@ -137,16 +138,16 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
       sortable: false,
       filterable: false,
       renderCell: (p) => (
-        <Button
-          variant="text"
-          size="small"
-          disabled={setDisabled.isPending}
-          onClick={() =>
-            setDisabled.mutate({ id: p.row.id, disabled: !p.row.disabled })
-          }
-        >
-          {p.row.disabled ? "Activate" : "Deactivate"}
-        </Button>
+        <RowActionsMenu
+          actions={[
+            {
+              label: p.row.disabled ? "Activate" : "Deactivate",
+              disabled: setDisabled.isPending,
+              onClick: () =>
+                setDisabled.mutate({ id: p.row.id, disabled: !p.row.disabled }),
+            },
+          ]}
+        />
       ),
     },
   ];

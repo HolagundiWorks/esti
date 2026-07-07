@@ -13,6 +13,7 @@ import {
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { trpc } from "../lib/trpc.js";
 
 const PAGE_SIZES = [10, 25, 50, 100];
@@ -74,9 +75,7 @@ export function AuditLog() {
       filterable: false,
       width: 100,
       renderCell: (p) => (
-        <Button variant="text" size="small" onClick={() => setSelectedId(p.row.id)}>
-          View
-        </Button>
+        <RowActionsMenu actions={[{ label: "View", onClick: () => setSelectedId(p.row.id) }]} />
       ),
     },
   ];
