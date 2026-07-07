@@ -361,12 +361,9 @@ $neu-input-radius: 0; // square corners
   }
 }
 
-// ── Wellness — SQUARE breathing panel with a BIG breathing orb ────────────────
-// The breathing module is square (override the neu rounding); only the orb is
-// round (the breath focus). Keep the orb large so it's easy to rest the eyes on.
-.esti-wellness-panel.MuiPaper-root {
-  border-radius: 0 !important;
-}
+// ── Wellness — rounded neu breathing panel with a BIG breathing orb ───────────
+// The panel keeps the soft rounded neu corners (via .esti-neu); the orb is a
+// large circle (the breath focus), easy to rest the eyes on.
 .esti-breath-orb {
   width: 176px;
   height: 176px;
