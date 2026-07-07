@@ -8,7 +8,7 @@ import { z } from "zod";
 
 /** A guided breathing pattern. Phase lengths are seconds; `hold`/`holdOut` may be 0. */
 export interface BreathingPattern {
-  key: "relax" | "focus" | "sleep" | "anxiety" | "daily";
+  key: "relax" | "focus" | "anxiety" | "daily";
   name: string;
   /** Short "what it's for" line. */
   goal: string;
@@ -45,17 +45,6 @@ export const BREATHING_PATTERNS: readonly BreathingPattern[] = [
     holdOut: 0,
     durationLabel: "2–5 min",
     sessionSeconds: 3 * 60,
-  },
-  {
-    key: "sleep",
-    name: "Sleep",
-    goal: "Wind down — the classic 4-7-8",
-    inhale: 4,
-    hold: 7,
-    exhale: 8,
-    holdOut: 0,
-    durationLabel: "4–8 cycles",
-    sessionSeconds: 6 * (4 + 7 + 8), // ~6 cycles
   },
   {
     key: "anxiety",

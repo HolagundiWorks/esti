@@ -35,6 +35,8 @@ import { STATE_WORD } from "../components/dashboard/zoneState.js";
 import type { ZoneState } from "../components/dashboard/zoneState.js";
 import { CAPACITY_LABEL } from "../components/dashboard/dashboardUi.js";
 import { StudioBreath } from "../components/dashboard/StudioBreath.js";
+import WaterDropOutlined from "@mui/icons-material/WaterDropOutlined";
+import { setWellnessPrefs, useWellnessPrefs } from "../lib/wellnessPrefs.js";
 import { confidenceTag } from "../components/work/workHelpers.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
@@ -306,6 +308,7 @@ const LAUNCHER_APPS: LauncherApp[] = [
 
 export function StudioAbstract() {
   const { user }  = useAuth();
+  const wellnessPrefs = useWellnessPrefs();
   const navigate  = useNavigate();
 
   const homeQ     = trpc.dashboard.home.useQuery(undefined, { staleTime: 60_000 });
@@ -557,6 +560,18 @@ export function StudioAbstract() {
             <Box sx={{ flex: 1 }} />
             <OfficeHealthGlyph state={officeState} size={14} />
             <Typography sx={{ fontWeight: 300, textTransform: "capitalize" }} noWrap>{STATE_WORD[officeState]}</Typography>
+          </Box>
+
+          {/* Hydration reminder — personal toggle (on by default), fires every 15 min */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <WaterDropOutlined fontSize="small" color="action" />
+            <Typography variant="body2" sx={{ flex: 1 }} noWrap>Hydration reminder</Typography>
+            <Switch
+              size="small"
+              checked={wellnessPrefs.hydrationEnabled}
+              onChange={(e) => setWellnessPrefs({ hydrationEnabled: e.target.checked })}
+              slotProps={{ input: { "aria-label": "Hydration reminder" } }}
+            />
           </Box>
 
           {/* Zone health — single row of square units */}

@@ -361,29 +361,34 @@ $neu-input-radius: 0; // square corners
   }
 }
 
-// ── Wellness — breathing orb (neumorphic circle; the ONE round neu surface) ────
+// ── Wellness — SQUARE breathing panel with a BIG breathing orb ────────────────
+// The breathing module is square (override the neu rounding); only the orb is
+// round (the breath focus). Keep the orb large so it's easy to rest the eyes on.
+.esti-wellness-panel.MuiPaper-root {
+  border-radius: 0 !important;
+}
 .esti-breath-orb {
-  width: 118px;
-  height: 118px;
+  width: 176px;
+  height: 176px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  gap: 0.1rem;
+  gap: 0.15rem;
   background: $neu-bg;
-  box-shadow: 7px 7px 18px $neu-dark, -7px -7px 18px $neu-light,
-    inset 0 0 0 1px rgba(255, 79, 24, 0.14);
+  box-shadow: 9px 9px 22px $neu-dark, -9px -9px 22px $neu-light,
+    inset 0 0 0 1px rgba(255, 79, 24, 0.16);
   color: var(--esti-brand-accent);
   will-change: transform;
   // JS drives the scale each frame; a short transition smooths any dropped frame.
   transition: transform 90ms linear;
 }
 .esti-breath-orb__phase {
-  font-size: 0.82rem;
+  font-size: 0.95rem;
   font-weight: 700;
   letter-spacing: 0.01em;
 }
 .esti-breath-orb__count {
-  font-size: 1.35rem;
+  font-size: 1.9rem;
   font-weight: 300;
   line-height: 1;
   color: var(--cds-text-primary, #141517);

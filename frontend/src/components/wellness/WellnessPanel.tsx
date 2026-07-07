@@ -1,11 +1,14 @@
-import { Box, Divider, IconButton, Popover, Stack, Switch, TextField, Typography } from "@mui/material";
+import { Box, IconButton, Popover, Stack, Tooltip, Typography } from "@mui/material";
 import PlayArrow from "@mui/icons-material/PlayArrow";
 import Stop from "@mui/icons-material/Stop";
-import { useEffect, useRef, useState, type RefObject } from "react";
+import Spa from "@mui/icons-material/Spa";
+import CenterFocusStrong from "@mui/icons-material/CenterFocusStrong";
+import Waves from "@mui/icons-material/Waves";
+import AllInclusive from "@mui/icons-material/AllInclusive";
+import { useEffect, useRef, useState, type RefObject, type ComponentType } from "react";
 import { BREATHING_PATTERNS, breathingPattern, cycleSeconds, type BreathingPattern } from "@esti/contracts";
 import { setWellnessPrefs, useWellnessPrefs } from "../../lib/wellnessPrefs.js";
 import { pushToast } from "../../lib/toast.js";
-import { trpc } from "../../lib/trpc.js";
 
 type Props = {
   open: boolean;
@@ -13,21 +16,25 @@ type Props = {
   triggerRef: RefObject<HTMLElement | null>;
 };
 
-const PHASE_LABEL: Record<string, string> = { in: "Breathe in", hold: "Hold", out: "Breathe out", holdOut: "Hold" };
+const PHASE_LABEL: Record<string, string> = { in: "Breathe in", hold: "Hold", out: "Breathe out", holdOut: "Hold", idle: "Ready" };
+
+/** One circular, icon-only button per pattern. */
+const PATTERN_ICON: Record<string, ComponentType> = {
+  relax: Spa,
+  focus: CenterFocusStrong,
+  anxiety: Waves,
+  daily: AllInclusive,
+};
 
 /**
- * Wellness — a floating neumorphic breathing module (five guided patterns) plus
- * the hydration-reminder toggle and the firm break schedule. Anchors above its
- * dock button. The breath orb expands on inhale, holds, and contracts on exhale
- * at the selected pattern's cadence; a session timer keeps the guidance running.
+ * Wellness — a floating, square neumorphic breathing module. A big breath orb
+ * expands on inhale, holds, and contracts on exhale at the selected pattern's
+ * cadence; the pattern is chosen from a row of circular, icon-only buttons.
  */
 export function WellnessPanel({ open, onClose, triggerRef }: Props) {
   const prefs = useWellnessPrefs();
   const [patternKey, setPatternKey] = useState(prefs.pattern);
   const [running, setRunning] = useState(false);
-  const settingsQ = trpc.settings.get.useQuery(undefined, { staleTime: 5 * 60 * 1000 });
-  const wellness = (settingsQ.data as { wellness?: { snackBreak: string | null; lunchBreak: string | null } } | undefined)?.wellness;
-
   const pattern = breathingPattern(patternKey);
 
   function choose(key: string) {
@@ -43,91 +50,44 @@ export function WellnessPanel({ open, onClose, triggerRef }: Props) {
       onClose={onClose}
       anchorOrigin={{ vertical: "top", horizontal: "center" }}
       transformOrigin={{ vertical: "bottom", horizontal: "center" }}
-      slotProps={{ paper: { className: "esti-neu", sx: { width: 300, p: 2.25 } } }}
+      slotProps={{ paper: { className: "esti-neu esti-wellness-panel", sx: { width: 300, p: 2.5 } } }}
     >
-      <Stack spacing={1.75}>
-        <Typography variant="subtitle2">Wellness · Breathe</Typography>
-
-        {/* Pattern selector */}
-        <Stack spacing={0.5}>
-          {BREATHING_PATTERNS.map((p) => (
-            <PatternRow key={p.key} p={p} selected={p.key === patternKey} onClick={() => choose(p.key)} />
-          ))}
-        </Stack>
+      <Stack spacing={2} sx={{ alignItems: "center" }}>
+        <Typography variant="subtitle2" sx={{ alignSelf: "flex-start" }}>Breathe</Typography>
 
         <BreathGuide pattern={pattern} running={running} onStop={() => setRunning(false)} />
 
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "center" }}>
-          <IconButton
-            className="esti-neu-btn"
-            onClick={() => setRunning((r) => !r)}
-            aria-label={running ? "Stop" : "Start"}
-          >
-            {running ? <Stop /> : <PlayArrow />}
-          </IconButton>
-          <Typography variant="caption" color="text.secondary">
-            {pattern.inhale}s in · {pattern.hold > 0 ? `${pattern.hold}s hold · ` : ""}
-            {pattern.exhale}s out · {pattern.durationLabel}
-          </Typography>
+        {/* Pattern selector — circular, icon-only buttons */}
+        <Stack direction="row" spacing={1.25} sx={{ justifyContent: "center" }}>
+          {BREATHING_PATTERNS.map((p) => {
+            const Icon = PATTERN_ICON[p.key] ?? Spa;
+            const selected = p.key === patternKey;
+            return (
+              <Tooltip key={p.key} title={p.name}>
+                <IconButton
+                  className="esti-neu-btn"
+                  onClick={() => choose(p.key)}
+                  aria-label={p.name}
+                  color={selected ? "primary" : "default"}
+                  sx={selected ? { outline: 2, outlineColor: "primary.main", outlineOffset: 1 } : undefined}
+                >
+                  <Icon />
+                </IconButton>
+              </Tooltip>
+            );
+          })}
         </Stack>
 
-        <Divider flexItem />
-
-        {/* Reminders */}
-        <Stack spacing={1}>
-          <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between" }}>
-            <Typography variant="body2">Hydration reminder</Typography>
-            <Switch
-              size="small"
-              checked={prefs.hydrationEnabled}
-              onChange={(e) => setWellnessPrefs({ hydrationEnabled: e.target.checked })}
-            />
-          </Stack>
-          {prefs.hydrationEnabled && (
-            <TextField
-              type="number"
-              size="small"
-              label="Every (minutes)"
-              value={prefs.hydrationMin}
-              onChange={(e) => setWellnessPrefs({ hydrationMin: Math.max(1, Number(e.target.value) || 15) })}
-              slotProps={{ htmlInput: { min: 1, max: 240 } }}
-              sx={{ maxWidth: 140 }}
-            />
-          )}
-          <Typography variant="caption" color="text.secondary">
-            {wellness?.snackBreak || wellness?.lunchBreak
-              ? `Breaks: ${[wellness?.snackBreak && `snack ${wellness.snackBreak}`, wellness?.lunchBreak && `lunch ${wellness.lunchBreak}`].filter(Boolean).join(" · ")} (set by the firm)`
-              : "Snack & lunch break times are set in the company profile."}
-          </Typography>
-        </Stack>
+        <IconButton
+          className="esti-neu-btn"
+          onClick={() => setRunning((r) => !r)}
+          aria-label={running ? "Stop" : "Start"}
+          size="large"
+        >
+          {running ? <Stop /> : <PlayArrow />}
+        </IconButton>
       </Stack>
     </Popover>
-  );
-}
-
-function PatternRow({ p, selected, onClick }: { p: BreathingPattern; selected: boolean; onClick: () => void }) {
-  return (
-    <Box
-      component="button"
-      type="button"
-      onClick={onClick}
-      className={selected ? "esti-neu-inset" : ""}
-      sx={{
-        textAlign: "left",
-        border: "none",
-        background: "transparent",
-        cursor: "pointer",
-        px: 1,
-        py: 0.6,
-        font: "inherit",
-        color: selected ? "primary.main" : "text.primary",
-      }}
-    >
-      <Typography variant="body2" sx={{ fontWeight: selected ? 700 : 500, lineHeight: 1.2 }}>
-        {p.name}
-      </Typography>
-      <Typography variant="caption" color="text.secondary">{p.goal}</Typography>
-    </Box>
   );
 }
 
@@ -185,12 +145,12 @@ function BreathGuide({ pattern, running, onStop }: { pattern: BreathingPattern; 
   const ss = String(sessionLeft % 60).padStart(2, "0");
 
   return (
-    <Box sx={{ display: "grid", placeItems: "center", py: 1.5 }}>
+    <Box sx={{ display: "grid", placeItems: "center", py: 1 }}>
       <Box className="esti-breath-orb" style={{ transform: `scale(${scale.toFixed(3)})` }}>
         <span className="esti-breath-orb__phase">{PHASE_LABEL[phase] ?? "Ready"}</span>
         {running && <span className="esti-breath-orb__count">{phaseLeft}</span>}
       </Box>
-      <Typography variant="caption" color="text.secondary" sx={{ mt: 1.25 }}>
+      <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5 }}>
         {running ? `${mm}:${ss} left` : "Press play to begin"}
       </Typography>
     </Box>
