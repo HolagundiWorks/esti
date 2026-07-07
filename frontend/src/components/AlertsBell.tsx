@@ -1,9 +1,10 @@
 import Notifications from "@mui/icons-material/Notifications";
 import NotificationsOff from "@mui/icons-material/NotificationsOff";
-import { Badge, Box, Button, Chip, IconButton, Popover, Stack, Tooltip, Typography } from "@mui/material";
+import { Badge, Box, Button, IconButton, Popover, Stack, Tooltip, Typography } from "@mui/material";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { trpc } from "../lib/trpc.js";
+import { StatusDot } from "./StatusTag.js";
 
 const KEY = "esti-dismissed-alerts";
 
@@ -14,11 +15,6 @@ function loadDismissed(): string[] {
     return [];
   }
 }
-
-const chipSx = (color: string) => ({
-  backgroundColor: `var(--cds-tag-background-${color})`,
-  color: `var(--cds-tag-color-${color})`,
-});
 
 /**
  * Dock bell: alert count badge + a floating (portaled) Popover panel opening above
@@ -82,7 +78,7 @@ export function AlertsBell() {
             <Box key={a.id} sx={{ borderBottom: 1, borderColor: "divider", p: 1 }}>
               <Stack spacing={0.5}>
                 <Box>
-                  <Chip size="small" label={a.severity} sx={chipSx(sevColor(a.severity))} />
+                  <StatusDot color={sevColor(a.severity)} label={a.severity} />
                 </Box>
                 <Link to={`/projects/${a.projectId}`} onClick={() => setAnchor(null)}>
                   {a.title}

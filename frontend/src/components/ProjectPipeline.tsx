@@ -6,7 +6,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -63,6 +62,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { apiUrl, authHeaders } from "../lib/api-base.js";
 import { trpc } from "../lib/trpc.js";
+import { StatusDot } from "./StatusTag.js";
 
 const HiddenFileInput = styled("input")({ display: "none" });
 
@@ -73,11 +73,6 @@ const PDF_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
   READY: "green",
   FAILED: "red",
 };
-
-const tagSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 export function ProjectPipeline({ projectId }: { projectId: string }) {
   const { user } = useAuth();
@@ -143,10 +138,9 @@ function RiskBadge({ projectId }: { projectId: string }) {
   if (!q.data) return null;
   const band = q.data.band as keyof typeof RISK_BAND_LABEL;
   return (
-    <Chip
-      size="small"
+    <StatusDot
+      color={RISK_BAND_TAG[band] ?? "gray"}
       label={`Risk ${q.data.score} · ${RISK_BAND_LABEL[band] ?? band}`}
-      sx={tagSx(RISK_BAND_TAG[band] ?? "gray")}
     />
   );
 }
@@ -421,7 +415,7 @@ function FeasibilityReport({ projectId, canWrite }: { projectId: string; canWrit
           {gen.isPending ? "Queuing…" : "Generate feasibility PDF"}
         </Button>
       )}
-      <Chip size="small" label={`PDF: ${status}`} sx={tagSx(PDF_TAG[status] ?? "gray")} />
+      <StatusDot color={PDF_TAG[status] ?? "gray"} label={`PDF: ${status}`} />
       {gen.error && (
         <Alert severity="error">
           <AlertTitle>Error</AlertTitle>
@@ -465,10 +459,9 @@ function NegotiationSection({ projectId, canWrite }: { projectId: string; canWri
       flex: 1,
       minWidth: 130,
       renderCell: (p) => (
-        <Chip
-          size="small"
+        <StatusDot
+          color={NEGOTIATION_OUTCOME_TAG[p.row.outcome as keyof typeof NEGOTIATION_OUTCOME_TAG] ?? "gray"}
           label={NEGOTIATION_OUTCOME_LABEL[p.row.outcome as keyof typeof NEGOTIATION_OUTCOME_LABEL] ?? p.row.outcome}
-          sx={tagSx(NEGOTIATION_OUTCOME_TAG[p.row.outcome as keyof typeof NEGOTIATION_OUTCOME_TAG] ?? "gray")}
         />
       ),
     },
@@ -596,10 +589,9 @@ function OnboardingSection({ projectId, canWrite }: { projectId: string; canWrit
   return (
     <Stack spacing={2}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-        <Chip
-          size="small"
+        <StatusDot
+          color={ONBOARDING_STATUS_TAG[status] ?? "gray"}
           label={ONBOARDING_STATUS_LABEL[status] ?? status}
-          sx={tagSx(ONBOARDING_STATUS_TAG[status] ?? "gray")}
         />
       </Box>
       <Grid container spacing={2}>
@@ -715,10 +707,9 @@ function ActivationSection({ projectId, canWrite }: { projectId: string; canWrit
               {gate.checks.map((c) => (
                 <TableRow key={c.key}>
                   <TableCell>
-                    <Chip
-                      size="small"
+                    <StatusDot
+                      color={c.ok ? "green" : "gray"}
                       label={c.ok ? "Met" : "Pending"}
-                      sx={tagSx(c.ok ? "green" : "gray")}
                     />
                   </TableCell>
                   <TableCell>{c.label}</TableCell>
@@ -800,10 +791,9 @@ function FeeApprovalRows({
                 <TableRow key={fp.id}>
                   <TableCell>{fp.ref}</TableCell>
                   <TableCell>
-                    <Chip
-                      size="small"
+                    <StatusDot
+                      color={CLIENT_APPROVAL_STATUS_TAG[st] ?? "gray"}
                       label={CLIENT_APPROVAL_STATUS_LABEL[st] ?? st}
-                      sx={tagSx(CLIENT_APPROVAL_STATUS_TAG[st] ?? "gray")}
                     />
                   </TableCell>
                   {canWrite && (

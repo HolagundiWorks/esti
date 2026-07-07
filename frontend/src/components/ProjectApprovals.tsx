@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -26,6 +25,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { StatusDot } from "./StatusTag.js";
 
 const STATUS_TAG: Record<
   string,
@@ -38,11 +38,6 @@ const STATUS_TAG: Record<
   REJECTED: "red",
   SUPERSEDED: "cool-gray",
 };
-
-const tagSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 export function ProjectApprovals({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
@@ -125,10 +120,9 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
                   </TableCell>
                   <TableCell>{a.sentDate ?? "—"}</TableCell>
                   <TableCell>
-                    <Chip
-                      size="small"
+                    <StatusDot
+                      color={STATUS_TAG[a.status] ?? "gray"}
                       label={a.status}
-                      sx={tagSx(STATUS_TAG[a.status] ?? "gray")}
                     />
                   </TableCell>
                   <TableCell>

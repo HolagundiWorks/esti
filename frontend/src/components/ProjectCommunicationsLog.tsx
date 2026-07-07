@@ -22,9 +22,9 @@ import {
   type ClientLogKindCode,
 } from "@esti/contracts";
 import { useState } from "react";
-import type { ReactNode } from "react";
 import { trpc } from "../lib/trpc.js";
 import { ContextualComments } from "./ContextualComments.js";
+import { StatusDot } from "./StatusTag.js";
 
 type Category = "clientlog" | "internal" | "critical" | "site" | "revision";
 
@@ -38,19 +38,6 @@ const CAT: Record<Category, { label: string; tagType: "blue" | "gray" | "red" | 
 
 function today() {
   return new Date().toISOString().slice(0, 10);
-}
-
-function TagChip({ color, label }: { color: string; label: ReactNode }) {
-  return (
-    <Chip
-      size="small"
-      label={label}
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
 }
 
 function Loading() {
@@ -102,12 +89,12 @@ function ClientLogPanel({ projectId }: { projectId: string }) {
         {(logQ.data ?? []).map((e) => (
           <Box key={e.id} sx={{ borderLeft: "3px solid var(--cds-border-subtle-01)", pl: 1.5 }}>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
-              <TagChip
+              <StatusDot
                 color={KIND_TAG[e.kind as ClientLogKindCode] ?? "gray"}
                 label={CLIENT_LOG_KINDS[e.kind as ClientLogKindCode] ?? e.kind}
               />
               {e.outcome && (
-                <TagChip
+                <StatusDot
                   color={
                     (CLIENT_DISCUSSION_OUTCOME_TAG as Record<string, "green" | "blue" | "red" | "teal" | "purple">)[e.outcome] ?? "gray"
                   }
@@ -218,9 +205,9 @@ function CriticalPanel({ projectId }: { projectId: string }) {
         {items.map((n) => (
           <Box key={n.id} sx={{ borderLeft: "3px solid var(--cds-support-error)", pl: 1.5 }}>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
-              <TagChip color={PRIORITY_TAG[n.priority] ?? "gray"} label={n.priority} />
-              <TagChip color={STATUS_TAG[n.status] ?? "gray"} label={n.status} />
-              <TagChip color="gray" label={n.category} />
+              <StatusDot color={PRIORITY_TAG[n.priority] ?? "gray"} label={n.priority} />
+              <StatusDot color={STATUS_TAG[n.status] ?? "gray"} label={n.status} />
+              <StatusDot color="gray" label={n.category} />
               <strong>{n.title}</strong>
               {n.owner && <span className="esti-label--secondary">Owner: {n.owner}</span>}
               {n.dueDate && <span className="esti-label--secondary">Due: {n.dueDate}</span>}
@@ -312,7 +299,7 @@ function SiteChangesPanel({ projectId }: { projectId: string }) {
         {items.map((si) => (
           <Box key={si.id} sx={{ borderLeft: "3px solid var(--cds-border-interactive)", pl: 1.5 }}>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
-              <TagChip color="teal" label={si.ref} />
+              <StatusDot color="teal" label={si.ref} />
               <strong>{si.subject}</strong>
               <span className="esti-label--secondary">{si.issuedAt}</span>
             </Box>
@@ -391,18 +378,18 @@ function RevisionPanel({ projectId }: { projectId: string }) {
         {items.map((d) => (
           <Box key={d.id} sx={{ borderLeft: "3px solid var(--cds-support-warning)", pl: 1.5 }}>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
-              <TagChip
+              <StatusDot
                 color={REVISION_CAT_TAG[d.revisionCategory!] ?? "gray"}
                 label={d.revisionCategory}
               />
               {d.revisionSource && (
-                <TagChip
+                <StatusDot
                   color="gray"
                   label={REVISION_SOURCE_LABEL[d.revisionSource] ?? d.revisionSource}
                 />
               )}
               <strong>{d.title}</strong>
-              <TagChip color="gray" label={d.state} />
+              <StatusDot color="gray" label={d.state} />
             </Box>
             {d.rationale && <Box component="p" sx={{ my: 0.5, whiteSpace: "pre-wrap" }}>{d.rationale}</Box>}
           </Box>

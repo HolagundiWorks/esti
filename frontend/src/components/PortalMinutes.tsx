@@ -3,13 +3,13 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   CircularProgress,
   MenuItem,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
+import { StatusDot } from "./StatusTag.js";
 import {
   REVISION_CATEGORY_LABEL,
   RevisionCategory,
@@ -29,13 +29,6 @@ type DraftSuggestion = {
   details: string;
   category: RevisionCategoryT;
 };
-
-function chipTokens(color: string) {
-  return {
-    backgroundColor: `var(--cds-tag-background-${color})`,
-    color: `var(--cds-tag-color-${color})`,
-  };
-}
 
 export function PortalMinutes({
   projectId,
@@ -148,7 +141,7 @@ export function PortalMinutes({
                     <strong>{m.ref} — {m.title}</strong>
                   </Typography>
                   {m.meetingDate && (
-                    <Chip size="small" label={m.meetingDate} sx={chipTokens("cool-gray")} />
+                    <StatusDot color="cool-gray" label={m.meetingDate} />
                   )}
                 </Stack>
                 {m.attendees && (
@@ -192,11 +185,7 @@ export function PortalMinutes({
                   <Box key={draft.key} sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
                     <Stack spacing={1.5}>
                       <Stack direction="row">
-                        <Chip
-                          size="small"
-                          label="ESTI draft — review before sending"
-                          sx={chipTokens("purple")}
-                        />
+                        <StatusDot color="purple" label="ESTI draft — review before sending" />
                       </Stack>
                       <TextField
                         id={`sub-${draft.key}`}

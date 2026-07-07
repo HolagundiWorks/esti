@@ -2,7 +2,6 @@ import {
   Alert,
   AlertTitle,
   Box,
-  Chip,
   Grid,
   Stack,
   Table,
@@ -13,6 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { PROGRAM_SPACE_CATEGORY_LABEL, formatINR } from "@esti/contracts";
+import { StatusDot } from "./StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
 function area(n: number | null | undefined): string {
@@ -24,11 +24,6 @@ function floorLabel(level: number): string {
   if (level < 0) return `Basement ${Math.abs(level)}`;
   return `Floor ${level}`;
 }
-
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 /**
  * Read-only "Program & feasibility" reference for site delivery. Feasibility (max
@@ -60,7 +55,7 @@ export function ProjectSiteReference({ projectId, compact = false }: { projectId
       {!compact && (
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
           <Typography variant="h6" component="h4">Program & feasibility</Typography>
-          {p && <Chip size="small" label={`Program v${p.version} · frozen`} sx={chipSx("green")} />}
+          {p && <StatusDot color="green" label={`Program v${p.version} · frozen`} />}
         </Box>
       )}
 
@@ -99,8 +94,8 @@ export function ProjectSiteReference({ projectId, compact = false }: { projectId
         <Stack spacing={1}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
             <Typography variant="subtitle2" component="h5">Frozen program (v{p.version})</Typography>
-            <Chip size="small" label={`${area(p.totalProgrammedAreaSqm)} sqm · ${p.floorsUsed} floors`} sx={chipSx("gray")} />
-            {p.overEnvelope && <Chip size="small" label="Over envelope" sx={chipSx("red")} />}
+            <StatusDot color="gray" label={`${area(p.totalProgrammedAreaSqm)} sqm · ${p.floorsUsed} floors`} />
+            {p.overEnvelope && <StatusDot color="red" label="Over envelope" />}
           </Box>
           <Table size="small">
             <TableHead>

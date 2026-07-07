@@ -1,5 +1,6 @@
-import { Alert, Box, Chip, Stack, Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
+import { Alert, Box, Stack, Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
+import { StatusDot } from "../StatusTag.js";
 
 export function ReleaseMetadataPanel() {
   // Same payload as GET /health — avoids a separate tRPC route and matches deploy probes.
@@ -23,16 +24,7 @@ export function ReleaseMetadataPanel() {
 
   const check = (ok: boolean, label: string) => {
     const color = ok ? "green" : "red";
-    return (
-      <Chip
-        size="small"
-        label={`${label} ${ok ? "OK" : "down"}`}
-        sx={{
-          backgroundColor: `var(--cds-tag-background-${color})`,
-          color: `var(--cds-tag-color-${color})`,
-        }}
-      />
-    );
+    return <StatusDot color={color} label={`${label} ${ok ? "OK" : "down"}`} />;
   };
 
   return (

@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -26,11 +25,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
-
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
+import { StatusDot } from "./StatusTag.js";
 
 export function ProjectEngagements({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
@@ -167,7 +162,7 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
                         Record payment
                       </Button>
                       {balance <= 0 && e.agreedFeePaise > 0 && (
-                        <Chip size="small" label="Settled" sx={chipSx("green")} />
+                        <StatusDot color="green" label="Settled" />
                       )}
                     </TableCell>
                   </TableRow>

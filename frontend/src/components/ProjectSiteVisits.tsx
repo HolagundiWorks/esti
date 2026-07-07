@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -14,17 +13,13 @@ import { can } from "@esti/contracts";
 import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
+import { StatusDot } from "./StatusTag.js";
 
 const STATUS_TAG: Record<string, "gray" | "green" | "red" | "blue"> = {
   PLANNED: "blue",
   CONFIRMED: "green",
   CANCELLED: "red",
 };
-
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 const shrink = { slotProps: { inputLabel: { shrink: true } } } as const;
 
@@ -71,9 +66,9 @@ export function ProjectSiteVisits({ projectId }: { projectId: string }) {
             <Stack spacing={1}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <strong>{v.plannedDate}</strong>
-                <Chip size="small" label={v.status} sx={chipSx(STATUS_TAG[v.status] ?? "gray")} />
-                {v.supervisorConfirmedAt && <Chip size="small" label="Supervisor ✓" sx={chipSx("green")} />}
-                {v.contractorConfirmedAt && <Chip size="small" label="Contractor ✓" sx={chipSx("green")} />}
+                <StatusDot color={STATUS_TAG[v.status] ?? "gray"} label={v.status} />
+                {v.supervisorConfirmedAt && <StatusDot color="green" label="Supervisor ✓" />}
+                {v.contractorConfirmedAt && <StatusDot color="green" label="Contractor ✓" />}
               </Stack>
               {v.notes && <p className="esti-label--secondary">{v.notes}</p>}
               {v.cancelReason && <p className="esti-label--secondary">Reason: {v.cancelReason}</p>}

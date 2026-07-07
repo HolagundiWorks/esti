@@ -3,7 +3,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -30,12 +29,7 @@ import {
 import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
-import { StatusTag } from "./StatusTag.js";
-
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
+import { StatusDot, StatusTag } from "./StatusTag.js";
 
 function area(n: number): string {
   return (Number.isInteger(n) ? n : Number(n.toFixed(2))).toLocaleString("en-IN");
@@ -154,9 +148,9 @@ export function ProjectProgram({ projectId }: { projectId: string }) {
     <Stack spacing={3}>
       <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
         <Typography variant="h6" component="h4">Program formulation</Typography>
-        <Chip size="small" label={`v${program.version}`} sx={chipSx("gray")} />
+        <StatusDot color="gray" label={`v${program.version}`} />
         <StatusTag value={status} map={PROGRAM_STATUS_TAG} label={PROGRAM_STATUS_LABEL[status] ?? status} />
-        {overEnvelope && <Chip size="small" label="Over feasibility envelope" sx={chipSx("red")} />}
+        {overEnvelope && <StatusDot color="red" label="Over feasibility envelope" />}
       </Stack>
 
       {/* KPI strip — feasibility envelope is the source of truth */}

@@ -1,15 +1,9 @@
-import { Box, Chip, Grid, LinearProgress, Stack, Typography } from "@mui/material";
+import { Box, Grid, LinearProgress, Stack, Typography } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { formatINR } from "@esti/contracts";
 import { DataState } from "../DataState.js";
+import { StatusDot } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
-
-// Preserve exact Carbon tag colours by rendering an MUI Chip over the
-// `--cds-tag-*` token vars (still defined by the Carbon token layer).
-const tagSx = (color: string) => ({
-  backgroundColor: `var(--cds-tag-background-${color}, var(--cds-layer-01))`,
-  color: `var(--cds-tag-color-${color}, var(--cds-text-primary))`,
-});
 
 const forecastColumns = (resourceLabel: string): GridColDef[] => [
   { field: "itemName", headerName: resourceLabel, flex: 1.5, minWidth: 180 },
@@ -89,9 +83,9 @@ export function ProjectCostIntelligence({ projectId }: { projectId: string }) {
                   </p>
                   <div className="esti-label--helper">
                     {d.certifiedTotalPaise >= d.estimatedTotalPaise ? (
-                      <Chip label="Fully certified" size="small" sx={tagSx("green")} />
+                      <StatusDot color="green" label="Fully certified" />
                     ) : (
-                      <Chip label="Pending" size="small" sx={tagSx("cool-gray")} />
+                      <StatusDot color="cool-gray" label="Pending" />
                     )}
                   </div>
                 </Box>

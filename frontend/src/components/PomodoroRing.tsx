@@ -1,10 +1,11 @@
-import { Button, Chip, Stack } from "@mui/material";
+import { Button, Stack } from "@mui/material";
 import { useRef, useState } from "react";
 import {
   fmtPomTime,
   POMODORO_MODE_LABEL,
   usePomodoro,
 } from "../contexts/PomodoroContext.js";
+import { StatusDot } from "./StatusTag.js";
 
 const DIAL = { cx: 110, cy: 110, r: 86, vb: 220 };
 const FOCUS = "var(--cds-support-success)";
@@ -53,13 +54,9 @@ export function PomodoroRing() {
   return (
     <Stack spacing={1.5}>
       <Stack direction="row" spacing={1}>
-        <Chip
-          size="small"
+        <StatusDot
+          color={isBreak ? "red" : "green"}
           label={POMODORO_MODE_LABEL[pom.mode]}
-          sx={{
-            backgroundColor: `var(--cds-tag-background-${isBreak ? "red" : "green"})`,
-            color: `var(--cds-tag-color-${isBreak ? "red" : "green"})`,
-          }}
         />
       </Stack>
 

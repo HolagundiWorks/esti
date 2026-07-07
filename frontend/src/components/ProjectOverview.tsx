@@ -6,7 +6,6 @@ import {
   CardActionArea,
   CardContent,
   Checkbox,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -35,12 +34,7 @@ import {
 } from "@esti/contracts";
 import { trpc } from "../lib/trpc.js";
 import { AiDraftPanel } from "./AiStudio.js";
-import { StatusTag } from "./StatusTag.js";
-
-const tagSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
+import { StatusDot, StatusTag } from "./StatusTag.js";
 
 function StatCard({
   label,
@@ -66,7 +60,9 @@ function StatCard({
             {value}
           </Typography>
         </Stack>
-        <Chip size="small" label={tag} sx={{ ...tagSx("blue"), alignSelf: "flex-start" }} />
+        <Box sx={{ alignSelf: "flex-start" }}>
+          <StatusDot color="blue" label={tag} />
+        </Box>
         <Typography variant="body2">{detail}</Typography>
       </Stack>
     </CardContent>
@@ -279,7 +275,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
       headerName: "Rev",
       width: 110,
       renderCell: (p) => (
-        <Chip size="small" label={`Rev ${p.row.revNo}`} sx={tagSx("gray")} />
+        <StatusDot color="gray" label={`Rev ${p.row.revNo}`} />
       ),
     },
     {
@@ -320,16 +316,15 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
       headerName: "Status",
       width: 110,
       renderCell: (p) => (
-        <Chip
-          size="small"
-          label={p.row.status}
-          sx={tagSx(
+        <StatusDot
+          color={
             p.row.status === "RESOLVED"
               ? "green"
               : p.row.status === "BLOCKED"
                 ? "red"
-                : "blue",
-          )}
+                : "blue"
+          }
+          label={p.row.status}
         />
       ),
     },
@@ -345,10 +340,9 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
         <Stack spacing={0.5} sx={{ py: 0.5, alignItems: "flex-start" }}>
           <span>{p.row.title}</span>
           {p.row.programVersionId && (
-            <Chip
-              size="small"
+            <StatusDot
+              color="cool-gray"
               label={`Program v${programVersionNo.get(p.row.programVersionId) ?? "?"}`}
-              sx={tagSx("cool-gray")}
             />
           )}
         </Stack>
@@ -368,7 +362,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
               label={DECISION_STATE_LABEL[state]}
             />
             {isCoolingOff(p.row) && (
-              <Chip size="small" label="Cooling off" sx={tagSx("red")} />
+              <StatusDot color="red" label="Cooling off" />
             )}
           </Stack>
         );

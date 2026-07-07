@@ -2,12 +2,12 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   MenuItem,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
+import { StatusDot } from "../StatusTag.js";
 import {
   STORAGE_MODE_LABEL,
   StorageMode,
@@ -93,14 +93,7 @@ export function StorageSettingsPanel() {
       <Stack spacing={2}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <Typography variant="h5" component="h2">Storage (BYOS)</Typography>
-          <Chip
-            size="small"
-            label="Pro"
-            sx={{
-              backgroundColor: "var(--cds-tag-background-purple)",
-              color: "var(--cds-tag-color-purple)",
-            }}
-          />
+          <StatusDot color="purple" label="Pro" />
         </Stack>
         <Typography variant="body2">
           By default your files live on ESTI-managed storage. Pro firms can

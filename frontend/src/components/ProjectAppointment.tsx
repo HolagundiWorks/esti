@@ -1,6 +1,7 @@
-import { Button, Chip, Stack, TextField } from "@mui/material";
+import { Button, Stack, TextField } from "@mui/material";
 import { Link } from "react-router-dom";
 import { trpc } from "../lib/trpc.js";
+import { StatusDot } from "./StatusTag.js";
 
 export function ProjectAppointment({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
@@ -19,14 +20,7 @@ export function ProjectAppointment({ projectId }: { projectId: string }) {
     <Stack spacing={2} sx={{ mt: 2 }}>
       <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
         <h3>Phase 0 — Appointment</h3>
-        <Chip
-          size="small"
-          label={row?.status ?? "Not started"}
-          sx={{
-            backgroundColor: `var(--cds-tag-background-${tagColor})`,
-            color: `var(--cds-tag-color-${tagColor})`,
-          }}
-        />
+        <StatusDot color={tagColor} label={row?.status ?? "Not started"} />
       </Stack>
       <p style={{ margin: 0, opacity: 0.85 }}>
         Pre-engagement site visit, scope confirmation, and letter of appointment before full initiation.

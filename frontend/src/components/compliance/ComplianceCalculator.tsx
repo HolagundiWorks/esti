@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import CalculateIcon from "@mui/icons-material/Calculate";
+import { StatusDot } from "../StatusTag.js";
 import {
   NBC_ZONES,
   computeNbcPermissible,
@@ -19,11 +20,6 @@ import {
 } from "@esti/contracts";
 
 const EMPTY = { landUseCode: "R-1", siteAreaSqm: 1000, siteWidthM: 25, siteDepthM: 40, frontageM: 25 };
-
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 type ReportItem = { label: string; value: string | number; unit?: string; basis: string; ruleRef: string };
 
@@ -45,7 +41,7 @@ const reportColumns: GridColDef[] = [
     headerName: "Rule",
     flex: 1,
     renderCell: (params) => (
-      <Chip size="small" label={(params.row as ReportItem).ruleRef} sx={chipSx("gray")} />
+      <StatusDot color="gray" label={(params.row as ReportItem).ruleRef} />
     ),
   },
 ];
@@ -153,8 +149,8 @@ export function ComplianceCalculator() {
           {report && report.ok && (
             <Stack spacing={2}>
               <Stack direction="row" spacing={1} className="esti-row">
-                <Chip size="small" label={report.zoneLabel} sx={chipSx("blue")} />
-                <Chip size="small" label={`${report.siteAreaSqm} m²`} sx={chipSx("cool-gray")} />
+                <StatusDot color="blue" label={report.zoneLabel} />
+                <StatusDot color="cool-gray" label={`${report.siteAreaSqm} m²`} />
                 <Chip size="small" label={report.rulesVersion} variant="outlined" />
               </Stack>
 

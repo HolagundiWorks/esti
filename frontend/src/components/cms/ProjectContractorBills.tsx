@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -28,6 +27,7 @@ import Send from "@mui/icons-material/Send";
 import Verified from "@mui/icons-material/Verified";
 import { can, formatINR } from "@esti/contracts";
 import { DataState } from "../DataState.js";
+import { StatusDot } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
 import { useAuth } from "../../lib/auth.js";
 
@@ -38,13 +38,6 @@ const BILL_STATUS_TAG: Record<string, "gray" | "blue" | "green" | "warm-gray" | 
   HELD: "warm-gray",
   REJECTED: "red",
 };
-
-// Preserve exact Carbon tag colours by rendering an MUI Chip over the
-// `--cds-tag-*` token vars (still defined by the Carbon token layer).
-const tagSx = (color: string) => ({
-  backgroundColor: `var(--cds-tag-background-${color}, var(--cds-layer-01))`,
-  color: `var(--cds-tag-color-${color}, var(--cds-text-primary))`,
-});
 
 const shrink = { slotProps: { inputLabel: { shrink: true } } } as const;
 
@@ -169,7 +162,7 @@ export function ProjectContractorBills({ projectId }: { projectId: string }) {
       flex: 0.8,
       minWidth: 110,
       renderCell: (p) => (
-        <Chip label={p.row.status} size="small" sx={tagSx(BILL_STATUS_TAG[p.row.status] ?? "gray")} />
+        <StatusDot color={BILL_STATUS_TAG[p.row.status] ?? "gray"} label={p.row.status} />
       ),
     },
     {

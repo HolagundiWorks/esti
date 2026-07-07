@@ -7,7 +7,6 @@ import {
   Box,
   Button,
   Checkbox,
-  Chip,
   FormControl,
   FormControlLabel,
   FormGroup,
@@ -29,6 +28,7 @@ import {
 } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { StatusDot } from "./StatusTag.js";
 
 /**
  * Client–Project Intelligence (CPI) — residential onboarding & program
@@ -355,11 +355,6 @@ const SECTION_TITLE = new Map(CPI_SECTIONS.map((s) => [s.id, `${s.no} — ${s.ti
 
 type Answers = Record<string, unknown>;
 
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
-
 function FieldControl({ field, value, onChange }: {
   field: Field;
   value: unknown;
@@ -555,9 +550,8 @@ export function ProjectCpi({ projectId }: { projectId: string }) {
         <Stack spacing={1}>
           <div className="esti-row-between">
             <Typography variant="h6" component="h4">Client–Project Intelligence (CPI)</Typography>
-            <Chip
-              size="small"
-              sx={chipSx(row.status === "COMPLETE" ? "green" : "gray")}
+            <StatusDot
+              color={row.status === "COMPLETE" ? "green" : "gray"}
               label={
                 row.status === "COMPLETE" ? "Report saved" : `${answeredCount}/${SECTION_DEFS.length} sections`
               }
@@ -639,7 +633,7 @@ export function ProjectCpi({ projectId }: { projectId: string }) {
                       Save report
                     </Button>
                     {savedReport && !reportDraft && (
-                      <Chip size="small" label="Saved" sx={chipSx("green")} />
+                      <StatusDot color="green" label="Saved" />
                     )}
                   </div>
                   {saveReport.isError && (
@@ -691,7 +685,7 @@ function CpiSectionBody({ projectId, def, saved, onSaved }: {
         >
           Save section
         </Button>
-        {answered && !dirty && <Chip size="small" label="Saved" sx={chipSx("green")} />}
+        {answered && !dirty && <StatusDot color="green" label="Saved" />}
       </div>
       {save.isError && (
         <Alert severity="error">

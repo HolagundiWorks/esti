@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -19,15 +18,9 @@ import Check from "@mui/icons-material/Check";
 import DeleteOutline from "@mui/icons-material/DeleteOutlineOutlined";
 import { can } from "@esti/contracts";
 import { DataState } from "../DataState.js";
+import { StatusDot } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
 import { useAuth } from "../../lib/auth.js";
-
-// Preserve exact Carbon tag colours by rendering an MUI Chip over the
-// `--cds-tag-*` token vars (still defined by the Carbon token layer).
-const tagSx = (color: string) => ({
-  backgroundColor: `var(--cds-tag-background-${color}, var(--cds-layer-01))`,
-  color: `var(--cds-tag-color-${color}, var(--cds-text-primary))`,
-});
 
 const shrink = { slotProps: { inputLabel: { shrink: true } } } as const;
 
@@ -145,10 +138,9 @@ export function ProjectSiteMeasurement({ projectId }: { projectId: string }) {
       flex: 0.7,
       minWidth: 110,
       renderCell: (p) => (
-        <Chip
+        <StatusDot
+          color={p.row.status === "VERIFIED" ? "green" : "cool-gray"}
           label={p.row.status}
-          size="small"
-          sx={tagSx(p.row.status === "VERIFIED" ? "green" : "cool-gray")}
         />
       ),
     },

@@ -3,7 +3,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   Grid,
   Stack,
   TextField,
@@ -12,6 +11,7 @@ import {
 import { PLAN_LABEL, type LicenseStatus } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../../lib/trpc.js";
+import { StatusDot } from "../StatusTag.js";
 
 const STATUS_TAG: Record<LicenseStatus, "green" | "teal" | "red" | "gray"> = {
   VALID: "green",
@@ -26,20 +26,6 @@ const STATUS_LABEL: Record<LicenseStatus, string> = {
   EXPIRED: "Expired",
   UNLICENSED: "Not activated",
 };
-
-/** Status/plan badge rendered over the Carbon `--cds-tag-*` token vars (exact colours). */
-function TagChip({ color, label }: { color: string; label: string }) {
-  return (
-    <Chip
-      size="small"
-      label={label}
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 const cap = (n: number | null) => (n === null ? "Unlimited" : String(n));
 const fmtDate = (iso: string | null) =>
@@ -70,8 +56,8 @@ export function LicensePanel() {
       <Stack spacing={2}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <Typography component="h3" className="esti-label">Licence</Typography>
-          {view && <TagChip color="blue" label={PLAN_LABEL[view.plan]} />}
-          <TagChip color={STATUS_TAG[status]} label={STATUS_LABEL[status]} />
+          {view && <StatusDot color="blue" label={PLAN_LABEL[view.plan]} />}
+          <StatusDot color={STATUS_TAG[status]} label={STATUS_LABEL[status]} />
         </Stack>
 
         {view && view.status !== "UNLICENSED" && (

@@ -3,7 +3,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -27,6 +26,7 @@ import {
   formatINR,
 } from "@esti/contracts";
 import { useState } from "react";
+import { StatusDot } from "./StatusTag.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -37,11 +37,6 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red" | "teal"> = {
   CLOSED: "green",
   REJECTED: "red",
 };
-
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 const shrink = { slotProps: { inputLabel: { shrink: true } } } as const;
 
@@ -143,9 +138,8 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
       flex: 0.9,
       minWidth: 110,
       renderCell: (p) => (
-        <Chip
-          size="small"
-          sx={chipSx(STATUS_TAG[p.row.status] ?? "gray")}
+        <StatusDot
+          color={STATUS_TAG[p.row.status] ?? "gray"}
           label={EXPENSE_STATUS_LABEL[p.row.status as keyof typeof EXPENSE_STATUS_LABEL] ?? p.row.status}
         />
       ),

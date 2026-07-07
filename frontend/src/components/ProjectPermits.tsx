@@ -3,7 +3,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -28,6 +27,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { StatusDot } from "./StatusTag.js";
 
 const TIER_TAG: Record<
   PermitDueTier,
@@ -114,14 +114,7 @@ export function ProjectPermits({ projectId }: { projectId: string }) {
                     <TableCell>
                       {p.dateDue ?? "—"}{" "}
                       {tier !== "none" && (
-                        <Chip
-                          size="small"
-                          label={tag.label}
-                          sx={{
-                            backgroundColor: `var(--cds-tag-background-${tag.type})`,
-                            color: `var(--cds-tag-color-${tag.type})`,
-                          }}
-                        />
+                        <StatusDot color={tag.type} label={tag.label} />
                       )}
                     </TableCell>
                     <TableCell>{p.status}</TableCell>

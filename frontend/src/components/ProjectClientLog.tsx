@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -19,8 +18,8 @@ import {
   type ClientLogKindCode,
 } from "@esti/contracts";
 import { useState } from "react";
-import type { ReactNode } from "react";
 import { trpc } from "../lib/trpc.js";
+import { StatusDot } from "./StatusTag.js";
 
 const KIND_TAG: Partial<
   Record<ClientLogKindCode, "blue" | "green" | "purple" | "teal" | "gray">
@@ -30,19 +29,6 @@ const KIND_TAG: Partial<
   MEETING: "blue",
   SITE_VISIT: "teal",
 };
-
-function TagChip({ color, label }: { color: string; label: ReactNode }) {
-  return (
-    <Chip
-      size="small"
-      label={label}
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
@@ -103,12 +89,12 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
             sx={{ py: 1, pl: 2, ml: 1, position: "relative" }}
           >
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-              <TagChip
+              <StatusDot
                 color={KIND_TAG[e.kind as ClientLogKindCode] ?? "gray"}
                 label={CLIENT_LOG_KINDS[e.kind as ClientLogKindCode] ?? e.kind}
               />
               {e.outcome && (
-                <TagChip
+                <StatusDot
                   color={CLIENT_DISCUSSION_OUTCOME_TAG[e.outcome as ClientDiscussionOutcomeT] ?? "gray"}
                   label={CLIENT_DISCUSSION_OUTCOME_LABEL[e.outcome as ClientDiscussionOutcomeT] ?? e.outcome}
                 />

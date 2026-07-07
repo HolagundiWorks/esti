@@ -7,7 +7,6 @@
 import {
   Box,
   Button,
-  Chip,
   IconButton,
   Skeleton,
   Stack,
@@ -19,6 +18,7 @@ import DeleteOutline from "@mui/icons-material/DeleteOutlineOutlined";
 import { formatINR, type CostedEstimate, type RateSource } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../../DataState.js";
+import { StatusDot } from "../../StatusTag.js";
 import { trpc } from "../../../lib/trpc.js";
 
 export type Costed = CostedEstimate;
@@ -26,29 +26,21 @@ export const inr = (paise: number) => formatINR(paise, { paise: false });
 export const qty = (n: number) => n.toLocaleString("en-IN", { maximumFractionDigits: 3 });
 const scroll = { maxHeight: "58vh", overflowY: "auto" } as const;
 
-// Preserve exact Carbon tag colours by rendering an MUI Chip over the
-// `--cds-tag-*` token vars (still defined by the Carbon token layer).
-const tagSx = (color: string) => ({
-  backgroundColor: `var(--cds-tag-background-${color}, var(--cds-layer-01))`,
-  color: `var(--cds-tag-color-${color}, var(--cds-text-primary))`,
-});
-
 /** Variance tag — green when the rate book costs less than the estimate, red when more. */
 export function VarianceTag({ paise }: { paise: number }) {
-  if (paise === 0) return <Chip label="±0" size="small" sx={tagSx("gray")} />;
+  if (paise === 0) return <StatusDot color="gray" label="±0" />;
   return (
-    <Chip
+    <StatusDot
+      color={paise < 0 ? "green" : "red"}
       label={`${paise < 0 ? "−" : "+"}${inr(Math.abs(paise))}`}
-      size="small"
-      sx={tagSx(paise < 0 ? "green" : "red")}
     />
   );
 }
 
 /** Where the costed rate came from — project override, office book, or estimate. */
 export function SourceTag({ source }: { source: RateSource }) {
-  if (source === "project") return <Chip label="project" size="small" sx={tagSx("purple")} />;
-  if (source === "estimate") return <Chip label="est." size="small" sx={tagSx("cool-gray")} />;
+  if (source === "project") return <StatusDot color="purple" label="project" />;
+  if (source === "estimate") return <StatusDot color="cool-gray" label="est." />;
   return null; // rateBook is the norm — no tag
 }
 
@@ -56,8 +48,8 @@ export function SourceTag({ source }: { source: RateSource }) {
 export function EstimateSummary({ c }: { c: Costed }) {
   return (
     <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-      <Chip label={`Estimate ${inr(c.abstract.totalEstimatedPaise)}`} sx={tagSx("blue")} />
-      <Chip label={`Costed ${inr(c.grandTotalPaise)}`} sx={tagSx("teal")} />
+      <StatusDot color="blue" label={`Estimate ${inr(c.abstract.totalEstimatedPaise)}`} />
+      <StatusDot color="teal" label={`Costed ${inr(c.grandTotalPaise)}`} />
       <VarianceTag paise={c.abstract.totalVariancePaise} />
     </Stack>
   );

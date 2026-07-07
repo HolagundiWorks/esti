@@ -6,8 +6,9 @@
  */
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import ChevronRight from "@mui/icons-material/ChevronRight";
-import { Box, Chip, IconButton, Stack } from "@mui/material";
+import { Box, IconButton, Stack } from "@mui/material";
 import type { ReactNode } from "react";
+import { StatusDot } from "./StatusTag.js";
 
 export type GanttChartRow = {
   id: string;
@@ -24,11 +25,6 @@ export type GanttChartRow = {
   indent?: boolean;
   expandable?: { expanded: boolean; onToggle: () => void };
 };
-
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 const BAR_COLORS = [
   "var(--cds-support-info)",
@@ -164,7 +160,7 @@ export function GanttChart({
                       <div className="esti-gantt__card-text">
                         <div className="esti-gantt__card-title">
                           {row.tag && (
-                            <Chip size="small" label={row.tag.text} sx={chipSx(row.tag.type)} />
+                            <StatusDot color={row.tag.type} label={row.tag.text} />
                           )}
                           <span>{row.label}</span>
                         </div>

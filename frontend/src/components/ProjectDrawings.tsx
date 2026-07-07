@@ -3,7 +3,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -18,6 +17,7 @@ import Launch from "@mui/icons-material/Launch";
 import { can } from "@esti/contracts";
 import { useState } from "react";
 import { DrawingIssueCell } from "./DrawingIssueCell.js";
+import { StatusDot } from "./StatusTag.js";
 import { useAuth } from "../lib/auth.js";
 import { ESTICAD_DOWNLOAD_URL, esticadDrawingUrl, openEsticadDrawing } from "../lib/esticadLink.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
@@ -31,13 +31,6 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
   READY: "green",
   FAILED: "red",
 };
-
-function tagSx(color: string) {
-  return {
-    backgroundColor: `var(--cds-tag-background-${color})`,
-    color: `var(--cds-tag-color-${color})`,
-  };
-}
 
 export function ProjectDrawings({ projectId }: { projectId: string }) {
   const { user } = useAuth();
@@ -157,7 +150,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
       headerName: "Rev",
       width: 90,
       renderCell: (p) => (
-        <Chip size="small" label={`Rev ${p.row.revNo}`} sx={tagSx(p.row.revNo > 1 ? "blue" : "gray")} />
+        <StatusDot color={p.row.revNo > 1 ? "blue" : "gray"} label={`Rev ${p.row.revNo}`} />
       ),
     },
     {
@@ -167,7 +160,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
       minWidth: 120,
       renderCell: (p) => (
         <div>
-          <Chip size="small" label={p.row.status} sx={tagSx(STATUS_TAG[p.row.status] ?? "gray")} />
+          <StatusDot color={STATUS_TAG[p.row.status] ?? "gray"} label={p.row.status} />
           {p.row.status === "FAILED" && p.row.errorText && <div>{p.row.errorText}</div>}
         </div>
       ),
@@ -247,7 +240,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
       headerName: "Current",
       width: 110,
       renderCell: (p) =>
-        p.row.isCurrent ? <Chip size="small" label="Current" sx={tagSx("green")} /> : "—",
+        p.row.isCurrent ? <StatusDot color="green" label="Current" /> : "—",
     },
   ];
 

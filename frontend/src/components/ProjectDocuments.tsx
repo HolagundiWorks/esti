@@ -3,7 +3,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -33,13 +32,7 @@ import { DataState } from "./DataState.js";
 import { ProjectMom } from "./ProjectMom.js";
 import { ProjectInspectionDetail } from "./ProjectInspectionDetail.js";
 import { DocumentReviseButton } from "./DocumentReviseButton.js";
-
-function tagSx(color: string) {
-  return {
-    backgroundColor: `var(--cds-tag-background-${color})`,
-    color: `var(--cds-tag-color-${color})`,
-  };
-}
+import { StatusDot } from "./StatusTag.js";
 
 /** Generic PDF action cell: generate via worker, poll, then open. */
 function pdfPollOpts(initial: string) {
@@ -149,7 +142,7 @@ function FinalEstimationRecords({ projectId }: { projectId: string }) {
       headerName: "Status",
       width: 110,
       renderCell: (p) => (
-        <Chip size="small" label={p.row.status} sx={tagSx(p.row.status === "FINAL" ? "green" : "gray")} />
+        <StatusDot color={p.row.status === "FINAL" ? "green" : "gray"} label={p.row.status} />
       ),
     },
     {
@@ -174,7 +167,7 @@ function FinalEstimationRecords({ projectId }: { projectId: string }) {
         ) : p.row.pdfStatus === "PENDING" || p.row.pdfStatus === "PROCESSING" ? (
           <span>Generating…</span>
         ) : (
-          <Chip size="small" label={p.row.pdfStatus} sx={tagSx("gray")} />
+          <StatusDot color="gray" label={p.row.pdfStatus} />
         ),
     },
   ];
@@ -244,10 +237,9 @@ function Inspections({ projectId }: { projectId: string }) {
       headerName: "Status",
       width: 110,
       renderCell: (p) => (
-        <Chip
-          size="small"
+        <StatusDot
+          color={p.row.status === "ISSUED" || p.row.pdfStatus === "READY" ? "green" : "gray"}
           label={p.row.status ?? "DRAFT"}
-          sx={tagSx(p.row.status === "ISSUED" || p.row.pdfStatus === "READY" ? "green" : "gray")}
         />
       ),
     },

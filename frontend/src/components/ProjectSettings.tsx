@@ -3,7 +3,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -36,7 +35,7 @@ import { derivePhaseStageStatus, PHASE_STAGE_TAG } from "../lib/currentPhase.js"
 import { trpc } from "../lib/trpc.js";
 import { CurrentPhaseSelect } from "./CurrentPhaseSelect.js";
 import { ProjectEngagements } from "./ProjectEngagements.js";
-import { StatusTag } from "./StatusTag.js";
+import { StatusDot, StatusTag } from "./StatusTag.js";
 
 const ACTIVITY_TAG: Record<
   string,
@@ -45,11 +44,6 @@ const ACTIVITY_TAG: Record<
   "project.created": "green",
   "note.created": "blue",
 };
-
-const tagSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 export function ProjectSettings({ projectId }: { projectId: string }) {
   const { canProjectDelete } = useCapabilities();
@@ -306,10 +300,9 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
                         />
                       </TableCell>
                       <TableCell>
-                        <Chip
-                          size="small"
+                        <StatusDot
+                          color={PHASE_STAGE_TAG[stageStatus]}
                           label={stageStatus}
-                          sx={tagSx(PHASE_STAGE_TAG[stageStatus])}
                         />
                       </TableCell>
                     </TableRow>
@@ -385,10 +378,9 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
                     flexWrap: "wrap",
                   }}
                 >
-                  <Chip
-                    size="small"
+                  <StatusDot
+                    color={ACTIVITY_TAG[item.eventType] ?? "gray"}
                     label={item.eventType}
-                    sx={tagSx(ACTIVITY_TAG[item.eventType] ?? "gray")}
                   />
                   <span>{item.summary}</span>
                 </Box>

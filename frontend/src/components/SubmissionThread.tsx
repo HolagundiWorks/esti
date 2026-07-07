@@ -1,6 +1,7 @@
-import { Button, Chip, Stack, TextField } from "@mui/material";
+import { Button, Stack, TextField } from "@mui/material";
 import { useState } from "react";
 import { DataState } from "./DataState.js";
+import { StatusDot } from "./StatusTag.js";
 
 export interface ThreadMessage {
   id: string;
@@ -48,14 +49,7 @@ export function SubmissionThread({
             return (
               <Stack key={m.id} spacing={1}>
                 <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                  <Chip
-                    size="small"
-                    label={m.authorName ?? m.authorSide}
-                    sx={{
-                      backgroundColor: `var(--cds-tag-background-${color})`,
-                      color: `var(--cds-tag-color-${color})`,
-                    }}
-                  />
+                  <StatusDot color={color} label={m.authorName ?? m.authorSide} />
                   <span className="esti-label esti-label--helper">
                     {new Date(m.createdAt as string).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
                   </span>

@@ -1,6 +1,7 @@
-import { Box, Button, Chip, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Stack, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
+import { StatusDot } from "./StatusTag.js";
 
 export function ContextualComments({
   projectId,
@@ -57,14 +58,7 @@ export function ContextualComments({
           {(commentsQ.data?.rows ?? []).map((comment) => (
             <Stack key={comment.id} spacing={1}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                <Chip
-                  size="small"
-                  label={comment.visibility}
-                  sx={{
-                    backgroundColor: "var(--cds-tag-background-blue)",
-                    color: "var(--cds-tag-color-blue)",
-                  }}
-                />
+                <StatusDot color="blue" label={comment.visibility} />
                 <span>{comment.actorName ?? "System"}</span>
                 <Typography variant="caption" color="text.secondary">
                   {new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date(comment.createdAt))}

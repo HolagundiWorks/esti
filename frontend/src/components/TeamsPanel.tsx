@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   Checkbox,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -19,11 +18,7 @@ import {
 import { TEAM_ROLES, type TeamRoleCode } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
-
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
+import { StatusDot } from "./StatusTag.js";
 
 type TeamRow = {
   id: string;
@@ -98,13 +93,13 @@ export function TeamsPanel() {
                 <Stack spacing={1}>
                   <Box className="esti-row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
                     <strong>{t.name}</strong>
-                    <Chip size="small" sx={chipSx("cool-gray")}
+                    <StatusDot color="cool-gray"
                       label={`${t.members.length} member${t.members.length === 1 ? "" : "s"}`} />
                   </Box>
                   {t.description && <p className="esti-label esti-label--secondary">{t.description}</p>}
                   <Box className="esti-row" sx={{ flexWrap: "wrap", gap: 0.5 }}>
                     {t.members.map((m) => (
-                      <Chip key={m.teamMemberId} size="small" sx={chipSx("blue")} label={m.name} />
+                      <StatusDot key={m.teamMemberId} color="blue" label={m.name} />
                     ))}
                   </Box>
                   <Box className="esti-row" sx={{ gap: 0.5 }}>

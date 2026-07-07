@@ -3,7 +3,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -18,13 +17,9 @@ import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
+import { StatusDot } from "./StatusTag.js";
 
 const HiddenFileInput = styled("input")({ display: "none" });
-
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 export function ProjectInspectionDetail({
   inspectionId,
@@ -96,15 +91,14 @@ export function ProjectInspectionDetail({
           ) : (
             <Stack spacing={2}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                <Chip
-                  size="small"
-                  label={row.status ?? "DRAFT"}
-                  sx={chipSx(
+                <StatusDot
+                  color={
                     row.status === "ISSUED" || row.status === "APPROVED" ? "green"
                     : row.status === "SUBMITTED" ? "blue"
                     : row.status === "REJECTED" ? "red"
-                    : "gray",
-                  )}
+                    : "gray"
+                  }
+                  label={row.status ?? "DRAFT"}
                 />
                 <span className="esti-label esti-label--helper">Version {row.versionNo ?? 1}</span>
                 {row.status === "ISSUED" && (

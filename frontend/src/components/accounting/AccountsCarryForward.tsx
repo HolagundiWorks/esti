@@ -1,12 +1,8 @@
-import { Box, Chip, Grid, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
+import { Box, Grid, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
 import { formatINR, type PeriodFilterInput } from "@esti/contracts";
 import { PeriodFilter } from "../PeriodFilter.js";
+import { StatusDot } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
-
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 /**
  * The financial-year bar for the accounts section: an FY period selector plus a
@@ -34,7 +30,7 @@ export function AccountsCarryForward({
           <Box className="esti-fill" sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={1}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                <Chip size="small" label="Carried forward" sx={chipSx("teal")} />
+                <StatusDot color="teal" label="Carried forward" />
                 <span className="esti-label--secondary">Running projects</span>
               </Stack>
               <p className="esti-label">
@@ -50,7 +46,7 @@ export function AccountsCarryForward({
           <Box className="esti-fill" sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={1}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                <Chip size="small" label="Carried forward" sx={chipSx("magenta")} />
+                <StatusDot color="magenta" label="Carried forward" />
                 <span className="esti-label--secondary">Prior-year receivables</span>
               </Stack>
               <p className="esti-label">

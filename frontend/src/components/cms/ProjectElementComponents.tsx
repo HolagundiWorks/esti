@@ -5,7 +5,6 @@ import {
   Box,
   Button,
   Checkbox,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -21,16 +20,10 @@ import {
 } from "@mui/material";
 import { formatINR } from "@esti/contracts";
 import { DataState } from "../DataState.js";
+import { StatusDot } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
 
 type Pick = { checked: boolean; qty: number };
-
-// Preserve exact Carbon tag colours by rendering an MUI Chip over the
-// `--cds-tag-*` token vars (still defined by the Carbon token layer).
-const tagSx = (color: string) => ({
-  backgroundColor: `var(--cds-tag-background-${color}, var(--cds-layer-01))`,
-  color: `var(--cds-tag-color-${color}, var(--cds-text-primary))`,
-});
 
 export function ProjectElementComponents({
   parentElementId,
@@ -124,13 +117,12 @@ export function ProjectElementComponents({
                         </TableCell>
                         <TableCell>
                           {s.description}{" "}
-                          {s.alreadyExists && <Chip label="exists" size="small" sx={tagSx("cool-gray")} />}
+                          {s.alreadyExists && <StatusDot color="cool-gray" label="exists" />}
                         </TableCell>
                         <TableCell>
-                          <Chip
+                          <StatusDot
+                            color={s.dependencyType === "MANDATORY" ? "blue" : "gray"}
                             label={s.dependencyType}
-                            size="small"
-                            sx={tagSx(s.dependencyType === "MANDATORY" ? "blue" : "gray")}
                           />
                         </TableCell>
                         <TableCell>{s.ratio}</TableCell>

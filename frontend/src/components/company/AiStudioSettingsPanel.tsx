@@ -3,7 +3,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   FormControlLabel,
   MenuItem,
   Stack,
@@ -14,6 +13,7 @@ import {
 import { DEFAULT_AI_SETTINGS, type AiSettings } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { EstiAiExplainLabel } from "../AiCarbon.js";
+import { StatusDot } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
 
 export function AiStudioSettingsPanel({ isEnterprise = false }: { isEnterprise?: boolean }) {
@@ -117,14 +117,7 @@ export function AiStudioSettingsPanel({ isEnterprise = false }: { isEnterprise?:
           <>
             <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
               <span className="esti-label--secondary">Bring-your-own AI provider</span>
-              <Chip
-                size="small"
-                label="Pro"
-                sx={{
-                  backgroundColor: "var(--cds-tag-background-purple)",
-                  color: "var(--cds-tag-color-purple)",
-                }}
-              />
+              <StatusDot color="purple" label="Pro" />
             </Stack>
             <TextField
               id="ai-cloud-url"

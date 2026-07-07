@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -17,11 +16,7 @@ import { useEffect, useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { DataState } from "./DataState.js";
 import { AiDraftPanel } from "./AiStudio.js";
-
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
+import { StatusDot } from "./StatusTag.js";
 
 const shrink = { slotProps: { inputLabel: { shrink: true } } } as const;
 
@@ -66,7 +61,7 @@ export function ProjectMom({ projectId }: { projectId: string }) {
       flex: 0.8,
       minWidth: 110,
       renderCell: (p) => (
-        <Chip size="small" label={p.row.status} sx={chipSx(p.row.status === "ISSUED" ? "green" : "gray")} />
+        <StatusDot color={p.row.status === "ISSUED" ? "green" : "gray"} label={p.row.status} />
       ),
     },
     {

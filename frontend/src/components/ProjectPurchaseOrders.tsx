@@ -3,7 +3,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -27,6 +26,7 @@ import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { ConfirmModal } from "./ConfirmModal.js";
 import { DataState } from "./DataState.js";
+import { StatusDot } from "./StatusTag.js";
 
 const PO_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
   DRAFT: "gray",
@@ -34,11 +34,6 @@ const PO_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
   RECEIVED: "green",
   CANCELLED: "red",
 };
-
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 type Line = {
   description: string;
@@ -183,10 +178,9 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
                         <MenuItem key={s} value={s}>{s}</MenuItem>
                       ))}
                     </TextField>
-                    <Chip
-                      size="small"
+                    <StatusDot
+                      color={PO_TAG[po.status] ?? "gray"}
                       label={po.status}
-                      sx={{ ml: 0.5, ...chipSx(PO_TAG[po.status] ?? "gray") }}
                     />
                   </TableCell>
                   <TableCell>

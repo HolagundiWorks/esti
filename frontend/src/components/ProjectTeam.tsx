@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -21,11 +20,7 @@ import {
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { StaffAvatar } from "./StaffAvatar.js";
-
-const tagSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
+import { StatusDot } from "./StatusTag.js";
 
 export function ProjectTeam({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
@@ -93,10 +88,9 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
       flex: 1,
       minWidth: 140,
       renderCell: (p) => (
-        <Chip
-          size="small"
+        <StatusDot
+          color={p.row.role === "SITE_INCHARGE" ? "purple" : "blue"}
           label={ASSIGNMENT_ROLES[p.row.role as AssignmentRoleCode] ?? p.row.role}
-          sx={tagSx(p.row.role === "SITE_INCHARGE" ? "purple" : "blue")}
         />
       ),
     },
