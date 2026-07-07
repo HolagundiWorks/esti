@@ -118,16 +118,25 @@ const NEU_INSET_FOCUS = "inset 2.5px 2.5px 5.5px rgba(20, 21, 23, 0.20), inset -
 const NEU_INSET_ERROR = "inset 2px 2px 4.5px rgba(20, 21, 23, 0.16), inset -2px -2px 4.5px rgba(255, 255, 255, 0.92), inset 0 0 0 1.5px rgba(200, 68, 46, 0.55)";
 const NEU_INPUT_RADIUS = GLASS_RADIUS; // shared soft-square rounding.
 
-// Dropdowns (Select) are FLAT — a plain white field with a hairline border and
-// the default caret — NOT neumorphic (text inputs keep the recessed well).
-const DD_FILL   = "#ffffff";
-const DD_BORDER = "1px solid rgba(20, 21, 23, 0.18)";
+// Dropdowns (Select) follow the BUTTON logic: FLAT at rest (no box — just the
+// value + caret), and on HOVER they take the button look (white box + bottom
+// orange line). Text inputs keep the recessed well; only Select uses this.
 const DD_FLAT = {
-  backgroundColor: DD_FILL,
+  backgroundColor: "transparent",
   boxShadow: "none",
-  border: DD_BORDER,
-  "&:hover": { backgroundColor: DD_FILL, borderColor: "rgba(20, 21, 23, 0.32)" },
-  "&.Mui-focused": { border: "1px solid #ff4f18", boxShadow: "none" },
+  border: "1px solid transparent", // reserve the box; invisible until hover
+  transition:
+    "background 130ms ease, box-shadow 130ms ease, border-color 130ms ease",
+  "&:hover": {
+    backgroundColor: BTN_WHITE,
+    borderColor: CDS.borderSubtle,
+    boxShadow: UNDERLINE_ORANGE, // same bottom orange line as buttons
+  },
+  "&.Mui-focused": {
+    backgroundColor: BTN_WHITE,
+    border: `1px solid ${CDS.accent}`,
+    boxShadow: "none",
+  },
   "&.Mui-error": { borderColor: "rgba(200, 68, 46, 0.7)" },
   "&.Mui-disabled": { boxShadow: "none", opacity: 0.6 },
 } as const;

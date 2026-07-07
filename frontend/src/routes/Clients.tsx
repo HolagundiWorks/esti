@@ -18,7 +18,7 @@ import { ClientKind } from "@esti/contracts";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { trpc } from "../lib/trpc.js";
 
 const PAGE_SIZES = [10, 25, 50];
@@ -151,79 +151,64 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
     },
   ];
 
-  return (
-    <Stack spacing={3}>
-      {!embedded && (
-        <PageHeader
-          title="Clients"
-          description="Clients and leads — attach projects, invoices and portal logins."
-        />
-      )}
-
-      {portalMsg && (
-        <Alert severity="success" onClose={() => setPortalMsg(null)}>
-          <strong>Portal login</strong> — {portalMsg}
-        </Alert>
-      )}
-
-      <DataState
-        loading={list.isLoading}
-        isEmpty={clients.length === 0}
-        columnCount={7}
-        empty={{
-          title: "No clients yet",
-          description:
-            "Add a client or lead to attach projects, invoices and a portal login.",
-          action: (
-            <Button variant="contained" size="small" onClick={() => setOpen(true)}>
-              New client
-            </Button>
+  const searchField = (
+    <TextField
+      id="client-search"
+      size="small"
+      fullWidth
+      placeholder="Search clients…"
+      value={search}
+      onChange={(e) => {
+        setPaginationModel((m) => ({ ...m, page: 0 }));
+        setSearch(e.target.value);
+      }}
+      slotProps={{
+        input: {
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon fontSize="small" />
+            </InputAdornment>
           ),
-        }}
-      >
-        <Stack spacing={2}>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "center" }}>
-            <TextField
-              id="client-search"
-              size="small"
-              placeholder="Search clients…"
-              value={search}
-              onChange={(e) => {
-                setPaginationModel((m) => ({ ...m, page: 0 }));
-                setSearch(e.target.value);
-              }}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-              sx={{ flex: 1, minWidth: 240 }}
-            />
-            <Button variant="outlined" onClick={() => setPortalOpen(true)}>
-              Create portal login
-            </Button>
-            <Button variant="contained" onClick={() => setOpen(true)}>
-              New client
-            </Button>
-          </Box>
+        },
+      }}
+    />
+  );
 
-          <DataGrid
-            rows={rows}
-            columns={columns}
-            density="compact"
-            disableRowSelectionOnClick
-            autoHeight
-            paginationModel={paginationModel}
-            onPaginationModelChange={setPaginationModel}
-            pageSizeOptions={PAGE_SIZES}
-          />
-        </Stack>
-      </DataState>
+  const grid = (
+    <DataState
+      loading={list.isLoading}
+      isEmpty={clients.length === 0}
+      columnCount={7}
+      empty={{
+        title: "No clients yet",
+        description:
+          "Add a client or lead to attach projects, invoices and a portal login.",
+        ...(embedded
+          ? {
+              action: (
+                <Button variant="contained" size="small" onClick={() => setOpen(true)}>
+                  New client
+                </Button>
+              ),
+            }
+          : {}),
+      }}
+    >
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        density="compact"
+        disableRowSelectionOnClick
+        autoHeight
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
+        pageSizeOptions={PAGE_SIZES}
+      />
+    </DataState>
+  );
 
+  const dialogs = (
+    <>
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>New client</DialogTitle>
         <DialogContent>
@@ -338,6 +323,65 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
           </Button>
         </DialogActions>
       </Dialog>
-    </Stack>
+    </>
+  );
+
+  // Embedded (inside another screen) — flat, no rail/stage.
+  if (embedded) {
+    return (
+      <Stack spacing={3}>
+        {portalMsg && (
+          <Alert severity="success" onClose={() => setPortalMsg(null)}>
+            <strong>Portal login</strong> — {portalMsg}
+          </Alert>
+        )}
+        <Stack spacing={2}>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "center" }}>
+            <Box sx={{ flex: 1, minWidth: 240 }}>{searchField}</Box>
+            <Button variant="outlined" onClick={() => setPortalOpen(true)}>
+              Create portal login
+            </Button>
+            <Button variant="contained" onClick={() => setOpen(true)}>
+              New client
+            </Button>
+          </Box>
+          {grid}
+        </Stack>
+        {dialogs}
+      </Stack>
+    );
+  }
+
+  // Standalone route — the standard Rail / Stage shell.
+  return (
+    <>
+      <RailLayout
+        title="Clients"
+        description="Clients and leads — attach projects, invoices and portal logins."
+        aside={
+          <Stack spacing={1.5}>
+            {searchField}
+            {portalMsg && (
+              <Alert severity="success" onClose={() => setPortalMsg(null)}>
+                {portalMsg}
+              </Alert>
+            )}
+          </Stack>
+        }
+        actions={
+          <>
+            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
+              New client
+            </Button>
+            <Button variant="outlined" fullWidth onClick={() => setPortalOpen(true)}>
+              Portal login
+            </Button>
+          </>
+        }
+      >
+        {grid}
+      </RailLayout>
+      {dialogs}
+    </>
   );
 }

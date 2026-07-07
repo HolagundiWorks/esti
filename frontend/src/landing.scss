@@ -369,27 +369,29 @@
 }
 
 // ── Buttons & links
-// Glass buttons — white liquid-glass slab (see reference image). Hover floods
-// orange-30% + orange label; pressed/active label turns orange. Product-wide.
+// Buttons match the app (MUI) button exactly — same metrics, colours and states —
+// so landing, portal and login all render one consistent button. FLAT WHITE box,
+// ORANGE text (the CTA modifier flips to orange bg / white text); on hover it
+// lifts (float) + grows a bottom orange line.
 .esti-lp-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  min-width: 4rem;
   font-family: inherit;
   font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.75;
+  text-transform: capitalize;
   text-decoration: none;
-  // Simple button — FLAT WHITE box, ORANGE text (the CTA modifier flips it).
-  // On hover it lifts (float) + grows a bottom orange line.
   color: var(--lp-accent);
   border: 1px solid rgba(20, 21, 23, 0.1);
   border-radius: 4px;
   background: #ffffff;
   box-shadow: none;
   cursor: pointer;
-  padding: 0.75rem 1.25rem;
+  padding: 0.375rem 1rem; // match MUI medium button (6px 16px)
   transition: transform 0.15s ease, box-shadow 0.15s ease, color 0.15s ease,
     border-color 0.15s ease;
 
@@ -457,7 +459,7 @@
 }
 
 .esti-lp-btn--lg {
-  padding: 0.9375rem 1.5rem;
+  padding: 0.5rem 1.375rem; // match MUI size="large" (8px 22px)
   font-size: 0.9375rem;
 }
 
