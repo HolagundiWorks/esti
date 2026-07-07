@@ -14,6 +14,11 @@ on:
     tags:
       - "estimate-v*"
 
+# Publishing a Release needs write access to repository contents; without this
+# the default GITHUB_TOKEN is read-only and action-gh-release 403s.
+permissions:
+  contents: write
+
 concurrency:
   group: estimate-${{ github.ref }}
   cancel-in-progress: true
