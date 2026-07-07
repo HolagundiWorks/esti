@@ -7,7 +7,7 @@ import { setDesktopToken } from "../lib/api-base.js";
 import { trpc } from "../lib/trpc.js";
 
 /**
- * First-run onboarding for a fresh AORMS-Lite install: name the firm, create the
+ * First-run onboarding for a fresh AORMS Community install: name the firm, create the
  * admin (owner) login, and seed the fixed workspace. Runs once — the backend
  * refuses if the install already has users. Material UI.
  */
@@ -33,10 +33,10 @@ export function Signup() {
           <Stack spacing={2}>
             <Stack spacing={1}>
               <div className="esti-login-brand">
-                <span className="esti-login-mark">
-                  <span className="esti-brand esti-brand--esti" role="img" aria-label="ESTI" />
-                </span>
-                <h3>ESTI AORMS</h3>
+                <Stack spacing={0.5}>
+                  <h3>AORMS</h3>
+                  <p className="esti-label esti-label--secondary">Architecture Office OS</p>
+                </Stack>
               </div>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <p>Set up your workspace</p>

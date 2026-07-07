@@ -40,7 +40,6 @@ export const LANDING_SLUGS = [
   "architect-fee-proposal-software",
   "architect-document-approval-system",
   "contractor-billing-software-for-architects",
-  "esti-ai-assistant-for-architects",
   // Phase 15 — site delivery, coordination, time & meetings (SEO wave 1).
   "architecture-site-visit-software",
   "rfi-management-software-for-architects",
@@ -108,7 +107,6 @@ export const LANDING_NAV: LandingNavGroup[] = [
       { slug: "gst-on-architecture-services", label: "GST on architecture work" },
       { slug: "hsn-sac-code-for-architects", label: "HSN / SAC code for architects" },
       { slug: "contractor-billing-software-for-architects", label: "Contractor billing" },
-      { slug: "esti-ai-assistant-for-architects", label: "ESTI AI assistant" },
     ],
   },
 ];

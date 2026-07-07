@@ -12,7 +12,6 @@ import {
   PartnersSection,
   WhyUsSection,
 } from "../components/landing/LandingOperationalGrid.js";
-import { MarketingEstiAi } from "../components/landing/MarketingEstiAi.js";
 import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingHero } from "../components/landing/MarketingHero.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
@@ -99,8 +98,6 @@ export function Landing() {
           </DialogContent>
         </Dialog>
       </MarketingShell>
-
-      <MarketingEstiAi />
     </>
   );
 }

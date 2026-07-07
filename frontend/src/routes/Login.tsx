@@ -40,9 +40,6 @@ interface TenantItem {
 
 const WORKSPACE_ITEM: TenantItem = { id: "workspace", label: "Personal workspace" };
 
-// Edition-matched desktop installer for the tenant step: company members get
-// the Pro installer; individuals get the generic /download page (Lite).
-const PRO_DOWNLOAD_URL = (import.meta.env.VITE_PRO_DOWNLOAD_URL as string | undefined) ?? "";
 
 const GOOGLE_ERRORS: Record<string, string> = {
   not_configured: "Google sign-in isn't configured on this server yet — use email and password.",
@@ -165,16 +162,13 @@ export function Login() {
   const showError = Boolean(login.error) && login.error?.message !== "totp_required";
 
   return (
-    <div className="cds--g100">
+    <div className="cds--white">
     <main className="esti-login-shell">
       <Stack spacing={2} className="esti-login-panel">
         <Paper sx={{ p: 3, borderTop: 3, borderTopColor: "primary.main" }}>
           <Stack spacing={3}>
             <Stack spacing={1}>
               <div className="esti-login-brand">
-                <span className="esti-login-mark">
-                  <span className="esti-brand esti-brand--esti" role="img" aria-label="ESTI" />
-                </span>
                 <Stack spacing={0.5}>
                   <h3>AORMS</h3>
                   <p className="esti-label esti-label--secondary">Architecture Office OS</p>
@@ -284,21 +278,17 @@ export function Login() {
                     <Button component={RouterLink} to="/account" variant="text" size="small">
                       Personal AORMS account
                     </Button>
-                    {companies.length > 0 && PRO_DOWNLOAD_URL ? (
-                      <Button variant="text" size="small" endIcon={<Download />} href={PRO_DOWNLOAD_URL}>
-                        Download AORMS Pro desktop
-                      </Button>
-                    ) : (
-                      <Button
-                        component={RouterLink}
-                        to="/download"
-                        variant="text"
-                        size="small"
-                        endIcon={<Download />}
-                      >
-                        {companies.length > 0 ? "Download AORMS Pro desktop" : "Download AORMS desktop"}
-                      </Button>
-                    )}
+                    {/* Pro desktop installer is disabled for now — link to the
+                        download page (Community installer + Pro "coming soon"). */}
+                    <Button
+                      component={RouterLink}
+                      to="/download"
+                      variant="text"
+                      size="small"
+                      endIcon={<Download />}
+                    >
+                      Get the AORMS desktop app
+                    </Button>
                     <Button variant="text" size="small" onClick={() => setCompanies(null)}>
                       Sign in as someone else
                     </Button>

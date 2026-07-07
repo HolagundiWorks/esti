@@ -42,14 +42,14 @@ const EDITIONS: Edition[] = [
     name: "AORMS Pro",
     price: "Licensed",
     pitch:
-      "The full edition for growing and multi-office practices — the complete office OS with AI, GST, portals and unlimited seats, cloud-hosted or self-hosted.",
+      "The full edition for growing and multi-office practices — the complete office OS with GST, portals and unlimited seats, cloud-hosted or self-hosted.",
     features: [
       "Unlimited staff, clients & projects",
-      "10 GB cloud storage, mirrored to desktop · buy add-on storage",
-      "AI Studio (LLM/RAG run locally, fetch cloud data) · GST · portals",
+      "10 GB cloud storage · buy add-on storage",
+      "GST invoicing · client & consultant portals",
       "HR, payroll & performance · SSO · API · audit log",
-      "Self-host · BYO AI keys · white-label (BYO storage on Enterprise)",
-      "Activate with your Pro licence key",
+      "Self-host · white-label (BYO storage on Enterprise)",
+      "Runs on the web today — desktop app coming soon",
     ],
     tag: "blue",
     needsKey: true,
@@ -79,8 +79,13 @@ export function Download() {
     staleTime: 10 * 60 * 1000,
   });
   const live = installersQ.data;
-  const urlFor = (code: Edition["code"]): string | undefined =>
-    (code === "LITE" ? live?.lite : live?.pro) ?? BAKED[code];
+  // Pro desktop installer is disabled for now — Pro runs on the web/cloud until
+  // the desktop build is production-ready. Community stays downloadable, so its
+  // card offers the installer and Pro falls back to the "use on the web" state.
+  const urlFor = (code: Edition["code"]): string | undefined => {
+    if (code === "PRO") return undefined;
+    return (code === "LITE" ? live?.lite : live?.pro) ?? BAKED[code];
+  };
 
   return (
       <MarketingShell>
@@ -91,9 +96,8 @@ export function Download() {
               <StatusDot color="cool-gray" label="Windows desktop app" />
               <h1 className="esti-landing-section-title">Download AORMS</h1>
               <p>
-                Run the whole office on your own machine. Pick the edition that matches your
-                practice — Community is free forever and fully offline; Pro activates with a licence
-                key and adds AI, GST, portals and the cloud.
+                Run the whole office on your own machine. Community is free forever and fully
+                offline. Pro runs on the web and cloud today — the Pro desktop app is coming soon.
               </p>
               {live?.version && (
                 <p className="esti-label--helper">

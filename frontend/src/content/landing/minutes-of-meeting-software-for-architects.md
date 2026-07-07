@@ -1,11 +1,11 @@
 ---
 title: Minutes of Meeting, on the Project Record
 metaTitle: Minutes of Meeting Software for Architects | AORMS
-metaDescription: Minutes of meeting software for architects: record and issue MoM on the project record, visible in the client portal, with ESTI drafting revision requests.
+metaDescription: Minutes of meeting software for architects: record and issue MoM on the project record, visible in the client portal, with AORMS drafting revision requests.
 keyword: minutes of meeting software for architects
 category: moat
 updated: 2026-07-04
-intro: Record the minutes on the project itself, issue them to the client portal, and let ESTI turn what was agreed into categorised revision requests the client reviews and sends.
+intro: Record the minutes on the project itself, issue them to the client portal, and let AORMS turn what was agreed into categorised revision requests the client reviews and sends.
 ---
 
 Every architect knows the meeting where four changes are agreed across the table,
@@ -16,7 +16,7 @@ the minutes on the project record where the drawings, decisions and fees live, n
 a document nobody opens again.
 
 AORMS records minutes inside the project workspace, issues them to the client
-through the portal, and uses ESTI to convert the changes discussed in those minutes
+through the portal, and uses AORMS to convert the changes discussed in those minutes
 into formal, categorised revision requests. The meeting stops being a conversation
 that evaporates and becomes a dated record both sides can point to.
 
@@ -48,23 +48,23 @@ questioned three weeks on, the minutes are there — dated, issued, seen by the 
 in their own portal. Email and WhatsApp are fine for talking but weak for proof;
 minutes on the shared record are proof.
 
-## ESTI turns issued minutes into revision requests
+## AORMS turns issued minutes into revision requests
 
 Here is the mechanic that separates this from a document store. Most changes in a set
 of minutes should become formal revision requests — but writing those is homework, and
 clients rarely do it, so the office absorbs the change with no category and no fee
 conversation.
 
-ESTI does the conversion. From the issued minutes, the client presses one button and
-ESTI drafts each change discussed as a ready-to-send request: a subject line, a
+AORMS does the conversion. From the issued minutes, the client presses one button and
+AORMS drafts each change discussed as a ready-to-send request: a subject line, a
 specific description, and a suggested impact category — minor, major or critical. The
-client reviews every draft, edits the wording, discards anything ESTI misread, and
+client reviews every draft, edits the wording, discards anything AORMS misread, and
 sends only the ones that are real.
 
-ESTI drafts; it never sends. Nothing reaches the office until the client explicitly
-pushes it. ESTI only extracts what is actually in the minutes — it does not invent
+AORMS drafts; it never sends. Nothing reaches the office until the client explicitly
+pushes it. AORMS only extracts what is actually in the minutes — it does not invent
 scope, fees or commitments, and if the minutes contain no changes it says so. Every
-run is logged like any [ESTI AI](/esti-ai-assistant-for-architects) run: who asked,
+run is logged like any AORMS run: who asked,
 which minutes, what came back.
 
 ## Where the revision request goes next
@@ -81,7 +81,7 @@ requests came from minutes the client saw and sent themselves, the project's
 revision history becomes arithmetic rather than an argument from memory: six
 client-driven changes this stage, two of them major, each traceable to the meeting
 where it was agreed. For the full walk-through, see
-[how ESTI drafts revision requests from minutes](/blog/esti-drafts-revision-requests-from-minutes).
+[how AORMS drafts revision requests from minutes](/blog/esti-drafts-revision-requests-from-minutes).
 
 ## How minutes of meeting works in AORMS
 
@@ -91,7 +91,7 @@ where it was agreed. For the full walk-through, see
    same action used for drawings and transmittals.
 3. **The client sees the issued minutes** in their portal — one shared record, both
    sides reading identical words.
-4. **The client asks ESTI to draft revision requests** from those minutes; ESTI
+4. **The client asks AORMS to draft revision requests** from those minutes; AORMS
    returns each change as an editable request with a suggested impact category.
 5. **The client reviews, edits and sends** only the real ones — the office receives
    formal, categorised, dated change requests that feed revision intelligence.
@@ -103,7 +103,7 @@ where it was agreed. For the full walk-through, see
 It is a place to record and issue meeting minutes on the project record itself, not
 in a separate Word file or email thread. In AORMS the minutes sit alongside the
 project's drawings, decisions and fees, issue to the client portal so both sides
-share one record, and can be turned into revision requests by ESTI.
+share one record, and can be turned into revision requests by AORMS.
 
 ### Can the client see the minutes I record?
 
@@ -112,18 +112,18 @@ issuing publishes a dated, locked record to the client portal where the client r
 the same words your team does — the same deliberate action used to issue drawings and
 transmittals.
 
-### How does ESTI turn minutes into revision requests?
+### How does AORMS turn minutes into revision requests?
 
-From an issued set of minutes, the client presses one button and ESTI drafts each
+From an issued set of minutes, the client presses one button and AORMS drafts each
 change discussed as a ready-to-send request — a subject, a description and a
-suggested category of minor, major or critical. The client edits and sends; ESTI
+suggested category of minor, major or critical. The client edits and sends; AORMS
 never sends on its own, never invents changes that were not in the minutes, and logs
 every run.
 
-### Do I have to use ESTI to raise a revision request?
+### Do I have to use AORMS to raise a revision request?
 
 No. Minutes are useful on their own as a shared, dated record, and clients or the
-office can raise change requests directly. ESTI only removes the writing step clients
+office can raise change requests directly. AORMS only removes the writing step clients
 avoid, by drafting from what the minutes already say.
 
 ### How is this different from revision tracking?

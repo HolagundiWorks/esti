@@ -260,15 +260,11 @@ export function Profile() {
                         <Button variant="text" disabled>Community: Coming soon</Button>
                       </Box>
                     )}
-                    {PRO_DOWNLOAD_URL ? (
-                      <Box>
-                        <Button variant="contained" href={PRO_DOWNLOAD_URL}>Download AORMS Pro</Button>
-                      </Box>
-                    ) : (
-                      <Box>
-                        <Button variant="text" disabled>Pro: Coming soon</Button>
-                      </Box>
-                    )}
+                    {/* Pro desktop installer is disabled for now — Pro runs on the
+                        web/cloud until the desktop build is production-ready. */}
+                    <Box>
+                      <Button variant="text" disabled>Pro desktop: Coming soon</Button>
+                    </Box>
                   </Stack>
                 </Stack>
               </Box>

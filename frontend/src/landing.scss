@@ -4225,7 +4225,13 @@ h1.esti-landing-lead-title {
 // Every sign-in and the account/licence portal share the landing contour
 // background + deep base so the entry points match the marketing site instead
 // of sitting on blank white space. Layout (centering) stays in styles.scss.
-.esti-login-shell,
+// Workspace sign-in matches the in-app flat Community look: Fog-Gray canvas with
+// a white, hairline-edged, square Paper card (Radiant-Orange top accent).
+.esti-login-shell {
+  min-height: 100vh;
+  background: #f2f4f7; /* flat Fog Gray canvas */
+}
+// The account / licence portal keeps the deep marketing base.
 .esti-portal-shell {
   min-height: 100vh;
   background: #141517; /* flat Coal Black — no contour (white card reads on it) */

@@ -17,8 +17,8 @@ const STATUS_ITEMS = [
   { label: "PROJECTS + FEES + TEAM", dot: "green" },
   { label: "CLIENT PORTALS INCLUDED", dot: "green" },
   { label: "GST + INDIA WORKFLOWS", dot: "green" },
-  { label: "AI OFFICE BRIEFINGS", dot: "yellow" },
-  { label: "FREE LITE EDITION", dot: "green" },
+  { label: "DRAWINGS + REVISIONS", dot: "green" },
+  { label: "FREE COMMUNITY EDITION", dot: "green" },
 ] as const;
 
 type Dot = "green" | "yellow" | "red" | "white";

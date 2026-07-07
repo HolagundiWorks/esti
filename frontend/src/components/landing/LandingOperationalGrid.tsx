@@ -553,7 +553,7 @@ export function CollaborationSection() {
           title="Clients decide inside a record, not inside WhatsApp noise"
           bullets={[
             "Approvals, drawings, RFIs, and fee status move through a scoped portal",
-            "Issued meeting minutes appear here — ESTI drafts the revision requests they'd otherwise never write",
+            "Issued meeting minutes appear here — the client's revision requests trace straight back to them",
             "Decisions stop disappearing into screenshots and forwarded messages",
           ]}
         />
@@ -632,78 +632,6 @@ export function EstimationSection() {
   );
 }
 
-export function IntelligenceSection() {
-  return (
-    <>
-      <SectionBreak
-        eyebrow="09 / Intelligence & Automation"
-        title="ESTI — the intelligence layer embedded in your workspace"
-        body="AORMS is the workspace. ESTI (Embedded Studio Intelligence) reads it — continuously calculating office health, recognising pressure, and asking only the questions that need answers. Deterministic systems create the score; ESTI explains it."
-      />
-      <div className="esti-lp-grid">
-        <ReelLoopTile
-          slug="task-prioritization"
-          label="When everything is urgent"
-          meta="TASK PRIORITIZATION"
-        />
-        <FeatureTile
-          header="Ask ESTI"
-          dot="yellow"
-          meta="AI STUDIO"
-          title="A drafting assistant grounded in your own project data"
-          bullets={[
-            "Drafts explanations, summaries and CAD notes from your own records",
-            "Runs on-server (Ollama) or with your own OpenAI-compatible key",
-          ]}
-        />
-        <FeatureTile
-          header="Minutes → Revisions"
-          dot="green"
-          meta="CLIENT PORTAL"
-          title="ESTI turns issued meeting minutes into the client's revision requests"
-          bullets={[
-            "Issue the minutes; ESTI extracts every change discussed into a ready, categorised request",
-            "Clients review, edit and send — they never have to write a revision request again",
-            "Drafts only: nothing reaches the office without the client's explicit push",
-          ]}
-        />
-        <FeatureTile
-          header="Cognition Engine"
-          dot="green"
-          meta="OFFICE HEALTH"
-          title="A deterministic score of office pressure, not a chatbot guess"
-          bullets={[
-            "Continuously calculates project, financial, team and client health",
-            "Surfaces the Action Center — what needs a decision today",
-          ]}
-        />
-        <FeatureTile
-          header="ESTI Pulse"
-          dot="yellow"
-          meta="STANDUP ENGINE"
-          title="A dependency graph that asks the right person the right question"
-          bullets={[
-            "Detects missing approvals, measurements and confirmations automatically",
-            "Ranks tasks by consequence — what blocks tomorrow's site work first",
-            "Escalates unanswered questions up the chain, never silently",
-          ]}
-        />
-        <FeatureTile
-          header="Statutory Awareness"
-          dot="green"
-          span="4x1"
-          meta="INDIA-FIRST"
-          title="GST, TDS and the Indian financial year are built into the logic"
-          bullets={[
-            "CGST/SGST/IGST split, SAC codes and FY-sequential numbering",
-            "26AS / AIS / GSTR reconciliation matched automatically",
-          ]}
-        />
-      </div>
-    </>
-  );
-}
-
 // ── Section 10: Integrations ────────────────────────────────────────
 
 export function IntegrationsSection() {
@@ -723,7 +651,7 @@ export function IntegrationsSection() {
           bullets={["NAS or S3-compatible storage for drawings, documents and generated PDFs"]}
         />
         <FeatureTile
-          header="ESTICAD"
+          header="CAD Companion"
           dot="yellow"
           meta="DESKTOP COMPANION"
           title="A CAD-side link back to the office record"
@@ -841,7 +769,7 @@ const FAQS = [
   },
   {
     q: "What's the difference between Community and Pro?",
-    a: "Community covers a small practice's core record-keeping. Pro adds GST invoicing, HR and payroll, revision intelligence, AI Studio, unlimited seats, and self-hosting — cloud-hosted or on your own infrastructure.",
+    a: "Community covers a small practice's core record-keeping. Pro adds GST invoicing, HR and payroll, revision intelligence, unlimited seats, and self-hosting — cloud-hosted or on your own infrastructure.",
   },
   {
     q: "Can I self-host AORMS?",
@@ -874,7 +802,7 @@ export function FinalCtaSection({ children }: { children?: ReactNode }) {
       <SectionBreak
         eyebrow="15 / Get Started"
         title="Start with a shared record, then adopt the full framework as the practice grows"
-        body="Community gives a small practice one shared record, free forever. Pro runs the whole practice to one standard — projects, GST, billing, revisions, site visits, portals, team load and AI — cloud-hosted or self-hosted on your own infrastructure."
+        body="Community gives a small practice one shared record, free forever. Pro runs the whole practice to one standard — projects, GST, billing, revisions, site visits, portals and team load — cloud-hosted or self-hosted on your own infrastructure."
       />
       {children}
     </>

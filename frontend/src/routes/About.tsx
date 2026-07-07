@@ -128,9 +128,7 @@ export function About() {
                 <li>
                   <strong>Deterministic systems you can audit.</strong> The numbers — office
                   health, revision intelligence, performance scores — are computed from your live
-                  record by transparent rules you can trace, not a black-box model. ESTI, the
-                  embedded intelligence layer, drafts documents and suggestions on your behalf, but
-                  never decides or acts on its own.
+                  record by transparent rules you can trace, not a black-box model.
                 </li>
                 <li>
                   <strong>Your data is yours.</strong> Projects, drawings, invoices and client data
@@ -151,9 +149,7 @@ export function About() {
                 a <a href="/architecture-client-portal-software">client portal</a> for approvals and
                 minutes; consultant coordination; site supervision; team, attendance and fair
                 performance scoring; and a keyboard-first{" "}
-                <a href="/architecture-estimation-software">estimation and BOQ</a> workspace. The{" "}
-                <a href="/esti-ai-assistant-for-architects">ESTI assistant</a> runs on-server by
-                default or with your own API key.
+                <a href="/architecture-estimation-software">estimation and BOQ</a> workspace.
               </p>
 
               <h2>Editions</h2>

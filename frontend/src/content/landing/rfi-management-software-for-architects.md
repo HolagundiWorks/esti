@@ -5,7 +5,7 @@ metaDescription: RFI management software for architects — raise, track and ans
 keyword: rfi management software for architects
 category: solution
 updated: 2026-07-04
-intro: Raise, track and respond to RFIs across your structural and MEP consultants, each query tied to the drawing it concerns — with ESTI drafting the response for you to review.
+intro: Raise, track and respond to RFIs across your structural and MEP consultants, each query tied to the drawing it concerns — with AORMS drafting the response for you to review.
 ---
 
 An RFI is a small thing that decides big things. A structural consultant asks
@@ -61,18 +61,18 @@ same
 [approval workflow](/architecture-approval-workflow-software) as any other
 drawing, so nothing is answered informally and then forgotten.
 
-## ESTI drafts the response — you review and send
+## AORMS drafts the response — you review and send
 
 Answering an RFI well takes context: what the sheet says, what the last few
-revisions changed, what the office decided earlier. ESTI, the assistant embedded
+revisions changed, what the office decided earlier. AORMS, the assistant embedded
 in AORMS, can **draft an RFI or consultant response** from that context, so you
 edit a considered reply rather than starting from a blank box.
 
-ESTI never sends on its own. It runs on-server by default, or on your own
+AORMS never sends on its own. It runs on-server by default, or on your own
 OpenAI-compatible API key on Pro, and every run is logged — who invoked it, what
 it produced. You read the draft, correct anything the design does not support, and
 send it under your own name — the judgement stays with the architect. See the
-[ESTI AI assistant](/esti-ai-assistant-for-architects) for how the same discipline
+[minutes of meeting software](/minutes-of-meeting-software-for-architects) for how the same discipline
 handles minutes, revision requests and consultant replies.
 
 ## How RFI management works in AORMS
@@ -81,7 +81,7 @@ handles minutes, revision requests and consultant replies.
    they get a read-only collaborator portal for their part only.
 2. An RFI is raised against that engagement — by the consultant or the office —
    concerning a specific drawing at its current revision in the register.
-3. The office drafts the answer, optionally with ESTI producing the first draft
+3. The office drafts the answer, optionally with AORMS producing the first draft
    from the drawing and decision context; you review and edit before it is sent.
 4. If the answer changes a sheet, a revision is created (the previous one becomes
    superseded), re-issued through a **transmittal** that records recipient and
@@ -116,11 +116,11 @@ engagement, where they exchange queries and submittals and respond to approvals 
 without seeing the rest of the office. An RFI they raise is visible to the office
 on the same project record.
 
-### Does ESTI send RFI responses automatically?
+### Does AORMS send RFI responses automatically?
 
-No. ESTI can draft an RFI or consultant response from the drawing and decision
+No. AORMS can draft an RFI or consultant response from the drawing and decision
 context, but it never sends on its own. Every run is logged, and you review, edit
-and send the reply under your own name. ESTI runs on-server by default, or on your
+and send the reply under your own name. AORMS runs on-server by default, or on your
 own API key on Pro.
 
 ### How do I prove a consultant received the answer?

@@ -73,10 +73,9 @@ const TAG_TO_LANDING: Record<string, string[]> = {
   ],
   Product: [
     "architecture-office-management-software",
-    "esti-ai-assistant-for-architects",
     "architecture-estimation-software",
   ],
-  AI: ["esti-ai-assistant-for-architects", "architecture-office-management-software"],
+  AI: ["architecture-office-management-software", "architecture-practice-management-software"],
   Estimation: ["architecture-estimation-software", "architect-fee-proposal-software"],
 };
 
