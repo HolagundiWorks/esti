@@ -77,11 +77,19 @@ const NEU_INSET_FOCUS = "inset 2.5px 2.5px 5.5px rgba(20, 21, 23, 0.20), inset -
 const NEU_INSET_ERROR = "inset 2px 2px 4.5px rgba(20, 21, 23, 0.16), inset -2px -2px 4.5px rgba(255, 255, 255, 0.92), inset 0 0 0 1.5px rgba(200, 68, 46, 0.55)";
 const NEU_INPUT_RADIUS = 0; // square corners (matches the app's square-corner rule).
 
-// Dropdowns (Select) use the EXTRUDED (pop) neu instead of the recessed well —
-// a shallow raised control that reads as pressable, distinct from text inputs.
-const NEU_OUTSET       = "3px 3px 8px rgba(20, 21, 23, 0.16), -3px -3px 8px rgba(255, 255, 255, 0.92)";
-const NEU_OUTSET_FOCUS = "3px 3px 8px rgba(20, 21, 23, 0.16), -3px -3px 8px rgba(255, 255, 255, 0.92), inset 0 0 0 1.5px rgba(255, 79, 24, 0.45)";
-const NEU_OUTSET_ERROR = "3px 3px 8px rgba(20, 21, 23, 0.16), -3px -3px 8px rgba(255, 255, 255, 0.92), inset 0 0 0 1.5px rgba(200, 68, 46, 0.55)";
+// Dropdowns (Select) are FLAT — a plain white field with a hairline border and
+// the default caret — NOT neumorphic (text inputs keep the recessed well).
+const DD_FILL   = "#ffffff";
+const DD_BORDER = "1px solid rgba(20, 21, 23, 0.18)";
+const DD_FLAT = {
+  backgroundColor: DD_FILL,
+  boxShadow: "none",
+  border: DD_BORDER,
+  "&:hover": { backgroundColor: DD_FILL, borderColor: "rgba(20, 21, 23, 0.32)" },
+  "&.Mui-focused": { border: "1px solid #ff4f18", boxShadow: "none" },
+  "&.Mui-error": { borderColor: "rgba(200, 68, 46, 0.7)" },
+  "&.Mui-disabled": { boxShadow: "none", opacity: 0.6 },
+} as const;
 
 // ── Neumorphic EXTRUDED pop surfaces (soft UI) — anything that pops up ────────
 // Dialogs (New task/project…), menus, popovers, autocomplete dropdowns render as
@@ -294,13 +302,9 @@ export const muiTheme = createTheme({
           "&.Mui-focused": { boxShadow: NEU_INSET_FOCUS },
           "&.Mui-error": { boxShadow: NEU_INSET_ERROR },
           "&.Mui-disabled": { boxShadow: NEU_INSET, opacity: 0.6 },
-          // Dropdowns pop OUT (extruded neu), not recessed like text wells.
-          "&:has(.MuiSelect-select)": {
-            boxShadow: NEU_OUTSET,
-            "&.Mui-focused": { boxShadow: NEU_OUTSET_FOCUS },
-            "&.Mui-error": { boxShadow: NEU_OUTSET_ERROR },
-            "&.Mui-disabled": { boxShadow: NEU_OUTSET, opacity: 0.6 },
-          },
+          // Dropdowns are FLAT — a plain white field with a hairline border and
+          // the default caret, not neumorphic like the recessed text wells.
+          "&:has(.MuiSelect-select)": { ...DD_FLAT },
         },
       },
     },
@@ -315,12 +319,8 @@ export const muiTheme = createTheme({
           "&:hover": { backgroundColor: NEU_FILL },
           "&.Mui-focused": { backgroundColor: NEU_FILL, boxShadow: NEU_INSET_FOCUS },
           "&.Mui-error": { boxShadow: NEU_INSET_ERROR },
-          // Dropdowns pop OUT (extruded neu), not recessed like text wells.
-          "&:has(.MuiSelect-select)": {
-            boxShadow: NEU_OUTSET,
-            "&.Mui-focused": { boxShadow: NEU_OUTSET_FOCUS },
-            "&.Mui-error": { boxShadow: NEU_OUTSET_ERROR },
-          },
+          // Dropdowns are FLAT — hairline border + default caret, not neumorphic.
+          "&:has(.MuiSelect-select)": { ...DD_FLAT },
         },
       },
     },
