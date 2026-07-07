@@ -1928,7 +1928,7 @@
   height: 130vmax;
   transform: translateX(-50%) rotateX(calc(var(--lp-depth) * 70deg));
   transform-origin: 50% 100%;
-  opacity: calc(0.55 + var(--lp-depth) * 0.45);
+  opacity: calc(0.82 + var(--lp-depth) * 0.18);
   will-change: transform, opacity;
 }
 .esti-lp-contours svg { width: 100%; height: 100%; display: block; }
@@ -1939,8 +1939,8 @@
 }
 .esti-lp-contours__ring {
   fill: none;
-  stroke: rgba(255, 79, 24, 0.14); // faint Radiant Orange
-  stroke-width: 1.2;
+  stroke: rgba(255, 79, 24, 0.32); // Radiant Orange contour
+  stroke-width: 1.4;
   vector-effect: non-scaling-stroke;
 }
 @keyframes esti-lp-contour-breathe {
