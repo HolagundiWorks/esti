@@ -1,13 +1,15 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 
 /**
- * Landing background — faint Radiant-Orange topographic contour rings.
+ * Landing background — faint Radiant-Orange topographic contour rings that build a
+ * STEPPED MOUNTAIN.
  *
- * On load the rings read as a flat **plan** (top-down site plan) anchored to the
- * bottom of the first screen. As you scroll, a scroll-linked `--lp-depth` (0→1)
- * tilts the plane into a receding **perspective** ground plane — "you've reached
- * the depth of AORMS." Purely decorative (aria-hidden), sits behind all content.
- * Colour + geometry live in landing.scss; this only drives the scroll variable.
+ * Each contour ring lives on its own 3D layer at a different ELEVATION (translateZ):
+ * the innermost ring (smallest) is the peak, the outermost the base — so the nested
+ * loops terrace up like a mountain's contour map. On load it reads as a near-flat
+ * plan; as you scroll, a scroll-linked `--lp-depth` (0→1) both tilts the terrain to
+ * a side view AND raises the elevation steps, so the mountain rises out of the plan.
+ * Purely decorative (aria-hidden), behind all content. Geometry/colour in landing.scss.
  */
 const RINGS = 15;
 const CX = 500; // contour centre — bottom-centre of the viewBox
@@ -62,22 +64,31 @@ export function LandingContours() {
   }, []);
 
   return (
-    <div ref={ref} className="esti-lp-contours" aria-hidden>
-      <div className="esti-lp-contours__plane">
-        <svg viewBox="0 0 1000 620" preserveAspectRatio="xMidYMax slice">
-          <g className="esti-lp-contours__rings">
-            {Array.from({ length: RINGS }, (_, i) => {
-              const k = i + 1;
-              return (
-                <path
-                  key={k}
-                  className="esti-lp-contours__ring"
-                  d={contourPath(k * 44, k * 27, i * 0.35)}
-                />
-              );
-            })}
-          </g>
-        </svg>
+    <div
+      ref={ref}
+      className="esti-lp-contours"
+      aria-hidden
+      style={{ "--lp-rings": RINGS } as CSSProperties}
+    >
+      {/* One 3D-preserved terrain; each ring is a layer floated at its elevation. */}
+      <div className="esti-lp-contours__terrain">
+        {Array.from({ length: RINGS }, (_, i) => {
+          const k = i + 1;
+          return (
+            <svg
+              key={k}
+              className="esti-lp-contours__layer"
+              style={{ "--i": i } as CSSProperties}
+              viewBox="0 0 1000 620"
+              preserveAspectRatio="xMidYMax slice"
+            >
+              <path
+                className="esti-lp-contours__ring"
+                d={contourPath(k * 44, k * 27, i * 0.35)}
+              />
+            </svg>
+          );
+        })}
       </div>
     </div>
   );

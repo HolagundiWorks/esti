@@ -1938,50 +1938,60 @@
   }
 }
 
-// ── Contour background: plan view (on load) → perspective (on scroll) ─────────
-// Faint Radiant-Orange topographic rings anchored to the bottom. A scroll-linked
-// `--lp-depth` (0→1, set in LandingContours.tsx) tilts the plane from flat plan
-// to a receding perspective ground — "the depth of AORMS". Behind all content
-// (content is z-2, the rail z-9000) and non-interactive.
+// ── Contour background: topo plan (on load) → STEPPED MOUNTAIN (on scroll) ────
+// Faint Radiant-Orange contour rings, each on its own 3D layer at a different
+// elevation (translateZ): innermost = peak, outermost = base. A scroll-linked
+// `--lp-depth` (0→1, set in LandingContours.tsx) tilts the terrain to a side view
+// AND raises the steps, so a mountain rises out of the flat plan. Behind all
+// content (content is z-2, the rail z-9000) and non-interactive.
 .esti-lp-contours {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  perspective: 1100px;
-  perspective-origin: 50% 100%;
+  perspective: 1200px;
+  perspective-origin: 50% 72%;
   --lp-depth: 0;
+  --lp-rings: 15; // overridden inline; kept for a safe default
+  --lp-step: 24px; // elevation gained per contour step (the mountain's steepness)
 }
-.esti-lp-contours__plane {
+// The terrain plane — tilts from near-flat (plan) to a side view as you scroll.
+.esti-lp-contours__terrain {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  bottom: -6vh;
   width: 200vmax;
-  height: 130vmax;
-  transform: translateX(-50%) rotateX(calc(var(--lp-depth) * 70deg));
+  height: 132vmax;
+  transform: translateX(-50%) rotateX(calc(8deg + var(--lp-depth) * 56deg));
   transform-origin: 50% 100%;
-  opacity: calc(0.82 + var(--lp-depth) * 0.18);
+  transform-style: preserve-3d;
+  opacity: calc(0.72 + var(--lp-depth) * 0.28);
   will-change: transform, opacity;
 }
-.esti-lp-contours svg { width: 100%; height: 100%; display: block; }
-.esti-lp-contours__rings {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation: esti-lp-contour-breathe 26s ease-in-out infinite alternate;
+// Each ring floats at its own elevation: innermost (i=0) highest, base (i=rings-1)
+// at 0. The whole stack starts shallow and grows tall as `--lp-depth` rises.
+.esti-lp-contours__layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+  transform: translateZ(
+    calc(
+      (var(--lp-rings) - 1 - var(--i)) * var(--lp-step) *
+        (0.12 + var(--lp-depth) * 0.88)
+    )
+  );
+  will-change: transform;
 }
 .esti-lp-contours__ring {
   fill: none;
-  stroke: rgba(255, 79, 24, 0.32); // Radiant Orange contour
+  // Higher steps read a touch stronger, so the peak stands out from the base.
+  stroke: rgba(255, 79, 24, 0.34); // Radiant Orange contour
   stroke-width: 1.4;
   vector-effect: non-scaling-stroke;
-}
-@keyframes esti-lp-contour-breathe {
-  from { transform: scale(1); }
-  to   { transform: scale(1.05); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .esti-lp-contours__rings { animation: none; }
 }
 
 // ── RAIL / STAGE landing layout ──────────────────────────────────────────────
