@@ -51,7 +51,11 @@
 > **general staff seats** on Lite (3); Pro is unlimited, though a licence token may
 > still constrain seats via its `seats` field. Accountant and HR_MANAGER are
 > **separate extra seats** (Pro: unlimited; Lite: none — upgrade to Pro for those
-> roles). **AI/LLM/ML is Pro only** — Lite has no AI. **Bring-your-own AI provider**
+> roles). **AI/LLM/ML is Pro only** — Lite has no AI. **Pro AI runs on the on-server Ollama for now** (the hosted
+> deployment's `esti-ollama`; `OLLAMA_BASE_URL` / `OLLAMA_MODEL` in `.env`). The
+> **desktop-bundled (local) Ollama** — the PRO desktop edition's built-in Ollama
+> runtime — is **deferred until the desktop app is production-ready**; until then all
+> Pro AI is server-side (decision 2026-07). **Bring-your-own AI provider**
 > (a per-licence flag within Pro) — instead of the on-server Ollama, a Pro firm can
 > point AI Studio at their own **OpenAI-compatible** cloud endpoint (base URL +
 > model + key) from Company → AI Studio; the key is write-only and calls fall back
