@@ -3,6 +3,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { Button, IconButton } from "@mui/material";
 import { useState, type ReactNode } from "react";
 import { trpc } from "../../lib/trpc.js";
+import { createAccountUrl } from "../../lib/onboarding.js";
 import { LandingContours } from "./LandingContours.js";
 
 /**
@@ -26,21 +27,11 @@ function RailDownloads() {
   return (
     <div className="esti-lp-rail__downloads">
       <div className="esti-lp-dl-box">
-        <p className="esti-lp-dl-box__eyebrow">Desktop app</p>
         <p className="esti-lp-dl-box__title">AORMS Community</p>
-        <p className="esti-lp-dl-box__desc">
-          The free, offline desktop app — your whole office on your own machine and
-          local network. Postgres bundled, no cloud, no licence.
-        </p>
         <a className="esti-lp-dl-btn" href={communityUrl}>Download Community</a>
       </div>
       <div className="esti-lp-dl-box">
-        <p className="esti-lp-dl-box__eyebrow">Companion</p>
         <p className="esti-lp-dl-box__title">AORMS Estimate</p>
-        <p className="esti-lp-dl-box__desc">
-          The standalone estimating app — measure once, take off materials and the
-          Bar Bending Schedule. Free and fully offline.
-        </p>
         <a className="esti-lp-dl-btn" href={estimateUrl}>Download Estimate</a>
       </div>
     </div>
@@ -66,12 +57,15 @@ export function MarketingShell({
   children,
   downloads,
   contours,
+  onRequestWorkspace,
 }: {
   children: ReactNode;
   /** Show the Community + Estimate download boxes in the rail (landing only). */
   downloads?: boolean;
   /** Faint orange contour background: plan view → perspective on scroll (landing). */
   contours?: boolean;
+  /** Opens the request-a-workspace form — the primary CTA, pinned in the rail. */
+  onRequestWorkspace?: () => void;
 }) {
   const [navOpen, setNavOpen] = useState(false);
 
@@ -120,11 +114,33 @@ export function MarketingShell({
               {n.label}
             </a>
           ))}
+          {/* Primary CTAs live in the rail — the stage stays button-free. */}
+          {onRequestWorkspace && (
+            <Button
+              variant="contained"
+              size="small"
+              className="esti-landing-signin"
+              onClick={() => {
+                setNavOpen(false);
+                onRequestWorkspace();
+              }}
+            >
+              Request Workspace
+            </Button>
+          )}
           <Button
-            variant="contained"
+            variant="text"
+            size="small"
+            href={createAccountUrl()}
+            onClick={() => setNavOpen(false)}
+          >
+            Create Free Account
+          </Button>
+          <Button
+            variant="text"
             size="small"
             href="/login"
-            className="esti-landing-signin"
+            onClick={() => setNavOpen(false)}
           >
             Log in
           </Button>

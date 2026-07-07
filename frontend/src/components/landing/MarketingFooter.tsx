@@ -1,5 +1,4 @@
-import { Button, Link, Stack } from "@mui/material";
-import ArrowForward from "@mui/icons-material/ArrowForward";
+import { Link, Stack } from "@mui/material";
 import { LANDING_SEO } from "../../lib/landing-seo.js";
 import { LANDING_NAV } from "../../lib/landing-slugs.js";
 import { formatVisitCount } from "../../lib/landing-visit.js";
@@ -24,10 +23,8 @@ const CONTACT_LINKS = [
 ] as const;
 
 export function MarketingFooter({
-  onRequestWorkspace,
   visitCount,
 }: {
-  onRequestWorkspace?: () => void;
   visitCount?: number | null;
 }) {
   return (
@@ -58,14 +55,6 @@ export function MarketingFooter({
                 className="esti-landing-footer__aorms esti-brand esti-brand--aorms"
               />
               <p>{LANDING_SEO.footerBlurb}</p>
-              <Button
-                variant="contained"
-                size="small"
-                onClick={onRequestWorkspace}
-                endIcon={<ArrowForward />}
-              >
-                Request workspace
-              </Button>
             </div>
 
             <nav className="esti-landing-footer__nav" aria-label="Product">

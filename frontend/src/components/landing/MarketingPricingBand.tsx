@@ -1,20 +1,8 @@
-import { Button, Chip } from "@mui/material";
-import ArrowForward from "@mui/icons-material/ArrowForward";
+import { Chip } from "@mui/material";
 import Check from "@mui/icons-material/Check";
-import DownloadIcon from "@mui/icons-material/Download";
-import { createAccountUrl } from "../../lib/onboarding.js";
-import { trpc } from "../../lib/trpc.js";
-import type { LandingTrialPlanContext } from "../LandingTrialForm.js";
-
-// Build-time fallback for the free Lite installer (deploy/fetch-installers.sh);
-// the live resolver (marketing.desktopInstallers) takes precedence when available.
-const LITE_DOWNLOAD_FALLBACK =
-  (import.meta.env.VITE_COMMUNITY_DOWNLOAD_URL as string | undefined) ??
-  (import.meta.env.VITE_LITE_DOWNLOAD_URL as string | undefined) ??
-  "/download";
 
 const PLANS: Array<{
-  ctx: LandingTrialPlanContext;
+  ctx: string; // stable React key only (CTAs moved to the rail)
   name: string;
   pitch: string;
   price: string;
@@ -69,11 +57,7 @@ const PLANS: Array<{
   },
 ];
 
-export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: LandingTrialPlanContext) => void }) {
-  const installersQ = trpc.marketing.desktopInstallers.useQuery(undefined, {
-    staleTime: 10 * 60 * 1000,
-  });
-  const liteDownloadUrl = installersQ.data?.lite ?? LITE_DOWNLOAD_FALLBACK;
+export function MarketingPricingBand() {
   return (
     <>
       <span id="trial" className="esti-lp-anchor" aria-hidden />
@@ -136,35 +120,7 @@ export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: Lan
               ))}
             </ul>
             <p className="esti-lp-note">{p.hosting}</p>
-            {p.ctx === "LITE" ? (
-              // Instant self-serve: hand off to the licensing cloud to create an
-              // account + AORMS trial, or download the free offline Community
-              // appliance to run the whole office on the local network.
-              <div className="esti-lp-pricing-tile__ctas">
-                <Button
-                  variant="contained"
-                  href={createAccountUrl()}
-                  endIcon={<ArrowForward />}
-                >
-                  Create free account
-                </Button>
-                <Button
-                  variant="outlined"
-                  href={liteDownloadUrl}
-                  endIcon={<DownloadIcon />}
-                >
-                  Download Community (offline)
-                </Button>
-              </div>
-            ) : (
-              <Button
-                variant={p.featured ? "contained" : "outlined"}
-                onClick={() => onSelectPlan(p.ctx)}
-                endIcon={<ArrowForward />}
-              >
-                {p.cta}
-              </Button>
-            )}
+            {/* CTAs live in the rail — the pricing tiles stay button-free. */}
           </div>
           </div>
         ))}

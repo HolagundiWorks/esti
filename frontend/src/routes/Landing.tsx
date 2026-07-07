@@ -49,20 +49,13 @@ export function Landing() {
     setRequestOpen(true);
   }
 
-  function openPlanRequest(ctx: LandingTrialPlanContext) {
-    setPlanContext(ctx);
-    setRequestOpen(true);
-  }
-
   return (
     <>
-      <MarketingShell downloads contours>
+      <MarketingShell downloads contours onRequestWorkspace={scrollToTrial}>
         {/* Structure follows the wireframe: Hero → Partners → Features → Why Us →
-            Integrations → Reviews → FAQ → CTA → Footer. The deeper editorial
-            sections (Product Overview, Workflow, Collaboration, Intelligence,
-            Estimation, Security, Earned Identity) remain exported in
-            LandingOperationalGrid and can be re-added without new markup. */}
-        <MarketingHero onTrialScroll={scrollToTrial} />
+            Integrations → Reviews → FAQ → CTA → Footer. All CTAs live in the rail
+            now — the stage/content is button-free. */}
+        <MarketingHero />
 
         <PartnersSection />
         <FeaturesSection />
@@ -72,10 +65,10 @@ export function Landing() {
         <FaqSection />
 
         <FinalCtaSection>
-          <MarketingPricingBand onSelectPlan={openPlanRequest} />
+          <MarketingPricingBand />
         </FinalCtaSection>
 
-        <MarketingFooter onRequestWorkspace={scrollToTrial} visitCount={visitCount} />
+        <MarketingFooter visitCount={visitCount} />
 
         <Dialog
           open={requestOpen}

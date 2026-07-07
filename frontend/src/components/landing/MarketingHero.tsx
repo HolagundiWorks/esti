@@ -1,7 +1,3 @@
-import { Button } from "@mui/material";
-import ArrowForward from "@mui/icons-material/ArrowForward";
-import { createAccountUrl } from "../../lib/onboarding.js";
-
 const STATUS_LINES = [
   { label: "Built only for Indian architectural practices", dot: "green" },
   { label: "Projects, fees, approvals and billing in one record", dot: "green" },
@@ -10,7 +6,7 @@ const STATUS_LINES = [
   { label: "Free Community edition, no credit card required", dot: "green" },
 ] as const;
 
-export function MarketingHero({ onTrialScroll }: { onTrialScroll?: () => void }) {
+export function MarketingHero() {
   return (
     <section className="esti-lp-hero" id="top" aria-labelledby="hero-title">
       <p className="esti-lp-hero__sysid">
@@ -30,17 +26,6 @@ export function MarketingHero({ onTrialScroll }: { onTrialScroll?: () => void })
         time, fees, and peace because the office runs on memory — scattered across
         chats, spreadsheets, and verbal approvals no one can find later.
       </p>
-
-      <div className="esti-lp-hero__actions">
-        <Button variant="contained" size="large" endIcon={<ArrowForward />} href={createAccountUrl()}>
-          Create free account
-        </Button>
-        {onTrialScroll && (
-          <Button variant="text" size="large" onClick={onTrialScroll}>
-            Request Workspace
-          </Button>
-        )}
-      </div>
 
       <div className="esti-lp-hero__status" aria-label="Product preview">
         {STATUS_LINES.map((s) => (
