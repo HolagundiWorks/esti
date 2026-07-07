@@ -123,6 +123,13 @@ $neu-input-radius: 0; // square corners
 .esti-dash-rail {
   scrollbar-width: none;
   &::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+  // Rail section tabs (Tasks/Board/Calendar/…) read LEFT-aligned, not centred.
+  .MuiTab-root {
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+  }
 }
 
 // ── Mobile Rail/Stage — stack: Rail first (full width), Stage below (full width).

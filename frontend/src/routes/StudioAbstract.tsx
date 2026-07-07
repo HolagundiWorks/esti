@@ -427,18 +427,10 @@ export function StudioAbstract() {
           { label: "Tasks Overdue", value: String(tasksOverdue), sub: "Past due", danger: tasksOverdue > 0 ? "Behind" : null },
         ];
 
-  // Rail telemetry — every metric is a flat square tile: office health, the four
-  // KPIs, then each statutory filing due date.
-  const railTiles: { label: string; value: ReactNode; sub?: ReactNode; glyph?: ZoneState; subColor?: string }[] = [
-    { label: "Office health", value: STATE_WORD[officeState], glyph: officeState },
-    ...heroKpis.slice(0, 4).map((k) => ({ label: k.label, value: k.value, sub: k.sub })),
-    ...filingDue.map((f) => ({
-      label: f.name,
-      value: f.date,
-      sub: `${f.days}d`,
-      subColor: f.days <= 3 ? "error.main" : f.days <= 7 ? "warning.main" : "text.secondary",
-    })),
-  ];
+  // Rail KPI tiles — the four headline KPIs. Office health and the statutory due
+  // dates render as their own full-width rows (below Today / after the KPIs).
+  const kpiTiles: { label: string; value: ReactNode; sub?: ReactNode }[] =
+    heroKpis.slice(0, 4).map((k) => ({ label: k.label, value: k.value, sub: k.sub }));
 
   // Top risks
   const clientRisks = (home?.clientIntelligence ?? []).filter((c: any) => c.risk === "HIGH");
@@ -544,7 +536,7 @@ export function StudioAbstract() {
             {attn.issue} — {attn.action}
           </Typography>
 
-          {/* Today — above zone health */}
+          {/* Today */}
           <Box>
             <Typography variant="overline" color="text.secondary">Today</Typography>
             <Stack direction="row" spacing={2} sx={{ mt: 0.5 }}>
@@ -561,7 +553,15 @@ export function StudioAbstract() {
             </Stack>
           </Box>
 
-          {/* Zone health — single row of square units, above office health */}
+          {/* Office health — a single full-width row directly below Today */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, py: 1, borderTop: 1, borderBottom: 1, borderColor: "divider" }}>
+            <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1 }}>Office health</Typography>
+            <Box sx={{ flex: 1 }} />
+            <OfficeHealthGlyph state={officeState} size={14} />
+            <Typography sx={{ fontWeight: 300, textTransform: "capitalize" }} noWrap>{STATE_WORD[officeState]}</Typography>
+          </Box>
+
+          {/* Zone health — single row of square units */}
           <Box>
             <Typography variant="overline" color="text.secondary">Zone health</Typography>
             <Box sx={{ mt: 0.5, display: "grid", gridTemplateColumns: `repeat(${zones.length}, 1fr)` }}>
@@ -584,25 +584,36 @@ export function StudioAbstract() {
 
           <Sep />
 
-          {/* Status section — flat square tiles: office health · KPIs · filing (3 per row) */}
-          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
-            {railTiles.map((c, i) => (
+          {/* KPIs — 2×2 flat tiles */}
+          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+            {kpiTiles.map((c, i) => (
               <Box
                 key={i}
                 sx={{
-                  aspectRatio: "1 / 1", minWidth: 0, p: 1,
+                  minWidth: 0, p: 1,
                   display: "flex", flexDirection: "column", justifyContent: "center",
-                  borderTop: i >= 3 ? 1 : 0, borderLeft: i % 3 !== 0 ? 1 : 0, borderColor: "divider",
+                  borderTop: i >= 2 ? 1 : 0, borderLeft: i % 2 !== 0 ? 1 : 0, borderColor: "divider",
                 }}
               >
                 <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2 }} noWrap>{c.label}</Typography>
-                <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", minWidth: 0 }}>
-                  {c.glyph && <OfficeHealthGlyph state={c.glyph} size={13} />}
-                  <Typography sx={{ fontWeight: 300, fontSize: "1.1rem", lineHeight: 1.05, textTransform: c.glyph ? "capitalize" : "none" }} noWrap>{c.value}</Typography>
-                </Stack>
-                {c.sub != null && <Typography variant="caption" sx={{ color: c.subColor ?? "text.secondary", fontSize: "0.65rem" }} noWrap>{c.sub}</Typography>}
+                <Typography sx={{ fontWeight: 300, fontSize: "1.1rem", lineHeight: 1.05 }} noWrap>{c.value}</Typography>
+                {c.sub != null && <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.65rem" }} noWrap>{c.sub}</Typography>}
               </Box>
             ))}
+          </Box>
+
+          {/* Due dates — all statutory filings in a single row */}
+          <Box>
+            <Typography variant="overline" color="text.secondary">Due dates</Typography>
+            <Box sx={{ mt: 0.5, display: "grid", gridTemplateColumns: `repeat(${filingDue.length}, 1fr)` }}>
+              {filingDue.map((f, i) => (
+                <Box key={f.name} sx={{ minWidth: 0, p: 0.5, borderLeft: i > 0 ? 1 : 0, borderColor: "divider" }}>
+                  <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "0.62rem", display: "block" }}>{f.name}</Typography>
+                  <Typography sx={{ fontWeight: 300, fontSize: "0.9rem", lineHeight: 1.1 }} noWrap>{f.date}</Typography>
+                  <Typography variant="caption" noWrap sx={{ fontSize: "0.62rem", color: f.days <= 3 ? "error.main" : f.days <= 7 ? "warning.main" : "text.secondary" }}>{f.days}d</Typography>
+                </Box>
+              ))}
+            </Box>
           </Box>
 
           {/* Module toggles — bottom of the rail */}
