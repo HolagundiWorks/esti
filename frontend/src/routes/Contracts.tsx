@@ -36,6 +36,7 @@ export function Contracts() {
   const utils = trpc.useUtils();
   const listQ = trpc.contracts.list.useQuery();
   const projectsQ = trpc.projectOffice.list.useQuery({ limit: 200, offset: 0 });
+  const templatesQ = trpc.documents.listTemplates.useQuery({ kind: "CONTRACT" });
   const inv = () => utils.contracts.list.invalidate();
   const updateStatus = trpc.contracts.updateStatus.useMutation({
     onSuccess: inv,
@@ -176,11 +177,6 @@ export function Contracts() {
             title: "No contracts yet",
             description:
               "Register an agreement to track parties, value and term.",
-            action: (
-              <Button variant="contained" size="small" onClick={() => setOpen(true)}>
-                New contract
-              </Button>
-            ),
           }}
         >
           <DataGrid
@@ -211,6 +207,24 @@ export function Contracts() {
         <DialogTitle>New contract</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
+            {(templatesQ.data ?? []).length > 0 && (
+              <TextField
+                id="ct-tpl"
+                select
+                label="Start from template (optional)"
+                value=""
+                onChange={(e) => {
+                  const t = (templatesQ.data ?? []).find((x) => x.id === e.target.value);
+                  if (!t) return;
+                  setF((x) => ({ ...x, title: x.title || t.title, notes: t.body }));
+                }}
+              >
+                <MenuItem value="">— none —</MenuItem>
+                {(templatesQ.data ?? []).map((t) => (
+                  <MenuItem key={t.id} value={t.id}>{t.title}</MenuItem>
+                ))}
+              </TextField>
+            )}
             <TextField
               id="ct-title"
               label="Title"

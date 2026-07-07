@@ -34,6 +34,8 @@ export function Proposals() {
   const utils = trpc.useUtils();
   const listQ = trpc.proposals.listAll.useQuery();
   const projectsQ = trpc.projectOffice.list.useQuery({ limit: 200, offset: 0 });
+  const coaTplQ = trpc.documents.listTemplates.useQuery({ kind: "COA" });
+  const scopeTplQ = trpc.documents.listTemplates.useQuery({ kind: "SCOPE" });
 
   const [open, setOpen] = useState(false);
   const [projectId, setProjectId] = useState("");
@@ -149,11 +151,6 @@ export function Proposals() {
           empty={{
             title: "No proposals",
             description: "Prepare a COA-benchmarked proposal for a project.",
-            action: (
-              <Button variant="contained" size="small" onClick={() => setOpen(true)}>
-                New proposal
-              </Button>
-            ),
           }}
         >
           <DataGrid
@@ -172,6 +169,32 @@ export function Proposals() {
         <DialogTitle>New proposal</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
+            {((coaTplQ.data ?? []).length > 0 || (scopeTplQ.data ?? []).length > 0) && (
+              <TextField
+                id="fp-tpl"
+                select
+                label="Start from template (optional)"
+                helperText="COA templates fill Notes; scope-of-work templates fill Scope."
+                value=""
+                onChange={(e) => {
+                  const coa = (coaTplQ.data ?? []).find((x) => x.id === e.target.value);
+                  if (coa) {
+                    setNotes(coa.body);
+                    return;
+                  }
+                  const sc = (scopeTplQ.data ?? []).find((x) => x.id === e.target.value);
+                  if (sc) setScope(sc.body);
+                }}
+              >
+                <MenuItem value="">— none —</MenuItem>
+                {(coaTplQ.data ?? []).map((t) => (
+                  <MenuItem key={t.id} value={t.id}>{`COA · ${t.title}`}</MenuItem>
+                ))}
+                {(scopeTplQ.data ?? []).map((t) => (
+                  <MenuItem key={t.id} value={t.id}>{`Scope · ${t.title}`}</MenuItem>
+                ))}
+              </TextField>
+            )}
             <TextField
               id="fp-proj"
               select

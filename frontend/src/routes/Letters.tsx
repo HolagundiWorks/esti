@@ -128,11 +128,6 @@ export function Letters() {
           empty={{
             title: "No letters yet",
             description: "Draft a letter and export it as a branded PDF.",
-            action: (
-              <Button variant="contained" size="small" onClick={() => setOpen(true)}>
-                New letter
-              </Button>
-            ),
           }}
         >
           <DataGrid

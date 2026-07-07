@@ -203,7 +203,6 @@ export function Leads() {
           empty={{
             title: "No leads yet",
             description: "Capture an enquiry to start the acquisition funnel.",
-            action: <Button variant="contained" onClick={() => setOpen(true)}>New lead</Button>,
           }}
         >
           <DataGrid

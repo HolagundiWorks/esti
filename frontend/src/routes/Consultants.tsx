@@ -141,11 +141,6 @@ export function Consultants({ embedded = false }: { embedded?: boolean }) {
           title: "No consultants yet",
           description:
             "Add discipline specialists the office engages on projects.",
-          action: (
-            <Button variant="contained" onClick={() => setOpen(true)}>
-              New consultant
-            </Button>
-          ),
         }}
       >
         <DataGrid

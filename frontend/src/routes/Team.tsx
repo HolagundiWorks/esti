@@ -103,11 +103,6 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
           description: search
             ? `No staff match "${search}".`
             : "Add staff to enable HR, payroll and project team tracking.",
-          action: !search ? (
-            <Button variant="contained" size="small" onClick={() => setOpen(true)}>
-              New member
-            </Button>
-          ) : undefined,
         }}
       >
         <Grid container spacing={2}>

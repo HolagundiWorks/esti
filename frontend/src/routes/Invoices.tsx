@@ -193,11 +193,6 @@ export function Invoices() {
           empty={{
             title: "No invoices yet",
             description: "Raise an invoice against any project.",
-            action: canInvoice ? (
-              <Button variant="contained" size="small" onClick={() => setOpen(true)}>
-                New invoice
-              </Button>
-            ) : undefined,
           }}
         >
           <DataGrid

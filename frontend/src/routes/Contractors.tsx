@@ -221,7 +221,7 @@ export function Contractors({ embedded = false }: { embedded?: boolean }) {
         loading={listQ.isLoading}
         isEmpty={rows.length === 0}
         columnCount={6}
-        empty={{ title: "No contractors yet", description: "Add a contractor to invite to tenders and track on site.", action: <Button variant="contained" onClick={() => setForm({ ...EMPTY })}>New contractor</Button> }}
+        empty={{ title: "No contractors yet", description: "Add a contractor to invite to tenders and track on site." }}
       >
         <DataGrid
           rows={rows}

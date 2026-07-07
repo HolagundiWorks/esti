@@ -174,6 +174,50 @@ const CONTRACT_TEMPLATES: readonly Tpl[] = [
   },
 ];
 
+// ── Scope of work ─────────────────────────────────────────────────────────────
+const SCOPE_TEMPLATES: readonly Tpl[] = [
+  {
+    title: "Scope of Services — Comprehensive (CoA Stages I–VI)",
+    tags: "scope,comprehensive,coa",
+    body:
+      `SCOPE OF ARCHITECTURAL SERVICES\nProject: [Project Name]  ·  Client: [Client Name]  ·  Date: [Date]\n\nThe Architect shall provide comprehensive services per the Council of Architecture Conditions of Engagement:\n\nStage I — Concept design & feasibility: take the brief, appraise the site and byelaws, and prepare concept options with an indicative area statement.\n\nStage II — Preliminary / sketch design & estimate: develop the approved concept into preliminary drawings with a preliminary cost estimate.\n\nStage III — Statutory approvals: prepare and submit drawings for sanction and liaise with the authority for approval.\n\nStage IV — Working drawings & tender documents: prepare working drawings, details, specifications and BOQ / tender documents; coordinate structural and services consultants.\n\nStage V — Tender action: assist in inviting, evaluating and appointing the contractor.\n\nStage VI — Construction stage: interpret the design through periodic site visits, review shop drawings, and certify completion.\n\nExclusions: [surveys, soil investigation, statutory fees, specialist consultants, interior & landscape unless separately engaged].`,
+  },
+  {
+    title: "Scope of Services — Design & Approvals Only (Stages I–III)",
+    tags: "scope,partial,approvals",
+    body:
+      `SCOPE OF ARCHITECTURAL SERVICES — DESIGN & APPROVALS\nProject: [Project Name]  ·  Client: [Client Name]  ·  Date: [Date]\n\nThe Architect's scope is limited to Stages I–III of the CoA Conditions of Engagement:\n\n  1. Concept design & feasibility — brief, site appraisal and concept options.\n  2. Preliminary design & estimate — developed drawings with a preliminary cost estimate.\n  3. Statutory approval drawings — preparation, submission and liaison for sanction.\n\nNOT included: working / GFC drawings, tender documents, tender action and construction-stage supervision. These may be taken up under a separate engagement.\n\nClient to provide: title documents, site survey, soil report and statutory fees. Exclusions: [exclusions].`,
+  },
+  {
+    title: "Scope of Services — Interior Design",
+    tags: "scope,interior",
+    body:
+      `SCOPE OF INTERIOR DESIGN SERVICES\nProject: [Project Name]  ·  Client: [Client Name]  ·  Date: [Date]\n\n  1. Requirement study and site measurement.\n  2. Concept design, mood boards and material palette.\n  3. Space planning, furniture layout and detailing.\n  4. Selection of finishes, furniture, lighting and services coordination.\n  5. Working drawings, joinery details and BOQ.\n  6. Periodic site visits during interior execution.\n\nExclusions: civil / structural alterations, statutory approvals, and supply or execution of works (which is the contractor's scope). Reimbursables (samples, printing, travel) at actuals.`,
+  },
+];
+
+// ── Minutes of meeting ────────────────────────────────────────────────────────
+const MOM_TEMPLATES: readonly Tpl[] = [
+  {
+    title: "Minutes of Meeting — Design Coordination",
+    tags: "mom,coordination,design",
+    body:
+      `MINUTES OF MEETING — DESIGN COORDINATION\n\nProject   : [Project Name] ([Project Ref])\nMeeting   : [Coordination] meeting no. [No.]\nDate/Time : [Date, Time]\nVenue     : [Venue / Video link]\nPresent   : [Names & organisations]\nApologies : [Names]\n\nItem  Discussion / decision                                    Action by     Due\n----  -------------------------------------------------------  ------------  --------\n1.    [Point discussed and decision taken]                     [Owner]       [Date]\n2.    [Point discussed and decision taken]                     [Owner]       [Date]\n3.    [Point discussed and decision taken]                     [Owner]       [Date]\n\nNext meeting: [Date, Time, Venue].\n\nThese minutes are taken as a correct record unless any discrepancy is intimated in writing within [N] days.\n\nPrepared by: [Name], [Firm Name].`,
+  },
+  {
+    title: "Minutes of Meeting — Client Review",
+    tags: "mom,client,review",
+    body:
+      `MINUTES OF MEETING — CLIENT REVIEW\n\nProject   : [Project Name] ([Project Ref])\nDate/Time : [Date, Time]\nVenue     : [Venue / Video link]\nPresent   : [Client representatives], [Firm representatives]\n\nAgenda\n  1. Review of [stage] design.\n  2. [Agenda item].\n  3. Programme, fees and approvals.\n\nDecisions & instructions\n  1. [Client decision / approval recorded].\n  2. [Change requested — note if it is a scope/fee/programme impact].\n  3. [Open point carried forward].\n\nAction items\n  •  [Action] — [Owner] — [Due date].\n  •  [Action] — [Owner] — [Due date].\n\nAny design change recorded above that falls outside the current scope will be confirmed separately with its fee and programme impact before it is taken up.\n\nPrepared by: [Name], [Firm Name]. Circulated on [Date].`,
+  },
+  {
+    title: "Minutes of Meeting — Site Review",
+    tags: "mom,site,construction",
+    body:
+      `MINUTES OF MEETING — SITE REVIEW\n\nProject     : [Project Name] ([Project Ref])\nDate/Time   : [Date, Time]\nPresent     : [Architect], [Client / PMC], [Contractor], [Consultants]\nWeather     : [Weather]  ·  Stage of work: [Stage]\n\nProgress\n  •  [Work in progress / completed since last visit].\n  •  [Manpower / material status].\n\nObservations & instructions\n  1. [Observation — instruction / SI reference].\n  2. [Quality / safety note].\n\nAction items\n  •  [Action] — [Owner] — [Due date].\n  •  [Action] — [Owner] — [Due date].\n\nNext site review: [Date]. These minutes are a correct record unless a discrepancy is intimated within [N] days.\n\nPrepared by: [Name], [Firm Name].`,
+  },
+];
+
 async function seedKind(db: DB, kind: string, templates: readonly Tpl[]): Promise<number> {
   const titles = templates.map((t) => t.title);
   const existing = await db
@@ -189,15 +233,19 @@ async function seedKind(db: DB, kind: string, templates: readonly Tpl[]): Promis
   return toInsert.length;
 }
 
-/** Seed the standard office templates — letters, COA fee proposals, contracts. */
+/** Seed the standard office templates — letters, scope, COA proposals, contracts, MoM. */
 export async function seedOfficeTemplates(db: DB): Promise<void> {
   const letters = await seedKind(db, "LETTER", LETTER_TEMPLATES);
+  const scope = await seedKind(db, "SCOPE", SCOPE_TEMPLATES);
   const coa = await seedKind(db, "COA", COA_TEMPLATES);
   const contracts = await seedKind(db, "CONTRACT", CONTRACT_TEMPLATES);
-  const total = letters + coa + contracts;
+  const mom = await seedKind(db, "MOM", MOM_TEMPLATES);
+  const total = letters + scope + coa + contracts + mom;
   if (total === 0) {
     console.log("✓ office templates already present (no change)");
   } else {
-    console.log(`✓ seeded office templates — ${letters} letter(s), ${coa} COA proposal(s), ${contracts} contract(s)`);
+    console.log(
+      `✓ seeded office templates — ${letters} letter(s), ${scope} scope, ${coa} COA proposal(s), ${contracts} contract(s), ${mom} MoM`,
+    );
   }
 }

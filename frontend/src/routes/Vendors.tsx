@@ -313,7 +313,7 @@ export function Vendors() {
         loading={listQ.isLoading}
         isEmpty={rows.length === 0}
         columnCount={6}
-        empty={{ title: "No vendors yet", description: "Add a material supplier to track contacts, ratings and pricing.", action: <Button variant="contained" size="small" onClick={() => setForm({ ...EMPTY })}>New vendor</Button> }}
+        empty={{ title: "No vendors yet", description: "Add a material supplier to track contacts, ratings and pricing." }}
       >
         <DataGrid
           rows={rows}
