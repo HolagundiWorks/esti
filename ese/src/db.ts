@@ -1,5 +1,12 @@
 import { boolean, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
+/** Source document kinds accepted by the ingestion pipeline. */
+export const eseKinds: readonly string[] = ["DSR", "DAR", "SPEC", "NBC", "BYLAW"];
+/** Pipeline stages a source moves through. */
+export const eseStatuses: readonly string[] = ["UPLOADED", "CONVERTED", "ANALYZED", "REVIEWED", "PUBLISHED"];
+/** Published pack types (mirror the EsePack discriminant in @esti/contracts). */
+export const eachPackType: readonly string[] = ["RATE_LIBRARY", "BYLAW_RULES"];
+
 /** KB-team users (the only ESE users). Default admin seeded from env at deploy. */
 export const eseUsers = pgTable("ese_user", {
   id: uuid("id").primaryKey().defaultRandom(),

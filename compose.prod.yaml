@@ -219,6 +219,7 @@ services:
       DATABASE_URL:       ${DATABASE_URL}
       ESE_ADMIN_USER:     ${ESE_ADMIN_USER:-kbadmin}
       ESE_ADMIN_PASSWORD: ${ESE_ADMIN_PASSWORD:-}
+      SESSION_SECRET:     ${SESSION_SECRET}
       ESE_STORAGE_DIR:    /app/.ese-files
       OLLAMA_URL:         ${OLLAMA_BASE_URL:-http://esti-ollama:11434}
       OLLAMA_MODEL:       ${OLLAMA_MODEL:-llama3.2}

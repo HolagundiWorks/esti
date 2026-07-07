@@ -9,6 +9,14 @@ export const config = {
   adminUser: process.env.ESE_ADMIN_USER ?? "kbadmin",
   adminPassword: process.env.ESE_ADMIN_PASSWORD ?? "",
 
+  /** Secret for signing the console session cookie. Shares the AORMS
+   *  SESSION_SECRET (passed through compose); falls back to an ESE-specific env,
+   *  else a deploy-stable derivation so restarts don't drop every session. */
+  sessionSecret:
+    process.env.SESSION_SECRET ??
+    process.env.ESE_SESSION_SECRET ??
+    `ese-fallback:${process.env.DATABASE_URL ?? "local"}`,
+
   /** Local LLM for structuring/reading/analysis — never a cloud provider. */
   ollamaUrl: process.env.OLLAMA_URL ?? "http://127.0.0.1:11434",
   ollamaModel: process.env.OLLAMA_MODEL ?? "llama3.1",

@@ -57,5 +57,6 @@ else
   warn "certbot not installed — install python3-certbot-nginx, then: certbot --nginx -d ${ESE_HOST} --redirect"
 fi
 
+info "Publisher console: https://${ESE_HOST}  —  sign in as '${ESE_ADMIN_USER:-kbadmin}' with ESE_ADMIN_PASSWORD (change it on first login)."
 info "Done. Set ESE_ENABLED=true in .env so update.sh keeps ESE rebuilt on deploys."
 info "Verify: curl -I https://${ESE_HOST}/health"
