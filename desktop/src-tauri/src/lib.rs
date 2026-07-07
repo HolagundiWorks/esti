@@ -4,7 +4,7 @@ mod provision;
 mod supervisor;
 
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Child;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
@@ -64,6 +64,19 @@ pub fn run() {
 
 fn set_status(app: &AppHandle, status: ManagerStatus) {
     app.state::<ManagerState>().set(app, status);
+}
+
+/// Last `lines` lines of a log file (for surfacing a boot failure to the user).
+fn read_log_tail(path: &Path, lines: usize) -> String {
+    match std::fs::read_to_string(path) {
+        Ok(s) => {
+            let all: Vec<&str> = s.lines().collect();
+            let start = all.len().saturating_sub(lines);
+            let tail = all[start..].join("\n");
+            if tail.trim().is_empty() { "(backend log is empty)".to_string() } else { tail }
+        }
+        Err(_) => "(no backend log was written — the backend may not have started)".to_string(),
+    }
 }
 
 /// The payload bundled inside the installer: the vendored Node sidecar
@@ -224,7 +237,22 @@ async fn boot(app: AppHandle) -> Result<(), String> {
     }
 
     if !supervisor::backend::wait_ready(&api_base).await {
-        return Err("backend did not become ready in time".into());
+        // Surface WHY: a crash (migration failure, bad env) vs. still-booting.
+        // The backend log is the only window into a failure on a user's machine.
+        let log_path = p.logs.join("backend.log");
+        let exited = app
+            .state::<Supervised>()
+            .backend
+            .lock()
+            .unwrap()
+            .as_mut()
+            .and_then(|c| c.try_wait().ok().flatten())
+            .map(|status| format!(" (backend process exited: {status})"))
+            .unwrap_or_default();
+        let tail = read_log_tail(&log_path, 18);
+        return Err(format!(
+            "backend did not become ready in time{exited}.\n\n--- backend.log (tail) ---\n{tail}"
+        ));
     }
     set_status(
         &app,
