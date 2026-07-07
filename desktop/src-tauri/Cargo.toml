@@ -19,9 +19,13 @@ tauri-plugin-shell = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "process"] }
-# Bundled local PostgreSQL: downloads/locates official PG binaries and drives
-# initdb / start / stop. Vendor the binaries for an offline installer (P3).
-postgresql_embedded = "0.18"
+# Bundled local PostgreSQL: drives initdb / start / stop. The `bundled` feature
+# EMBEDS the official PG binaries into the executable at compile time (staged by
+# the crate's build script — CI has network), so a fresh install runs fully
+# offline: first boot extracts the embedded archive instead of downloading it.
+# `theseus` (a default feature) stays as an online fallback if the requested
+# version ever differs from the bundled one.
+postgresql_embedded = { version = "0.18", features = ["bundled"] }
 # Readiness polling against the backend sidecar + Manager payload downloads
 # (HTTPS via rustls so there's no system OpenSSL dependency; streamed to disk).
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }

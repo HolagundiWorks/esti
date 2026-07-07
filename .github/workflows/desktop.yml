@@ -74,6 +74,11 @@ jobs:
           # keys) and store as a repo secret. Empty = activation is off; the
           # build still succeeds.
           AORMS_PRODUCT_API_KEY: ${{ secrets.AORMS_PRODUCT_API_KEY }}
+          # The postgresql_embedded `bundled` feature stages the PG archive at
+          # compile time by listing theseus-rs/postgresql-binaries releases via
+          # the GitHub API. Authenticate so the request uses the 5000/hr limit
+          # instead of the 60/hr anonymous one (which 403s on shared runners).
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Package downloadable components (backend + node)
         run: pnpm desktop:package-components
@@ -152,6 +157,9 @@ jobs:
           cargo tauri build --config desktop/src-tauri/tauri.conf.json --config '{"productName":"AORMS Community","identifier":"in.aorms.esti.community"}'
         env:
           AORMS_EDITION: COMMUNITY
+          # Authenticate the bundled-PostgreSQL archive fetch (see the Manager
+          # job). Offline appliance ⇒ the embedded PG binaries matter most here.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Rename installer to stable asset name
         shell: bash

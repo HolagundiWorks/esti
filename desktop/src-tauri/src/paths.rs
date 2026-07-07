@@ -6,6 +6,11 @@ use tauri::{AppHandle, Manager};
 pub struct AppPaths {
     pub root: PathBuf,
     pub pgdata: PathBuf,
+    /// Where the embedded PostgreSQL binaries are extracted on first boot.
+    /// Deliberately NOT pre-created: `postgresql_embedded` treats an existing
+    /// installation dir as "already installed" and skips extraction, so the
+    /// directory must be absent until the archive is unpacked into it.
+    pub pgbin: PathBuf,
     pub files: PathBuf,
     pub logs: PathBuf,
     pub secrets: PathBuf,
@@ -20,12 +25,15 @@ pub fn resolve(app: &AppHandle) -> std::io::Result<AppPaths> {
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
     let p = AppPaths {
         pgdata: root.join("pgdata"),
+        pgbin: root.join("pgsql"),
         files: root.join("files"),
         logs: root.join("logs"),
         secrets: root.join("secrets"),
         payloads: root.join("payloads"),
         root,
     };
+    // NB: `pgbin` is intentionally excluded — see AppPaths::pgbin. It is created
+    // by the archive extraction, and pre-creating it would suppress that.
     for d in [&p.root, &p.files, &p.logs, &p.secrets, &p.payloads] {
         fs::create_dir_all(d)?;
     }

@@ -206,7 +206,9 @@ async fn boot(app: AppHandle) -> Result<(), String> {
     );
 
     // Local PostgreSQL (init on first run; starts on a port it picks itself).
-    let pg = supervisor::postgres::start(p.pgdata.clone(), db_password).await?;
+    // Binaries are embedded in the installer and extracted into `pgbin` — no
+    // network on first boot.
+    let pg = supervisor::postgres::start(p.pgdata.clone(), p.pgbin.clone(), db_password).await?;
     let database_url = pg.url.clone();
 
     let backend_port = portpicker::pick_unused_port().ok_or("no free port for backend")?;

@@ -9,11 +9,19 @@ pub struct Pg {
 
 /// Init (first run) + start a local PostgreSQL into `pgdata`, ensuring the `esti`
 /// database exists. The data dir persists across runs; `setup()` is a no-op once
-/// initialised. Binaries are downloaded on first `setup()` (vendor them for an
-/// offline installer in P3).
-pub async fn start(pgdata: PathBuf, password: String) -> Result<Pg, String> {
+/// initialised.
+///
+/// The PG binaries are EMBEDDED in the executable (the `bundled` cargo feature),
+/// so first boot extracts them into `install_dir` — no network. `install_dir`
+/// must not exist yet the first time (the crate skips extraction if it does; see
+/// `AppPaths::pgbin`).
+pub async fn start(pgdata: PathBuf, install_dir: PathBuf, password: String) -> Result<Pg, String> {
     let mut settings = Settings::default();
     settings.data_dir = pgdata;
+    // Pin the install location to an app-owned path (default would be
+    // ~/.theseus/postgresql). `Settings::default().version` already equals the
+    // bundled archive's exact version, so `setup()` uses the embedded bytes.
+    settings.installation_dir = install_dir;
     // NB: postgresql_embedded ALWAYS initdb's the superuser as "postgres"
     // (BOOTSTRAP_SUPERUSER) and ignores settings.username — so the connection URL
     // below must use "postgres", not a custom name, or the backend gets
