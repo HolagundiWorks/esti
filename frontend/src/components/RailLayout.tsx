@@ -24,7 +24,8 @@ export function RailLayout({
 }: {
   title: string;
   description?: string;
-  /** Rendered under the heading in the rail (e.g. module toggles, a create button). */
+  /** Action buttons — pinned to the BOTTOM of the rail in a 3-per-row grid (each
+   *  button is 1/3 of the rail width). Pass `fullWidth` buttons. */
   actions?: ReactNode;
   /** Vertical section tabs in the rail (MUI `<Tabs orientation="vertical">`). */
   tabs?: ReactNode;
@@ -74,9 +75,23 @@ export function RailLayout({
               </Typography>
             )}
           </Box>
-          {actions}
           {tabs}
           {aside}
+          {/* Action buttons — pinned to the rail bottom, 3 per row (each 1/3 wide). */}
+          {actions && (
+            <Box
+              sx={{
+                mt: { xs: 2, md: "auto" },
+                pt: 1.5,
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: 1,
+                alignContent: "end",
+              }}
+            >
+              {actions}
+            </Box>
+          )}
         </Box>
 
         {/* STAGE (80% on desktop, full width below the rail on mobile) */}

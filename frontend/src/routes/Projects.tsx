@@ -120,6 +120,11 @@ export function Projects() {
       <RailLayout
         title="Projects"
         description="Architecture project offices — phases, fees, drawings and delivery."
+        actions={
+          <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
+            New project
+          </Button>
+        }
         aside={
           <Stack spacing={1.5}>
             <TextField
@@ -161,9 +166,6 @@ export function Projects() {
                 </MenuItem>
               ))}
             </TextField>
-            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-              New project
-            </Button>
           </Stack>
         }
       >
