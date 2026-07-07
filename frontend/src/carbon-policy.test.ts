@@ -26,12 +26,13 @@ describe("Pure Carbon frontend policy", () => {
     expect(violations).toEqual([]);
   });
 
-  it("keeps both portals on Carbon responsive grids and keyboard-operable tiles", () => {
+  it("keeps both portals on MUI responsive grids and keyboard-operable cards", () => {
     for (const route of ["routes/Portal.tsx", "routes/CollaboratorPortal.tsx"]) {
       const source = readFileSync(new URL(route, root), "utf8");
-      expect(source).toContain("<Grid>");
-      expect(source).toContain("<Column");
-      expect(source).toContain("<ClickableTile");
+      expect(source).toContain('from "@mui/material"');
+      expect(source).toContain("<Grid");
+      expect(source).toContain("<CardActionArea");
+      expect(source).not.toContain("@carbon/react");
     }
   });
 });

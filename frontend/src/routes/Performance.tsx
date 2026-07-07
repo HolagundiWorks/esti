@@ -197,7 +197,7 @@ function RecognitionTab() {
 
 // ─── Performance page ─────────────────────────────────────────────────────────
 
-export function Performance({ embedded = false }: { embedded?: boolean }) {
+export function Performance({ embedded: _embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
   const scoresQ = trpc.aspRf.teamScores.useQuery();
   const myScoreQ = trpc.aspRf.myScore.useQuery();

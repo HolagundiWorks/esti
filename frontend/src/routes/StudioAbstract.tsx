@@ -18,15 +18,6 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
-import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
-import Business from "@mui/icons-material/Business";
-import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
-import Groups2Outlined from "@mui/icons-material/Groups2Outlined";
-import HandshakeOutlined from "@mui/icons-material/HandshakeOutlined";
-import LibraryBooksOutlined from "@mui/icons-material/LibraryBooksOutlined";
-import ReceiptLongOutlined from "@mui/icons-material/ReceiptLongOutlined";
-import TaskAltOutlined from "@mui/icons-material/TaskAltOutlined";
-import type { SvgIconComponent } from "@mui/icons-material";
 import type { ReactNode } from "react";
 import { can, formatINRShort } from "@esti/contracts";
 import { OfficeHealthGlyph } from "../components/shell/OfficeHealthGlyph.js";
@@ -86,19 +77,6 @@ function teamState(overloaded: number, total: number, hrEnabled: boolean): ZoneS
   if (overloaded >= 2)          return "friction";
   if (overloaded === 1)         return "watch";
   return "stable";
-}
-
-function gstStatus(): { label: string; daysUntil: number; state: "stable" | "watch" | "friction" } {
-  const today    = new Date();
-  const m        = today.getMonth();
-  const y        = today.getFullYear();
-  const todayMs  = today.getTime();
-  const cands    = [new Date(y,m,11), new Date(y,m,20), new Date(y,m+1,11), new Date(y,m+1,20)];
-  const next     = cands.find((d) => d.getTime() > todayMs) ?? cands[2]!;
-  const days     = Math.ceil((next.getTime() - todayMs) / 86_400_000);
-  if (days <= 3) return { label: "DUE SOON", daysUntil: days, state: "friction" };
-  if (days <= 7) return { label: `${days}d`,  daysUntil: days, state: "watch"    };
-  return               { label: "OK",          daysUntil: days, state: "stable"   };
 }
 
 function greetingFor(): string {
@@ -283,27 +261,6 @@ const glyphCell = (state: ZoneState, text: ReactNode) => (
   </Stack>
 );
 
-// ── Module launcher ───────────────────────────────────────────────────────────
-
-type LauncherApp = {
-  label: string;
-  route: string;
-  icon: SvgIconComponent;
-  count: (h: any, g: any) => number | null;
-  subtitle: ((n: number) => string) | null;
-};
-
-const LAUNCHER_APPS: LauncherApp[] = [
-  { label: "Projects", route: "/projects", icon: Business, count: (h) => h.summary?.projects?.byStatus?.ACTIVE ?? h.summary?.projects?.total ?? null, subtitle: (n) => `${n} active` },
-  { label: "Tasks", route: "/tasks", icon: TaskAltOutlined, count: (_h, g) => g?.pendingTasks ?? null, subtitle: (n) => `${n} open` },
-  { label: "Invoices", route: "/invoices", icon: ReceiptLongOutlined, count: (h) => h.actionCenter?.overdueInvoices?.length ?? null, subtitle: (n) => `${n} overdue` },
-  { label: "Clients", route: "/clients", icon: HandshakeOutlined, count: (h) => h.clientIntelligence?.length ?? null, subtitle: (n) => `${n} active` },
-  { label: "Proposals", route: "/office/proposals", icon: DescriptionOutlined, count: (h) => h.summary?.proposals?.total ?? null, subtitle: (n) => `${n} total` },
-  { label: "Team", route: "/team", icon: Groups2Outlined, count: (h) => h.summary?.hr?.headcount ?? null, subtitle: (n) => `${n} members` },
-  { label: "Library", route: "/knowledge-bank", icon: LibraryBooksOutlined, count: () => null, subtitle: null },
-  { label: "AI Studio", route: "/office/ai-studio", icon: AutoAwesomeOutlined, count: () => null, subtitle: null },
-];
-
 // ── Studio Intelligence ───────────────────────────────────────────────────────
 
 export function StudioAbstract() {
@@ -324,7 +281,6 @@ export function StudioAbstract() {
   const ac   = home?.actionCenter;
   const fh   = home?.financialHealth ?? null;
   const ph   = home?.projectHealth   ?? [];
-  const ri   = home?.revisionIntelligence ?? null;
   const ti   = tiQ.data  ?? [];
   const att  = attQ.data ?? null;
   const tasks = queueQ.data ?? [];
@@ -405,7 +361,6 @@ export function StudioAbstract() {
     ...(hrEnabled ? [{ label: "Team", state: ts, signal: teamSignal(ts) }] : []),
   ];
 
-  const gst = gstStatus();
   const firstName = (user?.fullName ?? "").trim().split(/\s+/)[0] || "there";
   const companyName = firmQ.data?.companyName ?? "";
   const firmLogo = firmQ.data?.logoUrl ?? null;

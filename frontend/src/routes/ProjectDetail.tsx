@@ -1,6 +1,5 @@
 import {
   Box,
-  Chip,
   CircularProgress,
   Stack,
   Tab,

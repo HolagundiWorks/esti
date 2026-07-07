@@ -29,8 +29,6 @@ export interface Enrichment {
   materialLinks: MaterialLink[];
 }
 
-const EMPTY: Enrichment = { attributeSuggestions: [], materialLinks: [] };
-
 /** Pull the first JSON object/array out of a (possibly chatty) completion. */
 export function extractJson(text: string): unknown {
   const start = text.search(/[[{]/);
