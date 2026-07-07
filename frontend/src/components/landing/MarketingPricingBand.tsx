@@ -27,7 +27,7 @@ const PLANS: Array<{
 }> = [
   {
     ctx: "LITE",
-    name: "AORMS-Lite",
+    name: "AORMS Community",
     pitch: "Get your practice out of spreadsheets — free, with an offline desktop app.",
     price: "Free",
     priceNote: "Forever · licence-free",
@@ -43,7 +43,7 @@ const PLANS: Array<{
       "Native desktop app — local data, no cloud needed",
     ],
     hosting: "Free cloud workspace · or the offline desktop app (Windows)",
-    cta: "Request Lite workspace",
+    cta: "Request Community workspace",
   },
   {
     ctx: "PRO",
@@ -54,7 +54,7 @@ const PLANS: Array<{
     featured: true,
     caps: "Unlimited staff, clients & projects · 10 GB cloud storage (mirrored to the desktop app · expandable)",
     features: [
-      "Everything in Lite, plus —",
+      "Everything in Community, plus —",
       "Project delivery — phases, drawings, transmittals & site progress",
       "Client revision intelligence",
       "GST invoicing (CGST/SGST/IGST split, SAC, FY-sequential)",
@@ -91,7 +91,7 @@ export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: Lan
             Begin with a shared record, then adopt the full framework as the practice grows.
           </h3>
           <p className="esti-lp-note">
-            Lite gives a small practice one shared record — free forever. Pro runs the whole
+            Community gives a small practice one shared record — free forever. Pro runs the whole
             practice to one standard — projects, GST, billing, revisions, site visits, portals,
             team load and AI — cloud-hosted or self-hosted on your own infrastructure.
           </p>
@@ -154,7 +154,7 @@ export function MarketingPricingBand({ onSelectPlan }: { onSelectPlan: (ctx: Lan
                   href={liteDownloadUrl}
                   endIcon={<DownloadIcon />}
                 >
-                  Download Lite (offline)
+                  Download Community (offline)
                 </Button>
               </div>
             ) : (

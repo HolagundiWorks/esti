@@ -36,7 +36,7 @@ const DISCIPLINE_OPTIONS = [
 export type LandingTrialPlanContext = "LITE" | "PRO";
 
 const PLAN_CONTEXT_LABEL: Record<LandingTrialPlanContext, string> = {
-  LITE: "AORMS-Lite — free account",
+  LITE: "AORMS Community — free account",
   PRO: "AORMS-Pro — contact for pricing",
 };
 

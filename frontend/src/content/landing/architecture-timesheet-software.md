@@ -131,9 +131,9 @@ office. How roles and visibility work is covered in
 
 ### Is there a free version for a small practice?
 
-Yes. AORMS-Lite is free forever for practices up to three staff and includes the core
+Yes. AORMS Community is free forever for practices up to three staff and includes the core
 project, task and attendance record. Move to Pro for GST invoicing, HR and payroll,
 and external AI keys as the office grows.
 
-Start free on the Lite edition at [/account?mode=create](/account?mode=create), or
+Start free on the Community edition at [/account?mode=create](/account?mode=create), or
 write to us at hi@aorms.in.

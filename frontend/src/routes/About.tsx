@@ -158,7 +158,7 @@ export function About() {
 
               <h2>Editions</h2>
               <p>
-                <strong>AORMS-Lite</strong> is free forever for small practices — the core record
+                <strong>AORMS Community</strong> is free forever for small practices — the core record
                 and simple invoicing. <strong>AORMS-Pro</strong> adds GST invoicing, HR and payroll,
                 and external AI keys. You can also self-host so your data never leaves your own
                 infrastructure. Read more in our{" "}
@@ -169,7 +169,7 @@ export function About() {
               <p>
                 We would rather have a real conversation than a sales funnel. Write to{" "}
                 <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> or{" "}
-                <a href="/account?mode=create">create a free AORMS-Lite account</a> and try it on a
+                <a href="/account?mode=create">create a free AORMS Community account</a> and try it on a
                 real project.
               </p>
               <p>

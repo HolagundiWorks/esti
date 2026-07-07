@@ -86,7 +86,7 @@ export function Landing() {
         >
           <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", pr: 1 }}>
             {planContext === "LITE"
-              ? "Create your free AORMS-Lite account"
+              ? "Create your free AORMS Community account"
               : planContext === "PRO"
               ? "Contact us about AORMS-Pro"
               : "Request a workspace"}

@@ -253,11 +253,11 @@ export function Profile() {
                   <Stack spacing={1}>
                     {LITE_DOWNLOAD_URL ? (
                       <Box>
-                        <Button variant="contained" href={LITE_DOWNLOAD_URL}>Download AORMS Lite</Button>
+                        <Button variant="contained" href={LITE_DOWNLOAD_URL}>Download AORMS Community</Button>
                       </Box>
                     ) : (
                       <Box>
-                        <Button variant="text" disabled>Lite: Coming soon</Button>
+                        <Button variant="text" disabled>Community: Coming soon</Button>
                       </Box>
                     )}
                     {PRO_DOWNLOAD_URL ? (

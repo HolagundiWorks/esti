@@ -9,7 +9,9 @@ export const Plan = z.enum(["LITE", "PRO", "ENTERPRISE"]);
 export type Plan = z.infer<typeof Plan>;
 
 export const PLAN_LABEL: Record<Plan, string> = {
-  LITE: "AORMS-Lite",
+  // The free edition is branded "Community" (unified with the offline Community
+  // appliance). The internal enum value stays `LITE` for DB / licence-token compat.
+  LITE: "AORMS Community",
   PRO: "AORMS-Pro",
   ENTERPRISE: "AORMS-Enterprise",
 };

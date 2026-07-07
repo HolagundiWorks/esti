@@ -22,7 +22,7 @@ wiring on the user's side.
   `VITE_COMMUNITY_DOWNLOAD_URL=/downloads/AORMS-Community-Setup.exe` into the SPA.
 - **Where it appears:** the public **/download** page (Community card) and the
   landing pricing band ("Download Community (offline)"). Until a Community asset
-  exists the button falls back to the free Lite/Manager exe, then to `/download`.
+  exists the button falls back to the free Community/Manager exe, then to `/download`.
 
 ## Turning it on
 
@@ -53,7 +53,7 @@ admin and prints, **once**, to the server console:
   (`/recover`) resets the password and issues a fresh code. Keep it safe — it is
   the sole recovery path.
 - The admin creates up to **3 more accounts** (staff/intern) from *Users*
-  (Lite's `staff: 3` cap → 4 users total).
+  (the `LITE` plan's `staff: 3` cap → 4 users total).
 
 ## What's included vs stripped
 

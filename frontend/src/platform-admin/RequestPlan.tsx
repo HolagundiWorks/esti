@@ -17,7 +17,7 @@ import {
 import { type PlanRequest, fetchMyRequest, requestPlan } from "./lib/auth";
 
 const PLANS = [
-  { code: "LITE", label: "Lite — free forever" },
+  { code: "LITE", label: "Community — free forever" },
   { code: "PRO", label: "Pro" },
 ];
 

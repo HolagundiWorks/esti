@@ -22,7 +22,7 @@ type Edition = {
 const EDITIONS: Edition[] = [
   {
     code: "LITE",
-    name: "AORMS Lite",
+    name: "AORMS Community",
     price: "Free · Offline",
     pitch:
       "The free, standalone, offline desktop app for small practices — your whole office on your own machine and local network. No licence, no cloud, no subscription, and everything it needs ships inside the installer.",
@@ -92,7 +92,7 @@ export function Download() {
               <h1 className="esti-landing-section-title">Download AORMS</h1>
               <p>
                 Run the whole office on your own machine. Pick the edition that matches your
-                practice — Lite is free forever and fully offline; Pro activates with a licence
+                practice — Community is free forever and fully offline; Pro activates with a licence
                 key and adds AI, GST, portals and the cloud.
               </p>
               {live?.version && (

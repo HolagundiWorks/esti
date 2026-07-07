@@ -7,7 +7,7 @@ const STATUS_LINES = [
   { label: "Projects, fees, approvals and billing in one record", dot: "green" },
   { label: "GST invoicing and 26AS / AIS / GSTR reconciliation built in", dot: "green" },
   { label: "Native desktop app — runs offline on your machine", dot: "yellow" },
-  { label: "Free Lite edition, no credit card required", dot: "green" },
+  { label: "Free Community edition, no credit card required", dot: "green" },
 ] as const;
 
 export function MarketingHero({ onTrialScroll }: { onTrialScroll?: () => void }) {

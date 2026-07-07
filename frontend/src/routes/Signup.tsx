@@ -40,10 +40,10 @@ export function Signup() {
               </div>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <p>Set up your workspace</p>
-                <StatusDot color="green" label="Lite" />
+                <StatusDot color="green" label="Community" />
               </Stack>
               <p>
-                Create your firm and admin account. Your Lite workspace comes
+                Create your firm and admin account. Your Community workspace comes
                 with a fixed set of staff, clients, contractors and projects you
                 can activate and fill in — no GST billing.
               </p>

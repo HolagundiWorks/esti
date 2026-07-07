@@ -95,7 +95,7 @@ The minutes finally do their job.
 ---
 
 *The minutes-to-revision flow ships in the AORMS client portal on the Pro
-edition, alongside the Minutes tab in every project workspace. AORMS-Lite
+edition, alongside the Minutes tab in every project workspace. AORMS Community
 remains free forever for small practices —
 [create an account](/account?mode=create) or write to
 [hi@aorms.in](mailto:hi@aorms.in).*

@@ -1,4 +1,4 @@
-# AORMS — editions & module map (Lite / Pro / Enterprise)
+# AORMS — editions & module map (Community / Pro / Enterprise)
 
 > **⚠ Reconciliation note (2026-06-28).** The **Estimation OS**, **Construction Cost
 > spine**, **Rate Books** (`rateBooks` feature), and **Rate Analysis** were **removed** in
@@ -8,13 +8,19 @@
 > [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
 > [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md). The new Construction Knowledge Bank is Pro.
 
-> **Editions (2026-07).** Three tiers: **Lite** (free, local-first — the offline
+> **Editions (2026-07).** Three tiers: **Community** (free, local-first — the offline
 > Community appliance), **Pro** (paid cloud, 10 GB storage mirrored to the desktop
 > app), and **Enterprise** (Pro + bring-your-own-storage, set up on-prem by an AORMS
 > admin). The legacy **Core** code folds to `PRO` via `asPlan()`; `ENTERPRISE` is now
 > a first-class tier again (it previously folded to Pro). **Enterprise desktop builds
 > are on hold** — Enterprise is a licensing/deployment tier, not yet a packaged
 > installer.
+>
+> **Naming (2026-07).** The free edition is branded **Community** in all user-facing
+> copy (unified with the offline Community appliance). The **internal code / DB value /
+> licence-token plan stays `LITE`** — `Plan = ["LITE","PRO","ENTERPRISE"]`,
+> `PLAN_LABEL.LITE = "AORMS Community"`. Only the *display label* changed; every
+> `plan === "LITE"`, `asPlan()`, quota and feature gate is unchanged.
 
 > Proposal. Maps every module (see [INFORMATION-ARCHITECTURE.md](INFORMATION-ARCHITECTURE.md))
 > to a plan. Backend is one codebase; the plan is a **firm-level flag** that gates
@@ -25,12 +31,12 @@
 
 | Edition | For | One line |
 |---|---|---|
-| **AORMS-Lite** (free) | solo / tiny studios (below GST threshold) | Run your design practice — clients, projects, drawings, simple invoices, basic bank reconciliation — free, with caps. *No GST split, no AI.* |
+| **AORMS Community** (free) | solo / tiny studios (below GST threshold) | Run your design practice — clients, projects, drawings, simple invoices, basic bank reconciliation — free, with caps. *No GST split, no AI.* |
 | **AORMS-Pro** (paid · contact for pricing) | established firms through multi-office / scale | The full office OS: revision intelligence, HR, GST invoicing + reconciliation + filing, portals, ESTI cognition — plus unlimited seats, SSO, API/ESTICAD, governance, integrations, white-label. **Cloud-hosted or self-hosted (on-premises).** |
 
 ## Quotas
 
-| Limit | Lite (free) | Pro |
+| Limit | Community (free) | Pro |
 |---|---|---|
 | **Admin (owner)** | 1 | 1 |
 | **General staff seats** | **3** | **unlimited** |
@@ -45,13 +51,13 @@
 | AI / LLM / ML | — (none) | ✓ built-in Ollama or bring-your-own API (per-licence flag) |
 | Support | community | priority + SLA |
 
-> Lite and Pro are both **self-serve**: clients, contractors, consultants and
+> Community and Pro are both **self-serve**: clients, contractors, consultants and
 > projects are **unlimited on both editions** (created through the normal "New …"
-> flow — Lite is no longer a fixed pre-seeded workspace). The only count cap is
-> **general staff seats** on Lite (3); Pro is unlimited, though a licence token may
+> flow — Community is no longer a fixed pre-seeded workspace). The only count cap is
+> **general staff seats** on Community (3); Pro is unlimited, though a licence token may
 > still constrain seats via its `seats` field. Accountant and HR_MANAGER are
-> **separate extra seats** (Pro: unlimited; Lite: none — upgrade to Pro for those
-> roles). **AI/LLM/ML is Pro only** — Lite has no AI. **Pro AI runs on the on-server Ollama for now** (the hosted
+> **separate extra seats** (Pro: unlimited; Community: none — upgrade to Pro for those
+> roles). **AI/LLM/ML is Pro only** — Community has no AI. **Pro AI runs on the on-server Ollama for now** (the hosted
 > deployment's `esti-ollama`; `OLLAMA_BASE_URL` / `OLLAMA_MODEL` in `.env`). The
 > **desktop-bundled (local) Ollama** — the PRO desktop edition's built-in Ollama
 > runtime — is **deferred until the desktop app is production-ready**; until then all
@@ -66,7 +72,7 @@
 > the path to be mounted on both the backend and the worker host. BYOS is set up
 > **on-premises by an AORMS admin** as part of an Enterprise deployment.
 
-> **Storage model (Lite / Pro / Enterprise).** **Lite** keeps files on the user's
+> **Storage model (Community / Pro / Enterprise).** **Community** keeps files on the user's
 > own machine (the offline Community appliance) — there is no cloud object store and
 > no cap. **Pro** gives **10 GB of cloud storage**, mirrored down to the desktop app;
 > firms can **buy add-on storage** (`orgSettings.storagePurchasedBytes` lifts the cap)
@@ -76,7 +82,7 @@
 > cloud data.
 
 > Only **active** logins consume a staff seat — disabling an account frees its
-> seat back up. On Lite, creating a 4th active general-staff login is blocked with
+> seat back up. On Community, creating a 4th active general-staff login is blocked with
 > an upgrade prompt (clients/contractors/consultants/projects are not capped). On
 > Pro, seats and storage are unlimited by edition; if the licence token carries a
 > `seats` cap, exceeding it is blocked the same way — never silent data loss. The
@@ -88,21 +94,21 @@
 `✓` included · `◐` limited / basic · `—` not in this edition
 
 ### Home & Work
-| Feature | Lite | Pro |
+| Feature | Community | Pro |
 |---|---|---|
 | Dashboard KPIs, Alerts, Search, Tasks | ✓ | ✓ |
 | Action Center — cognition interventions (AI/ML priority) | — | ✓ |
 | Workload analytics | ◐ | ✓ |
 
 ### Clients & pipeline
-| Feature | Lite | Pro |
+| Feature | Community | Pro |
 |---|---|---|
 | Client CRM + client log | ◐ (≤10) | ✓ |
 | Proposals pipeline | — | ✓ |
 | Fee proposals (COA Scale of Charges) | ◐ (flat) | ✓ |
 
 ### Projects — Consultancy (design)
-| Feature | Lite | Pro |
+| Feature | Community | Pro |
 |---|---|---|
 | Project info, brief, phases | ✓ | ✓ |
 | Drawings & transmittals register | ✓ | ✓ |
@@ -118,13 +124,13 @@
 ### Projects — Site Delivery (consultancy supervision)
 > **Note:** The former PMC / Costing & Measurement / Tenders spine was **removed 2026-06-28** (consultancy-only teardown). The rows below reflect what remains.
 
-| Feature | Lite | Pro |
+| Feature | Community | Pro |
 |---|---|---|
 | Site ops (snags, instructions, progress, inspections) | — | ✓ |
 | Purchase orders | — | ✓ |
 
 ### Accounts
-| Feature | Lite | Pro |
+| Feature | Community | Pro |
 |---|---|---|
 | Expenses & cash book | ✓ | ✓ |
 | Reconciliation — bank statements | ✓ | ✓ |
@@ -132,7 +138,7 @@
 | GST / TDS filing abstracts | **—** | ✓ |
 
 ### People
-| Feature | Lite | Pro |
+| Feature | Community | Pro |
 |---|---|---|
 | Team & assignments | ◐ (≤3) | ✓ |
 | Attendance | — | ✓ |
@@ -141,13 +147,13 @@
 | Consultant / contractor directories | ◐ (≤10/5) | ✓ |
 
 ### Knowledge
-| Feature | Lite | Pro |
+| Feature | Community | Pro |
 |---|---|---|
 | Knowledge Bank / Item Library | — | ✓ |
 | Spec catalogue | — | ✓ |
 
 ### Collaboration & portals
-| Feature | Lite | Pro |
+| Feature | Community | Pro |
 |---|---|---|
 | Comments, critical notes, activity | ✓ | ✓ |
 | Client portal | ◐ (1 project) | ✓ |
@@ -155,20 +161,20 @@
 | Contractor portal (bids + running bills) | — | ✓ |
 
 ### AI — ESTI
-| Feature | Lite | Pro |
+| Feature | Community | Pro |
 |---|---|---|
 | ESTI AI Studio / agent | **—** | ✓ (built-in Ollama; BYO provider per licence) |
 | Cognition engine (dashboard) | **—** | ✓ |
 | ESTICAD desktop AI / takeoff | — | ✓ |
 
-> **AORMS-Lite has no AI / LLM / ML features.** In exchange for the free tier,
-> Lite operational data — de-identified and aggregated — may be used to train our
+> **AORMS Community has no AI / LLM / ML features.** In exchange for the free tier,
+> Community operational data — de-identified and aggregated — may be used to train our
 > AI/LLM/ML models. The paid edition (Pro) and self-hosted deployments are
 > excluded and never used for training. This is disclosed in the Terms of
 > Service (§4) and is the legal basis for the free tier.
 
 ### Admin & governance
-| Feature | Lite | Pro |
+| Feature | Community | Pro |
 |---|---|---|
 | Company, users, settings | ✓ (3 users) | ✓ |
 | Roles / access tiers | ◐ (owner + 2) | ✓ full ladder |
@@ -181,12 +187,12 @@
 
 | Edition | Pricing | Hosting | How to start |
 |---|---|---|---|
-| **Lite** | **Free** | Cloud (shared) | **Self-signup** on the landing page |
+| **Community** | **Free** | Cloud (shared) | **Self-signup** on the landing page |
 | **Pro** | **Contact for pricing** | **Cloud — dedicated VM** (4 vCPU · 16 GB RAM · 200 GB NVMe · 16 TB bandwidth · 1 snapshot · weekly backups · dedicated IP) **or self-hosted / on-premises** (deployed on your infrastructure) | Contact form on the landing page |
 
-## The upgrade story (what pulls Lite → Pro)
+## The upgrade story (what pulls Community → Pro)
 
-- **Lite → Pro** when the firm crosses the **GST threshold**:
+- **Community → Pro** when the firm crosses the **GST threshold**:
   the moment they need GST-correct invoices (CGST/SGST/IGST, SAC, filing
   abstracts) and 26AS/AIS/GSTR reconciliation, revision intelligence to defend
   fees, HR/payroll, or a 4th team member / 11th client.

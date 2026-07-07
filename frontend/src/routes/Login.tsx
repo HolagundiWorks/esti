@@ -184,7 +184,7 @@ export function Login() {
               {!companies && (
                 <p className="esti-label esti-label--secondary">
                   {IS_DESKTOP
-                    ? "AORMS Lite · this workspace lives on this computer."
+                    ? "AORMS Community · this workspace lives on this computer."
                     : "One account for your studio, your companies, and your AORMS identity."}
                 </p>
               )}

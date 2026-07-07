@@ -67,7 +67,7 @@ export function MigrationPanel() {
         <Typography variant="body2" color="text.secondary">
           {community
             ? "Package this whole company as a bundle, then import it into a fresh AORMS Pro workspace. Migration is one-way, Community → Pro."
-            : "Import a company bundle exported from a Community/Lite install into this fresh, empty workspace. Import refuses a non-empty target and rolls back if verification fails."}
+            : "Import a company bundle exported from a Community install into this fresh, empty workspace. Import refuses a non-empty target and rolls back if verification fails."}
         </Typography>
         {pf && (
           <Typography variant="caption" color="text.secondary">

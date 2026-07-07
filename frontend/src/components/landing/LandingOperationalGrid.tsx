@@ -276,7 +276,7 @@ function ProductStoryTile() {
 
         <div className="esti-lp-cognition-forecast">
           <DataRow k="Built for" v="Solo to mid-size practices" />
-          <DataRow k="First step" v="Create a free Lite workspace" />
+          <DataRow k="First step" v="Create a free Community workspace" />
           <DataRow k="Office role" v="Remembers, warns, records" />
         </div>
       </TileBody>
@@ -817,7 +817,7 @@ export function CustomerSuccessSection() {
           title="One project record that the whole team, and the client, can point to"
           bullets={["Every approval, revision and invoice traceable to a date and a person"]}
         />
-        <KpiTile header="Adoption Path" dot="yellow" value="Lite → Pro" sub="Start free with a small practice; grow into the full framework without migrating records" />
+        <KpiTile header="Adoption Path" dot="yellow" value="Community → Pro" sub="Start free with a small practice; grow into the full framework without migrating records" />
         <KpiTile header="Data Ownership" dot="green" value="Yours" sub="Self-host at any time — your projects, drawings and financial records travel with you" />
       </div>
     </>
@@ -829,19 +829,19 @@ export function CustomerSuccessSection() {
 const FAQS = [
   {
     q: "Is AORMS really free?",
-    a: "AORMS-Lite is free forever for up to three staff logins, with unlimited clients, contractors and projects, and no credit card required. It includes simple non-GST invoicing and basic bank reconciliation.",
+    a: "AORMS Community is free forever for up to three staff logins, with unlimited clients, contractors and projects, and no credit card required. It includes simple non-GST invoicing and basic bank reconciliation.",
   },
   {
     q: "Can I use AORMS without an internet connection?",
-    a: "Yes. The Lite edition ships as a native Windows desktop app that runs entirely offline, with your data stored on your own machine.",
+    a: "Yes. The Community edition ships as a native Windows desktop app that runs entirely offline, with your data stored on your own machine.",
   },
   {
-    q: "What happens to my data on the free Lite plan?",
-    a: "Your projects, drawings and client data remain yours. On Lite, de-identified and aggregated data may be used to improve AORMS's AI models — this is disclosed in full in our legal terms and does not apply once you upgrade to Pro or self-host.",
+    q: "What happens to my data on the free Community plan?",
+    a: "Your projects, drawings and client data remain yours. On Community, de-identified and aggregated data may be used to improve AORMS's AI models — this is disclosed in full in our legal terms and does not apply once you upgrade to Pro or self-host.",
   },
   {
-    q: "What's the difference between Lite and Pro?",
-    a: "Lite covers a small practice's core record-keeping. Pro adds GST invoicing, HR and payroll, revision intelligence, AI Studio, unlimited seats, and self-hosting — cloud-hosted or on your own infrastructure.",
+    q: "What's the difference between Community and Pro?",
+    a: "Community covers a small practice's core record-keeping. Pro adds GST invoicing, HR and payroll, revision intelligence, AI Studio, unlimited seats, and self-hosting — cloud-hosted or on your own infrastructure.",
   },
   {
     q: "Can I self-host AORMS?",
@@ -874,7 +874,7 @@ export function FinalCtaSection({ children }: { children?: ReactNode }) {
       <SectionBreak
         eyebrow="15 / Get Started"
         title="Start with a shared record, then adopt the full framework as the practice grows"
-        body="Lite gives a small practice one shared record, free forever. Pro runs the whole practice to one standard — projects, GST, billing, revisions, site visits, portals, team load and AI — cloud-hosted or self-hosted on your own infrastructure."
+        body="Community gives a small practice one shared record, free forever. Pro runs the whole practice to one standard — projects, GST, billing, revisions, site visits, portals, team load and AI — cloud-hosted or self-hosted on your own infrastructure."
       />
       {children}
     </>
