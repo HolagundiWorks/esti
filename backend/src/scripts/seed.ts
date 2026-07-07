@@ -22,6 +22,7 @@ import { applyFirmPlanFromEnv } from "../lib/plan.js";
 import { ensureAiStudioEnabled } from "./seedAiStudio.js";
 import { seedCivilWbs } from "./seedCivilWbs.js";
 import { seedCpwdRates } from "./seedCpwdRates.js";
+import { seedLetterTemplates } from "./seedLetterTemplates.js";
 
 const email = normalizeEmail(process.env.SEED_OWNER_EMAIL ?? "owner@hcw.in");
 const password = process.env.SEED_OWNER_PASSWORD ?? "ChangeMe123";
@@ -35,6 +36,9 @@ async function main(): Promise<void> {
 
   // Office rate book: CPWD Delhi DSR rates (idempotent; skips if already seeded).
   await seedCpwdRates(db);
+
+  // Standard office letter templates (idempotent; skips ones already present).
+  await seedLetterTemplates(db);
 
   // Licence-free standalone plan (no-op when FIRM_PLAN is unset).
   await applyFirmPlanFromEnv(db);
