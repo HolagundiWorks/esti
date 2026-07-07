@@ -3611,7 +3611,9 @@ h1.esti-landing-lead-title {
 }
 
 .esti-lp-pricing-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  // Two plans (Community + Pro) → 2 columns so each fills 50% of the content
+  // width (no blank third column). The intro tile still spans the full width.
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-auto-rows: minmax(296px, auto);
 
   .esti-lp-tile--4x1 {
@@ -3619,7 +3621,7 @@ h1.esti-landing-lead-title {
   }
 
   @media (max-width: 1055px) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   @media (max-width: 900px) {
