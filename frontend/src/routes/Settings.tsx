@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   CircularProgress,
   Divider,
   Stack,
@@ -15,6 +14,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { type ChangeEvent, useEffect, useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { apiUrl, authHeaders } from "../lib/api-base.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -265,14 +265,7 @@ export function Settings() {
         <Stack spacing={2}>
           <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
             <Typography variant="h6" component="h2">Two-factor authentication</Typography>
-            <Chip
-              label={totpEnabled ? "On" : "Off"}
-              size="small"
-              sx={{
-                backgroundColor: `var(--cds-tag-background-${totpEnabled ? "green" : "gray"})`,
-                color: `var(--cds-tag-color-${totpEnabled ? "green" : "gray"})`,
-              }}
-            />
+            <StatusDot color={totpEnabled ? "green" : "gray"} label={totpEnabled ? "On" : "Off"} />
           </Stack>
 
           {!totpEnabled && !totpSetup && (

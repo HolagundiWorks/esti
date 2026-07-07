@@ -4,7 +4,6 @@ import {
   Button,
   Card,
   CardActionArea,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -35,17 +34,11 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PortalHeader } from "../components/PortalHeader.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
 
 type SubmissionStatus = keyof typeof CONSULTANT_SUBMISSION_STATUS_LABEL;
-
-function chipTokens(color: string) {
-  return {
-    backgroundColor: `var(--cds-tag-background-${color})`,
-    color: `var(--cds-tag-color-${color})`,
-  };
-}
 
 export function CollaboratorPortal() {
   const navigate = useNavigate();
@@ -135,10 +128,9 @@ export function CollaboratorPortal() {
       headerName: "Status",
       width: 120,
       renderCell: ({ row }) => (
-        <Chip
-          size="small"
+        <StatusDot
+          color={row.status === "RESOLVED" ? "green" : "blue"}
           label={row.status === "RESOLVED" ? "Done" : "Open"}
-          sx={chipTokens(row.status === "RESOLVED" ? "green" : "blue")}
         />
       ),
     },
@@ -185,10 +177,9 @@ export function CollaboratorPortal() {
       headerName: "Status",
       width: 170,
       renderCell: ({ row }) => (
-        <Chip
-          size="small"
+        <StatusDot
+          color={CONSULTANT_SUBMISSION_STATUS_TAG[row.status as SubmissionStatus] ?? "blue"}
           label={CONSULTANT_SUBMISSION_STATUS_LABEL[row.status as SubmissionStatus] ?? row.status}
-          sx={chipTokens(CONSULTANT_SUBMISSION_STATUS_TAG[row.status as SubmissionStatus] ?? "blue")}
         />
       ),
     },
@@ -270,7 +261,7 @@ export function CollaboratorPortal() {
                           <Typography variant="body2">{p.ref}</Typography>
                           <Typography variant="h6" component="h3">{p.title}</Typography>
                           <Box>
-                            <Chip size="small" label={p.status} sx={chipTokens("cool-gray")} />
+                            <StatusDot color="cool-gray" label={p.status} />
                           </Box>
                           <Typography variant="body2">
                             Balance {formatINR(balance, { paise: false })}
@@ -298,7 +289,7 @@ export function CollaboratorPortal() {
                 <Typography variant="body2" color="text.secondary">
                   {d.project.ref} · {d.project.projectType} · {d.project.jurisdiction} ·
                 </Typography>
-                <Chip size="small" label={d.project.status} sx={chipTokens("cool-gray")} />
+                <StatusDot color="cool-gray" label={d.project.status} />
               </Stack>
               <Stack direction="row" spacing={1}>
                 <Button

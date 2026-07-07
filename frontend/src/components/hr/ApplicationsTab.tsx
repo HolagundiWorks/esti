@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -23,7 +22,7 @@ import {
   type TeamRoleCode,
 } from "@esti/contracts";
 import { useState } from "react";
-import { StatusTag } from "../StatusTag.js";
+import { StatusDot, StatusTag } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
 
 type AppStatus = (typeof APPLICATION_STATUSES)[number];
@@ -167,14 +166,7 @@ export function ApplicationsTab() {
                     </>
                   )}
                   {a.memberId && (
-                    <Chip
-                      size="small"
-                      label="Onboarded"
-                      sx={{
-                        backgroundColor: "var(--cds-tag-background-green)",
-                        color: "var(--cds-tag-color-green)",
-                      }}
-                    />
+                    <StatusDot color="green" label="Onboarded" />
                   )}
                   {(a.status === "APPLIED" || a.status === "SCREENING" || a.status === "INTERVIEW") && (
                     <Button

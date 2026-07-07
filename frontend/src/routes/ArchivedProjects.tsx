@@ -2,7 +2,6 @@ import {
   Alert,
   AlertTitle,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -16,6 +15,7 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useRef, useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
 const HiddenInput = styled("input")({ display: "none" });
@@ -223,14 +223,7 @@ export function ArchivedProjects() {
         const pastRetention = params.row.purgeAfter ? params.row.purgeAfter <= today : true;
         const color = pastRetention ? "red" : "gray";
         return params.row.purgeAfter ? (
-          <Chip
-            label={params.row.purgeAfter}
-            size="small"
-            sx={{
-              backgroundColor: `var(--cds-tag-background-${color})`,
-              color: `var(--cds-tag-color-${color})`,
-            }}
-          />
+          <StatusDot color={color} label={params.row.purgeAfter} />
         ) : (
           "—"
         );

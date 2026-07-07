@@ -5,6 +5,7 @@ import { Button, Chip, Grid, Paper, Stack } from "@mui/material";
 import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { LandingBand, LandingEditorial } from "../components/landing/LandingBand.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { createAccountUrl } from "../lib/onboarding.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -72,13 +73,6 @@ const ESTIMATE_FEATURES = [
   "Fully offline; free companion to any AORMS edition",
 ];
 
-// Carbon Tag colour tokens still resolve at :root (styles.scss emits the Carbon
-// White theme globally), so coloured Chips reuse the tag background/foreground pair.
-const tagSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
-
 export function Download() {
   // Live: the newest desktop release's installers, pulled from GitHub (cached server-side).
   const installersQ = trpc.marketing.desktopInstallers.useQuery(undefined, {
@@ -94,7 +88,7 @@ export function Download() {
           <LandingEditorial>
             <Stack spacing={7}>
             <Stack spacing={4}>
-              <Chip label="Windows desktop app" sx={tagSx("cool-gray")} />
+              <StatusDot color="cool-gray" label="Windows desktop app" />
               <h1 className="esti-landing-section-title">Download AORMS</h1>
               <p>
                 Run the whole office on your own machine. Pick the edition that matches your
@@ -122,7 +116,7 @@ export function Download() {
                     <Stack spacing={5}>
                       <Stack spacing={3}>
                         <Stack direction="row" spacing={3}>
-                          <Chip label={e.name} sx={tagSx(e.tag)} />
+                          <StatusDot color={e.tag} label={e.name} />
                           <Chip label={e.price} variant="outlined" />
                         </Stack>
                         <p>{e.pitch}</p>
@@ -177,7 +171,7 @@ export function Download() {
               <Stack spacing={5}>
                 <Stack spacing={3}>
                   <Stack direction="row" spacing={3}>
-                    <Chip label="AORMS Estimate" sx={tagSx("teal")} />
+                    <StatusDot color="teal" label="AORMS Estimate" />
                     <Chip label="Free · Offline companion" variant="outlined" />
                   </Stack>
                   <h2 className="esti-landing-section-title">The estimating companion</h2>

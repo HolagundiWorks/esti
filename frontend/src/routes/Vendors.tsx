@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -23,10 +22,10 @@ import {
   vendorScore,
   type VendorCategoryCode,
 } from "@esti/contracts";
-import type { ReactNode } from "react";
 import { useState } from "react";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { VendorQuotes } from "../components/vendor/VendorQuotes.js";
 import { VendorRateCompare } from "../components/vendor/VendorRateCompare.js";
@@ -56,20 +55,6 @@ function scoreTag(score: number): "green" | "teal" | "blue" | "gray" {
   if (score >= 3.5) return "teal";
   if (score > 0) return "blue";
   return "gray";
-}
-
-/** Status badge rendered over the Carbon `--cds-tag-*` token vars (exact colours). */
-function TagChip({ color, label }: { color: string; label: ReactNode }) {
-  return (
-    <Chip
-      size="small"
-      label={label}
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
 }
 
 export function Vendors() {
@@ -131,7 +116,7 @@ export function Vendors() {
           <Stack spacing={0.25} sx={{ justifyContent: "center", height: 1, py: 0.5 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <span>{v.name}</span>
-              {!v.active && <TagChip color="gray" label="Inactive" />}
+              {!v.active && <StatusDot color="gray" label="Inactive" />}
             </Box>
             {v.companyName && <Typography variant="caption" color="text.secondary">{v.companyName}</Typography>}
             {(v.city || v.state) && (
@@ -192,9 +177,9 @@ export function Vendors() {
       renderCell: (p) => {
         const score = vendorScore(p.row);
         return score > 0 ? (
-          <TagChip color={scoreTag(score)} label={`${score.toFixed(1)} / 5`} />
+          <StatusDot color={scoreTag(score)} label={`${score.toFixed(1)} / 5`} />
         ) : (
-          <TagChip color="gray" label="Unrated" />
+          <StatusDot color="gray" label="Unrated" />
         );
       },
     },
@@ -271,7 +256,7 @@ export function Vendors() {
       flex: 0.7,
       minWidth: 110,
       sortable: false,
-      renderCell: (p) => <TagChip color="cool-gray" label={p.row.source} />,
+      renderCell: (p) => <StatusDot color="cool-gray" label={p.row.source} />,
     },
     {
       field: "actions",

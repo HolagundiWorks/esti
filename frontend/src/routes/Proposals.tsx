@@ -1,7 +1,6 @@
 import {
   Alert,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -22,27 +21,13 @@ import {
   formatINR,
   isBelowCoaMinimum,
 } from "@esti/contracts";
-import type { ReactNode } from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { FeeProposalPdfCell } from "../components/FeeProposalPdfCell.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
-
-/** Status badge rendered over the Carbon `--cds-tag-*` token vars (exact colours). */
-function TagChip({ color, label }: { color: string; label: ReactNode }) {
-  return (
-    <Chip
-      size="small"
-      label={label}
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 /** Office › Proposals — unified COA fee proposals + scope/agreements (one model). */
 export function Proposals() {
@@ -130,9 +115,9 @@ export function Proposals() {
       sortable: false,
       renderCell: (p) =>
         p.row.belowMinimum ? (
-          <TagChip color="magenta" label="Below COA min" />
+          <StatusDot color="magenta" label="Below COA min" />
         ) : (
-          <TagChip color="green" label="OK" />
+          <StatusDot color="green" label="OK" />
         ),
     },
     {

@@ -8,7 +8,6 @@
  */
 import {
   Box,
-  Chip,
   FormControlLabel,
   LinearProgress,
   Stack,
@@ -31,6 +30,7 @@ import type { SvgIconComponent } from "@mui/icons-material";
 import type { ReactNode } from "react";
 import { can, formatINRShort } from "@esti/contracts";
 import { OfficeHealthGlyph } from "../components/shell/OfficeHealthGlyph.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { STATE_WORD } from "../components/dashboard/zoneState.js";
 import type { ZoneState } from "../components/dashboard/zoneState.js";
 import { CAPACITY_LABEL } from "../components/dashboard/dashboardUi.js";
@@ -214,13 +214,8 @@ function tagKind(state: ZoneState): "green" | "warm-gray" | "magenta" | "red" | 
   return "gray";
 }
 
-const chipSx = (color: string) => ({
-  backgroundColor: `var(--cds-tag-background-${color})`,
-  color: `var(--cds-tag-color-${color})`,
-});
-
 function ZoneChip({ state, label }: { state: ZoneState; label?: string }) {
-  return <Chip size="small" label={label ?? STATE_WORD[state]} sx={chipSx(tagKind(state))} />;
+  return <StatusDot color={tagKind(state)} label={label ?? STATE_WORD[state]} />;
 }
 
 // ── Card scaffold ─────────────────────────────────────────────────────────────
@@ -471,21 +466,21 @@ export function StudioAbstract() {
   const wqCols: GridColDef[] = [
     { field: "title", headerName: "Task", flex: 2, minWidth: 200, renderCell: (p) => glyphCell(p.row.status === "BLOCKED" ? "critical" : p.row.dueDate && p.row.dueDate < today ? "friction" : "watch", p.row.title) },
     { field: "projectRef", headerName: "Project", flex: 1, minWidth: 100, valueGetter: (v) => v ?? "—" },
-    { field: "confidenceScore", headerName: "Conf.", width: 90, renderCell: (p) => <Chip size="small" label={`${p.row.confidenceScore}%`} sx={chipSx(confidenceTag(p.row.confidenceScore))} /> },
+    { field: "confidenceScore", headerName: "Conf.", width: 90, renderCell: (p) => <StatusDot color={confidenceTag(p.row.confidenceScore)} label={`${p.row.confidenceScore}%`} /> },
     { field: "dueDate", headerName: "Due", width: 110, valueGetter: (v) => v ?? "—" },
   ];
 
   const apRows = pending.slice(0, 10).map((ap: any) => ({ ...ap, id: ap.id }));
   const apCols: GridColDef[] = [
     { field: "title", headerName: "Item", flex: 2, minWidth: 200, renderCell: (p) => glyphCell(p.row.daysWaiting > 14 ? "critical" : "watch", `${p.row.projectRef} — ${p.row.title}`) },
-    { field: "daysWaiting", headerName: "Waiting", width: 110, renderCell: (p) => <Chip size="small" label={`${p.row.daysWaiting}d`} sx={chipSx(p.row.daysWaiting > 14 ? "red" : p.row.daysWaiting > 7 ? "magenta" : "warm-gray")} /> },
+    { field: "daysWaiting", headerName: "Waiting", width: 110, renderCell: (p) => <StatusDot color={p.row.daysWaiting > 14 ? "red" : p.row.daysWaiting > 7 ? "magenta" : "warm-gray"} label={`${p.row.daysWaiting}d`} /> },
   ];
 
   const tcRows = ti.slice(0, 10).map((m: any) => ({ ...m, id: m.memberId ?? m.assignee }));
   const tcCols: GridColDef[] = [
     { field: "assignee", headerName: "Member", flex: 1, minWidth: 140 },
     { field: "totalOpen", headerName: "Open", width: 80, type: "number" },
-    { field: "overdueCount", headerName: "Late", width: 80, renderCell: (p) => ((p.row.overdueCount ?? 0) > 0 ? <Chip size="small" label={p.row.overdueCount} sx={chipSx("magenta")} /> : <span>—</span>) },
+    { field: "overdueCount", headerName: "Late", width: 80, renderCell: (p) => ((p.row.overdueCount ?? 0) > 0 ? <StatusDot color="magenta" label={p.row.overdueCount} /> : <span>—</span>) },
     { field: "load", headerName: "Load", width: 130, sortable: false, renderCell: (p) => {
       const st: ZoneState = p.row.capacity === "OVERLOADED" ? "critical" : p.row.capacity === "HIGH" ? "watch" : "stable";
       return (
@@ -496,7 +491,7 @@ export function StudioAbstract() {
     } },
     { field: "capacity", headerName: "Capacity", width: 130, renderCell: (p) => {
       const st: ZoneState = p.row.capacity === "OVERLOADED" ? "critical" : p.row.capacity === "HIGH" ? "watch" : "stable";
-      return <Chip size="small" label={CAPACITY_LABEL[p.row.capacity] ?? p.row.capacity} sx={chipSx(tagKind(st))} />;
+      return <StatusDot color={tagKind(st)} label={CAPACITY_LABEL[p.row.capacity] ?? p.row.capacity} />;
     } },
   ];
 
@@ -679,7 +674,7 @@ export function StudioAbstract() {
             <>
               <TabSplit
                 title="Work queue"
-                action={<Chip size="small" label={`${tasks.length} open · ${tasksOverdue} overdue`} sx={chipSx(tasksOverdue > 0 ? "warm-gray" : "green")} />}
+                action={<StatusDot color={tasksOverdue > 0 ? "warm-gray" : "green"} label={`${tasks.length} open · ${tasksOverdue} overdue`} />}
               >
                 {tasks.length === 0 ? emptyText("No active tasks.") : (
                   <DataGrid rows={wqRows} columns={wqCols} onRowClick={(p) => navigate(taskHref(p.row.id))} {...gridProps} />
@@ -688,7 +683,7 @@ export function StudioAbstract() {
               <Sep />
               <TabSplit
                 title="Approvals"
-                action={<Chip size="small" label={`${pendingCount} pending`} sx={chipSx(pendingCount > 0 ? tagKind(cs) : "green")} />}
+                action={<StatusDot color={pendingCount > 0 ? tagKind(cs) : "green"} label={`${pendingCount} pending`} />}
               >
                 {pending.length === 0 ? emptyText("No approvals pending.") : (
                   <DataGrid rows={apRows} columns={apCols} onRowClick={(p) => navigate(`/projects/${p.row.projectId}?tab=approvals&approvalId=${p.row.id}`)} {...gridProps} />

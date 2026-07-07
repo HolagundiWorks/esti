@@ -1,7 +1,8 @@
-import { Box, Chip, Divider, Link, Stack, Typography } from "@mui/material";
+import { Box, Divider, Link, Stack, Typography } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { Link as RouterLink } from "react-router-dom";
 import { RailLayout } from "../components/RailLayout.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
 const KIND_LABEL: Record<string, string> = {
@@ -49,16 +50,7 @@ function AlertTable({ title, alerts }: { title: string; alerts: AlertRow[] }) {
       width: 120,
       renderCell: (p) => {
         const color = SEVERITY_COLOR[p.row.severity] ?? "gray";
-        return (
-          <Chip
-            label={p.row.severity}
-            size="small"
-            sx={{
-              backgroundColor: `var(--cds-tag-background-${color}, var(--cds-layer-01))`,
-              color: `var(--cds-tag-color-${color}, var(--cds-text-primary))`,
-            }}
-          />
-        );
+        return <StatusDot color={color} label={p.row.severity} />;
       },
     },
     {

@@ -1,7 +1,6 @@
 import {
   Box,
   Checkbox,
-  Chip,
   FormControlLabel,
   Grid,
   MenuItem,
@@ -17,13 +16,9 @@ import {
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../DataState.js";
+import { StatusDot } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
 import { BOARD_COLUMNS, PRIORITY_TAG } from "./workHelpers.js";
-
-const tagSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 export function TaskBoardTab() {
   const utils = trpc.useUtils();
@@ -66,7 +61,7 @@ export function TaskBoardTab() {
               <Grid key={status} size={{ xs: 12, sm: 6, lg: 3 }}>
                 <Stack spacing={2}>
                   <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                    <Chip size="small" label={TASK_STATUS_LABEL[status] ?? status} sx={tagSx(tag)} />
+                    <StatusDot color={tag} label={TASK_STATUS_LABEL[status] ?? status} />
                     <span className="esti-label esti-label--secondary">{colTasks.length}</span>
                   </Stack>
                   {colTasks.length === 0 ? (
@@ -79,10 +74,9 @@ export function TaskBoardTab() {
                           <Stack spacing={1}>
                             <strong>{t.title}</strong>
                             <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                              <Chip
-                                size="small"
+                              <StatusDot
+                                color={PRIORITY_TAG[t.priority] ?? "gray"}
                                 label={TASK_PRIORITY_LABEL[t.priority] ?? t.priority}
-                                sx={tagSx(PRIORITY_TAG[t.priority] ?? "gray")}
                               />
                               {t.projectId && (
                                 <Link to={`/projects/${t.projectId}`}>{t.projectRef}</Link>
@@ -94,11 +88,7 @@ export function TaskBoardTab() {
                             {t.dueDate && (
                               overdue
                                 ? (
-                                  <Chip
-                                    size="small"
-                                    label={`Overdue · ${t.dueDate}`}
-                                    sx={{ ...tagSx("red"), alignSelf: "flex-start" }}
-                                  />
+                                  <StatusDot color="red" label={`Overdue · ${t.dueDate}`} />
                                 )
                                 : <span className="esti-label esti-label--helper">Due {t.dueDate}</span>
                             )}

@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -31,6 +30,7 @@ import {
 } from "@esti/contracts";
 import { type CSSProperties, useState } from "react";
 import { StaffAvatar, resolveColor } from "../StaffAvatar.js";
+import { StatusDot } from "../StatusTag.js";
 import { apiUrl, authHeaders } from "../../lib/api-base.js";
 import { trpc } from "../../lib/trpc.js";
 
@@ -99,11 +99,6 @@ export function StaffProfilesTab() {
       setUploading(false);
     }
   }
-
-  const chipSx = (c: string) => ({
-    backgroundColor: `var(--cds-tag-background-${c})`,
-    color: `var(--cds-tag-color-${c})`,
-  });
 
   return (
     <Grid container spacing={2}>
@@ -234,10 +229,9 @@ export function StaffProfilesTab() {
                     <Stack spacing={1}>
                       <div className="esti-doc-tile__header">
                         <DescriptionIcon sx={{ fontSize: 20 }} />
-                        <Chip
-                          size="small"
+                        <StatusDot
+                          color={doc.verifiedAt ? "green" : "gray"}
                           label={doc.verifiedAt ? "Verified" : "Unverified"}
-                          sx={chipSx(doc.verifiedAt ? "green" : "gray")}
                         />
                       </div>
                       <p className="esti-label"><strong>{doc.documentName}</strong></p>

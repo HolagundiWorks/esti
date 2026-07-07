@@ -7,7 +7,6 @@ import {
   Card,
   CardActionArea,
   Checkbox,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -44,7 +43,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PortalHeader } from "../components/PortalHeader.js";
 import { PortalMinutes } from "../components/PortalMinutes.js";
-import { StatusTag } from "../components/StatusTag.js";
+import { StatusDot, StatusTag } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -64,14 +63,6 @@ const AP_TAG: Record<
 };
 // Approvals the client can still respond to.
 const RESPONDABLE = ["SENT", "REVISIONS"];
-
-/** Exact Carbon tag colours over MUI Chip (token vars stay defined on the shell). */
-function chipTokens(color: string) {
-  return {
-    backgroundColor: `var(--cds-tag-background-${color})`,
-    color: `var(--cds-tag-color-${color})`,
-  };
-}
 
 export function Portal() {
   const navigate = useNavigate();
@@ -212,7 +203,7 @@ export function Portal() {
       headerName: "Status",
       width: 110,
       renderCell: (p) => (
-        <Chip size="small" label={p.row.status} sx={chipTokens(INV_TAG[p.row.status] ?? "blue")} />
+        <StatusDot color={INV_TAG[p.row.status] ?? "blue"} label={p.row.status} />
       ),
     },
     {
@@ -248,7 +239,7 @@ export function Portal() {
       headerName: "Status",
       width: 140,
       renderCell: (p) => (
-        <Chip size="small" label={p.row.status} sx={chipTokens(AP_TAG[p.row.status] ?? "blue")} />
+        <StatusDot color={AP_TAG[p.row.status] ?? "blue"} label={p.row.status} />
       ),
     },
     {
@@ -367,9 +358,9 @@ export function Portal() {
       renderCell: (p) =>
         p.row.status === "IMPACT_SENT" ? (
           <Stack spacing={0.5} sx={{ py: 1, alignItems: "flex-start" }}>
-            {p.row.affectsCosting && <Chip size="small" label="Affects costing" sx={chipTokens("red")} />}
-            {p.row.affectsTimeline && <Chip size="small" label="Affects timeline" sx={chipTokens("magenta")} />}
-            {p.row.isBillable && <Chip size="small" label="Billable" sx={chipTokens("purple")} />}
+            {p.row.affectsCosting && <StatusDot color="red" label="Affects costing" />}
+            {p.row.affectsTimeline && <StatusDot color="magenta" label="Affects timeline" />}
+            {p.row.isBillable && <StatusDot color="purple" label="Billable" />}
             {p.row.architectComment && (
               <span className="esti-label esti-label--helper">{p.row.architectComment}</span>
             )}
@@ -461,7 +452,7 @@ export function Portal() {
                         <Typography variant="body2" color="text.secondary">{p.ref}</Typography>
                         <Typography variant="h6" component="h3">{p.title}</Typography>
                         <Box>
-                          <Chip size="small" label={p.status} sx={chipTokens("cool-gray")} />
+                          <StatusDot color="cool-gray" label={p.status} />
                         </Box>
                       </Stack>
                     </CardActionArea>
@@ -485,7 +476,7 @@ export function Portal() {
                 <span className="esti-label">
                   {d.project.ref} · {d.project.projectType} · {d.project.jurisdiction}
                 </span>
-                <Chip size="small" label={d.project.status} sx={chipTokens("cool-gray")} />
+                <StatusDot color="cool-gray" label={d.project.status} />
               </Stack>
               <Stack direction="row" spacing={1.5} sx={{ flexWrap: "wrap" }}>
                 <Button size="small" variant="contained" onClick={() => setRequestOpen(true)}>Raise change request</Button>

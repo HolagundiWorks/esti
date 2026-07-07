@@ -2,7 +2,6 @@ import {
   Box,
   ButtonBase,
   Checkbox,
-  Chip,
   Divider,
   FormControlLabel,
   IconButton,
@@ -19,13 +18,9 @@ import {
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../DataState.js";
+import { StatusDot } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
 import { MONTHS, PRIORITY_TAG, toISO, WEEKDAYS } from "./workHelpers.js";
-
-const tagSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 type TaskRow = {
   id: string;
@@ -201,17 +196,15 @@ export function TaskCalendarTab() {
                 return (
                   <Stack key={t.id} direction="row" spacing={1} className="esti-cal-day-row">
                     <strong className="esti-grow">{t.title}</strong>
-                    <Chip
-                      size="small"
+                    <StatusDot
+                      color={PRIORITY_TAG[t.priority] ?? "gray"}
                       label={TASK_PRIORITY_LABEL[t.priority as keyof typeof TASK_PRIORITY_LABEL] ?? t.priority}
-                      sx={tagSx(PRIORITY_TAG[t.priority] ?? "gray")}
                     />
-                    <Chip
-                      size="small"
+                    <StatusDot
+                      color="gray"
                       label={TASK_STATUS_LABEL[t.status as keyof typeof TASK_STATUS_LABEL] ?? t.status}
-                      sx={tagSx("gray")}
                     />
-                    {overdue && <Chip size="small" label="Overdue" sx={tagSx("red")} />}
+                    {overdue && <StatusDot color="red" label="Overdue" />}
                     {t.projectId && (
                       <Link to={`/projects/${t.projectId}`}>{t.projectRef ?? "Project"}</Link>
                     )}

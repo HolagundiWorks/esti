@@ -2,7 +2,6 @@ import {
   Alert,
   Button,
   Checkbox,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -30,7 +29,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
-import { StatusTag } from "../components/StatusTag.js";
+import { StatusDot, StatusTag } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -39,19 +38,6 @@ const KIND_TAG: Record<string, "purple" | "blue" | "teal"> = {
   CHANGE_REQUEST: "purple",
   FEEDBACK: "blue",
 };
-
-function TagChip({ color, label }: { color: string; label: string }) {
-  return (
-    <Chip
-      label={label}
-      size="small"
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
@@ -200,9 +186,9 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
             />
             {(r.affectsCosting || r.affectsTimeline || r.isBillable) && (
               <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap" }}>
-                {r.affectsCosting && <TagChip color="red" label="Cost" />}
-                {r.affectsTimeline && <TagChip color="magenta" label="Time" />}
-                {r.isBillable && <TagChip color="purple" label="Billable" />}
+                {r.affectsCosting && <StatusDot color="red" label="Cost" />}
+                {r.affectsTimeline && <StatusDot color="magenta" label="Time" />}
+                {r.isBillable && <StatusDot color="purple" label="Billable" />}
               </Stack>
             )}
           </Stack>

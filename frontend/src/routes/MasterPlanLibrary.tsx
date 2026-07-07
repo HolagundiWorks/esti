@@ -1,7 +1,6 @@
 import {
   Alert,
   Button,
-  Chip,
   MenuItem,
   Stack,
   TextField,
@@ -10,6 +9,7 @@ import {
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { MasterPlanCategory } from "@esti/contracts";
 import { useState } from "react";
+import { StatusDot } from "../components/StatusTag.js";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
@@ -62,14 +62,7 @@ export function MasterPlanLibrary() {
       headerName: "Category",
       width: 160,
       renderCell: (p) => (
-        <Chip
-          label={p.row.category}
-          size="small"
-          sx={{
-            backgroundColor: "var(--cds-tag-background-gray)",
-            color: "var(--cds-tag-color-gray)",
-          }}
-        />
+        <StatusDot color="gray" label={p.row.category} />
       ),
     },
     {

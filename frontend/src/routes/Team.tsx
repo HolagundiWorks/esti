@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -22,6 +21,7 @@ import {
 } from "@esti/contracts";
 import { type CSSProperties, useState } from "react";
 import { RailLayout } from "../components/RailLayout.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { DataState } from "../components/DataState.js";
 import { CardGridSkeleton } from "../components/CardGridSkeleton.js";
 import { TeamsPanel } from "../components/TeamsPanel.js";
@@ -137,13 +137,9 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
                         {EMPLOYMENT_TYPES[m.employmentType as EmploymentTypeCode] ??
                           m.employmentType}
                       </span>
-                      <Chip
+                      <StatusDot
+                        color={m.active ? "green" : "gray"}
                         label={m.active ? "Active" : "Inactive"}
-                        size="small"
-                        sx={{
-                          backgroundColor: `var(--cds-tag-background-${m.active ? "green" : "gray"})`,
-                          color: `var(--cds-tag-color-${m.active ? "green" : "gray"})`,
-                        }}
                       />
                     </div>
 

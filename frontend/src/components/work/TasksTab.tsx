@@ -1,7 +1,6 @@
 import {
   Button,
   Checkbox,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -37,6 +36,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { ConfirmModal } from "../ConfirmModal.js";
 import { ContextualComments } from "../ContextualComments.js";
 import { DataState } from "../DataState.js";
+import { StatusDot } from "../StatusTag.js";
 import { PulseStandupModal } from "./PulseStandupModal.js";
 import { trpc } from "../../lib/trpc.js";
 import {
@@ -48,11 +48,6 @@ import {
   confidenceTag,
   type WorkCategorySlug,
 } from "./workHelpers.js";
-
-const tagSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 export type TasksTabHandle = { openCreate: () => void };
 
@@ -233,14 +228,13 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
                         <Stack spacing={0.5} sx={{ alignItems: "flex-start" }}>
                           <span>{t.title}</span>
                           {t.interventionRequired && (
-                            <Chip size="small" label="Intervention required" sx={tagSx("red")} />
+                            <StatusDot color="red" label="Intervention required" />
                           )}
                           {t.description && <div>{t.description}</div>}
                           {t.classification && (
-                            <Chip
-                              size="small"
+                            <StatusDot
+                              color="cool-gray"
                               label={TASK_CLASSIFICATION_LABEL[t.classification] ?? t.classification}
-                              sx={tagSx("cool-gray")}
                             />
                           )}
                         </Stack>
@@ -270,24 +264,22 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
                       <TableCell>{"—"}</TableCell>
                       <TableCell>
                         <span className="esti-row" style={{ gap: "var(--cds-spacing-02)", flexWrap: "wrap" }}>
-                          <Chip
-                            size="small"
+                          <StatusDot
+                            color={PRIORITY_TAG[t.priority] ?? "gray"}
                             label={TASK_PRIORITY_LABEL[t.priority] ?? t.priority}
-                            sx={tagSx(PRIORITY_TAG[t.priority] ?? "gray")}
                           />
-                          <Chip
-                            size="small"
+                          <StatusDot
+                            color={PRIORITY_BAND_TAG[band] ?? "gray"}
                             label={PRIORITY_BAND_LABEL[band] ?? band}
-                            sx={tagSx(PRIORITY_BAND_TAG[band] ?? "gray")}
                           />
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Chip size="small" label={`${t.confidenceScore}%`} sx={tagSx(confidenceTag(t.confidenceScore))} />
+                        <StatusDot color={confidenceTag(t.confidenceScore)} label={`${t.confidenceScore}%`} />
                       </TableCell>
                       <TableCell>
                         {overdue
-                          ? <Chip size="small" label={`Overdue · ${t.dueDate}`} sx={tagSx("red")} />
+                          ? <StatusDot color="red" label={`Overdue · ${t.dueDate}`} />
                           : (t.dueDate ?? "—")}
                       </TableCell>
                       <TableCell>

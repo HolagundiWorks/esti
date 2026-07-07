@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -19,6 +18,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PayslipPdfCell } from "../components/PayslipPdfCell.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 import { useCapabilities } from "../lib/capabilities.js";
 import { StaffProfilesTab } from "../components/hr/StaffProfilesTab.js";
@@ -30,19 +30,6 @@ const LEAVE_TAG: Record<string, "blue" | "green" | "red"> = {
   REJECTED: "red",
 };
 const thisMonth = () => new Date().toISOString().slice(0, 7);
-
-function TagChip({ color, label }: { color: string; label: string }) {
-  return (
-    <Chip
-      label={label}
-      size="small"
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 export function Hr({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
@@ -127,7 +114,7 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
       field: "status",
       headerName: "Status",
       width: 130,
-      renderCell: (p) => <TagChip color={LEAVE_TAG[p.row.status] ?? "blue"} label={p.row.status} />,
+      renderCell: (p) => <StatusDot color={LEAVE_TAG[p.row.status] ?? "blue"} label={p.row.status} />,
     },
     {
       field: "action",
@@ -189,7 +176,7 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
       minWidth: 160,
       flex: 1,
       renderCell: (p) => (
-        <TagChip
+        <StatusDot
           color={p.row.paid ? "green" : "gray"}
           label={p.row.paid ? `Paid ${p.row.paidDate ?? ""}` : "Unpaid"}
         />

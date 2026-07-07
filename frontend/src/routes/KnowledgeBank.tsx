@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Chip,
   Stack,
   Tab,
   Tabs,
@@ -12,6 +11,7 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { SEARCH_ENTITY_LABEL } from "@esti/contracts";
 import { RailLayout } from "../components/RailLayout.js";
 import { SpecCatalogManager } from "../components/knowledge/SpecCatalogManager.js";
@@ -39,13 +39,9 @@ function KnowledgeBankSearch() {
       flex: 1,
       minWidth: 140,
       renderCell: (params) => (
-        <Chip
+        <StatusDot
+          color="gray"
           label={SEARCH_ENTITY_LABEL[params.row.entityType as keyof typeof SEARCH_ENTITY_LABEL] ?? params.row.entityType}
-          size="small"
-          sx={{
-            backgroundColor: "var(--cds-tag-background-gray)",
-            color: "var(--cds-tag-color-gray)",
-          }}
         />
       ),
     },

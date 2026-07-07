@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   CircularProgress,
   Stack,
   TextField,
@@ -12,6 +11,7 @@ import type { FormEvent } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { fetchMe, login, logout, type Me } from "../../platform-admin/lib/auth.js";
 import { useEdition } from "../../lib/edition.js";
+import { StatusDot } from "../StatusTag.js";
 import { UpgradeToPro } from "./UpgradeToPro.js";
 
 const Companies = lazy(() => import("../../platform-admin/Companies.js"));
@@ -159,14 +159,7 @@ export function AccountTab() {
       <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
         <span className="esti-grow">{me.account.email}</span>
         {me.account.publicId && (
-          <Chip
-            size="medium"
-            label={me.account.publicId}
-            sx={{
-              backgroundColor: "var(--cds-tag-background-cool-gray)",
-              color: "var(--cds-tag-color-cool-gray)",
-            }}
-          />
+          <StatusDot color="cool-gray" label={me.account.publicId} />
         )}
         <Button variant="text" size="small" onClick={handleSignOut}>
           Sign out

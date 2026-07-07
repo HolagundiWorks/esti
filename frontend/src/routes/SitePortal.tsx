@@ -4,7 +4,6 @@ import {
   Button,
   Card,
   CardActionArea,
-  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -17,6 +16,7 @@ import {
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ProjectSiteReference } from "../components/ProjectSiteReference.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
 const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red" | "teal"> = {
@@ -26,13 +26,6 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red" | "teal"> = {
   REJECTED: "red",
   ISSUED: "teal",
 };
-
-function chipTokens(color: string) {
-  return {
-    backgroundColor: `var(--cds-tag-background-${color})`,
-    color: `var(--cds-tag-color-${color})`,
-  };
-}
 
 export function SitePortal() {
   const { projectId } = useParams<{ projectId?: string }>();
@@ -179,11 +172,7 @@ export function SitePortal() {
               <Stack spacing={1.5}>
                 <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
                   <Typography variant="body1"><strong>{insp.ref}</strong></Typography>
-                  <Chip
-                    size="small"
-                    label={insp.status}
-                    sx={chipTokens(STATUS_TAG[insp.status] ?? "gray")}
-                  />
+                  <StatusDot color={STATUS_TAG[insp.status] ?? "gray"} label={insp.status} />
                 </Stack>
                 {insp.dateVisit && (
                   <Typography variant="body2" color="text.secondary">Visit: {insp.dateVisit}</Typography>

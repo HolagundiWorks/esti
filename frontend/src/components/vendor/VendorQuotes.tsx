@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   Alert,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -27,6 +26,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import { canonicalUnit, formatINR, parseRateText } from "@esti/contracts";
 import { DataState } from "../DataState.js";
 import { ConfirmModal } from "../ConfirmModal.js";
+import { StatusDot } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
 
 const STATUS_TAG: Record<string, "blue" | "green" | "red"> = {
@@ -34,11 +34,6 @@ const STATUS_TAG: Record<string, "blue" | "green" | "red"> = {
   ACCEPTED: "green",
   REJECTED: "red",
 };
-
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 type QuoteLine = { materialName: string; unit: string; rateRupees: number };
 
@@ -129,7 +124,7 @@ export function VendorQuotes({ vendorId }: { vendorId: string }) {
       headerName: "Status",
       width: 130,
       renderCell: (params) => (
-        <Chip size="small" label={params.row.status} sx={chipSx(STATUS_TAG[params.row.status as string] ?? "blue")} />
+        <StatusDot color={STATUS_TAG[params.row.status as string] ?? "blue"} label={params.row.status} />
       ),
     },
     {
@@ -328,10 +323,9 @@ export function VendorQuotes({ vendorId }: { vendorId: string }) {
                                 />
                               </div>
                               {l.unit.trim() !== "" && (
-                                <Chip
-                                  size="small"
+                                <StatusDot
+                                  color={canon ? "green" : "red"}
                                   label={canon ?? "unknown"}
-                                  sx={chipSx(canon ? "green" : "red")}
                                 />
                               )}
                             </Stack>

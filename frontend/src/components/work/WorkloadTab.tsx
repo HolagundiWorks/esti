@@ -1,6 +1,5 @@
 import {
   Box,
-  Chip,
   Grid,
   IconButton,
   Stack,
@@ -12,13 +11,9 @@ import ChevronRight from "@mui/icons-material/ChevronRight";
 import { TASK_LOAD_BAND_LABEL, TASK_LOAD_BAND_RANGE, taskLoadBand, type TaskLoadBand } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../../lib/trpc.js";
+import { StatusDot } from "../StatusTag.js";
 import { heatStyle, MONTHS, officeBand, toISO, WEEKDAYS } from "./workHelpers.js";
 import { WorkloadCalendarSync } from "./WorkloadCalendarSync.js";
-
-const tagSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 const bandTag = (band: TaskLoadBand) =>
   band === "heavy" ? "red" : band === "balanced" ? "teal" : "green";
@@ -80,7 +75,7 @@ export function WorkloadTab() {
       filterable: false,
       renderCell: (p) => {
         const band = taskLoadBand(p.row.count as number);
-        return <Chip size="small" label={TASK_LOAD_BAND_LABEL[band]} sx={tagSx(bandTag(band))} />;
+        return <StatusDot color={bandTag(band)} label={TASK_LOAD_BAND_LABEL[band]} />;
       },
     },
   ];
@@ -171,7 +166,7 @@ export function WorkloadTab() {
                 <Typography variant="h4">{day ? total : "…"} tasks</Typography>
               </Stack>
               <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-                <Chip label={TASK_LOAD_BAND_LABEL[dayBand]} sx={tagSx(bandTag(dayBand))} />
+                <StatusDot color={bandTag(dayBand)} label={TASK_LOAD_BAND_LABEL[dayBand]} />
                 <p>{headcount} staff · {avg} avg</p>
               </Stack>
             </Stack>
@@ -202,7 +197,7 @@ export function WorkloadTab() {
               <Typography variant="h6">Workload bands</Typography>
               {(["light", "balanced", "heavy"] as const).map((band) => (
                 <Stack key={band} direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                  <Chip size="small" label={TASK_LOAD_BAND_LABEL[band]} sx={tagSx(bandTag(band))} />
+                  <StatusDot color={bandTag(band)} label={TASK_LOAD_BAND_LABEL[band]} />
                   <span className="esti-grow">{TASK_LOAD_BAND_RANGE[band]}</span>
                 </Stack>
               ))}

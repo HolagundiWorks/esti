@@ -1,18 +1,17 @@
 import {
   Alert,
   Button,
-  Chip,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
-import type { ReactNode } from "react";
 import type { ReconcileColumnMapping } from "@esti/contracts";
 import { formatINR, formatINRShort } from "@esti/contracts";
 import { useState } from "react";
 import { RailLayout } from "../components/RailLayout.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { downloadXlsx } from "../lib/exportXlsx.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
@@ -33,20 +32,6 @@ const MATCH_TAG: Record<string, "green" | "teal" | "cyan" | "gray"> = {
   amount: "cyan",
   none: "gray",
 };
-
-/** Status badge rendered over the Carbon `--cds-tag-*` token vars (exact colours). */
-function TagChip({ color, label }: { color: string; label: ReactNode }) {
-  return (
-    <Chip
-      size="small"
-      label={label}
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 type Line = {
   row: number;
@@ -149,7 +134,7 @@ export function Reconcile() {
       sortable: false,
       renderCell: (p) => (
         <Stack spacing={0.5} sx={{ alignItems: "flex-start" }}>
-          <TagChip color={STATUS_TAG[p.row.status] ?? "gray"} label={p.row.status} />
+          <StatusDot color={STATUS_TAG[p.row.status] ?? "gray"} label={p.row.status} />
           {p.row.status === "FAILED" && p.row.errorText && (
             <Typography variant="caption" color="error">{p.row.errorText}</Typography>
           )}
@@ -254,7 +239,7 @@ export function Reconcile() {
       flex: 0.7,
       minWidth: 120,
       sortable: false,
-      renderCell: (p) => <TagChip color={MATCH_TAG[p.row.matchType] ?? "gray"} label={p.row.matchType} />,
+      renderCell: (p) => <StatusDot color={MATCH_TAG[p.row.matchType] ?? "gray"} label={p.row.matchType} />,
     },
     {
       field: "matchedInvoiceRef",

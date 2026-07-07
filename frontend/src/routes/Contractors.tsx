@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -22,6 +21,7 @@ import { useState } from "react";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
 type FormState = {
@@ -42,13 +42,6 @@ function scoreTag(score: number): "green" | "teal" | "blue" | "gray" {
   if (score > 0) return "blue";
   return "gray";
 }
-
-// Preserve exact Carbon tag colours by rendering an MUI Chip over the
-// `--cds-tag-*` token vars (still defined by the Carbon token layer).
-const tagSx = (color: string) => ({
-  backgroundColor: `var(--cds-tag-background-${color}, var(--cds-layer-01))`,
-  color: `var(--cds-tag-color-${color}, var(--cds-text-primary))`,
-});
 
 export function Contractors({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
@@ -96,7 +89,9 @@ export function Contractors({ embedded = false }: { embedded?: boolean }) {
           <Box sx={{ py: 0.5 }}>
             <span>{c.name}</span>
             {!c.active && (
-              <Chip label="Inactive" size="small" sx={{ ...tagSx("gray"), ml: 1 }} />
+              <Box component="span" sx={{ ml: 1 }}>
+                <StatusDot color="gray" label="Inactive" />
+              </Box>
             )}
             {c.companyName && <div className="esti-label esti-label--secondary">{c.companyName}</div>}
             {(c.city || c.state) && (
@@ -157,9 +152,9 @@ export function Contractors({ embedded = false }: { embedded?: boolean }) {
       renderCell: (p) => {
         const score = contractorScore(p.row);
         return score > 0 ? (
-          <Chip label={`${score.toFixed(1)} / 5`} size="small" sx={tagSx(scoreTag(score))} />
+          <StatusDot color={scoreTag(score)} label={`${score.toFixed(1)} / 5`} />
         ) : (
-          <Chip label="Unrated" size="small" sx={tagSx("gray")} />
+          <StatusDot color="gray" label="Unrated" />
         );
       },
     },

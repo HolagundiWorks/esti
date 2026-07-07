@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Chip,
   MenuItem,
   Stack,
   TextField,
@@ -14,6 +13,7 @@ import {
 } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { DataState } from "../DataState.js";
+import { StatusDot } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
 import { toISO } from "./workHelpers.js";
 
@@ -24,11 +24,6 @@ const STATUS_TAG: Record<AttendanceStatusCode, "green" | "red" | "blue" | "teal"
   WFH: "blue",
   ON_LEAVE: "gray",
 };
-
-const tagSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 export function AttendanceTab() {
   const utils = trpc.useUtils();
@@ -108,7 +103,7 @@ export function AttendanceTab() {
         const status = statusFor(p.row.teamMemberId as string, p.row.status as string | null);
         return (
           <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-            <Chip size="small" label={ATTENDANCE_STATUS[status]} sx={tagSx(STATUS_TAG[status])} />
+            <StatusDot color={STATUS_TAG[status]} label={ATTENDANCE_STATUS[status]} />
             <Button
               variant="text"
               size="small"

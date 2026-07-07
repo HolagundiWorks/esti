@@ -1,16 +1,12 @@
 import ArrowForward from "@mui/icons-material/ArrowForward";
 import Check from "@mui/icons-material/Check";
-import { Box, Button, Chip, Stack, Typography } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { PLAN_LABEL } from "@esti/contracts";
 import { Link as RouterLink } from "react-router-dom";
+import { StatusDot } from "../StatusTag.js";
 import { useEdition } from "../../lib/edition.js";
 import { trpc } from "../../lib/trpc.js";
-
-const tagSx = (color: string) => ({
-  backgroundColor: `var(--cds-tag-background-${color})`,
-  color: `var(--cds-tag-color-${color})`,
-});
 
 /**
  * Guided Lite → Pro upgrade. Reads the workspace's own licence (not the
@@ -52,7 +48,7 @@ export function UpgradeToPro() {
           <Typography variant="body2" sx={{ flex: 1 }}>
             You&apos;re on <strong>{PLAN_LABEL[view.plan]}</strong> — the full edition is unlocked.
           </Typography>
-          <Chip size="small" label={PLAN_LABEL[view.plan]} sx={tagSx("green")} />
+          <StatusDot color="green" label={PLAN_LABEL[view.plan]} />
         </Stack>
       </Box>
     );
@@ -77,7 +73,7 @@ export function UpgradeToPro() {
       <Stack spacing={2}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <Typography variant="h6" component="h3" sx={{ flex: 1 }}>Upgrade to Pro</Typography>
-          <Chip size="small" label={PLAN_LABEL[view.plan]} sx={tagSx("cool-gray")} />
+          <StatusDot color="cool-gray" label={PLAN_LABEL[view.plan]} />
         </Stack>
 
         <Typography variant="body2" color="text.secondary">
@@ -89,7 +85,7 @@ export function UpgradeToPro() {
         <Stack spacing={1.5}>
           {steps.map((s) => (
             <Stack key={s.n} direction="row" spacing={1} sx={{ alignItems: "center" }}>
-              <Chip size="small" label={s.n} sx={tagSx("teal")} />
+              <StatusDot color="teal" label={s.n} />
               <Typography variant="body2" sx={{ flex: 1 }}>{s.text}</Typography>
               {s.action}
             </Stack>

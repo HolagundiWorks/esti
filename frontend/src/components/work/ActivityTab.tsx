@@ -1,8 +1,9 @@
-import { Alert, Box, Button, Chip, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { ACTIVITY_DOMAIN_TAG, activityDomain } from "@esti/contracts";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataState } from "../DataState.js";
+import { StatusDot } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
 import { formatWhen } from "./workHelpers.js";
 
@@ -48,16 +49,8 @@ export function ActivityTab() {
               <Box key={item.id} sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
                 <Stack spacing={1}>
                   <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                    <Chip
-                      size="small"
-                      label={domain}
-                      sx={{ backgroundColor: `var(--cds-tag-background-${dcolor})`, color: `var(--cds-tag-color-${dcolor})` }}
-                    />
-                    <Chip
-                      size="small"
-                      label={item.eventType}
-                      sx={{ backgroundColor: "var(--cds-tag-background-gray)", color: "var(--cds-tag-color-gray)" }}
-                    />
+                    <StatusDot color={dcolor} label={domain} />
+                    <StatusDot color="gray" label={item.eventType} />
                     <Typography variant="caption" color="text.secondary">
                       {formatWhen(item.createdAt as unknown as string)}
                     </Typography>

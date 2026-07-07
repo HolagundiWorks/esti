@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -31,6 +30,7 @@ import {
 import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -46,19 +46,6 @@ const TYPE_TAG_COLOR: Record<string, "purple" | "gray" | "blue" | "teal" | "cyan
   CONSULTANT: "teal",
   CONTRACTOR: "cyan",
 };
-
-function TagChip({ color, label }: { color: string; label: string }) {
-  return (
-    <Chip
-      label={label}
-      size="small"
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 export function Users() {
   const { user } = useAuth();
@@ -160,7 +147,7 @@ export function Users() {
       valueGetter: (_v, row) => USER_TYPE_LABEL[userType(row)],
       renderCell: (p) => {
         const type = userType(p.row);
-        return <TagChip color={TYPE_TAG_COLOR[type] ?? "gray"} label={USER_TYPE_LABEL[type]} />;
+        return <StatusDot color={TYPE_TAG_COLOR[type] ?? "gray"} label={USER_TYPE_LABEL[type]} />;
       },
     },
     {
@@ -231,7 +218,7 @@ export function Users() {
       minWidth: 110,
       valueGetter: (_v, row) => (row.disabled ? "Disabled" : "Active"),
       renderCell: (p) => (
-        <TagChip color={p.row.disabled ? "red" : "green"} label={p.row.disabled ? "Disabled" : "Active"} />
+        <StatusDot color={p.row.disabled ? "red" : "green"} label={p.row.disabled ? "Disabled" : "Active"} />
       ),
     },
     {
@@ -298,7 +285,7 @@ export function Users() {
         <Stack spacing={2}>
           <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
             <Typography variant="subtitle1" component="h3" className="esti-label">Seat usage</Typography>
-            <TagChip color={plan === "LITE" ? "gray" : "blue"} label={PLAN_LABEL[plan]} />
+            <StatusDot color={plan === "LITE" ? "gray" : "blue"} label={PLAN_LABEL[plan]} />
           </Stack>
           <Grid container spacing={2}>
             {seats.map((s) => (

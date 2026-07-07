@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Button,
-  Chip,
   Stack,
   Table,
   TableBody,
@@ -12,6 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import { formatINR } from "@esti/contracts";
+import { StatusDot } from "../StatusTag.js";
 import { DataState } from "../DataState.js";
 import { trpc } from "../../lib/trpc.js";
 
@@ -77,11 +77,7 @@ export function VendorRateCompare() {
                   <TableCell>
                     {formatINR(r.ratePaise)}{" "}
                     {r.isLowest && (
-                      <Chip
-                        size="small"
-                        label="lowest"
-                        sx={{ backgroundColor: "var(--cds-tag-background-green)", color: "var(--cds-tag-color-green)" }}
-                      />
+                      <StatusDot color="green" label="lowest" />
                     )}
                   </TableCell>
                 </TableRow>

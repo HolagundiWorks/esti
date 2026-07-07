@@ -1,7 +1,6 @@
 import {
   Alert,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -26,9 +25,9 @@ import {
   resolvePeriodRange,
   type PeriodFilterInput,
 } from "@esti/contracts";
-import type { ReactNode } from "react";
 import { useState } from "react";
 import { AccountsCarryForward } from "../components/accounting/AccountsCarryForward.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
@@ -42,20 +41,6 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red" | "teal"> = {
   CLOSED: "green",
   REJECTED: "red",
 };
-
-/** Status badge rendered over the Carbon `--cds-tag-*` token vars (exact colours). */
-function TagChip({ color, label }: { color: string; label: ReactNode }) {
-  return (
-    <Chip
-      size="small"
-      label={label}
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 type ExpenseRow = {
   id: string;
@@ -244,7 +229,7 @@ function ExpenseTable({
       minWidth: 120,
       sortable: false,
       renderCell: (p) => (
-        <TagChip
+        <StatusDot
           color={STATUS_TAG[p.row.status] ?? "gray"}
           label={EXPENSE_STATUS_LABEL[p.row.status as keyof typeof EXPENSE_STATUS_LABEL] ?? p.row.status}
         />

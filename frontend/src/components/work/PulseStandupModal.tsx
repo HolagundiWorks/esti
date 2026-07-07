@@ -3,7 +3,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -21,6 +20,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../../lib/trpc.js";
+import { StatusDot } from "../StatusTag.js";
 
 const ANSWER_OPTIONS: { value: Exclude<StandupResponseStatus, "PENDING">; text: string }[] = [
   { value: "CONFIRMED", text: "Confirmed" },
@@ -30,11 +30,6 @@ const ANSWER_OPTIONS: { value: Exclude<StandupResponseStatus, "PENDING">; text: 
   { value: "ATTACHED_DOCUMENT", text: "Document attached" },
   { value: "COMMENT_ONLY", text: "Comment only" },
 ];
-
-const tagSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 /** ESTI Pulse — Project Standup Engine (Module 3/4). See docs/esti/ESTI-PULSE.md. */
 export function PulseStandupModal({
@@ -144,10 +139,9 @@ export function PulseStandupModal({
                       <p key={i}>{line}</p>
                     ))}
                   </Stack>
-                  <Chip
-                    size="small"
+                  <StatusDot
+                    color={answered ? "green" : "gray"}
                     label={STANDUP_RESPONSE_LABEL[q.responseStatus as keyof typeof STANDUP_RESPONSE_LABEL] ?? q.responseStatus}
-                    sx={{ ...tagSx(answered ? "green" : "gray"), alignSelf: "flex-start" }}
                   />
                   {q.responseText && <p className="esti-label esti-label--secondary">{q.responseText}</p>}
                   {!answered && (
@@ -210,10 +204,9 @@ export function PulseStandupModal({
               proposedActions.map((a) => (
                 <Box key={a.id} sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
                   <Stack spacing={1}>
-                    <Chip
-                      size="small"
+                    <StatusDot
+                      color="purple"
                       label={PULSE_ACTION_LABEL[a.actionType as PulseActionType] ?? a.actionType}
-                      sx={{ ...tagSx("purple"), alignSelf: "flex-start" }}
                     />
                     <p>{a.description}</p>
                     <Stack direction="row" spacing={1}>

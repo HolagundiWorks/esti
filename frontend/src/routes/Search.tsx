@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Chip,
   InputAdornment,
   MenuItem,
   Stack,
@@ -18,22 +17,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
 const ALL_TYPES = SearchEntityType.options;
-
-function TagChip({ color, label }: { color: string; label: string }) {
-  return (
-    <Chip
-      label={label}
-      size="small"
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 export function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -168,7 +155,7 @@ export function SearchPage() {
         {appliedQ.length >= 2 && Object.keys(typeCounts).length > 0 && (
           <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
             {Object.entries(typeCounts).map(([t, n]) => (
-              <TagChip
+              <StatusDot
                 key={t}
                 color="blue"
                 label={`${SEARCH_ENTITY_LABEL[t as SearchEntityTypeT] ?? t} (${n})`}
@@ -205,7 +192,7 @@ export function SearchPage() {
                       sx={{ alignItems: "center", justifyContent: "space-between" }}
                     >
                       <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
-                        <TagChip color="gray" label={SEARCH_ENTITY_LABEL[h.entityType]} />
+                        <StatusDot color="gray" label={SEARCH_ENTITY_LABEL[h.entityType]} />
                         <Typography variant="subtitle2" noWrap>{h.title}</Typography>
                       </Stack>
                       <Button component={Link} to={h.href} variant="text" size="small">

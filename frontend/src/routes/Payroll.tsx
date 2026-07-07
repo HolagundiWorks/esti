@@ -1,6 +1,5 @@
 import {
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -11,27 +10,13 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { formatINR, parseRupeeInput } from "@esti/contracts";
-import type { ReactNode } from "react";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { PayslipPdfCell } from "../components/PayslipPdfCell.js";
 import { useCapabilities } from "../lib/capabilities.js";
 import { trpc } from "../lib/trpc.js";
-
-/** Status badge rendered over the Carbon `--cds-tag-*` token vars (exact colours). */
-function TagChip({ color, label }: { color: string; label: ReactNode }) {
-  return (
-    <Chip
-      size="small"
-      label={label}
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 /** Finance › Payroll — monthly payslips (relocated from HR). */
 export function Payroll() {
@@ -92,7 +77,7 @@ export function Payroll() {
       minWidth: 130,
       sortable: false,
       renderCell: (p) => (
-        <TagChip
+        <StatusDot
           color={p.row.paid ? "green" : "gray"}
           label={p.row.paid ? `Paid ${p.row.paidDate ?? ""}` : "Unpaid"}
         />

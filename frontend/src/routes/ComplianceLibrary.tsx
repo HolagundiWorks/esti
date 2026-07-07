@@ -18,6 +18,7 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -317,14 +318,7 @@ function DocumentsTab() {
       headerName: "Category",
       width: 150,
       renderCell: (p) => (
-        <Chip
-          label={p.row.category}
-          size="small"
-          sx={{
-            backgroundColor: "var(--cds-tag-background-blue)",
-            color: "var(--cds-tag-color-blue)",
-          }}
-        />
+        <StatusDot color="blue" label={p.row.category} />
       ),
     },
     {

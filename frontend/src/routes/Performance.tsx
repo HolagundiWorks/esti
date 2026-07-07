@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -31,22 +30,8 @@ import {
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
-
-// ─── Shared tag chip (exact Carbon tag colours over --cds tokens) ─────────────
-
-function TagChip({ color, label }: { color: string; label: string }) {
-  return (
-    <Chip
-      label={label}
-      size="small"
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 // ─── KPI meter inside a member tile ──────────────────────────────────────────
 
@@ -88,15 +73,15 @@ function MemberScoreCard({
         <Stack spacing={2}>
           <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
             <Stack spacing={1} sx={{ flexGrow: 1 }}>
-              <Box><TagChip color="gray" label={member.memberRole} /></Box>
+              <Box><StatusDot color="gray" label={member.memberRole} /></Box>
               <Typography variant="h6" component="h3">{member.memberName}</Typography>
             </Stack>
             <Stack spacing={0.5} sx={{ alignItems: "flex-end" }}>
               <Typography variant="h5" component="p">{member.score}</Typography>
               {band ? (
-                <TagChip color={PERFORMANCE_BAND_TAG[band]} label={PERFORMANCE_BAND_LABEL[band]} />
+                <StatusDot color={PERFORMANCE_BAND_TAG[band]} label={PERFORMANCE_BAND_LABEL[band]} />
               ) : (
-                <TagChip color="gray" label="Developing" />
+                <StatusDot color="gray" label="Developing" />
               )}
             </Stack>
           </Box>
@@ -125,7 +110,7 @@ function MemberScoreCard({
               <Typography variant="body2" color="text.secondary">Overdue</Typography>
               <Box>
                 {member.overdueCount > 0 ? (
-                  <TagChip color="red" label={String(member.overdueCount)} />
+                  <StatusDot color="red" label={String(member.overdueCount)} />
                 ) : (
                   <Typography variant="body2" component="span"><strong>0</strong></Typography>
                 )}
@@ -172,14 +157,14 @@ function RecognitionTab() {
         <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
           <Stack spacing={2}>
             <Stack spacing={0.5}>
-              <Box><TagChip color="teal" label="Awards" /></Box>
+              <Box><StatusDot color="teal" label="Awards" /></Box>
               <Typography variant="h6" component="h3">Recognition awards</Typography>
               <Typography variant="body2">Computed monthly from the performance score engine.</Typography>
             </Stack>
             <Stack spacing={1}>
               {awards.map((a) => (
                 <Box key={a}>
-                  <TagChip color={RECOGNITION_AWARD_TAG[a]} label={RECOGNITION_AWARD_LABEL[a]} />
+                  <StatusDot color={RECOGNITION_AWARD_TAG[a]} label={RECOGNITION_AWARD_LABEL[a]} />
                 </Box>
               ))}
             </Stack>
@@ -191,14 +176,14 @@ function RecognitionTab() {
         <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
           <Stack spacing={2}>
             <Stack spacing={0.5}>
-              <Box><TagChip color="blue" label="Rewards" /></Box>
+              <Box><StatusDot color="blue" label="Rewards" /></Box>
               <Typography variant="h6" component="h3">Reward point events</Typography>
               <Typography variant="body2">Base points awarded per qualifying event. Managers grant points from the Scores tab.</Typography>
             </Stack>
             <Stack spacing={1}>
               {events.map(([type, pts]) => (
                 <Box key={type} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <TagChip color="gray" label={`${pts} pts`} />
+                  <StatusDot color="gray" label={`${pts} pts`} />
                   <Typography variant="body2" sx={{ flexGrow: 1 }}>{REWARD_POINT_LABEL[type] ?? type}</Typography>
                 </Box>
               ))}
@@ -299,7 +284,7 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={0.5}>
-              <Box><TagChip color="gray" label="Team" /></Box>
+              <Box><StatusDot color="gray" label="Team" /></Box>
               <Typography variant="h5" component="p">{teamSize}</Typography>
               <Typography variant="body2" color="text.secondary">Active members</Typography>
             </Stack>
@@ -308,7 +293,7 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={0.5}>
-              <Box><TagChip color="blue" label="Average score" /></Box>
+              <Box><StatusDot color="blue" label="Average score" /></Box>
               <Typography variant="h5" component="p">{avgScore > 0 ? avgScore : "—"}</Typography>
               <Typography variant="body2" color="text.secondary">30-day rolling</Typography>
             </Stack>
@@ -317,7 +302,7 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={0.5}>
-              <Box><TagChip color="teal" label="Platinum" /></Box>
+              <Box><StatusDot color="teal" label="Platinum" /></Box>
               <Typography variant="h5" component="p">{bandCounts["PLATINUM"] ?? 0}</Typography>
               <Typography variant="body2" color="text.secondary">Score ≥ 96</Typography>
             </Stack>
@@ -326,7 +311,7 @@ export function Performance({ embedded = false }: { embedded?: boolean }) {
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
             <Stack spacing={0.5}>
-              <Box><TagChip color="warm-gray" label="Gold" /></Box>
+              <Box><StatusDot color="warm-gray" label="Gold" /></Box>
               <Typography variant="h5" component="p">{bandCounts["GOLD"] ?? 0}</Typography>
               <Typography variant="body2" color="text.secondary">Score 91–95</Typography>
             </Stack>

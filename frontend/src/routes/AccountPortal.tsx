@@ -1,7 +1,8 @@
 import ArrowBack from "@mui/icons-material/ArrowBack";
-import { Box, Button, Chip, CircularProgress, Stack, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
 import { Suspense, lazy, useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
+import { StatusDot } from "../components/StatusTag.js";
 import { fetchMe, fetchMyLicense, logout, type Me, type MyLicense } from "../platform-admin/lib/auth.js";
 
 // The AORMS account + licence portal (hlp_account) — its own destination on the
@@ -12,13 +13,6 @@ const Credentials = lazy(() => import("../platform-admin/Credentials.js"));
 const PlatformLogin = lazy(() => import("../platform-admin/Login.js"));
 const RequestPlan = lazy(() => import("../platform-admin/RequestPlan.js"));
 const Security = lazy(() => import("../platform-admin/Security.js"));
-
-function chipTokens(color: string) {
-  return {
-    backgroundColor: `var(--cds-tag-background-${color})`,
-    color: `var(--cds-tag-color-${color})`,
-  };
-}
 
 export function AccountPortal() {
   const [me, setMe] = useState<Me | null>(null);
@@ -80,7 +74,7 @@ export function AccountPortal() {
             </Typography>
             <Typography variant="body2">{account.email}</Typography>
             {account.publicId && (
-              <Chip size="medium" label={account.publicId} sx={chipTokens("cool-gray")} />
+              <StatusDot color="cool-gray" label={account.publicId} />
             )}
             <Button
               component={RouterLink}
@@ -104,10 +98,9 @@ export function AccountPortal() {
                   <Typography variant="h6" component="h4" className="esti-grow">
                     Current plan
                   </Typography>
-                  <Chip
-                    size="medium"
+                  <StatusDot
+                    color={license.status === "ACTIVE" ? "green" : "gray"}
                     label={license.planCode}
-                    sx={chipTokens(license.status === "ACTIVE" ? "green" : "gray")}
                   />
                 </Stack>
                 <Stack spacing={0.5}>

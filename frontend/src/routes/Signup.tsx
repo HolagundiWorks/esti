@@ -1,7 +1,8 @@
 import ArrowBack from "@mui/icons-material/ArrowBack";
-import { Alert, AlertTitle, Button, Chip, Paper, Stack, TextField } from "@mui/material";
+import { Alert, AlertTitle, Button, Paper, Stack, TextField } from "@mui/material";
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { StatusDot } from "../components/StatusTag.js";
 import { setDesktopToken } from "../lib/api-base.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -39,14 +40,7 @@ export function Signup() {
               </div>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                 <p>Set up your workspace</p>
-                <Chip
-                  label="Lite"
-                  size="small"
-                  sx={{
-                    backgroundColor: "var(--cds-tag-background-green)",
-                    color: "var(--cds-tag-color-green)",
-                  }}
-                />
+                <StatusDot color="green" label="Lite" />
               </Stack>
               <p>
                 Create your firm and admin account. Your Lite workspace comes
