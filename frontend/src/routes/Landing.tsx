@@ -56,7 +56,7 @@ export function Landing() {
 
   return (
     <>
-      <MarketingShell downloads>
+      <MarketingShell downloads contours>
         {/* Structure follows the wireframe: Hero → Partners → Features → Why Us →
             Integrations → Reviews → FAQ → CTA → Footer. The deeper editorial
             sections (Product Overview, Workflow, Collaboration, Intelligence,

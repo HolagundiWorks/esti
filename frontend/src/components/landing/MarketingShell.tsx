@@ -3,6 +3,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { Button, IconButton } from "@mui/material";
 import { useState, type ReactNode } from "react";
 import { trpc } from "../../lib/trpc.js";
+import { LandingContours } from "./LandingContours.js";
 
 /**
  * Rail download boxes — the free Community desktop app + the Estimate companion,
@@ -56,36 +57,6 @@ const NAV = [
   { href: "/#faq", label: "FAQs" },
 ] as const;
 
-const STATUS_ITEMS = [
-  { label: "PROJECTS + FEES + TEAM", dot: "green" },
-  { label: "CLIENT PORTALS INCLUDED", dot: "green" },
-  { label: "GST + INDIA WORKFLOWS", dot: "green" },
-  { label: "DRAWINGS + REVISIONS", dot: "green" },
-  { label: "FREE COMMUNITY EDITION", dot: "green" },
-] as const;
-
-type Dot = "green" | "yellow" | "red" | "white";
-
-function StatusDot({ color }: { color: Dot }) {
-  return <span className={`esti-lp-dot esti-lp-dot--${color}`} aria-hidden>●</span>;
-}
-
-function LandingStatusBar() {
-  return (
-    <div className="esti-lp-statusbar" aria-hidden>
-      {STATUS_ITEMS.map((item) => (
-        <span key={item.label} className="esti-lp-statusbar__item">
-          <StatusDot color={item.dot as Dot} />
-          {item.label}
-        </span>
-      ))}
-      <span className="esti-lp-statusbar__item esti-lp-statusbar__ver">
-        AORMS · v2025.06
-      </span>
-    </div>
-  );
-}
-
 /**
  * Marketing shell — RAIL / STAGE layout. The nav (formerly the top header) and the
  * "Developed by" + AORMS identity block (formerly the bottom bar) live in a FIXED,
@@ -94,16 +65,20 @@ function LandingStatusBar() {
 export function MarketingShell({
   children,
   downloads,
+  contours,
 }: {
   children: ReactNode;
   /** Show the Community + Estimate download boxes in the rail (landing only). */
   downloads?: boolean;
+  /** Faint orange contour background: plan view → perspective on scroll (landing). */
+  contours?: boolean;
 }) {
   const [navOpen, setNavOpen] = useState(false);
 
   return (
     <div className="esti-landing-shell esti-lp-railshell">
       <a href="#main-content" className="esti-lp-skip">Skip to main content</a>
+      {contours && <LandingContours />}
 
       {/* LEFT RAIL — fixed: brand + AORMS identity, nav, then download boxes. */}
       <aside className={`esti-lp-rail${navOpen ? " is-open" : ""}`} aria-label="AORMS">
@@ -156,12 +131,28 @@ export function MarketingShell({
         </nav>
 
         {downloads && <RailDownloads />}
+
+        {/* Pinned to the rail bottom: developed-by credit. */}
+        <div className="esti-lp-rail__foot">
+          <div className="esti-lp-rail__studio">
+            <p className="esti-landing-footer__eyebrow">Developed by</p>
+            <img
+              src="/hcw-black.png"
+              alt="Holagundi Consulting Works"
+              className="esti-landing-footer__hcw"
+            />
+            <p className="esti-landing-footer__addr">
+              Holagundi Consulting Works<br />
+              Hospet, Karnataka, India<br />
+              +91 89510 89191
+            </p>
+          </div>
+        </div>
       </aside>
 
       {/* STAGE — all content */}
       <main id="main-content" className="esti-lp-stage esti-landing-content">
         {children}
-        <LandingStatusBar />
       </main>
     </div>
   );

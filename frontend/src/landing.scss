@@ -1905,6 +1905,52 @@
   }
 }
 
+// ── Contour background: plan view (on load) → perspective (on scroll) ─────────
+// Faint Radiant-Orange topographic rings anchored to the bottom. A scroll-linked
+// `--lp-depth` (0→1, set in LandingContours.tsx) tilts the plane from flat plan
+// to a receding perspective ground — "the depth of AORMS". Behind all content
+// (content is z-2, the rail z-9000) and non-interactive.
+.esti-lp-contours {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  perspective: 1100px;
+  perspective-origin: 50% 100%;
+  --lp-depth: 0;
+}
+.esti-lp-contours__plane {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 200vmax;
+  height: 130vmax;
+  transform: translateX(-50%) rotateX(calc(var(--lp-depth) * 70deg));
+  transform-origin: 50% 100%;
+  opacity: calc(0.55 + var(--lp-depth) * 0.45);
+  will-change: transform, opacity;
+}
+.esti-lp-contours svg { width: 100%; height: 100%; display: block; }
+.esti-lp-contours__rings {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: esti-lp-contour-breathe 26s ease-in-out infinite alternate;
+}
+.esti-lp-contours__ring {
+  fill: none;
+  stroke: rgba(255, 79, 24, 0.14); // faint Radiant Orange
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+@keyframes esti-lp-contour-breathe {
+  from { transform: scale(1); }
+  to   { transform: scale(1.05); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .esti-lp-contours__rings { animation: none; }
+}
+
 // ── RAIL / STAGE landing layout ──────────────────────────────────────────────
 // A FIXED, non-scrolling left rail holds the nav (top) and the developed-by +
 // AORMS identity (bottom); all content renders in the scrolling stage.
@@ -2025,6 +2071,34 @@
     color: var(--lp-ink-muted);
   }
 }
+// Developed-by credit, pinned to the rail bottom.
+.esti-lp-rail__foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.esti-lp-rail__studio {
+  .esti-landing-footer__eyebrow {
+    margin: 0;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--lp-ink-faint);
+  }
+  .esti-landing-footer__hcw {
+    height: 1.25rem;
+    width: auto;
+    display: block;
+    margin: 0.35rem 0;
+  }
+  .esti-landing-footer__addr {
+    margin: 0;
+    font-size: 0.7rem;
+    line-height: 1.45;
+    color: var(--lp-ink-muted);
+  }
+}
 
 .esti-lp-stage {
   margin-left: var(--lp-rail-w);
@@ -2078,10 +2152,13 @@
   .esti-lp-rail__menu { display: inline-flex; }
   .esti-lp-rail__identity,
   .esti-lp-rail__nav,
-  .esti-lp-rail__downloads { display: none; }
+  .esti-lp-rail__downloads,
+  .esti-lp-rail__foot { display: none; }
   .esti-lp-rail.is-open .esti-lp-rail__identity,
   .esti-lp-rail.is-open .esti-lp-rail__nav,
-  .esti-lp-rail.is-open .esti-lp-rail__downloads { display: flex; }
+  .esti-lp-rail.is-open .esti-lp-rail__downloads,
+  .esti-lp-rail.is-open .esti-lp-rail__foot { display: flex; }
+  .esti-lp-rail__foot { margin-top: 0; }
   .esti-lp-stage { margin-left: 0; }
 }
 
