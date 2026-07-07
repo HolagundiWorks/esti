@@ -3,21 +3,23 @@ import type { DB } from "../db/index.js";
 import { officeTemplates } from "../db/schema.js";
 
 /**
- * Standard office letter templates for an Indian architecture practice. Seeded
- * idempotently (by title, kind=LETTER) so they appear in the "Start from
- * template" picker on the Letters screen. Placeholders in [square brackets] are
- * filled in by the author. Signature block ends every letter.
+ * Standard office document templates for an Indian architecture practice —
+ * letters, COA fee proposals and contracts/agreements. Seeded idempotently
+ * (by kind + title) so they appear in the "Start from template" pickers and the
+ * Documents template library. Placeholders in [square brackets] are filled in by
+ * the author. Every letter/contract ends with a signature block.
  */
 
 const SIGN_OFF = `Yours faithfully,\n\nFor [Firm Name]\n\n\n[Name]\n[Designation]\n[Firm Name] · [Address]\n[Phone] · [Email]`;
 
-interface LetterTemplate {
+interface Tpl {
   title: string;
   tags: string;
   body: string;
 }
 
-export const LETTER_TEMPLATES: readonly LetterTemplate[] = [
+// ── Letters ───────────────────────────────────────────────────────────────────
+const LETTER_TEMPLATES: readonly Tpl[] = [
   {
     title: "Architect's Appointment — Acceptance",
     tags: "appointment,engagement",
@@ -102,23 +104,100 @@ export const LETTER_TEMPLATES: readonly LetterTemplate[] = [
       `[Date]\n\nTo,\n[Client Name]\n[Client Address]\n\nSubject: Acknowledgement of revision request — "[Project Name]"\n\nDear [Salutation],\n\nWe acknowledge your request dated [Request Date] for the following change: [description of revision].\n\nPlease note this is a client-driven change to the [approved] design. We will incorporate it and issue revised drawings by [date]. As it falls outside the current scope/stage, it will carry a revision fee of [amount] and a programme impact of [duration], for your confirmation before we proceed.\n\n` +
       SIGN_OFF,
   },
-] as const;
+];
 
-/** Insert any standard LETTER templates that aren't already present (by title). */
-export async function seedLetterTemplates(db: DB): Promise<void> {
-  const titles = LETTER_TEMPLATES.map((t) => t.title);
+// ── COA fee proposals (Council of Architecture — Scale of Charges) ────────────
+const COA_STAGES =
+  `Stage-wise fee (as % of the total professional fee, per CoA Conditions of Engagement):\n` +
+  `  I    Concept design & feasibility ............. 10%\n` +
+  `  II   Preliminary / sketch design & estimate .... 20%\n` +
+  `  III  Drawings for statutory approvals .......... 15%\n` +
+  `  IV   Working drawings & tender documents ....... 25%\n` +
+  `  V    Appointment of contractor / tender action .. 5%\n` +
+  `  VI   Construction stage & completion ........... 25%\n` +
+  `  Total ......................................... 100%\n\n` +
+  `Payment: each stage is invoiced on submission of that stage's deliverables. An advance of\n` +
+  `[Advance]% is payable on appointment and adjusted against the final stage.`;
+
+const COA_TEMPLATES: readonly Tpl[] = [
+  {
+    title: "COA Fee Proposal — Comprehensive Architectural Services",
+    tags: "coa,fees,comprehensive",
+    body:
+      `Fee proposal — comprehensive architectural services\nProject: [Project Name]  ·  Client: [Client Name]  ·  Date: [Date]\n\nScope of services (CoA comprehensive scope): taking the client's brief; site appraisal; concept and preliminary design; drawings for statutory approvals; working drawings, details and specifications; tender documents and evaluation; and periodic site visits during construction to interpret the design.\n\nFee: [Fee %] of the total cost of works (subject to the CoA minimum for the work category), exclusive of GST. Estimated cost of works: ₹[Cost]. Indicative fee: ₹[Fee Amount].\n\n${COA_STAGES}\n\nReimbursables (at actuals): statutory / sanction fees, structural & services consultants, surveys and soil investigation, printing, models and travel beyond [City]. Exclusions: [exclusions].\n\nValidity: [Validity] days. This proposal follows the Council of Architecture's Conditions of Engagement and Scale of Charges.\n\n` +
+      SIGN_OFF,
+  },
+  {
+    title: "COA Fee Proposal — Individual Residence",
+    tags: "coa,fees,residential",
+    body:
+      `Fee proposal — architectural services for an individual residence\nProject: [Project Name]  ·  Client: [Client Name]  ·  Date: [Date]\n\nScope: brief and site study; concept & preliminary design; approval drawings; working drawings, joinery and services coordination; and site visits during construction. Interior/landscape design is a separate scope if required.\n\nFee: [Fee %] of the cost of works (not below the CoA minimum for individual residential work), exclusive of GST. Estimated cost of works: ₹[Cost]. Indicative fee: ₹[Fee Amount].\n\n${COA_STAGES}\n\nReimbursables at actuals; consultant fees (structural/MEP) billed separately. Validity: [Validity] days. Per the Council of Architecture Scale of Charges.\n\n` +
+      SIGN_OFF,
+  },
+  {
+    title: "COA Fee Proposal — Partial Services (up to Approvals)",
+    tags: "coa,fees,partial",
+    body:
+      `Fee proposal — partial architectural services (up to statutory approvals)\nProject: [Project Name]  ·  Client: [Client Name]  ·  Date: [Date]\n\nScope (Stages I–III only): concept design; preliminary design & estimate; and drawings for statutory approvals. Working drawings, tendering and construction-stage services are NOT included and may be taken up under a separate engagement.\n\nFee for Stages I–III: [Fee %] of the cost of works × 45% (the CoA share of Stages I–III), exclusive of GST. Estimated cost of works: ₹[Cost]. Indicative fee: ₹[Fee Amount].\n\nPayment: Stage I on appointment, Stage II on preliminary design, Stage III on submission of approval drawings. Reimbursables and statutory fees at actuals. Validity: [Validity] days. Per the CoA Scale of Charges.\n\n` +
+      SIGN_OFF,
+  },
+  {
+    title: "COA Fee Proposal — Interior Design",
+    tags: "coa,fees,interior",
+    body:
+      `Fee proposal — interior design services\nProject: [Project Name]  ·  Client: [Client Name]  ·  Date: [Date]\n\nScope: requirement study; concept & mood boards; layout, furniture and detailing; material, finish and services selection; drawings & BOQ; and periodic site visits for interior execution.\n\nFee: [Fee %] of the cost of interior works (or ₹[Rate]/sq.ft on [Area] sq.ft), exclusive of GST. Indicative fee: ₹[Fee Amount].\n\nPayment: [Advance]% advance on appointment; balance stage-wise on concept, detailed drawings and completion. Reimbursables (printing, samples, travel) at actuals. Validity: [Validity] days.\n\n` +
+      SIGN_OFF,
+  },
+];
+
+// ── Standard contracts / agreements ───────────────────────────────────────────
+const CONTRACT_TEMPLATES: readonly Tpl[] = [
+  {
+    title: "Client–Architect Agreement",
+    tags: "agreement,client,coa",
+    body:
+      `ARCHITECT'S AGREEMENT\n\nThis Agreement is made on [Date] between [Client Name], residing / registered at [Client Address] (the "Client"), and [Firm Name], Architects, of [Address] (the "Architect").\n\n1. PROJECT. The Architect is engaged for "[Project Name]" at [Site Address].\n\n2. SCOPE OF SERVICES. Comprehensive architectural services per the Council of Architecture Conditions of Engagement — Stages I to VI (concept, preliminary, approvals, working drawings & tender, tender action, and construction-stage services), as detailed in the fee proposal dated [Proposal Date], which forms part of this Agreement.\n\n3. FEE. [Fee %] of the cost of works (not below the CoA minimum), exclusive of GST, payable stage-wise as set out in the fee proposal. An advance of [Advance]% is payable on signing.\n\n4. REIMBURSABLES. Statutory fees, consultant fees, surveys, printing, models and travel beyond [City] are reimbursed at actuals.\n\n5. CONSULTANTS. Structural, MEP and other specialist consultants are appointed by the [Client / Architect] and their fees are [borne by the Client / included].\n\n6. CLIENT'S OBLIGATIONS. The Client shall furnish the brief, site documents, title and survey, obtain statutory sanctions, and make timely decisions and payments.\n\n7. INTELLECTUAL PROPERTY. Copyright in all drawings and designs vests with the Architect; the Client has a licence to use them for this Project only, subject to full payment of fees.\n\n8. TERMINATION. Either party may terminate on [Notice] days' written notice; fees for work done up to the date of termination, plus reimbursables, shall be payable.\n\n9. DISPUTES. Disputes shall be settled amicably, failing which by arbitration under the Arbitration and Conciliation Act, 1996, seated at [City]. This Agreement is governed by the laws of India.\n\nSigned:\n\n_____________________            _____________________\nClient                           For [Firm Name] (Architect)`,
+  },
+  {
+    title: "Consultant Appointment Agreement",
+    tags: "agreement,consultant",
+    body:
+      `CONSULTANT APPOINTMENT AGREEMENT\n\nThis Agreement is made on [Date] between [Firm Name], Architects (the "Architect"/"Principal"), and [Consultant Name] of [Consultant Address] (the "Consultant"), for "[Project Name]".\n\n1. SERVICES. The Consultant shall provide [Discipline] consultancy — [scope summary] — coordinated with the architectural design and delivered per the agreed programme.\n\n2. STANDARD. All work shall comply with the National Building Code, relevant IS codes and local byelaws, and be issued good-for-construction only after the Architect's coordination check.\n\n3. FEE. ₹[Fee] (or [Fee %] of [basis]), exclusive of GST, payable stage-wise against certified deliverables.\n\n4. DELIVERABLES & PROGRAMME. As per Annexure A. Delays attributable to the Consultant may attract adjustment as mutually agreed.\n\n5. LIABILITY & INSURANCE. The Consultant is responsible for the adequacy of its own designs and shall hold professional indemnity cover of ₹[Amount].\n\n6. CONFIDENTIALITY. Project information shall be kept confidential and used only for this Project.\n\n7. TERMINATION & DISPUTES. Either party may terminate on [Notice] days' notice; disputes resolved by arbitration at [City] under the Arbitration and Conciliation Act, 1996. Governed by the laws of India.\n\nSigned:\n\n_____________________            _____________________\nFor [Firm Name]                  [Consultant Name]`,
+  },
+  {
+    title: "Letter of Engagement (Short-form)",
+    tags: "agreement,engagement,shortform",
+    body:
+      `LETTER OF ENGAGEMENT\n\n[Date]\n\nTo, [Client Name], [Client Address]\n\nDear [Salutation],\n\nThis letter confirms your engagement of [Firm Name] as Architects for "[Project Name]" at [Site Address], on the following terms:\n\n  • Scope: [comprehensive / partial] architectural services per the CoA Conditions of Engagement.\n  • Fee: [Fee %] of the cost of works (min. CoA), plus GST, billed stage-wise; advance [Advance]% on signing.\n  • Reimbursables: statutory, consultant, printing and travel at actuals.\n  • Copyright in the drawings remains with the Architect; a project-use licence passes on full payment.\n  • Either party may terminate on [Notice] days' notice, fees for work done being payable.\n\nKindly countersign a copy in acceptance. We look forward to working with you.\n\n` +
+      SIGN_OFF +
+      `\n\nAccepted:  _____________________  ([Client Name], Date)`,
+  },
+];
+
+async function seedKind(db: DB, kind: string, templates: readonly Tpl[]): Promise<number> {
+  const titles = templates.map((t) => t.title);
   const existing = await db
     .select({ title: officeTemplates.title })
     .from(officeTemplates)
-    .where(and(eq(officeTemplates.kind, "LETTER"), inArray(officeTemplates.title, titles)));
+    .where(and(eq(officeTemplates.kind, kind), inArray(officeTemplates.title, titles)));
   const have = new Set(existing.map((r) => r.title));
-  const toInsert = LETTER_TEMPLATES.filter((t) => !have.has(t.title));
-  if (toInsert.length === 0) {
-    console.log("✓ letter templates already present (no change)");
-    return;
-  }
+  const toInsert = templates.filter((t) => !have.has(t.title));
+  if (toInsert.length === 0) return 0;
   await db.insert(officeTemplates).values(
-    toInsert.map((t) => ({ kind: "LETTER", title: t.title, body: t.body, tags: t.tags })),
+    toInsert.map((t) => ({ kind, title: t.title, body: t.body, tags: t.tags })),
   );
-  console.log(`✓ seeded ${toInsert.length} letter template(s)`);
+  return toInsert.length;
+}
+
+/** Seed the standard office templates — letters, COA fee proposals, contracts. */
+export async function seedOfficeTemplates(db: DB): Promise<void> {
+  const letters = await seedKind(db, "LETTER", LETTER_TEMPLATES);
+  const coa = await seedKind(db, "COA", COA_TEMPLATES);
+  const contracts = await seedKind(db, "CONTRACT", CONTRACT_TEMPLATES);
+  const total = letters + coa + contracts;
+  if (total === 0) {
+    console.log("✓ office templates already present (no change)");
+  } else {
+    console.log(`✓ seeded office templates — ${letters} letter(s), ${coa} COA proposal(s), ${contracts} contract(s)`);
+  }
 }

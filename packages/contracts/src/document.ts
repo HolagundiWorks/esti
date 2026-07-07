@@ -56,13 +56,14 @@ export const DEFAULT_NUMBERING_SCOPES: Record<string, { prefix: string; padding:
   expense: { prefix: "EXP", padding: 4 },
 };
 
-export const OfficeTemplateKind = z.enum(["LETTER", "SCOPE", "COA", "MOM"]);
+export const OfficeTemplateKind = z.enum(["LETTER", "SCOPE", "COA", "CONTRACT", "MOM"]);
 export type OfficeTemplateKind = z.infer<typeof OfficeTemplateKind>;
 
 export const OFFICE_TEMPLATE_KIND_LABEL: Record<OfficeTemplateKind, string> = {
   LETTER: "Letter",
   SCOPE: "Scope of work",
-  COA: "COA proposal scope",
+  COA: "COA fee proposal",
+  CONTRACT: "Contract / agreement",
   MOM: "Meeting minutes",
 };
 
