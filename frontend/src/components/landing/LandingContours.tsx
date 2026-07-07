@@ -10,6 +10,29 @@ import { useEffect, useRef } from "react";
  * Colour + geometry live in landing.scss; this only drives the scroll variable.
  */
 const RINGS = 15;
+const CX = 500; // contour centre — bottom-centre of the viewBox
+const CY = 620;
+const STEPS = 120;
+
+/** One organic contour loop (mean radii rx/ry) — a fixed multi-frequency wobble
+ *  makes it wavy topographic, not a perfect ellipse. `seed` drifts the phase per
+ *  ring so nested loops aren't machine-parallel. */
+function contourPath(rx: number, ry: number, seed: number): string {
+  let d = "";
+  for (let i = 0; i <= STEPS; i++) {
+    const t = (i / STEPS) * Math.PI * 2;
+    const wobble =
+      1 +
+      0.12 * Math.sin(3 * t + 0.6 + seed) +
+      0.07 * Math.sin(5 * t + 2.1 - seed) +
+      0.045 * Math.sin(8 * t + 4.2) +
+      0.03 * Math.sin(2 * t + 1.2 + seed * 0.5);
+    const x = CX + rx * wobble * Math.cos(t);
+    const y = CY + ry * wobble * Math.sin(t);
+    d += `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)} `;
+  }
+  return `${d}Z`;
+}
 
 export function LandingContours() {
   const ref = useRef<HTMLDivElement>(null);
@@ -46,13 +69,10 @@ export function LandingContours() {
             {Array.from({ length: RINGS }, (_, i) => {
               const k = i + 1;
               return (
-                <ellipse
+                <path
                   key={k}
                   className="esti-lp-contours__ring"
-                  cx={500}
-                  cy={620}
-                  rx={k * 42}
-                  ry={k * 26}
+                  d={contourPath(k * 44, k * 27, i * 0.35)}
                 />
               );
             })}

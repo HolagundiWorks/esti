@@ -175,31 +175,34 @@ $neu-input-radius: 0; // square corners
   }
 
   // ── Ambient resonant-breathing contour field ───────────────────────────────
-  // Faint concentric rings centred behind the dashboard, breathing at ~5.5
+  // Faint organic topographic contour lines whose centre is anchored to the
+  // BOTTOM-RIGHT; they fan up-left into the screen and breathe at ~5.5
   // breaths/min (an ~11s inhale → hold → exhale → rest cycle). A passive pacer:
-  // let the eyes rest on the centre and the breath follow the expansion. The
-  // `> .esti-si-breath` selector out-specifies `> *` above to pin it BEHIND
-  // content at z-index 0.
+  // let the eyes rest and the breath follow the expansion. The `> .esti-si-breath`
+  // selector out-specifies `> *` above to pin it BEHIND content at z-index 0.
   > .esti-si-breath {
     position: absolute;
     inset: 0;
     z-index: 0;
-    display: grid;
-    place-items: center;
     overflow: hidden;
     pointer-events: none;
 
+    // Anchor the SVG centre (the contour centre) to the bottom-right corner —
+    // half the field spills off-screen so the contours radiate from the corner.
     svg {
-      width: min(78vh, 62vw);
-      height: min(78vh, 62vw);
-      max-width: 100%;
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: min(150vh, 115vw);
+      height: min(150vh, 115vw);
+      transform: translate(50%, 50%);
       display: block;
     }
     .esti-si-breath__ring {
       fill: none;
       stroke: var(--esti-brand-accent);
-      stroke-opacity: 0.1;
-      stroke-width: 1.1;
+      stroke-opacity: 0.13;
+      stroke-width: 1.2;
       vector-effect: non-scaling-stroke;
     }
     .esti-si-breath__rings {
