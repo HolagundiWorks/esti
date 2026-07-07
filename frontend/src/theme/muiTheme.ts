@@ -155,17 +155,23 @@ export const muiTheme = createTheme({
     divider: CDS.borderSubtle,
   },
   typography: {
-    // Brand font — Open Sans (OFL, self-hosted via @fontsource) across the whole
+    // Brand font — Urbanist (OFL, self-hosted via @fontsource) across the whole
     // product; mirrors --esti-font-sans and the Carbon runtime override in styles.scss.
     fontFamily:
-      "'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-    button: { textTransform: "none", fontWeight: 600 },
-    // Hyper-minimal readouts: large numerics run light so the value dominates the
-    // small muted label above it (the smart-home dashboard idiom).
-    h1: { fontWeight: 300, letterSpacing: "-0.01em" },
-    h2: { fontWeight: 300, letterSpacing: "-0.01em" },
-    h3: { fontWeight: 300, letterSpacing: "-0.01em" },
-    h4: { fontWeight: 400 },
+      "'Urbanist', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    // CTA buttons read in Title Case.
+    button: { textTransform: "capitalize", fontWeight: 600 },
+    // HEADINGS are ALL CAPS (h1–h4 — the display + page/section headings). Titles
+    // and subtitles (h5/h6/subtitle1/subtitle2) stay Title Case — see below.
+    h1: { fontWeight: 300, letterSpacing: "0.01em", textTransform: "uppercase" },
+    h2: { fontWeight: 300, letterSpacing: "0.01em", textTransform: "uppercase" },
+    h3: { fontWeight: 400, letterSpacing: "0.01em", textTransform: "uppercase" },
+    h4: { fontWeight: 500, letterSpacing: "0.01em", textTransform: "uppercase" },
+    // Titles / subtitles — Title Case (never uppercased).
+    h5: { fontWeight: 600, textTransform: "none" },
+    h6: { fontWeight: 600, textTransform: "none" },
+    subtitle1: { textTransform: "none" },
+    subtitle2: { textTransform: "none" },
     overline: { letterSpacing: "0.08em", fontWeight: 600 },
   },
   components: {
@@ -227,9 +233,6 @@ export const muiTheme = createTheme({
     MuiDialog: {
       styleOverrides: { paper: { ...GLASS_PANE } },
     },
-    MuiAutocomplete: {
-      styleOverrides: { paper: { ...GLASS_PANE } },
-    },
     // Drawer is an edge-docked panel (not a floating card) — keep it flat white.
     MuiDrawer: {
       styleOverrides: {
@@ -258,12 +261,15 @@ export const muiTheme = createTheme({
       styleOverrides: {
         root: ({ ownerState }) => {
           const isError = ownerState.color === "error";
-          const baseInk = isError ? CDS.supportError : CDS.ink;
+          // CTAs (contained buttons) carry ORANGE label text by default.
+          const isCta = ownerState.variant === "contained";
+          const baseInk = isError ? CDS.supportError : isCta ? CDS.accent : CDS.ink;
           const hotInk = isError ? CDS.supportError : CDS.accentDark;
           const activeInk = isError ? CDS.supportError : CDS.accent;
           return {
             borderRadius: GLASS_RADIUS,
             fontWeight: 600,
+            textTransform: "capitalize", // Title Case
             color: baseInk,
             background: GLASS_BTN_BG,
             backdropFilter: GLASS_BTN_BLUR,
@@ -334,6 +340,15 @@ export const muiTheme = createTheme({
           },
         },
       },
+    },
+    // Inputs default to the COMPACT size (the fields were too tall) — dense
+    // padding across TextField/Select/Autocomplete/pickers everywhere.
+    MuiTextField: { defaultProps: { size: "small" } },
+    MuiFormControl: { defaultProps: { size: "small" } },
+    MuiSelect: { defaultProps: { size: "small" } },
+    MuiAutocomplete: {
+      defaultProps: { size: "small" },
+      styleOverrides: { paper: { ...GLASS_PANE } },
     },
     // Text inputs — RECESSED neumorphic well (not a bordered box).
     MuiOutlinedInput: {

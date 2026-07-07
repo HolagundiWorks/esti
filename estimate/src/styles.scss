@@ -11,6 +11,26 @@
   --cds-spacing-07: 2rem;
 }
 
+// Brand font — Urbanist everywhere (loaded via index.html Google Fonts link).
+$g-font: "Urbanist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+html body,
+html body [class^="cds--"],
+html body [class*=" cds--"] {
+  font-family: $g-font;
+}
+// Headings are ALL CAPS; the CTA (primary button) carries an orange Title-Case label.
+.est-h1,
+.est-h2,
+h1,
+h2 {
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+.cds--btn--primary {
+  color: #ff4f18;
+  text-transform: capitalize;
+}
+
 // Structural, colourless layout helpers only (no colour/gradient/shadow).
 .est-shell {
   max-width: 1200px;

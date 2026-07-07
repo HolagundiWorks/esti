@@ -13,18 +13,22 @@ const HEAD = `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex" />
 <title>ESE — Estimation Specification Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root {
     color-scheme: light;
     --canvas:#F2F4F7; --card:#FFFFFF; --ink:#141517; --muted:#5B6570;
     --line:rgba(20,21,23,.12); --accent:#FF4F18; --accent-h:#DB3E0F;
     --ok:#0E7C4A; --warn:#B25E00; --radius:8px;
-    --font: "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font: "Urbanist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
   * { box-sizing:border-box; }
   body { margin:0; font-family:var(--font); background:var(--canvas); color:var(--ink); }
   a { color:var(--muted); }
   h1,h2,h3 { font-weight:600; letter-spacing:-.01em; margin:0; }
+  h1 { text-transform:uppercase; letter-spacing:.02em; } /* headings ALL CAPS */
   button { font-family:inherit; cursor:pointer; }
   input, select, textarea {
     font-family:inherit; font-size:.9rem; color:var(--ink); background:var(--card);
@@ -37,7 +41,8 @@ const HEAD = `<!doctype html>
   .field { margin-bottom:.9rem; }
   /* Glass buttons — white liquid-glass slab; hover floods orange-30% + orange
      label; pressed/active label turns orange. One family across the product. */
-  .btn { border:1px solid rgba(255,255,255,.7); border-radius:var(--radius); color:var(--ink);
+  .btn { border:1px solid rgba(255,255,255,.7); border-radius:var(--radius); color:var(--accent);
+    text-transform:capitalize; /* CTA: orange label, Title Case */
     background:linear-gradient(145deg,rgba(255,255,255,.95),rgba(236,238,242,.85));
     box-shadow:0 4px 14px rgba(20,21,23,.12), inset 0 1px 0 rgba(255,255,255,.85);
     backdrop-filter:blur(10px) saturate(1.3); -webkit-backdrop-filter:blur(10px) saturate(1.3);

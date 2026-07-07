@@ -200,6 +200,9 @@ importers:
       '@fontsource/open-sans':
         specifier: ^5.2.7
         version: 5.2.7
+      '@fontsource/urbanist':
+        specifier: ^5.2.7
+        version: 5.2.7
       '@mui/icons-material':
         specifier: ^9.2.0
         version: 9.2.0(@mui/material@9.2.0(@emotion/react@11.14.0(@types/react@18.3.31)(react@18.3.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.31)(react@18.3.1))(@types/react@18.3.31)(react@18.3.1))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@18.3.31)(react@18.3.1)
@@ -1223,6 +1226,9 @@ packages:
 
   '@fontsource/open-sans@5.2.7':
     resolution: {integrity: sha512-8yfgDYjE5O0vmTPdrcjV35y4yMnctsokmi9gN49Gcsr0sjzkMkR97AnKDe6OqZh2SFkYlR28fxOvi21bYEgMSw==}
+
+  '@fontsource/urbanist@5.2.7':
+    resolution: {integrity: sha512-tZE4qBBu+VBpfw8yMeLl6fzbY1sb4dnACXZLzlInp1KNONks47G/OYPY8yZajpeFQudLZlpVJu3xfS1Ph/QaFg==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -4533,6 +4539,8 @@ snapshots:
   '@floating-ui/utils@0.2.11': {}
 
   '@fontsource/open-sans@5.2.7': {}
+
+  '@fontsource/urbanist@5.2.7': {}
 
   '@humanfs/core@0.19.2':
     dependencies:

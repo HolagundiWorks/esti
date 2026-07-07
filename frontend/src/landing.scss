@@ -33,8 +33,8 @@
   --lp-border-dark: rgba(255, 255, 255, 0.14);
   --lp-max: min(80vw, 100rem);
   --lp-radius: 8px;           /* shared soft-square radius (product-wide) */
-  // Brand font — Open Sans across the whole product, landing included.
-  --lp-font: "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  // Brand font — Urbanist across the whole product, landing included.
+  --lp-font: "Urbanist", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
   font-family: var(--lp-font);
   color: var(--lp-ink);
@@ -281,8 +281,9 @@
     margin: 0;
     font-size: clamp(1.75rem, 3.5vw, 2.5rem);
     font-weight: 600;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.01em;
     line-height: 1.12;
+    text-transform: uppercase; // section headings are ALL CAPS
   }
 }
 
@@ -414,8 +415,10 @@
   }
 }
 
-// Primary CTA — same glass, a touch more presence (stronger ambient shadow).
+// Primary CTA — glass with ORANGE label text, Title Case; stronger ambient shadow.
 .esti-lp-btn--primary {
+  color: var(--lp-accent);
+  text-transform: capitalize;
   box-shadow: 0 6px 18px rgba(20, 21, 23, 0.14),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
@@ -3117,7 +3120,8 @@ h1.esti-landing-lead-title {
 .esti-lp-hero__h1 {
   @include type.type-style("heading-07");
   font-weight: 300;
-  letter-spacing: 0;
+  letter-spacing: 0.01em;
+  text-transform: uppercase; // headings are ALL CAPS
   color: var(--cds-text-primary);
   max-width: 760px;
   margin: 0 0 var(--cds-spacing-04);
