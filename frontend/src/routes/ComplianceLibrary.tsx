@@ -20,6 +20,7 @@ import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
+import { useSignal } from "../lib/useSignal.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -36,6 +37,7 @@ function CrudPanel({
   removing,
   onCreate,
   onRemove,
+  openSignal,
 }: {
   fields: Field[];
   rows: Record<string, unknown>[];
@@ -44,9 +46,12 @@ function CrudPanel({
   removing: boolean;
   onCreate: (payload: Record<string, unknown>) => void;
   onRemove: (id: string) => void;
+  /** When this number changes, open the create dialog (rail-triggered). */
+  openSignal?: number;
 }) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Record<string, string>>({});
+  useSignal(openSignal, () => { setForm({}); setOpen(true); });
   const set = (k: string) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -93,9 +98,6 @@ function CrudPanel({
 
   return (
     <Stack spacing={2}>
-      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-        <Button variant="contained" onClick={() => { setForm({}); setOpen(true); }}>New entry</Button>
-      </Box>
       <DataState
         loading={loading}
         isEmpty={rows.length === 0}
@@ -143,7 +145,7 @@ function CrudPanel({
   );
 }
 
-function FarPanel() {
+function FarPanel({ openSignal }: { openSignal?: number }) {
   const u = trpc.useUtils();
   const q = trpc.compliance.far.list.useQuery();
   const inv = () => u.compliance.far.list.invalidate();
@@ -167,11 +169,12 @@ function FarPanel() {
       removing={remove.isPending}
       onCreate={(p) => create.mutate(p as never)}
       onRemove={(id) => remove.mutate({ id })}
+      openSignal={openSignal}
     />
   );
 }
 
-function SetbackPanel() {
+function SetbackPanel({ openSignal }: { openSignal?: number }) {
   const u = trpc.useUtils();
   const q = trpc.compliance.setback.list.useQuery();
   const inv = () => u.compliance.setback.list.invalidate();
@@ -196,11 +199,12 @@ function SetbackPanel() {
       removing={remove.isPending}
       onCreate={(p) => create.mutate(p as never)}
       onRemove={(id) => remove.mutate({ id })}
+      openSignal={openSignal}
     />
   );
 }
 
-function NbcPanel() {
+function NbcPanel({ openSignal }: { openSignal?: number }) {
   const u = trpc.useUtils();
   const q = trpc.compliance.nbc.list.useQuery();
   const inv = () => u.compliance.nbc.list.invalidate();
@@ -221,11 +225,12 @@ function NbcPanel() {
       removing={remove.isPending}
       onCreate={(p) => create.mutate(p as never)}
       onRemove={(id) => remove.mutate({ id })}
+      openSignal={openSignal}
     />
   );
 }
 
-function FirePanel() {
+function FirePanel({ openSignal }: { openSignal?: number }) {
   const u = trpc.useUtils();
   const q = trpc.compliance.fire.list.useQuery();
   const inv = () => u.compliance.fire.list.invalidate();
@@ -247,11 +252,12 @@ function FirePanel() {
       removing={remove.isPending}
       onCreate={(p) => create.mutate(p as never)}
       onRemove={(id) => remove.mutate({ id })}
+      openSignal={openSignal}
     />
   );
 }
 
-function RegulationPanel() {
+function RegulationPanel({ openSignal }: { openSignal?: number }) {
   const u = trpc.useUtils();
   const q = trpc.compliance.regulation.list.useQuery();
   const inv = () => u.compliance.regulation.list.invalidate();
@@ -273,13 +279,14 @@ function RegulationPanel() {
       removing={remove.isPending}
       onCreate={(p) => create.mutate(p as never)}
       onRemove={(id) => remove.mutate({ id })}
+      openSignal={openSignal}
     />
   );
 }
 
 const DOC_CATEGORIES = ["NBC", "FAR", "SETBACK", "FIRE", "REGULATION", "OTHER"] as const;
 
-function DocumentsTab() {
+function DocumentsTab({ openSignal }: { openSignal?: number }) {
   const utils = trpc.useUtils();
   const q = trpc.compliance.listDocuments.useQuery();
   const remove = trpc.compliance.removeDocument.useMutation({
@@ -292,6 +299,7 @@ function DocumentsTab() {
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadCategory, setUploadCategory] = useState<string>("NBC");
   const [showUpload, setShowUpload] = useState(false);
+  useSignal(openSignal, () => setShowUpload((v) => !v)); // rail "Upload document"
 
   async function upload(file: File) {
     setBusy(true);
@@ -356,12 +364,6 @@ function DocumentsTab() {
 
   return (
     <Stack spacing={2}>
-      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-        <Button variant="contained" onClick={() => setShowUpload((v) => !v)}>
-          {showUpload ? "Cancel" : "Upload document"}
-        </Button>
-      </Box>
-
       {showUpload && (
         <Box sx={{ p: 2 }}>
           <Stack spacing={2}>
@@ -434,6 +436,9 @@ function DocumentsTab() {
 export function ComplianceLibrary() {
   const [tab, setTab] = useState(0);
   const [ruleTab, setRuleTab] = useState(0);
+  // Rail-triggered create/upload — bump a counter to open the active panel's action.
+  const [docSignal, setDocSignal] = useState(0);
+  const [ruleSignal, setRuleSignal] = useState(0);
   return (
     <RailLayout
       title="Compliance Library"
@@ -449,8 +454,19 @@ export function ComplianceLibrary() {
           <Tab label="Rules" />
         </Tabs>
       }
+      actions={
+        tab === 0 ? (
+          <Button variant="contained" fullWidth onClick={() => setDocSignal((s) => s + 1)}>
+            Upload Document
+          </Button>
+        ) : (
+          <Button variant="contained" fullWidth onClick={() => setRuleSignal((s) => s + 1)}>
+            New Entry
+          </Button>
+        )
+      }
     >
-      {tab === 0 && <DocumentsTab />}
+      {tab === 0 && <DocumentsTab openSignal={docSignal} />}
       {tab === 1 && (
         <Stack spacing={2}>
           <Tabs
@@ -466,11 +482,11 @@ export function ComplianceLibrary() {
             <Tab label="Fire Compliance" />
             <Tab label="Regulations" />
           </Tabs>
-          {ruleTab === 0 && <NbcPanel />}
-          {ruleTab === 1 && <FarPanel />}
-          {ruleTab === 2 && <SetbackPanel />}
-          {ruleTab === 3 && <FirePanel />}
-          {ruleTab === 4 && <RegulationPanel />}
+          {ruleTab === 0 && <NbcPanel openSignal={ruleSignal} />}
+          {ruleTab === 1 && <FarPanel openSignal={ruleSignal} />}
+          {ruleTab === 2 && <SetbackPanel openSignal={ruleSignal} />}
+          {ruleTab === 3 && <FirePanel openSignal={ruleSignal} />}
+          {ruleTab === 4 && <RegulationPanel openSignal={ruleSignal} />}
         </Stack>
       )}
     </RailLayout>

@@ -132,19 +132,24 @@ export function DocumentsRegister() {
         title="Document register"
         description="Unified view of issued office and project documents — numbers, versions, and PDF status."
         actions={
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<Download />}
-            disabled={exportQ.isFetching}
-            fullWidth
-            onClick={async () => {
-              const data = await exportQ.refetch();
-              if (data.data?.length) downloadXlsx(data.data, "Register", "esti-document-register");
-            }}
-          >
-            Export XLSX
-          </Button>
+          <>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<Download />}
+              disabled={exportQ.isFetching}
+              fullWidth
+              onClick={async () => {
+                const data = await exportQ.refetch();
+                if (data.data?.length) downloadXlsx(data.data, "Register", "esti-document-register");
+              }}
+            >
+              Export XLSX
+            </Button>
+            <Button variant="contained" fullWidth onClick={() => setTplOpen(true)}>
+              New template
+            </Button>
+          </>
         }
         aside={
           <Stack spacing={1.5}>
@@ -250,10 +255,7 @@ export function DocumentsRegister() {
         )}
 
         <Stack spacing={2}>
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-            <Typography variant="h6">Office templates</Typography>
-            <Button variant="contained" size="small" onClick={() => setTplOpen(true)}>New template</Button>
-          </Stack>
+          <Typography variant="h6">Office templates</Typography>
           <DataGrid
             rows={templatesQ.data ?? []}
             columns={[

@@ -21,6 +21,7 @@ import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
+import { useSignal } from "../lib/useSignal.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -33,7 +34,7 @@ const DISCIPLINES: { id: string; label: string }[] = [
   { id: "LIGHTING", label: "Lighting" },
 ];
 
-function DisciplinePanel({ discipline }: { discipline: string }) {
+function DisciplinePanel({ discipline, openSignal }: { discipline: string; openSignal?: number }) {
   const utils = trpc.useUtils();
   const q = trpc.standards.listByDiscipline.useQuery({ discipline: discipline as never });
   const inv = () => utils.standards.listByDiscipline.invalidate({ discipline: discipline as never });
@@ -47,6 +48,7 @@ function DisciplinePanel({ discipline }: { discipline: string }) {
   const [notes, setNotes] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  useSignal(openSignal, () => { setTitle(""); setNotes(""); setOpen(true); });
 
   async function attach(standardId: string, kind: string, file: File) {
     setBusyId(standardId);
@@ -68,11 +70,6 @@ function DisciplinePanel({ discipline }: { discipline: string }) {
 
   return (
     <Stack spacing={2}>
-      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-        <Button variant="contained" onClick={() => { setTitle(""); setNotes(""); setOpen(true); }}>
-          New standard
-        </Button>
-      </Box>
       {error && (
         <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>
       )}
@@ -239,6 +236,7 @@ function DocumentsTab() {
 export function StandardsLibrary() {
   const [tab, setTab] = useState(0);
   const [discTab, setDiscTab] = useState(0);
+  const [stdSignal, setStdSignal] = useState(0);
   return (
     <RailLayout
       title="Standards Library"
@@ -254,6 +252,13 @@ export function StandardsLibrary() {
           <Tab label="Standards" />
         </Tabs>
       }
+      actions={
+        tab === 1 ? (
+          <Button variant="contained" fullWidth onClick={() => setStdSignal((s) => s + 1)}>
+            New Standard
+          </Button>
+        ) : undefined
+      }
     >
       {tab === 0 && <DocumentsTab />}
       {tab === 1 && (
@@ -262,7 +267,9 @@ export function StandardsLibrary() {
             {DISCIPLINES.map((d) => <Tab key={d.id} label={d.label} />)}
           </Tabs>
           {DISCIPLINES.map((d, i) =>
-            discTab === i ? <DisciplinePanel key={d.id} discipline={d.id} /> : null,
+            discTab === i ? (
+              <DisciplinePanel key={d.id} discipline={d.id} openSignal={stdSignal} />
+            ) : null,
           )}
         </Stack>
       )}

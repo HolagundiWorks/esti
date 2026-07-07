@@ -32,7 +32,7 @@ const LEAVE_TAG: Record<string, "blue" | "green" | "red"> = {
 };
 const thisMonth = () => new Date().toISOString().slice(0, 7);
 
-export function Hr({ embedded = false }: { embedded?: boolean }) {
+export function Hr() {
   const navigate = useNavigate();
   const { canSalary } = useCapabilities();
   const utils = trpc.useUtils();
@@ -218,37 +218,37 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
             <Tab label="Applications" />
           </Tabs>
         }
+        actions={
+          tab === 0 ? (
+            <>
+              <Button variant="text" fullWidth onClick={() => navigate("/tasks?tab=attendance")}>
+                Open register
+              </Button>
+              <Button variant="contained" fullWidth disabled={team.length === 0} onClick={() => setLvOpen(true)}>
+                Request leave
+              </Button>
+              <Button variant="contained" fullWidth disabled={team.length === 0} onClick={() => setPyOpen(true)}>
+                Generate payslip
+              </Button>
+            </>
+          ) : undefined
+        }
       >
       {/* ── Operations panel ── */}
       {tab === 0 && (
         <Stack spacing={3}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
-              Today&apos;s attendance
-            </Typography>
-            <Button variant="text" size="small" onClick={() => navigate("/tasks?tab=attendance")}>
-              Open register
-            </Button>
-          </Box>
+          <Typography variant="h6" component="h2">
+            Today&apos;s attendance
+          </Typography>
           <Typography variant="body2">
             {(attTodayQ.data?.rows ?? []).filter((r) => r.status === "PRESENT" || r.status === "HALF_DAY").length} present /{" "}
             {(attTodayQ.data?.rows ?? []).length} staff · mark daily status in Work → Attendance.
           </Typography>
 
           {/* Leaves */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
-              Leaves
-            </Typography>
-            <Button
-              variant="contained"
-              size="small"
-              disabled={team.length === 0}
-              onClick={() => setLvOpen(true)}
-            >
-              Request leave
-            </Button>
-          </Box>
+          <Typography variant="h6" component="h2">
+            Leaves
+          </Typography>
           <Box sx={{ p: 2 }}>
             <Stack spacing={1}>
               <Typography variant="subtitle2">Leave register</Typography>
@@ -265,19 +265,9 @@ export function Hr({ embedded = false }: { embedded?: boolean }) {
           </Box>
 
           {/* Payroll */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
-              Payroll
-            </Typography>
-            <Button
-              variant="contained"
-              size="small"
-              disabled={team.length === 0}
-              onClick={() => setPyOpen(true)}
-            >
-              Generate payslip
-            </Button>
-          </Box>
+          <Typography variant="h6" component="h2">
+            Payroll
+          </Typography>
           <Box sx={{ p: 2 }}>
             <Stack spacing={1}>
               <Typography variant="subtitle2">Payslips</Typography>
