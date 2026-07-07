@@ -4,3 +4,10 @@ build/
 *.db-shm
 *.o
 *.a
+# CPack output
+_CPack_Packages/
+*.deb
+*.rpm
+*.tar.gz
+*.zip
+*.exe

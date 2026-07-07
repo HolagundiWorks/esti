@@ -1,0 +1,13 @@
+#!/bin/sh
+# Debian post-removal: stop the unit on remove and reload systemd on purge.
+set -e
+
+if command -v systemctl >/dev/null 2>&1; then
+    if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+        systemctl stop aorms-estimate-backend >/dev/null 2>&1 || true
+        systemctl disable aorms-estimate-backend >/dev/null 2>&1 || true
+    fi
+    systemctl daemon-reload >/dev/null 2>&1 || true
+fi
+
+exit 0

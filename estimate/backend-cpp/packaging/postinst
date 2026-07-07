@@ -1,0 +1,12 @@
+#!/bin/sh
+# Debian post-install: register the systemd unit. The service is installed but
+# left disabled/stopped — the admin opts in.
+set -e
+
+if [ "$1" = "configure" ] && command -v systemctl >/dev/null 2>&1; then
+    systemctl daemon-reload >/dev/null 2>&1 || true
+    echo "aorms-estimate-backend installed. Enable and start it with:"
+    echo "    sudo systemctl enable --now aorms-estimate-backend"
+fi
+
+exit 0

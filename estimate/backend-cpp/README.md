@@ -62,6 +62,50 @@ Environment:
 | `ESTIMATE_HOST` | `127.0.0.1` | bind address |
 | `ESTIMATE_PORT` | `8787` | listen port |
 
+## Packaging
+
+Installable packages are produced with **CPack** (bundled with CMake). Configure
+and build once, then run `cpack` from the build dir:
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j
+cd build && cpack               # platform defaults: Linux → TGZ + DEB
+cpack -G DEB                     # or pick a generator explicitly
+```
+
+| Platform | Default generators | Output |
+|---|---|---|
+| Linux | `TGZ`, `DEB` | `aorms-estimate-backend_<ver>_amd64.deb`, `…-Linux.tar.gz` |
+| macOS | `TGZ` | `…-Darwin.tar.gz` |
+| Windows | `NSIS`, `ZIP` | `…-win64.exe` (needs NSIS on `PATH`), `…-win64.zip` |
+
+The package installs:
+
+| File | Purpose |
+|---|---|
+| `/usr/bin/aorms-estimate-backend` | the server |
+| `/usr/lib/systemd/system/aorms-estimate-backend.service` | systemd unit (isolated `DynamicUser`, DB under `/var/lib/aorms-estimate`) |
+| `/etc/default/aorms-estimate-backend` | env overrides (`ESTIMATE_HOST/PORT/DB`) |
+| `/usr/share/doc/aorms-estimate-backend/README.md` | this file |
+
+### Debian/Ubuntu
+
+```sh
+sudo apt install ./aorms-estimate-backend_0.1.0_amd64.deb   # pulls libsqlite3-0
+sudo systemctl enable --now aorms-estimate-backend          # opt-in start
+```
+
+The `.deb` declares `Depends: libsqlite3-0`; the service is installed disabled
+so the admin opts in. `apt remove` stops it; `apt purge` also removes config.
+
+### Tarball (any Linux/macOS)
+
+```sh
+tar xzf aorms-estimate-backend-0.1.0-Linux.tar.gz
+./aorms-estimate-backend-0.1.0-Linux/bin/aorms-estimate-backend
+```
+
 ## HTTP API
 
 All bodies/responses are JSON. The **working model** is the shape the SPA edits
@@ -120,6 +164,7 @@ backend-cpp/
 │  ├─ db.*            SQLite persistence (estimates table)
 │  └─ main.cpp        cpp-httplib server wiring
 ├─ tests/test_engine.cpp   parity tests vs the TS engine + seal reference
+├─ packaging/        systemd unit, /etc/default env, Debian postinst/postrm
 ├─ third_party/      vendored httplib.h, json.hpp (both MIT)
-└─ CMakeLists.txt
+└─ CMakeLists.txt    build + install rules + CPack (TGZ/DEB/NSIS/ZIP)
 ```
