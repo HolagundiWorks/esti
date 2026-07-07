@@ -2006,47 +2006,23 @@
   text-decoration: none;
   &:hover { background: var(--lp-accent-hover); border-color: var(--lp-accent-hover); }
 }
-.esti-lp-rail__foot {
-  margin-top: auto; // pin to the rail bottom
+// Brand identity block, directly under the AORMS logo.
+.esti-lp-rail__identity {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-}
-.esti-lp-rail__studio {
-  .esti-landing-footer__eyebrow {
-    margin: 0;
-    font-size: 0.6rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--lp-ink-faint);
-  }
-  .esti-landing-footer__hcw {
-    height: 1.25rem;
-    width: auto;
-    display: block;
-    margin: 0.35rem 0;
-  }
-  .esti-landing-footer__addr {
-    margin: 0;
-    font-size: 0.7rem;
-    line-height: 1.45;
-    color: var(--lp-ink-muted);
-  }
-}
-.esti-lp-rail__aorms {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--lp-border);
-  font-size: 0.65rem;
-  line-height: 1.4;
-  color: var(--lp-ink-faint);
+  gap: 0.12rem;
+  margin-top: -0.35rem; // hug the logo above
 
-  .esti-lp-rail__aorms-mark {
+  b {
+    font-size: 0.8rem;
     font-weight: 700;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.1em;
     color: var(--lp-ink);
+  }
+  span {
+    font-size: 0.62rem;
+    line-height: 1.4;
+    color: var(--lp-ink-muted);
   }
 }
 
@@ -2100,13 +2076,12 @@
     gap: 0.75rem;
   }
   .esti-lp-rail__menu { display: inline-flex; }
+  .esti-lp-rail__identity,
   .esti-lp-rail__nav,
-  .esti-lp-rail__downloads,
-  .esti-lp-rail__foot { display: none; }
+  .esti-lp-rail__downloads { display: none; }
+  .esti-lp-rail.is-open .esti-lp-rail__identity,
   .esti-lp-rail.is-open .esti-lp-rail__nav,
-  .esti-lp-rail.is-open .esti-lp-rail__downloads,
-  .esti-lp-rail.is-open .esti-lp-rail__foot { display: flex; }
-  .esti-lp-rail__foot { margin-top: 0; }
+  .esti-lp-rail.is-open .esti-lp-rail__downloads { display: flex; }
   .esti-lp-stage { margin-left: 0; }
 }
 

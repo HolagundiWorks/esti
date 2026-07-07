@@ -105,7 +105,7 @@ export function MarketingShell({
     <div className="esti-landing-shell esti-lp-railshell">
       <a href="#main-content" className="esti-lp-skip">Skip to main content</a>
 
-      {/* LEFT RAIL — fixed, no scroll: brand + nav (top), developed-by + AORMS (bottom) */}
+      {/* LEFT RAIL — fixed: brand + AORMS identity, nav, then download boxes. */}
       <aside className={`esti-lp-rail${navOpen ? " is-open" : ""}`} aria-label="AORMS">
         <div className="esti-lp-rail__top">
           <a href="/#top" className="esti-lp-rail__brand" aria-label="AORMS home">
@@ -123,6 +123,12 @@ export function MarketingShell({
           >
             {navOpen ? <CloseIcon /> : <MenuIcon />}
           </IconButton>
+        </div>
+
+        {/* Brand identity — directly under the AORMS logo. */}
+        <div className="esti-lp-rail__identity">
+          <b>AORMS</b>
+          <span>Architecture Office Resource Management System</span>
         </div>
 
         <nav
@@ -150,28 +156,6 @@ export function MarketingShell({
         </nav>
 
         {downloads && <RailDownloads />}
-
-        {/* Pinned to the rail bottom: developed-by + AORMS identity. */}
-        <div className="esti-lp-rail__foot">
-          <div className="esti-lp-rail__studio">
-            <p className="esti-landing-footer__eyebrow">Developed by</p>
-            <img
-              src="/hcw-black.png"
-              alt="Holagundi Consulting Works"
-              className="esti-landing-footer__hcw"
-            />
-            <p className="esti-landing-footer__addr">
-              Holagundi Consulting Works<br />
-              Hospet, Karnataka, India<br />
-              +91 89510 89191
-            </p>
-          </div>
-          <div className="esti-lp-rail__aorms">
-            <span className="esti-lp-rail__aorms-mark">AORMS</span>
-            <span>Architecture Office Resource Management System</span>
-            <span>© Holagundi Consulting Works</span>
-          </div>
-        </div>
       </aside>
 
       {/* STAGE — all content */}
