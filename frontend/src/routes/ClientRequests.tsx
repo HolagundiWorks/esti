@@ -324,7 +324,7 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
           {impact && (
             <Stack spacing={2} sx={{ mt: 1 }}>
               {impact.body && (
-                <Paper variant="outlined" sx={{ p: 2 }}>
+                <Paper className="esti-neu-inset" sx={{ p: 2 }}>
                   <Typography variant="caption" color="text.secondary">Client's request</Typography>
                   <Typography variant="body2">{impact.body}</Typography>
                   {impact.refDrawingRef && (
