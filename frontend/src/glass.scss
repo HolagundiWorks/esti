@@ -41,19 +41,11 @@ $glass-pane-blur: blur(22px) saturate(1.7);
 $glass-pane-shadow: 0 10px 34px rgba(20, 21, 23, 0.16),
   inset 0 1px 0 rgba(255, 255, 255, 0.7);
 
-// Raised glass button (icon buttons in the floating widgets) — clean OPAQUE
-// raised white (no backdrop blur); hover washes orange-30%, pressed carves in.
-$glass-btn-bg: linear-gradient(180deg, #ffffff 0%, #eef1f4 100%);
-$glass-btn-border: 1px solid rgba(255, 255, 255, 0.9);
-$glass-btn-shadow: 0 10px 22px rgba(20, 21, 23, 0.13),
-  0 2px 5px rgba(20, 21, 23, 0.08), 0 0 0 1px rgba(20, 21, 23, 0.035),
-  inset 0 1px 1px rgba(255, 255, 255, 0.95),
-  inset 0 -1px 2px rgba(20, 21, 23, 0.05);
-$glass-btn-shadow-hover: 0 12px 24px rgba(255, 79, 24, 0.24),
-  0 2px 6px rgba(255, 79, 24, 0.16), 0 0 0 1px rgba(255, 79, 24, 0.18),
-  inset 0 1px 1px rgba(255, 255, 255, 0.7);
-$glass-btn-pressed: inset 2px 2px 6px rgba(20, 21, 23, 0.16),
-  inset -2px -2px 6px rgba(255, 255, 255, 0.9), 0 0 0 1px rgba(20, 21, 23, 0.04);
+// Simple floating button (icon buttons in the floating widgets) — a plain white
+// box with 4px corners + a soft drop shadow, orange glyph; NO neumorphism.
+$btn-radius: 4px;
+$btn-float: 0 2px 6px rgba(20, 21, 23, 0.12);
+$btn-float-hover: 0 4px 10px rgba(20, 21, 23, 0.16);
 $glass-orange-30: rgba(255, 79, 24, 0.3);
 
 .esti-neu.MuiPaper-root,
@@ -78,21 +70,21 @@ $glass-orange-30: rgba(255, 79, 24, 0.3);
 }
 
 .esti-neu-btn.MuiIconButton-root {
-  background: $glass-btn-bg;
-  border: $glass-btn-border;
-  border-radius: $glass-radius;
-  box-shadow: $glass-btn-shadow;
-  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
+  background: #ffffff;
+  color: #ff4f18;
+  border: 1px solid rgba(20, 21, 23, 0.1);
+  border-radius: $btn-radius;
+  box-shadow: $btn-float;
+  transition: background 130ms ease, color 130ms ease, box-shadow 130ms ease;
 
   &:hover {
-    background: $glass-orange-30;
+    background: rgba(255, 79, 24, 0.08);
     color: #db3e0f;
-    box-shadow: $glass-btn-shadow-hover;
+    box-shadow: $btn-float-hover;
   }
   &:active {
-    color: #ff4f18;
-    background: linear-gradient(180deg, #eef1f4 0%, #ffffff 100%);
-    box-shadow: $glass-btn-pressed;
+    background: rgba(255, 79, 24, 0.14);
+    box-shadow: $btn-float;
   }
 }
 

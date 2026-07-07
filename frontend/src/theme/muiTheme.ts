@@ -15,12 +15,12 @@
  *  2. ONE SOFT-SQUARE RADIUS EVERYWHERE. `shape.borderRadius = GLASS_RADIUS` (8)
  *     — every popup, panel, button, input and control shares the same gentle
  *     rounding so the whole product reads as one system (2026-07 direction).
- *  3. LIQUID GLASS pop-overs + GLASS BUTTONS. Menus/Dialogs/Popovers/Autocomplete
- *     panes are translucent frosted glass (blur + hairline highlight + soft ambient
- *     shadow, `GLASS_PANE`). Every button is a white liquid-glass slab whose hover
- *     floods orange-30% and whose active/pressed label turns orange (`GLASS_BTN_*`).
- *     Content tiles (Paper/Card/DataGrid) stay FLAT on the canvas so tables stay
- *     legible; the glass lives on the things that float and the things you press.
+ *  3. LIQUID GLASS pop-overs + SIMPLE FLOATING BUTTONS. Menus/Dialogs/Popovers/
+ *     Autocomplete panes are translucent frosted glass (`GLASS_PANE`). Buttons are
+ *     plain floating boxes (4px corners, soft drop shadow, NO neumorphism): the CTA
+ *     (contained) is an ORANGE box with WHITE text; every other button is a WHITE
+ *     box with ORANGE text (red for delete). Content tiles (Paper/Card/DataGrid)
+ *     stay FLAT on the canvas so tables stay legible.
  *
  * This file (and everything under src/theme/) is the ONE place raw colour values
  * live — it is exempt from the visual guard exactly like landing.scss.
@@ -89,29 +89,17 @@ const GLASS_PANE = {
   boxShadow: GLASS_PANE_SHADOW,
 } as const;
 
-// ── RAISED GLASS BUTTONS — the signature control (see reference image) ────────
-// A clean, OPAQUE raised-white pill: a whisper-soft top→bottom gradient, a bright
-// top-edge highlight, a crisp diffuse ambient drop shadow and a hairline rim — the
-// classic soft-UI "liquid glass" button. NO backdrop blur / translucency (that is
-// what made the old buttons read as frosted glass with mottled gradations). Hover
-// warms the whole slab to Radiant Orange; pressed inverts to a carved well and the
-// label turns orange. Applied to every variant so all buttons read as one family.
-const GLASS_BTN_BG =
-  "linear-gradient(180deg, #ffffff 0%, #eef1f4 100%)";
-const GLASS_BTN_BORDER = "1px solid rgba(255, 255, 255, 0.9)";
-// Ambient float + tight contact shadow + hairline rim + inner top highlight.
-const GLASS_BTN_SHADOW =
-  "0 10px 22px rgba(20, 21, 23, 0.13), 0 2px 5px rgba(20, 21, 23, 0.08), 0 0 0 1px rgba(20, 21, 23, 0.035), inset 0 1px 1px rgba(255, 255, 255, 0.95), inset 0 -1px 2px rgba(20, 21, 23, 0.05)";
-// Hover — a light Radiant-Orange wash at 30% (translucent, still clean/no frost).
-const GLASS_BTN_SHADOW_HOVER =
-  "0 12px 24px rgba(255, 79, 24, 0.24), 0 2px 6px rgba(255, 79, 24, 0.16), 0 0 0 1px rgba(255, 79, 24, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.7)";
-// Pressed / active — carved well (inverted), label turns orange.
-const GLASS_BTN_BG_PRESSED =
-  "linear-gradient(180deg, #eef1f4 0%, #ffffff 100%)";
-const GLASS_BTN_PRESSED =
-  "inset 2px 2px 6px rgba(20, 21, 23, 0.16), inset -2px -2px 6px rgba(255, 255, 255, 0.9), 0 0 0 1px rgba(20, 21, 23, 0.04)";
-// Error hover flood (kept translucent-red is fine — small surface).
-const GLASS_RED_28 = "rgba(200, 68, 46, 0.28)";
+// ── SIMPLE FLOATING BUTTONS — no neumorphism ─────────────────────────────────
+// Every button is a plain floating box with 4px corners and a soft drop shadow:
+//   • CTA (contained)  → ORANGE background, WHITE text.
+//   • everything else  → WHITE background, ORANGE text (red for error/delete).
+const BTN_RADIUS = 4;
+const BTN_FLOAT = "0 2px 6px rgba(20, 21, 23, 0.12)";
+const BTN_FLOAT_HOVER = "0 4px 10px rgba(20, 21, 23, 0.16)";
+const BTN_WHITE = "#ffffff";
+const ORANGE_WASH_08 = "rgba(255, 79, 24, 0.08)"; // white-button hover tint
+const ORANGE_WASH_14 = "rgba(255, 79, 24, 0.14)"; // white-button pressed tint
+const RED_WASH_08 = "rgba(200, 68, 46, 0.08)";
 // Orange translucent wash — selected toggle buttons.
 const GLASS_ORANGE_30 = "rgba(255, 79, 24, 0.30)";
 
@@ -268,45 +256,39 @@ export const muiTheme = createTheme({
       styleOverrides: {
         root: ({ ownerState }) => {
           const isError = ownerState.color === "error";
-          // CTAs (contained buttons) carry ORANGE label text by default.
-          const isCta = ownerState.variant === "contained";
-          const baseInk = isError ? CDS.supportError : isCta ? CDS.accent : CDS.ink;
-          const activeInk = isError ? CDS.supportError : CDS.accent;
-          return {
-            borderRadius: GLASS_RADIUS,
+          // CTA = a contained button (and not an error/delete button).
+          const isCta = ownerState.variant === "contained" && !isError;
+          const base = {
+            borderRadius: BTN_RADIUS,
             fontWeight: 600,
-            textTransform: "capitalize", // Title Case
-            color: baseInk,
-            background: GLASS_BTN_BG,
-            border: GLASS_BTN_BORDER,
-            boxShadow: GLASS_BTN_SHADOW,
+            textTransform: "capitalize" as const, // Title Case
+            boxShadow: BTN_FLOAT,
             transition:
-              "background 140ms ease, color 140ms ease, box-shadow 140ms ease",
-            "&:hover": {
-              // Light orange wash at 30% (translucent, clean — no frost); label
-              // turns deep orange. Error keeps a red label over a light-red wash.
-              color: isError ? CDS.supportError : CDS.accentDark,
-              background: isError ? GLASS_RED_28 : GLASS_ORANGE_30,
-              border: GLASS_BTN_BORDER,
-              boxShadow: GLASS_BTN_SHADOW_HOVER,
-            },
-            // Pressed and "active" (selected / aria-pressed) → carved well, orange label.
-            "&:active": {
-              color: activeInk,
-              background: GLASS_BTN_BG_PRESSED,
-              boxShadow: GLASS_BTN_PRESSED,
-            },
-            '&.Mui-selected, &[aria-pressed="true"], &.is-active': {
-              color: activeInk,
-              background: GLASS_BTN_BG_PRESSED,
-              boxShadow: GLASS_BTN_PRESSED,
-            },
-            "&.Mui-disabled": {
-              color: CDS.textHelper,
-              background: GLASS_BTN_BG,
-              boxShadow: GLASS_BTN_SHADOW,
-              opacity: 0.55,
-            },
+              "background 130ms ease, color 130ms ease, box-shadow 130ms ease",
+            "&.Mui-disabled": { boxShadow: "none", opacity: 0.5 },
+          };
+          if (isCta) {
+            // CTA — ORANGE background, WHITE text.
+            return {
+              ...base,
+              color: CDS.onAccent,
+              backgroundColor: CDS.accent,
+              border: "1px solid transparent",
+              "&:hover": { backgroundColor: CDS.accentDark, boxShadow: BTN_FLOAT_HOVER },
+              "&:active": { backgroundColor: CDS.accentDark, boxShadow: BTN_FLOAT },
+            };
+          }
+          // Everything else — WHITE box, ORANGE text (red for error/delete).
+          const ink = isError ? CDS.supportError : CDS.accent;
+          const wash = isError ? RED_WASH_08 : ORANGE_WASH_08;
+          return {
+            ...base,
+            color: ink,
+            backgroundColor: BTN_WHITE,
+            border: `1px solid ${CDS.borderSubtle}`,
+            "&:hover": { backgroundColor: wash, borderColor: ink, boxShadow: BTN_FLOAT_HOVER },
+            "&:active": { backgroundColor: isError ? wash : ORANGE_WASH_14, boxShadow: BTN_FLOAT },
+            "&.Mui-disabled": { boxShadow: "none", opacity: 0.5, backgroundColor: BTN_WHITE },
           };
         },
       },

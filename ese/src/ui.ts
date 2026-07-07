@@ -41,20 +41,18 @@ const HEAD = `<!doctype html>
   .field { margin-bottom:.9rem; }
   /* Glass buttons — white liquid-glass slab; hover floods orange-30% + orange
      label; pressed/active label turns orange. One family across the product. */
-  /* Raised glass button — clean OPAQUE raised white (no frost); CTA label orange. */
-  .btn { border:1px solid rgba(255,255,255,.9); border-radius:var(--radius); color:var(--accent);
-    text-transform:capitalize; /* CTA: orange label, Title Case */
-    background:linear-gradient(180deg,#ffffff 0%,#eef1f4 100%);
-    box-shadow:0 10px 22px rgba(20,21,23,.13), 0 2px 5px rgba(20,21,23,.08), 0 0 0 1px rgba(20,21,23,.035), inset 0 1px 1px rgba(255,255,255,.95), inset 0 -1px 2px rgba(20,21,23,.05);
+  /* Simple floating buttons — CTA is orange bg / white text; the rest are white
+     bg / orange text. 4px corners, soft drop shadow, no neumorphism. */
+  .btn { border:1px solid transparent; border-radius:4px; color:#fff;
+    text-transform:capitalize; background:var(--accent);
+    box-shadow:0 2px 6px rgba(20,21,23,.12);
     padding:.55rem 1rem; font-weight:600; font-size:.85rem;
-    transition:background .14s ease,color .14s ease,box-shadow .14s ease; }
-  .btn:hover { background:rgba(255,79,24,.30); color:var(--accent-h); border-color:rgba(255,255,255,.9);
-    box-shadow:0 12px 24px rgba(255,79,24,.24), 0 2px 6px rgba(255,79,24,.16), 0 0 0 1px rgba(255,79,24,.18), inset 0 1px 1px rgba(255,255,255,.7); }
-  .btn:active { color:var(--accent); background:linear-gradient(180deg,#eef1f4 0%,#ffffff 100%);
-    box-shadow:inset 2px 2px 6px rgba(20,21,23,.16), inset -2px -2px 6px rgba(255,255,255,.9); }
-  .btn--ghost { background:linear-gradient(180deg,#ffffff 0%,#f1f3f6 100%); color:var(--ink); }
-  .btn--ghost:hover { background:rgba(255,79,24,.30); color:var(--accent-h); }
-  .btn--danger { background:linear-gradient(180deg,#ffffff 0%,#f1f3f6 100%); color:#B00020; border-color:rgba(255,255,255,.9); }
+    transition:background .13s ease,color .13s ease,box-shadow .13s ease; }
+  .btn:hover { background:var(--accent-h); box-shadow:0 4px 10px rgba(20,21,23,.16); }
+  .btn:active { background:var(--accent-h); box-shadow:0 2px 6px rgba(20,21,23,.12); }
+  .btn--ghost { background:#fff; color:var(--accent); border-color:var(--line); }
+  .btn--ghost:hover { background:rgba(255,79,24,.08); color:var(--accent-h); border-color:var(--accent); }
+  .btn--danger { background:#fff; color:#B00020; border-color:var(--line); }
   .btn--danger:hover { background:rgba(176,0,32,.18); color:#B00020; }
   .btn:disabled { opacity:.5; cursor:not-allowed; box-shadow:none; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); }
