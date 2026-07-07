@@ -59,3 +59,62 @@
 .est-help {
   @include type.type-style("label-01");
 }
+
+// ── Product-wide LIQUID GLASS over Carbon (matches AORMS app + ESE) ───────────
+// One shared 8px "soft-square" radius; every button is a white liquid-glass slab
+// whose hover floods orange-30% and turns the label orange; the active/pressed
+// label turns orange. Popups (modals) become translucent frosted glass.
+$g-radius: 8px;
+
+.cds--btn {
+  border-radius: $g-radius;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  color: #141517;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(236, 238, 242, 0.85)
+  );
+  box-shadow: 0 4px 14px rgba(20, 21, 23, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  transition: background 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
+
+  &:hover {
+    background: rgba(255, 79, 24, 0.3);
+    color: #db3e0f;
+    box-shadow: 0 6px 18px rgba(255, 79, 24, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  }
+  &:active {
+    color: #ff4f18;
+    box-shadow: inset 3px 3px 7px rgba(20, 21, 23, 0.14),
+      inset -3px -3px 7px rgba(255, 255, 255, 0.85);
+  }
+}
+.cds--btn--danger {
+  color: #b00020;
+  &:hover {
+    background: rgba(176, 0, 32, 0.18);
+    color: #b00020;
+  }
+}
+
+.cds--tile,
+.cds--text-input,
+.cds--select-input,
+.cds--dropdown,
+.cds--text-area,
+.cds--tag {
+  border-radius: $g-radius;
+}
+
+// Popups — translucent liquid glass.
+.cds--modal-container {
+  border-radius: $g-radius;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(22px) saturate(1.7);
+  -webkit-backdrop-filter: blur(22px) saturate(1.7);
+  box-shadow: 0 10px 34px rgba(20, 21, 23, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
