@@ -15,12 +15,12 @@
  *  2. ONE SOFT-SQUARE RADIUS EVERYWHERE. `shape.borderRadius = GLASS_RADIUS` (8)
  *     — every popup, panel, button, input and control shares the same gentle
  *     rounding so the whole product reads as one system (2026-07 direction).
- *  3. LIQUID GLASS pop-overs + SIMPLE FLOATING BUTTONS. Menus/Dialogs/Popovers/
- *     Autocomplete panes are translucent frosted glass (`GLASS_PANE`). Buttons are
- *     plain floating boxes (4px corners, soft drop shadow, NO neumorphism): the CTA
- *     (contained) is an ORANGE box with WHITE text; every other button is a WHITE
- *     box with ORANGE text (red for delete). Content tiles (Paper/Card/DataGrid)
- *     stay FLAT on the canvas so tables stay legible.
+ *  3. NEUMORPHIC IS RESERVED. Only three things are neumorphic: text-entry inputs
+ *     (recessed wells), DIALOGS (extruded `NEU_POP`), and the floating dock + its
+ *     widgets (glass.scss). Everything else is FLAT and BORDERLESS: menus/popovers
+ *     are flat white with a soft shadow (`FLAT_POP`); Paper/Card/tiles have no box;
+ *     BUTTONS are pure text — no fill, no border, no box — CTA in orange, others in
+ *     ink, and on hover the label lifts + grows a bottom orange line.
  *
  * This file (and everything under src/theme/) is the ONE place raw colour values
  * live — it is exempt from the visual guard exactly like landing.scss.
@@ -70,38 +70,35 @@ const GLASS_SHADOW = "none";                           // flat content — no el
 // Edge-docked surfaces (drawer, app bar) sit over content — solid white.
 const POP_FILL     = "#FFFFFF";
 
-// ── LIQUID GLASS pop-over panes (menus, dialogs, popovers, autocomplete) ──────
-// The shared "liquid glass" look for every floating pane: a translucent frosted
-// white surface, a backdrop blur, a bright hairline highlight edge and a soft
-// ambient drop shadow. One recipe across the whole product.
-const GLASS_PANE_FILL   = "rgba(255, 255, 255, 0.74)";
-const GLASS_PANE_BLUR   = "blur(22px) saturate(1.7)";
-const GLASS_PANE_BORDER = "1px solid rgba(255, 255, 255, 0.6)";
-const GLASS_PANE_SHADOW =
-  "0 10px 34px rgba(20, 21, 23, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.7)";
-const GLASS_PANE = {
-  backgroundColor: GLASS_PANE_FILL,
+// ── Pop-over panes ────────────────────────────────────────────────────────────
+// DIALOGS are the one pop-over that gets the NEUMORPHIC (extruded soft-UI) card —
+// a same-colour panel raised off the canvas, no border. MENUS / popovers /
+// autocomplete are FLAT white with only a soft ambient shadow (a floating pane
+// must lift off content) — no border, no glass, no neumorphism.
+const NEU_POP = {
+  backgroundColor: "#eceef2",
   backgroundImage: "none",
-  backdropFilter: GLASS_PANE_BLUR,
-  WebkitBackdropFilter: GLASS_PANE_BLUR,
-  border: GLASS_PANE_BORDER,
+  border: "none",
   borderRadius: GLASS_RADIUS,
-  boxShadow: GLASS_PANE_SHADOW,
+  boxShadow:
+    "9px 9px 22px rgba(20, 21, 23, 0.18), -9px -9px 22px rgba(255, 255, 255, 0.92)",
+} as const;
+const FLAT_POP = {
+  backgroundColor: "#ffffff",
+  backgroundImage: "none",
+  border: "none",
+  borderRadius: GLASS_RADIUS,
+  boxShadow: "0 8px 24px rgba(20, 21, 23, 0.14)",
 } as const;
 
-// ── SIMPLE BUTTONS — FLAT at rest, FLOAT + orange underline on hover ─────────
-// Every button is a plain box with 4px corners and NO resting shadow:
-//   • CTA (contained)  → ORANGE background, WHITE text.
-//   • everything else  → WHITE background, ORANGE text (red for error/delete).
-// On HOVER the button lifts (float) and grows a bottom orange line.
+// ── FLAT TEXT BUTTONS — no fill, no border, no box ───────────────────────────
+// Every button is pure text: NO background fill, NO border, NO box. The CTA is
+// simply ORANGE text; other buttons are ink; delete is red. On HOVER the label
+// lifts (float) and grows a bottom orange line (the only affordance).
 const BTN_RADIUS = 4;
-const BTN_WHITE = "#ffffff";
 const BTN_LIFT = "translateY(-2px)"; // the float — hover only
-const BTN_HOVER_SHADOW = "0 5px 12px rgba(20, 21, 23, 0.16)";
-const BTN_HOVER_SHADOW_CTA = "0 5px 12px rgba(20, 21, 23, 0.22)";
 const UNDERLINE_ORANGE = "inset 0 -2px 0 0 #ff4f18"; // bottom line (no layout shift)
 const UNDERLINE_RED = "inset 0 -2px 0 0 #c8442e";
-const UNDERLINE_LIGHT = "inset 0 -2px 0 0 rgba(255, 255, 255, 0.7)"; // on the orange CTA
 // Orange translucent wash — selected toggle buttons.
 const GLASS_ORANGE_30 = "rgba(255, 79, 24, 0.30)";
 
@@ -128,12 +125,12 @@ const DD_FLAT = {
   transition:
     "background 130ms ease, box-shadow 130ms ease, border-color 130ms ease",
   "&:hover": {
-    backgroundColor: BTN_WHITE,
+    backgroundColor: "#ffffff",
     borderColor: CDS.borderSubtle,
     boxShadow: UNDERLINE_ORANGE, // same bottom orange line as buttons
   },
   "&.Mui-focused": {
-    backgroundColor: BTN_WHITE,
+    backgroundColor: "#ffffff",
     border: `1px solid ${CDS.accent}`,
     boxShadow: "none",
   },
@@ -227,17 +224,16 @@ export const muiTheme = createTheme({
     MuiAccordionDetails: {
       styleOverrides: { root: { paddingInline: 0 } },
     },
-    // Pop surfaces — LIQUID GLASS panes (anything that pops up: dialogs, menus,
-    // dropdowns, popovers). Translucent frosted white, backdrop blur, hairline
-    // highlight edge, soft ambient shadow. One shared recipe (GLASS_PANE).
+    // Pop surfaces. Menus / popovers → FLAT white with a soft ambient shadow
+    // (no border, no neu). DIALOGS → NEUMORPHIC extruded card.
     MuiMenu: {
-      styleOverrides: { paper: { ...GLASS_PANE } },
+      styleOverrides: { paper: { ...FLAT_POP } },
     },
     MuiPopover: {
-      styleOverrides: { paper: { ...GLASS_PANE } },
+      styleOverrides: { paper: { ...FLAT_POP } },
     },
     MuiDialog: {
-      styleOverrides: { paper: { ...GLASS_PANE } },
+      styleOverrides: { paper: { ...NEU_POP } },
     },
     // Drawer is an edge-docked panel (not a floating card) — keep it flat white.
     MuiDrawer: {
@@ -257,59 +253,36 @@ export const muiTheme = createTheme({
         },
       },
     },
-    // Controls — GLASS BUTTONS. Every button (all variants) is a white liquid-
-    // glass slab: soft specular gradient, hairline highlight, ambient shadow,
-    // 8px corners. Hover floods it with Radiant-Orange translucent glass at 30%
-    // and turns the label deep orange; the pressed / active state turns the
-    // label orange over a pressed (inset) glass. Error keeps a red label.
+    // Controls — FLAT TEXT BUTTONS. No fill, no border, no box: just a label.
+    // CTA = ORANGE text; others = ink; delete = red. On HOVER the label lifts
+    // (float) and grows a bottom orange line — the only affordance.
     MuiButton: {
-      defaultProps: { disableElevation: true },
+      defaultProps: { disableElevation: true, disableRipple: true },
       styleOverrides: {
         root: ({ ownerState }) => {
           const isError = ownerState.color === "error";
           // CTA = a contained button (and not an error/delete button).
           const isCta = ownerState.variant === "contained" && !isError;
-          const base = {
-            borderRadius: BTN_RADIUS,
-            fontWeight: 600,
-            textTransform: "capitalize" as const, // Title Case
-            boxShadow: "none", // FLAT at rest — float only appears on hover
-            transition:
-              "transform 130ms ease, box-shadow 130ms ease, background 130ms ease, color 130ms ease",
-            "&.Mui-disabled": { boxShadow: "none", opacity: 0.5, transform: "none" },
-          };
-          if (isCta) {
-            // CTA — ORANGE background, WHITE text; hover lifts + a light underline.
-            return {
-              ...base,
-              color: CDS.onAccent,
-              backgroundColor: CDS.accent,
-              border: "1px solid transparent",
-              "&:hover": {
-                backgroundColor: CDS.accentDark,
-                transform: BTN_LIFT,
-                boxShadow: `${UNDERLINE_LIGHT}, ${BTN_HOVER_SHADOW_CTA}`,
-              },
-              "&:active": { transform: "none", backgroundColor: CDS.accentDark, boxShadow: UNDERLINE_LIGHT },
-            };
-          }
-          // Everything else — WHITE box, ORANGE text (red for error/delete);
-          // hover lifts + grows a bottom orange line.
-          const ink = isError ? CDS.supportError : CDS.accent;
+          const ink = isError ? CDS.supportError : isCta ? CDS.accent : CDS.ink;
           const underline = isError ? UNDERLINE_RED : UNDERLINE_ORANGE;
           return {
-            ...base,
+            borderRadius: BTN_RADIUS,
+            fontWeight: isCta ? 700 : 600,
+            textTransform: "capitalize" as const, // Title Case
             color: ink,
-            backgroundColor: BTN_WHITE,
-            border: `1px solid ${CDS.borderSubtle}`,
+            backgroundColor: "transparent",
+            background: "transparent",
+            border: "none",
+            boxShadow: "none",
+            transition: "transform 130ms ease, box-shadow 130ms ease, color 130ms ease",
             "&:hover": {
-              backgroundColor: BTN_WHITE,
-              borderColor: ink,
+              backgroundColor: "transparent",
+              color: isError ? CDS.supportError : CDS.accentDark,
               transform: BTN_LIFT,
-              boxShadow: `${underline}, ${BTN_HOVER_SHADOW}`,
+              boxShadow: underline,
             },
-            "&:active": { transform: "none", boxShadow: underline },
-            "&.Mui-disabled": { boxShadow: "none", opacity: 0.5, transform: "none", backgroundColor: BTN_WHITE },
+            "&:active": { transform: "none", color: isError ? CDS.supportError : CDS.accent, boxShadow: underline },
+            "&.Mui-disabled": { boxShadow: "none", opacity: 0.45, transform: "none", backgroundColor: "transparent" },
           };
         },
       },
@@ -362,7 +335,7 @@ export const muiTheme = createTheme({
     MuiSelect: { defaultProps: { size: "small" } },
     MuiAutocomplete: {
       defaultProps: { size: "small" },
-      styleOverrides: { paper: { ...GLASS_PANE } },
+      styleOverrides: { paper: { ...FLAT_POP } },
     },
     // Text inputs — RECESSED neumorphic well (not a bordered box).
     MuiOutlinedInput: {

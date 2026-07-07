@@ -22,67 +22,54 @@
   --esti-brand-yellow: #ff4f18; // legacy alias → accent (kept for older refs)
 }
 
-// ── LIQUID GLASS (soft UI) — ESTI · Pomodoro · Calculator · Wellness ─────────
-// The floating widget panes + buttons now share the product-wide LIQUID GLASS
-// look (matches the MUI theme's GLASS_PANE / GLASS_BTN): a translucent frosted
-// white surface, a backdrop blur, a bright hairline highlight edge and a soft
-// ambient shadow, with the one shared 8px "soft-square" radius. Buttons flood
-// orange-30% on hover and turn the label orange when active. Exempt file →
-// radius/box-shadow/rgba/blur allowed here.
-$neu-bg: #eceef2; // recessed-well fill (inputs) only
+// ── NEUMORPHIC (soft UI) — ESTI · Pomodoro · Calculator · Wellness ───────────
+// The floating dock + its widgets are the ONE surface that stays neumorphic:
+// panels extrude softly from the Fog-Gray canvas (same-colour fill, dark shadow
+// bottom-right + light highlight top-left), buttons press in on click. Soft
+// rounded corners are intrinsic to the look. Exempt file → box-shadow/rgba OK.
+$neu-bg: #eceef2;
 $neu-dark: rgba(20, 21, 23, 0.16);
 $neu-light: rgba(255, 255, 255, 0.92);
-$glass-radius: 8px; // the single shared soft-square radius
-
-// Liquid-glass pane (floating panels, wellness popover, calculator/pomodoro).
-$glass-pane-fill: rgba(255, 255, 255, 0.74);
-$glass-pane-border: 1px solid rgba(255, 255, 255, 0.6);
-$glass-pane-blur: blur(22px) saturate(1.7);
-$glass-pane-shadow: 0 10px 34px rgba(20, 21, 23, 0.16),
-  inset 0 1px 0 rgba(255, 255, 255, 0.7);
-
-// Simple button (icon buttons in the floating widgets) — FLAT white box, orange
-// glyph, 4px corners; on hover it lifts (float) + grows a bottom orange line.
-$btn-radius: 4px;
+$neu-radius: 18px; // soft rounded corners for neu panels
+$neu-btn-radius: 14px;
+$glass-radius: 8px; // (kept for a couple of legacy references below)
 $glass-orange-30: rgba(255, 79, 24, 0.3);
 
 .esti-neu.MuiPaper-root,
 .esti-neu {
-  background-color: $glass-pane-fill !important;
+  background-color: $neu-bg !important;
   background-image: none !important;
-  border: $glass-pane-border !important;
-  border-radius: $glass-radius !important;
-  backdrop-filter: $glass-pane-blur !important;
-  -webkit-backdrop-filter: $glass-pane-blur !important;
-  box-shadow: $glass-pane-shadow !important;
+  border: none !important;
+  border-radius: $neu-radius !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 9px 9px 20px $neu-dark, -9px -9px 20px $neu-light !important;
 }
 
-// Recessed variant — a carved well (used inside glass panes for grouped areas).
+// Recessed variant — a carved well (used inside neu panes for grouped areas).
 .esti-neu-inset.MuiPaper-root,
 .esti-neu-inset {
   background-color: $neu-bg !important;
   background-image: none !important;
   border: none !important;
-  border-radius: $glass-radius !important;
+  border-radius: $neu-radius !important;
   box-shadow: inset 4px 4px 10px $neu-dark, inset -4px -4px 10px $neu-light !important;
 }
 
 .esti-neu-btn.MuiIconButton-root {
-  background: #ffffff;
-  color: #ff4f18;
-  border: 1px solid rgba(20, 21, 23, 0.1);
-  border-radius: $btn-radius;
-  box-shadow: none;
-  transition: transform 130ms ease, box-shadow 130ms ease, color 130ms ease;
+  background: $neu-bg;
+  color: var(--esti-brand-accent);
+  border: none;
+  border-radius: $neu-btn-radius;
+  box-shadow: 4px 4px 10px $neu-dark, -4px -4px 10px $neu-light;
+  transition: box-shadow 120ms ease, color 120ms ease;
 
   &:hover {
     color: #db3e0f;
-    transform: translateY(-2px);
-    box-shadow: inset 0 -2px 0 0 #ff4f18, 0 5px 12px rgba(20, 21, 23, 0.16);
+    box-shadow: 5px 5px 12px $neu-dark, -5px -5px 12px $neu-light;
   }
   &:active {
-    transform: none;
-    box-shadow: inset 0 -2px 0 0 #ff4f18;
+    box-shadow: inset 3px 3px 8px $neu-dark, inset -3px -3px 8px $neu-light;
   }
 }
 
@@ -275,10 +262,10 @@ $neu-input-radius: 8px; // shared soft-square radius
   z-index: 1200;
   width: max-content;
   max-width: calc(100vw - 32px);
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(18px) saturate(1.15);
-  -webkit-backdrop-filter: blur(18px) saturate(1.15);
-  box-shadow: 0 6px 24px rgba(23, 43, 54, 0.12);
+  // Neumorphic — extruded from the canvas (no glass blur).
+  background: $neu-bg;
+  border-radius: $neu-radius;
+  box-shadow: 9px 9px 20px $neu-dark, -9px -9px 20px $neu-light;
 }
 
 // ── App shell v2 — ribbon (top) · content · footer (bottom) · floating dock ────
@@ -390,11 +377,10 @@ $neu-input-radius: 8px; // shared soft-square radius
   display: grid;
   place-items: center;
   gap: 0.15rem;
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  box-shadow: 0 10px 30px rgba(20, 21, 23, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7), inset 0 0 0 1px rgba(255, 79, 24, 0.16);
+  // Neumorphic orb — extruded from the canvas (no glass blur).
+  background: $neu-bg;
+  box-shadow: 9px 9px 22px $neu-dark, -9px -9px 22px $neu-light,
+    inset 0 0 0 1px rgba(255, 79, 24, 0.16);
   color: var(--esti-brand-accent);
   will-change: transform;
   // JS drives the scale each frame; a short transition smooths any dropped frame.
