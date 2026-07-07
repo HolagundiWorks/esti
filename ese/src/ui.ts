@@ -41,20 +41,20 @@ const HEAD = `<!doctype html>
   .field { margin-bottom:.9rem; }
   /* Glass buttons — white liquid-glass slab; hover floods orange-30% + orange
      label; pressed/active label turns orange. One family across the product. */
-  .btn { border:1px solid rgba(255,255,255,.7); border-radius:var(--radius); color:var(--accent);
+  /* Raised glass button — clean OPAQUE raised white (no frost); CTA label orange. */
+  .btn { border:1px solid rgba(255,255,255,.9); border-radius:var(--radius); color:var(--accent);
     text-transform:capitalize; /* CTA: orange label, Title Case */
-    background:linear-gradient(145deg,rgba(255,255,255,.95),rgba(236,238,242,.85));
-    box-shadow:0 4px 14px rgba(20,21,23,.12), inset 0 1px 0 rgba(255,255,255,.85);
-    backdrop-filter:blur(10px) saturate(1.3); -webkit-backdrop-filter:blur(10px) saturate(1.3);
+    background:linear-gradient(180deg,#ffffff 0%,#eef1f4 100%);
+    box-shadow:0 10px 22px rgba(20,21,23,.13), 0 2px 5px rgba(20,21,23,.08), 0 0 0 1px rgba(20,21,23,.035), inset 0 1px 1px rgba(255,255,255,.95), inset 0 -1px 2px rgba(20,21,23,.05);
     padding:.55rem 1rem; font-weight:600; font-size:.85rem;
     transition:background .14s ease,color .14s ease,box-shadow .14s ease; }
-  .btn:hover { background:rgba(255,79,24,.30); color:var(--accent-h); border-color:rgba(255,255,255,.6);
-    box-shadow:0 6px 18px rgba(255,79,24,.24), inset 0 1px 0 rgba(255,255,255,.55); }
-  .btn:active { color:var(--accent);
-    box-shadow:inset 3px 3px 7px rgba(20,21,23,.14), inset -3px -3px 7px rgba(255,255,255,.85); }
-  .btn--ghost { background:rgba(255,255,255,.55); color:var(--ink); }
+  .btn:hover { background:rgba(255,79,24,.30); color:var(--accent-h); border-color:rgba(255,255,255,.9);
+    box-shadow:0 12px 24px rgba(255,79,24,.24), 0 2px 6px rgba(255,79,24,.16), 0 0 0 1px rgba(255,79,24,.18), inset 0 1px 1px rgba(255,255,255,.7); }
+  .btn:active { color:var(--accent); background:linear-gradient(180deg,#eef1f4 0%,#ffffff 100%);
+    box-shadow:inset 2px 2px 6px rgba(20,21,23,.16), inset -2px -2px 6px rgba(255,255,255,.9); }
+  .btn--ghost { background:linear-gradient(180deg,#ffffff 0%,#f1f3f6 100%); color:var(--ink); }
   .btn--ghost:hover { background:rgba(255,79,24,.30); color:var(--accent-h); }
-  .btn--danger { background:rgba(255,255,255,.55); color:#B00020; border-color:rgba(255,255,255,.6); }
+  .btn--danger { background:linear-gradient(180deg,#ffffff 0%,#f1f3f6 100%); color:#B00020; border-color:rgba(255,255,255,.9); }
   .btn--danger:hover { background:rgba(176,0,32,.18); color:#B00020; }
   .btn:disabled { opacity:.5; cursor:not-allowed; box-shadow:none; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); }

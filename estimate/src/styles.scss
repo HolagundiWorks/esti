@@ -86,29 +86,30 @@ h2 {
 // label turns orange. Popups (modals) become translucent frosted glass.
 $g-radius: 8px;
 
+// Raised glass button — clean OPAQUE raised white (no frost).
 .cds--btn {
   border-radius: $g-radius;
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   color: #141517;
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.95),
-    rgba(236, 238, 242, 0.85)
-  );
-  box-shadow: 0 4px 14px rgba(20, 21, 23, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  background: linear-gradient(180deg, #ffffff 0%, #eef1f4 100%);
+  box-shadow: 0 10px 22px rgba(20, 21, 23, 0.13),
+    0 2px 5px rgba(20, 21, 23, 0.08), 0 0 0 1px rgba(20, 21, 23, 0.035),
+    inset 0 1px 1px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 2px rgba(20, 21, 23, 0.05);
   transition: background 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
 
   &:hover {
     background: rgba(255, 79, 24, 0.3);
     color: #db3e0f;
-    box-shadow: 0 6px 18px rgba(255, 79, 24, 0.24),
-      inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    box-shadow: 0 12px 24px rgba(255, 79, 24, 0.24),
+      0 2px 6px rgba(255, 79, 24, 0.16), 0 0 0 1px rgba(255, 79, 24, 0.18),
+      inset 0 1px 1px rgba(255, 255, 255, 0.7);
   }
   &:active {
     color: #ff4f18;
-    box-shadow: inset 3px 3px 7px rgba(20, 21, 23, 0.14),
-      inset -3px -3px 7px rgba(255, 255, 255, 0.85);
+    background: linear-gradient(180deg, #eef1f4 0%, #ffffff 100%);
+    box-shadow: inset 2px 2px 6px rgba(20, 21, 23, 0.16),
+      inset -2px -2px 6px rgba(255, 255, 255, 0.9);
   }
 }
 .cds--btn--danger {

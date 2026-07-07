@@ -89,24 +89,31 @@ const GLASS_PANE = {
   boxShadow: GLASS_PANE_SHADOW,
 } as const;
 
-// ── GLASS BUTTONS — the signature control (see reference image) ───────────────
-// Every button is a white liquid-glass slab (soft specular gradient + ambient
-// shadow). Hover floods it with Radiant-Orange translucent glass at 30%; the
-// pressed / active state turns the LABEL orange (no orange fill). Applied to all
-// variants so contained/outlined/text all read as one glass family.
+// ── RAISED GLASS BUTTONS — the signature control (see reference image) ────────
+// A clean, OPAQUE raised-white pill: a whisper-soft top→bottom gradient, a bright
+// top-edge highlight, a crisp diffuse ambient drop shadow and a hairline rim — the
+// classic soft-UI "liquid glass" button. NO backdrop blur / translucency (that is
+// what made the old buttons read as frosted glass with mottled gradations). Hover
+// warms the whole slab to Radiant Orange; pressed inverts to a carved well and the
+// label turns orange. Applied to every variant so all buttons read as one family.
 const GLASS_BTN_BG =
-  "linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(236, 238, 242, 0.82))";
-const GLASS_BTN_BLUR = "blur(10px) saturate(1.3)";
-const GLASS_BTN_BORDER = "1px solid rgba(255, 255, 255, 0.7)";
+  "linear-gradient(180deg, #ffffff 0%, #eef1f4 100%)";
+const GLASS_BTN_BORDER = "1px solid rgba(255, 255, 255, 0.9)";
+// Ambient float + tight contact shadow + hairline rim + inner top highlight.
 const GLASS_BTN_SHADOW =
-  "0 4px 14px rgba(20, 21, 23, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.85)";
+  "0 10px 22px rgba(20, 21, 23, 0.13), 0 2px 5px rgba(20, 21, 23, 0.08), 0 0 0 1px rgba(20, 21, 23, 0.035), inset 0 1px 1px rgba(255, 255, 255, 0.95), inset 0 -1px 2px rgba(20, 21, 23, 0.05)";
+// Hover — a light Radiant-Orange wash at 30% (translucent, still clean/no frost).
 const GLASS_BTN_SHADOW_HOVER =
-  "0 6px 18px rgba(255, 79, 24, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.55)";
+  "0 12px 24px rgba(255, 79, 24, 0.24), 0 2px 6px rgba(255, 79, 24, 0.16), 0 0 0 1px rgba(255, 79, 24, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.7)";
+// Pressed / active — carved well (inverted), label turns orange.
+const GLASS_BTN_BG_PRESSED =
+  "linear-gradient(180deg, #eef1f4 0%, #ffffff 100%)";
 const GLASS_BTN_PRESSED =
-  "inset 3px 3px 7px rgba(20, 21, 23, 0.14), inset -3px -3px 7px rgba(255, 255, 255, 0.85)";
-// Orange translucent glass — the hover flood (30%).
-const GLASS_ORANGE_30 = "rgba(255, 79, 24, 0.30)";
+  "inset 2px 2px 6px rgba(20, 21, 23, 0.16), inset -2px -2px 6px rgba(255, 255, 255, 0.9), 0 0 0 1px rgba(20, 21, 23, 0.04)";
+// Error hover flood (kept translucent-red is fine — small surface).
 const GLASS_RED_28 = "rgba(200, 68, 46, 0.28)";
+// Orange translucent wash — selected toggle buttons.
+const GLASS_ORANGE_30 = "rgba(255, 79, 24, 0.30)";
 
 // ── Neumorphic RECESSED inputs (soft UI) — every text-entry field ────────────
 // Text inputs (search + all TextField/Select/DatePicker) look carved INTO the
@@ -264,7 +271,6 @@ export const muiTheme = createTheme({
           // CTAs (contained buttons) carry ORANGE label text by default.
           const isCta = ownerState.variant === "contained";
           const baseInk = isError ? CDS.supportError : isCta ? CDS.accent : CDS.ink;
-          const hotInk = isError ? CDS.supportError : CDS.accentDark;
           const activeInk = isError ? CDS.supportError : CDS.accent;
           return {
             borderRadius: GLASS_RADIUS,
@@ -272,28 +278,33 @@ export const muiTheme = createTheme({
             textTransform: "capitalize", // Title Case
             color: baseInk,
             background: GLASS_BTN_BG,
-            backdropFilter: GLASS_BTN_BLUR,
-            WebkitBackdropFilter: GLASS_BTN_BLUR,
             border: GLASS_BTN_BORDER,
             boxShadow: GLASS_BTN_SHADOW,
             transition:
               "background 140ms ease, color 140ms ease, box-shadow 140ms ease",
             "&:hover": {
-              color: hotInk,
+              // Light orange wash at 30% (translucent, clean — no frost); label
+              // turns deep orange. Error keeps a red label over a light-red wash.
+              color: isError ? CDS.supportError : CDS.accentDark,
               background: isError ? GLASS_RED_28 : GLASS_ORANGE_30,
               border: GLASS_BTN_BORDER,
               boxShadow: GLASS_BTN_SHADOW_HOVER,
             },
-            // Pressed and "active" (selected / aria-pressed) → orange LABEL.
-            "&:active": { color: activeInk, boxShadow: GLASS_BTN_PRESSED },
+            // Pressed and "active" (selected / aria-pressed) → carved well, orange label.
+            "&:active": {
+              color: activeInk,
+              background: GLASS_BTN_BG_PRESSED,
+              boxShadow: GLASS_BTN_PRESSED,
+            },
             '&.Mui-selected, &[aria-pressed="true"], &.is-active': {
               color: activeInk,
+              background: GLASS_BTN_BG_PRESSED,
               boxShadow: GLASS_BTN_PRESSED,
             },
             "&.Mui-disabled": {
               color: CDS.textHelper,
               background: GLASS_BTN_BG,
-              boxShadow: "none",
+              boxShadow: GLASS_BTN_SHADOW,
               opacity: 0.55,
             },
           };
