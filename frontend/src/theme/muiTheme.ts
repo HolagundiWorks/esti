@@ -12,13 +12,15 @@
  *     active states, highlights) and a deeper orange on hover. Orange carries WHITE
  *     text. Airy whitespace, hairline separators, near-flat shadows — a deliberately
  *     un-Carbon, un-enterprise feel. Full spec: `docs/esti/AORMS-BRANDING-KIT.md`.
- *  2. SQUARE CORNERS EVERYWHERE. `shape.borderRadius = 0` plus explicit
- *     `borderRadius: 0` on every surface/control component. No rounded corners.
- *  3. FLAT SURFACES (the dashboard language, everywhere). Paper/Card/DataGrid/
- *     Drawer/AppBar/Menu are solid Pure-White (or transparent) panels with a
- *     hairline edge — NO backdrop blur, NO drop shadow. Definition comes from the
- *     hairline, not elevation. Only the floating widgets (ESTI/Pomodoro/Calculator)
- *     keep the neumorphic soft-UI treatment (glass.scss).
+ *  2. ONE SOFT-SQUARE RADIUS EVERYWHERE. `shape.borderRadius = GLASS_RADIUS` (8)
+ *     — every popup, panel, button, input and control shares the same gentle
+ *     rounding so the whole product reads as one system (2026-07 direction).
+ *  3. LIQUID GLASS pop-overs + GLASS BUTTONS. Menus/Dialogs/Popovers/Autocomplete
+ *     panes are translucent frosted glass (blur + hairline highlight + soft ambient
+ *     shadow, `GLASS_PANE`). Every button is a white liquid-glass slab whose hover
+ *     floods orange-30% and whose active/pressed label turns orange (`GLASS_BTN_*`).
+ *     Content tiles (Paper/Card/DataGrid) stay FLAT on the canvas so tables stay
+ *     legible; the glass lives on the things that float and the things you press.
  *
  * This file (and everything under src/theme/) is the ONE place raw colour values
  * live — it is exempt from the visual guard exactly like landing.scss.
@@ -53,16 +55,58 @@ const CDS = {
   supportInfo:    "#3B5568", // slate — links + info
 } as const;
 
-// ── Flat surface constants (light — the "flat dashboard everywhere" language) ──
-// The app runs the dashboard's FLAT vocabulary across every screen: solid
-// Pure-White panels on the Fog-Gray canvas, hairline borders, NO glass blur and
-// NO drop shadow. Definition comes from the hairline edge, not elevation.
-const GLASS_FILL   = "#FFFFFF";                        // solid Pure White panel
+// ── Shared corner radius — the single "soft-square" rounding used EVERYWHERE ──
+// Every popup, panel, button, input and control shares this one radius so the
+// whole product (landing → apps → login → admin → ESE) reads as one system.
+const GLASS_RADIUS = 8;
+
+// ── Content-surface constants (light) — tiles/cards stay FLAT on the canvas ──
+// Content Paper/Card/DataGrid read directly on the Fog-Gray canvas with hairline
+// dividers (definition from spacing, not a box edge). Only POP-UP panes and
+// buttons wear the liquid glass; content tiles stay flat so tables stay legible.
 const GLASS_BORDER = "1px solid rgba(20, 21, 23, 0.08)"; // hairline edge
-const GLASS_BLUR   = "none";                           // flat — no backdrop blur
-const GLASS_SHADOW = "none";                           // flat — no elevation
-// Pop-over surfaces (menus, dialogs, app bar) sit over content — solid white.
+const GLASS_BLUR   = "none";                           // flat content — no backdrop blur
+const GLASS_SHADOW = "none";                           // flat content — no elevation
+// Edge-docked surfaces (drawer, app bar) sit over content — solid white.
 const POP_FILL     = "#FFFFFF";
+
+// ── LIQUID GLASS pop-over panes (menus, dialogs, popovers, autocomplete) ──────
+// The shared "liquid glass" look for every floating pane: a translucent frosted
+// white surface, a backdrop blur, a bright hairline highlight edge and a soft
+// ambient drop shadow. One recipe across the whole product.
+const GLASS_PANE_FILL   = "rgba(255, 255, 255, 0.74)";
+const GLASS_PANE_BLUR   = "blur(22px) saturate(1.7)";
+const GLASS_PANE_BORDER = "1px solid rgba(255, 255, 255, 0.6)";
+const GLASS_PANE_SHADOW =
+  "0 10px 34px rgba(20, 21, 23, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.7)";
+const GLASS_PANE = {
+  backgroundColor: GLASS_PANE_FILL,
+  backgroundImage: "none",
+  backdropFilter: GLASS_PANE_BLUR,
+  WebkitBackdropFilter: GLASS_PANE_BLUR,
+  border: GLASS_PANE_BORDER,
+  borderRadius: GLASS_RADIUS,
+  boxShadow: GLASS_PANE_SHADOW,
+} as const;
+
+// ── GLASS BUTTONS — the signature control (see reference image) ───────────────
+// Every button is a white liquid-glass slab (soft specular gradient + ambient
+// shadow). Hover floods it with Radiant-Orange translucent glass at 30%; the
+// pressed / active state turns the LABEL orange (no orange fill). Applied to all
+// variants so contained/outlined/text all read as one glass family.
+const GLASS_BTN_BG =
+  "linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(236, 238, 242, 0.82))";
+const GLASS_BTN_BLUR = "blur(10px) saturate(1.3)";
+const GLASS_BTN_BORDER = "1px solid rgba(255, 255, 255, 0.7)";
+const GLASS_BTN_SHADOW =
+  "0 4px 14px rgba(20, 21, 23, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.85)";
+const GLASS_BTN_SHADOW_HOVER =
+  "0 6px 18px rgba(255, 79, 24, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.55)";
+const GLASS_BTN_PRESSED =
+  "inset 3px 3px 7px rgba(20, 21, 23, 0.14), inset -3px -3px 7px rgba(255, 255, 255, 0.85)";
+// Orange translucent glass — the hover flood (30%).
+const GLASS_ORANGE_30 = "rgba(255, 79, 24, 0.30)";
+const GLASS_RED_28 = "rgba(200, 68, 46, 0.28)";
 
 // ── Neumorphic RECESSED inputs (soft UI) — every text-entry field ────────────
 // Text inputs (search + all TextField/Select/DatePicker) look carved INTO the
@@ -75,7 +119,7 @@ const NEU_INSET       = "inset 2px 2px 4.5px rgba(20, 21, 23, 0.16), inset -2px 
 // On focus, a touch deeper + a thin Radiant-Orange inner ring for affordance.
 const NEU_INSET_FOCUS = "inset 2.5px 2.5px 5.5px rgba(20, 21, 23, 0.20), inset -2.5px -2.5px 5.5px rgba(255, 255, 255, 0.95), inset 0 0 0 1.5px rgba(255, 79, 24, 0.45)";
 const NEU_INSET_ERROR = "inset 2px 2px 4.5px rgba(20, 21, 23, 0.16), inset -2px -2px 4.5px rgba(255, 255, 255, 0.92), inset 0 0 0 1.5px rgba(200, 68, 46, 0.55)";
-const NEU_INPUT_RADIUS = 0; // square corners (matches the app's square-corner rule).
+const NEU_INPUT_RADIUS = GLASS_RADIUS; // shared soft-square rounding.
 
 // Dropdowns (Select) are FLAT — a plain white field with a hairline border and
 // the default caret — NOT neumorphic (text inputs keep the recessed well).
@@ -91,17 +135,8 @@ const DD_FLAT = {
   "&.Mui-disabled": { boxShadow: "none", opacity: 0.6 },
 } as const;
 
-// ── Neumorphic EXTRUDED pop surfaces (soft UI) — anything that pops up ────────
-// Dialogs (New task/project…), menus, popovers, autocomplete dropdowns render as
-// a raised neu card: same-colour panel, a dark drop shadow bottom-right + a light
-// highlight top-left, no border, soft rounded corners. (Recessed inputs inside a
-// dialog then read as wells carved into this raised card.) Matches glass.scss neu.
-const NEU_POP_FILL   = "#eceef2";
-const NEU_POP_SHADOW = "9px 9px 22px rgba(20, 21, 23, 0.18), -9px -9px 22px rgba(255, 255, 255, 0.92)";
-const NEU_POP_RADIUS = 18;
-
 export const muiTheme = createTheme({
-  shape: { borderRadius: 0 },
+  shape: { borderRadius: GLASS_RADIUS },
   palette: {
     mode: "light",
     // Radiant Orange is the signature accent; it carries WHITE text (fills/CTAs).
@@ -149,13 +184,13 @@ export const muiTheme = createTheme({
           backdropFilter: GLASS_BLUR,
           WebkitBackdropFilter: GLASS_BLUR,
           border: "none",
-          borderRadius: 0,
+          borderRadius: GLASS_RADIUS,
           boxShadow: GLASS_SHADOW,
         },
       },
     },
     MuiCard: {
-      styleOverrides: { root: { backgroundColor: CDS.background, border: "none", boxShadow: "none", borderRadius: 0 } },
+      styleOverrides: { root: { backgroundColor: CDS.background, border: "none", boxShadow: "none", borderRadius: GLASS_RADIUS } },
     },
     // Accordions — FLAT: transparent, no shadow, no rounded corners, and the MUI
     // divider pseudo-line removed; a single hairline separates stacked panels.
@@ -180,28 +215,20 @@ export const muiTheme = createTheme({
     MuiAccordionDetails: {
       styleOverrides: { root: { paddingInline: 0 } },
     },
-    // Pop surfaces — NEUMORPHIC raised cards (anything that pops up: dialogs,
-    // menus, dropdowns, popovers). Same-colour panel, soft neu drop shadow, no
-    // border, rounded corners.
+    // Pop surfaces — LIQUID GLASS panes (anything that pops up: dialogs, menus,
+    // dropdowns, popovers). Translucent frosted white, backdrop blur, hairline
+    // highlight edge, soft ambient shadow. One shared recipe (GLASS_PANE).
     MuiMenu: {
-      styleOverrides: {
-        paper: { backgroundColor: NEU_POP_FILL, border: "none", borderRadius: NEU_POP_RADIUS, boxShadow: NEU_POP_SHADOW },
-      },
+      styleOverrides: { paper: { ...GLASS_PANE } },
     },
     MuiPopover: {
-      styleOverrides: {
-        paper: { backgroundColor: NEU_POP_FILL, border: "none", borderRadius: NEU_POP_RADIUS, boxShadow: NEU_POP_SHADOW },
-      },
+      styleOverrides: { paper: { ...GLASS_PANE } },
     },
     MuiDialog: {
-      styleOverrides: {
-        paper: { backgroundColor: NEU_POP_FILL, border: "none", borderRadius: NEU_POP_RADIUS, boxShadow: NEU_POP_SHADOW },
-      },
+      styleOverrides: { paper: { ...GLASS_PANE } },
     },
     MuiAutocomplete: {
-      styleOverrides: {
-        paper: { backgroundColor: NEU_POP_FILL, border: "none", borderRadius: NEU_POP_RADIUS, boxShadow: NEU_POP_SHADOW },
-      },
+      styleOverrides: { paper: { ...GLASS_PANE } },
     },
     // Drawer is an edge-docked panel (not a floating card) — keep it flat white.
     MuiDrawer: {
@@ -221,30 +248,50 @@ export const muiTheme = createTheme({
         },
       },
     },
-    // Controls — all square. Yellow is the accent, but only as a FILL: the
-    // contained button is Forsythia with ink text (Saffron on hover). Text and
-    // outlined primary buttons keep ink text so labels stay legible on light.
+    // Controls — GLASS BUTTONS. Every button (all variants) is a white liquid-
+    // glass slab: soft specular gradient, hairline highlight, ambient shadow,
+    // 8px corners. Hover floods it with Radiant-Orange translucent glass at 30%
+    // and turns the label deep orange; the pressed / active state turns the
+    // label orange over a pressed (inset) glass. Error keeps a red label.
     MuiButton: {
       defaultProps: { disableElevation: true },
       styleOverrides: {
-        root: ({ ownerState }) => ({
-          borderRadius: 0,
-          fontWeight: 600,
-          ...(ownerState.color === "primary" && ownerState.variant === "contained" && {
-            color: CDS.onAccent,
-            backgroundColor: CDS.accent,
-            "&:hover": { backgroundColor: CDS.accentDark },
-          }),
-          ...(ownerState.color === "primary" && ownerState.variant === "text" && {
-            color: CDS.ink,
-            "&:hover": { backgroundColor: CDS.hoverSoft },
-          }),
-          ...(ownerState.color === "primary" && ownerState.variant === "outlined" && {
-            color: CDS.ink,
-            borderColor: CDS.accent,
-            "&:hover": { borderColor: CDS.accentDark, backgroundColor: "rgba(255,79,24,0.10)" },
-          }),
-        }),
+        root: ({ ownerState }) => {
+          const isError = ownerState.color === "error";
+          const baseInk = isError ? CDS.supportError : CDS.ink;
+          const hotInk = isError ? CDS.supportError : CDS.accentDark;
+          const activeInk = isError ? CDS.supportError : CDS.accent;
+          return {
+            borderRadius: GLASS_RADIUS,
+            fontWeight: 600,
+            color: baseInk,
+            background: GLASS_BTN_BG,
+            backdropFilter: GLASS_BTN_BLUR,
+            WebkitBackdropFilter: GLASS_BTN_BLUR,
+            border: GLASS_BTN_BORDER,
+            boxShadow: GLASS_BTN_SHADOW,
+            transition:
+              "background 140ms ease, color 140ms ease, box-shadow 140ms ease",
+            "&:hover": {
+              color: hotInk,
+              background: isError ? GLASS_RED_28 : GLASS_ORANGE_30,
+              border: GLASS_BTN_BORDER,
+              boxShadow: GLASS_BTN_SHADOW_HOVER,
+            },
+            // Pressed and "active" (selected / aria-pressed) → orange LABEL.
+            "&:active": { color: activeInk, boxShadow: GLASS_BTN_PRESSED },
+            '&.Mui-selected, &[aria-pressed="true"], &.is-active': {
+              color: activeInk,
+              boxShadow: GLASS_BTN_PRESSED,
+            },
+            "&.Mui-disabled": {
+              color: CDS.textHelper,
+              background: GLASS_BTN_BG,
+              boxShadow: "none",
+              opacity: 0.55,
+            },
+          };
+        },
       },
     },
     // Links use a readable slate, never the orange accent (which is a fill only).
@@ -254,17 +301,17 @@ export const muiTheme = createTheme({
     },
     MuiChip: {
       styleOverrides: {
-        root: { borderRadius: 0 },
+        root: { borderRadius: GLASS_RADIUS },
         colorPrimary: { backgroundColor: CDS.accent, color: CDS.onAccent },
       },
     },
-    // Tabs: orange indicator, but the selected label stays ink (not orange).
+    // Tabs: orange indicator AND the active (selected) label turns orange.
     MuiTabs: {
       styleOverrides: { indicator: { backgroundColor: CDS.accent, height: 3 } },
     },
     MuiTab: {
       styleOverrides: {
-        root: { textTransform: "none", "&.Mui-selected": { color: CDS.ink, fontWeight: 600 } },
+        root: { textTransform: "none", "&.Mui-selected": { color: CDS.accent, fontWeight: 600 } },
       },
     },
     // Selected list rows (nav, menus) use a warm Mystic Mint wash, not grey.
@@ -324,8 +371,18 @@ export const muiTheme = createTheme({
         },
       },
     },
+    // Toggle buttons — glass family; the selected ("active") one gets orange ink.
     MuiToggleButton: {
-      styleOverrides: { root: { borderRadius: 0 } },
+      styleOverrides: {
+        root: {
+          borderRadius: GLASS_RADIUS,
+          "&.Mui-selected": {
+            color: CDS.accent,
+            backgroundColor: GLASS_ORANGE_30,
+            "&:hover": { backgroundColor: GLASS_ORANGE_30 },
+          },
+        },
+      },
     },
     MuiTableCell: {
       styleOverrides: {
@@ -343,7 +400,7 @@ export const muiTheme = createTheme({
     MuiTooltip: {
       styleOverrides: {
         tooltip: {
-          borderRadius: 0,
+          borderRadius: GLASS_RADIUS,
           backgroundColor: "#141517",
           color: "#FFFFFF",
           border: "1px solid rgba(20, 21, 23, 0.20)",
