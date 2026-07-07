@@ -52,6 +52,8 @@ export const orgSettings = pgTable("esti_orgsettings", {
     }),
   /** BYOS — bring-your-own-storage (Enterprise). See StorageSettings in @esti/contracts. */
   storageSettings: jsonb("storage_settings").notNull().default({ mode: "DEFAULT" }),
+  /** Firm wellness — snack/lunch break reminder times. See WellnessSettings in @esti/contracts. */
+  wellness: jsonb("wellness").notNull().default({ snackBreak: null, lunchBreak: null }),
   /** When true, REST file uploads require uploadPassword in multipart form data. */
   uploadPasswordRequired: boolean("upload_password_required").notNull().default(false),
   /** Argon2 hash — never expose via API. */

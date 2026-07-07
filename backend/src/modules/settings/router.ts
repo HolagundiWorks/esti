@@ -3,6 +3,7 @@ import {
   EscalationSettings,
   StorageSettingsInput,
   UploadSecuritySettingsInput,
+  WellnessSettings,
   parseStorageSettings,
   storageConfigError,
   toPublicStorageSettings,
@@ -218,6 +219,27 @@ export const settingsRouter = router({
         actorId: ctx.user.id,
         before: { [column]: current[column] },
         after: { [column]: input.enabled },
+      });
+      return publicSettings(row!);
+    }),
+
+  /** Firm wellness — snack/lunch break reminder times (owner only). */
+  setWellness: ownerProcedure
+    .input(WellnessSettings)
+    .mutation(async ({ ctx, input }) => {
+      const current = await getOrgSettings(ctx.db);
+      const [row] = await ctx.db
+        .update(orgSettings)
+        .set({ wellness: input, updatedAt: new Date() })
+        .where(eq(orgSettings.id, current.id))
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "settings",
+        entityId: current.id,
+        action: "UPDATE",
+        actorId: ctx.user.id,
+        before: { wellness: current.wellness },
+        after: { wellness: input },
       });
       return publicSettings(row!);
     }),

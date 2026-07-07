@@ -82,3 +82,4 @@ export * from "./bbs.js";
 export * from "./bbs-engine.js";
 export * from "./estimate.js";
 export * from "./migration.js";
+export * from "./wellness.js";

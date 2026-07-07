@@ -117,6 +117,20 @@ export function Company() {
     },
   });
 
+  const setWellness = trpc.settings.setWellness.useMutation({
+    onSuccess: () => {
+      utils.settings.get.invalidate();
+      setMsg("Break schedule updated.");
+    },
+  });
+  const wellness = (settingsQ.data as { wellness?: { snackBreak: string | null; lunchBreak: string | null } } | undefined)?.wellness;
+  const [snackBreak, setSnackBreak] = useState("");
+  const [lunchBreak, setLunchBreak] = useState("");
+  useEffect(() => {
+    setSnackBreak(wellness?.snackBreak ?? "");
+    setLunchBreak(wellness?.lunchBreak ?? "");
+  }, [wellness?.snackBreak, wellness?.lunchBreak]);
+
   const [f, setF] = useState<Form>(EMPTY);
   const [msg, setMsg] = useState<string | null>(null);
   const set = (k: keyof Form) => (e: { target: { value: string } }) =>
@@ -497,6 +511,48 @@ export function Company() {
             }
             label="Enable PMC module"
           />
+          {!isOwner && <Typography variant="body2">Only the owner can change this.</Typography>}
+        </Stack>
+      </Box>
+
+      <Box>
+        <Stack spacing={2}>
+          <Typography variant="h6" component="h2">Wellbeing &amp; breaks</Typography>
+          <Typography variant="body2">
+            Office snack and lunch break times — everyone gets a gentle reminder at these times.
+            Personal hydration reminders are toggled per person from the Wellness dock.
+          </Typography>
+          <Stack direction="row" spacing={2}>
+            <TextField
+              id="snack-break"
+              type="time"
+              label="Snack break"
+              value={snackBreak}
+              onChange={(e) => setSnackBreak(e.target.value)}
+              disabled={!isOwner}
+              slotProps={{ inputLabel: { shrink: true } }}
+              sx={{ maxWidth: 180 }}
+            />
+            <TextField
+              id="lunch-break"
+              type="time"
+              label="Lunch break"
+              value={lunchBreak}
+              onChange={(e) => setLunchBreak(e.target.value)}
+              disabled={!isOwner}
+              slotProps={{ inputLabel: { shrink: true } }}
+              sx={{ maxWidth: 180 }}
+            />
+          </Stack>
+          <Box>
+            <Button
+              variant="contained"
+              disabled={!isOwner || setWellness.isPending}
+              onClick={() => setWellness.mutate({ snackBreak: snackBreak || null, lunchBreak: lunchBreak || null })}
+            >
+              Save break schedule
+            </Button>
+          </Box>
           {!isOwner && <Typography variant="body2">Only the owner can change this.</Typography>}
         </Stack>
       </Box>

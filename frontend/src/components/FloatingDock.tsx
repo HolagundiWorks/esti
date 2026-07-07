@@ -1,5 +1,6 @@
 import AutoAwesome from "@mui/icons-material/AutoAwesome";
 import CalculateOutlined from "@mui/icons-material/CalculateOutlined";
+import SelfImprovement from "@mui/icons-material/SelfImprovement";
 import TaskAltOutlined from "@mui/icons-material/TaskAltOutlined";
 import { Box, Divider, IconButton, Paper, Stack, Tooltip } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
@@ -9,6 +10,8 @@ import { AlertsBell } from "./AlertsBell.js";
 import { FloatingCalculator } from "./FloatingCalculator.js";
 import { HeaderPomodoro } from "./HeaderPomodoro.js";
 import { useOfficeHealth } from "./shell/useOfficeHealth.js";
+import { WellnessPanel } from "./wellness/WellnessPanel.js";
+import { useWellnessReminders } from "./wellness/useWellnessReminders.js";
 
 /**
  * Floating glass dock — bottom-centred floating bar with a top border that signals
@@ -19,7 +22,12 @@ import { useOfficeHealth } from "./shell/useOfficeHealth.js";
 export function FloatingDock() {
   const navigate = useNavigate();
   const [showCalc, setShowCalc] = useState(false);
+  const [showWellness, setShowWellness] = useState(false);
   const calcTriggerRef = useRef<HTMLButtonElement>(null);
+  const wellnessTriggerRef = useRef<HTMLButtonElement>(null);
+
+  // Wellness reminders (hydration + firm breaks) run globally from the dock.
+  useWellnessReminders();
 
   const { state } = useOfficeHealth();
 
@@ -65,6 +73,18 @@ export function FloatingDock() {
               <TaskAltOutlined />
             </IconButton>
           </Tooltip>
+          {/* Wellness — breathing module + hydration/break reminders */}
+          <Tooltip title="Wellness — breathe">
+            <IconButton
+              ref={wellnessTriggerRef}
+              size="small"
+              color={showWellness ? "primary" : "default"}
+              onClick={() => setShowWellness((o) => !o)}
+              aria-label="Wellness"
+            >
+              <SelfImprovement />
+            </IconButton>
+          </Tooltip>
           {/* Pomodoro + Calculator — desktop only; hidden on mobile. */}
           <Box sx={{ display: { xs: "none", sm: "flex" }, alignItems: "center", gap: 1 }}>
             <HeaderPomodoro />
@@ -104,6 +124,12 @@ export function FloatingDock() {
         open={showCalc}
         onClose={() => setShowCalc(false)}
         triggerRef={calcTriggerRef}
+      />
+
+      <WellnessPanel
+        open={showWellness}
+        onClose={() => setShowWellness(false)}
+        triggerRef={wellnessTriggerRef}
       />
     </>
   );
