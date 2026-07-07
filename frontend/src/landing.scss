@@ -1921,7 +1921,7 @@
   left: 0;
   width: var(--lp-rail-w);
   height: 100vh;
-  overflow: hidden; // fixed — no scroll
+  overflow-y: auto; // fixed rail; scrolls only if the content (incl. downloads) overflows a short viewport
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -1955,6 +1955,56 @@
     &:hover { color: var(--lp-accent); }
   }
   .esti-landing-signin { margin-top: 0.75rem; align-self: flex-start; }
+}
+// Rail download boxes — square flat cards (description + download button).
+.esti-lp-rail__downloads {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.esti-lp-dl-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  padding: 0.85rem 0.9rem;
+  background: var(--lp-bg);          // fog fill on the white rail → distinct box
+  border: 1px solid var(--lp-border);
+  border-radius: 0;                  // square
+}
+.esti-lp-dl-box__eyebrow {
+  margin: 0;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--lp-ink-faint);
+}
+.esti-lp-dl-box__title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--lp-ink);
+}
+.esti-lp-dl-box__desc {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.42;
+  color: var(--lp-ink-muted);
+}
+.esti-lp-dl-btn {
+  margin-top: 0.4rem;
+  display: block;
+  text-align: center;
+  padding: 0.45rem 0.6rem;
+  background: var(--lp-accent);
+  color: var(--lp-ink-invert);
+  border: 1px solid var(--lp-accent);
+  border-radius: 0;                  // square
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  &:hover { background: var(--lp-accent-hover); border-color: var(--lp-accent-hover); }
 }
 .esti-lp-rail__foot {
   margin-top: auto; // pin to the rail bottom
@@ -2051,8 +2101,10 @@
   }
   .esti-lp-rail__menu { display: inline-flex; }
   .esti-lp-rail__nav,
+  .esti-lp-rail__downloads,
   .esti-lp-rail__foot { display: none; }
   .esti-lp-rail.is-open .esti-lp-rail__nav,
+  .esti-lp-rail.is-open .esti-lp-rail__downloads,
   .esti-lp-rail.is-open .esti-lp-rail__foot { display: flex; }
   .esti-lp-rail__foot { margin-top: 0; }
   .esti-lp-stage { margin-left: 0; }

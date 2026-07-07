@@ -2,6 +2,49 @@ import CloseIcon from "@mui/icons-material/Close";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Button, IconButton } from "@mui/material";
 import { useState, type ReactNode } from "react";
+import { trpc } from "../../lib/trpc.js";
+
+/**
+ * Rail download boxes — the free Community desktop app + the Estimate companion,
+ * each a square flat card (description + download button). The Community URL
+ * comes from the live installer resolver (newest desktop-v* release), falling
+ * back to the build-time env; Estimate is a build-time env (or /download).
+ */
+function RailDownloads() {
+  const installersQ = trpc.marketing.desktopInstallers.useQuery(undefined, {
+    staleTime: 10 * 60 * 1000,
+  });
+  const communityUrl =
+    installersQ.data?.lite ??
+    (import.meta.env.VITE_COMMUNITY_DOWNLOAD_URL as string | undefined) ??
+    (import.meta.env.VITE_LITE_DOWNLOAD_URL as string | undefined) ??
+    "/download";
+  const estimateUrl =
+    (import.meta.env.VITE_ESTIMATION_DOWNLOAD_URL as string | undefined) ?? "/download";
+
+  return (
+    <div className="esti-lp-rail__downloads">
+      <div className="esti-lp-dl-box">
+        <p className="esti-lp-dl-box__eyebrow">Desktop app</p>
+        <p className="esti-lp-dl-box__title">AORMS Community</p>
+        <p className="esti-lp-dl-box__desc">
+          The free, offline desktop app — your whole office on your own machine and
+          local network. Postgres bundled, no cloud, no licence.
+        </p>
+        <a className="esti-lp-dl-btn" href={communityUrl}>Download Community</a>
+      </div>
+      <div className="esti-lp-dl-box">
+        <p className="esti-lp-dl-box__eyebrow">Companion</p>
+        <p className="esti-lp-dl-box__title">AORMS Estimate</p>
+        <p className="esti-lp-dl-box__desc">
+          The standalone estimating app — measure once, take off materials and the
+          Bar Bending Schedule. Free and fully offline.
+        </p>
+        <a className="esti-lp-dl-btn" href={estimateUrl}>Download Estimate</a>
+      </div>
+    </div>
+  );
+}
 
 // Absolute "/#section" links so the nav works from any route (e.g. /blog), not
 // just the landing page where the in-page anchors live.
@@ -48,7 +91,14 @@ function LandingStatusBar() {
  * "Developed by" + AORMS identity block (formerly the bottom bar) live in a FIXED,
  * NON-SCROLLING left rail; all content renders in the scrolling stage.
  */
-export function MarketingShell({ children }: { children: ReactNode }) {
+export function MarketingShell({
+  children,
+  downloads,
+}: {
+  children: ReactNode;
+  /** Show the Community + Estimate download boxes in the rail (landing only). */
+  downloads?: boolean;
+}) {
   const [navOpen, setNavOpen] = useState(false);
 
   return (
@@ -98,6 +148,8 @@ export function MarketingShell({ children }: { children: ReactNode }) {
             Log in
           </Button>
         </nav>
+
+        {downloads && <RailDownloads />}
 
         {/* Pinned to the rail bottom: developed-by + AORMS identity. */}
         <div className="esti-lp-rail__foot">
