@@ -22,48 +22,78 @@
   --esti-brand-yellow: #ff4f18; // legacy alias → accent (kept for older refs)
 }
 
-// ── Neumorphic (soft UI) — ESTI · Pomodoro · Calculator ──────────────────────
-// Panels/buttons that extrude softly from the flat Fog-Gray canvas: same
-// base colour, a dark bottom-right shadow + a light top-left highlight. Neu is
-// the ONE surface that breaks the square-corner rule — soft ROUNDED corners are
-// intrinsic to the neumorphic look. Exempt file → radius/box-shadow/rgba allowed.
-$neu-bg: #eceef2;
+// ── LIQUID GLASS (soft UI) — ESTI · Pomodoro · Calculator · Wellness ─────────
+// The floating widget panes + buttons now share the product-wide LIQUID GLASS
+// look (matches the MUI theme's GLASS_PANE / GLASS_BTN): a translucent frosted
+// white surface, a backdrop blur, a bright hairline highlight edge and a soft
+// ambient shadow, with the one shared 8px "soft-square" radius. Buttons flood
+// orange-30% on hover and turn the label orange when active. Exempt file →
+// radius/box-shadow/rgba/blur allowed here.
+$neu-bg: #eceef2; // recessed-well fill (inputs) only
 $neu-dark: rgba(20, 21, 23, 0.16);
 $neu-light: rgba(255, 255, 255, 0.92);
-$neu-radius: 20px; // soft rounded corners for all neu panels
-$neu-btn-radius: 16px; // rounded neu buttons
+$glass-radius: 8px; // the single shared soft-square radius
+
+// Liquid-glass pane (floating panels, wellness popover, calculator/pomodoro).
+$glass-pane-fill: rgba(255, 255, 255, 0.74);
+$glass-pane-border: 1px solid rgba(255, 255, 255, 0.6);
+$glass-pane-blur: blur(22px) saturate(1.7);
+$glass-pane-shadow: 0 10px 34px rgba(20, 21, 23, 0.16),
+  inset 0 1px 0 rgba(255, 255, 255, 0.7);
+
+// Glass button (icon buttons in the floating widgets).
+$glass-btn-bg: linear-gradient(
+  145deg,
+  rgba(255, 255, 255, 0.95),
+  rgba(236, 238, 242, 0.82)
+);
+$glass-btn-border: 1px solid rgba(255, 255, 255, 0.7);
+$glass-btn-shadow: 0 4px 14px rgba(20, 21, 23, 0.12),
+  inset 0 1px 0 rgba(255, 255, 255, 0.85);
+$glass-btn-shadow-hover: 0 6px 18px rgba(255, 79, 24, 0.24),
+  inset 0 1px 0 rgba(255, 255, 255, 0.55);
+$glass-btn-pressed: inset 3px 3px 7px rgba(20, 21, 23, 0.14),
+  inset -3px -3px 7px rgba(255, 255, 255, 0.85);
+$glass-orange-30: rgba(255, 79, 24, 0.3);
 
 .esti-neu.MuiPaper-root,
 .esti-neu {
-  background-color: $neu-bg !important;
+  background-color: $glass-pane-fill !important;
   background-image: none !important;
-  border: none !important;
-  border-radius: $neu-radius !important;
-  backdrop-filter: none !important;
-  box-shadow: 9px 9px 20px $neu-dark, -9px -9px 20px $neu-light !important;
+  border: $glass-pane-border !important;
+  border-radius: $glass-radius !important;
+  backdrop-filter: $glass-pane-blur !important;
+  -webkit-backdrop-filter: $glass-pane-blur !important;
+  box-shadow: $glass-pane-shadow !important;
 }
 
+// Recessed variant — a carved well (used inside glass panes for grouped areas).
 .esti-neu-inset.MuiPaper-root,
 .esti-neu-inset {
   background-color: $neu-bg !important;
   background-image: none !important;
   border: none !important;
-  border-radius: $neu-radius !important;
+  border-radius: $glass-radius !important;
   box-shadow: inset 4px 4px 10px $neu-dark, inset -4px -4px 10px $neu-light !important;
 }
 
 .esti-neu-btn.MuiIconButton-root {
-  background-color: $neu-bg;
-  border-radius: $neu-btn-radius;
-  box-shadow: 4px 4px 10px $neu-dark, -4px -4px 10px $neu-light;
-  transition: box-shadow 120ms ease;
+  background: $glass-btn-bg;
+  border: $glass-btn-border;
+  border-radius: $glass-radius;
+  box-shadow: $glass-btn-shadow;
+  backdrop-filter: blur(10px) saturate(1.3);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
 
   &:hover {
-    background-color: $neu-bg;
-    box-shadow: 5px 5px 12px $neu-dark, -5px -5px 12px $neu-light;
+    background: $glass-orange-30;
+    color: #db3e0f;
+    box-shadow: $glass-btn-shadow-hover;
   }
   &:active {
-    box-shadow: inset 3px 3px 8px $neu-dark, inset -3px -3px 8px $neu-light;
+    color: #ff4f18;
+    box-shadow: $glass-btn-pressed;
   }
 }
 
@@ -72,7 +102,7 @@ $neu-btn-radius: 16px; // rounded neu buttons
 // the same look for any bare <input>/search box. Text is carved into the surface:
 // no border, same-colour fill, dark inset top-left + light inset bottom-right,
 // soft rounded corners. Wrap an icon + input in .esti-neu-input for a search bar.
-$neu-input-radius: 0; // square corners
+$neu-input-radius: 8px; // shared soft-square radius
 .esti-neu-input {
   display: flex;
   align-items: center;
@@ -367,13 +397,15 @@ $neu-input-radius: 0; // square corners
 .esti-breath-orb {
   width: 176px;
   height: 176px;
-  border-radius: 50%;
+  border-radius: 50%; // the breath focus stays a perfect circle
   display: grid;
   place-items: center;
   gap: 0.15rem;
-  background: $neu-bg;
-  box-shadow: 9px 9px 22px $neu-dark, -9px -9px 22px $neu-light,
-    inset 0 0 0 1px rgba(255, 79, 24, 0.16);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow: 0 10px 30px rgba(20, 21, 23, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7), inset 0 0 0 1px rgba(255, 79, 24, 0.16);
   color: var(--esti-brand-accent);
   will-change: transform;
   // JS drives the scale each frame; a short transition smooths any dropped frame.
