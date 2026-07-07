@@ -108,11 +108,13 @@ export function Letters() {
       <RailLayout
         title="Letters"
         description="Office correspondence on firm letterhead."
+        actions={
+          <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
+            New letter
+          </Button>
+        }
         aside={
           <Stack spacing={1.5}>
-            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-              New letter
-            </Button>
             <Button component={Link} to="/office/documents" variant="text" size="small" fullWidth>
               Document register
             </Button>

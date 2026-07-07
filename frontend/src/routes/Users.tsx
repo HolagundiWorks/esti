@@ -266,8 +266,8 @@ export function Users() {
       <RailLayout
         title="Users & access"
         description="Owner / staff / portal logins. Client and consultant portal logins are created from their records (Clients / Consultants)."
-        aside={
-          <Stack spacing={1.5}>
+        actions={
+          <>
             <Button variant="contained" fullWidth onClick={() => setAddOpen(true)}>Add staff login</Button>
             <Button
               variant="outlined"
@@ -277,7 +277,7 @@ export function Users() {
             >
               {resync.isPending ? "Syncing…" : "Resync identity types"}
             </Button>
-          </Stack>
+          </>
         }
       >
 

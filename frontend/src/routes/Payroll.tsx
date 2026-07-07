@@ -113,12 +113,10 @@ export function Payroll() {
       <RailLayout
         title="Payroll"
         description="Monthly payslips — gross, deductions and net pay."
-        aside={
-          <Stack spacing={1.5}>
-            <Button variant="contained" fullWidth disabled={team.length === 0} onClick={() => setOpen(true)}>
-              Generate payslip
-            </Button>
-          </Stack>
+        actions={
+          <Button variant="contained" fullWidth disabled={team.length === 0} onClick={() => setOpen(true)}>
+            Generate payslip
+          </Button>
         }
       >
         <DataState

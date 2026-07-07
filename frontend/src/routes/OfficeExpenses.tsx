@@ -300,13 +300,15 @@ export function OfficeExpenses() {
       <RailLayout
         title="Office expenses"
         description="Firm overhead not tied to a single project. Always non-billable — separate from client GST invoices."
+        actions={
+          canManage && (
+            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
+              New expense
+            </Button>
+          )
+        }
         aside={
           <Stack spacing={1.5}>
-            {canManage && (
-              <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-                New expense
-              </Button>
-            )}
             <AccountsCarryForward period={period} onPeriodChange={setPeriod} />
           </Stack>
         }
@@ -343,13 +345,15 @@ export function CashBook() {
       <RailLayout
         title="Cash book"
         description="Petty cash and physical cash outflows. Balance reflects closed cash vouchers in the selected financial year."
+        actions={
+          canManage && (
+            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
+              New cash voucher
+            </Button>
+          )
+        }
         aside={
           <Stack spacing={1.5}>
-            {canManage && (
-              <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-                New cash voucher
-              </Button>
-            )}
             <AccountsCarryForward period={period} onPeriodChange={setPeriod} />
             {cashAccount && (
               <Typography variant="body2" className="esti-label">

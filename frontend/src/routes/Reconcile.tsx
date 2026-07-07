@@ -254,6 +254,11 @@ export function Reconcile() {
     <RailLayout
       title="Reconciliation"
       description="Match bank-statement credits against invoices (CSV / XLSX). Override column names when your bank export uses non-standard headers."
+      actions={
+        <Button variant="contained" fullWidth disabled={!file || !label || busy} onClick={upload}>
+          {busy ? "Uploading…" : "Upload & reconcile"}
+        </Button>
+      }
       aside={
         <Stack spacing={1.5}>
           <TextField
@@ -274,9 +279,6 @@ export function Reconcile() {
                 setFile(e.target.files?.[0] ?? null)
               }
             />
-          </Button>
-          <Button variant="contained" fullWidth disabled={!file || !label || busy} onClick={upload}>
-            {busy ? "Uploading…" : "Upload & reconcile"}
           </Button>
           <TextField
             id="rcn-date-col"

@@ -283,6 +283,7 @@ export function Vendors() {
       <RailLayout
         title="Vendors"
         description="Material supplier directory — categories, statutory ids, ratings and pricing history."
+        actions={<Button variant="contained" fullWidth onClick={() => setForm({ ...EMPTY })}>New vendor</Button>}
         aside={
           <Stack spacing={1.5}>
             <TextField
@@ -299,7 +300,6 @@ export function Vendors() {
                 <MenuItem key={c} value={c}>{VENDOR_CATEGORIES[c]}</MenuItem>
               ))}
             </TextField>
-            <Button variant="contained" fullWidth onClick={() => setForm({ ...EMPTY })}>New vendor</Button>
           </Stack>
         }
       >

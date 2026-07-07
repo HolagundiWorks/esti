@@ -193,11 +193,7 @@ export function Leads() {
             <Tab label="Permissible development" />
           </Tabs>
         }
-        aside={
-          <Stack spacing={1.5}>
-            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>New lead</Button>
-          </Stack>
-        }
+        actions={<Button variant="contained" fullWidth onClick={() => setOpen(true)}>New lead</Button>}
       >
         {tab === 0 && (
         <DataState

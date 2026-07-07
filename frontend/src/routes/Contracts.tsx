@@ -162,12 +162,10 @@ export function Contracts() {
       <RailLayout
         title="Contracts"
         description="Agreements with clients, consultants and vendors."
-        aside={
-          <Stack spacing={1.5}>
-            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-              New contract
-            </Button>
-          </Stack>
+        actions={
+          <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
+            New contract
+          </Button>
         }
       >
         <DataState

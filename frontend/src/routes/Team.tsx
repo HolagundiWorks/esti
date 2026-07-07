@@ -75,6 +75,11 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
       <RailLayout
         title="Team"
         description="Office team members, roles, employment type and monthly salary."
+        actions={
+          <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
+            New member
+          </Button>
+        }
         aside={
           <Stack spacing={1.5}>
             <TextField
@@ -85,9 +90,6 @@ export function Team({ embedded = false }: { embedded?: boolean }) {
               onChange={(e) => setSearch(e.target.value)}
               fullWidth
             />
-            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-              New member
-            </Button>
           </Stack>
         }
       >

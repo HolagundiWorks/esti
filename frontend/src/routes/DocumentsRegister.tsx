@@ -130,6 +130,21 @@ export function DocumentsRegister() {
       <RailLayout
         title="Document register"
         description="Unified view of issued office and project documents — numbers, versions, and PDF status."
+        actions={
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<Download />}
+            disabled={exportQ.isFetching}
+            fullWidth
+            onClick={async () => {
+              const data = await exportQ.refetch();
+              if (data.data?.length) downloadXlsx(data.data, "Register", "esti-document-register");
+            }}
+          >
+            Export XLSX
+          </Button>
+        }
         aside={
           <Stack spacing={1.5}>
             <TextField
@@ -159,19 +174,6 @@ export function DocumentsRegister() {
               <MenuItem value="DRAFT">Draft</MenuItem>
               <MenuItem value="ISSUED">Issued</MenuItem>
             </TextField>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<Download />}
-              disabled={exportQ.isFetching}
-              fullWidth
-              onClick={async () => {
-                const data = await exportQ.refetch();
-                if (data.data?.length) downloadXlsx(data.data, "Register", "esti-document-register");
-              }}
-            >
-              Export XLSX
-            </Button>
           </Stack>
         }
       >

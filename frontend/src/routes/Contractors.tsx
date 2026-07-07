@@ -193,6 +193,7 @@ export function Contractors({ embedded = false }: { embedded?: boolean }) {
       <RailLayout
         title="Contractors"
         description="Construction contractor register — trades, statutory ids and on-site performance."
+        actions={<Button variant="contained" fullWidth onClick={() => setForm({ ...EMPTY })}>New contractor</Button>}
         aside={
           <Stack spacing={1.5}>
             <TextField
@@ -209,7 +210,6 @@ export function Contractors({ embedded = false }: { embedded?: boolean }) {
                 <MenuItem key={c} value={c}>{CONTRACTOR_CATEGORIES[c]}</MenuItem>
               ))}
             </TextField>
-            <Button variant="contained" fullWidth onClick={() => setForm({ ...EMPTY })}>New contractor</Button>
           </Stack>
         }
       >

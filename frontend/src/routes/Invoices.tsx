@@ -173,13 +173,15 @@ export function Invoices() {
       <RailLayout
         title="Invoices"
         description="GST tax invoices & bills of supply across all projects."
+        actions={
+          canInvoice ? (
+            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
+              New invoice
+            </Button>
+          ) : undefined
+        }
         aside={
           <Stack spacing={1.5}>
-            {canInvoice && (
-              <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-                New invoice
-              </Button>
-            )}
             <PeriodFilter value={period} onChange={setPeriod} />
           </Stack>
         }

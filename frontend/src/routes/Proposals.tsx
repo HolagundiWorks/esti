@@ -136,12 +136,10 @@ export function Proposals() {
       <RailLayout
         title="Proposals"
         description="COA fee proposals and scope agreements across all projects."
-        aside={
-          <Stack spacing={1.5}>
-            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-              New proposal
-            </Button>
-          </Stack>
+        actions={
+          <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
+            New proposal
+          </Button>
         }
       >
         <DataState

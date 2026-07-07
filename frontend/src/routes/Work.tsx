@@ -1,4 +1,4 @@
-import { Box, Button, Stack, Tab, Tabs } from "@mui/material";
+import { Box, Button, Tab, Tabs } from "@mui/material";
 import { useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { RailLayout } from "../components/RailLayout.js";
@@ -80,11 +80,9 @@ export function Work() {
           ))}
         </Tabs>
       }
-      aside={
+      actions={
         activeTab === "tasks" ? (
-          <Stack spacing={1.5}>
-            <Button variant="contained" fullWidth onClick={() => tasksRef.current?.openCreate()}>New task</Button>
-          </Stack>
+          <Button variant="contained" fullWidth onClick={() => tasksRef.current?.openCreate()}>New task</Button>
         ) : undefined
       }
     >

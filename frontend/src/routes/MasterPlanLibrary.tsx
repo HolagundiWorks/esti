@@ -103,6 +103,11 @@ export function MasterPlanLibrary() {
     <RailLayout
       title="Master Plan Library"
       description="Reference master plans — PDF, DWG, zoning and development plans."
+      actions={
+        <Button variant="contained" fullWidth disabled={!file || busy} onClick={upload}>
+          {busy ? "Uploading…" : "Upload"}
+        </Button>
+      }
       aside={
         <Stack spacing={1.5}>
           <TextField
@@ -132,9 +137,6 @@ export function MasterPlanLibrary() {
               accept=".pdf,.dwg,.dxf"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
-          </Button>
-          <Button variant="contained" fullWidth disabled={!file || busy} onClick={upload}>
-            {busy ? "Uploading…" : "Upload"}
           </Button>
           {error && (
             <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>

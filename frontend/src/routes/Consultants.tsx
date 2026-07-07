@@ -110,6 +110,11 @@ export function Consultants({ embedded = false }: { embedded?: boolean }) {
       <RailLayout
         title="Consultants"
         description="Discipline specialists the office engages on projects."
+        actions={
+          <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
+            New consultant
+          </Button>
+        }
         aside={
           <Stack spacing={1.5}>
             <TextField
@@ -119,9 +124,6 @@ export function Consultants({ embedded = false }: { embedded?: boolean }) {
               onChange={(e) => setQuery(e.target.value)}
               fullWidth
             />
-            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-              New consultant
-            </Button>
           </Stack>
         }
       >
