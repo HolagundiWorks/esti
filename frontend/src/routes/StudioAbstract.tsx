@@ -34,6 +34,7 @@ import { StatusDot } from "../components/StatusTag.js";
 import { STATE_WORD } from "../components/dashboard/zoneState.js";
 import type { ZoneState } from "../components/dashboard/zoneState.js";
 import { CAPACITY_LABEL } from "../components/dashboard/dashboardUi.js";
+import { StudioBreath } from "../components/dashboard/StudioBreath.js";
 import { confidenceTag } from "../components/work/workHelpers.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
@@ -499,6 +500,8 @@ export function StudioAbstract() {
 
   return (
     <Box className="esti-glass-dash">
+      {/* Ambient resonant-breathing contour field (behind content; a passive pacer). */}
+      <StudioBreath />
       {/* Mobile: Rail stacks first (full width), Stage follows below. */}
       <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, alignItems: "flex-start", width: 1 }}>
         {/* ── RAIL (20%) — fixed info column: logo · greeting · Today · zones · status · toggles ── */}

@@ -174,6 +174,41 @@ $neu-input-radius: 0; // square corners
     z-index: 1;
   }
 
+  // ── Ambient resonant-breathing contour field ───────────────────────────────
+  // Faint concentric rings centred behind the dashboard, breathing at ~5.5
+  // breaths/min (an ~11s inhale → hold → exhale → rest cycle). A passive pacer:
+  // let the eyes rest on the centre and the breath follow the expansion. The
+  // `> .esti-si-breath` selector out-specifies `> *` above to pin it BEHIND
+  // content at z-index 0.
+  > .esti-si-breath {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    pointer-events: none;
+
+    svg {
+      width: min(78vh, 62vw);
+      height: min(78vh, 62vw);
+      max-width: 100%;
+      display: block;
+    }
+    .esti-si-breath__ring {
+      fill: none;
+      stroke: var(--esti-brand-accent);
+      stroke-opacity: 0.1;
+      stroke-width: 1.1;
+      vector-effect: non-scaling-stroke;
+    }
+    .esti-si-breath__rings {
+      transform-box: fill-box;
+      transform-origin: 50% 50%;
+      animation: esti-si-breathe 11s ease-in-out infinite;
+    }
+  }
+
   // ── Flat white tiles (light) — no glass blur, no shadow ────────────────────
   .cds--tile {
     background: #ffffff;
@@ -300,4 +335,25 @@ $neu-input-radius: 0; // square corners
   // keeps scrolling content from showing through.
   background-color: transparent;
   border-top: none;
+}
+
+// ── Resonant breathing pace for the Studio Intelligence contour field ─────────
+// ~11s cycle ≈ 5.5 breaths/min (coherent/resonant breathing): inhale ~4.6s,
+// hold ~1.1s, exhale ~4.6s, rest ~0.7s. Expansion = inhale, contraction = exhale.
+@keyframes esti-si-breathe {
+  0%   { transform: scale(0.9);  opacity: 0.45; } // rest / fully exhaled
+  6%   { transform: scale(0.9);  opacity: 0.45; }
+  42%  { transform: scale(1.08); opacity: 0.85; } // fully inhaled
+  52%  { transform: scale(1.08); opacity: 0.85; } // brief hold
+  94%  { transform: scale(0.9);  opacity: 0.45; } // exhaled
+  100% { transform: scale(0.9);  opacity: 0.45; }
+}
+
+// Breathing is the point, but respect a user's reduced-motion preference: hold
+// the rings still (softly visible) rather than animating.
+@media (prefers-reduced-motion: reduce) {
+  .esti-glass-dash > .esti-si-breath .esti-si-breath__rings {
+    animation: none;
+    opacity: 0.5;
+  }
 }
