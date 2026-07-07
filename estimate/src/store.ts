@@ -14,6 +14,7 @@ import {
 
 interface Store {
   model: EstimateModel;
+  setModel: (model: EstimateModel) => void;
   setMeta: (patch: Partial<EstimateModel>) => void;
   addItem: () => void;
   updateItem: (id: string, patch: Partial<WorkItem>) => void;
@@ -36,6 +37,7 @@ const mapItems = (items: WorkItem[], id: string, fn: (i: WorkItem) => WorkItem) 
 
 export const useStore = create<Store>((set) => ({
   model: emptyModel(),
+  setModel: (model) => set({ model }),
   setMeta: (patch) => set((s) => ({ model: { ...s.model, ...patch } })),
 
   addItem: () => set((s) => ({ model: { ...s.model, items: [...s.model.items, emptyItem()] } })),

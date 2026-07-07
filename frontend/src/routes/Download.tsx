@@ -63,8 +63,9 @@ const BAKED: Record<Edition["code"], string | undefined> = {
   PRO: import.meta.env.VITE_PRO_DOWNLOAD_URL as string | undefined,
 };
 
-// The standalone estimating companion (separate Windows binary).
-const ESTIMATE_URL = import.meta.env.VITE_ESTIMATION_DOWNLOAD_URL as string | undefined;
+// The standalone estimating companion (separate Windows binary). Build-time
+// fallback if the live resolver (below) has no estimate-v* release yet.
+const ESTIMATE_URL_BAKED = import.meta.env.VITE_ESTIMATION_DOWNLOAD_URL as string | undefined;
 const ESTIMATE_FEATURES = [
   "Measure once → derive linked quantities (brickwork → plaster → paint)",
   "Material take-off from recipes · Bar Bending Schedule against IS 456 / 2502",
@@ -86,6 +87,8 @@ export function Download() {
     if (code === "PRO") return undefined;
     return (code === "LITE" ? live?.lite : live?.pro) ?? BAKED[code];
   };
+  // Estimate app: prefer the newest estimate-v* release, fall back to the baked URL.
+  const ESTIMATE_URL = live?.estimate ?? ESTIMATE_URL_BAKED;
 
   return (
       <MarketingShell>

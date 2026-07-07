@@ -20,9 +20,12 @@ export type DesktopInstallers = {
   /** Free Community appliance installer URL (AORMS-Community-Setup.exe). */
   lite: string | null;
   pro: string | null;
+  /** Standalone Estimate desktop app (AORMS-Estimate-Setup.exe), from the newest
+   *  `estimate-v*` release. Independent of the desktop-v* Community/Pro build. */
+  estimate: string | null;
 };
 
-const EMPTY: DesktopInstallers = { version: null, publishedAt: null, lite: null, pro: null };
+const EMPTY: DesktopInstallers = { version: null, publishedAt: null, lite: null, pro: null, estimate: null };
 const TTL_MS = 30 * 60 * 1000;
 
 let cache: { at: number; value: DesktopInstallers } | null = null;
@@ -54,19 +57,34 @@ async function fetchLatest(): Promise<DesktopInstallers> {
   if (!res.ok) throw new Error(`GitHub releases API ${res.status}`);
   const releases = (await res.json()) as GhRelease[];
 
-  // Newest published, non-draft desktop-v* release that carries a Community (or
-  // legacy Lite) installer, or a Pro one. The API returns releases newest-first.
+  // The desktop installers live in `desktop-v*` releases; the standalone Estimate
+  // app in `estimate-v*` releases. They interleave, so scan for the newest of
+  // each (the API returns releases newest-first).
+  let desktop: Omit<DesktopInstallers, "estimate"> | null = null;
+  let estimate: string | null = null;
   for (const r of releases) {
-    if (r.draft || !r.tag_name.startsWith("desktop-v")) continue;
-    // Free download = the Community appliance. Match its asset by name; accept a
-    // legacy `*lite*` name too. Never the Manager (`AORMS-Setup.exe`).
-    const lite = pick(r.assets, /community/i) ?? pick(r.assets, /lite/i);
-    const pro = pick(r.assets, /pro/i);
-    if (lite || pro) {
-      return { version: r.tag_name.replace(/^desktop-/, ""), publishedAt: r.published_at, lite, pro };
+    if (r.draft) continue;
+    if (!desktop && r.tag_name.startsWith("desktop-v")) {
+      // Free download = the Community appliance. Match by name; accept a legacy
+      // `*lite*` name too. Never the Manager (`AORMS-Setup.exe`).
+      const lite = pick(r.assets, /community/i) ?? pick(r.assets, /lite/i);
+      const pro = pick(r.assets, /pro/i);
+      if (lite || pro)
+        desktop = { version: r.tag_name.replace(/^desktop-/, ""), publishedAt: r.published_at, lite, pro };
     }
+    if (!estimate && r.tag_name.startsWith("estimate-v")) {
+      estimate = pick(r.assets, /estimate/i);
+    }
+    if (desktop && estimate) break;
   }
-  return EMPTY;
+  if (!desktop && !estimate) return EMPTY;
+  return {
+    version: desktop?.version ?? null,
+    publishedAt: desktop?.publishedAt ?? null,
+    lite: desktop?.lite ?? null,
+    pro: desktop?.pro ?? null,
+    estimate,
+  };
 }
 
 /** Latest Lite/Pro installer URLs, cached. Never throws. */

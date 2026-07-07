@@ -9,22 +9,24 @@ re-cost inside any AORMS project (→ Cost Management).
 - **Steel = Bar Bending Schedule.** Slab / beam / column / footing geometry →
   cut lengths + weights computed against IS 456 / IS 2502 (the same engine AORMS
   uses).
-- **Fully offline.** A static SPA in a Tauri shell — no server, no database.
-  Nothing leaves the machine until you export a file.
+- **Fully offline, native.** A browser-based SPA rendered inside a pure-**C++**
+  webview desktop host (`desktop-cpp/`) — no Rust, no server. Estimates persist
+  locally in **SQLite** in-process; nothing leaves the machine.
 - **The shared seam.** All the estimating logic lives in `@esti/contracts`
   (`EstimateFile`, `measureQty`, `computeMemberBBS`, `steelFromBBS`,
-  `estimateSealString`, `recostEstimate`) — the exact contract AORMS imports, so
-  the two never drift.
+  `estimateSealString`, `recostEstimate`), ported 1:1 to C++ in `desktop-cpp/`
+  — the exact contract AORMS imports, so the three never drift.
 
 ## Structure
 
 ```
 estimate/
 ├─ src/core/       model + build (model → sealed EstimateFile) + live preview
-├─ src/components/ Items · Materials · BBS panels (Carbon)
+├─ src/components/ Items · Materials · BBS · Saved panels (Carbon)
 ├─ src/store.ts    the working-model store (zustand)
-├─ src/App.tsx     shell — meta, preview totals, export
-└─ src-tauri/      thin Tauri v2 shell (webview only; no backend)
+├─ src/lib/native.ts  bridge to the C++ host (window.esti_*); no-op in a browser
+├─ src/App.tsx     shell — meta, preview totals, export, saved estimates
+└─ desktop-cpp/    the native C++ desktop app: webview host + engine + SQLite
 ```
 
 ## Develop / build
@@ -35,9 +37,12 @@ pnpm --filter @esti/estimate typecheck  # tsc
 pnpm --filter @esti/estimate build      # tsc + vite build → estimate/dist
 ```
 
-Desktop installer (Windows/NSIS) is built in CI — `.github/workflows/estimate.yml`
-(manual dispatch, or push an `estimate-v*` tag to publish a Release). Point the
-landing/download `VITE_ESTIMATION_DOWNLOAD_URL` at that release asset.
+The native desktop app (webview host + C++ engine + SQLite) lives in
+[`desktop-cpp/`](desktop-cpp/README.md). Its Windows installer
+(`AORMS-Estimate-Setup.exe`, NSIS) is built in CI —
+`.github/workflows/estimate.yml` (manual dispatch, or push an `estimate-v*` tag
+to publish a GitHub Release). The landing download link resolves that asset live
+(backend `desktopInstallers`), with `VITE_ESTIMATION_DOWNLOAD_URL` as fallback.
 
 ## Offline fonts
 

@@ -5,6 +5,7 @@ import { modelToDraft, previewCost, sealEstimate } from "./core/build.js";
 import { BbsPanel } from "./components/BbsPanel.js";
 import { ItemsPanel } from "./components/ItemsPanel.js";
 import { MaterialsPanel } from "./components/MaterialsPanel.js";
+import { SavedPanel } from "./components/SavedPanel.js";
 import { downloadJson, inr } from "./lib/download.js";
 import { useStore } from "./store.js";
 
@@ -83,6 +84,8 @@ export function App() {
         </Stack>
         {status && <p className="est-help">{status}</p>}
       </Tile>
+
+      <SavedPanel />
 
       <main className="est-main">
         <ItemsPanel />

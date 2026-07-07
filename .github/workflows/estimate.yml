@@ -1,8 +1,13 @@
 name: estimate-installer
 
-# Builds the AORMS Estimate desktop app — a thin Tauri/NSIS shell over the
-# offline estimating SPA (no backend). Windows-only (NSIS). Trigger manually, or
-# on an `estimate-v*` tag to publish a Release.
+# Builds the AORMS Estimate desktop app — a native C++ host (no Rust, no server)
+# that embeds the OS webview to render the offline estimating SPA and runs the
+# C++ engine + vendored SQLite in-process (estimate/desktop-cpp). Windows-only
+# (NSIS). Trigger manually, or on an `estimate-v*` tag to publish a Release.
+#
+# The published asset is named AORMS-Estimate-Setup.exe — the stable name the
+# landing download link (VITE_ESTIMATION_DOWNLOAD_URL) and the live resolver
+# (backend desktopInstallers) match against. Keep it stable.
 on:
   workflow_dispatch:
     inputs:
@@ -14,8 +19,6 @@ on:
     tags:
       - "estimate-v*"
 
-# Publishing a Release needs write access to repository contents; without this
-# the default GITHUB_TOKEN is read-only and action-gh-release 403s.
 permissions:
   contents: write
 
@@ -23,9 +26,12 @@ concurrency:
   group: estimate-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  WEBVIEW2_VERSION: "1.0.2792.45"
+
 jobs:
   windows:
-    name: Windows Estimate installer (NSIS)
+    name: Windows Estimate installer (C++ / NSIS)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,40 +39,50 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: pnpm }
+      - uses: nuget/setup-nuget@v2
 
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        with: { workspaces: estimate/src-tauri }
-
-      - name: Install tauri-cli
-        run: cargo install tauri-cli --version "^2.0" --locked
+      - name: Install NSIS (for CPack)
+        run: choco install nsis -y --no-progress
 
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build the estimating SPA (estimate/dist)
+      - name: Build the estimating SPA as a single-file bundle (estimate/dist/index.html)
         run: pnpm --filter @esti/estimate build
+        env:
+          ESTI_SINGLEFILE: "1"
 
-      - name: Generate Tauri icons
-        shell: bash
+      - name: Restore the WebView2 SDK (NuGet)
+        shell: pwsh
         run: |
-          mkdir -p estimate/src-tauri/icons
-          cargo tauri icon frontend/public/android-chrome-512x512.png -o estimate/src-tauri/icons
+          nuget install Microsoft.Web.WebView2 -Version $env:WEBVIEW2_VERSION -OutputDirectory "$env:GITHUB_WORKSPACE/nuget" -NonInteractive
+          echo "WEBVIEW2_DIR=$env:GITHUB_WORKSPACE/nuget/Microsoft.Web.WebView2.$env:WEBVIEW2_VERSION" >> $env:GITHUB_ENV
 
-      - name: Build the Estimate installer (NSIS)
-        working-directory: estimate
-        run: cargo tauri build
-
-      - name: Rename installer to stable asset name
-        shell: bash
+      - name: Configure & build (CMake, Release)
         run: |
-          exe=$(ls estimate/src-tauri/target/release/bundle/nsis/*.exe | head -1)
-          cp "$exe" estimate/src-tauri/target/release/bundle/nsis/AORMS-Estimate-Setup.exe
+          cmake -S estimate/desktop-cpp -B estimate/desktop-cpp/build -A x64 -DWEBVIEW2_DIR="${{ env.WEBVIEW2_DIR }}"
+          cmake --build estimate/desktop-cpp/build --config Release
+
+      - name: Run engine + C-ABI tests
+        working-directory: estimate/desktop-cpp/build
+        run: ctest -C Release --output-on-failure
+
+      - name: Package the installer (CPack / NSIS)
+        working-directory: estimate/desktop-cpp/build
+        run: cpack -G NSIS -C Release
+
+      - name: Locate the installer
+        id: installer
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path estimate/desktop-cpp/build -Filter "AORMS-Estimate-Setup.exe" -Recurse | Select-Object -First 1
+          if (-not $exe) { throw "installer not found" }
+          "path=$($exe.FullName)" >> $env:GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v4
         with:
           name: aorms-estimate-windows
-          path: estimate/src-tauri/target/release/bundle/nsis/AORMS-Estimate-Setup.exe
+          path: ${{ steps.installer.outputs.path }}
           if-no-files-found: error
 
       - name: Publish to GitHub Release
@@ -75,4 +91,4 @@ jobs:
         with:
           name: AORMS Estimate ${{ inputs.release_tag || github.ref_name }}
           tag_name: ${{ inputs.release_tag || github.ref_name }}
-          files: estimate/src-tauri/target/release/bundle/nsis/AORMS-Estimate-Setup.exe
+          files: ${{ steps.installer.outputs.path }}
