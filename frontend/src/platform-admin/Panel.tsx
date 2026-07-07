@@ -122,5 +122,11 @@ export default function Panel() {
     );
   }
 
-  return <MuiRoot>{body}</MuiRoot>;
+  // Paint the console canvas light (Fog Gray) and fill the viewport so no dark
+  // body shows through — matching the rest of the app's light shell.
+  return (
+    <MuiRoot>
+      <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>{body}</Box>
+    </MuiRoot>
+  );
 }

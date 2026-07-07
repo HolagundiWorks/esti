@@ -202,7 +202,7 @@ function AppShell() {
   const ADMIN_CONSOLE_URL = (import.meta.env.VITE_ADMIN_URL as string | undefined) ?? "";
   const isAdminSubdomain = /^admin\./.test(window.location.hostname);
   if (!ADMIN_CONSOLE_URL && (isAdminSubdomain || pathname.startsWith("/platform-admin")))
-    return <PlatformAdmin />;
+    return <Theme theme="white"><PlatformAdmin /></Theme>;
 
   // Public marketing surfaces — only shipped in the public-site (demo/dev) variant.
   if (PUBLIC_SITE && (pathname === "/blog" || pathname.startsWith("/blog/")))
