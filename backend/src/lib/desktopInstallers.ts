@@ -2,19 +2,22 @@ import { env } from "../env.js";
 
 /**
  * Resolve the newest desktop installers by querying the GitHub Releases API for
- * the latest `desktop-v*` release and picking its Lite / Pro assets by name.
+ * the latest `desktop-v*` release and picking its assets by name.
  * Public repo → unauthenticated works (60/hr per IP); a 30-minute in-memory cache
  * keeps us far under that. Failures degrade to nulls so the /download page falls
  * back to "coming soon" rather than erroring.
  *
- * Matching is by asset NAME (`/lite/i`, `/pro/i`), so a release is only surfaced
- * once it publishes correctly-named installers — the legacy `AORMS-Setup.exe` /
- * `AORMS-Community-Setup.exe` assets (which download Postgres on first run) are
- * intentionally NOT matched.
+ * The `lite` field is the **free Community appliance** download — matched to the
+ * `AORMS-Community-Setup.exe` asset the desktop CI publishes (it bundles Postgres
+ * and runs offline out of the box; the earlier "downloads Postgres on first run"
+ * caveat no longer applies). It is NOT the licence-gated Manager (`AORMS-Setup.exe`),
+ * which must never be handed out as the free download. `pro` matches a `*pro*`
+ * asset (none today — the Pro desktop app is disabled).
  */
 export type DesktopInstallers = {
   version: string | null;
   publishedAt: string | null;
+  /** Free Community appliance installer URL (AORMS-Community-Setup.exe). */
   lite: string | null;
   pro: string | null;
 };
@@ -51,11 +54,13 @@ async function fetchLatest(): Promise<DesktopInstallers> {
   if (!res.ok) throw new Error(`GitHub releases API ${res.status}`);
   const releases = (await res.json()) as GhRelease[];
 
-  // Newest published, non-draft desktop-v* release that actually carries a
-  // Lite or Pro installer. The API returns releases newest-first.
+  // Newest published, non-draft desktop-v* release that carries a Community (or
+  // legacy Lite) installer, or a Pro one. The API returns releases newest-first.
   for (const r of releases) {
     if (r.draft || !r.tag_name.startsWith("desktop-v")) continue;
-    const lite = pick(r.assets, /lite/i);
+    // Free download = the Community appliance. Match its asset by name; accept a
+    // legacy `*lite*` name too. Never the Manager (`AORMS-Setup.exe`).
+    const lite = pick(r.assets, /community/i) ?? pick(r.assets, /lite/i);
     const pro = pick(r.assets, /pro/i);
     if (lite || pro) {
       return { version: r.tag_name.replace(/^desktop-/, ""), publishedAt: r.published_at, lite, pro };
