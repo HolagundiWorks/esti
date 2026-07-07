@@ -194,7 +194,6 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
           empty={{
             title: openOnly || myTasks ? "No matching tasks" : "No tasks yet",
             description: "Create a task to track work across the office and projects.",
-            action: <Button variant="contained" size="small" onClick={() => setOpen(true)}>New task</Button>,
           }}
         >
           <TableContainer>

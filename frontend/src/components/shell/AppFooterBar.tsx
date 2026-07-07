@@ -6,8 +6,6 @@ import {
   Divider,
   IconButton,
   InputAdornment,
-  ListItemIcon,
-  ListItemText,
   ListSubheader,
   Menu,
   MenuItem,
@@ -134,15 +132,19 @@ export function AppFooterBar({
                 <ListSubheader key={`h-${g.heading}`} disableSticky sx={{ bgcolor: "transparent", lineHeight: 2.2 }}>
                   {g.heading}
                 </ListSubheader>,
-                ...g.items.map((it) => {
-                  const Icon = it.icon;
-                  return (
-                    <MenuItem key={it.to} onClick={() => goAdmin(it.to)}>
-                      {Icon && <ListItemIcon><Icon fontSize="small" /></ListItemIcon>}
-                      <ListItemText>{it.label}</ListItemText>
-                    </MenuItem>
-                  );
-                }),
+                // Text-only items, each divided by a hairline separator.
+                ...g.items.map((it, ii) => (
+                  <MenuItem
+                    key={it.to}
+                    onClick={() => goAdmin(it.to)}
+                    sx={{
+                      borderBottom: ii < g.items.length - 1 ? 1 : 0,
+                      borderColor: "divider",
+                    }}
+                  >
+                    {it.label}
+                  </MenuItem>
+                )),
               ])}
             </Menu>
           </>

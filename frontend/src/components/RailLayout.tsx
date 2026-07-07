@@ -46,7 +46,9 @@ export function RailLayout({
           width: 1,
         }}
       >
-        {/* RAIL (20% on desktop, full width first on mobile) */}
+        {/* RAIL (20% on desktop, full width first on mobile) — a hairline
+            separator on its right edge divides it from the Stage (the same
+            rule Studio Intelligence uses, now standard on every screen). */}
         <Box
           className="esti-dash-rail"
           sx={{
@@ -62,7 +64,9 @@ export function RailLayout({
             display: "flex",
             flexDirection: "column",
             gap: 2,
-            pr: { xs: 0, md: 0.5 },
+            borderRight: { xs: 0, md: 1 },
+            borderColor: "divider",
+            pr: { xs: 0, md: 2 },
           }}
         >
           <Box sx={{ borderLeft: 3, borderLeftColor: "primary.main", pl: 1.5 }}>
