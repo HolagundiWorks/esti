@@ -29,7 +29,7 @@ import { getInitials, resolveColor } from "../components/StaffAvatar.js";
 import { STAFF_LEVEL_LABEL } from "@esti/contracts";
 import { trpc } from "../lib/trpc.js";
 
-export function Team({ embedded = false }: { embedded?: boolean }) {
+export function Team() {
   const utils = trpc.useUtils();
   const list = trpc.team.list.useQuery();
   const update = trpc.team.update.useMutation({

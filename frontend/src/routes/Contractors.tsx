@@ -44,7 +44,7 @@ function scoreTag(score: number): "green" | "teal" | "blue" | "gray" {
   return "gray";
 }
 
-export function Contractors({ embedded = false }: { embedded?: boolean }) {
+export function Contractors() {
   const utils = trpc.useUtils();
   const [category, setCategory] = useState("");
   const listQ = trpc.contractors.list.useQuery({

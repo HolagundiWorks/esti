@@ -82,7 +82,6 @@ export function Profile() {
   const usage = usageQ.data;
 
   const LITE_DOWNLOAD_URL = import.meta.env.VITE_LITE_DOWNLOAD_URL ?? "";
-  const PRO_DOWNLOAD_URL = import.meta.env.VITE_PRO_DOWNLOAD_URL ?? "";
   const { isExternal } = useCapabilities();
 
   const [tab, setTab] = useState(0);

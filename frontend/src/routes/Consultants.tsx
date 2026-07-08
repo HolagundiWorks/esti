@@ -20,7 +20,7 @@ import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { trpc } from "../lib/trpc.js";
 
-export function Consultants({ embedded = false }: { embedded?: boolean }) {
+export function Consultants() {
   const utils = trpc.useUtils();
   const list = trpc.consultants.list.useQuery();
 
