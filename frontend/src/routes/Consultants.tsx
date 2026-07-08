@@ -10,11 +10,13 @@ import {
   TextField,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
 import {
   CONSULTANT_DISCIPLINES,
   type ConsultantDisciplineCode,
 } from "@esti/contracts";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -72,6 +74,20 @@ export function Consultants() {
       phone: c.phone ?? "—",
     })) ?? [];
 
+  useScreenActions(
+    [
+      {
+        id: "new-consultant",
+        zone: "center",
+        tone: "primary",
+        label: "New consultant",
+        icon: <AddIcon />,
+        onClick: () => setOpen(true),
+      },
+    ],
+    [],
+  );
+
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
   const filtered = q
@@ -112,11 +128,6 @@ export function Consultants() {
       <RailLayout
         title="Consultants"
         description="Discipline specialists the office engages on projects."
-        actions={
-          <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-            New consultant
-          </Button>
-        }
         aside={
           <Stack spacing={1.5}>
             <TextField

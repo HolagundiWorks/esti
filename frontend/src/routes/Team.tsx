@@ -20,6 +20,8 @@ import {
   parseRupeeInput,
 } from "@esti/contracts";
 import { type CSSProperties, useState } from "react";
+import AddIcon from "@mui/icons-material/Add";
+import { useScreenActions } from "@hcw/ui-kit";
 import { RailLayout } from "../components/RailLayout.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { DataState } from "../components/DataState.js";
@@ -66,6 +68,20 @@ export function Team() {
     },
   });
 
+  useScreenActions(
+    [
+      {
+        id: "new-member",
+        zone: "center",
+        tone: "primary",
+        label: "New member",
+        icon: <AddIcon />,
+        onClick: () => setOpen(true),
+      },
+    ],
+    [],
+  );
+
   const members = (list.data ?? []).filter(
     (m) => !search || m.name.toLowerCase().includes(search.toLowerCase()),
   );
@@ -75,11 +91,6 @@ export function Team() {
       <RailLayout
         title="Team"
         description="Office team members, roles, employment type and monthly salary."
-        actions={
-          <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-            New member
-          </Button>
-        }
         aside={
           <Stack spacing={1.5}>
             <TextField

@@ -134,10 +134,20 @@ in `landing.scss`).
   sits RIGHT. The office-health signal is the footer's top border.
 - **Layer 3 is applied app-wide via the theme:** every button's hover is the glass
   slab; error/warning alerts render as tinted glass.
+- **First ActionDock adopters (2026-07):** `Consultants.tsx`, `Contractors.tsx`,
+  `Team.tsx` — each screen's page-level "New …" button moved from
+  `RailLayout`'s `actions` slot into a single `useScreenActions([...])` call
+  (CENTER zone). Dialog-local Cancel/Save buttons stay in their `DialogActions`
+  — the dock is for page-level CTAs, not modal actions.
 
 **Remaining (incremental, screen-by-screen):**
-1. Migrate each screen's CTAs into the dock: delete inline page-level buttons, add
-   one `useScreenActions(...)` call. Rows/tables stay Layer 1; summary/highlight
-   cards adopt `<Surface layer="soft">`; priority widgets `<Surface layer="glass">`.
+1. Migrate the rest of the `RailLayout actions=` screens the same way —
+   `ArchivedProjects`, `AuditLog`, `ComplianceLibrary`, `Contracts`,
+   `DocumentsRegister`, `Hr`, `Invoices`, `Leads`, `Letters`,
+   `MasterPlanLibrary`, `OfficeExpenses`, `Payroll`, `Proposals`, `Reconcile`,
+   `StandardsLibrary`, `Users`, `Vendors`, `Work`. (`Projects.tsx` and
+   `Clients.tsx` are excluded for now — CLAUDE.md flags them as parallel WIP.)
+   Rows/tables stay Layer 1; summary/highlight cards adopt
+   `<Surface layer="soft">`; priority widgets `<Surface layer="glass">`.
 2. Portals beyond the workspace app (estimate app, ESE) mount `MuiRoot` +
    `TaskbarFooter`/`ActionDock` the same way.

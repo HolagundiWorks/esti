@@ -11,6 +11,7 @@ import {
   TextField,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
 import {
   CONTRACTOR_CATEGORIES,
   ContractorCategory,
@@ -18,6 +19,7 @@ import {
   type ContractorCategoryCode,
 } from "@esti/contracts";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
@@ -77,6 +79,20 @@ export function Contractors() {
     if (form.id) update.mutate({ id: form.id, ...payload });
     else create.mutate(payload);
   };
+
+  useScreenActions(
+    [
+      {
+        id: "new-contractor",
+        zone: "center",
+        tone: "primary",
+        label: "New contractor",
+        icon: <AddIcon />,
+        onClick: () => setForm({ ...EMPTY }),
+      },
+    ],
+    [],
+  );
 
   const columns: GridColDef[] = [
     {
@@ -206,7 +222,6 @@ export function Contractors() {
       <RailLayout
         title="Contractors"
         description="Construction contractor register — trades, statutory ids and on-site performance."
-        actions={<Button variant="contained" fullWidth onClick={() => setForm({ ...EMPTY })}>New contractor</Button>}
         aside={
           <Stack spacing={1.5}>
             <TextField
