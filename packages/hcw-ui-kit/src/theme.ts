@@ -38,6 +38,8 @@ import {
   NEU_INSET_ERROR,
   NEU_INPUT_RADIUS,
   DD_FLAT,
+  REDUCE_MOTION,
+  FOCUS_RING,
 } from "./tokens.js";
 
 /** Build the AORMS MUI theme. Exposed as a factory so a portal can layer small
@@ -154,6 +156,18 @@ export function createAormsTheme(): Theme {
                 transform: BTN_LIFT,
                 boxShadow: `0 8px 24px rgba(20, 21, 23, 0.14), ${underline}`,
               },
+              // Keyboard parity: a :focus-visible control lifts to the same Layer-3
+              // glass slab as hover AND shows the accent focus ring, so keyboard
+              // users see what's actionable (mouse-only :hover left them blind).
+              "&:focus-visible": {
+                ...FOCUS_RING,
+                background: GLASS_SURFACE.background,
+                backdropFilter: GLASS_SURFACE.backdropFilter,
+                WebkitBackdropFilter: GLASS_SURFACE.WebkitBackdropFilter,
+                color: isError ? CDS.supportError : CDS.accentDark,
+                transform: BTN_LIFT,
+                boxShadow: `0 8px 24px rgba(20, 21, 23, 0.14), ${underline}`,
+              },
               "&:active": {
                 transform: "none",
                 color: isError ? CDS.supportError : CDS.accent,
@@ -164,6 +178,14 @@ export function createAormsTheme(): Theme {
                 opacity: 0.45,
                 transform: "none",
                 backgroundColor: "transparent",
+              },
+              // Respect "reduce motion": keep the colour/glass/underline cues but
+              // drop the transition and the translate lift (WCAG 2.3.3).
+              [REDUCE_MOTION]: {
+                transition: "none",
+                "&:hover": { transform: "none" },
+                "&:focus-visible": { transform: "none" },
+                "&:active": { transform: "none" },
               },
             };
           },
