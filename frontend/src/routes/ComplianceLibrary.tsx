@@ -15,7 +15,9 @@ import {
   styled,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -439,6 +441,30 @@ export function ComplianceLibrary() {
   // Rail-triggered create/upload — bump a counter to open the active panel's action.
   const [docSignal, setDocSignal] = useState(0);
   const [ruleSignal, setRuleSignal] = useState(0);
+
+  useScreenActions(
+    [
+      tab === 0
+        ? {
+            id: "upload-document",
+            zone: "center",
+            tone: "primary",
+            label: "Upload Document",
+            icon: <AddIcon />,
+            onClick: () => setDocSignal((s) => s + 1),
+          }
+        : {
+            id: "new-entry",
+            zone: "center",
+            tone: "primary",
+            label: "New Entry",
+            icon: <AddIcon />,
+            onClick: () => setRuleSignal((s) => s + 1),
+          },
+    ],
+    [tab],
+  );
+
   return (
     <RailLayout
       title="Compliance Library"
@@ -453,17 +479,6 @@ export function ComplianceLibrary() {
           <Tab label="Documents" />
           <Tab label="Rules" />
         </Tabs>
-      }
-      actions={
-        tab === 0 ? (
-          <Button variant="contained" fullWidth onClick={() => setDocSignal((s) => s + 1)}>
-            Upload Document
-          </Button>
-        ) : (
-          <Button variant="contained" fullWidth onClick={() => setRuleSignal((s) => s + 1)}>
-            New Entry
-          </Button>
-        )
       }
     >
       {tab === 0 && <DocumentsTab openSignal={docSignal} />}

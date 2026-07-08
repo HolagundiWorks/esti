@@ -1,6 +1,8 @@
-import { Box, Button, Tab, Tabs } from "@mui/material";
+import { Box, Tab, Tabs } from "@mui/material";
 import { useRef } from "react";
 import { useSearchParams } from "react-router-dom";
+import AddIcon from "@mui/icons-material/Add";
+import { useScreenActions } from "@hcw/ui-kit";
 import { RailLayout } from "../components/RailLayout.js";
 import { ActivityTab } from "../components/work/ActivityTab.js";
 import { AttendanceTab } from "../components/work/AttendanceTab.js";
@@ -58,6 +60,22 @@ export function Work() {
   );
   const activeTab = allTabs[tabIndex]?.slug ?? "tasks";
 
+  useScreenActions(
+    activeTab === "tasks"
+      ? [
+          {
+            id: "new-task",
+            zone: "center",
+            tone: "primary",
+            label: "New task",
+            icon: <AddIcon />,
+            onClick: () => tasksRef.current?.openCreate(),
+          },
+        ]
+      : [],
+    [activeTab],
+  );
+
   return (
     <RailLayout
       title="Work"
@@ -79,11 +97,6 @@ export function Work() {
             <Tab key={t.slug} label={t.label} />
           ))}
         </Tabs>
-      }
-      actions={
-        activeTab === "tasks" ? (
-          <Button variant="contained" fullWidth onClick={() => tasksRef.current?.openCreate()}>New task</Button>
-        ) : undefined
       }
     >
       <Box>{allTabs[tabIndex]?.panel}</Box>

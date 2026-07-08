@@ -7,8 +7,10 @@ import {
   styled,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
 import { MasterPlanCategory } from "@esti/contracts";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { StatusDot } from "../components/StatusTag.js";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
@@ -55,6 +57,21 @@ export function MasterPlanLibrary() {
       setBusy(false);
     }
   }
+
+  useScreenActions(
+    [
+      {
+        id: "upload-master-plan",
+        zone: "center",
+        tone: "primary",
+        label: busy ? "Uploading…" : "Upload",
+        icon: <AddIcon />,
+        disabled: !file || busy,
+        onClick: upload,
+      },
+    ],
+    [file, busy, name, category],
+  );
 
   const columns: GridColDef[] = [
     { field: "name", headerName: "Name", flex: 1.5, minWidth: 180 },
@@ -105,11 +122,6 @@ export function MasterPlanLibrary() {
     <RailLayout
       title="Master Plan Library"
       description="Reference master plans — PDF, DWG, zoning and development plans."
-      actions={
-        <Button variant="contained" fullWidth disabled={!file || busy} onClick={upload}>
-          {busy ? "Uploading…" : "Upload"}
-        </Button>
-      }
       aside={
         <Stack spacing={1.5}>
           <TextField

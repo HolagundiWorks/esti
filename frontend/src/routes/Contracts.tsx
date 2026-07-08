@@ -10,6 +10,7 @@ import {
   TextField,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
 import {
   CONTRACT_TYPE_LABEL,
   ContractStatus,
@@ -18,6 +19,7 @@ import {
   type TagColor,
 } from "@esti/contracts";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
@@ -45,6 +47,21 @@ export function Contracts() {
   const remove = trpc.contracts.remove.useMutation({ onSuccess: inv });
 
   const [open, setOpen] = useState(false);
+
+  useScreenActions(
+    [
+      {
+        id: "new-contract",
+        zone: "center",
+        tone: "primary",
+        label: "New contract",
+        icon: <AddIcon />,
+        onClick: () => setOpen(true),
+      },
+    ],
+    [],
+  );
+
   const [f, setF] = useState({
     projectId: "",
     title: "",
@@ -170,11 +187,6 @@ export function Contracts() {
       <RailLayout
         title="Contracts"
         description="Agreements with clients, consultants and vendors."
-        actions={
-          <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-            New contract
-          </Button>
-        }
       >
         <DataState
           loading={listQ.isLoading}

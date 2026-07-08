@@ -9,8 +9,10 @@ import {
   TextField,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useScreenActions } from "@hcw/ui-kit";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
@@ -50,6 +52,21 @@ export function Letters() {
   const inv = () => utils.letters.list.invalidate();
 
   const [open, setOpen] = useState(false);
+
+  useScreenActions(
+    [
+      {
+        id: "new-letter",
+        zone: "center",
+        tone: "primary",
+        label: "New letter",
+        icon: <AddIcon />,
+        onClick: () => setOpen(true),
+      },
+    ],
+    [],
+  );
+
   const [f, setF] = useState({
     projectId: "",
     recipient: "",
@@ -111,11 +128,6 @@ export function Letters() {
       <RailLayout
         title="Letters"
         description="Office correspondence on firm letterhead."
-        actions={
-          <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-            New letter
-          </Button>
-        }
         aside={
           <Stack spacing={1.5}>
             <Button component={Link} to="/office/documents" variant="text" size="small" fullWidth>

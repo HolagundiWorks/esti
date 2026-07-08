@@ -26,7 +26,9 @@ import {
   type TagColor,
 } from "@esti/contracts";
 import { useState } from "react";
+import AddIcon from "@mui/icons-material/Add";
 import { Link } from "react-router-dom";
+import { useScreenActions } from "@hcw/ui-kit";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { DataState } from "../components/DataState.js";
@@ -72,6 +74,31 @@ export function DocumentsRegister() {
 
   const [patternEdits, setPatternEdits] = useState<Record<string, { prefix: string; padding: string }>>({});
   const [tplOpen, setTplOpen] = useState(false);
+
+  useScreenActions(
+    [
+      {
+        id: "new-template",
+        zone: "center",
+        tone: "primary",
+        label: "New template",
+        icon: <AddIcon />,
+        onClick: () => setTplOpen(true),
+      },
+      {
+        id: "export-xlsx",
+        zone: "right",
+        label: "Export XLSX",
+        icon: <Download />,
+        disabled: exportQ.isFetching,
+        onClick: async () => {
+          const data = await exportQ.refetch();
+          if (data.data?.length) downloadXlsx(data.data, "Register", "esti-document-register");
+        },
+      },
+    ],
+    [exportQ.isFetching],
+  );
   const [tplForm, setTplForm] = useState({ kind: "LETTER" as OfficeTemplateKind, title: "", body: "" });
 
   const rows = listQ.data ?? [];
@@ -131,26 +158,6 @@ export function DocumentsRegister() {
       <RailLayout
         title="Document register"
         description="Unified view of issued office and project documents — numbers, versions, and PDF status."
-        actions={
-          <>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<Download />}
-              disabled={exportQ.isFetching}
-              fullWidth
-              onClick={async () => {
-                const data = await exportQ.refetch();
-                if (data.data?.length) downloadXlsx(data.data, "Register", "esti-document-register");
-              }}
-            >
-              Export XLSX
-            </Button>
-            <Button variant="contained" fullWidth onClick={() => setTplOpen(true)}>
-              New template
-            </Button>
-          </>
-        }
         aside={
           <Stack spacing={1.5}>
             <TextField

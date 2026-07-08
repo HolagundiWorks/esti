@@ -23,6 +23,8 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import AddIcon from "@mui/icons-material/Add";
+import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
 import { FeeProposalPdfCell } from "../components/FeeProposalPdfCell.js";
 import { RailLayout } from "../components/RailLayout.js";
@@ -38,6 +40,21 @@ export function Proposals() {
   const scopeTplQ = trpc.documents.listTemplates.useQuery({ kind: "SCOPE" });
 
   const [open, setOpen] = useState(false);
+
+  useScreenActions(
+    [
+      {
+        id: "new-proposal",
+        zone: "center",
+        tone: "primary",
+        label: "New proposal",
+        icon: <AddIcon />,
+        onClick: () => setOpen(true),
+      },
+    ],
+    [],
+  );
+
   const [projectId, setProjectId] = useState("");
   const [category, setCategory] = useState<string>(
     Object.values(CoaWorkCategory)[0] as string,
@@ -138,11 +155,6 @@ export function Proposals() {
       <RailLayout
         title="Proposals"
         description="COA fee proposals and scope agreements across all projects."
-        actions={
-          <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-            New proposal
-          </Button>
-        }
       >
         <DataState
           loading={listQ.isLoading}

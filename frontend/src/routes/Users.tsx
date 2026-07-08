@@ -15,6 +15,8 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
+import SyncIcon from "@mui/icons-material/Sync";
 import {
   ASSIGNABLE_STAFF_ROLES,
   GENERAL_STAFF_ROLES,
@@ -28,6 +30,7 @@ import {
   userType,
 } from "@esti/contracts";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { useAuth } from "../lib/auth.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -136,6 +139,28 @@ export function Users() {
           : `Sync failed: ${err.message}`,
       ),
   });
+
+  useScreenActions(
+    [
+      {
+        id: "add-staff-login",
+        zone: "center",
+        tone: "primary",
+        label: "Add staff login",
+        icon: <AddIcon />,
+        onClick: () => setAddOpen(true),
+      },
+      {
+        id: "resync-identity-types",
+        zone: "right",
+        label: resync.isPending ? "Syncing…" : "Resync identity types",
+        icon: <SyncIcon />,
+        disabled: resync.isPending,
+        onClick: () => resync.mutate(),
+      },
+    ],
+    [resync.isPending],
+  );
 
   const columns: GridColDef[] = [
     { field: "email", headerName: "Email", flex: 1.4, minWidth: 200 },
@@ -259,19 +284,6 @@ export function Users() {
       <RailLayout
         title="Users & access"
         description="Owner / staff / portal logins. Client and consultant portal logins are created from their records (Clients / Consultants)."
-        actions={
-          <>
-            <Button variant="contained" fullWidth onClick={() => setAddOpen(true)}>Add staff login</Button>
-            <Button
-              variant="outlined"
-              fullWidth
-              onClick={() => resync.mutate()}
-              disabled={resync.isPending}
-            >
-              {resync.isPending ? "Syncing…" : "Resync identity types"}
-            </Button>
-          </>
-        }
       >
 
       <Box sx={{ p: 3 }}>

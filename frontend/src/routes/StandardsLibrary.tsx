@@ -17,7 +17,9 @@ import {
   styled,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -237,6 +239,23 @@ export function StandardsLibrary() {
   const [tab, setTab] = useState(0);
   const [discTab, setDiscTab] = useState(0);
   const [stdSignal, setStdSignal] = useState(0);
+
+  useScreenActions(
+    tab === 1
+      ? [
+          {
+            id: "new-standard",
+            zone: "center",
+            tone: "primary",
+            label: "New Standard",
+            icon: <AddIcon />,
+            onClick: () => setStdSignal((s) => s + 1),
+          },
+        ]
+      : [],
+    [tab],
+  );
+
   return (
     <RailLayout
       title="Standards Library"
@@ -251,13 +270,6 @@ export function StandardsLibrary() {
           <Tab label="Documents" />
           <Tab label="Standards" />
         </Tabs>
-      }
-      actions={
-        tab === 1 ? (
-          <Button variant="contained" fullWidth onClick={() => setStdSignal((s) => s + 1)}>
-            New Standard
-          </Button>
-        ) : undefined
       }
     >
       {tab === 0 && <DocumentsTab />}

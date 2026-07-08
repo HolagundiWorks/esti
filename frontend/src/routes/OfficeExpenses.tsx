@@ -26,6 +26,8 @@ import {
   type PeriodFilterInput,
 } from "@esti/contracts";
 import { useState } from "react";
+import AddIcon from "@mui/icons-material/Add";
+import { useScreenActions } from "@hcw/ui-kit";
 import { AccountsCarryForward } from "../components/accounting/AccountsCarryForward.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { RailLayout } from "../components/RailLayout.js";
@@ -298,18 +300,27 @@ export function OfficeExpenses() {
   });
   const [open, setOpen] = useState(false);
 
+  useScreenActions(
+    canManage
+      ? [
+          {
+            id: "new-expense",
+            zone: "center",
+            tone: "primary",
+            label: "New expense",
+            icon: <AddIcon />,
+            onClick: () => setOpen(true),
+          },
+        ]
+      : [],
+    [canManage],
+  );
+
   return (
     <>
       <RailLayout
         title="Office expenses"
         description="Firm overhead not tied to a single project. Always non-billable — separate from client GST invoices."
-        actions={
-          canManage && (
-            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-              New expense
-            </Button>
-          )
-        }
         aside={
           <Stack spacing={1.5}>
             <AccountsCarryForward period={period} onPeriodChange={setPeriod} />
@@ -343,18 +354,27 @@ export function CashBook() {
   });
   const [open, setOpen] = useState(false);
 
+  useScreenActions(
+    canManage
+      ? [
+          {
+            id: "new-cash-voucher",
+            zone: "center",
+            tone: "primary",
+            label: "New cash voucher",
+            icon: <AddIcon />,
+            onClick: () => setOpen(true),
+          },
+        ]
+      : [],
+    [canManage],
+  );
+
   return (
     <>
       <RailLayout
         title="Cash book"
         description="Petty cash and physical cash outflows. Balance reflects closed cash vouchers in the selected financial year."
-        actions={
-          canManage && (
-            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-              New cash voucher
-            </Button>
-          )
-        }
         aside={
           <Stack spacing={1.5}>
             <AccountsCarryForward period={period} onPeriodChange={setPeriod} />

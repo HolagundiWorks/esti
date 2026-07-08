@@ -9,8 +9,10 @@ import {
   TextField,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
 import { formatINR, parseRupeeInput } from "@esti/contracts";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -32,6 +34,22 @@ export function Payroll() {
   });
 
   const [open, setOpen] = useState(false);
+
+  useScreenActions(
+    [
+      {
+        id: "generate-payslip",
+        zone: "center",
+        tone: "primary",
+        label: "Generate payslip",
+        icon: <AddIcon />,
+        disabled: team.length === 0,
+        onClick: () => setOpen(true),
+      },
+    ],
+    [team.length],
+  );
+
   const [py, setPy] = useState({ teamMemberId: "", month: "", gross: "", deductions: "" });
   const generate = trpc.payroll.generate.useMutation({
     onSuccess: () => {
@@ -114,11 +132,6 @@ export function Payroll() {
       <RailLayout
         title="Payroll"
         description="Monthly payslips — gross, deductions and net pay."
-        actions={
-          <Button variant="contained" fullWidth disabled={team.length === 0} onClick={() => setOpen(true)}>
-            Generate payslip
-          </Button>
-        }
       >
         <DataState
           loading={payrollQ.isLoading}

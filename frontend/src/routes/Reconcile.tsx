@@ -7,9 +7,11 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
 import type { ReconcileColumnMapping } from "@esti/contracts";
 import { formatINR, formatINRShort } from "@esti/contracts";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
@@ -104,6 +106,21 @@ export function Reconcile() {
       setBusy(false);
     }
   }
+
+  useScreenActions(
+    [
+      {
+        id: "upload-reconcile",
+        zone: "center",
+        tone: "primary",
+        label: busy ? "Uploading…" : "Upload & reconcile",
+        icon: <AddIcon />,
+        disabled: !file || !label || busy,
+        onClick: upload,
+      },
+    ],
+    [file, label, colMap, busy],
+  );
 
   const detailQ = trpc.reconcile.byId.useQuery(
     { id: openId ?? "" },
@@ -236,11 +253,6 @@ export function Reconcile() {
     <RailLayout
       title="Reconciliation"
       description="Match bank-statement credits against invoices (CSV / XLSX). Override column names when your bank export uses non-standard headers."
-      actions={
-        <Button variant="contained" fullWidth disabled={!file || !label || busy} onClick={upload}>
-          {busy ? "Uploading…" : "Upload & reconcile"}
-        </Button>
-      }
       aside={
         <Stack spacing={1.5}>
           <TextField

@@ -26,6 +26,8 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import AddIcon from "@mui/icons-material/Add";
+import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -47,6 +49,21 @@ export function Leads() {
 
   // Create lead
   const [open, setOpen] = useState(false);
+
+  useScreenActions(
+    [
+      {
+        id: "new-lead",
+        zone: "center",
+        tone: "primary",
+        label: "New lead",
+        icon: <AddIcon />,
+        onClick: () => setOpen(true),
+      },
+    ],
+    [],
+  );
+
   const blank = {
     clientName: "",
     phone: "",
@@ -195,7 +212,6 @@ export function Leads() {
             <Tab label="Permissible development" />
           </Tabs>
         }
-        actions={<Button variant="contained" fullWidth onClick={() => setOpen(true)}>New lead</Button>}
       >
         {tab === 0 && (
         <DataState

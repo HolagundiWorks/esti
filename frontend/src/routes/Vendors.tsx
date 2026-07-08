@@ -21,6 +21,7 @@ import {
   type VendorCategoryCode,
 } from "@esti/contracts";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { StatusDot } from "../components/StatusTag.js";
@@ -89,6 +90,31 @@ export function Vendors() {
   const saving = create.isPending || update.isPending;
   const err = create.error || update.error;
   const selected = rows.find((v) => v.id === selectedId);
+
+  useScreenActions(
+    [
+      {
+        id: "new-vendor",
+        zone: "center",
+        tone: "primary",
+        label: "New vendor",
+        icon: <Add />,
+        onClick: () => setForm({ ...EMPTY }),
+      },
+      ...(selected
+        ? [
+            {
+              id: "add-price",
+              zone: "center" as const,
+              label: "Add price",
+              icon: <Add />,
+              onClick: () => setPriceForm({ ...EMPTY_PRICE }),
+            },
+          ]
+        : []),
+    ],
+    [selected],
+  );
 
   const submit = () => {
     if (!form) return;
@@ -264,16 +290,6 @@ export function Vendors() {
       <RailLayout
         title="Vendors"
         description="Material supplier directory — categories, statutory ids, ratings and pricing history."
-        actions={
-          <>
-            <Button variant="contained" fullWidth onClick={() => setForm({ ...EMPTY })}>New vendor</Button>
-            {selected && (
-              <Button variant="outlined" fullWidth startIcon={<Add />} onClick={() => setPriceForm({ ...EMPTY_PRICE })}>
-                Add price
-              </Button>
-            )}
-          </>
-        }
         aside={
           <Stack spacing={1.5}>
             <TextField

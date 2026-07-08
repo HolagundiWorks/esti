@@ -134,20 +134,27 @@ in `landing.scss`).
   sits RIGHT. The office-health signal is the footer's top border.
 - **Layer 3 is applied app-wide via the theme:** every button's hover is the glass
   slab; error/warning alerts render as tinted glass.
-- **First ActionDock adopters (2026-07):** `Consultants.tsx`, `Contractors.tsx`,
-  `Team.tsx` — each screen's page-level "New …" button moved from
-  `RailLayout`'s `actions` slot into a single `useScreenActions([...])` call
-  (CENTER zone). Dialog-local Cancel/Save buttons stay in their `DialogActions`
-  — the dock is for page-level CTAs, not modal actions.
+- **ActionDock adopters (2026-07):** `Consultants.tsx`, `Contractors.tsx`,
+  `Team.tsx`, `Contracts.tsx`, `Leads.tsx`, `Letters.tsx`, `Payroll.tsx`,
+  `Proposals.tsx`, `ComplianceLibrary.tsx`, `StandardsLibrary.tsx`,
+  `OfficeExpenses.tsx` (both `OfficeExpenses`/`CashBook`), `MasterPlanLibrary.tsx`,
+  `Reconcile.tsx`, `Users.tsx`, `Vendors.tsx`, `DocumentsRegister.tsx`, `Work.tsx`
+  — each screen's page-level CTA(s) moved from `RailLayout`'s `actions` slot into
+  a `useScreenActions([...])` call. Tab-conditional actions (e.g. Compliance/
+  Standards Library, Work) key off the active tab in the effect's deps; upload
+  forms (Master Plan, Reconcile) key off the relevant field state so the dock
+  button never fires a stale closure. Non-create utility actions (Export XLSX,
+  Resync identity types) sit in the RIGHT zone rather than CENTER. Dialog-local
+  Cancel/Save buttons stay in their `DialogActions` — the dock is for page-level
+  CTAs, not modal actions. `ArchivedProjects.tsx` and `AuditLog.tsx` turned out
+  to have no page-level `actions=` at all (only per-row `RowActionsMenu`) — no
+  migration needed there.
 
 **Remaining (incremental, screen-by-screen):**
-1. Migrate the rest of the `RailLayout actions=` screens the same way —
-   `ArchivedProjects`, `AuditLog`, `ComplianceLibrary`, `Contracts`,
-   `DocumentsRegister`, `Hr`, `Invoices`, `Leads`, `Letters`,
-   `MasterPlanLibrary`, `OfficeExpenses`, `Payroll`, `Proposals`, `Reconcile`,
-   `StandardsLibrary`, `Users`, `Vendors`, `Work`. (`Projects.tsx` and
-   `Clients.tsx` are excluded for now — CLAUDE.md flags them as parallel WIP.)
-   Rows/tables stay Layer 1; summary/highlight cards adopt
+1. `Hr.tsx` and `Invoices.tsx` still hold inline `RailLayout actions=` (both are
+   multi-button/tab-conditional and need a closer read before migrating).
+   `Projects.tsx` and `Clients.tsx` are excluded for now — CLAUDE.md flags them
+   as parallel WIP. Rows/tables stay Layer 1; summary/highlight cards adopt
    `<Surface layer="soft">`; priority widgets `<Surface layer="glass">`.
 2. Portals beyond the workspace app (estimate app, ESE) mount `MuiRoot` +
    `TaskbarFooter`/`ActionDock` the same way.
