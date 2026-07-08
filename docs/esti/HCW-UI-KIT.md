@@ -122,12 +122,22 @@ Source-only (like `@esti/contracts`); the consuming portal's bundler compiles it
 Colour + shape live ONLY here (and, for the Carbon landing surface, in
 `landing.scss`).
 
-## Adoption path
+## Adoption status & path
 
-1. Mount `MuiRoot` → `ActionDockProvider` → `ActionDock` + `TaskbarFooter` in the
-   app shell; move the header clock/Pomodoro + floating widgets into the footer.
-2. Migrate screens one at a time: delete inline CTAs, add a `useScreenActions(...)`
-   call. Rows/tables stay Layer 1; summary/highlight cards adopt `<Surface layer="soft">`;
-   priority alerts adopt `<Surface layer="glass">`.
-3. The old `glass.scss` / `FloatingDock` behaviour is superseded by the kit's
-   `TaskbarFooter` + `ActionDock`; retire them as screens migrate.
+**Shipped (2026-07):**
+- The workspace shell mounts `ActionDockProvider` + `ActionDock`; the dock renders
+  once a screen publishes actions.
+- The **taskbar footer is live** (`frontend/src/components/shell/AppFooterBar.tsx`):
+  the old FloatingDock is retired and its widgets (Studio Intelligence · Tasks ·
+  Wellness · Pomodoro · Calculator · Alerts · ESTI AI) sit LEFT with the admin
+  menu/ID card/sign-out; search is centred; the tray (due · office health · clock)
+  sits RIGHT. The office-health signal is the footer's top border.
+- **Layer 3 is applied app-wide via the theme:** every button's hover is the glass
+  slab; error/warning alerts render as tinted glass.
+
+**Remaining (incremental, screen-by-screen):**
+1. Migrate each screen's CTAs into the dock: delete inline page-level buttons, add
+   one `useScreenActions(...)` call. Rows/tables stay Layer 1; summary/highlight
+   cards adopt `<Surface layer="soft">`; priority widgets `<Surface layer="glass">`.
+2. Portals beyond the workspace app (estimate app, ESE) mount `MuiRoot` +
+   `TaskbarFooter`/`ActionDock` the same way.

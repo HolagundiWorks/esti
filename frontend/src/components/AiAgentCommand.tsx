@@ -16,7 +16,7 @@ import { trpc } from "../lib/trpc.js";
 
 type ChatTurn = { role: "user" | "assistant"; text: string };
 
-/** Window event that opens/toggles the Ask ESTI bar (dispatched by FloatingDock). */
+/** Window event that opens/toggles the Ask ESTI bar (dispatched by the taskbar footer). */
 export const ASK_ESTI_EVENT = "esti:ask";
 
 /**

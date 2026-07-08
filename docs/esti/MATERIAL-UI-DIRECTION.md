@@ -1,10 +1,14 @@
 # AORMS Material UI direction
 
+> **⚠️ SUPERSEDED for styling (2026-07): [`HCW-UI-KIT.md`](HCW-UI-KIT.md) is now the
+> single source of truth** — the layered design system (`@hcw/ui-kit`) that every
+> MUI portal mounts: three depth layers (flat · neumorphic · glass), the taskbar
+> footer, and the global ActionDock. This doc remains the Carbon→MUI **migration
+> playbook** (component mappings, screen checklist).
+>
 > **Status: active migration (2026-07).** The app, panels and all portals are
 > moving from IBM Carbon (`@carbon/react`) to **Material UI** (`@mui/material`).
-> The **landing page stays on Carbon** (see `CARBON-UI-DIRECTION.md`). This doc is
-> the migration playbook; **[`AORMS-BRANDING-KIT.md`](AORMS-BRANDING-KIT.md) is the
-> single source of truth for colour, type, surfaces and brand marks** — read it first.
+> The **landing page stays on Carbon** (see `CARBON-UI-DIRECTION.md`).
 
 ## Screen nomenclature — Rail / Stage (canonical)
 

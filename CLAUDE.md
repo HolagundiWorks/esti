@@ -11,45 +11,55 @@ Monorepo (pnpm workspaces): `packages/contracts`, `backend` (Fastify + tRPC +
 Drizzle), `frontend` (React + Vite), plus a Python `worker`. Services run via
 podman (`compose.yaml`).
 
-## UI / design system — MIGRATING TO MATERIAL UI (landing stays Carbon)
+## UI / design system — HCW-UI-KIT (landing stays Carbon)
 
-> **⚠️ ACTIVE MIGRATION (2026-07).** The research team moved the **app, panels and
-> all portals** off IBM Carbon onto **Material UI** (`@mui/material`). Both systems
-> coexist during the migration (strangler pattern) so the build never breaks —
-> migrate screen-by-screen, replacing `@carbon/react` with `@mui/material`.
+> **⚠️ CANONICAL (2026-07): `@hcw/ui-kit`** (*HCW-UI-Kit — Human Centric Works*,
+> `packages/hcw-ui-kit`) is the centralised, **layered** design system deployed
+> against **every** MUI portal (app, panels, client/consultant portals, licensing
+> console). Full spec: **[`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md)**.
 > **The landing page (`Landing.tsx`, `components/landing/**`, `landing.scss`) stays
-> on Carbon editorial and is out of scope.** Three hard rules for the new UI
-> (full spec: **[`docs/esti/AORMS-BRANDING-KIT.md`](docs/esti/AORMS-BRANDING-KIT.md)**):
+> on Carbon editorial and is out of scope.**
 >
-> 1. **Hyper-minimalist LIGHT palette — Radiant Orange accent** — the MUI theme
->    (`src/theme/muiTheme.ts`): Fog Gray `#F2F4F7` canvas, Pure White `#FFFFFF`
->    cards, Coal Black `#141517` ink, **Radiant Orange `#FF4F18`** the single
->    signature accent (fills only, **white text on it**, deeper `#DB3E0F` on hover).
->    Links use slate, never the accent. The app-shell Carbon layer runs `<Theme theme="white">`.
-> 2. **Square corners everywhere** — `borderRadius: 0`. The guard rejects any
->    non-zero `border-radius` / `borderRadius` outside the exempt landing/theme.
-> 3. **Flat surfaces everywhere** — the flat dashboard language runs across the
->    whole app: solid **Pure-White** Paper/Card/DataGrid/Drawer/AppBar/Menu with a
->    **hairline edge, NO backdrop blur, NO drop shadow** (baked into the theme).
->    Only the floating widgets (ESTI/Pomodoro/Calculator) keep the neumorphic
->    soft-UI treatment (`glass.scss`).
+> **Thesis: depth encodes importance.** Three material languages stack by z-depth
+> — pick a layer by the element's ROLE, never by taste:
 >
-> **Brand font: Open Sans** (OFL, free) across the *entire* product (landing
-> included) — self-hosted via `@fontsource/open-sans` (imported in `main.tsx`),
-> exposed as `--esti-font-sans` in `styles.scss` and mirrored in the MUI theme.
+> 1. **Layer 1 — FLAT (hyperminimalist):** information at rest — data tables,
+>    text, headings, surfaces. Fog Gray `#F2F4F7` canvas, Pure White cards, Coal
+>    Black `#141517` ink, hairline rules, **Radiant Orange `#FF4F18`** the single
+>    accent (fills carry white text; links use slate, never the accent).
+> 2. **Layer 2 — SOFT (neumorphic):** objects you work within — dialogs, panels,
+>    widgets, highlight cards, text-entry wells (recessed). `<Surface layer="soft">`.
+> 3. **Layer 3 — GLASS (glassmorphism):** the live layer — **button hover, CTAs,
+>    the ActionDock, priority (error/warning) alerts**. `<Surface layer="glass">`.
+>
+> **Spatial model — Rail · Stage · Taskbar footer · ActionDock:** the app shell is
+> ribbon/rail + stage, with a **Windows-taskbar-style footer** (widget launchers
+> LEFT · centred search · tray + clock RIGHT — `AppFooterBar`; the old FloatingDock
+> is retired) and a **global, context-aware ActionDock** floating bottom-centre.
+> Screen CTAs migrate into the dock via `useScreenActions` (left=destroy ·
+> center=create · right=commit); inline page buttons are removed as screens adopt it.
+>
+> **Brand font: Urbanist** (OFL) across the MUI product — self-hosted via
+> `@fontsource/urbanist` (imported in `main.tsx`), mirrored in the kit theme.
 
-**Canonical guides:** **[`docs/esti/AORMS-BRANDING-KIT.md`](docs/esti/AORMS-BRANDING-KIT.md)**
-— the single source of truth for colour, type, surfaces, brand marks and the
-**Rail / Stage** layout. [`docs/esti/MATERIAL-UI-DIRECTION.md`](docs/esti/MATERIAL-UI-DIRECTION.md)
-— MUI theme, migration playbook, square-corner + palette-lock rules.
+**Canonical guides:** **[`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md)** — the
+layer philosophy, spatial model and adoption path (single source of truth).
+[`docs/esti/AORMS-BRANDING-KIT.md`](docs/esti/AORMS-BRANDING-KIT.md) — brand marks +
+colour/type heritage. [`docs/esti/MATERIAL-UI-DIRECTION.md`](docs/esti/MATERIAL-UI-DIRECTION.md)
+— the Carbon→MUI migration playbook (historical).
 [`docs/esti/CARBON-UI-DIRECTION.md`](docs/esti/CARBON-UI-DIRECTION.md) still governs the
 landing surface and documents legacy Carbon exceptions.
 
 ### UI task order
 
-1. Read [`docs/esti/MATERIAL-UI-DIRECTION.md`](docs/esti/MATERIAL-UI-DIRECTION.md) — theme, playbook, rules.
-2. Build app/portal screens from `@mui/material` + the theme — never hard-coded hex/gradients, never rounded corners.
-3. Enforcement runs in CI: `frontend/scripts/check-carbon.mjs` (frontend `lint`) + `carbon-policy.test.ts` (vitest) — now also flags rounded corners; `src/theme/` is the only place raw colour lives.
+1. Read [`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md) — layers, spatial model, dock zones.
+2. Build app/portal screens from `@mui/material` + `@hcw/ui-kit` (`MuiRoot`, `Surface`,
+   `useScreenActions`) — never hard-coded hex/gradients; raw colour lives ONLY in
+   `packages/hcw-ui-kit/src/tokens.ts` (and `landing.scss` for the Carbon landing).
+   `frontend/src/theme/` is a thin re-export shim of the kit — don't add styling there.
+3. Enforcement runs in CI: `frontend/scripts/check-carbon.mjs` (frontend `lint`) +
+   `carbon-policy.test.ts` (vitest); the kit package + `src/theme/` shims are the
+   exempt colour homes.
 
 **AORMS AI:** `@hcw/aorms-ai-kit` (prompts + Ollama SDK) — backend dependency; product docs stay in `docs/esti/`.
 

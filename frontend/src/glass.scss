@@ -249,26 +249,9 @@ $neu-input-radius: 8px; // shared soft-square radius
   }
 }
 
-// ── Floating dock ────────────────────────────────────────────────────────────
-// Bottom-centred floating frosted-white bar (FloatingDock.tsx). The Paper carries
-// the glass fill/blur/border + square corners from the MUI theme; this only
-// handles float positioning + a slightly stronger frost so it reads as glass.
-// Top border colour (alert status) is set inline from tokens.
-.esti-floating-dock {
-  position: fixed;
-  bottom: 52px; // clear gap above the footer bar
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1200;
-  width: max-content;
-  max-width: calc(100vw - 32px);
-  // Neumorphic — extruded from the canvas (no glass blur).
-  background: $neu-bg;
-  border-radius: $neu-radius;
-  box-shadow: 9px 9px 20px $neu-dark, -9px -9px 20px $neu-light;
-}
-
-// ── App shell v2 — ribbon (top) · content · footer (bottom) · floating dock ────
+// ── App shell v2 — ribbon (top) · content · taskbar footer (bottom) ───────────
+// (The former floating dock is retired: its widgets live in the taskbar footer,
+// per the HCW-UI-Kit spatial model — docs/esti/HCW-UI-KIT.md.)
 .esti-app-shell2 {
   display: flex;
   flex-direction: column;
@@ -303,10 +286,10 @@ $neu-input-radius: 8px; // shared soft-square radius
   color: var(--cds-text-primary);
 }
 
-// Floating AORMS logo — bottom, spaced above the footer bar, dimmed.
+// Floating AORMS logo — bottom, spaced above the taskbar footer, dimmed.
 .esti-app-logo-float {
   position: fixed;
-  bottom: 44px; // spacing above the 30px footer
+  bottom: 56px; // spacing above the 44px taskbar footer
   right: 12px;
   height: 24px;
   opacity: 0.6;
@@ -332,18 +315,20 @@ $neu-input-radius: 8px; // shared soft-square radius
   flex: 1 1 auto;
   overflow-y: auto;
   padding: 16px;
-  padding-bottom: 88px; // clear the footer + floating dock
+  padding-bottom: 88px; // clearance for the floating ActionDock (when a screen publishes actions)
 }
+// Taskbar footer (HCW-UI-Kit) — designed like a Windows taskbar: launcher icons
+// LEFT, centred search, system tray (due · health · clock) RIGHT. Solid white so
+// it reads as a persistent surface; the top border colour (office health) is set
+// inline from tokens.
 .esti-app-footer {
-  flex: 0 0 30px; // reduced to 80% of the previous 38px
+  flex: 0 0 44px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  // No bar background — blends with the page; the opaque shell canvas behind it
-  // keeps scrolling content from showing through.
-  background-color: transparent;
-  border-top: none;
+  gap: 12px;
+  padding: 0 12px;
+  background-color: #ffffff;
 }
 
 // ── Resonant breathing pace for the Studio Intelligence contour field ─────────

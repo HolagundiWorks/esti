@@ -30,27 +30,21 @@ import {
 import {
   lazy,
   Suspense,
-  useEffect,
-  useState,
   type ComponentType,
   type LazyExoticComponent,
 } from "react";
-import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { can, planAllows, ROLE_RANK, isStaffRole, type PlanFeature } from "@esti/contracts";
 import { ThemeContext } from "./lib/theme-context.js";
 import { isLandingSlug } from "./lib/landing-slugs.js";
 import { useAuth } from "./lib/auth.js";
 import { setDesktopToken } from "./lib/api-base.js";
 import { trpc } from "./lib/trpc.js";
-import { AlertsBell } from "./components/AlertsBell.js";
-import { UserIdCard } from "./components/UserIdCard.js";
 import { AiAgentCommand } from "./components/AiAgentCommand.js";
-import { FloatingDock } from "./components/FloatingDock.js";
 import { ActionDock, ActionDockProvider } from "@hcw/ui-kit";
 import { AppRibbon } from "./components/shell/AppRibbon.js";
 import { AppFooterBar } from "./components/shell/AppFooterBar.js";
 import { UsageIdentity } from "./components/identity/UsageIdentity.js";
-import { HeaderPomodoro } from "./components/HeaderPomodoro.js";
 import { PomodoroProvider } from "./contexts/PomodoroContext.js";
 import { UploadAuthProvider } from "./lib/uploadAuth.js";
 // Landing + Login stay eager so the first paint (marketing / sign-in) needs no extra
@@ -158,7 +152,6 @@ function AppShell() {
   const { user, isLoading } = useAuth();
   const { community } = useEdition();
   const { pathname } = useLocation();
-  const navigate = useNavigate();
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => {
@@ -574,8 +567,8 @@ function AppShell() {
           {/* HCW-UI-Kit global action dock — screens publish CTAs via useScreenActions;
               renders nothing until they do (zero regression until adopted). */}
           <ActionDock />
-          <FloatingDock />
-          {/* Footer bar — former top nav bar, moved to the bottom. Centered search. */}
+          {/* Taskbar footer (HCW-UI-Kit) — the former floating dock's widgets now
+              live here: launcher icons LEFT, search centred, tray + clock RIGHT. */}
           <AppFooterBar
             planClass={planHeaderClass}
             adminGroups={adminGroups}

@@ -4,13 +4,14 @@
  * is identical everywhere it is mounted. (The Carbon landing surface never mounts
  * these components.)
  *
- * Three hard rules, encoded here so screens inherit them and never re-specify
- * them inline (full spec: docs/esti/AORMS-BRANDING-KIT.md):
- *  1. Hyper-minimalist LIGHT palette, Radiant Orange accent (orange fills carry
- *     white text; links use slate).
- *  2. One soft-square radius everywhere (`shape.borderRadius`).
- *  3. Neumorphic is reserved (text inputs, dialogs, the floating dock); everything
- *     else is flat + borderless — buttons are pure text.
+ * The HCW-UI-Kit layer rules, encoded here so screens inherit them and never
+ * re-specify them inline (full spec: docs/esti/HCW-UI-KIT.md):
+ *  1. Layer 1 FLAT (hyperminimalist) — tables, text, surfaces at rest; the Radiant
+ *     Orange accent carries white text; links use slate. One soft-square radius.
+ *  2. Layer 2 SOFT (neumorphic) — dialogs and text-entry wells; objects you work
+ *     within.
+ *  3. Layer 3 GLASS (glassmorphism) — the live layer: BUTTON HOVER takes the
+ *     glass slab, and priority alerts (error/warning) read as tinted glass.
  */
 import { createTheme, type Theme } from "@mui/material/styles";
 // Theme augmentation so `components.MuiDataGrid` (MUI X) is type-known here.
@@ -23,6 +24,7 @@ import {
   GLASS_BORDER,
   GLASS_BLUR,
   GLASS_SHADOW,
+  GLASS_SURFACE,
   POP_FILL,
   NEU_POP,
   FLAT_POP,
@@ -140,12 +142,17 @@ export function createAormsTheme(): Theme {
               background: "transparent",
               border: "none",
               boxShadow: "none",
-              transition: "transform 130ms ease, box-shadow 130ms ease, color 130ms ease",
+              transition:
+                "transform 130ms ease, box-shadow 130ms ease, color 130ms ease, background 130ms ease",
+              // HOVER = Layer 3 GLASS: the label lifts onto a frosted glass slab
+              // (actionability itself glows), keeping the bottom accent line.
               "&:hover": {
-                backgroundColor: "transparent",
+                background: GLASS_SURFACE.background,
+                backdropFilter: GLASS_SURFACE.backdropFilter,
+                WebkitBackdropFilter: GLASS_SURFACE.WebkitBackdropFilter,
                 color: isError ? CDS.supportError : CDS.accentDark,
                 transform: BTN_LIFT,
-                boxShadow: underline,
+                boxShadow: `0 8px 24px rgba(20, 21, 23, 0.14), ${underline}`,
               },
               "&:active": {
                 transform: "none",
@@ -165,6 +172,29 @@ export function createAormsTheme(): Theme {
       MuiLink: {
         defaultProps: { underline: "hover" },
         styleOverrides: { root: { color: CDS.supportInfo } },
+      },
+      // Priority notifications (Layer 3) — error/warning alerts read as TINTED
+      // GLASS so they visibly float above the calm flat canvas; info/success stay
+      // quiet (Layer 1).
+      MuiAlert: {
+        styleOverrides: {
+          root: ({ ownerState }) => {
+            if (ownerState.variant && ownerState.variant !== "standard") return {};
+            if (ownerState.severity === "error")
+              return {
+                ...GLASS_SURFACE,
+                background: "rgba(200, 68, 46, 0.10)",
+                border: "1px solid rgba(200, 68, 46, 0.25)",
+              };
+            if (ownerState.severity === "warning")
+              return {
+                ...GLASS_SURFACE,
+                background: "rgba(255, 153, 50, 0.12)",
+                border: "1px solid rgba(255, 153, 50, 0.30)",
+              };
+            return {};
+          },
+        },
       },
       MuiChip: {
         styleOverrides: {
