@@ -46,6 +46,7 @@ import { AlertsBell } from "./components/AlertsBell.js";
 import { UserIdCard } from "./components/UserIdCard.js";
 import { AiAgentCommand } from "./components/AiAgentCommand.js";
 import { FloatingDock } from "./components/FloatingDock.js";
+import { ActionDock, ActionDockProvider } from "@hcw/ui-kit";
 import { AppRibbon } from "./components/shell/AppRibbon.js";
 import { AppFooterBar } from "./components/shell/AppFooterBar.js";
 import { UsageIdentity } from "./components/identity/UsageIdentity.js";
@@ -427,6 +428,7 @@ function AppShell() {
   return (
     <ThemeContext.Provider value="white">
       <Theme theme="white">
+        <ActionDockProvider>
         <div className={`esti-app-shell2${user.isDemo ? " esti-app-shell--demo" : ""}`}>
           {/* Floating AORMS logo — bottom-right corner, dimmed (dark mark on light canvas). */}
           <span role="img" aria-label="AORMS" className="esti-app-logo-float esti-brand esti-brand--aorms" />
@@ -569,6 +571,9 @@ function AppShell() {
           </div>
           <UsageIdentity />
           <AiAgentCommand />
+          {/* HCW-UI-Kit global action dock — screens publish CTAs via useScreenActions;
+              renders nothing until they do (zero regression until adopted). */}
+          <ActionDock />
           <FloatingDock />
           {/* Footer bar — former top nav bar, moved to the bottom. Centered search. */}
           <AppFooterBar
@@ -577,6 +582,7 @@ function AppShell() {
             onSignOut={() => logout.mutate()}
           />
         </div>
+        </ActionDockProvider>
       </Theme>
     </ThemeContext.Provider>
   );
