@@ -1,0 +1,133 @@
+# HCW-UI-Kit — the layered design system
+
+**HCW-UI-Kit** (*Human Centric Works UI Kit*, package `@hcw/ui-kit`) is the single,
+centralised design system deployed against **every** AORMS portal — the workspace
+app, the client & consultant portals, the licensing console, ESE, the Estimate
+app, and any future deployable. Change a token or a primitive here and every
+portal that mounts the kit moves together.
+
+## Thesis — *depth encodes importance*
+
+Three material languages are stacked by visual depth. **The flatter and calmer a
+thing is, the more it is "just information"; the more it lifts, softens, or glows,
+the more it is "an object you act within" or "an action/alert that wants you now."**
+You never pick a layer by taste — you pick it by the element's **role**.
+
+| Layer | Language | Material | Used for | Job |
+|---|---|---|---|---|
+| **1** | **Hyperminimalist** | FLAT — Fog-Gray canvas, Pure-White, hairline rules, no box, no shadow | data tables, body text, headings, labels, inputs **at rest** (~90% of pixels) | legibility, calm |
+| **2** | **Neumorphic** | SOFT — same-material block extruded/recessed with soft dual shadows, no border | dialogs, text panels, widgets, highlight / summary cards, text-entry wells | "a physical object you work within" |
+| **3** | **Glassmorphism** | GLASS — translucent frosted glass, blur + light edge, floats above everything | **hover states, CTAs, the action dock, priority notifications, active/important widgets** | attention + action |
+
+Mnemonic: **Flat = info at rest · Soft = objects you handle · Glass = actions &
+alerts that rise to the top.** The single Radiant-Orange accent concentrates in
+Layer 3, so *actionability itself* is what glows.
+
+In code the layer recipes are tokens (`LAYERS.flat|soft|glass`, `NEU_RAISED`,
+`GLASS_SURFACE`, the recessed `NEU_INSET` for inputs, `NEU_POP` for dialogs), and
+the `<Surface layer="flat|soft|glass">` primitive applies them:
+
+```tsx
+<Surface layer="soft" sx={{ p: 2 }}>…a summary card…</Surface>   // Layer 2
+<Surface layer="glass" sx={{ p: 2 }}>…a priority alert…</Surface> // Layer 3
+```
+
+## Spatial model — Rail · Stage · Footer · Dock
+
+```
+┌───────────────────────────────────────────────────────────┐
+│                         STAGE                              │
+│ R  │   working surface: tables (L1), cards/panels (L2),    │
+│ A  │   dialogs (L2), inline hovers (L3)                    │
+│ I  │                                                       │
+│ L  │                                                       │
+│    │              ╭──── ActionDock (L2→L3) ────╮           │
+│    │              │  ⌫ delete │  ＋ new  │ 💾 save │        │  ← floats, glass on hover
+├────┴──────────────┴───────────────────────────┴───────────┤
+│ [ESTI][Pomodoro][Calc]                       12:40 · 08 Jul│  ← TaskbarFooter (Windows taskbar)
+└───────────────────────────────────────────────────────────┘
+```
+
+- **Rail** (left) — navigation (the recursive `NavNode` tree). Layer 1.
+- **Stage** (centre) — the working surface. Layers 1 + 2, hover in Layer 3.
+- **TaskbarFooter** (bottom, full width) — a **Windows-taskbar-style** bar:
+  persistent app widgets / launchers (ESTI, Pomodoro, Calculator) as **icons on
+  the LEFT**; the **clock on the RIGHT** (system-tray position). Flat white with a
+  hairline top edge; each launcher chip is neumorphic (`TaskbarButton`). This is
+  the relocated + reoriented former floating dock (`TASKBAR_HEIGHT = 56`).
+- **ActionDock** (bottom-centre, floats above the stage, clears the footer) — the
+  one **global, context-aware** action bar. **All CTAs live here, not inline.**
+
+### The action dock — one dock, three zones
+
+A screen never renders its own CTAs; it **publishes** them to the global dock,
+which lays them out in three fixed zones so the geography is identical everywhere:
+
+| Zone | Meaning | Examples | Tone |
+|---|---|---|---|
+| **LEFT** | exit / destroy | Delete · Discard / Save-without-changes · Cancel | `danger` (red) |
+| **CENTER** | generate | Add · Create · New | `primary` (orange) |
+| **RIGHT** | commit | Save · Edit · Save-changes · Confirm | `primary` (orange) |
+
+Create in the middle, commit on the right, destroy on the left — muscle memory
+across the whole product (and Fitts's-law-friendly big targets). Dock buttons are
+neumorphic at rest and **lift to glass on hover**. The dock hides itself when no
+screen has published actions.
+
+```tsx
+// In a screen — declare actions; they appear in the dock, clear on unmount.
+useScreenActions(
+  [
+    { id: "delete", zone: "left",   tone: "danger",  label: "Delete", icon: <Delete/>,  onClick: onDelete, disabled: !selected },
+    { id: "new",    zone: "center", tone: "primary", label: "New",    icon: <Add/>,     onClick: onNew },
+    { id: "save",   zone: "right",  tone: "primary", label: "Save",   icon: <Save/>,    onClick: onSave,   disabled: !dirty },
+  ],
+  [selected, dirty],
+);
+```
+
+## Mounting the kit in a portal
+
+```tsx
+import { MuiRoot, ActionDockProvider, ActionDock, TaskbarFooter, TaskbarButton } from "@hcw/ui-kit";
+
+<MuiRoot>                         {/* brand theme + dayjs */}
+  <ActionDockProvider>           {/* the action registry */}
+    <Shell>
+      <Rail/><Stage><Routes/></Stage>
+    </Shell>
+    <ActionDock/>                {/* the floating action bar */}
+    <TaskbarFooter left={<><TaskbarButton icon={<Bolt/>} label="ESTI"/> …</>} />
+  </ActionDockProvider>
+</MuiRoot>
+```
+
+Add `"@hcw/ui-kit": "workspace:*"` to the portal's `package.json`, and import the
+brand font once (`@fontsource/urbanist` weights 400/500/600/700).
+
+## What's in the package
+
+```
+packages/hcw-ui-kit/src/
+├─ tokens.ts        colour, radius, type + the three LAYER recipes (single source of truth)
+├─ theme.ts         the shared MUI theme built from the tokens
+├─ MuiRoot.tsx      provider (theme + dayjs localization)
+├─ Surface.tsx      <Surface layer="flat|soft|glass"> depth primitive
+├─ ActionDock.tsx   ActionDockProvider · useScreenActions · <ActionDock/> (3 zones)
+├─ TaskbarFooter.tsx <TaskbarFooter> + <TaskbarButton> (Windows-taskbar footer)
+└─ BrandMark.tsx    asset-free wordmark
+```
+
+Source-only (like `@esti/contracts`); the consuming portal's bundler compiles it.
+Colour + shape live ONLY here (and, for the Carbon landing surface, in
+`landing.scss`).
+
+## Adoption path
+
+1. Mount `MuiRoot` → `ActionDockProvider` → `ActionDock` + `TaskbarFooter` in the
+   app shell; move the header clock/Pomodoro + floating widgets into the footer.
+2. Migrate screens one at a time: delete inline CTAs, add a `useScreenActions(...)`
+   call. Rows/tables stay Layer 1; summary/highlight cards adopt `<Surface layer="soft">`;
+   priority alerts adopt `<Surface layer="glass">`.
+3. The old `glass.scss` / `FloatingDock` behaviour is superseded by the kit's
+   `TaskbarFooter` + `ActionDock`; retire them as screens migrate.

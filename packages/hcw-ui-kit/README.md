@@ -1,10 +1,14 @@
-# @esti/ui-kit
+# @hcw/ui-kit — HCW-UI-Kit
 
-The **centralised AORMS branding + UI kit** — one package that carries the
-implemented design (hyper-minimalist light palette, Radiant Orange accent,
-one soft-square radius, flat borderless surfaces) so **every portal deploys the
-same look** from a single source: the workspace app, the client & consultant
-portals, the licensing console, ESE, the Estimate app, and any future deployable.
+**HCW-UI-Kit** (*Human Centric Works UI Kit*) — the centralised, **layered** design
+system deployed against **every** AORMS portal (workspace app, client & consultant
+portals, licensing console, ESE, the Estimate app, any future deployable).
+
+Thesis: **depth encodes importance** — three material languages stacked by z-depth:
+**hyperminimalist (flat)** for information at rest, **neumorphic (soft)** for objects
+you work within, **glassmorphism (glass)** for the live layer (hover, CTAs, the
+action dock, alerts). Full spec + spatial model (Rail · Stage · TaskbarFooter ·
+ActionDock): [`docs/esti/HCW-UI-KIT.md`](../../docs/esti/HCW-UI-KIT.md).
 
 It is the ONE place raw brand values live. Change a token here and every portal
 that mounts the kit updates together.

@@ -109,5 +109,37 @@ export const DD_FLAT = {
   "&.Mui-disabled": { boxShadow: "none", opacity: 0.6 },
 } as const;
 
+// ── The three depth layers (HCW-UI-Kit thesis: depth encodes importance) ───────
+// Layer 1 FLAT (hyperminimalist) — the resting plane: tables, text, inputs at
+// rest. No recipe: it IS the canvas + hairlines (see the theme's Paper/DataGrid).
+// Layer 2 SOFT (neumorphic) — contained objects you work within: widgets,
+// highlight cards, panels, dialogs. A same-material block extruded off the canvas.
+export const NEU_RAISED = {
+  backgroundColor: NEU_FILL,
+  backgroundImage: "none",
+  border: "none",
+  borderRadius: RADIUS,
+  boxShadow: "6px 6px 14px rgba(20, 21, 23, 0.16), -6px -6px 14px rgba(255, 255, 255, 0.92)",
+} as const;
+// Layer 3 GLASS (glassmorphism) — the live, floating layer: hover, CTAs, the
+// action dock, priority alerts, active widgets. Translucent frosted glass that
+// visibly lifts above everything and pulls the eye. Reserved for what's actionable.
+export const GLASS_SURFACE = {
+  background: "rgba(255, 255, 255, 0.62)",
+  backdropFilter: "blur(20px) saturate(1.6)",
+  WebkitBackdropFilter: "blur(20px) saturate(1.6)",
+  border: "1px solid rgba(255, 255, 255, 0.55)",
+  borderRadius: RADIUS,
+  boxShadow: "0 10px 34px rgba(20, 21, 23, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.7)",
+} as const;
+
+/** The three layers, by name. `flat` is intentionally empty (it IS the canvas). */
+export type SurfaceLayer = "flat" | "soft" | "glass";
+export const LAYERS: Record<SurfaceLayer, Record<string, unknown>> = {
+  flat: {},
+  soft: NEU_RAISED,
+  glass: GLASS_SURFACE,
+};
+
 /** The token bundle, handy for a one-shot import. */
 export const tokens = { colors, RADIUS, BUTTON_RADIUS, FONT_FAMILY } as const;

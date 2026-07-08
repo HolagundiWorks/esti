@@ -24,7 +24,7 @@
     "@emotion/styled": "^11.14.1",
     "@esti/backend": "workspace:*",
     "@esti/contracts": "workspace:*",
-    "@esti/ui-kit": "workspace:*",
+    "@hcw/ui-kit": "workspace:*",
     "@fontsource/open-sans": "^5.2.7",
     "@fontsource/urbanist": "^5.2.7",
     "@mui/icons-material": "^9.2.0",

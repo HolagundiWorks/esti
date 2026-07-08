@@ -1,9 +1,9 @@
 {
-  "name": "@esti/ui-kit",
+  "name": "@hcw/ui-kit",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "AORMS centralised branding + UI kit — design tokens, shared MUI theme, MuiRoot provider and brand primitives, deployed against every portal.",
+  "description": "HCW-UI-Kit (Human Centric Works) — the centralised layered design system: hyperminimalist · neumorphic · glassmorphism, deployed against every portal.",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
