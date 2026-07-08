@@ -1,25 +1,18 @@
-// Full Carbon v11 stylesheet. Resolved via @carbon/react's package "sass"
-// entry (its root index.scss) — the bundler/Sass resolver handles the path.
-//
-// Override $font-path off Carbon's webpack-only "~@ibm/plex" default (which
-// 404s under Vite) to the IBM Plex CDN so the @font-face URLs resolve.
-// ($font-families is NOT a configurable Carbon var, so the Google Sans swap is
-// applied as a runtime override further below, not here.)
-@use "@carbon/react" with (
-  $font-path: "https://unpkg.com/@ibm/plex@6.4.1"
-);
-// Access the forwarded Carbon type module for the type-style() mixin.
-@use "@carbon/react/scss/type" as type;
-// Raw Carbon palette (yellow-40 / blue-80 / purple-70 etc.) for the plan-tier
-// header tint — sourced from Carbon, never hand-picked hex.
-@use "@carbon/react/scss/colors" as colors;
 @use "./scss/carbon-motion";
 
-// Carbon spacing tokens emitted as CSS custom properties.
-// @carbon/react compiles them to static Sass values and does NOT output them
-// as runtime CSS custom properties. Declaring them on :root lets any
-// var(--cds-spacing-*) usage in our own CSS resolve correctly.
+// Design tokens as static CSS custom properties — Carbon-independent.
+//
+// These values were originally generated at build time by @carbon/react's Sass
+// theme engine + its <Theme theme="white"> component (light/"white" theme only —
+// this app never used dark mode). @carbon/react was removed (2026-07); the exact
+// values it produced are captured here as a static, hand-owned :root block so
+// every existing var(--cds-*) call site keeps resolving identically with zero
+// code churn. New code should prefer @hcw/ui-kit tokens
+// (packages/hcw-ui-kit/src/tokens.ts) — these --cds-* names are a compatibility
+// layer for the pre-HCW-UI-Kit surface area, not a target for new styling.
 :root {
+  // Spacing scale (Carbon never exposed these as runtime custom properties —
+  // this app has always hand-declared them from the compiled Sass values).
   --cds-spacing-01: 0.125rem;  // 2px
   --cds-spacing-02: 0.25rem;   // 4px
   --cds-spacing-03: 0.5rem;    // 8px
@@ -34,6 +27,69 @@
   --cds-spacing-12: 6rem;      // 96px
   --cds-spacing-13: 10rem;     // 160px
   --cds-grid-margin: 1rem;     // Carbon 2x Grid default margin
+  --cds-grid-gutter: 2rem;
+  --cds-border-radius-lg: 8px; // matches the HCW-UI-Kit soft-square radius
+
+  // Theme colours — extracted verbatim from @carbon/react's compiled `.cds--white`
+  // theme block (the only theme this app ever mounted).
+  --cds-background: #ffffff;
+  --cds-background-hover: rgba(141, 141, 141, 0.12);
+  --cds-border-interactive: #0f62fe;
+  --cds-border-strong-01: #8d8d8d;
+  --cds-border-strong: var(--cds-border-strong-01);
+  --cds-border-subtle-00: #e0e0e0;
+  --cds-border-subtle-01: #c6c6c6;
+  --cds-border-subtle: var(--cds-border-subtle-00);
+  --cds-focus: #0f62fe;
+  --cds-icon-primary: #161616;
+  --cds-interactive: #0f62fe;
+  --cds-layer-01: #f4f4f4;
+  --cds-layer-02: #ffffff;
+  --cds-layer: var(--cds-layer-01);
+  --cds-layer-accent: #e0e0e0;
+  --cds-layer-hover-01: #e8e8e8;
+  --cds-layer-hover: var(--cds-layer-hover-01);
+  --cds-layer-selected: #e0e0e0;
+  --cds-link-inverse: #78a9ff;
+  --cds-link-primary: #0f62fe;
+  --cds-support-error: #da1e28;
+  --cds-support-info: #0043ce;
+  --cds-support-success: #24a148;
+  --cds-support-warning: #f1c21b;
+  --cds-support-warning-minor: var(--cds-support-warning);
+  --cds-notification-warning-background: #fcf4d6;
+  --cds-text-disabled: rgba(22, 22, 22, 0.25);
+  --cds-text-helper: #6f6f6f;
+  --cds-text-inverse: #ffffff;
+  --cds-text-on-color: #ffffff;
+  --cds-text-primary: #161616;
+  --cds-text-secondary: #525252;
+
+  // Tag background/text pairs (StatusDot/StatusTag colour keys — TagColor in
+  // @esti/contracts). "high-contrast" and "outline" were never emitted as
+  // theme-colour custom properties by Carbon either — callers using them already
+  // relied on a fallback (or resolved to nothing), unchanged from before.
+  --cds-tag-background-red: #ffd7d9;
+  --cds-tag-color-red: #a2191f;
+  --cds-tag-background-magenta: #ffd6e8;
+  --cds-tag-color-magenta: #9f1853;
+  --cds-tag-background-purple: #e8daff;
+  --cds-tag-color-purple: #6929c4;
+  --cds-tag-background-blue: #d0e2ff;
+  --cds-tag-color-blue: #0043ce;
+  --cds-tag-background-cyan: #bae6ff;
+  --cds-tag-color-cyan: #00539a;
+  --cds-tag-background-teal: #9ef0f0;
+  --cds-tag-color-teal: #005d5d;
+  --cds-tag-background-green: #a7f0ba;
+  --cds-tag-color-green: #0e6027;
+  --cds-tag-background-gray: #e0e0e0;
+  --cds-tag-color-gray: #161616;
+  --cds-tag-background-cool-gray: #dde1e6;
+  --cds-tag-color-cool-gray: #121619;
+  --cds-tag-background-warm-gray: #e5e0df;
+  --cds-tag-color-warm-gray: #171414;
+
   // Brand font stack — single source of truth (mirrors MUI's
   // theme.typography.fontFamily and landing's --lp-font). Urbanist (OFL) is
   // self-hosted via @fontsource, imported in main.tsx.
@@ -41,11 +97,9 @@
     "Helvetica Neue", Arial, sans-serif;
 }
 
-// BRAND FONT — Urbanist everywhere. Applied as a runtime override because
-// Carbon's $font-families map is not a configurable Sass var. Reaches the body
-// (inherited by all app + landing text) and every Carbon-prefixed surface, which
-// otherwise set 'IBM Plex Sans' explicitly via the type-style mixins. Our own
-// monospace utilities are `.esti-*` classes (never `.cds--*`) and set their own
+// BRAND FONT — Urbanist everywhere. Reaches the body (inherited by all app +
+// landing text) and any lingering `.cds--*`-prefixed class names.
+// Our own monospace utilities are `.esti-*` classes and set their own
 // 'IBM Plex Mono' with higher specificity, so numeric/code readouts are untouched.
 html body,
 html body [class^="cds--"],
@@ -211,18 +265,18 @@ html:has(.esti-landing-shell) body {
 // above Carbon's default header background. PRO (blue-80) is dark, so Carbon's
 // white header foreground stays readable; LITE (yellow-40) is light, so the
 // foreground (logo, firm name, action icons) flips to dark.
-.cds--header.esti-app-header--lite { background-color: colors.$yellow-40; }
-.cds--header.esti-app-header--pro { background-color: colors.$blue-80; }
+.cds--header.esti-app-header--lite { background-color: #d2a106; } // Carbon yellow-40
+.cds--header.esti-app-header--pro { background-color: #002d9c; } // Carbon blue-80
 
 .esti-app-header--lite {
   .cds--header__name,
   .cds--header__action,
   .esti-header-clock {
-    color: colors.$gray-100;
+    color: #161616; // Carbon gray-100
   }
   .cds--header__action svg,
   .cds--header__menu-trigger svg {
-    fill: colors.$gray-100;
+    fill: #161616; // Carbon gray-100
   }
   // white AORMS wordmark → dark on the light yellow header.
   .esti-app-brand__logo { filter: brightness(0); }
@@ -455,7 +509,10 @@ html:has(.esti-landing-shell) body {
   opacity: 0.8;
   font-variant-numeric: tabular-nums;
   pointer-events: none;
-  @include type.type-style("productive-heading-03");
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
   &--focus { color: var(--cds-support-success); }
   &--break { color: var(--cds-support-error); }
 }
@@ -487,18 +544,27 @@ html:has(.esti-landing-shell) body {
 
 .esti-ai-explain__summary {
   margin: 0;
-  @include type.type-style("body-compact-01");
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.28572;
+  letter-spacing: 0.16px;
 }
 
 .esti-ai-explain__list {
   margin: 0;
   padding-inline-start: 1.25rem;
-  @include type.type-style("label-01");
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.33333;
+  letter-spacing: 0.32px;
 }
 
 .esti-ai-studio__title {
   margin-block-start: 0;
-  @include type.type-style("heading-compact-01");
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.28572;
+  letter-spacing: 0.16px;
 }
 
 .esti-ai-settings-tile {
@@ -1114,7 +1180,10 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
 }
 
 .esti-dash-kpi {
-  @include type.type-style("heading-06");
+  font-size: 2.625rem;
+  font-weight: 300;
+  line-height: 1.199;
+  letter-spacing: 0;
   color: var(--cds-text-primary);
   line-height: 1;
   padding: var(--cds-spacing-05) var(--cds-spacing-05) var(--cds-spacing-03);
@@ -1123,7 +1192,10 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
 // Oversized hero KPI number (IBM Security Cloud-style home). Carbon heading-07
 // type token only — no hand-set font size. Colour stays a Carbon token.
 .esti-kpi-hero {
-  @include type.type-style("heading-07");
+  font-size: 3.375rem;
+  font-weight: 300;
+  line-height: 1.19;
+  letter-spacing: 0;
   color: var(--cds-text-primary);
   line-height: 1;
   margin: 0;
@@ -1294,7 +1366,10 @@ $dash-tile-h: clamp(200px, 18vw, 280px);
   margin-top: var(--cds-spacing-02);
 
   &-main {
-    @include type.type-style("heading-05");
+    font-size: 2rem;
+    font-weight: 400;
+    line-height: 1.25;
+    letter-spacing: 0;
     color: var(--cds-text-primary);
     line-height: 1;
   }
@@ -2034,7 +2109,10 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
 
   p {
     margin: 0;
-    @include type.type-style("body-compact-01");
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.28572;
+    letter-spacing: 0.16px;
     line-height: 1.4;
     color: var(--cds-text-secondary);
     overflow: hidden;
@@ -2054,13 +2132,19 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
     display: inline-flex;
     align-items: center;
     gap: var(--cds-spacing-02);
-    @include type.type-style("label-01");
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.33333;
+    letter-spacing: 0.32px;
     color: var(--cds-text-helper);
   }
 
   .esti-geo {
     color: var(--cds-text-helper); // legend stays gray — the only live blue is on focus box #1
-    @include type.type-style("body-compact-01");
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.28572;
+    letter-spacing: 0.16px;
   }
 }
 

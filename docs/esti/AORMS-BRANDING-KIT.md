@@ -59,8 +59,8 @@ panels, Coal-Black ink, with **Radiant Orange** the single signature accent.
 > **Superseded:** the live brand face is **Urbanist**, not Open Sans below —
 > self-hosted via `@fontsource/urbanist` (weights 400/500/600/700, imported in
 > `frontend/src/main.tsx`), mirrored as `FONT_FAMILY` in `@hcw/ui-kit`'s
-> `tokens.ts`. The MUI product runs Urbanist; the Carbon landing keeps its own
-> `--lp-font` (see `landing.scss`).
+> `tokens.ts`. The MUI product runs Urbanist; the landing page keeps its own
+> `--lp-font` editorial type scale (see `landing.scss`).
 
 - **Open Sans** (SIL OFL, free) is the brand face across the **entire** product,
   landing included. Self-hosted via `@fontsource/open-sans` (weights 400/600/700,
@@ -142,7 +142,7 @@ Every screen splits into two regions. **Always refer to them by these names.**
 ## 5. Iconography & brand marks
 
 - **Icons:** `@mui/icons-material` (per-icon default import), sized via
-  `sx={{ fontSize }}`. Legacy Carbon surfaces (landing) use `@carbon/icons-react`.
+  `sx={{ fontSize }}` — everywhere, including the landing page.
 - **Brand marks are identical everywhere** — no per-screen variants, no white/box
   background fill (which made them look square). Both the **ESTI mark** and the
   **AORMS wordmark** render in **Radiant Orange on a transparent background**,
@@ -163,10 +163,11 @@ Every screen splits into two regions. **Always refer to them by these names.**
 | **`frontend/src/theme/muiTheme.ts`** | MUI theme — palette, type, shape (`borderRadius:0`), flat component overrides. The primary source. | exempt |
 | **`frontend/src/glass.scss`** | App-shell surfaces, flat tiles, neumorphic widgets, brand-mark fill var. | exempt |
 | **`frontend/src/styles.scss`** | Font var, structural helpers, `.esti-brand` mask classes. Colourless except the brand var. | enforced |
-| **`frontend/src/landing.scss`** | Landing (Carbon editorial) `--lp-*` tokens — warm accent = Radiant Orange. | exempt |
+| **`frontend/src/landing.scss`** | Landing editorial `--lp-*` tokens — warm accent = Radiant Orange. | exempt |
 
-Everything else references these — no raw hex, no rounded corners. Enforcement:
-`frontend/scripts/check-carbon.mjs` (frontend `lint`) + `carbon-policy.test.ts`.
+Everything else references these — no raw hex, no rounded corners. (The automated
+`check-carbon.mjs`/`carbon-policy.test.ts` guard was removed with `@carbon/react`,
+2026-07; this is enforced by code review now.)
 
 ---
 
@@ -182,10 +183,8 @@ decoration) are listed in `CLAUDE.md`: `esti-pom-pulse`, `esti-zone-pulse`,
 ## 8. Linked references
 
 **Design docs**
-- [`MATERIAL-UI-DIRECTION.md`](MATERIAL-UI-DIRECTION.md) — MUI theme, migration
-  playbook, Rail/Stage, square-corner + palette-lock rules (app + portals).
-- [`CARBON-UI-DIRECTION.md`](CARBON-UI-DIRECTION.md) — the landing surface + legacy
-  Carbon exceptions.
+- [`MATERIAL-UI-DIRECTION.md`](MATERIAL-UI-DIRECTION.md) — historical Carbon→MUI
+  migration playbook, Rail/Stage, square-corner + palette-lock rules (app + portals).
 - [`NAVIGATION.md`](NAVIGATION.md) — Canonical V3 information architecture / sidebar.
 - [`INFORMATION-ARCHITECTURE.md`](INFORMATION-ARCHITECTURE.md) — module map.
 
@@ -194,7 +193,5 @@ decoration) are listed in `CLAUDE.md`: `esti-pom-pulse`, `esti-zone-pulse`,
 - Surfaces: `frontend/src/glass.scss` · `frontend/src/styles.scss` ·
   `frontend/src/landing.scss`
 - Layout shell: `frontend/src/components/RailLayout.tsx`
-- Guard: `frontend/scripts/carbon-policy-rules.mjs` ·
-  `frontend/scripts/check-carbon.mjs`
 
 **Assets:** `frontend/public/` (brand marks, favicons, OG image).

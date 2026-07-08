@@ -1,4 +1,3 @@
-import { Theme } from "@carbon/react";
 import { Alert, AlertTitle, Box, CircularProgress } from "@mui/material";
 import {
   Analytics,
@@ -196,7 +195,7 @@ function AppShell() {
   const ADMIN_CONSOLE_URL = (import.meta.env.VITE_ADMIN_URL as string | undefined) ?? "";
   const isAdminSubdomain = /^admin\./.test(window.location.hostname);
   if (!ADMIN_CONSOLE_URL && (isAdminSubdomain || pathname.startsWith("/platform-admin")))
-    return <Theme theme="white"><PlatformAdmin /></Theme>;
+    return <PlatformAdmin />;
 
   // Public marketing surfaces — only shipped in the public-site (demo/dev) variant.
   if (PUBLIC_SITE && (pathname === "/blog" || pathname.startsWith("/blog/")))
@@ -230,18 +229,18 @@ function AppShell() {
   // AORMS account + licence portal (hlp_account) — its own hub destination,
   // independent of any firm workspace session.
   if (PUBLIC_SITE && pathname === "/account")
-    return <Theme theme="white"><AccountPortal /></Theme>;
+    return <AccountPortal />;
 
   if (isLoading) return <Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}><CircularProgress aria-label="Loading AORMS" /></Box>;
   if (!user)
     return (
       <Routes>
-        <Route path="/login" element={<Theme theme="white"><Login /></Theme>} />
-        <Route path="/access" element={<Theme theme="white"><ExternalLogin /></Theme>} />
-        <Route path="/signup" element={<Theme theme="white"><Signup /></Theme>} />
-        <Route path="/forgot-password" element={<Theme theme="white"><ForgotPassword /></Theme>} />
-        <Route path="/reset-password" element={<Theme theme="white"><ResetPassword /></Theme>} />
-        <Route path="/recover" element={<Theme theme="white"><RecoverWithBackupCode /></Theme>} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/access" element={<ExternalLogin />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/recover" element={<RecoverWithBackupCode />} />
         {/* Public-site builds land on marketing; the firm product goes straight to login. */}
         <Route path="*" element={PUBLIC_SITE ? <Landing /> : <Navigate to="/login" replace />} />
       </Routes>
@@ -252,50 +251,45 @@ function AppShell() {
   // Client-role users get the read-only portal, not the office workspace.
   if (user.role === "CLIENT")
     return (
-      <Theme theme="white">        <div>
-          <Routes>
-            <Route path="/" element={<Portal />} />
-            <Route path="/projects/:projectId" element={<Portal />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
-      </Theme>
+      <div>
+        <Routes>
+          <Route path="/" element={<Portal />} />
+          <Route path="/projects/:projectId" element={<Portal />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
     );
   // External consultants (scoped to a consultant record) get the collaborator portal.
   if (user.role === "CONSULTANT" && user.consultantId)
     return (
-      <Theme theme="white">        <div>
-          <Routes>
-            <Route path="/" element={<CollaboratorPortal />} />
-            <Route path="/projects/:projectId" element={<CollaboratorPortal />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
-      </Theme>
+      <div>
+        <Routes>
+          <Route path="/" element={<CollaboratorPortal />} />
+          <Route path="/projects/:projectId" element={<CollaboratorPortal />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
     );
 
   // Contractors (scoped to a contractor record) get the login-based contractor portal.
   if (user.role === "CONTRACTOR" && user.contractorId)
     return (
-      <Theme theme="white">        <div>
-          <Routes>
-            <Route path="/" element={<p>Contractor access is being rebuilt.</p>} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
-      </Theme>
+      <div>
+        <Routes>
+          <Route path="/" element={<p>Contractor access is being rebuilt.</p>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
     );
 
   // Dedicated site supervisors get the mobile-first site portal only (no office workspace).
   if (user.role === "SITE_SUPERVISOR")
     return (
-      <Theme theme="white">
-        <Routes>
-          <Route path="/" element={<SitePortal />} />
-          <Route path="/projects/:projectId" element={<SitePortal />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Theme>
+      <Routes>
+        <Route path="/" element={<SitePortal />} />
+        <Route path="/projects/:projectId" element={<SitePortal />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     );
 
   // Navigation tree — the Canonical V3 nav (Dashboard · Projects · Tasks · Studio ·
@@ -420,8 +414,7 @@ function AppShell() {
 
   return (
     <ThemeContext.Provider value="white">
-      <Theme theme="white">
-        <ActionDockProvider>
+      <ActionDockProvider>
         <div className={`esti-app-shell2${user.isDemo ? " esti-app-shell--demo" : ""}`}>
           {/* Floating AORMS logo — bottom-right corner, dimmed (dark mark on light canvas). */}
           <span role="img" aria-label="AORMS" className="esti-app-logo-float esti-brand esti-brand--aorms" />
@@ -575,8 +568,7 @@ function AppShell() {
             onSignOut={() => logout.mutate()}
           />
         </div>
-        </ActionDockProvider>
-      </Theme>
+      </ActionDockProvider>
     </ThemeContext.Provider>
   );
 }

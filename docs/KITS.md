@@ -9,9 +9,11 @@ disk. Everything needed to run is inside this repository.
 | `@hcw/aorms-ai-kit` | `vendor/hcw-aorms-ai-kit/` | AORMS AI prompts + Ollama SDK (backend) |
 
 > **Retired kits — do not reintroduce.**
-> - `@hcw/carbon-agent-kit` was **internalised** (2026-07): its Pure-Carbon lint policy now
->   lives at `frontend/scripts/carbon-policy-rules.mjs`; design guidance is in
->   [`esti/CARBON-UI-DIRECTION.md`](esti/CARBON-UI-DIRECTION.md).
+> - `@hcw/carbon-agent-kit` was **internalised** (2026-07) as `frontend/scripts/
+>   carbon-policy-rules.mjs`, then the whole Carbon policy guard + `@carbon/react`
+>   dependency were **removed outright** (2026-07) once the app, portals and
+>   landing page all moved to HCW-UI-Kit (`@hcw/ui-kit`) — see
+>   [`esti/HCW-UI-KIT.md`](esti/HCW-UI-KIT.md).
 > - `@hcw/master-dsr-kit` (Rate Books) and `@hcw/india-compliance-kit` (bylaw engine) were
 >   removed in the 2026-06 teardown.
 
@@ -48,7 +50,7 @@ CI uses a **single checkout** — no sibling kit repos are cloned.
 
 - `pnpm install` resolves the workspace package from `vendor/`.
 - `pnpm --filter @esti/backend test` — includes `marketing.askEsti` mocks.
-- `pnpm --filter @esti/frontend lint` — runs `check-carbon.mjs` (internalised Carbon policy)
-  and the `carbon-policy.test.ts` vitest guard.
+- `pnpm --filter @esti/frontend lint` — eslint only (the Carbon policy guard was
+  removed with `@carbon/react`, 2026-07).
 
 Ollama requirement for landing AI unchanged — see [PRODUCTION-OPS.md](esti/PRODUCTION-OPS.md).

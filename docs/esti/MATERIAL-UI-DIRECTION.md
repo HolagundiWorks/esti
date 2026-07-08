@@ -6,9 +6,11 @@
 > footer, and the global ActionDock. This doc remains the Carbon→MUI **migration
 > playbook** (component mappings, screen checklist).
 >
-> **Status: active migration (2026-07).** The app, panels and all portals are
-> moving from IBM Carbon (`@carbon/react`) to **Material UI** (`@mui/material`).
-> The **landing page stays on Carbon** (see `CARBON-UI-DIRECTION.md`).
+> **Status: migration complete, `@carbon/react` removed (2026-07).** The app,
+> panels, all portals, and the landing page now run **Material UI**
+> (`@mui/material` + `@hcw/ui-kit`). No Carbon React components remain; Carbon's
+> Sass-generated theme tokens were captured as a static `--cds-*` compatibility
+> block in `frontend/src/styles.scss` (see HCW-UI-KIT.md).
 
 ## Screen nomenclature — Rail / Stage (canonical)
 
@@ -46,14 +48,17 @@ A **TabSplit** inside the Stage repeats the pattern for a single tab (20% meta +
    screens inherit it for free. Only the floating widgets (ESTI / Pomodoro /
    Calculator) keep the **neumorphic** soft-UI treatment (`glass.scss`).
 
-## Brand font — Open Sans (whole product, landing included)
+## Brand font (whole product, landing included)
+
+> **Superseded:** the live brand face is **Urbanist**, not Open Sans below (see
+> `packages/hcw-ui-kit/src/tokens.ts`).
 
 - **Open Sans** (SIL OFL, free) is self-hosted via `@fontsource/open-sans`
   (weights 400/600/700 imported in `main.tsx`) — works offline, no CDN/CSP issue.
 - Single source of truth: `--esti-font-sans` in `styles.scss`, mirrored by
   `theme.typography.fontFamily` (MUI) and `--lp-font` (landing).
-- Applied to Carbon surfaces via a runtime override in `styles.scss` (Carbon's
-  `$font-families` map is not a configurable Sass var). Our `.esti-*` monospace
+- Applied via `--esti-font-sans` in `styles.scss` (inherited by the whole app,
+  including any lingering `.cds--*`-prefixed class names). Our `.esti-*` monospace
   utilities are untouched (higher specificity), so numeric/code readouts keep
   `IBM Plex Mono`.
 
@@ -61,13 +66,11 @@ A **TabSplit** inside the Stage repeats the pattern for a single tab (20% meta +
 
 | Piece | File | Role |
 |---|---|---|
-| Theme | `src/theme/muiTheme.ts` | MP025 light palette, `borderRadius:0`, light-glass component overrides, Open Sans |
+| Theme | `src/theme/muiTheme.ts` (re-export shim of `@hcw/ui-kit`) | Light palette, 8px soft-square radius, layered flat/neu/glass component overrides, Urbanist |
 | Provider | `src/theme/MuiRoot.tsx` | `StyledEngineProvider injectFirst` + `ThemeProvider`, mounted in `main.tsx` around `<App>`; no global `CssBaseline` (would repaint landing) |
-| Guard | `frontend/scripts/carbon-policy-rules.mjs` | flags rounded corners + raw hex/controls; exempts `src/theme/`, `landing.scss`, `glass.scss`, `components/landing/**` |
 
-Both systems coexist. A screen still on Carbon keeps working; migrate it when you
-touch it. The office shell and portals render g100, so Carbon and MUI screens look
-consistent (same dark glass palette) throughout the transition.
+The Carbon→MUI migration is complete; there is no automated visual-policy guard
+in CI (removed with `@carbon/react`) — code review is the check now.
 
 ## Migration playbook (per screen)
 
@@ -99,13 +102,13 @@ consistent (same dark glass palette) throughout the transition.
    - **Spacing/sizing**: `sx={{ p: 2, mt: 3, width: 1, maxWidth: 480 }}` (8px unit).
    - **Type**: MUI `Typography` (`variant="h4|body1|body2|caption"`) or the `typography`
      sx prop — not raw `<h1>/<p>`. Page titles use `<Typography variant="h4">`.
-3. **Never hard-code colour.** Use `color="primary|error|warning|success"`,
-   theme palette, or `--cds-*` vars (still defined on the g100 shell). No hex.
-4. **Never round corners.** Don't set `borderRadius` (theme handles it). The guard
-   will fail the build on any non-zero radius.
+3. **Never hard-code colour.** Use `color="primary|error|warning|success"`, the
+   theme palette, or `@hcw/ui-kit` tokens (`--cds-*` vars are a static
+   compatibility layer in `styles.scss` for older call sites). No hex.
+4. **Never round corners.** Don't set `borderRadius` (the kit theme handles it).
 5. **Structural classes stay.** `.esti-grow`, `.esti-fill`, `.esti-row-between`,
    etc. are colourless layout helpers — reuse them.
-6. **Verify:** `pnpm exec tsc -p tsconfig.json --noEmit` + `node scripts/check-carbon.mjs`.
+6. **Verify:** `pnpm exec tsc -p tsconfig.json --noEmit`.
 
 ### Reference migration
 

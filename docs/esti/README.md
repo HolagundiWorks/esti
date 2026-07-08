@@ -20,7 +20,7 @@ New here? Read in this order:
 1. [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) — the north-star **and the single source of truth for current system state** (its "System state" section lists what's live / removed / rebuilding). Where any other doc disagrees about what exists, this one wins.
 2. [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) + [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) — the active rebuild (the old Estimation OS + Construction Cost spine + Rate Books were torn down 2026-06-28; the CMS is the unified replacement built on the Knowledge Bank foundation).
 3. [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS](PLANS-AND-TIERS.md) — the two orthogonal gates (person vs. firm edition).
-4. [HCW-UI-KIT](HCW-UI-KIT.md) — **the canonical, layered design system** (`@hcw/ui-kit`): three depth layers (flat · neumorphic · glass), the Rail / Stage / Taskbar-footer / ActionDock spatial model. [AORMS-BRANDING-KIT](AORMS-BRANDING-KIT.md) is the brand heritage doc (colour, Radiant Orange, brand marks — code in `packages/hcw-ui-kit/src/tokens.ts` wins on conflict). [MATERIAL-UI-DIRECTION](MATERIAL-UI-DIRECTION.md) is the historical Carbon→MUI migration playbook; [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) governs the landing surface.
+4. [HCW-UI-KIT](HCW-UI-KIT.md) — **the canonical, layered design system** (`@hcw/ui-kit`), used everywhere including the landing page: three depth layers (flat · neumorphic · glass), the Rail / Stage / Taskbar-footer / ActionDock spatial model. [AORMS-BRANDING-KIT](AORMS-BRANDING-KIT.md) is the brand heritage doc (colour, Radiant Orange, brand marks — code in `packages/hcw-ui-kit/src/tokens.ts` wins on conflict). [MATERIAL-UI-DIRECTION](MATERIAL-UI-DIRECTION.md) is the historical Carbon→MUI migration playbook. `@carbon/react` was removed (2026-07).
 5. [NAVIGATION](NAVIGATION.md) — **the canonical navigation IA** (the Canonical V3 nav: Studio Intelligence · Projects · Tasks · AI Studio · Library · Studio · Third Parties · Office · Finance · LXOS · Admin — consultancy-only) with live/planned status per module. Authoritative for the sidebar and module placement.
 6. [INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) + [ROADMAP](ROADMAP.md) + [PRD](PRD.md) — module IA rationale / delivery history / requirements; **defer to [NAVIGATION](NAVIGATION.md) for the sidebar** and to the System state in (1) where they describe the removed estimation/cost stack.
 
@@ -53,8 +53,7 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) | **Active build** — unified CMS: Element spine (permanent identity EL-001), Estimate, BOQ, Final Estimation Set, Site Measurement Book, Work Orders, Contractor Bill Certification, Material Intelligence, Cost Dashboard. Supersedes the former "Estimation OS" concept entirely |
 | [HCW-UI-KIT](HCW-UI-KIT.md) | **Canonical layered design system** (`@hcw/ui-kit`) — hyperminimalist/neumorphic/glassmorphism layers, Rail/Stage/Taskbar-footer/ActionDock spatial model. All UI styles trace here |
 | [AORMS-BRANDING-KIT](AORMS-BRANDING-KIT.md) | Brand heritage — colour (Radiant Orange), brand marks, motion; typography/radius detail superseded by the kit (Urbanist, 8px soft-square — see the doc's banner) |
-| [MATERIAL-UI-DIRECTION](MATERIAL-UI-DIRECTION.md) | Historical Carbon→MUI migration playbook — component map, gotchas |
-| [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md) | Landing-surface Carbon rules + legacy Carbon exceptions |
+| [MATERIAL-UI-DIRECTION](MATERIAL-UI-DIRECTION.md) | Historical Carbon→MUI migration playbook — component map, gotchas (`@carbon/react` removed 2026-07) |
 | [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA, and India constants (reference appendix; live values come from the `profile` tRPC namespace) |
 | [LICENSE-NOTICE](LICENSE-NOTICE.md) | Ownership and distribution policy |
 
@@ -72,7 +71,7 @@ When documents appear inconsistent, use this order:
 1. `PRODUCT-VISION.md` for product boundary.
 2. `STABILITY-CHARTER.md` for long-term scope and IA discipline.
 3. `PRD.md` for required behaviour.
-4. `ARCHITECTURE.md`, `INDIA-PROFILE.md`, and `CARBON-UI-DIRECTION.md` for
+4. `ARCHITECTURE.md`, `INDIA-PROFILE.md`, and `HCW-UI-KIT.md` for
    implementation constraints.
 5. `ROADMAP.md` for delivery status and order.
 

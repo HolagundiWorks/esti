@@ -11,14 +11,17 @@ Monorepo (pnpm workspaces): `packages/contracts`, `backend` (Fastify + tRPC +
 Drizzle), `frontend` (React + Vite), plus a Python `worker`. Services run via
 podman (`compose.yaml`).
 
-## UI / design system — HCW-UI-KIT (landing stays Carbon)
+## UI / design system — HCW-UI-KIT
 
 > **⚠️ CANONICAL (2026-07): `@hcw/ui-kit`** (*HCW-UI-Kit — Human Centric Works*,
 > `packages/hcw-ui-kit`) is the centralised, **layered** design system deployed
-> against **every** MUI portal (app, panels, client/consultant portals, licensing
-> console). Full spec: **[`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md)**.
-> **The landing page (`Landing.tsx`, `components/landing/**`, `landing.scss`) stays
-> on Carbon editorial and is out of scope.**
+> against **every** surface — app, panels, client/consultant portals, licensing
+> console, and the landing page. Full spec: **[`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md)**.
+> **`@carbon/react` was removed (2026-07).** The landing page (`Landing.tsx`,
+> `components/landing/**`, `landing.scss`) already used MUI components; the
+> Carbon *Sass* it depended on for theme colours and the type scale is now a
+> static, hand-owned CSS custom-property block (`--cds-*` in `frontend/src/styles.scss`)
+> — no `@carbon/react` package, no Carbon React components anywhere.
 >
 > **Thesis: depth encodes importance.** Three material languages stack by z-depth
 > — pick a layer by the element's ROLE, never by taste:
@@ -46,57 +49,42 @@ podman (`compose.yaml`).
 layer philosophy, spatial model and adoption path (single source of truth).
 [`docs/esti/AORMS-BRANDING-KIT.md`](docs/esti/AORMS-BRANDING-KIT.md) — brand marks +
 colour/type heritage. [`docs/esti/MATERIAL-UI-DIRECTION.md`](docs/esti/MATERIAL-UI-DIRECTION.md)
-— the Carbon→MUI migration playbook (historical).
-[`docs/esti/CARBON-UI-DIRECTION.md`](docs/esti/CARBON-UI-DIRECTION.md) still governs the
-landing surface and documents legacy Carbon exceptions.
+— the historical Carbon→MUI migration playbook.
 
 ### UI task order
 
 1. Read [`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md) — layers, spatial model, dock zones.
-2. Build app/portal screens from `@mui/material` + `@hcw/ui-kit` (`MuiRoot`, `Surface`,
-   `useScreenActions`) — never hard-coded hex/gradients; raw colour lives ONLY in
-   `packages/hcw-ui-kit/src/tokens.ts` (and `landing.scss` for the Carbon landing).
-   `frontend/src/theme/` is a thin re-export shim of the kit — don't add styling there.
-3. Enforcement runs in CI: `frontend/scripts/check-carbon.mjs` (frontend `lint`) +
-   `carbon-policy.test.ts` (vitest); the kit package + `src/theme/` shims are the
-   exempt colour homes.
+2. Build app/portal/landing screens from `@mui/material` + `@hcw/ui-kit` (`MuiRoot`,
+   `Surface`, `useScreenActions`) — never hard-coded hex/gradients; raw colour lives
+   ONLY in `packages/hcw-ui-kit/src/tokens.ts`. `frontend/src/theme/` is a thin
+   re-export shim of the kit — don't add styling there. `frontend/src/styles.scss`'s
+   `:root` block is a static, Carbon-derived `--cds-*` compatibility layer for
+   pre-HCW-UI-Kit call sites — prefer kit tokens for new code, don't add to it.
+3. No automated visual-policy guard runs in CI for this repo (the old Carbon
+   enforcement guard was removed with `@carbon/react`); code review is the check.
 
 **AORMS AI:** `@hcw/aorms-ai-kit` (prompts + Ollama SDK) — backend dependency; product docs stay in `docs/esti/`.
 
-### Legacy Carbon rules (landing surface + not-yet-migrated screens)
+### Structural CSS helpers (`styles.scss`, `landing.scss`)
 
-**The landing surface uses ONLY the IBM Carbon Design System. No custom UI
-elements.**
+`@carbon/react` was removed (2026-07) — there is no Carbon component library in
+this codebase anymore. `styles.scss`'s `--cds-*` `:root` block is a static,
+hand-owned compatibility layer of colour/spacing tokens carried forward from
+Carbon's old values (see the "UI / design system" section above); prefer
+`@hcw/ui-kit` tokens for new code.
 
-- Build every screen from `@carbon/react` components (`Grid`, `Column`,
-  `Tile`/`ClickableTile`, `Tag`, `ProgressBar`, `Stack`, `Tabs`, `Modal`,
-  `Select`, `DataTable`, `Button`, etc.), `@carbon/icons-react`, and
-  `@carbon/pictograms-react`.
-- Use Carbon's **2x Grid** (`Grid` + `Column`, 16 / 8 / 4 columns) for layout.
-- Use Carbon design tokens (`--cds-*`) for any colour — never hard-coded hex.
-- **Do not** write custom CSS classes, custom keyframe animations, bespoke
-  colour palettes, hand-rolled bars/cards, or inline decorative styling
-  (font-size, colours, shadows, gradients). For progress/quantities use Carbon
-  `ProgressBar`; for status use `Tag`; for spacing use `Stack`.
-- The only permitted non-Carbon CSS is **structural and colourless** — e.g.
-  `.esti-fill { height: 100% }` so a Tile fills its Grid Column. No visual
-  styling in custom CSS.
-- Prefer semantic HTML (`h1`–`h4`, `p`) inside Carbon containers over styled
-  `div`s. Let Carbon/Plex typography apply.
-- Keep `styles.scss` app-only: the `@carbon/react` import (with the IBM Plex CDN
-  `$font-path`), the viewport min-height fix, and colourless structural helpers only.
 - **`landing.scss`** is the separate editorial design system for unauthenticated
-  marketing surfaces (Landing, Blog, Investors). It lives alongside
-  `styles.scss` and is imported in `main.tsx`. It is a **documented exception** — it
-  uses IBM Plex + Carbon tokens but not Carbon React components. Do not add app-screen
-  CSS to `landing.scss`, and do not add `esti-lp-*` classes to `styles.scss`.
-
-When in doubt, reach for an existing Carbon component before inventing markup.
+  marketing surfaces (Landing, Blog, Investors). It lives alongside `styles.scss`
+  and is imported in `main.tsx`. Do not add app-screen CSS to `landing.scss`, and
+  do not add `esti-lp-*` classes to `styles.scss`.
+- Prefer semantic HTML (`h1`–`h4`, `p`) over styled `div`s where markup allows.
+- Custom CSS classes should stay **structural and colourless** where possible —
+  visual styling (colour, shape, surfaces) belongs in the `@hcw/ui-kit` theme,
+  not hand-rolled CSS.
 
 **Hidden file inputs** (`<input type="file" style={{ display: "none" }}` triggered via
-`ref.current.click()`) are a permitted structural pattern — they are not visible UI; the
-Carbon `Button` that triggers them is the visible element. Do not replace with
-`FileUploaderButton` when the filename must display in a separate Button label.
+`ref.current.click()`) are a permitted structural pattern — they are not visible UI;
+the MUI `Button` that triggers them is the visible element.
 
 **StudioAbstract semantic color layer** — `ZCOLOR`, `TILE_COLOR`, `LOAD_COLOR` in
 `StudioAbstract.tsx` are JS maps of `var(--cds-*)` token strings (with optional hex

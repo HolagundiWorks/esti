@@ -178,7 +178,7 @@ sand quantities, labour days, and cost estimate, all derived through this engine
 Each phase is a full slice per `CLAUDE.md`: **schema + migration → `@esti/contracts`
 schemas → backend tRPC module (registered in `router.ts`) → HCW-UI-Kit UI (Knowledge
 Bank tab) → verify (contracts build, backend tsc, frontend tsc, migration applied,
-carbon guard, render-200) → commit**. Built on a fresh branch off `main`.
+render-200) → commit**. Built on a fresh branch off `main`.
 
 | Phase | Scope | Deliverable |
 | --- | --- | --- |
@@ -206,7 +206,7 @@ Tendering OS, Construction Cost Management OS, AI Quantity Prediction. Future Ra
 
 - `pnpm --filter @esti/contracts build` + vitest (formula + derivation phases).
 - Backend tsc in-container; migration applied via `podman cp` + `psql -f`.
-- Frontend tsc + `node scripts/check-carbon.mjs` (HCW-UI-Kit guard) + render-200.
+- Frontend tsc + render-200.
 - Restart `esti-backend` after backend changes. Commit per phase with the
   `Co-Authored-By: Codex Opus 4.8` trailer.
 

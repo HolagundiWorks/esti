@@ -9,7 +9,7 @@ the cognition engine, ESTI Pulse. Developed by **Holagundi Consulting Works
 
 Stack: a **TypeScript** backend (Fastify + tRPC + PostgreSQL), a **React** SPA on
 **Material UI** styled by the shared [HCW-UI-Kit](docs/esti/HCW-UI-KIT.md)
-(`@hcw/ui-kit`; the landing page stays Carbon), and a **Python** worker for
+(`@hcw/ui-kit`, including the landing page), and a **Python** worker for
 drawings/PDF/reconciliation. See
 [docs/esti/ARCHITECTURE.md](docs/esti/ARCHITECTURE.md) and
 [INSTALL.md](INSTALL.md).

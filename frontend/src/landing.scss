@@ -1,9 +1,8 @@
-@use "@carbon/react/scss/type" as type;
-
 // ── Marketing landing design system (esti-lp) ───────────────────────────────
 // Editorial CSS for the unauthenticated marketing surfaces: Landing, Blog,
-// Investors. Uses IBM Plex + Carbon tokens but not Carbon React
-// components — documented exception to the Pure Carbon rule.
+// Investors. Uses IBM Plex + static Carbon-derived tokens (see styles.scss) —
+// no Carbon React components or Sass framework since @carbon/react's removal
+// (2026-07); the type scale below is captured as static values.
 // Imported in main.tsx alongside styles.scss (both load globally).
 
 // ── Marketing landing (esti-lp) ───────────────────────────────────────────────
@@ -1776,22 +1775,25 @@
 // Scoped to staff app shell — landing uses expressive editorial type (see .esti-landing-content).
 .cds--content:not(.esti-landing-content),
 .esti-footer {
-  h1 { @include type.type-style("productive-heading-04"); }
-  h2 { @include type.type-style("productive-heading-03"); }
-  h3 { @include type.type-style("productive-heading-02"); }
-  h4 { @include type.type-style("heading-compact-01"); }
+  h1 { font-size: 1.75rem; font-weight: 400; line-height: 1.28572; letter-spacing: 0; }
+  h2 { font-size: 1.25rem; font-weight: 400; line-height: 1.4; letter-spacing: 0; }
+  h3 { font-size: 1rem; font-weight: 600; line-height: 1.375; letter-spacing: 0; }
+  h4 { font-size: 0.875rem; font-weight: 600; line-height: 1.28572; letter-spacing: 0.16px; }
 }
 
 // Helper-text scale (Carbon label-01 = 12px/0.75rem). Use instead of inline
 // font-size on <p> or <span> for hints, captions, and cell annotations.
 .esti-label {
-  @include type.type-style("label-01");
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.33333;
+  letter-spacing: 0.32px;
 }
 .esti-label--secondary { color: var(--cds-text-secondary); }
 .esti-label--helper    { color: var(--cds-text-helper); }
 
 // Large KPI number scale — heading-07 type-style (2.625rem/600). Colourless.
-.esti-landing-kpi-number { @include type.type-style("heading-07"); }
+.esti-landing-kpi-number { font-size: 3.375rem; font-weight: 300; line-height: 1.19; letter-spacing: 0; }
 
 .esti-inline-with-tag {
   display: flex;
@@ -2276,7 +2278,10 @@
 .esti-landing-header__overlay { display: none; }
 
 .esti-landing-visit-count {
-  @include type.type-style("label-01");
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.33333;
+  letter-spacing: 0.32px;
   align-self: center;
   color: var(--cds-text-secondary);
   margin-inline-end: var(--cds-spacing-05);
@@ -2316,11 +2321,17 @@
   // Fluid expressive tokens are for full-bleed pages — not nested in .esti-landing-editorial.
   // https://carbondesignsystem.com/elements/typography/type-sets/
   h2.esti-landing-section-title {
-    @include type.type-style("heading-05");
+    font-size: 2rem;
+    font-weight: 400;
+    line-height: 1.25;
+    letter-spacing: 0;
   }
 
   h3.esti-landing-section-title {
-    @include type.type-style("heading-04");
+    font-size: 1.75rem;
+    font-weight: 400;
+    line-height: 1.28572;
+    letter-spacing: 0;
   }
 }
 
@@ -2329,7 +2340,10 @@
 // that Vite's Sass pipeline cannot serialize — they are off-limits here.
 // heading-07 = 54px / weight 300 — largest safe non-fluid productive token.
 h1.esti-landing-lead-title {
-  @include type.type-style("heading-07");
+  font-size: 3.375rem;
+  font-weight: 300;
+  line-height: 1.19;
+  letter-spacing: 0;
   max-width: min(36rem, 100%);
 }
 
@@ -2371,25 +2385,37 @@ h1.esti-landing-lead-title {
 }
 
 .esti-landing-eyebrow {
-  @include type.type-style("label-02");
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.28572;
+  letter-spacing: 0.16px;
   color: var(--cds-text-secondary);
   text-transform: uppercase;
 }
 
 .esti-landing-section-title {
   // Fallback when heading level is not specialised above.
-  @include type.type-style("heading-03");
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
 }
 
 .esti-landing-section-lead {
-  @include type.type-style("body-02");
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
   color: var(--cds-text-secondary);
   max-width: 42rem;
   &--spaced { margin-top: var(--cds-spacing-04); }
 }
 
 .esti-landing-lead-subtitle {
-  @include type.type-style("heading-04");
+  font-size: 1.75rem;
+  font-weight: 400;
+  line-height: 1.28572;
+  letter-spacing: 0;
   color: var(--cds-text-secondary);
   max-width: 42rem;
 }
@@ -2596,12 +2622,18 @@ h1.esti-landing-lead-title {
   }
 
   &__metric {
-    @include type.type-style("heading-05");
+    font-size: 2rem;
+    font-weight: 400;
+    line-height: 1.25;
+    letter-spacing: 0;
     line-height: 1;
   }
 
   &__metric-label {
-    @include type.type-style("label-01");
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.33333;
+    letter-spacing: 0.32px;
     color: var(--cds-text-secondary);
   }
 
@@ -2671,7 +2703,10 @@ h1.esti-landing-lead-title {
   padding-inline-start: var(--cds-spacing-05);
 
   li {
-    @include type.type-style("body-01");
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.42857;
+    letter-spacing: 0.16px;
     color: var(--cds-text-secondary);
     padding-block: var(--cds-spacing-02);
   }
@@ -2732,7 +2767,10 @@ h1.esti-landing-lead-title {
   gap: var(--cds-spacing-06);
 
   p {
-    @include type.type-style("body-02");
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0;
     color: var(--cds-text-secondary);
     max-width: 34rem;
     margin: 0;
@@ -2741,7 +2779,10 @@ h1.esti-landing-lead-title {
 
 .esti-landing-footer__nav {
   h2 {
-    @include type.type-style("label-01");
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.33333;
+    letter-spacing: 0.32px;
     color: var(--cds-text-helper);
     letter-spacing: 0.08em;
     margin: 0 0 var(--cds-spacing-06);
@@ -2778,7 +2819,10 @@ h1.esti-landing-lead-title {
 }
 
 .esti-landing-footer__eyebrow {
-  @include type.type-style("label-01");
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.33333;
+  letter-spacing: 0.32px;
   color: var(--cds-text-helper);
   letter-spacing: 0.08em;
   margin: 0;
@@ -2936,20 +2980,29 @@ h1.esti-landing-lead-title {
   }
 
   &__metric {
-    @include type.type-style("heading-05");
+    font-size: 2rem;
+    font-weight: 400;
+    line-height: 1.25;
+    letter-spacing: 0;
     line-height: 1;
     text-align: end;
   }
 
   &__metric-label {
-    @include type.type-style("label-01");
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.33333;
+    letter-spacing: 0.32px;
     color: var(--cds-text-secondary);
     text-align: end;
     max-width: 14rem;
   }
 
   &__title {
-    @include type.type-style("heading-03");
+    font-size: 1.25rem;
+    font-weight: 400;
+    line-height: 1.4;
+    letter-spacing: 0;
   }
 }
 
@@ -3117,7 +3170,10 @@ h1.esti-landing-lead-title {
 }
 
 .esti-lp-hero__h1 {
-  @include type.type-style("heading-07");
+  font-size: 3.375rem;
+  font-weight: 300;
+  line-height: 1.19;
+  letter-spacing: 0;
   font-weight: 300;
   letter-spacing: 0.01em;
   text-transform: uppercase; // headings are ALL CAPS
@@ -3138,7 +3194,10 @@ h1.esti-landing-lead-title {
 }
 
 .esti-lp-hero__lead {
-  @include type.type-style("body-02");
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
   color: var(--cds-text-secondary);
   max-width: 680px;
   margin: 0 0 var(--cds-spacing-07);
@@ -3245,14 +3304,20 @@ h1.esti-landing-lead-title {
   }
 
   h2 {
-    @include type.type-style("heading-04");
+    font-size: 1.75rem;
+    font-weight: 400;
+    line-height: 1.28572;
+    letter-spacing: 0;
     color: var(--cds-text-primary);
     max-width: 36rem;
     margin: 0 0 var(--cds-spacing-04);
   }
 
   p {
-    @include type.type-style("body-02");
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0;
     color: var(--cds-text-secondary);
     max-width: 40rem;
     margin: 0;
@@ -3357,12 +3422,18 @@ h1.esti-landing-lead-title {
 }
 
 .esti-lp-tile--pitch .esti-lp-feature-title {
-  @include type.type-style("heading-03");
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
   line-height: 1.22;
 }
 
 .esti-lp-tile--outcome .esti-lp-feature-title {
-  @include type.type-style("heading-03");
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
   line-height: 1.22;
   max-width: 32rem;
 }
@@ -3592,7 +3663,10 @@ h1.esti-landing-lead-title {
 }
 
 .esti-lp-cta-h {
-  @include type.type-style("heading-03");
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
   color: var(--cds-text-primary);
   margin: 0 0 var(--cds-spacing-03);
 }
@@ -3650,7 +3724,10 @@ h1.esti-landing-lead-title {
 }
 
 .esti-lp-pricing-tile__pitch {
-  @include type.type-style("body-02");
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
   color: var(--cds-text-secondary);
   margin: 0;
 }
@@ -3668,7 +3745,10 @@ h1.esti-landing-lead-title {
 }
 
 .esti-lp-pricing-tile__price {
-  @include type.type-style("heading-04");
+  font-size: 1.75rem;
+  font-weight: 400;
+  line-height: 1.28572;
+  letter-spacing: 0;
   color: var(--cds-text-primary);
   font-weight: 300;
   margin: 0 0 var(--cds-spacing-02);
@@ -3686,7 +3766,10 @@ h1.esti-landing-lead-title {
     display: flex;
     align-items: flex-start;
     gap: var(--cds-spacing-03);
-    @include type.type-style("body-compact-01");
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.28572;
+    letter-spacing: 0.16px;
     color: var(--cds-text-secondary);
   }
 
@@ -3703,7 +3786,10 @@ h1.esti-landing-lead-title {
 }
 
 .esti-lp-inline-link {
-  @include type.type-style("body-compact-01");
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.28572;
+  letter-spacing: 0.16px;
   color: var(--lp-accent);
   text-decoration: none;
   width: fit-content;

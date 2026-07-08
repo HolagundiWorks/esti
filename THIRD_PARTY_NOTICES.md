@@ -16,14 +16,11 @@ Full license texts ship inside each package under node_modules/<pkg>/LICENSE.
 ## npm dependencies (frontend + backend, production)
 
 ### (MPL-2.0 OR Apache-2.0)
-- dompurify
 
 ### 0BSD
 - tslib
 
 ### Apache-2.0
-- @carbon/charts
-- @carbon/charts-react
 - @carbon/colors
 - @carbon/feature-flags
 - @carbon/grid
@@ -31,7 +28,6 @@ Full license texts ship inside each package under node_modules/<pkg>/LICENSE.
 - @carbon/icons-react
 - @carbon/layout
 - @carbon/motion
-- @carbon/pictograms-react
 - @carbon/react
 - @carbon/styles
 - @carbon/themes
@@ -58,11 +54,7 @@ Full license texts ship inside each package under node_modules/<pkg>/LICENSE.
 
 ### BSD-3-Clause
 - d3-array
-- d3-cloud
-- d3-dispatch
-- d3-ease
 - d3-path
-- d3-sankey
 - d3-shape
 - fast-uri
 - light-my-request
@@ -78,45 +70,24 @@ Full license texts ship inside each package under node_modules/<pkg>/LICENSE.
 ### ISC
 - d3
 - d3-array
-- d3-axis
-- d3-brush
-- d3-chord
 - d3-color
-- d3-contour
-- d3-delaunay
-- d3-dispatch
-- d3-drag
-- d3-dsv
-- d3-fetch
-- d3-force
 - d3-format
 - d3-geo
-- d3-hierarchy
 - d3-interpolate
 - d3-path
-- d3-polygon
-- d3-quadtree
-- d3-random
 - d3-scale
-- d3-scale-chromatic
-- d3-selection
 - d3-shape
 - d3-time
 - d3-time-format
 - d3-timer
-- d3-transition
-- d3-zoom
-- delaunator
 - fastq
 - inherits
 - internmap
 - semver
 - split2
-- topojson-client
 
 ### MIT
 - @babel/runtime
-- @carbon/utils-position
 - @dnd-kit/accessibility
 - @dnd-kit/core
 - @dnd-kit/utilities
@@ -152,44 +123,19 @@ Full license texts ship inside each package under node_modules/<pkg>/LICENSE.
 - @trpc/server
 - @types/d3
 - @types/d3-array
-- @types/d3-axis
-- @types/d3-brush
-- @types/d3-chord
 - @types/d3-color
-- @types/d3-contour
-- @types/d3-delaunay
-- @types/d3-dispatch
-- @types/d3-drag
-- @types/d3-dsv
-- @types/d3-ease
-- @types/d3-fetch
-- @types/d3-force
 - @types/d3-format
 - @types/d3-geo
-- @types/d3-hierarchy
 - @types/d3-interpolate
 - @types/d3-path
-- @types/d3-polygon
-- @types/d3-quadtree
-- @types/d3-random
 - @types/d3-scale
-- @types/d3-scale-chromatic
-- @types/d3-selection
 - @types/d3-shape
 - @types/d3-time
 - @types/d3-time-format
 - @types/d3-timer
-- @types/d3-transition
-- @types/d3-zoom
 - @types/geojson
 - @types/prop-types
 - @types/react
-- @types/topojson
-- @types/topojson-client
-- @types/topojson-server
-- @types/topojson-simplify
-- @types/topojson-specification
-- @types/trusted-types
 - abstract-logging
 - ajv
 - ajv-formats
@@ -205,7 +151,6 @@ Full license texts ship inside each package under node_modules/<pkg>/LICENSE.
 - color-convert
 - color-name
 - color-string
-- commander
 - compute-scroll-into-view
 - cookie
 - cookie-signature
@@ -231,8 +176,6 @@ Full license texts ship inside each package under node_modules/<pkg>/LICENSE.
 - find-my-way
 - flatpickr
 - forwarded
-- html-to-image
-- iconv-lite
 - immutable
 - invariant
 - ioredis
@@ -244,7 +187,6 @@ Full license texts ship inside each package under node_modules/<pkg>/LICENSE.
 - json-schema-ref-resolver
 - json-schema-traverse
 - lodash
-- lodash-es
 - loose-envify
 - marked
 - mime-db
@@ -281,7 +223,6 @@ Full license texts ship inside each package under node_modules/<pkg>/LICENSE.
 - safe-buffer
 - safe-regex2
 - safe-stable-stringify
-- safer-buffer
 - sass
 - scheduler
 - set-cookie-parser
@@ -318,5 +259,4 @@ Full license texts ship inside each package under node_modules/<pkg>/LICENSE.
 
 ### Unlicense
 - postgres
-- robust-predicates
 

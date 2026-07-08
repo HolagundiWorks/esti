@@ -119,8 +119,8 @@ packages/hcw-ui-kit/src/
 ```
 
 Source-only (like `@esti/contracts`); the consuming portal's bundler compiles it.
-Colour + shape live ONLY here (and, for the Carbon landing surface, in
-`landing.scss`).
+Colour + shape live ONLY here (and, for the landing page's editorial type scale,
+in `landing.scss`).
 
 ## Adoption status & path
 

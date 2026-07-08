@@ -43,7 +43,7 @@ One monorepo (pnpm workspaces); surfaces are build targets, not repos.
   the PURE estimation engine (`.aormsest` `EstimateFile` + `recostEstimate`, BBS).
   Browser-safe — the seam every surface imports.
 - `backend`: Fastify, tRPC, Drizzle, PostgreSQL domain modules and REST routes.
-- `frontend`: React/Vite SPA on HCW-UI-Kit (MUI); the landing page alone is Pure Carbon.
+- `frontend`: React/Vite SPA on HCW-UI-Kit (MUI), including the landing page.
 - `worker`: Redis consumer for DXF, PDF, and reconciliation processing.
 - `ese`: the Estimation Specification Engine — its own Fastify service that turns
   the CPWD schedule into sealed Rate Library Packs (deploys at `ese.aorms.in`).
@@ -123,11 +123,10 @@ calculation. Numbering is concurrency-safe and per financial year. Rules are in
 
 ### One Design System — HCW-UI-Kit
 
-The frontend has no competing third design system. It uses `@hcw/ui-kit`
-(HCW-UI-Kit — MUI-based, layered: flat/neumorphic/glassmorphism); only the
-landing page stays Pure Carbon editorial. See
-[HCW-UI-KIT](HCW-UI-KIT.md) and [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md)
-(landing).
+The frontend has no competing second design system. It uses `@hcw/ui-kit`
+(HCW-UI-Kit — MUI-based, layered: flat/neumorphic/glassmorphism) everywhere,
+including the landing page. `@carbon/react` was removed (2026-07). See
+[HCW-UI-KIT](HCW-UI-KIT.md).
 
 ### Contextual Collaboration
 
