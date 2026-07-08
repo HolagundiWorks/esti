@@ -23,7 +23,9 @@ esti/                     pnpm workspace root
 ├─ frontend/              React + Vite + IBM Carbon — AORMS workspace SPA
 ├─ worker/                Python Redis-Streams consumer (PDF/DXF/reconcile)
 ├─ ese/                   @esti/ese — Estimation Specification Engine (own Fastify app)
-└─ desktop/              Tauri shell (AORMS Lite/Pro/Community; Estimate app target)
+├─ desktop/               Tauri shell (AORMS Lite/Pro/Community)
+└─ estimate/              Estimate app — SPA + desktop-cpp/ (native C++ webview
+                          host + vendored SQLite; no Rust, no server)
 ```
 
 **Invariant:** any shape crossing two surfaces (rates, `.aormsest`, permissions,
@@ -62,9 +64,11 @@ clock (once a year). It publishes *into* the system across a versioned seam; it 
 not in the request path of daily work. That earns a subdomain.
 
 ### Estimate app → a binary, not a web surface
-Offline measurement is the entire point. It talks to nobody live — it exports a
-sealed `.aormsest` file. Distributed as a Tauri installer alongside the AORMS
-desktop builds.
+Offline measurement is the entire point. It talks to nobody live — no server,
+no network: a native C++ webview host (`estimate/desktop-cpp/`) running the
+estimating engine + SQLite in-process, persisting estimates locally and
+exporting a sealed `.aormsest` file. Built and published on its own CI workflow
+(`.github/workflows/estimate.yml`), independent of the AORMS desktop builds.
 
 ```
         ┌──────────────────────── one monorepo ─────────────────────────┐
@@ -79,8 +83,8 @@ desktop builds.
         │                            .aormsest │ import (frozen qty)     │
         └────────────────────────────────────┼─────────────────────────┘
                                     ┌─────────┴──────────┐  offline
-                                    │ Estimate desktop   │  (Tauri binary)
-                                    │ measure → export   │
+                                    │ Estimate desktop   │  (native C++,
+                                    │ measure → export   │   SQLite in-process)
                                     └────────────────────┘
 ```
 

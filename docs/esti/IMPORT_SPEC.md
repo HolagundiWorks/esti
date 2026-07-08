@@ -95,7 +95,7 @@ A re-import of the same schedule therefore **refreshes rates in place** — zero
   (`parseRateText`) and the row→payload mappers. Pure, vitest-covered, no I/O.
 - **Backend** (`kb.import.*`): accept reviewed rows, run the §4 upsert against the KB tables.
 - **Frontend**: a "Paste & import" panel on the Item Library — textarea → parse → review
-  table (Pure Carbon) → commit. Sits beside the existing per-library CSV import.
+  table (HCW-UI-Kit) → commit. Sits beside the existing per-library CSV import.
 
 ## 6. Versioning
 

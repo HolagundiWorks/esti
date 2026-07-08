@@ -1,9 +1,14 @@
 # AORMS Branding Kit
 
-> **The single source of truth for the AORMS brand** — colour, type, iconography,
-> surface language, motion and UX patterns. Every style in the product traces back
-> to this document. If a screen, component or asset needs a colour, a font, a
-> corner, a shadow or a layout, the answer is here.
+> **⚠️ Live token values now ship from code (2026-07):** the canonical, executable
+> source of truth for colour/type/radius/surfaces is
+> **[`packages/hcw-ui-kit/src/tokens.ts`](../../packages/hcw-ui-kit/src/tokens.ts)**
+> (the `@hcw/ui-kit` package), and the philosophy/spatial model is
+> **[`HCW-UI-KIT.md`](HCW-UI-KIT.md)**. This document is the brand **heritage** —
+> naming, rationale, and colour/motion detail not yet mirrored in the kit — but
+> where it conflicts with `tokens.ts`, **the code wins**. Two known drifts: the
+> brand font is now **Urbanist** (not Open Sans, §2 below), and corners use one
+> **soft-square radius (8px)**, not `borderRadius: 0` (§3 below).
 >
 > **Product:** **AORMS** (Architecture Office Resource Management System) — the
 > workspace. **ESTI** (Embedded Studio Intelligence) — the AI/agent layer inside it.
@@ -49,7 +54,13 @@ panels, Coal-Black ink, with **Radiant Orange** the single signature accent.
 
 ---
 
-## 2. Typography — Open Sans
+## 2. Typography — Urbanist
+
+> **Superseded:** the live brand face is **Urbanist**, not Open Sans below —
+> self-hosted via `@fontsource/urbanist` (weights 400/500/600/700, imported in
+> `frontend/src/main.tsx`), mirrored as `FONT_FAMILY` in `@hcw/ui-kit`'s
+> `tokens.ts`. The MUI product runs Urbanist; the Carbon landing keeps its own
+> `--lp-font` (see `landing.scss`).
 
 - **Open Sans** (SIL OFL, free) is the brand face across the **entire** product,
   landing included. Self-hosted via `@fontsource/open-sans` (weights 400/600/700,

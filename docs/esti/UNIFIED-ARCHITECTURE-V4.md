@@ -81,8 +81,10 @@ are orthogonal: **`can(role, capability)`** by *person*
 ([ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md)) and **`planAllows(plan, feature)`**
 by *firm edition* ([PLANS-AND-TIERS.md](PLANS-AND-TIERS.md)).
 
-It must **feel like one OS** — Pure Carbon everywhere (office workspace *and* every
-portal), mobile-first for portals. No second design system.
+It must **feel like one OS** — one shared design system everywhere (office
+workspace *and* every portal): **HCW-UI-Kit** (`@hcw/ui-kit`, MUI-based) for the
+product; the landing page alone stays Pure Carbon editorial. No competing third
+design system. Mobile-first for portals.
 
 ## The six pillars
 
@@ -131,7 +133,7 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
   [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
 
 ### 5. Portals — ◐
-- **Implemented:** Client portal (`portal`), Consultant/collaborator portal (`collab`), Contractor portal (`contractorPortal`) — token-scoped site coordination / view-only project access (Lite: view-only; writes gated to Pro). All Pure Carbon, mobile-first.
+- **Implemented:** Client portal (`portal`), Consultant/collaborator portal (`collab`), Contractor portal (`contractorPortal`) — token-scoped site coordination / view-only project access (Lite: view-only; writes gated to Pro). All HCW-UI-Kit (MUI), mobile-first.
 - **Needs creation:** a dedicated **Site Supervisor** surface. Today the L5 *Site Supervisor* role is internal staff inside the office workspace; the unified vision is a mobile-first site-ops surface (measurements, snags, progress, photos) consistent with the other portals.
 
 ### 6. AI/ML/LLM extraction & decision support — ◐
@@ -144,7 +146,7 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 2. [NAVIGATION.md](NAVIGATION.md) — the canonical sidebar / module placement (Canonical V3, consultancy-only).
 3. [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) + [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) — the active rebuild (cost/estimation domain).
 4. [ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) — the two gates.
-5. [CARBON-UI-DIRECTION.md](CARBON-UI-DIRECTION.md) — the UI law (Pure Carbon).
+5. [HCW-UI-KIT.md](HCW-UI-KIT.md) — the UI law for the product (landing stays [Pure Carbon](CARBON-UI-DIRECTION.md)).
 6. [ARCHITECTURE.md](ARCHITECTURE.md) — stack/system; `CLAUDE.md` — the module map + conventions.
 7. [INFORMATION-ARCHITECTURE.md](INFORMATION-ARCHITECTURE.md), [ROADMAP.md](ROADMAP.md), [PRD.md](PRD.md) — module rationale/history/requirements; **defer to NAVIGATION.md for the sidebar and to the System state above where they describe the removed estimation/cost stack.**
 

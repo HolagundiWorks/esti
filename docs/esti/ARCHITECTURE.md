@@ -43,11 +43,13 @@ One monorepo (pnpm workspaces); surfaces are build targets, not repos.
   the PURE estimation engine (`.aormsest` `EstimateFile` + `recostEstimate`, BBS).
   Browser-safe — the seam every surface imports.
 - `backend`: Fastify, tRPC, Drizzle, PostgreSQL domain modules and REST routes.
-- `frontend`: React/Vite SPA using the mandatory Pure Carbon policy.
+- `frontend`: React/Vite SPA on HCW-UI-Kit (MUI); the landing page alone is Pure Carbon.
 - `worker`: Redis consumer for DXF, PDF, and reconciliation processing.
 - `ese`: the Estimation Specification Engine — its own Fastify service that turns
   the CPWD schedule into sealed Rate Library Packs (deploys at `ese.aorms.in`).
-- `desktop`: the Tauri shell (AORMS Lite/Pro/Community; and the Estimate app target).
+- `desktop`: the Tauri shell (AORMS Lite/Pro/Community).
+- `estimate`: the standalone Estimate app — SPA + `desktop-cpp/` (native C++
+  webview host + vendored SQLite; no Rust, no server).
 - `docs/esti`: canonical product and engineering documentation.
 
 ### Surfaces And Access Topology
@@ -56,9 +58,11 @@ Estimation is accessed **inside a project (Cost Management)** of the
 workspace — same session, nav, permissions, and Carbon shell — not a subdomain.
 **ESE** is the one true subdomain (`ese.aorms.in`): different users (`kbteam`),
 different cadence (yearly SR), publishing into the system across a versioned,
-checksummed seam. The **Estimate app** is a separate offline Tauri binary that
-exports a sealed `.aormsest`. Full topology, the subdomain-vs-extension test, and
-the shared seams: [MONOREPO-AND-SURFACES](MONOREPO-AND-SURFACES.md).
+checksummed seam. The **Estimate app** is a separate offline **native C++**
+desktop binary (`estimate/desktop-cpp/` — no Rust, no server; SQLite in-process)
+that persists estimates and exports a sealed `.aormsest`. Full topology, the
+subdomain-vs-extension test, and the shared seams:
+[MONOREPO-AND-SURFACES](MONOREPO-AND-SURFACES.md).
 
 ## Architecture Decisions
 
@@ -117,11 +121,13 @@ Money is integer paise. Shared code owns Indian formatting and GST/TDS
 calculation. Numbering is concurrency-safe and per financial year. Rules are in
 [INDIA-PROFILE](INDIA-PROFILE.md).
 
-### Pure Carbon Frontend
+### One Design System — HCW-UI-Kit
 
-The frontend has no second design system. It uses Carbon components and 2x Grid;
-only minimal colourless structural CSS is permitted. See
-[CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md).
+The frontend has no competing third design system. It uses `@hcw/ui-kit`
+(HCW-UI-Kit — MUI-based, layered: flat/neumorphic/glassmorphism); only the
+landing page stays Pure Carbon editorial. See
+[HCW-UI-KIT](HCW-UI-KIT.md) and [CARBON-UI-DIRECTION](CARBON-UI-DIRECTION.md)
+(landing).
 
 ### Contextual Collaboration
 

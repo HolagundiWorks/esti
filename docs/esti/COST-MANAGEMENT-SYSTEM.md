@@ -148,7 +148,7 @@ Out of scope: rate-vs-contract comparison, advances, payments, retention
 "Project workspace"), tabs: **Estimate · BOQ · Site Measurement · Work Orders ·
 Contractor Bills · Cost Dashboard**.
 
-Pure Carbon throughout — `DataTable`, `Tag`, `ProgressBar`, `Stack`, `Modal`.
+HCW-UI-Kit throughout — MUI `DataGrid`, `Chip`, `LinearProgress`, `Stack`, `Dialog`.
 
 ---
 

@@ -10,7 +10,7 @@ System** by Holagundi Consulting Works. See
 packages/contracts/   shared TS: money (paise/Indian format), GST systems, FY, Zod schemas
 backend/              Fastify + tRPC + Drizzle (PostgreSQL) — system of record
 worker/               Python: ezdxf (DXF takeoff), WeasyPrint (PDF), pandas (reconcile)
-frontend/             Vite + React + TS + Carbon — the SPA (tRPC, type-safe to backend)
+frontend/             Vite + React + TS + MUI/HCW-UI-Kit (landing: Carbon) — the SPA (tRPC, type-safe to backend)
 compose.yaml          Podman pod: postgres, redis, minio, backend, worker, frontend
 .github/workflows/    ESTI-only CI (TS typecheck/lint/test + Python ruff/pytest)
 ```

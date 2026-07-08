@@ -241,7 +241,7 @@ Pending Team Responses · Low Confidence Tasks · Upcoming Site Impact ·
 Client Approval Bottlenecks · Consultant Delay Watch · Payment/Billing
 Blockers.
 
-Task card (Pure Carbon — Tile + Tag + DataTable):
+Task card (HCW-UI-Kit — Surface + Chip + DataGrid):
 
 ```text
 Task: Finalize staircase detail        Project: Residence A

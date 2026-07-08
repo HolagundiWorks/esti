@@ -114,5 +114,5 @@ supported systems; rates and calculation rules remain centralized and fixed.
 ## Completion Rule
 
 A module is delivered only when its contracts/schema, authorization, backend,
-Pure Carbon UI, activity/audit behaviour, migration, tests, and documentation
+HCW-UI-Kit UI, activity/audit behaviour, migration, tests, and documentation
 pass the gate in [ROADMAP](ROADMAP.md).

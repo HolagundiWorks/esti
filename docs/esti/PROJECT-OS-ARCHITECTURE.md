@@ -4,7 +4,7 @@
 
 This document maps the Project OS specification onto AORMS's existing architecture.
 Where the spec conflicts with AORMS law (money in paise, `esti_*` tables,
-**Pure Carbon only**, existing capability/plan model), **this doc wins**.
+**HCW-UI-Kit only**, existing capability/plan model), **this doc wins**.
 
 ---
 
@@ -466,7 +466,7 @@ Feasibility stays canonical all the way to the site
 | Envelope | `summarizeProgram(spaces, maxBuiltAreaSqm)` — total programmed area, utilization %, remaining, **`overEnvelope` advisory flag** (never blocks), by-floor + by-category rollups. While DRAFT the envelope is read **live** from `esti_pre_project_assessment.super_builtup_area`; on freeze it is snapshotted |
 | Namespace | `program` — `summary` / `byProject` / `getOrCreate` / `addSpace` / `updateSpace` / `removeSpace` / `freeze` / `newVersion` (clones the frozen version's spaces into the next DRAFT) |
 | Revision hook | `esti_decision.program_version_id` ties a CRIF revision to the frozen program version it is measured against — **wired end-to-end (31.2)**: `program.listVersions` feeds an "Against program version" select in the decision modal (`ProjectOverview.tsx`); rows show a `Program v{n}` tag |
-| UI | `ProjectProgram.tsx` — "Program" tab in the project workspace: feasibility-envelope KPIs, utilization `ProgressBar`, space table, rollups, freeze + new-version (Pure Carbon) |
+| UI | `ProjectProgram.tsx` — "Program" tab in the project workspace: feasibility-envelope KPIs, utilization `LinearProgress`, space table, rollups, freeze + new-version (HCW-UI-Kit) |
 
 Over-allocation vs the feasibility envelope is **advisory** (a warning notification +
 red tag), consistent with AORMS's checker-is-advisory ethos. Ungated (LITE+).

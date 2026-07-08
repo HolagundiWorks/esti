@@ -290,7 +290,8 @@ Rates live *only* in the rate book.
 **ESE side (this repo, `ese/`):**
 - ✅ Deterministic CPWD/PWD-family SR parser (`parseSR`) → sealed `RateLibraryPack`; `build-pack` CLI; Ollama enrichment (adds metadata only). Validated on a real Karnataka SR sample of the identical format (parser fixture); CPWD packs on CPWD markdown.
 
-**Estimate desktop app (separate, Tauri — built + tested on Windows via CI):**
+**Estimate desktop app (separate, native C++ — no Rust, no server; SQLite
+in-process — built + tested on Windows via CI, `.github/workflows/estimate.yml`):**
 6. Knowledge Bank editor (work item · rate item · measurement template · recipes). *(pending)*
 7. Measurement entry + extractors (BOQ · materials · steel) + priced abstract. *(pending — the pure extractors `measureQty`/`takeoffMaterials`/`deriveLinked`/`steelFromBBS` already exist in `@esti/contracts`)*
 8. Export `.aormsest` (+ PDF abstract). *(pending — sealing via `estimateSealString`; see the demo `docs/esti/samples/villa-demo.aormsest`)*

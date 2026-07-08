@@ -7,8 +7,10 @@ the cognition engine, ESTI Pulse. Developed by **Holagundi Consulting Works
 (HCW)** for Indian freelance architects and small architecture practices.
 *(The repo, `@esti/*` packages and `esti_*` tables keep the `esti` codename.)*
 
-Stack: a **TypeScript** backend (Fastify + tRPC + PostgreSQL), a **Carbon React**
-SPA, and a **Python** worker for drawings/PDF/reconciliation. See
+Stack: a **TypeScript** backend (Fastify + tRPC + PostgreSQL), a **React** SPA on
+**Material UI** styled by the shared [HCW-UI-Kit](docs/esti/HCW-UI-KIT.md)
+(`@hcw/ui-kit`; the landing page stays Carbon), and a **Python** worker for
+drawings/PDF/reconciliation. See
 [docs/esti/ARCHITECTURE.md](docs/esti/ARCHITECTURE.md) and
 [INSTALL.md](INSTALL.md).
 
@@ -41,8 +43,8 @@ subcontractor-accounting, and contractor execution systems are out of scope.
 ## Fixed India profile
 
 India · INR only · FY 1 Apr–31 Mar · COA registration number as the firm Legal ID
-· Indian lakh/crore number format · GST (the three systems above) · Carbon UI in
-light/dark. These are hardcoded — see [docs/esti/INDIA-PROFILE.md](docs/esti/INDIA-PROFILE.md).
+· Indian lakh/crore number format · GST (the three systems above) · light-only
+HCW-UI-Kit theme. These are hardcoded — see [docs/esti/INDIA-PROFILE.md](docs/esti/INDIA-PROFILE.md).
 
 ## Run it (everything in containers)
 

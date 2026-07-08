@@ -72,8 +72,9 @@ out of scope.
    clients, consultants, and contractors use project-scoped portals.
 5. **India-first correctness.** Money is integer paise; GST, TDS, COA,
    numbering, and financial-year rules are centralized.
-6. **Pure Carbon UI.** The application uses IBM Carbon components, layout, and
-   tokens without a parallel custom design system.
+6. **One design system.** The application uses HCW-UI-Kit (`@hcw/ui-kit`, MUI
+   components, layout and tokens) throughout; the landing page alone stays Pure
+   Carbon editorial. No competing third design system.
 7. **Human-controlled AI.** AI may draft or summarize, but output remains
    editable and no external transmission occurs without explicit user action.
 8. **Deterministic cognition.** Office health scores and interventions come

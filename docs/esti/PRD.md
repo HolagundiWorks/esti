@@ -254,5 +254,5 @@ Declaring a **live firm instance** production-ready additionally requires operat
 ## Completion Definition
 
 A capability is complete only when schema/contracts, authorization, backend,
-Pure Carbon UI, audit/activity generation, tests, migration, and documentation
+HCW-UI-Kit UI, audit/activity generation, tests, migration, and documentation
 are delivered together and verified in the running Podman environment.
