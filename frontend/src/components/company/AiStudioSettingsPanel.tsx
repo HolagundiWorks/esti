@@ -13,10 +13,9 @@ import {
 import { DEFAULT_AI_SETTINGS, type AiSettings } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { EstiAiExplainLabel } from "../AiCarbon.js";
-import { StatusDot } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
 
-export function AiStudioSettingsPanel({ isEnterprise = false }: { isEnterprise?: boolean }) {
+export function AiStudioSettingsPanel({ isEnterprise: _isEnterprise = false }: { isEnterprise?: boolean }) {
   const utils = trpc.useUtils();
   const settingsQ = trpc.ai.settings.useQuery();
   const [form, setForm] = useState<AiSettings>(DEFAULT_AI_SETTINGS);
@@ -52,7 +51,7 @@ export function AiStudioSettingsPanel({ isEnterprise = false }: { isEnterprise?:
 
   const isCloud = form.provider === "cloud";
   // BYO API is available to all accounts (no tier gate).
-  const showCloudOption = true || isEnterprise || isCloud;
+  const showCloudOption = true;
 
   return (
     <Box className="esti-ai-settings-tile" sx={{ p: 3, maxWidth: 760 }}>

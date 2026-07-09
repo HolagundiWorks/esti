@@ -8,7 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { PROJECT_STATUS_LABEL, PROJECT_STATUS_TAG } from "@esti/contracts";
+import { PROJECT_STATUS_LABEL, PROJECT_STATUS_TAG, type ProjectStatus } from "@esti/contracts";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
@@ -25,7 +25,7 @@ export function EstimationProjectPicker() {
   const list = trpc.projectOffice.list.useQuery({
     limit: 200,
     offset: 0,
-    status: statusFilter ? (statusFilter as "ACTIVE" | "ON_HOLD" | "COMPLETED" | "ARCHIVED") : undefined,
+    status: statusFilter ? (statusFilter as ProjectStatus) : undefined,
   });
 
   const rows = useMemo(() => {
@@ -67,8 +67,9 @@ export function EstimationProjectPicker() {
       width: 120,
       renderCell: ({ value }) => (
         <StatusTag
-          color={PROJECT_STATUS_TAG[value as keyof typeof PROJECT_STATUS_TAG] ?? "gray"}
-          label={PROJECT_STATUS_LABEL[value as keyof typeof PROJECT_STATUS_LABEL] ?? String(value)}
+          value={value as ProjectStatus}
+          map={PROJECT_STATUS_TAG}
+          label={PROJECT_STATUS_LABEL[value as ProjectStatus] ?? String(value)}
         />
       ),
     },
@@ -111,7 +112,15 @@ export function EstimationProjectPicker() {
           Estimation uses the Item Library, specifications, and rate book. Select a project
           below to model structure, enter measurements, and generate BOQ/BBS.
         </Alert>
-        <DataState loading={list.isLoading} error={list.error?.message}>
+        {list.error && <Alert severity="error">{list.error.message}</Alert>}
+        <DataState
+          loading={list.isLoading}
+          isEmpty={!list.isLoading && rows.length === 0}
+          empty={{
+            title: "No live projects",
+            description: "Create a project from Projects, then return here to estimate.",
+          }}
+        >
           <Box sx={{ height: 480 }}>
             <DataGrid
               rows={rows}
@@ -124,7 +133,7 @@ export function EstimationProjectPicker() {
             />
           </Box>
         </DataState>
-        {!list.isLoading && rows.length === 0 && (
+        {!list.isLoading && rows.length === 0 && !list.error && (
           <Typography variant="body2" color="text.secondary">
             No live projects match. Create one from Projects first.
           </Typography>

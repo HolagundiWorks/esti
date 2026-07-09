@@ -22,8 +22,9 @@ async function main() {
       AND client_id IS NULL
       AND contractor_id IS NULL
       AND must_complete_workspace_profile = false
+    RETURNING id
   `);
-  console.log(`✓ workspace profile gate updated (${result.rowCount ?? "?"} rows)`);
+  console.log(`✓ workspace profile gate updated (${result.length} rows)`);
 }
 
 main().catch((err) => {

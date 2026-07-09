@@ -290,7 +290,6 @@ export function isIncompleteCalcExpr(input: string): boolean {
   if (s === "-") return true;
   if (/\.$/.test(s)) return true;
   if (/\($/.test(s)) return true;
-  if (/['"]$/.test(s)) return true;
   if (/\d+'\d+$/.test(s) && !/\d+'\d+"$/.test(s)) return true;
   if (/\d+m$/i.test(s)) return true;
   if (/\d+ft$/i.test(s) && !/\d+ft[23²³]/i.test(s)) return true;

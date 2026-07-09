@@ -26,7 +26,21 @@ import { StatusDot } from "../StatusTag.js";
 
 const DEFAULT_CITY: ZonalCityId = "hosapete";
 
-const EMPTY = {
+const EMPTY: {
+  cityId: ZonalCityId;
+  zone: ZonalZone;
+  buildingType: (typeof HOSAPETE_BUILDING_TYPE_KEYS)[number];
+  widthM: number;
+  depthM: number;
+  plotAreaSqm: number | "";
+  roadFrontM: number;
+  roadRearM: number;
+  roadLeftM: number;
+  roadRightM: number;
+  roadClass: (typeof HOSAPETE_BUILDING_LINE_KEYS)[number];
+  tenements: number;
+  parkingQty: number;
+} = {
   cityId: DEFAULT_CITY,
   zone: "Residential" as ZonalZone,
   buildingType: HOSAPETE_BUILDING_TYPE_KEYS[0]!,

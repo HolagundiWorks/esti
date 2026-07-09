@@ -8,7 +8,6 @@ const round3 = (n: number) => Math.round(n * 1000) / 1000;
 
 const punched = (): MeasurementFactor => ({ mode: "PUNCHED" });
 const off = (): MeasurementFactor => ({ mode: "OFF" });
-const fixed = (value: number): MeasurementFactor => ({ mode: "FIXED", value });
 
 /** Sensible default templates when the rate book omits one. */
 export function defaultMeasurementTemplate(uom: string): MeasurementTemplate {

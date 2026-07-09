@@ -56,6 +56,10 @@ export async function ensureDemoPlatformAccount(plainPassword?: string): Promise
       .where(eq(schema.organizations.id, org.id));
   }
 
+  if (!org) {
+    throw new Error("Failed to provision demo organization");
+  }
+
   const [member] = await db
     .select()
     .from(schema.orgMembers)

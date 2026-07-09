@@ -4,7 +4,7 @@
 import { deriveLinked } from "@esti/contracts";
 import { defaultMeasurementTemplate } from "./measurement.js";
 import type { WorkItem } from "./model.js";
-import { emptyMeasureRow, newId } from "./model.js";
+import { newId } from "./model.js";
 import type { RateBookIndex } from "./rateBookIndex.js";
 import { itemQty } from "./itemQty.js";
 

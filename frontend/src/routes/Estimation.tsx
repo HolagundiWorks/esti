@@ -1,5 +1,5 @@
 import ArrowBack from "@mui/icons-material/ArrowBack";
-import { Alert, AlertTitle, Box, Button, Stack, Tab, Tabs, Typography } from "@mui/material";
+import { Alert, AlertTitle, Button, Stack, Tab, Tabs, Typography } from "@mui/material";
 import { useMemo } from "react";
 import { Link as RouterLink, useParams, useSearchParams } from "react-router-dom";
 import { RailLayout } from "../components/RailLayout.js";
@@ -14,7 +14,7 @@ import {
   phaseFromParam,
   type EstimationPhase,
 } from "../components/estimation/constants.js";
-import { StatusTag } from "../components/StatusTag.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
 function phaseIndex(phase: EstimationPhase): number {
@@ -69,7 +69,7 @@ export function EstimationWorkspace() {
           >
             All projects
           </Button>
-          {projectQ.data?.ref && <StatusTag color="cool-gray" label={projectQ.data.ref} />}
+          {projectQ.data?.ref && <StatusDot color="cool-gray" label={projectQ.data.ref} />}
           <Button
             component={RouterLink}
             to={`/projects/${projectId}?tab=estimation`}
@@ -98,7 +98,16 @@ export function EstimationWorkspace() {
         </Tabs>
       }
     >
-      <DataState loading={projectQ.isLoading} error={projectQ.error?.message}>
+      {projectQ.error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {projectQ.error.message}
+        </Alert>
+      )}
+      <DataState
+        loading={projectQ.isLoading}
+        isEmpty={false}
+        empty={{ title: "Project not found" }}
+      >
         <Stack spacing={2}>
           <Typography variant="body2" color="text.secondary">
             {ESTIMATION_PHASES[tab]?.detail}

@@ -7,7 +7,6 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  Tile,
 } from "@carbon/react";
 import { barUnitWeightKgM } from "@esti/contracts";
 import { useMemo } from "react";

@@ -1,6 +1,6 @@
-import CheckCircleOutline from "@mui/icons-material/CheckCircleOutline";
+import CheckCircleOutlined from "@mui/icons-material/CheckCircleOutlined";
 import RadioButtonUnchecked from "@mui/icons-material/RadioButtonUnchecked";
-import { Alert, AlertTitle, Box, Button, Paper, Stack, Typography } from "@mui/material";
+import { Alert, AlertTitle, Button, Paper, Stack, Typography } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import type { Me } from "./lib/auth.js";
 
@@ -16,7 +16,7 @@ function Step({
   return (
     <Stack direction="row" spacing={1.5} sx={{ alignItems: "flex-start" }}>
       {done ? (
-        <CheckCircleOutline color="success" fontSize="small" sx={{ mt: 0.25 }} />
+        <CheckCircleOutlined color="success" fontSize="small" sx={{ mt: 0.25 }} />
       ) : (
         <RadioButtonUnchecked color="disabled" fontSize="small" sx={{ mt: 0.25 }} />
       )}

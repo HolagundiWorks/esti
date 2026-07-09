@@ -29,6 +29,7 @@ describe("uploadDenial", () => {
       "/upload/master-plan": "write",
       "/upload/profile-photo": "write",
       "/upload/standard-file": "write",
+      "/upload/estimate": "write",
     });
   });
 

@@ -12,7 +12,6 @@
  * existing items and dependency pairs are never duplicated or overwritten.
  */
 import { normName } from "@esti/contracts";
-import { eq } from "drizzle-orm";
 import type { db as Db } from "../db/index.js";
 import { kbItemDependencies, kbItems } from "../db/schema.js";
 

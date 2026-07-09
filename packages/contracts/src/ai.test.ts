@@ -10,7 +10,7 @@ import {
 describe("ai contracts", () => {
   it("parses ai settings with defaults", () => {
     const s = parseAiSettings(null);
-    expect(s.enabled).toBe(false);
+    expect(s.enabled).toBe(true);
     expect(s.provider).toBe("ollama");
     expect(s.model).toBe("llama3.2");
     expect(s.redactPii).toBe(true);

@@ -36,7 +36,7 @@ export const PLAN_LABEL: Record<Plan, string> = {
   ENTERPRISE: STANDARD_LICENCE_LABEL,
 };
 
-const PLAN_RANK: Record<Plan, number> = { LITE: 0, PRO: 1, ENTERPRISE: 2 };
+const _PLAN_RANK: Record<Plan, number> = { LITE: 0, PRO: 1, ENTERPRISE: 2 };
 
 /**
  * 5 GiB — default storage quota for every new account (2026-07).
@@ -97,7 +97,7 @@ export const PLAN_FEATURES = [
 export type PlanFeature = (typeof PLAN_FEATURES)[number];
 
 /** @deprecated — every active account now gets the full feature set. */
-const FEATURE_MIN_PLAN: Record<PlanFeature, Plan> = {
+const _FEATURE_MIN_PLAN: Record<PlanFeature, Plan> = {
   pmc: "LITE", costing: "LITE", revisionIntelligence: "LITE", gstFiling: "LITE",
   hr: "LITE", performance: "LITE", consultantPortal: "LITE", contractorPortal: "LITE",
   ai: "LITE", aiByoApi: "LITE", byos: "LITE", esticad: "LITE", auditLog: "LITE",

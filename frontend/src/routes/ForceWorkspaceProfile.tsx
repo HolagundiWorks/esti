@@ -56,7 +56,7 @@ export function ForceWorkspaceProfile() {
     setEmail(f.email ?? "");
     setCity(f.city ?? "");
     if (f.state) setState(f.state);
-    if (f.gstType) setGstType(f.gstType);
+    if (f.gstType) setGstType(f.gstType as GstType);
   }, [firmQ.data]);
 
   useEffect(() => {
@@ -185,7 +185,7 @@ export function ForceWorkspaceProfile() {
                     select
                     label="GST type"
                     value={gstType}
-                    onChange={(e) => setGstType(e.target.value)}
+                    onChange={(e) => setGstType(e.target.value as GstType)}
                     fullWidth
                   >
                     {Object.keys(GstSystem).map((k) => (

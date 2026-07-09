@@ -226,7 +226,7 @@ async function main(): Promise<void> {
       file: () => Promise<{ filename: string; file: NodeJS.ReadableStream } | undefined>;
     }).file();
     if (!data) return reply.code(400).send({ error: "No file in the request." });
-    const safeName = data.filename.replace(/[^\w.\-]+/g, "_").slice(-80);
+    const safeName = data.filename.replace(/[^\w.-]+/g, "_").slice(-80);
     const fileKey = `${randomUUID()}-${safeName}`;
     await pipeline(data.file, createWriteStream(join(config.storageDir, fileKey)));
     if (src.fileKey) await unlink(join(config.storageDir, src.fileKey)).catch(() => {});

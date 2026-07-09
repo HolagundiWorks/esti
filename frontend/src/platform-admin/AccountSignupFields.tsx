@@ -53,7 +53,7 @@ export function AccountSignupFields({ value, onChange }: Props) {
     });
   }
 
-  const presetValues = NAME_PREFIX_PRESETS.map((p) => p.value);
+  const presetValues: string[] = NAME_PREFIX_PRESETS.map((p) => p.value);
   const prefixPreset = presetValues.includes(value.namePrefix ?? "")
     ? (value.namePrefix ?? "")
     : value.namePrefix
@@ -76,7 +76,7 @@ export function AccountSignupFields({ value, onChange }: Props) {
             if (v === "__custom__") {
               set("namePrefix", value.namePrefix && !presetValues.includes(value.namePrefix) ? value.namePrefix : "");
             } else {
-              set("namePrefix", v || undefined);
+              set("namePrefix", v ? v : undefined);
             }
           }}
         >

@@ -353,7 +353,7 @@ export function PricingSection() {
           {METERS.map(m => (
             <div
               key={m.tag}
-              className={`lp2-pricing__meter${m.accent ? " lp2-pricing__meter--accent" : ""}`}
+              className={`lp2-pricing__meter${"accent" in m && m.accent ? " lp2-pricing__meter--accent" : ""}`}
             >
               <div className="lp2-pricing__meter-hdr">
                 <span className={`lp2-dot lp2-dot--${m.dot}`} aria-hidden />
