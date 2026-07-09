@@ -3,6 +3,13 @@
 **Status:** Canonical navigation IA · **Owner:** Holagundi Consulting Works ·
 **Adopted:** 2026-06-29
 
+> ⚠️ **Known stale (2026-07-09):** the actual `frontend/src/App.tsx` nav tree has
+> diverged from this doc (top ribbon is now just Projects/Teams/Office, with
+> Third Parties/Library/Admin moved into a header menu), and Estimation/Item Library
+> were removed the same day. See
+> [DOC-CODE-DRIFT-2026-07.md](DOC-CODE-DRIFT-2026-07.md) §1 for the specifics before
+> relying on this file. Not yet reconciled.
+
 > This document is the **single source of truth for navigation** — the sidebar,
 > module placement, and naming. Where any other doc disagrees, **this wins**. For
 > *what code exists today* the authority remains

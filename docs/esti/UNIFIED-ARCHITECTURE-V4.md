@@ -3,6 +3,11 @@
 > **Status:** North-star + **single source of truth for current system state** ·
 > **Authored:** 2026-06-25 · **Reconciled:** 2026-06-28 · Owner: Holagundi Consulting Works
 >
+> ⚠️ **Known stale (2026-07-09):** `a9cd072` removed the Knowledge Bank (`kb.*`) and CMS
+> (`cms.*`) entirely — the "System state" and pillar-4 sections below still describe
+> them as Live/Rebuilding. See [DOC-CODE-DRIFT-2026-07.md](DOC-CODE-DRIFT-2026-07.md) §3.
+> Not yet reconciled.
+>
 > Future agents read this **first**. The "System state" section below is the
 > **authoritative record of what exists today** — where any other doc (ROADMAP, PRD,
 > INFORMATION-ARCHITECTURE, ARCHITECT-PROFILE, PRODUCT-VISION) disagrees about what is
