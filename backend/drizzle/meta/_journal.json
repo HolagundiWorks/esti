@@ -1170,6 +1170,48 @@
       "when": 1782207418000,
       "tag": "0166_wellness",
       "breakpoints": true
+    },
+    {
+      "idx": 167,
+      "version": "7",
+      "when": 1782207419000,
+      "tag": "0167_licence_status",
+      "breakpoints": true
+    },
+    {
+      "idx": 168,
+      "version": "7",
+      "when": 1782207420000,
+      "tag": "0168_ai_token_meter",
+      "breakpoints": true
+    },
+    {
+      "idx": 169,
+      "version": "7",
+      "when": 1782207421000,
+      "tag": "0169_ai_enabled_default",
+      "breakpoints": true
+    },
+    {
+      "idx": 170,
+      "version": "7",
+      "when": 1782207422000,
+      "tag": "0170_hlp_account_profile_status",
+      "breakpoints": true
+    },
+    {
+      "idx": 171,
+      "version": "7",
+      "when": 1782207423000,
+      "tag": "0171_estimation_model",
+      "breakpoints": true
+    },
+    {
+      "idx": 172,
+      "version": "7",
+      "when": 1782207424000,
+      "tag": "0172_workspace_profile_gate",
+      "breakpoints": true
     }
   ]
 }
