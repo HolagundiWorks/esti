@@ -48,6 +48,7 @@ See [`docs/esti/SELF-HOST-INSTALL.md`](../docs/esti/SELF-HOST-INSTALL.md).
 | `deploy/install-wiki-tls.sh` | **Wiki at `wiki.DOMAIN`** — TLS for the wiki vhost (HTTP block is in `nginx-proxy.conf`; needs `wiki.` DNS + `dist/wiki/` from frontend build) |
 | `deploy/lib.sh` | Shared helpers + `write_env` + `install_core` (the one install flow) |
 | `deploy/update.sh` | In-place update (reads the profile from `.env`) |
+| `deploy/cleanup-vps.sh` | **VPS hygiene** — remove retired `/downloads` installers, `dist.old`, temp Docker containers; optional image/build-cache prune |
 | `deploy/fetch-installers.sh` | **Retired** — legacy Lite/Pro desktop installers (see archive docs) |
 | `deploy/backup.sh` / `restore.sh` | Postgres + MinIO backup / restore |
 | `deploy/nginx-proxy.conf` | nginx vhost template |
@@ -170,3 +171,16 @@ bash deploy/restore.sh /opt/esti/backups/esti-pg-YYYYMMDD-HHMMSS.sql.gz
 
 Add `backup.sh` to root's crontab for daily dumps. Health check:
 `bash scripts/smoke-health.sh http://127.0.0.1:4000`.
+
+### VPS cleanup (retired installers & build cruft)
+
+Desktop `/downloads` hosting was retired (cloud-only). On an existing box:
+
+```bash
+cd /opt/esti
+git pull
+bash deploy/cleanup-vps.sh                              # dry-run — shows what would go
+sudo APPLY=true bash deploy/cleanup-vps.sh              # remove installers + dist.old
+sudo APPLY=true PRUNE_DOCKER=true bash deploy/cleanup-vps.sh   # also prune Docker cache
+bash deploy/update.sh                                   # rebuild frontend without /downloads
+```
