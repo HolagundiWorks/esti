@@ -11,7 +11,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { CompanyAdminPanel } from "../components/company/CompanyAdminPanel.js";
 import { CompanyProfilePanel } from "../components/company/CompanyProfilePanel.js";
@@ -38,6 +38,24 @@ const AuditLog = lazy(() => import("./AuditLog.js").then((m) => ({ default: m.Au
 
 const TAB_LABELS = ["Firm", "Members", "Administration"] as const;
 
+function tabIndexFromHash(): number {
+  const hash = window.location.hash.slice(1);
+  if (hash === "members" || hash === "users") return 1;
+  if (hash === "administration" || hash === "audit" || hash === "admin") return 2;
+  return 0;
+}
+
+function hashFromTab(index: number): string {
+  switch (index) {
+    case 1:
+      return "#members";
+    case 2:
+      return "#administration";
+    default:
+      return "";
+  }
+}
+
 function ownedCompanies(me: Me) {
   return me.memberships.filter((m) => m.role === "OWNER");
 }
@@ -58,7 +76,27 @@ export function CompanyAccountPortal() {
   const [license, setLicense] = useState<MyLicense | null>(null);
   const [checking, setChecking] = useState(true);
   const [switchBusy, setSwitchBusy] = useState(false);
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState(tabIndexFromHash);
+
+  const syncTabFromLocation = useCallback(() => {
+    setTab(tabIndexFromHash());
+  }, []);
+
+  useEffect(() => {
+    syncTabFromLocation();
+    window.addEventListener("hashchange", syncTabFromLocation);
+    return () => window.removeEventListener("hashchange", syncTabFromLocation);
+  }, [syncTabFromLocation]);
+
+  function handleTabChange(_e: React.SyntheticEvent, next: number) {
+    setTab(next);
+    const hash = hashFromTab(next);
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${window.location.search}${hash}`,
+    );
+  }
 
   const owned = useMemo(() => (me ? ownedCompanies(me) : []), [me]);
   const activeOwned =
@@ -216,7 +254,7 @@ export function CompanyAccountPortal() {
 
           <PortalTabs
             value={tab}
-            onChange={(_e, v) => setTab(v)}
+            onChange={handleTabChange}
             labels={[...TAB_LABELS]}
             ariaLabel="Company account sections"
           />

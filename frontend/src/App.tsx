@@ -217,13 +217,12 @@ function AppShell() {
   if (PUBLIC_SITE && pathname === "/download")
     return <Download />;
 
-  // AORMS account + licence portal (hlp_account) — its own hub destination,
-  // independent of any firm workspace session.
-  if (PUBLIC_SITE && pathname === "/account")
+  // AORMS account + licence portal (hlp_account) — available on every build variant.
+  if (pathname === "/account")
     return <AccountPortal />;
 
-  // Company owner portal — profile, members, company licence (second login screen).
-  if (PUBLIC_SITE && pathname === "/company-account")
+  // Company owner portal — profile, members, company licence.
+  if (pathname === "/company-account")
     return <CompanyAccountPortal />;
 
   if (isLoading) return <Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}><CircularProgress aria-label="Loading AORMS" /></Box>;
@@ -516,11 +515,13 @@ function AppShell() {
                   <Route path="/company" element={<Navigate to="/company-account" replace />} />
                 )}
                 {can(user.role, "firm:admin") && (
-                  <Route path="/users" element={<Navigate to="/company-account" replace />} />
+                  <Route path="/users" element={<Navigate to="/company-account#members" replace />} />
                 )}
                 {can(user.role, "firm:admin") && (
-                  <Route path="/audit" element={<Navigate to="/company-account" replace />} />
+                  <Route path="/audit" element={<Navigate to="/company-account#administration" replace />} />
                 )}
+                <Route path="/account" element={<AccountPortal />} />
+                <Route path="/company-account" element={<CompanyAccountPortal />} />
                 {user.isSystemAdmin && (
                   <Route path="/system-admin" element={<SystemAdmin />} />
                 )}

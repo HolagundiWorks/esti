@@ -92,6 +92,18 @@ export function AlertsBell() {
               </Stack>
             </Box>
           ))}
+
+          <Button
+            component={Link}
+            to="/alerts"
+            size="small"
+            variant="text"
+            fullWidth
+            onClick={() => setAnchor(null)}
+            sx={{ mt: 0.5 }}
+          >
+            View all alerts
+          </Button>
         </Stack>
       </Popover>
     </>

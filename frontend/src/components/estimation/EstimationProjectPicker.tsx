@@ -5,7 +5,6 @@ import {
   MenuItem,
   Stack,
   TextField,
-  Typography,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { PROJECT_STATUS_LABEL, PROJECT_STATUS_TAG, type ProjectStatus } from "@esti/contracts";
@@ -133,11 +132,6 @@ export function EstimationProjectPicker() {
             />
           </Box>
         </DataState>
-        {!list.isLoading && rows.length === 0 && !list.error && (
-          <Typography variant="body2" color="text.secondary">
-            No live projects match. Create one from Projects first.
-          </Typography>
-        )}
       </Stack>
     </RailLayout>
   );

@@ -105,8 +105,11 @@ export function EstimationWorkspace() {
       )}
       <DataState
         loading={projectQ.isLoading}
-        isEmpty={false}
-        empty={{ title: "Project not found" }}
+        isEmpty={!projectQ.isLoading && !projectQ.data && !projectQ.error}
+        empty={{
+          title: "Project not found",
+          description: "Return to the estimation hub and pick a live project.",
+        }}
       >
         <Stack spacing={2}>
           <Typography variant="body2" color="text.secondary">

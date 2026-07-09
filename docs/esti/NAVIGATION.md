@@ -116,14 +116,21 @@ Renamed from LEOS. Placeholder pillar (`/lxos`, `Lxos.tsx`; `/leos` redirects). 
 | Professional Identity | 🔲 | AORMS ID · role · knowledge contributions · community reputation · articles · templates · contribution history *(shared with User Profile)* |
 | Certification & Growth | 🔲 | AORMS certification (Architect/HR/Finance/Operations) · skill assessments · levels (Foundation/Practitioner/Specialist/Master) · learning history *(shared with User Profile)* |
 
-## 11. Admin
+## 11. Admin & account portals
+
+Personal and company administration moved to dedicated portals (2026-07). Legacy workspace paths redirect.
+
 | Module | Status | Where |
 |---|---|---|
-| Company | ✅ | `/company` |
-| Users | ✅ | `/users` |
-| Licensing | 🚧 | in Company (`LicensePanel`) |
-| Audit Logs | ✅ | `/audit` |
-| Settings | ✅ | `/settings` |
+| Personal account | ✅ | `/account` — Overview · Companies · Profile · Security · Workspace |
+| Company account | ✅ | `/company-account` — Firm · Members · Administration |
+| Company (legacy) | ✅ | `/company` → `/company-account` |
+| Users (legacy) | ✅ | `/users` → `/company-account#members` |
+| Audit Logs (legacy) | ✅ | `/audit` → `/company-account#administration` |
+| Settings (legacy) | ✅ | `/settings` → `/account#settings` (Workspace tab) |
+| Profile (legacy) | ✅ | `/profile` → `/account#profile` |
+| Licensing | 🚧 | Personal licence on `/account`; company licence on `/company-account` Firm tab |
+| System admin | ✅ | `/system-admin` (system admin only) |
 
 ---
 
@@ -131,10 +138,10 @@ Renamed from LEOS. Placeholder pillar (`/lxos`, `Lxos.tsx`; `/leos` redirects). 
 
 | Utility | Status | Today |
 |---|---|---|
-| Global Search | ✅ | header Search action → `/search` |
-| Notifications | ✅ | `AlertsBell` → `/alerts` |
-| AI Studio | ✅ | **sidebar item** (not a header action) → `/office/ai-studio`, plan-gated (`ai`) + rank ≥ 60 |
-| User Profile | 🚧 | `/profile` (`Profile.tsx`) — opened from the header ID card; see below |
+| Global Search | ✅ | `/search` (Knowledge Bank search; header shortcut planned) |
+| Notifications | ✅ | `AlertsBell` popover + **View all alerts** → `/alerts` |
+| AI Studio | 🚧 | Route `/office/ai-studio` (rank ≥ 60); sidebar entry planned |
+| User Profile | ✅ | Header ID card → `/account#profile` |
 
 ### User Profile (AORMS Identity Layer)
 Opened from the header; expands today's `Settings.tsx`.
