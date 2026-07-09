@@ -12,9 +12,9 @@ import { can } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
+import { sql } from "drizzle-orm";
 import { aiRuns, orgSettings } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
-import { assertPlanFeature } from "../../lib/plan.js";
 import { runAiGateway } from "../../lib/ai/gateway.js";
 import { redactPii } from "../../lib/ai/redact.js";
 import { getOrgSettings } from "../../lib/settings.js";
@@ -138,8 +138,6 @@ export const aiRouter = router({
         message: "AI Studio is disabled — enable in Company settings",
       });
     }
-    // The cloud (bring-your-own-API) provider is Enterprise-only.
-    if (settings.provider === "cloud") await assertPlanFeature(ctx.db, "aiByoApi");
 
     let result;
     try {
@@ -171,6 +169,30 @@ export const aiRouter = router({
       })
       .returning();
 
+    // P3.4 — increment monthly hosted token counter (BYO-API calls excluded).
+    if (!result.usedExternalApi && result.tokenEstimate) {
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      await ctx.db
+        .update(orgSettings)
+        .set({
+          aiTokensThisMonth: sql`
+            CASE
+              WHEN "ai_tokens_month_start" IS NULL
+                OR date_trunc('month', "ai_tokens_month_start") < date_trunc('month', now())
+              THEN ${result.tokenEstimate}
+              ELSE "ai_tokens_this_month" + ${result.tokenEstimate}
+            END`,
+          aiTokensMonthStart: sql`
+            CASE
+              WHEN "ai_tokens_month_start" IS NULL
+                OR date_trunc('month', "ai_tokens_month_start") < date_trunc('month', now())
+              THEN ${monthStart.toISOString()}::timestamptz
+              ELSE "ai_tokens_month_start"
+            END`,
+        });
+    }
+
     await writeAudit(ctx.db, {
       entity: "ai_run",
       entityId: row!.id,
@@ -199,8 +221,6 @@ export const aiRouter = router({
 
   /** ESTICAD companion — CAD-specific Ollama drafts with JSON proposals (Phase 13D). */
   generateCad: companionWriteProcedure.input(AiGenerateCadInput).mutation(async ({ ctx, input }) => {
-    // AI/LLM/ML is Core+ only — Lite has no AI capabilities.
-    await assertPlanFeature(ctx.db, "ai");
     const caps = await resolveCompanionCapabilities(ctx.db, ctx.user);
     if (!caps.ai) {
       throw new TRPCError({
@@ -220,9 +240,6 @@ export const aiRouter = router({
         message: "AI Studio is disabled — enable in Company settings",
       });
     }
-    // The cloud (bring-your-own-API) provider is Enterprise-only.
-    if (settings.provider === "cloud") await assertPlanFeature(ctx.db, "aiByoApi");
-
     let result;
     try {
       result = await runAiGateway(ctx.db, ctx.user, settings, {

@@ -11,7 +11,7 @@ import { getOrgSettings } from "./settings.js";
  */
 export class StorageQuotaExceededError extends Error {
   readonly statusCode = 413;
-  constructor(message = "Storage limit reached for your plan. Delete files or upgrade to upload more.") {
+  constructor(message = "Storage limit reached. Delete or archive files, or add more storage to continue uploading.") {
     super(message);
     this.name = "StorageQuotaExceededError";
   }

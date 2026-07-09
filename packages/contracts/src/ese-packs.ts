@@ -41,6 +41,7 @@ export const RateLibraryWorkItem = z.object({
   discipline: z.string().optional(),
   defaultUom: z.string().optional(),
 });
+export type RateLibraryWorkItem = z.infer<typeof RateLibraryWorkItem>;
 
 export const RateLibraryRateItem = z.object({
   code: z.string(),
@@ -55,6 +56,7 @@ export const RateLibraryRateItem = z.object({
   source: z.string().optional(), // e.g. "CPWD-DSR-2023"
   effectiveFrom: z.string().optional(), // ISO date
 });
+export type RateLibraryRateItem = z.infer<typeof RateLibraryRateItem>;
 
 export const RateLibraryMaterial = z.object({
   code: z.string(),
@@ -63,6 +65,7 @@ export const RateLibraryMaterial = z.object({
   ratePaise: z.number().int().nonnegative().optional(),
   density: z.number().optional(),
 });
+export type RateLibraryMaterial = z.infer<typeof RateLibraryMaterial>;
 
 export const RateLibraryRecipe = z.object({
   rateItemCode: z.string(),
@@ -70,11 +73,13 @@ export const RateLibraryRecipe = z.object({
   coefficient: z.number().nonnegative(), // material qty per 1 UOM of the rate item
   wastagePct: z.number().nonnegative().default(0),
 });
+export type RateLibraryRecipe = z.infer<typeof RateLibraryRecipe>;
 
 export const RateLibrarySpec = z.object({
   code: z.string(),
   text: z.string(),
 });
+export type RateLibrarySpec = z.infer<typeof RateLibrarySpec>;
 
 export const RateLibraryPack = z.object({
   formatVersion: z.literal(PACK_FORMAT_VERSION),

@@ -292,8 +292,11 @@ Rates live *only* in the rate book.
 
 **Estimate desktop app (separate, native C++ — no Rust, no server; SQLite
 in-process — built + tested on Windows via CI, `.github/workflows/estimate.yml`):**
-6. Knowledge Bank editor (work item · rate item · measurement template · recipes). *(pending)*
-7. Measurement entry + extractors (BOQ · materials · steel) + priced abstract. *(pending — the pure extractors `measureQty`/`takeoffMaterials`/`deriveLinked`/`steelFromBBS` already exist in `@esti/contracts`)*
-8. Export `.aormsest` (+ PDF abstract). *(pending — sealing via `estimateSealString`; see the demo `docs/esti/samples/villa-demo.aormsest`)*
+6. Knowledge Bank editor (work item · rate item · measurement template · recipes). *(partial — rate book load/search in SPA; full KB editor pending)*
+7. Measurement entry + extractors (BOQ · materials · steel) + priced abstract. *(partial — see [ESTIMATE-AUTOPILOT-ROADMAP.md](ESTIMATE-AUTOPILOT-ROADMAP.md) E0–E4)*
+8. Export `.aormsest` (+ PDF abstract). *(export ✅ · PDF pending)*
+
+> **Autopilot roadmap:** [ESTIMATE-AUTOPILOT-ROADMAP.md](ESTIMATE-AUTOPILOT-ROADMAP.md) — agent execution queue. **Current human pivot: E1 UI → HCW-UI-Kit** (`estimate/` still on Carbon until E1 gate).
+
 
 The interchange schema (step 2) is the seam: both apps develop against the same contract. A demo file (`docs/esti/samples/villa-demo.aormsest`) exercises the whole AORMS loop today.

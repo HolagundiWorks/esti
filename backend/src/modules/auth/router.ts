@@ -493,7 +493,20 @@ export const authRouter = router({
     };
   }),
 
-  me: publicProcedure.query(({ ctx }) => ctx.user),
+  me: publicProcedure.query(async ({ ctx }) => {
+    if (!ctx.user) return null;
+    const { getOrgSettings } = await import("../../lib/settings.js");
+    const { DEFAULT_STORAGE_BYTES } = await import("@esti/contracts");
+    const settings = await getOrgSettings(ctx.db);
+    return {
+      ...ctx.user,
+      /** 2026-07: ACTIVE | SUSPENDED — replaces plan tier logic. */
+      licenceStatus: settings.licenceStatus,
+      /** Effective storage quota in bytes (5 GiB base + purchased add-ons). */
+      storageQuotaBytes: DEFAULT_STORAGE_BYTES + Math.max(0, settings.storagePurchasedBytes),
+      storageUsedBytes: settings.storageBytesUsed,
+    };
+  }),
 
   /**
    * Server-authoritative runtime signal so the SPA can branch on WHERE it runs
@@ -504,14 +517,16 @@ export const authRouter = router({
   runtime: publicProcedure.query(async ({ ctx }) => {
     const state = await licenseState(ctx.db);
     const desktop = Boolean(env.DESKTOP);
-    const community = env.ESTI_EDITION === "COMMUNITY";
     return {
       desktop,
       managed: state.managed,
       mode: desktop ? ("local" as const) : ("cloud" as const),
       edition: env.ESTI_EDITION,
-      /** Free offline LAN edition: no licence, no online, no AI, no portals. */
-      community,
+      /**
+       * @deprecated Community edition removed 2026-07. Always false.
+       * Retained so existing frontend branches don't break until cleaned up.
+       */
+      community: false as const,
     };
   }),
 

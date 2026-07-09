@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   FormControlLabel,
+  LinearProgress,
   MenuItem,
   Stack,
   Switch,
@@ -23,7 +24,6 @@ import {
   PhoneType,
   STATES,
   districtsFor,
-  planAllows,
 } from "@esti/contracts";
 import { type ChangeEvent, useEffect, useState } from "react";
 import { AiStudioSettingsPanel } from "../components/company/AiStudioSettingsPanel.js";
@@ -557,12 +557,42 @@ export function Company() {
         </Stack>
       </Box>
 
+      {/* ── Storage usage ──────────────────────────────────────────────── */}
+      {(() => {
+        const used  = (user as { storageUsedBytes?: number } | null)?.storageUsedBytes ?? 0;
+        const quota = (user as { storageQuotaBytes?: number } | null)?.storageQuotaBytes ?? (5 * 1024 ** 3);
+        const pct   = Math.min(100, (used / quota) * 100);
+        const fmt   = (b: number) => b >= 1024 ** 3
+          ? `${(b / 1024 ** 3).toFixed(1)} GB`
+          : `${(b / 1024 ** 2).toFixed(0)} MB`;
+        return (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="overline" color="text.secondary">Storage</Typography>
+            <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
+              <Typography variant="body2">{fmt(used)} used</Typography>
+              <Typography variant="body2" color="text.secondary">{fmt(quota)} quota</Typography>
+            </Stack>
+            <LinearProgress
+              variant="determinate"
+              value={pct}
+              color={pct > 90 ? "error" : pct > 70 ? "warning" : "primary"}
+              sx={{ height: 6, borderRadius: 3 }}
+            />
+            {pct > 85 && (
+              <Typography variant="caption" color="error" sx={{ mt: 0.5, display: "block" }}>
+                Storage almost full — archive closed projects or contact support to add more.
+              </Typography>
+            )}
+          </Box>
+        );
+      })()}
+
       {isOwner && !community && <LicensePanel />}
       {isOwner && <MigrationPanel />}
       {isOwner && <EscalationSettingsPanel />}
       {isOwner && <UploadSecurityPanel />}
-      {isOwner && !user?.isDemo && <AiStudioSettingsPanel isEnterprise={planAllows(licensePlan, "aiByoApi")} />}
-      {isOwner && planAllows(licensePlan, "byos") && <StorageSettingsPanel />}
+      {isOwner && !user?.isDemo && <AiStudioSettingsPanel isEnterprise />}
+      {isOwner && <StorageSettingsPanel />}
       {isOwner && <ConnectedDevicesPanel />}
       {isOwner && <ReleaseMetadataPanel />}
       {isOwner && <DataTools />}

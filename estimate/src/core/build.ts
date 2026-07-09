@@ -1,36 +1,33 @@
 /**
- * Assemble the working model into a frozen, sealed `.aormsest` (EstimateFile),
- * and re-cost the model for live preview. Pure over the model; the only IO is the
- * Web Crypto sha256 seal (works in the browser and in Node — both expose
- * globalThis.crypto.subtle). Reuses the shared engine in @esti/contracts.
+ * Assemble the working model into a frozen, sealed `.aormsest` (EstimateFile).
  */
 import {
   EstimateFile,
   computeMemberBBS,
   estimateSealString,
-  measureQty,
   recostEstimate,
   steelFromBBS,
   type CostedEstimate,
   type EstimateItem,
   type RateBookRates,
 } from "@esti/contracts";
+import { itemQty } from "./itemQty.js";
+import { measureQtyFromTemplate } from "./measurement.js";
+import { computeMaterialsFromItems } from "./materialExtract.js";
 import type { EstimateModel } from "./model.js";
+import type { RateBookIndex } from "./rateBookIndex.js";
 
 const round3 = (n: number) => Math.round(n * 1000) / 1000;
 const amount = (qty: number, ratePaise: number) => Math.round(qty * ratePaise);
 
-/** Sum a work item's measurement rows into a frozen quantity. */
-function itemQty(item: EstimateModel["items"][number]): number {
-  return round3(
-    item.measurements.reduce((s, m) => s + measureQty({ nos: m.nos, l: m.l, b: m.b, h: m.h }), 0),
-  );
-}
-
-/** Model → EstimateFile WITHOUT the checksum (sealEstimate adds it). */
-export function modelToDraft(model: EstimateModel, createdAtISO: string): Omit<EstimateFile, "checksum"> {
+export function modelToDraft(
+  model: EstimateModel,
+  createdAtISO: string,
+  rateBookIndex: RateBookIndex | null,
+): Omit<EstimateFile, "checksum"> {
   const items: EstimateItem[] = model.items.map((it) => {
     const qty = itemQty(it);
+    const template = it.measurementTemplate;
     const leadChargePaise = it.leadChargePaise ?? 0;
     const base = amount(qty, it.ratePaise);
     const lead = amount(qty, leadChargePaise);
@@ -48,14 +45,37 @@ export function modelToDraft(model: EstimateModel, createdAtISO: string): Omit<E
         l: m.l,
         b: m.b,
         h: m.h,
-        qty: measureQty({ nos: m.nos, l: m.l, b: m.b, h: m.h }),
+        qty: template
+          ? measureQtyFromTemplate(m, template)
+          : round3((m.nos ?? 1) * (m.l ?? 1) * (m.b ?? 1) * (m.h ?? 1)),
       })),
       qty,
       amountPaise: base + lead,
       lead: leadChargePaise ? { km: it.leadKm, chargePaise: leadChargePaise } : undefined,
       section: it.section,
+      derivedFrom: it.derivedFrom,
     };
   });
+
+  const computedMaterials = computeMaterialsFromItems(model.items, rateBookIndex);
+  const materials =
+    computedMaterials.length > 0
+      ? computedMaterials.map((m) => ({
+          code: m.code,
+          name: m.name,
+          unit: m.unit,
+          qty: m.qty,
+          ratePaise: m.ratePaise,
+          amountPaise: m.ratePaise != null ? amount(m.qty, m.ratePaise) : undefined,
+        }))
+      : model.materials.map((m) => ({
+          code: m.code,
+          name: m.name,
+          unit: m.unit,
+          qty: m.qty,
+          ratePaise: m.ratePaise,
+          amountPaise: m.ratePaise != null ? amount(m.qty, m.ratePaise) : undefined,
+        }));
 
   const members = model.bbs.map((b) => computeMemberBBS(b));
   const steel = steelFromBBS(members, model.steelRatePaiseByDia);
@@ -66,24 +86,19 @@ export function modelToDraft(model: EstimateModel, createdAtISO: string): Omit<E
       estimateName: model.estimateName || "Estimate",
       projectName: model.projectName || undefined,
       createdAt: createdAtISO,
-      appVersion: "0.1.0",
+      appVersion: "0.2.0",
       currency: "INR",
     },
-    rateBook: { code: model.rateBookCode || "OWN", name: model.rateBookName || "Office rate book" },
+    rateBook: {
+      code: model.rateBookCode || rateBookIndex?.pack.edition || "OWN",
+      name: model.rateBookName || rateBookIndex?.pack.source || "Office rate book",
+    },
     items,
-    materials: model.materials.map((m) => ({
-      code: m.code,
-      name: m.name,
-      unit: m.unit,
-      qty: m.qty,
-      ratePaise: m.ratePaise,
-      amountPaise: m.ratePaise != null ? amount(m.qty, m.ratePaise) : undefined,
-    })),
+    materials,
     steel,
   };
 }
 
-/** Seal a draft with a sha256 of its canonical content → a valid EstimateFile. */
 export async function sealEstimate(draft: Omit<EstimateFile, "checksum">): Promise<EstimateFile> {
   const bytes = new TextEncoder().encode(estimateSealString(draft as Record<string, unknown>));
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -93,9 +108,13 @@ export async function sealEstimate(draft: Omit<EstimateFile, "checksum">): Promi
   return EstimateFile.parse({ ...draft, checksum });
 }
 
-/** Re-cost the model against its own as-estimated rates (live preview; the
- *  project rate book lives in AORMS). */
 export function previewCost(draft: Omit<EstimateFile, "checksum">): CostedEstimate {
-  const rb: RateBookRates = { code: "SELF", name: "As estimated", itemRatePaise: {}, materialRatePaise: {}, steelRatePaiseByDia: {} };
+  const rb: RateBookRates = {
+    code: "SELF",
+    name: "As estimated",
+    itemRatePaise: {},
+    materialRatePaise: {},
+    steelRatePaiseByDia: {},
+  };
   return recostEstimate({ ...draft, checksum: "" }, rb);
 }

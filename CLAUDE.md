@@ -36,17 +36,23 @@ podman (`compose.yaml`).
 >    the ActionDock, priority (error/warning) alerts**. `<Surface layer="glass">`.
 >
 > **Spatial model — Rail · Stage · Taskbar footer · ActionDock:** the app shell is
-> ribbon/rail + stage, with a **Windows-taskbar-style footer** (widget launchers
-> LEFT · centred search · tray + clock RIGHT — `AppFooterBar`; the old FloatingDock
-> is retired) and a **global, context-aware ActionDock** floating bottom-centre.
-> Screen CTAs migrate into the dock via `useScreenActions` (left=destroy ·
-> center=create · right=commit); inline page buttons are removed as screens adopt it.
+> glass **rail** (20%, full viewport height, fixed) + **stage** (scrolls independently),
+> with a **glass taskbar footer** (calculator LEFT · launcher cluster CENTRE · tray
+> RIGHT — `AppFooterBar`; the old FloatingDock is retired) and a **global,
+> context-aware ActionDock** floating bottom-centre. Studio Intelligence (`/`) is the
+> canonical glass-rail reference; rollout queue:
+> [`docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md`](docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md).
+> **Login/auth forms sit in the rail, not on the stage.** Screen CTAs migrate into
+> the dock via `useScreenActions` (left=destroy · center=create · right=commit);
+> inline page buttons are removed as screens adopt it.
 >
 > **Brand font: Urbanist** (OFL) across the MUI product — self-hosted via
 > `@fontsource/urbanist` (imported in `main.tsx`), mirrored in the kit theme.
 
 **Canonical guides:** **[`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md)** — the
 layer philosophy, spatial model and adoption path (single source of truth).
+[`docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md`](docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md) —
+glass-rail rollout + login-in-rail queue.
 [`docs/esti/AORMS-BRANDING-KIT.md`](docs/esti/AORMS-BRANDING-KIT.md) — brand marks +
 colour/type heritage. [`docs/esti/MATERIAL-UI-DIRECTION.md`](docs/esti/MATERIAL-UI-DIRECTION.md)
 — the historical Carbon→MUI migration playbook.

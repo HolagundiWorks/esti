@@ -2,7 +2,8 @@
 
 Quick reference for demo logins and how they relate to production org mode.
 
-**Full design:** [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md)
+**Full design:** [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md)  
+**Item inventory (Studio Intelligence tuned):** [DEMO-SEED-ITEMS.md](DEMO-SEED-ITEMS.md)
 
 ---
 
@@ -10,21 +11,35 @@ Quick reference for demo logins and how they relate to production org mode.
 
 | Persona | Seed | Login | Password |
 | ------- | ---- | ----- | -------- |
-| **Team practice** | `pnpm seed:demo` | `principal@demo.aorms.in` | `demo1234` |
+| **Principal** | `pnpm seed:demo` | `principal@demo.aorms.in` | `demo1234` |
+| Design lead | same seed | `lead@demo.aorms.in` | same |
+| Site architect | same seed | `site@demo.aorms.in` | same |
+| Junior architect | same seed | `junior@demo.aorms.in` | same |
+| Studio manager | same seed | `accounts@demo.aorms.in` | same |
 
 Demo workspaces mirror live upload behaviour. File uploads require the **upload password** (same as the demo login password unless `SEED_DEMO_PASSWORD` was changed). Owners can toggle this gate under **Company → Upload protection** on live firms too.
 
-After seed, open any project → **Project Info** tab (§9 Compliance) for pre-construction envelope and post-construction audit (Sharma Villa and Verde Block have sample audits).
+**Studio Intelligence tour** — log in as principal and open `/`:
 
-**Showcase paths (investor tour):**
+| Surface | What to check |
+| ------- | ------------- |
+| Rail — Today | Open tasks · meeting today (MOM) · site visit today |
+| Stage — Zone health | Client / Finance / Projects / Team orbs (not all green) |
+| Stage — KPIs | Pipeline · Outstanding (overdue) · Collected · Ready to bill |
+| Priorities tab | Overdue invoices · stale approvals · billing-ready phases |
+| Projects tab | Sharma Villa + Verde Block at risk |
+| Team tab | Five assignees with mixed capacity |
+
+**Showcase projects:**
 
 | Area | Where to look |
 | --- | --- |
-| Drawings + takeoff | **Sharma Villa** or **Verde Commercial Block** → Drawings tab — linked GFC plan, ESTICAD-synced quantities, **Open in ESTICAD** |
-| CRIF + comments | **Sharma / Verde / Patel HQ** → Overview or Decisions — threaded decision comments |
+| Drawings + takeoff | **Sharma Villa** or **Verde Commercial Block** → Drawings tab |
+| CRIF + comments | **Sharma / Verde / Patel HQ** → Overview or Decisions |
+| Leads pipeline | `/office/leads` — 10 enquiries across statuses |
 | Client portal | `client@demo.aorms.in` — Kapoor Residence |
 
-Re-run `seed:demo` on an existing workspace to **backfill** missing records (idempotent). Legacy browser takeoff rows (`source: WEB`) are purged on each run.
+Re-run `seed:demo` on an existing workspace to **backfill** studio glance data (team, leads, MOMs, visits — idempotent). Use `SEED_DEMO_FORCE=1` to wipe and rebuild billing links.
 
 **Intentionally not seeded** (charter / scope): document register bulk, AI Studio draft runs, device sessions — add only when a module needs a dedicated demo pilot.
 
@@ -41,8 +56,6 @@ podman exec esti-backend sh -c "cd /app/esti/backend && pnpm db:migrate && pnpm 
 docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:prod
 docker compose -f compose.prod.yaml exec backend pnpm --filter @esti/backend seed:demo:prod
 ```
-
-Staff personas on team demo: `lead@`, `site@`, `junior@`, `intern@`, `client@demo.aorms.in`.
 
 Landing page opens the team demo login.
 
@@ -61,5 +74,6 @@ Team mode includes team nav, workload, attendance, dashboard team widgets, and t
 
 ## See also
 
+- [DEMO-SEED-ITEMS.md](DEMO-SEED-ITEMS.md) — full seeded entity list
 - [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md) — lock rules, snapshot schema, API
 - [ROADMAP.md](ROADMAP.md) — delivery status

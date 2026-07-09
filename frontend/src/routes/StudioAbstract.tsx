@@ -8,7 +8,6 @@
  */
 import {
   Box,
-  FormControlLabel,
   LinearProgress,
   Stack,
   Switch,
@@ -26,6 +25,8 @@ import { STATE_WORD } from "../components/dashboard/zoneState.js";
 import type { ZoneState } from "../components/dashboard/zoneState.js";
 import { CAPACITY_LABEL } from "../components/dashboard/dashboardUi.js";
 import { StudioBreath } from "../components/dashboard/StudioBreath.js";
+import AccountBalanceOutlined from "@mui/icons-material/AccountBalanceOutlined";
+import BusinessOutlined from "@mui/icons-material/BusinessOutlined";
 import WaterDropOutlined from "@mui/icons-material/WaterDropOutlined";
 import { setWellnessPrefs, useWellnessPrefs } from "../lib/wellnessPrefs.js";
 import { confidenceTag } from "../components/work/workHelpers.js";
@@ -298,31 +299,34 @@ export function StudioAbstract() {
   });
   const financialEnabled = settingsQ.data?.financialEnabled ?? true;
   const projectEnabled = settingsQ.data?.projectEnabled ?? true;
+  const railToggleSwitchSx = { transform: "scale(0.75)", transformOrigin: "center right" } as const;
   const moduleToggles = isAdmin ? (
-    <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-      <FormControlLabel
-        control={
-          <Switch
-            size="small"
-            checked={financialEnabled}
-            disabled={setModule.isPending}
-            onChange={(e) => setModule.mutate({ module: "financial", enabled: e.target.checked })}
-          />
-        }
-        label="Financial"
-      />
-      <FormControlLabel
-        control={
-          <Switch
-            size="small"
-            checked={projectEnabled}
-            disabled={setModule.isPending}
-            onChange={(e) => setModule.mutate({ module: "project", enabled: e.target.checked })}
-          />
-        }
-        label="Project"
-      />
-    </Stack>
+    <>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, minHeight: 38 }}>
+        <AccountBalanceOutlined fontSize="small" color="action" />
+        <Typography variant="body2" sx={{ flex: 1 }} noWrap>Financial</Typography>
+        <Switch
+          size="small"
+          sx={railToggleSwitchSx}
+          checked={financialEnabled}
+          disabled={setModule.isPending}
+          onChange={(e) => setModule.mutate({ module: "financial", enabled: e.target.checked })}
+          slotProps={{ input: { "aria-label": "Financial module" } }}
+        />
+      </Box>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, minHeight: 38 }}>
+        <BusinessOutlined fontSize="small" color="action" />
+        <Typography variant="body2" sx={{ flex: 1 }} noWrap>Project</Typography>
+        <Switch
+          size="small"
+          sx={railToggleSwitchSx}
+          checked={projectEnabled}
+          disabled={setModule.isPending}
+          onChange={(e) => setModule.mutate({ module: "project", enabled: e.target.checked })}
+          slotProps={{ input: { "aria-label": "Project module" } }}
+        />
+      </Box>
+    </>
   ) : undefined;
 
   const pending      = ac?.pendingApprovals   ?? [];
@@ -363,7 +367,6 @@ export function StudioAbstract() {
 
   const firstName = (user?.fullName ?? "").trim().split(/\s+/)[0] || "there";
   const companyName = firmQ.data?.companyName ?? "";
-  const firmLogo = firmQ.data?.logoUrl ?? null;
   const filingDue = filingDueDates();
 
   const heroKpis: { label: string; value: string; sub: string; danger: string | null }[] =
@@ -381,8 +384,7 @@ export function StudioAbstract() {
           { label: "Tasks Overdue", value: String(tasksOverdue), sub: "Past due", danger: tasksOverdue > 0 ? "Behind" : null },
         ];
 
-  // Rail KPI tiles — the four headline KPIs. Office health and the statutory due
-  // dates render as their own full-width rows (below Today / after the KPIs).
+  // Stage header KPIs — Pipeline · Outstanding · Collected · Ready to bill (or ops fallback).
   const kpiTiles: { label: string; value: ReactNode; sub?: ReactNode }[] =
     heroKpis.slice(0, 4).map((k) => ({ label: k.label, value: k.value, sub: k.sub }));
 
@@ -457,32 +459,50 @@ export function StudioAbstract() {
   const emptyText = (t: string) => <Typography variant="body2" color="text.secondary">{t}</Typography>;
 
   return (
-    <Box className="esti-glass-dash">
+    <Box className="esti-glass-dash" sx={{ flex: 1, minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
       {/* Ambient resonant-breathing contour field (behind content; a passive pacer). */}
       <StudioBreath />
-      {/* Mobile: Rail stacks first (full width), Stage follows below. */}
-      <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, alignItems: "flex-start", width: 1 }}>
-        {/* ── RAIL (20%) — fixed info column: logo · greeting · Today · zones · status · toggles ── */}
+      {/* Desktop: rail fixed in pane; stage scrolls independently. Mobile: stack. */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          flex: 1,
+          minHeight: 0,
+          overflow: { xs: "visible", md: "hidden" },
+          gap: 2,
+          alignItems: "stretch",
+          width: 1,
+        }}
+      >
+        {/* Spacer reserves rail width while the rail is fixed full-viewport height. */}
+        <Box
+          aria-hidden
+          sx={{
+            display: { xs: "none", md: "block" },
+            flex: "0 0 20%",
+            maxWidth: "20%",
+            flexShrink: 0,
+          }}
+        />
+        {/* ── RAIL (20%) — greeting · Today · zones · status · toggles ── */}
         <Box
           className="esti-dash-rail"
           sx={{
-            flex: "0 0 20%", maxWidth: "20%", minWidth: 0,
-            position: "sticky", top: 0, alignSelf: "flex-start",
-            maxHeight: "calc(100vh - 140px)", overflowY: "auto",
-            display: "flex", flexDirection: "column", gap: 1.5,
-            borderRight: 1, borderColor: "divider", pr: 2,
+            flex: { xs: "0 0 auto", md: "0 0 20%" },
+            maxWidth: { md: "20%" },
+            minWidth: 0,
+            width: { xs: "100%", md: "auto" },
+            overflowY: { md: "auto" },
+            display: "flex",
+            flexDirection: "column",
+            gap: 1.5,
+            p: 1.5,
           }}
         >
-          {/* Company logo */}
-          {firmLogo ? (
-            <Box component="img" src={firmLogo} alt={companyName || "Company"} sx={{ height: 30, width: "auto", maxWidth: "80%", objectFit: "contain", display: "block" }} />
-          ) : (
-            <Box className="esti-brand esti-brand--esti" role="img" aria-label="AORMS" sx={{ height: 30, width: 30 }} />
-          )}
-
-          {/* Greeting */}
+          {/* Greeting — top aligns with Zone health on the stage */}
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 300, lineHeight: 1.15 }}>{greetingFor()},</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 300, lineHeight: 1.15, mt: 0 }}>{greetingFor()},</Typography>
             <Typography variant="h5" sx={{ fontWeight: 600, lineHeight: 1.15 }}>{firstName}</Typography>
             {companyName && <Typography variant="caption" color="text.secondary">{companyName}</Typography>}
           </Box>
@@ -495,79 +515,35 @@ export function StudioAbstract() {
           {/* Today */}
           <Box>
             <Typography variant="overline" color="text.secondary">Today</Typography>
-            <Stack direction="row" spacing={2} sx={{ mt: 0.5 }}>
+            <Box sx={{ mt: 0.5, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", width: 1 }}>
               {[
                 { label: "Tasks", value: glanceQ.data?.pendingTasks },
                 { label: "Meetings", value: glanceQ.data?.meetingsToday },
                 { label: "Visits", value: glanceQ.data?.siteVisitsToday },
-              ].map((s) => (
-                <Box key={s.label} sx={{ minWidth: 0 }}>
-                  <Typography variant="caption" color="text.secondary" noWrap>{s.label}</Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 300 }}>{s.value ?? "—"}</Typography>
-                </Box>
-              ))}
-            </Stack>
-          </Box>
-
-          {/* Office health — a single full-width row directly below Today */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, py: 1, borderTop: 1, borderBottom: 1, borderColor: "divider" }}>
-            <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1 }}>Office health</Typography>
-            <Box sx={{ flex: 1 }} />
-            <OfficeHealthGlyph state={officeState} size={14} />
-            <Typography sx={{ fontWeight: 300, textTransform: "capitalize" }} noWrap>{STATE_WORD[officeState]}</Typography>
-          </Box>
-
-          {/* Hydration reminder — personal toggle (on by default), fires every 15 min */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <WaterDropOutlined fontSize="small" color="action" />
-            <Typography variant="body2" sx={{ flex: 1 }} noWrap>Hydration reminder</Typography>
-            <Switch
-              size="small"
-              checked={wellnessPrefs.hydrationEnabled}
-              onChange={(e) => setWellnessPrefs({ hydrationEnabled: e.target.checked })}
-              slotProps={{ input: { "aria-label": "Hydration reminder" } }}
-            />
-          </Box>
-
-          {/* Zone health — single row of square units */}
-          <Box>
-            <Typography variant="overline" color="text.secondary">Zone health</Typography>
-            <Box sx={{ mt: 0.5, display: "grid", gridTemplateColumns: `repeat(${zones.length}, 1fr)` }}>
-              {zones.map((z, i) => (
+              ].map((s, i) => (
                 <Box
-                  key={z.label}
-                  title={z.signal}
+                  key={s.label}
                   sx={{
-                    aspectRatio: "1 / 1", minWidth: 0, p: 0.5,
-                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0.5,
-                    borderLeft: i > 0 ? 1 : 0, borderColor: "divider",
+                    minWidth: 0,
+                    px: 0.5,
+                    textAlign: "center",
+                    borderLeft: i > 0 ? 1 : 0,
+                    borderColor: "divider",
                   }}
                 >
-                  <OfficeHealthGlyph state={z.state} size={14} />
-                  <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "0.65rem", maxWidth: 1 }}>{z.label}</Typography>
+                  <Typography variant="caption" color="text.secondary" noWrap>{s.label}</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 300 }}>{s.value ?? "—"}</Typography>
                 </Box>
               ))}
             </Box>
           </Box>
 
-          <Sep />
-
-          {/* KPIs — 2×2 flat tiles */}
-          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
-            {kpiTiles.map((c, i) => (
-              <Box
-                key={i}
-                sx={{
-                  minWidth: 0, p: 1,
-                  display: "flex", flexDirection: "column", justifyContent: "center",
-                  borderTop: i >= 2 ? 1 : 0, borderLeft: i % 2 !== 0 ? 1 : 0, borderColor: "divider",
-                }}
-              >
-                <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2 }} noWrap>{c.label}</Typography>
-                <Typography sx={{ fontWeight: 300, fontSize: "1.1rem", lineHeight: 1.05 }} noWrap>{c.value}</Typography>
-                {c.sub != null && <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.65rem" }} noWrap>{c.sub}</Typography>}
-              </Box>
-            ))}
+          {/* Office health — glass orb (same UI as zone health) */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, py: 1, borderTop: 1, borderBottom: 1, borderColor: "divider" }}>
+            <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1 }}>Office health</Typography>
+            <Box sx={{ flex: 1 }} />
+            <OfficeHealthGlyph state={officeState} variant="glass" title={STATE_WORD[officeState]} />
+            <Typography sx={{ fontWeight: 300, textTransform: "capitalize" }} noWrap>{STATE_WORD[officeState]}</Typography>
           </Box>
 
           {/* Due dates — all statutory filings in a single row */}
@@ -584,13 +560,118 @@ export function StudioAbstract() {
             </Box>
           </Box>
 
-          {/* Module toggles — bottom of the rail */}
-          {moduleToggles && <Box sx={{ mt: "auto", pt: 1 }}>{moduleToggles}</Box>}
+          {/* Module toggles + hydration — bottom of the rail; one row each */}
+          <Box sx={{ mt: "auto", pt: 1, display: "flex", flexDirection: "column", gap: 1 }}>
+            {moduleToggles}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, minHeight: 38 }}>
+              <WaterDropOutlined fontSize="small" color="action" />
+              <Typography variant="body2" sx={{ flex: 1 }} noWrap>Hydration reminder</Typography>
+              <Switch
+                size="small"
+                sx={railToggleSwitchSx}
+                checked={wellnessPrefs.hydrationEnabled}
+                onChange={(e) => setWellnessPrefs({ hydrationEnabled: e.target.checked })}
+                slotProps={{ input: { "aria-label": "Hydration reminder" } }}
+              />
+            </Box>
+          </Box>
         </Box>
 
-        {/* ── STAGE (80%) — tabbed content ─────────────────────────────────────── */}
-        <Box className="esti-dash-stage" sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 1.5 }}>
-          {/* Horizontal section tabs (greeting, attention, telemetry + zone health are in the rail) */}
+        {/* ── STAGE (80%) — zone health · KPIs · tabbed content ───────────────── */}
+        <Box
+          className="esti-dash-stage"
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            minHeight: 0,
+            height: { md: "100%" },
+            overflowY: { md: "auto" },
+            display: "flex",
+            flexDirection: "column",
+            gap: 1.5,
+          }}
+        >
+          {/* Zone health + finance KPIs — above section tabs */}
+          <Box
+            className="esti-dash-stage-head"
+            sx={{ display: "flex", flexDirection: "column", gap: 1.5, borderBottom: 1, borderColor: "divider", pb: 1.5 }}
+          >
+            <Box
+              sx={{
+                borderTop: 1,
+                borderBottom: 1,
+                borderColor: "divider",
+                pt: 1.5,
+                pb: 1.5,
+                display: "flex",
+                alignItems: "center",
+                gap: { xs: 1.5, md: 2 },
+                flexWrap: { xs: "wrap", md: "nowrap" },
+              }}
+            >
+              <Typography
+                variant="overline"
+                color="text.secondary"
+                sx={{ flexShrink: 0, mt: 0, lineHeight: 1, whiteSpace: "nowrap" }}
+              >
+                Zone health
+              </Typography>
+              <Box
+                className="esti-dash-stage-head__zones"
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  display: { xs: "grid", md: "flex" },
+                  gridTemplateColumns: { xs: "repeat(2, 1fr)" },
+                  justifyContent: { md: "space-evenly" },
+                  alignItems: "center",
+                  gap: { xs: 1, md: 0 },
+                }}
+              >
+                {zones.map((z) => (
+                  <Box key={z.label} className="esti-zone-health__item" title={z.signal} sx={{ px: 1 }}>
+                    <OfficeHealthGlyph state={z.state} variant="glass" title={z.signal} />
+                    <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "0.65rem", maxWidth: 1 }}>
+                      {z.label}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" },
+                gap: 0,
+              }}
+            >
+              {kpiTiles.map((c, i) => (
+                <Box
+                  key={c.label}
+                  sx={{
+                    minWidth: 0,
+                    p: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    borderTop: { xs: i >= 2 ? 1 : 0, md: 0 },
+                    borderLeft: { xs: i % 2 !== 0 ? 1 : 0, md: i > 0 ? 1 : 0 },
+                    borderColor: "divider",
+                  }}
+                >
+                  <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2 }} noWrap>{c.label}</Typography>
+                  <Typography sx={{ fontWeight: 300, fontSize: "1.1rem", lineHeight: 1.05 }} noWrap>{c.value}</Typography>
+                  {c.sub != null && (
+                    <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.65rem" }} noWrap>
+                      {c.sub}
+                    </Typography>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          </Box>
+
           <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto">
             <Tab value="priorities" label="Priorities" />
             <Tab value="projects" label="Projects" />

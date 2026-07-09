@@ -1,40 +1,60 @@
-const STATUS_LINES = [
-  { label: "Built only for Indian architectural practices", dot: "green" },
-  { label: "Projects, fees, approvals and billing in one record", dot: "green" },
-  { label: "GST invoicing and 26AS / AIS / GSTR reconciliation built in", dot: "green" },
-  { label: "Native desktop app — runs offline on your machine", dot: "yellow" },
-  { label: "Free Community edition, no credit card required", dot: "green" },
+/** Landing hero — stage-head zone row + headline block. */
+const ZONES = [
+  { label: "Projects", dot: "green" },
+  { label: "Fees", dot: "green" },
+  { label: "Revisions", dot: "yellow" },
+  { label: "Team", dot: "green" },
+  { label: "GST", dot: "green" },
+] as const;
+
+const SIGNALS = [
+  "Unlimited users, clients and projects",
+  "5 GB storage included — usage-based AI",
+  "AORMS Estimate on Windows for BOQ",
 ] as const;
 
 export function MarketingHero() {
   return (
-    <section className="esti-lp-hero" id="top" aria-labelledby="hero-title">
-      <p className="esti-lp-hero__sysid">
-        AORMS · India&rsquo;s first standardized operational framework for architectural consultancy practices
-      </p>
+    <section className="lp2-hero-wrap" id="top" aria-labelledby="lp2-h1">
 
-      <h1 id="hero-title" className="esti-lp-hero__h1">
-        Run every project the same way — and stop losing fees to revisions you never agreed to.
-      </h1>
+      {/* Stage head — zone health */}
+      <header className="lp2-head" aria-label="Practice zones">
+        <span className="lp2-head__label">Studio zones</span>
+        <ul className="lp2-head__zones">
+          {ZONES.map(z => (
+            <li key={z.label} className="lp2-head__zone">
+              <span className={`lp2-orb lp2-orb--${z.dot}`} aria-hidden />
+              {z.label}
+            </li>
+          ))}
+        </ul>
+      </header>
 
-      <p className="esti-lp-hero__sub">
-        Projects, revisions, approvals, fees and GST — one record, one standard, every project.
-      </p>
+      {/* Hero copy */}
+      <div className="lp2-hero">
+        <p className="lp2-hero__eyebrow">
+          Architecture Office Resource Management System
+        </p>
 
-      <p className="esti-lp-hero__lead">
-        Architectural practices don&rsquo;t fail because they can&rsquo;t design. They lose
-        time, fees, and peace because the office runs on memory — scattered across
-        chats, spreadsheets, and verbal approvals no one can find later.
-      </p>
+        <h1 id="lp2-h1" className="lp2-hero__h1">
+          Run your practice with the same discipline as your drawings.
+        </h1>
 
-      <div className="esti-lp-hero__status" aria-label="Product preview">
-        {STATUS_LINES.map((s) => (
-          <p key={s.label} className="esti-lp-hero__status-line">
-            <span className={`esti-lp-dot esti-lp-dot--${s.dot}`} aria-hidden>●</span>
-            {s.label}
-          </p>
-        ))}
+        <p className="lp2-hero__sub">
+          One cloud workspace for Indian architects and interior designers —
+          projects, fee recovery, revision intelligence, GST and team, in a single record.
+        </p>
+
+        <ul className="lp2-hero__signals" aria-label="Key facts">
+          {SIGNALS.map(s => (
+            <li key={s}>
+              <span className="lp2-dot lp2-dot--orange" aria-hidden />
+              {s}
+            </li>
+          ))}
+        </ul>
       </div>
+
     </section>
   );
 }

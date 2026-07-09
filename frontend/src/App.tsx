@@ -313,7 +313,7 @@ function AppShell() {
 
   // Top ribbon nav — three sections only: Projects · Teams · Office (Finance
   // folded into Office). Library, Third Parties and the admin/system items move
-  // to the footer "Admin" menu (adminGroups below). See docs/esti/NAVIGATION.md.
+  // to the header admin menu (adminGroups below). See docs/esti/NAVIGATION.md.
   const nav: NavNode[] = prune([
     { label: "Projects", to: "/projects", icon: Building },
     {
@@ -362,8 +362,7 @@ function AppShell() {
     },
   ]);
 
-  // Admin lives in the footer (beside the user icon), grouped: Third Parties,
-  // Library, and the admin/system items.
+  // Admin menu icon in the header ribbon; grouped: Third Parties, Library, system.
   const adminGroups: { heading: string; items: NavLink[] }[] = [
     {
       heading: community ? "Contacts" : "Third Parties",
@@ -412,16 +411,17 @@ function AppShell() {
     },
   ].filter((g) => g.items.length > 0);
 
+  const isStudioHome = pathname === "/";
+
   return (
     <ThemeContext.Provider value="white">
       <ActionDockProvider>
-        <div className={`esti-app-shell2${user.isDemo ? " esti-app-shell--demo" : ""}`}>
+        <div className={`esti-app-shell2${user.isDemo ? " esti-app-shell--demo" : ""}${isStudioHome ? " esti-app-shell2--studio-home" : ""}`}>
           {/* Floating AORMS logo — bottom-right corner, dimmed (dark mark on light canvas). */}
           <span role="img" aria-label="AORMS" className="esti-app-logo-float esti-brand esti-brand--aorms" />
-          {/* Top ribbon nav (Excel-style) — replaces the left side-nav + header.
-              Firm name as an h1 (40%) then the section tabs. */}
-          <AppRibbon nav={nav} firmName={firmName} />
-          <div className="esti-app-content2">
+          {/* Ribbon — full bar elsewhere; floating top-right on Studio Intelligence. */}
+          <AppRibbon nav={nav} firmName={firmName} adminGroups={adminGroups} variant={isStudioHome ? "float" : "bar"} />
+          <div className={`esti-app-content2${isStudioHome ? " esti-app-content2--flush-top" : ""}`}>
             <main className="esti-grow">
               {licenseBlocked && (
                 <Alert severity="error" sx={{ mb: 2 }}>
@@ -564,7 +564,6 @@ function AppShell() {
               live here: launcher icons LEFT, search centred, tray + clock RIGHT. */}
           <AppFooterBar
             planClass={planHeaderClass}
-            adminGroups={adminGroups}
             onSignOut={() => logout.mutate()}
           />
         </div>

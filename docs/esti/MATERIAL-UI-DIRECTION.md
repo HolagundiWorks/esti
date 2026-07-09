@@ -14,14 +14,18 @@
 
 ## Screen nomenclature — Rail / Stage (canonical)
 
-Every screen splits into two regions. **Always refer to them by these names:**
+Every screen splits into two regions. **Always refer to them by these names.**
+Full visual spec (glass rail, scroll model, login placement):
+[HCW-UI-KIT.md § Glass Rail](HCW-UI-KIT.md#glass-rail--canonical-reference-studio-intelligence).
 
 | Term | Width | Class | What it holds |
 |---|---|---|---|
-| **Rail** | 20% | `.esti-dash-rail` | Fixed info column — heading/greeting, telemetry (health, KPIs, filing), zone health, section tabs, module toggles (bottom). Its own hidden-scrollbar scroll. |
-| **Stage** | 80% | `.esti-dash-stage` | The changing primary content — tabs' items, lists, tables, panels. |
+| **Rail** | 20% | `.esti-dash-rail` | **Glass panel (L3), full viewport height on desktop.** Identity/greeting, telemetry (Today, office health, due dates), vertical section tabs, filters, module toggles (bottom). **Login/signup/recovery forms live here — not on the stage.** Internal scroll, hidden scrollbar. |
+| **Stage** | 80% | `.esti-dash-stage` | **Scrolls independently.** Stage-head metrics (zone health row, KPIs), then primary content — lists, tables, panels, tab bodies. |
 
 Shared shell: `components/RailLayout.tsx` (`<RailLayout title tabs aside>{stage}</RailLayout>`).
+Reference implementation: `StudioAbstract.tsx` (Studio Intelligence `/`).
+Rollout: [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md).
 A **TabSplit** inside the Stage repeats the pattern for a single tab (20% meta + 80% grid).
 
 ## The three hard rules

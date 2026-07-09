@@ -1,16 +1,33 @@
 import { Add, TrashCan } from "@carbon/icons-react";
-import { Button, Dropdown, NumberInput, Stack, Tag, Tile } from "@carbon/react";
-import { computeMemberBBS, type MemberInput, type SteelGrade } from "@esti/contracts";
+import {
+  Accordion,
+  AccordionItem,
+  Button,
+  Dropdown,
+  NumberInput,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Tag,
+  TextInput,
+  Tile,
+} from "@carbon/react";
+import { computeMemberBBS, type Exposure, type MemberInput, type SteelGrade } from "@esti/contracts";
 import type { BbsMemberRow } from "../core/model.js";
 import { newId } from "../core/model.js";
 import { useStore } from "../store.js";
 
 const num = (v: string | number): number => Number(v) || 0;
 const STEEL_GRADES: SteelGrade[] = ["Fe415", "Fe500", "Fe500D", "Fe550", "Fe550D"];
+const EXPOSURES: Exposure[] = ["mild", "moderate", "severe", "verySevere", "extreme"];
 const ELEMENTS = ["SLAB", "BEAM", "COLUMN", "FOOTING"] as const;
 type Element = (typeof ELEMENTS)[number];
 
-/** Element-specific geometry fields (key + label + default mm/count). */
 const FIELDS: Record<Element, { key: string; label: string; def: number }[]> = {
   SLAB: [
     { key: "lengthMm", label: "Span L (mm)", def: 4000 },
@@ -53,31 +70,30 @@ const FIELDS: Record<Element, { key: string; label: string; def: number }[]> = {
 function defaultMember(element: Element): BbsMemberRow {
   const geom: Record<string, number> = {};
   for (const f of FIELDS[element]) geom[f.key] = f.def;
-  return { id: newId("bbs"), element, concreteGradeMpa: 25, steelGrade: "Fe500", ...geom } as unknown as BbsMemberRow;
+  return {
+    id: newId("bbs"),
+    element,
+    concreteGradeMpa: 25,
+    steelGrade: "Fe500",
+    exposure: "mild",
+    ...geom,
+  } as unknown as BbsMemberRow;
 }
 
-function weightOf(member: BbsMemberRow): number {
-  try {
-    return computeMemberBBS(member as MemberInput).totalWeightKg;
-  } catch {
-    return 0;
-  }
-}
-
-/** Bar Bending Schedule — configure RCC members; weights computed against IS codes. */
+/** Bar Bending Schedule — RCC members with per-bar schedule drill-down. */
 export function BbsPanel() {
   const bbs = useStore((s) => s.model.bbs);
   const rates = useStore((s) => s.model.steelRatePaiseByDia);
   const { addBbs, updateBbs, removeBbs, setSteelRate } = useStore();
 
   const diameters = Array.from(
-    new Set(bbs.flatMap((m) => computeSafeDiameters(m))),
+    new Set(bbs.flatMap((m) => safeMember(m)?.byDiameter.map((d) => d.diaMm) ?? [])),
   ).sort((a, b) => a - b);
 
   return (
     <Stack gap={5}>
       <Stack orientation="horizontal" gap={3} style={{ alignItems: "center", flexWrap: "wrap" }}>
-        <h2 className="est-h2">Steel — Bar Bending Schedule</h2>
+        <h2 className="est-h2">BBS members</h2>
         {ELEMENTS.map((el) => (
           <Button key={el} size="sm" kind="tertiary" renderIcon={Add} onClick={() => addBbs(defaultMember(el))}>
             {el.charAt(0) + el.slice(1).toLowerCase()}
@@ -85,18 +101,37 @@ export function BbsPanel() {
         ))}
       </Stack>
 
-      {bbs.length === 0 && <p className="est-help">Add slab / beam / column / footing members; cut lengths & weights are computed.</p>}
+      <p className="est-help">
+        Enter geometry once — cut lengths and weights are computed per IS 456 / IS 2502. Export includes the steel
+        schedule for AORMS › Cost Management › BBS.
+      </p>
+
+      {bbs.length === 0 && <p className="est-help">Add slab, beam, column, or footing members.</p>}
 
       {bbs.map((m) => {
         const el = m.element as Element;
+        const computed = safeMember(m);
         return (
           <Tile key={m.id}>
             <Stack gap={4}>
-              <Stack orientation="horizontal" gap={3} style={{ alignItems: "center" }}>
+              <Stack orientation="horizontal" gap={3} style={{ alignItems: "center", flexWrap: "wrap" }}>
                 <Tag type="blue" size="md">{el}</Tag>
-                <Tag type="teal" size="sm">{weightOf(m).toLocaleString("en-IN", { maximumFractionDigits: 1 })} kg</Tag>
+                {computed && (
+                  <Tag type="teal" size="sm">
+                    {computed.totalWeightKg.toLocaleString("en-IN", { maximumFractionDigits: 1 })} kg
+                  </Tag>
+                )}
+                <TextInput
+                  id={`ref-${m.id}`}
+                  labelText="Member ref"
+                  size="sm"
+                  className="est-w-sm"
+                  value={m.ref ?? ""}
+                  onChange={(e) => updateBbs(m.id, { ref: e.target.value })}
+                />
                 <Button hasIconOnly size="sm" kind="ghost" renderIcon={TrashCan} iconDescription="Remove member" onClick={() => removeBbs(m.id)} />
               </Stack>
+
               <div className="est-field-grid">
                 {FIELDS[el].map((f) => (
                   <NumberInput
@@ -123,7 +158,48 @@ export function BbsPanel() {
                   selectedItem={m.steelGrade}
                   onChange={({ selectedItem }) => selectedItem && updateBbs(m.id, { steelGrade: selectedItem })}
                 />
+                <Dropdown
+                  id={`${m.id}-exp`}
+                  titleText="Exposure"
+                  label="Exposure"
+                  items={EXPOSURES}
+                  selectedItem={m.exposure ?? "mild"}
+                  onChange={({ selectedItem }) => selectedItem && updateBbs(m.id, { exposure: selectedItem })}
+                />
               </div>
+
+              {computed && computed.bars.length > 0 && (
+                <Accordion>
+                  <AccordionItem title={`Bar schedule (${computed.bars.length} bars)`}>
+                    <TableContainer>
+                      <Table size="sm">
+                        <TableHead>
+                          <TableRow>
+                            <TableHeader>Mark</TableHeader>
+                            <TableHeader>Role</TableHeader>
+                            <TableHeader>Ø</TableHeader>
+                            <TableHeader>Nos</TableHeader>
+                            <TableHeader>Cut (mm)</TableHeader>
+                            <TableHeader>kg</TableHeader>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {computed.bars.map((b) => (
+                            <TableRow key={b.mark}>
+                              <TableCell>{b.mark}</TableCell>
+                              <TableCell>{b.role}</TableCell>
+                              <TableCell>{b.diaMm}</TableCell>
+                              <TableCell>{b.nos}</TableCell>
+                              <TableCell>{b.cutLengthMm}</TableCell>
+                              <TableCell>{b.weightKg}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </AccordionItem>
+                </Accordion>
+              )}
             </Stack>
           </Tile>
         );
@@ -132,7 +208,7 @@ export function BbsPanel() {
       {diameters.length > 0 && (
         <Tile>
           <Stack gap={3}>
-            <span className="est-help">Steel rate by diameter (₹/kg) — as-estimated; AORMS can re-price.</span>
+            <span className="est-help">Steel rate by diameter (₹/kg) — as-estimated; AORMS re-prices on import.</span>
             <div className="est-field-grid">
               {diameters.map((d) => (
                 <NumberInput
@@ -152,11 +228,10 @@ export function BbsPanel() {
   );
 }
 
-/** Diameters used by a member (best-effort; drives the rate inputs). */
-function computeSafeDiameters(m: BbsMemberRow): number[] {
+function safeMember(m: BbsMemberRow) {
   try {
-    return computeMemberBBS(m as MemberInput).byDiameter.map((d) => d.diaMm);
+    return computeMemberBBS(m as MemberInput);
   } catch {
-    return [];
+    return null;
   }
 }

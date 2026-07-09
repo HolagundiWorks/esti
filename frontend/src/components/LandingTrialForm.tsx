@@ -8,7 +8,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   Grid,
   Link,
   MenuItem,
@@ -32,18 +31,12 @@ const DISCIPLINE_OPTIONS = [
   { value: "OTHER", label: "Other" },
 ] as const;
 
-/** Pre-fill context: which edition the user clicked from the pricing cards. */
-export type LandingTrialPlanContext = "LITE" | "PRO";
-
-const PLAN_CONTEXT_LABEL: Record<LandingTrialPlanContext, string> = {
-  LITE: "AORMS Community — free account",
-  PRO: "AORMS-Pro — contact for pricing",
-};
+/** Pre-fill context removed — single AORMS product (usage-based pricing). */
 
 type Kind = "FREELANCER" | "FIRM";
 type Discipline = (typeof DISCIPLINE_OPTIONS)[number]["value"];
 
-export function LandingTrialForm({ planContext }: { planContext?: LandingTrialPlanContext } = {}) {
+export function LandingTrialForm() {
   const [fullName, setFullName] = useState("");
   const [workEmail, setWorkEmail] = useState("");
   const [mobile, setMobile] = useState("");
@@ -80,7 +73,6 @@ export function LandingTrialForm({ planContext }: { planContext?: LandingTrialPl
       practiceType: discipline,
       teamSize: isFirm ? teamSize || "SOLO" : "SOLO",
       trialPreference: "BETA_AND_DEMO",
-      improvementNotes: planContext ? `[${PLAN_CONTEXT_LABEL[planContext]}]` : undefined,
     });
   };
 
@@ -103,18 +95,6 @@ export function LandingTrialForm({ planContext }: { planContext?: LandingTrialPl
   return (
     <Box component="form" onSubmit={onSubmit}>
       <Stack spacing={3}>
-        {planContext && (
-          <Box>
-            <Chip
-              size="small"
-              label={PLAN_CONTEXT_LABEL[planContext]}
-              sx={{
-                backgroundColor: `var(--cds-tag-background-${planContext === "LITE" ? "green" : "blue"})`,
-                color: `var(--cds-tag-color-${planContext === "LITE" ? "green" : "blue"})`,
-              }}
-            />
-          </Box>
-        )}
         <Grid container spacing={2} className="esti-landing-grid">
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField

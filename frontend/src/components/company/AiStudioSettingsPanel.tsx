@@ -51,7 +51,8 @@ export function AiStudioSettingsPanel({ isEnterprise = false }: { isEnterprise?:
   });
 
   const isCloud = form.provider === "cloud";
-  const showCloudOption = isEnterprise || isCloud;
+  // BYO API is available to all accounts (no tier gate).
+  const showCloudOption = true || isEnterprise || isCloud;
 
   return (
     <Box className="esti-ai-settings-tile" sx={{ p: 3, maxWidth: 760 }}>
@@ -61,9 +62,20 @@ export function AiStudioSettingsPanel({ isEnterprise = false }: { isEnterprise?:
           <EstiAiExplainLabel scope="draft" />
         </Stack>
         <Typography variant="body2">
-          Drafts run on <strong>Ollama</strong> on your server — no cloud keys. Pro firms
-          may instead plug in their own <strong>OpenAI-compatible</strong> provider.
+          Drafts run on <strong>Ollama</strong> on your server by default. Every account can
+          plug in a <strong>BYO API key</strong> for any{" "}
+          <strong>OpenAI-compatible provider</strong> (OpenAI, Azure OpenAI, Groq, Together AI,
+          LM Studio, Ollama with{" "}
+          <code>/v1</code>, etc.) — no extra tier required. Hosted Ollama usage is metered
+          monthly; BYO-API calls are billed directly by your provider.
         </Typography>
+        <Alert severity="info" sx={{ fontSize: "0.8rem" }}>
+          <AlertTitle>OpenAI-compatible endpoint format</AlertTitle>
+          Set the base URL to the path ending in <code>/v1</code>, e.g.{" "}
+          <code>https://api.openai.com/v1</code> or{" "}
+          <code>http://localhost:11434/v1</code> (Ollama). The API key field
+          accepts any bearer token your provider issues.
+        </Alert>
         <Alert severity="info">
           <AlertTitle>Ollama endpoint</AlertTitle>
           {settingsQ.data?.ollamaDefaultUrl ?? "http://127.0.0.1:11434"}
@@ -116,8 +128,7 @@ export function AiStudioSettingsPanel({ isEnterprise = false }: { isEnterprise?:
         {isCloud && (
           <>
             <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-              <span className="esti-label--secondary">Bring-your-own AI provider</span>
-              <StatusDot color="purple" label="Pro" />
+              <span className="esti-label--secondary">Bring-your-own AI provider (OpenAI-compatible)</span>
             </Stack>
             <TextField
               id="ai-cloud-url"

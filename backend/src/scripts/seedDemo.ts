@@ -1,22 +1,17 @@
 /**
- * Demo-seed v2 — full Construction Cost OS + Task OS workspace.
+ * Demo-seed v3 — consultancy workspace tuned for Studio Intelligence.
  *
  *   pnpm --filter @esti/backend seed:demo
  *   (or: podman exec esti-backend sh -c "cd /app/esti/backend && pnpm seed:demo")
  *
- * Idempotent — skips if principal@demo.aorms.in already exists.
- * Covers every major module: clients, projects, phases, fees, invoices, permits,
- * tasks (with priority score + intervention flags), decisions, critical notes,
- * consultants, engagements, spec sheets, POs, transmittals, approvals, inspections,
- * attendance, rewards, client logs — PLUS the full Construction Cost OS spine
- * (A–G) on two showcase projects: estimate → BOQ → tender → award → work package →
- * measurement → running bill → deviations → variations → BBS → steel recon →
- * final account → GRN + material reconciliation + cost dashboard.
+ * Idempotent — skips full re-seed if principal@demo.aorms.in already exists
+ * (still backfills studio glance / team / leads). Set SEED_DEMO_FORCE=1 to wipe
+ * and rebuild. Item inventory: docs/esti/DEMO-SEED-ITEMS.md
  *
  * NOT for production use.
  */
 
-import { DEFAULT_PHASE_PLAN, GstSystem, computeGst } from "@esti/contracts";
+import { DEFAULT_PHASE_PLAN } from "@esti/contracts";
 import { eq, inArray } from "drizzle-orm";
 import { sql as rawSql } from "drizzle-orm";
 import { hashPassword } from "../auth/session.js";
@@ -34,7 +29,6 @@ import {
   engagements,
   proposals,
   inspections,
-  invoices,
   orgSettings,
   permits,
   phases,
@@ -49,37 +43,56 @@ import {
   transmittals,
   users,
 } from "../db/schema.js";
-import { firmGstSystem } from "../lib/firm.js";
 import { getOrgSettings } from "../lib/settings.js";
 import { nextRef } from "../lib/numbering.js";
+import { firmGstSystem } from "../lib/firm.js";
 import { ensureDefaultAccounts } from "../modules/expense/accounts.js";
 import { ensureAiStudioEnabled } from "./seedAiStudio.js";
+import {
+  clearStudioDemoRows,
+  dayOffset,
+  DEMO_LEADS,
+  linkPhasesAndBilling,
+  patchDemoApprovalSignals,
+  rebalanceDemoTaskAssignees,
+  seedDemoTeamRoster,
+  seedStudioGlanceAndLeads,
+  upsertDemoFirm,
+} from "./demoStudioSeed.js";
 
 const DEMO_PASSWORD = process.env.SEED_DEMO_PASSWORD ?? "demo1234";
 
-function dayOffset(n: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + n);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
+const DEMO_EMAILS = [
+  "principal@demo.aorms.in", "lead@demo.aorms.in", "site@demo.aorms.in",
+  "junior@demo.aorms.in", "intern@demo.aorms.in", "accounts@demo.aorms.in", "client@demo.aorms.in",
+  "contractor@demo.aorms.in",
+];
 
 async function clearDemoWorkspace(principalId: string) {
-  const demoEmails = [
-    "principal@demo.aorms.in", "lead@demo.aorms.in", "site@demo.aorms.in",
-    "junior@demo.aorms.in", "intern@demo.aorms.in", "accounts@demo.aorms.in", "client@demo.aorms.in",
-    "contractor@demo.aorms.in",
-  ];
-  // Bypass FK trigger checks so we can delete in any order within the session.
   await db.execute(rawSql`SET session_replication_role = 'replica'`);
   try {
+    await clearStudioDemoRows(db, principalId);
     await db.delete(projectOffices).where(eq(projectOffices.createdById, principalId));
     await db.delete(contractors).where(eq(contractors.createdById, principalId));
-    await db.delete(teamMembers).where(inArray(teamMembers.email, demoEmails));
-    await db.delete(users).where(inArray(users.email, demoEmails));
+    await db.delete(teamMembers).where(inArray(teamMembers.email, DEMO_EMAILS));
+    await db.delete(users).where(inArray(users.email, DEMO_EMAILS));
   } finally {
     await db.execute(rawSql`SET session_replication_role = 'origin'`);
   }
   console.log("  cleared old demo workspace");
+}
+
+async function backfillStudioDemo(principalId: string, pwHash: string): Promise<void> {
+  const memberIds = await seedDemoTeamRoster(db, principalId, pwHash);
+  await upsertDemoFirm(db);
+  const projectRows = await db
+    .select({ id: projectOffices.id })
+    .from(projectOffices)
+    .where(eq(projectOffices.createdById, principalId));
+  const projectIds = projectRows.map((p) => p.id);
+  await seedStudioGlanceAndLeads(db, principalId, projectIds, memberIds);
+  await patchDemoApprovalSignals(db, projectIds, principalId);
+  await rebalanceDemoTaskAssignees(db);
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -92,22 +105,24 @@ async function main() {
   await ensureDefaultAccounts(db);
 
   const [exists] = await db.select({ id: users.id }).from(users).where(eq(users.email, principalEmail));
-  if (exists) {
-    if (!process.env.SEED_DEMO_FORCE) {
-      console.log("✓ demo workspace already present — set SEED_DEMO_FORCE=1 to wipe and re-seed");
-      return;
-    }
+  const pwHash = await hashPassword(DEMO_PASSWORD);
+  if (exists && !process.env.SEED_DEMO_FORCE) {
+    await backfillStudioDemo(exists.id, pwHash);
+    console.log("✓ demo workspace present — studio backfill applied (SEED_DEMO_FORCE=1 to wipe and re-seed)");
+    return;
+  }
+  if (exists && process.env.SEED_DEMO_FORCE) {
     console.log("  SEED_DEMO_FORCE=1 — clearing old demo workspace first...");
     await clearDemoWorkspace(exists.id);
   }
 
   const gstType = await firmGstSystem(db);
-  const pwHash = await hashPassword(DEMO_PASSWORD);
   const settings = await getOrgSettings(db);
   await db.update(orgSettings).set({ hrEnabled: true, orgMode: "STUDIO" }).where(eq(orgSettings.id, settings.id));
   await ensureAiStudioEnabled(db);
+  await upsertDemoFirm(db);
 
-  // ── Users ─────────────────────────────────────────────────────────────────
+  // ── Principal user ────────────────────────────────────────────────────────
   const [principalMaybe] = await db.insert(users).values({
     email: principalEmail, fullName: "Ar. Vihaan Sharma (Principal)", role: "OWNER",
     passwordHash: pwHash, isDemo: true,
@@ -115,12 +130,8 @@ async function main() {
   if (!principalMaybe) throw new Error("principal insert failed");
   const principal = principalMaybe;
 
-  // ── Team member (principal only — lean single-account demo) ────────────────
-  const staff = await db.insert(teamMembers).values([
-    { name: "Vihaan Sharma", role: "Principal Architect", employmentType: "FULL_TIME", email: principalEmail, userId: principal.id, monthlySalaryPaise: 2_50_000_00, dateJoined: dayOffset(-1500), active: true },
-  ]).returning();
-
-  const mid = new Map(staff.map((m) => [m.name, m.id]));
+  const memberIds = await seedDemoTeamRoster(db, principal.id, pwHash);
+  const mid = memberIds;
 
   // ── Clients ───────────────────────────────────────────────────────────────
   const clientRows = await db.insert(clients).values([
@@ -324,36 +335,16 @@ async function main() {
       docCommPct: 10, coaMinimumPaise: 0, belowMinimum: false,
     });
 
-    // Invoices
-    const invoiceDefs = pi < 4
-      ? [{ offset: -90, status: "PAID" }, { offset: -45, status: "PAID" }, { offset: -10, status: "ISSUED" }]
-      : pi < 6
-        ? [{ offset: -60, status: "PAID" }, { offset: -15, status: "ISSUED" }]
-        : pi === 6
-          ? [{ offset: -30, status: "ISSUED" }]
-          : pi === 7
-            ? [{ offset: -90, status: "PAID" }, { offset: -60, status: "PAID" }, { offset: -30, status: "PAID" }, { offset: -5, status: "PAID" }]
-            : [{ offset: -45, status: "PAID" }, { offset: -10, status: "ISSUED" }];
-
-    for (const inv of invoiceDefs) {
-      const taxable = Math.round(def.value * 0.02);
-      const g = computeGst(gstType, taxable, false);
-      const { ref: invRef } = await nextRef(db, "invoice", "INV");
-      await db.insert(invoices).values({
-        ref: invRef, projectId, clientId: def.client.id, status: inv.status,
-        gstSystem: gstType, documentKind: g.documentKind,
-        sac: gstType === GstSystem.REGULAR ? "998322" : null,
-        interState: def.client.state !== "Karnataka",
-        tdsApplicable: false,
-        taxablePaise: g.taxable,
-        cgstPaise: def.client.state !== "Karnataka" ? 0 : g.cgst,
-        sgstPaise: def.client.state !== "Karnataka" ? 0 : g.sgst,
-        igstPaise: def.client.state !== "Karnataka" ? g.igst : 0,
-        gstTotalPaise: g.gstTotal, compositionLevyPaise: g.compositionLevy,
-        tdsPaise: 0, grandTotalPaise: g.grandTotal, netReceivablePaise: g.grandTotal,
-        dateInvoice: dayOffset(inv.offset),
-      });
-    }
+    await linkPhasesAndBilling(
+      db,
+      projectId,
+      def.client.id,
+      def.value,
+      def.phaseProgress,
+      pi,
+      gstType,
+      def.client.state !== "Karnataka",
+    );
 
     const { ref: pmtRef } = await nextRef(db, "permit", "PMT");
     await db.insert(permits).values({
@@ -367,6 +358,8 @@ async function main() {
 
     await db.insert(assignments).values([
       { projectId, teamMemberId: mid.get("Vihaan Sharma")!, role: "Principal Architect" },
+      { projectId, teamMemberId: mid.get("Ananya Iyer")!, role: "Design Lead" },
+      ...(pi < 4 ? [{ projectId, teamMemberId: mid.get("Rahul Menon")!, role: "Site Architect" }] : []),
     ]);
 
     await db.insert(engagements).values([
@@ -395,7 +388,32 @@ async function main() {
       { transmittalId: tx!.id, drawingRef: `${ref}-A-201`, title: "Front elevation",   rev: "R0", copies: 1 },
     ]);
 
-    await db.insert(approvals).values({ projectId, entityType: "DRAWING_SET", title: "Schematic design package", recipient: def.client.name, channel: "Client portal", status: pi % 2 === 0 ? "SENT" : "DRAFT", sentDate: pi % 2 === 0 ? dayOffset(-6 - pi) : null, responseDate: pi === 0 ? dayOffset(-2) : null, remarks: pi === 0 ? "Approved with facade comments." : null, createdById: principal.id });
+    const approvalStale = [0, 2, 4].includes(pi);
+    await db.insert(approvals).values({
+      projectId,
+      entityType: "DRAWING_SET",
+      title: "Schematic design package",
+      recipient: def.client.name,
+      channel: "Client portal",
+      status: pi % 2 === 0 ? "SENT" : "DRAFT",
+      sentDate: pi % 2 === 0 ? dayOffset(approvalStale ? -18 : -5) : null,
+      responseDate: pi === 0 ? dayOffset(-2) : null,
+      remarks: pi === 0 ? "Approved with facade comments." : null,
+      createdById: principal.id,
+    });
+    if (pi === 0 || pi === 2) {
+      await db.insert(approvals).values({
+        projectId,
+        entityType: "DRAWING_SET",
+        title: "Facade revision — client comments",
+        recipient: def.client.name,
+        channel: "Client portal",
+        status: "REVISIONS",
+        sentDate: dayOffset(-9),
+        remarks: "ACM panel colour and joint width to be revised.",
+        createdById: principal.id,
+      });
+    }
 
     const { ref: insRef } = await nextRef(db, "inspection", "SIR");
     await db.insert(inspections).values({ ref: insRef, projectId, dateVisit: dayOffset(-2 + pi), weather: "Clear", attendees: "Site supervisor, contractor, project lead", progress: "Masonry work in progress at ground floor.", observations: "Site housekeeping acceptable.", instructions: "Submit bar bending schedule before next slab pour.", nextVisit: dayOffset(5 + pi), inspectorName: "Vihaan Sharma" });
@@ -454,9 +472,13 @@ async function main() {
     ]);
   }
 
-  console.log("✓ seeded lean demo workspace (principal only)");
+  await seedStudioGlanceAndLeads(db, principal.id, allProjectIds, memberIds);
+  await rebalanceDemoTaskAssignees(db);
+
+  console.log("✓ seeded demo workspace (Studio Intelligence tuned)");
   console.log(`    principal: ${principalEmail} / ${DEMO_PASSWORD}`);
-  console.log(`    ${projectDefs.length} projects, ${clientRows.length} clients`);
+  console.log(`    team logins: lead@ · site@ · junior@ · accounts@demo.aorms.in (same password)`);
+  console.log(`    ${projectDefs.length} projects · ${clientRows.length} clients · ${DEMO_LEADS.length} leads`);
 }
 
 main()

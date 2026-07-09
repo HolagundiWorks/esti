@@ -1,216 +1,114 @@
-# AORMS — editions & module map (Community / Pro / Enterprise)
+# AORMS — pricing, licensing & usage (2026-07 pivot)
 
-> **⚠ Reconciliation note (2026-06-28).** The **Estimation OS**, **Construction Cost
-> spine**, **Rate Books** (`rateBooks` feature), and **Rate Analysis** were **removed** in
-> the teardown — rows mapping them to tiers are **historical**. The authoritative record of
-> what exists today is [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md)
-> § "System state"; the rebuild is
-> [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
-> [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md). The new Construction Knowledge Bank is Pro.
+> **⚠ Major revision (2026-07-09).** There are **no product editions** — no Lite,
+> Pro, Core, Community, or Enterprise. One **AORMS** workspace; you pay for
+> **storage** and **AI model usage**. Implementation queue:
+> [AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md).
 
-> **Editions (2026-07).** Three tiers: **Community** (free, local-first — the offline
-> Community appliance), **Pro** (paid cloud, 10 GB storage mirrored to the desktop
-> app), and **Enterprise** (Pro + bring-your-own-storage, set up on-prem by an AORMS
-> admin). The legacy **Core** code folds to `PRO` via `asPlan()`; `ENTERPRISE` is now
-> a first-class tier again (it previously folded to Pro). **Enterprise desktop builds
-> are on hold** — Enterprise is a licensing/deployment tier, not yet a packaged
-> installer.
->
-> **Naming (2026-07).** The free edition is branded **Community** in all user-facing
-> copy (unified with the offline Community appliance). The **internal code / DB value /
-> licence-token plan stays `LITE`** — `Plan = ["LITE","PRO","ENTERPRISE"]`,
-> `PLAN_LABEL.LITE = "AORMS Community"`. Only the *display label* changed; every
-> `plan === "LITE"`, `asPlan()`, quota and feature gate is unchanged.
+## One product
 
-> Proposal. Maps every module (see [INFORMATION-ARCHITECTURE.md](INFORMATION-ARCHITECTURE.md))
-> to a plan. Backend is one codebase; the plan is a **firm-level flag** that gates
-> features and quotas — orthogonal to the existing `can(role, capability)` (which
-> gates by *person*). Plan gates by *firm subscription*.
+| Surface | Where it runs | Auth |
+|---------|---------------|------|
+| **AORMS** (workspace) | Cloud web app | Firm login · active licence |
+| **AORMS Estimate** | **Desktop only** (Windows) | Firm login before launch · linked to **project** Cost Management |
 
-## Positioning
+There is **no** AORMS Community desktop app, **no** full-product desktop installer,
+and **no** tier-gated feature matrix. Capability gates remain **role-based**
+(`can(role, capability)` in `packages/contracts`) — not edition-based.
 
-| Edition | For | One line |
-|---|---|---|
-| **AORMS Community** (free) | solo / tiny studios (below GST threshold) | Run your design practice — clients, projects, drawings, simple invoices, basic bank reconciliation — free, with caps. *No GST split, no AI.* |
-| **AORMS-Pro** (paid · contact for pricing) | established firms through multi-office / scale | The full office OS: revision intelligence, HR, GST invoicing + reconciliation + filing, portals, ESTI cognition — plus unlimited seats, SSO, API/ESTICAD, governance, integrations, white-label. **Cloud-hosted or self-hosted (on-premises).** |
+## Pricing model
 
-## Quotas
+You pay for what you consume:
 
-| Limit | Community (free) | Pro |
-|---|---|---|
-| **Admin (owner)** | 1 | 1 |
-| **General staff seats** | **3** | **unlimited** |
-| Accountant seats | — | unlimited |
-| HR manager seats | — | unlimited |
-| **Clients** | unlimited | unlimited |
-| **Contractors** | unlimited | unlimited |
-| Consultants | unlimited | unlimited |
-| Active projects | unlimited | unlimited |
-| Document storage | none — local, on the user's device | **10 GB cloud** (mirrored to desktop · buy add-on storage · archive closed projects to reclaim space) |
-| Bring-your-own storage (BYOS) | — | — (Enterprise only: ✓ NAS / S3, on-prem) |
-| AI / LLM / ML | — (none) | ✓ built-in Ollama or bring-your-own API (per-licence flag) |
-| Support | community | priority + SLA |
+| Meter | Included on signup | Overage |
+|-------|-------------------|---------|
+| **Storage** | **5 GB** cloud object storage (drawings, documents, PDFs) | Billed per GB-month |
+| **AI model** | Hosted ESTI / Ask ESTI usage on AORMS default model | Billed per token or bring your own API key (no hosted meter) |
 
-> Community and Pro are both **self-serve**: clients, contractors, consultants and
-> projects are **unlimited on both editions** (created through the normal "New …"
-> flow — Community is no longer a fixed pre-seeded workspace). The only count cap is
-> **general staff seats** on Community (3); Pro is unlimited, though a licence token may
-> still constrain seats via its `seats` field. Accountant and HR_MANAGER are
-> **separate extra seats** (Pro: unlimited; Community: none — upgrade to Pro for those
-> roles). **AI/LLM/ML is Pro only** — Community has no AI. **Pro AI runs on the on-server Ollama for now** (the hosted
-> deployment's `esti-ollama`; `OLLAMA_BASE_URL` / `OLLAMA_MODEL` in `.env`). The
-> **desktop-bundled (local) Ollama** — the PRO desktop edition's built-in Ollama
-> runtime — is **deferred until the desktop app is production-ready**; until then all
-> Pro AI is server-side (decision 2026-07). **Bring-your-own AI provider**
-> (a per-licence flag within Pro) — instead of the on-server Ollama, a Pro firm can
-> point AI Studio at their own **OpenAI-compatible** cloud endpoint (base URL +
-> model + key) from Company → AI Studio; the key is write-only and calls fall back
-> to the template if the provider is unreachable. **Bring-your-own-storage (BYOS,
-> Enterprise)** lets a firm redirect object storage — drawings, documents and
-> generated PDFs — to their own **NAS / mounted folder** or **S3-compatible hosting
-> engine** from Company → Storage (the S3 secret is write-only). NAS mode requires
-> the path to be mounted on both the backend and the worker host. BYOS is set up
-> **on-premises by an AORMS admin** as part of an Enterprise deployment.
+**Not metered — unlimited on every active licence:**
 
-> **Storage model (Community / Pro / Enterprise).** **Community** keeps files on the user's
-> own machine (the offline Community appliance) — there is no cloud object store and
-> no cap. **Pro** gives **10 GB of cloud storage**, mirrored down to the desktop app;
-> firms can **buy add-on storage** (`orgSettings.storagePurchasedBytes` lifts the cap)
-> or **archive a closed project to a package file** (exported out, re-importable) to
-> reclaim space. **Enterprise** uses the firm's **own** store (BYOS), so the cap does
-> not apply. AI (LLM / RAG) on the desktop runs **locally** and fetches the firm's
-> cloud data.
+- Users (staff logins)
+- Clients
+- Contractors
+- Consultants
+- Active projects
 
-> Only **active** logins consume a staff seat — disabling an account frees its
-> seat back up. On Community, creating a 4th active general-staff login is blocked with
-> an upgrade prompt (clients/contractors/consultants/projects are not capped). On
-> Pro, seats and storage are unlimited by edition; if the licence token carries a
-> `seats` cap, exceeding it is blocked the same way — never silent data loss. The
-> owner can switch the firm's edition from the Users page (Upgrade plan); the plan
-> reflects the firm's licence and applies higher caps immediately.
+## Default new account
 
-## Module → edition matrix
+1. Self-serve signup → firm workspace created.
+2. Licence status **`ACTIVE`** with **5 GB** storage quota (`orgSettings` / licence record).
+3. Full workspace feature set (GST, HR, portals, cognition, etc.) — no edition strip.
+4. AI Studio uses the platform default model until the firm adds a **BYO API key**
+   (OpenAI-compatible base URL + model + key) under Company → AI.
 
-`✓` included · `◐` limited / basic · `—` not in this edition
+## Bring-your-own AI API key
 
-### Home & Work
-| Feature | Community | Pro |
-|---|---|---|
-| Dashboard KPIs, Alerts, Search, Tasks | ✓ | ✓ |
-| Action Center — cognition interventions (AI/ML priority) | — | ✓ |
-| Workload analytics | ◐ | ✓ |
+Firms may plug in their own inference endpoint for better performance, lower
+latency, or private models:
 
-### Clients & pipeline
-| Feature | Community | Pro |
-|---|---|---|
-| Client CRM + client log | ◐ (≤10) | ✓ |
-| Proposals pipeline | — | ✓ |
-| Fee proposals (COA Scale of Charges) | ◐ (flat) | ✓ |
+- **Settings:** Company → AI → API key (write-only storage).
+- **Behaviour:** Ask ESTI, AI Studio, and agent routes prefer the firm key when
+  set; fall back to the hosted model if unreachable.
+- **Billing:** No hosted AI meter while BYO is active for that firm (autopilot
+  implements the toggle).
 
-### Projects — Consultancy (design)
-| Feature | Community | Pro |
-|---|---|---|
-| Project info, brief, phases | ✓ | ✓ |
-| Drawings & transmittals register | ✓ | ✓ |
-| ESTICAD takeoff capture (companion) | — | ✓ |
-| Approvals / issue log | ✓ | ✓ |
-| Decisions & **revision intelligence** | — | ✓ |
-| Documents & spec sheets | ◐ | ✓ |
-| Statutory permits | ◐ | ✓ |
-| Fee proposals (COA) | ◐ (flat) | ✓ |
-| Invoices (non-GST simple invoice) | ✓ | ✓ |
-| GST invoicing (CGST/SGST split, SAC, FY-sequential) | **—** | ✓ |
+See autopilot phase **P3** for schema, UI, and tRPC.
 
-### Projects — Site Delivery (consultancy supervision)
-> **Note:** The former PMC / Costing & Measurement / Tenders spine was **removed 2026-06-28** (consultancy-only teardown). The rows below reflect what remains.
+## AORMS Estimate (desktop)
 
-| Feature | Community | Pro |
-|---|---|---|
-| Site ops (snags, instructions, progress, inspections) | — | ✓ |
-| Purchase orders | — | ✓ |
+- **Only** the Estimate app ships as a native desktop build.
+- **Requires authentication** before the estimator runs (session from AORMS login
+  or device pairing — same identity as the cloud workspace).
+- **Project link:** export `.aormsest` → import under **Project › Cost
+  Management**; desktop round-trip stays tied to a project record.
+- No offline Community workspace; no local-first full AORMS.
 
-### Accounts
-| Feature | Community | Pro |
-|---|---|---|
-| Expenses & cash book | ✓ | ✓ |
-| Reconciliation — bank statements | ✓ | ✓ |
-| Reconciliation — 26AS / AIS / GSTR import | **—** | ✓ |
-| GST / TDS filing abstracts | **—** | ✓ |
+## Licence states
 
-### People
-| Feature | Community | Pro |
-|---|---|---|
-| Team & assignments | ◐ (≤3) | ✓ |
-| Attendance | — | ✓ |
-| HR — leaves & payroll | — | ✓ |
-| Performance — ASPRF, scores, rewards | — | ✓ |
-| Consultant / contractor directories | ◐ (≤10/5) | ✓ |
+| Status | Meaning |
+|--------|---------|
+| **`ACTIVE`** | Full workspace; storage + AI meters apply |
+| `SUSPENDED` | Read-only / blocked (billing or admin) |
+| `EXPIRED` | Legacy token past validity — migrate to ACTIVE |
 
-### Knowledge
-| Feature | Community | Pro |
-|---|---|---|
-| Knowledge Bank / Item Library | — | ✓ |
-| Spec catalogue | — | ✓ |
+### Migration — existing users
 
-### Collaboration & portals
-| Feature | Community | Pro |
-|---|---|---|
-| Comments, critical notes, activity | ✓ | ✓ |
-| Client portal | ◐ (1 project) | ✓ |
-| Consultant (collaborator) portal | — | ✓ |
-| Contractor portal (bids + running bills) | — | ✓ |
+All firms on legacy **`LITE`**, **`PRO`**, **`ENTERPRISE`**, or **`CORE`**
+plans are **moved to `ACTIVE`** with the new storage default (5 GB included).
+No feature downgrade at migration; tier enums become **historical** in the DB
+until a schema migration renames them (autopilot **P1**).
 
-### AI — ESTI
-| Feature | Community | Pro |
-|---|---|---|
-| ESTI AI Studio / agent | **—** | ✓ (built-in Ollama; BYO provider per licence) |
-| Cognition engine (dashboard) | **—** | ✓ |
-| ESTICAD desktop AI / takeoff | — | ✓ |
+Legacy licence tokens from the platform console map to **`ACTIVE`** + usage
+meters, not to a tier name.
 
-> **AORMS Community has no AI / LLM / ML features.** In exchange for the free tier,
-> Community operational data — de-identified and aggregated — may be used to train our
-> AI/LLM/ML models. The paid edition (Pro) and self-hosted deployments are
-> excluded and never used for training. This is disclosed in the Terms of
-> Service (§4) and is the legal basis for the free tier.
+## Enforcement (target implementation)
 
-### Admin & governance
-| Feature | Community | Pro |
-|---|---|---|
-| Company, users, settings | ✓ (3 users) | ✓ |
-| Roles / access tiers | ◐ (owner + 2) | ✓ full ladder |
-| Immutable audit log | — | ✓ + export |
-| Companion / ESTICAD device API | — | ✓ |
-| SSO, API access, multi-office, white-label | — | ✓ |
-| Priority support / SLA | — | ✓ |
+1. **`licenceStatus`** (or `plan` renamed) → `ACTIVE | SUSPENDED | …` — not LITE/PRO.
+2. **Storage** — `withinStorage(usedBytes, quotaBytes)`; default quota = 5 GB;
+   purchased add-ons lift `storagePurchasedBytes`.
+3. **AI** — meter hosted calls OR skip meter when `aiByoApiKey` is set.
+4. **Remove** `planAllows(plan, feature)` edition gates; keep role capabilities.
+5. **Remove** seat / client / contractor / project count quotas.
+6. **Frontend** — drop edition chips; show storage usage + AI settings in Company.
 
-## Pricing & deployment
+Until autopilot lands, legacy `Plan` enums may still exist in code — treat this
+document as the **target** product law.
 
-| Edition | Pricing | Hosting | How to start |
-|---|---|---|---|
-| **Community** | **Free** | Cloud (shared) | **Self-signup** on the landing page |
-| **Pro** | **Contact for pricing** | **Cloud — dedicated VM** (4 vCPU · 16 GB RAM · 200 GB NVMe · 16 TB bandwidth · 1 snapshot · weekly backups · dedicated IP) **or self-hosted / on-premises** (deployed on your infrastructure) | Contact form on the landing page |
+## What was retired
 
-## The upgrade story (what pulls Community → Pro)
+| Retired | Replacement |
+|---------|-------------|
+| AORMS Community (free tier + desktop) | Web signup with 5 GB included |
+| AORMS-Pro / Enterprise editions | Usage billing on ACTIVE licence |
+| Lite / Core / Enterprise enums (user-facing) | ACTIVE + meters |
+| Full-product desktop (Lite/Core/Enterprise installers) | Web only; Estimate desktop only |
+| Community self-host appliance | Cloud workspace (self-host remains an ops deploy profile, not an edition) |
 
-- **Community → Pro** when the firm crosses the **GST threshold**:
-  the moment they need GST-correct invoices (CGST/SGST/IGST, SAC, filing
-  abstracts) and 26AS/AIS/GSTR reconciliation, revision intelligence to defend
-  fees, HR/payroll, or a 4th team member / 11th client.
-- Pro also carries everything a firm needs at **scale & governance**: many
-  offices, unlimited seats, SSO, the ESTICAD/API integration, audit export,
-  white-label — there is no separate higher edition.
+Historical module matrices in git history pre-2026-07-09 are **invalid**.
 
-## Enforcement (implementation approach)
+## Related docs
 
-1. **`plan` on the firm** — `LITE | PRO | ENTERPRISE` (DB column on the firm/org
-   record; defaults `LITE`). The legacy `CORE` value folds to `PRO` via `asPlan()`;
-   `ENTERPRISE` resolves to itself (it adds BYOS on top of Pro).
-2. **Feature gate** — `planAllows(plan, feature)` in `packages/contracts`
-   (sibling to `can(role, capability)`); a procedure tier `planProcedure(feature)`
-   in `backend/src/trpc/trpc.ts` returns `PAYMENT_REQUIRED`/`FORBIDDEN` below tier.
-3. **Quota gate** — on create mutations (team/client/contractor/project), count
-   existing rows and block at the cap with an upgrade-prompt error code.
-4. **Frontend** — hide/disable gated nav + show upgrade chips; the plan flows from
-   `auth.me` (like `isSystemAdmin`) so the SPA renders the right edition.
-5. **Reuse the build variants** — the firm product (`VITE_PUBLIC_SITE=false`) is
-   orthogonal; plan gating works in both the demo and firm builds.
+- [AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md) — implementation queue
+- [MONOREPO-AND-SURFACES.md](MONOREPO-AND-SURFACES.md) — deployable surfaces
+- [ESTIMATION-ARCHITECTURE.md](ESTIMATION-ARCHITECTURE.md) — Estimate ↔ project loop
+- [COMMUNITY-EDITION.md](COMMUNITY-EDITION.md) — **retired** (pointer only)

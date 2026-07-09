@@ -17,17 +17,33 @@ re-cost inside any AORMS project (→ Cost Management).
   `estimateSealString`, `recostEstimate`), ported 1:1 to C++ in `desktop-cpp/`
   — the exact contract AORMS imports, so the three never drift.
 
-## Structure
+## Workflow (rate book → estimate)
 
-```
-estimate/
-├─ src/core/       model + build (model → sealed EstimateFile) + live preview
-├─ src/components/ Items · Materials · BBS · Saved panels (Carbon)
-├─ src/store.ts    the working-model store (zustand)
-├─ src/lib/native.ts  bridge to the C++ host (window.esti_*); no-op in a browser
-├─ src/App.tsx     shell — meta, preview totals, export, saved estimates
-└─ desktop-cpp/    the native C++ desktop app: webview host + engine + SQLite
-```
+1. **Rate book** — load embedded CPWD DSR 2021 (4,252 rate items, 261 cement recipes) or import an ESE `RateLibraryPack`.
+2. **Add items** — search by code/description; each row is a priced **rate item** with its full **specification** text.
+3. **Measure** — enter Nos·L·B·H per the item's unit template (m² → Nos×L×H, m³ → Nos×L×B×H, etc.).
+4. **BOQ & materials** — abstract grouped by CPWD chapter; materials auto-derived from recipes (`qty × coefficient`).
+5. **BBS / steel** — slab/beam/column/footing geometry → bar schedule (IS 456 / IS 2502) → steel by diameter.
+6. **Export** — sealed `.aormsest` → import in AORMS › Project › Cost Management.
+
+**Auto-derivation:** brick/masonry items (chapter 6) spawn plaster `13.1.1` at ×2 face area when you measure the parent.
+
+**Recipes:** CPWD cement coefficients (concrete) plus enriched mortar/brick/plaster supplements on pack load.
+
+### Data model (simplified)
+
+| Entity | What it is | Example |
+|--------|------------|---------|
+| **Work item** | Parent grouping / chapter | `6.4` Brick work |
+| **Rate item** | Priced, fully-specified line | `6.4.1` Brick in 1:3 mortar · m² · ₹690 |
+| **Specification** | Full description text on the rate item | "Brick work in cement mortar 1:3…" |
+| **Recipe** | Material consumption per 1 UOM of item | cement 0.86 quintal/m³ |
+| **Material** | Procurement line derived from recipes | cement 12.4 quintal |
+
+**BBS / steel scheduling** is step 5 in the workflow tab.
+
+**Roadmap:** [docs/esti/ESTIMATE-AUTOPILOT-ROADMAP.md](../docs/esti/ESTIMATE-AUTOPILOT-ROADMAP.md) — autopilot queue; **UI pivot to HCW-UI-Kit is active (E1)**.
+
 
 ## Develop / build
 

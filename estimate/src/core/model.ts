@@ -1,8 +1,8 @@
 /**
  * The Estimate app's working model — the mutable, UI-edited shape. It is
- * assembled into a frozen `.aormsest` (EstimateFile) on export. Everything is
- * kept in the browser; nothing leaves the machine until you export a file.
+ * assembled into a frozen `.aormsest` (EstimateFile) on export.
  */
+import type { MeasurementTemplate } from "@esti/contracts";
 import type { MemberInput } from "@esti/contracts";
 
 export interface MeasureRow {
@@ -16,16 +16,23 @@ export interface MeasureRow {
 
 export interface WorkItem {
   id: string;
+  /** Rate-book item code — join key for recipes and AORMS re-cost. */
   code: string;
+  /** Parent work-item / chapter code from the rate book. */
   itemCode?: string;
   shortName: string;
+  /** Full written specification from CPWD DSR (rate-free text). */
   specification?: string;
   uom: string;
-  ratePaise: number; // as-estimated rate (advisory; AORMS re-costs)
+  ratePaise: number;
   section?: string;
+  /** Which of Nos·L·B·H to punch (from rate book or UOM default). */
+  measurementTemplate?: MeasurementTemplate;
   measurements: MeasureRow[];
   leadKm?: number;
-  leadChargePaise?: number; // carriage add-on per UOM
+  leadChargePaise?: number;
+  /** Parent item code when auto-derived from derivation rules. */
+  derivedFrom?: string;
 }
 
 export interface MaterialLine {
@@ -37,7 +44,6 @@ export interface MaterialLine {
   ratePaise?: number;
 }
 
-/** A BBS member the estimator configures (element + geometry + bar layout). */
 export type BbsMemberRow = { id: string; ref?: string } & MemberInput;
 
 export interface EstimateModel {
@@ -46,14 +52,13 @@ export interface EstimateModel {
   rateBookCode: string;
   rateBookName: string;
   items: WorkItem[];
+  /** Manual overrides only — export uses computed materials when rate book is loaded. */
   materials: MaterialLine[];
   bbs: BbsMemberRow[];
-  /** Optional ₹/kg steel rate by diameter (as-estimated). */
   steelRatePaiseByDia: Record<number, number>;
 }
 
 let seq = 0;
-/** Deterministic-enough id for UI rows (not persisted as identity). */
 export function newId(prefix = "r"): string {
   seq += 1;
   return `${prefix}${seq}`;
@@ -63,8 +68,8 @@ export function emptyModel(): EstimateModel {
   return {
     estimateName: "New estimate",
     projectName: "",
-    rateBookCode: "OWN",
-    rateBookName: "Office rate book",
+    rateBookCode: "",
+    rateBookName: "",
     items: [],
     materials: [],
     bbs: [],
@@ -72,13 +77,19 @@ export function emptyModel(): EstimateModel {
   };
 }
 
-export const emptyMeasureRow = (): MeasureRow => ({ id: newId("m"), nos: 1, l: null, b: null, h: null });
+export const emptyMeasureRow = (): MeasureRow => ({
+  id: newId("m"),
+  nos: 1,
+  l: null,
+  b: null,
+  h: null,
+});
 
 export const emptyItem = (): WorkItem => ({
   id: newId("i"),
   code: "",
   shortName: "",
-  uom: "m³",
+  uom: "m²",
   ratePaise: 0,
   measurements: [emptyMeasureRow()],
 });

@@ -2,82 +2,59 @@ import CloseIcon from "@mui/icons-material/Close";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Button, IconButton } from "@mui/material";
 import { useState, type ReactNode } from "react";
-import { trpc } from "../../lib/trpc.js";
 import { createAccountUrl } from "../../lib/onboarding.js";
 import { LandingContours } from "./LandingContours.js";
 
-/**
- * Rail download boxes — the free Community desktop app + the Estimate companion,
- * each a square flat card (description + download button). The Community URL
- * comes from the live installer resolver (newest desktop-v* release), falling
- * back to the build-time env; Estimate is a build-time env (or /download).
- */
-function RailDownloads() {
-  const installersQ = trpc.marketing.desktopInstallers.useQuery(undefined, {
-    staleTime: 10 * 60 * 1000,
-  });
-  const communityUrl =
-    installersQ.data?.lite ??
-    (import.meta.env.VITE_COMMUNITY_DOWNLOAD_URL as string | undefined) ??
-    (import.meta.env.VITE_LITE_DOWNLOAD_URL as string | undefined) ??
-    "/download";
-  const estimateUrl =
-    (import.meta.env.VITE_ESTIMATION_DOWNLOAD_URL as string | undefined) ?? "/download";
-
-  return (
-    <div className="esti-lp-rail__downloads">
-      <div className="esti-lp-dl-box">
-        <p className="esti-lp-dl-box__title">AORMS Community</p>
-        <a className="esti-lp-dl-btn" href={communityUrl}>Download Community</a>
-      </div>
-      <div className="esti-lp-dl-box">
-        <p className="esti-lp-dl-box__title">AORMS Estimate</p>
-        <a className="esti-lp-dl-btn" href={estimateUrl}>Download Estimate</a>
-      </div>
-    </div>
-  );
-}
-
-// Absolute "/#section" links so the nav works from any route (e.g. /blog), not
-// just the landing page where the in-page anchors live.
-const NAV = [
-  { href: "/#features", label: "Features" },
-  { href: "/#why-us", label: "Why Us" },
-  { href: "/#integrations", label: "Integrations" },
-  { href: "/#pricing", label: "Pricing" },
-  { href: "/#faq", label: "FAQs" },
+const LINKS = [
+  { href: "/#capabilities", label: "Capabilities" },
+  { href: "/#pricing",      label: "Pricing" },
+  { href: "/#faq",          label: "FAQ" },
 ] as const;
 
 /**
- * Marketing shell — RAIL / STAGE layout. The nav (formerly the top header) and the
- * "Developed by" + AORMS identity block (formerly the bottom bar) live in a FIXED,
- * NON-SCROLLING left rail; all content renders in the scrolling stage.
+ * Marketing shell — glass rail + scrolling stage (2026-07 redesign).
+ *
+ * Rail (fixed, full viewport height, never scrolls):
+ *   logo · tagline · nav · [spacer] · account value-prop · CTAs · estimate dl · HCW credit
+ *
+ * Stage (transparent canvas, scrolls independently):
+ *   all page content
  */
 export function MarketingShell({
   children,
   downloads,
   contours,
-  onRequestWorkspace,
 }: {
   children: ReactNode;
-  /** Show the Community + Estimate download boxes in the rail (landing only). */
   downloads?: boolean;
-  /** Faint orange contour background: plan view → perspective on scroll (landing). */
   contours?: boolean;
-  /** Opens the request-a-workspace form — the primary CTA, pinned in the rail. */
-  onRequestWorkspace?: () => void;
 }) {
-  const [navOpen, setNavOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const estimateUrl =
+    (import.meta.env.VITE_ESTIMATION_DOWNLOAD_URL as string | undefined) ??
+    "/download";
 
   return (
-    <div className="esti-landing-shell esti-lp-railshell">
-      <a href="#main-content" className="esti-lp-skip">Skip to main content</a>
+    <div className="lp2-shell esti-lp">
+      <a href="#lp2-main" className="lp2-skip">Skip to content</a>
+
+      {/* ── BLOB SCENE — diffused orbs behind the glass rail ── */}
+      <div className="lp2-blobs" aria-hidden>
+        <div className="lp2-blob lp2-blob--a" />
+        <div className="lp2-blob lp2-blob--b" />
+        <div className="lp2-blob lp2-blob--c" />
+        <div className="lp2-blob lp2-blob--d" />
+        <div className="lp2-blob lp2-blob--e" />
+      </div>
+
       {contours && <LandingContours />}
 
-      {/* LEFT RAIL — fixed: brand + AORMS identity, nav, then download boxes. */}
-      <aside className={`esti-lp-rail${navOpen ? " is-open" : ""}`} aria-label="AORMS">
-        <div className="esti-lp-rail__top">
-          <a href="/#top" className="esti-lp-rail__brand" aria-label="AORMS home">
+      {/* ── RAIL ─────────────────────────────────────────── */}
+      <aside className={`lp2-rail${open ? " lp2-rail--open" : ""}`} aria-label="AORMS">
+
+        {/* 1 · Brand */}
+        <div className="lp2-rail__brand-row">
+          <a href="/#top" className="lp2-rail__brand" aria-label="AORMS home">
             <span
               role="img"
               aria-label="AORMS"
@@ -85,90 +62,91 @@ export function MarketingShell({
             />
           </a>
           <IconButton
-            className="esti-lp-rail__menu"
-            aria-label={navOpen ? "Close menu" : "Open menu"}
-            onClick={() => setNavOpen((o) => !o)}
+            className="lp2-rail__burger"
+            aria-label={open ? "Close menu" : "Open menu"}
+            onClick={() => setOpen(v => !v)}
             size="small"
           >
-            {navOpen ? <CloseIcon /> : <MenuIcon />}
+            {open ? <CloseIcon fontSize="small" /> : <MenuIcon fontSize="small" />}
           </IconButton>
         </div>
 
-        {/* Brand identity — directly under the AORMS logo. */}
-        <div className="esti-lp-rail__identity">
-          <b>AORMS</b>
-          <span>Architecture Office Resource Management System</span>
-        </div>
+        {/* 2 · Tagline */}
+        <p className="lp2-rail__tagline">For architects &amp; designers</p>
 
-        <nav
-          className={`esti-lp-rail__nav${navOpen ? " is-open" : ""}`}
-          aria-label="Page sections"
-        >
-          {NAV.map((n) => (
+        {/* 3 · Nav */}
+        <nav className="lp2-rail__nav" aria-label="Sections">
+          {LINKS.map(l => (
             <a
-              key={n.href}
-              href={n.href}
-              className="esti-landing-header__link"
-              onClick={() => setNavOpen(false)}
+              key={l.href}
+              href={l.href}
+              className="lp2-rail__link"
+              onClick={() => setOpen(false)}
             >
-              {n.label}
+              {l.label}
             </a>
           ))}
-          {/* Primary CTAs live in the rail — the stage stays button-free. */}
-          {onRequestWorkspace && (
-            <Button
-              variant="contained"
-              size="small"
-              className="esti-landing-signin"
-              onClick={() => {
-                setNavOpen(false);
-                onRequestWorkspace();
-              }}
-            >
-              Request Workspace
-            </Button>
-          )}
-          <Button
-            variant="text"
-            size="small"
-            href={createAccountUrl()}
-            onClick={() => setNavOpen(false)}
-          >
-            Create Free Account
-          </Button>
-          <Button
-            variant="text"
-            size="small"
-            href="/login"
-            onClick={() => setNavOpen(false)}
-          >
-            Log in
-          </Button>
         </nav>
 
-        {downloads && <RailDownloads />}
+        {/* 4 · Spacer — pushes CTAs to the bottom third */}
+        <div className="lp2-rail__spacer" aria-hidden />
 
-        {/* Pinned to the rail bottom: developed-by credit. */}
-        <div className="esti-lp-rail__foot">
-          <div className="esti-lp-rail__studio">
-            <p className="esti-landing-footer__eyebrow">Developed by</p>
-            <img
-              src="/hcw-black.png"
-              alt="Holagundi Consulting Works"
-              className="esti-landing-footer__hcw"
-            />
-            <p className="esti-landing-footer__addr">
-              Holagundi Consulting Works<br />
-              Hospet, Karnataka, India<br />
-              +91 89510 89191
-            </p>
+        {/* 5 · Account value-prop + CTAs */}
+        <div className="lp2-rail__ctas">
+          <p className="lp2-rail__value-prop">
+            5 GB free&nbsp;·&nbsp;unlimited users&nbsp;·&nbsp;no card needed
+          </p>
+          <Button
+            variant="contained"
+            size="small"
+            fullWidth
+            href={createAccountUrl()}
+            onClick={() => setOpen(false)}
+            className="lp2-rail__cta-primary"
+          >
+            Create account
+          </Button>
+          <Button
+            variant="text"
+            size="small"
+            fullWidth
+            href="/login"
+            onClick={() => setOpen(false)}
+            className="lp2-rail__cta-text"
+          >
+            Sign in →
+          </Button>
+        </div>
+
+        {/* 6 · Estimate download (optional) */}
+        {downloads && (
+          <div className="lp2-rail__dl">
+            <span className="lp2-rail__dl-label">Desktop estimating</span>
+            <a href={estimateUrl} className="lp2-rail__dl-link">
+              AORMS Estimate ↓
+            </a>
+            <span className="lp2-rail__dl-note">Windows · sign-in required</span>
           </div>
+        )}
+
+        {/* 7 · HCW credit */}
+        <div className="lp2-rail__foot">
+          <img
+            src="/hcw-black.png"
+            alt="Holagundi Consulting Works"
+            className="lp2-rail__hcw"
+          />
         </div>
       </aside>
 
-      {/* STAGE — all content */}
-      <main id="main-content" className="esti-lp-stage esti-landing-content">
-        {children}
+      {/* spacer keeps stage offset from fixed rail */}
+      <div className="lp2-rail-spacer" aria-hidden />
+
+      {/* ── STAGE ────────────────────────────────────────── */}
+      <main id="lp2-main" className="lp2-stage">
+        <div className="lp2-content">
+          {children}
+        </div>
       </main>
     </div>
   );

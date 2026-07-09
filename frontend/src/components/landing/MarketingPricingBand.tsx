@@ -1,59 +1,38 @@
 import { Chip } from "@mui/material";
 import Check from "@mui/icons-material/Check";
 
-const PLANS: Array<{
-  ctx: string; // stable React key only (CTAs moved to the rail)
-  name: string;
-  pitch: string;
-  price: string;
-  priceNote: string;
-  features: string[];
-  cta: string;
-  hosting: string;
-  featured?: boolean;
-  caps?: string;
-}> = [
+const INCLUDED = [
+  "Unlimited staff, clients, contractors and projects",
+  "Projects, drawings, transmittals, approvals and revision intelligence",
+  "GST invoicing, reconciliation and filing abstracts",
+  "HR, payroll, team performance and portals",
+  "ESTI cognition, Ask ESTI and AI Studio",
+  "5 GB cloud storage included on every new account",
+];
+
+const METERS = [
   {
-    ctx: "LITE",
-    name: "AORMS Community",
-    pitch: "Get your practice out of spreadsheets — free, with an offline desktop app.",
-    price: "Free",
-    priceNote: "Forever · licence-free",
-    caps: "1 admin + up to 3 staff · unlimited clients, contractors & projects · local storage on your device",
+    name: "Storage",
+    pitch: "Drawings, documents and generated PDFs in secure cloud storage.",
+    price: "5 GB included",
+    priceNote: "Then per GB-month as you grow",
     features: [
-      "Create your own staff logins (up to 3)",
-      "Unlimited clients, contractors & projects",
-      "Clients, projects & decision log",
-      "Drawings, transmittals & approval records",
-      "Simple (non-GST) invoices & bank reconciliation",
-      "Tasks, reminders & dashboard warnings",
-      "Client portal · contractor portal (view-only)",
-      "Native desktop app — local data, no cloud needed",
+      "Usage dashboard in Company settings",
+      "Archive closed projects to reclaim space",
+      "Optional storage add-ons",
     ],
-    hosting: "Free cloud workspace · or the offline desktop app (Windows)",
-    cta: "Request Community workspace",
   },
   {
-    ctx: "PRO",
-    name: "AORMS-Pro",
-    pitch: "Run the whole practice to one standard — delivery, fees, people, AI, on any scale.",
-    price: "Contact for pricing",
-    priceNote: "Cloud or self-hosted · billed annually",
+    name: "AI model",
+    pitch: "Ask ESTI and AI Studio on the hosted model — or plug in your own API.",
+    price: "Metered usage",
+    priceNote: "Or bring your own OpenAI-compatible key",
     featured: true,
-    caps: "Unlimited staff, clients & projects · 10 GB cloud storage (mirrored to the desktop app · expandable)",
     features: [
-      "Everything in Community, plus —",
-      "Project delivery — phases, drawings, transmittals & site progress",
-      "Client revision intelligence",
-      "GST invoicing (CGST/SGST/IGST split, SAC, FY-sequential)",
-      "26AS / AIS / GSTR reconciliation + GST/TDS filing abstracts",
-      "HR, payroll & team performance scoring",
-      "Consultant & contractor portals",
-      "10 GB cloud storage, mirrored to desktop · buy add-on storage · archive closed projects",
-      "SSO · API access · audit log · multi-office · white-label",
+      "Hosted inference billed per usage",
+      "BYO API key — your endpoint, your model, no hosted meter",
+      "Falls back safely if the provider is unreachable",
     ],
-    hosting: "Cloud (dedicated VM) or self-hosted · Enterprise adds bring-your-own-storage (on-prem)",
-    cta: "Contact sales",
   },
 ];
 
@@ -63,68 +42,90 @@ export function MarketingPricingBand() {
       <span id="trial" className="esti-lp-anchor" aria-hidden />
       <div className="esti-lp-grid esti-lp-pricing-grid" id="pricing" aria-labelledby="pricing-title">
         <div className="esti-lp-tile esti-lp-tile--4x1 esti-lp-pricing-intro">
-        <div className="esti-lp-tile__hdr">
-          <span className="esti-lp-dot esti-lp-dot--green" aria-hidden>●</span>
-          <span className="esti-lp-tile__hdr-label">05 / Choose Workspace</span>
-          <span className="esti-lp-tile__hdr-meta">Adoption path</span>
-        </div>
-        <div className="esti-lp-pricing-intro__body">
-          <p className="esti-lp-section-label">Choose how much of the framework you need</p>
-          <h3 id="pricing-title" className="esti-lp-cta-h">
-            Begin with a shared record, then adopt the full framework as the practice grows.
-          </h3>
-          <p className="esti-lp-note">
-            Community gives a small practice one shared record — free forever. Pro runs the whole
-            practice to one standard — projects, GST, billing, revisions, site visits, portals,
-            team load and AI — cloud-hosted or self-hosted on your own infrastructure.
-          </p>
-        </div>
-        </div>
-
-        {PLANS.map((p) => (
-          <div
-            key={p.ctx}
-            className={[
-              "esti-lp-tile",
-              "esti-lp-pricing-tile",
-              p.featured ? "esti-lp-pricing-tile--featured" : "",
-            ].filter(Boolean).join(" ")}
-          >
           <div className="esti-lp-tile__hdr">
-            <span className={`esti-lp-dot esti-lp-dot--${p.featured ? "yellow" : "white"}`} aria-hidden>●</span>
-            <span className="esti-lp-tile__hdr-label">{p.name}</span>
-            {p.featured && (
-              <Chip
-                size="small"
-                label="Most firms"
-                sx={{
-                  backgroundColor: "var(--cds-tag-background-blue)",
-                  color: "var(--cds-tag-color-blue)",
-                }}
-              />
-            )}
+            <span className="esti-lp-dot esti-lp-dot--green" aria-hidden>●</span>
+            <span className="esti-lp-tile__hdr-label">05 / Pricing</span>
+            <span className="esti-lp-tile__hdr-meta">Usage-based</span>
           </div>
-          <div className="esti-lp-pricing-tile__body">
-            <p className="esti-lp-pricing-tile__pitch">{p.pitch}</p>
-            <div className="esti-lp-pricing-tile__price-block">
-              <p className="esti-lp-pricing-tile__price">{p.price}</p>
-              <p className="esti-lp-note">{p.priceNote}</p>
-            </div>
-            {p.caps && <p className="esti-lp-note">{p.caps}</p>}
-            <ul className="esti-lp-pricing-list">
-              {p.features.map((f) => (
+          <div className="esti-lp-pricing-intro__body">
+            <p className="esti-lp-section-label">One product — no Lite, Pro or Enterprise</p>
+            <h3 id="pricing-title" className="esti-lp-cta-h">
+              Start with the full workspace. Pay for storage and AI as you scale.
+            </h3>
+            <p className="esti-lp-note">
+              Every new account gets <strong>5 GB</strong> of storage and the complete AORMS
+              feature set. There are no caps on users, clients or contractors. Detailed
+              construction estimating runs in <strong>AORMS Estimate</strong> on the desktop —
+              signed in and linked to your projects.
+            </p>
+            <ul className="esti-lp-pricing-list esti-lp-pricing-list--compact">
+              {INCLUDED.map((f) => (
                 <li key={f}>
                   <Check sx={{ fontSize: 16 }} aria-hidden />
                   <span>{f}</span>
                 </li>
               ))}
             </ul>
-            <p className="esti-lp-note">{p.hosting}</p>
-            {/* CTAs live in the rail — the pricing tiles stay button-free. */}
           </div>
+        </div>
+
+        {METERS.map((p) => (
+          <div
+            key={p.name}
+            className={[
+              "esti-lp-tile",
+              "esti-lp-pricing-tile",
+              p.featured ? "esti-lp-pricing-tile--featured" : "",
+            ].filter(Boolean).join(" ")}
+          >
+            <div className="esti-lp-tile__hdr">
+              <span className={`esti-lp-dot esti-lp-dot--${p.featured ? "yellow" : "white"}`} aria-hidden>●</span>
+              <span className="esti-lp-tile__hdr-label">{p.name}</span>
+              {p.featured && (
+                <Chip
+                  size="small"
+                  label="Optional BYO key"
+                  sx={{
+                    backgroundColor: "var(--cds-tag-background-blue)",
+                    color: "var(--cds-tag-color-blue)",
+                  }}
+                />
+              )}
+            </div>
+            <div className="esti-lp-pricing-tile__body">
+              <p className="esti-lp-pricing-tile__pitch">{p.pitch}</p>
+              <div className="esti-lp-pricing-tile__price-block">
+                <p className="esti-lp-pricing-tile__price">{p.price}</p>
+                <p className="esti-lp-note">{p.priceNote}</p>
+              </div>
+              <ul className="esti-lp-pricing-list">
+                {p.features.map((f) => (
+                  <li key={f}>
+                    <Check sx={{ fontSize: 16 }} aria-hidden />
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         ))}
 
+        <div className="esti-lp-tile esti-lp-pricing-tile esti-lp-pricing-tile--estimate">
+          <div className="esti-lp-tile__hdr">
+            <span className="esti-lp-dot esti-lp-dot--white" aria-hidden>●</span>
+            <span className="esti-lp-tile__hdr-label">AORMS Estimate</span>
+            <span className="esti-lp-tile__hdr-meta">Desktop only</span>
+          </div>
+          <div className="esti-lp-pricing-tile__body">
+            <p className="esti-lp-pricing-tile__pitch">
+              Detailed BOQ, measurement, materials and BBS — on Windows. Sign in with your
+              AORMS account; export sealed estimates into project Cost Management.
+            </p>
+            <p className="esti-lp-note">
+              Download from the rail · authentication required before estimating · no separate tier.
+            </p>
+          </div>
+        </div>
       </div>
     </>
   );

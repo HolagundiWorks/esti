@@ -5,6 +5,9 @@
   "type": "module",
   "description": "AORMS Estimate — offline desktop estimating app (measure → export .aormsest)",
   "scripts": {
+    "copy-cpwd-pack": "node scripts/copy-cpwd-pack.mjs",
+    "predev": "node scripts/copy-cpwd-pack.mjs",
+    "prebuild": "node scripts/copy-cpwd-pack.mjs",
     "dev": "vite",
     "build": "tsc -p tsconfig.json --noEmit && vite build",
     "typecheck": "tsc -p tsconfig.json --noEmit",

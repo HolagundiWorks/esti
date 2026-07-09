@@ -117,15 +117,19 @@ Intelligence, now everywhere):
 ## 4. Layout — **Rail / Stage** (canonical nomenclature)
 
 Every screen splits into two regions. **Always refer to them by these names.**
+Canonical glass-rail spec: [HCW-UI-KIT.md § Glass Rail](HCW-UI-KIT.md#glass-rail--canonical-reference-studio-intelligence).
+Autopilot rollout: [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md).
 
 | Term | Width | Class | Holds |
 |---|---|---|---|
-| **Rail** | 20% | `.esti-dash-rail` | Fixed instruments — heading/greeting, telemetry (health, KPIs, filing), zone health, section tabs, filters, primary action, module toggles (bottom). Own hidden-scrollbar scroll. |
-| **Stage** | 80% | `.esti-dash-stage` | The changing primary content — lists, tables, panels, tab bodies. |
+| **Rail** | 20% | `.esti-dash-rail` | **Glass panel, 100vh on desktop.** Identity, telemetry (office health, KPIs, filing), section tabs, filters, module toggles (bottom). **Auth forms (login) sit in the rail.** Own hidden-scrollbar scroll. |
+| **Stage** | 80% | `.esti-dash-stage` | **Independent scroll.** Stage-head zone health + KPIs, then lists/tables/panels/tab bodies. |
 
 - Shared shell: **`frontend/src/components/RailLayout.tsx`**
   (`<RailLayout title description tabs aside>{stage}</RailLayout>`). The header +
   search/filters + primary action live in the Rail; content fills the Stage.
+- Reference: **`StudioAbstract.tsx`** (`/`).
+- **Login:** form panel in rail; stage = editorial/brand canvas only (not centred card).
 - A **TabSplit** inside the Stage repeats the pattern for a single tab (20% meta +
   80% grid).
 - **Top nav** = Projects · Teams · Office (section menus, dropdown, no ribbon

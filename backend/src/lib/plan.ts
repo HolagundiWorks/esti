@@ -179,7 +179,7 @@ export async function assertPlanFeature(db: DB, feature: PlanFeature): Promise<v
   if (!planAllows(await firmPlan(db), feature)) {
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "This feature is not included in your plan. Upgrade to unlock it.",
+      message: "This feature is not available on your account.",
     });
   }
 }
@@ -220,7 +220,7 @@ export async function assertQuota(db: DB, kind: PlanQuota, currentCount: number)
   if (cap != null && currentCount >= cap) {
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: `You have reached your plan's ${QUOTA_LABEL[kind]} limit. Upgrade to add more.`,
+      message: `You have reached the ${QUOTA_LABEL[kind]} limit for your account.`,
     });
   }
 }

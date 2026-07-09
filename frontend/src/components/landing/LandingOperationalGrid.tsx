@@ -274,7 +274,7 @@ function ProductStoryTile() {
 
         <div className="esti-lp-cognition-forecast">
           <DataRow k="Built for" v="Solo to mid-size practices" />
-          <DataRow k="First step" v="Create a free Community workspace" />
+          <DataRow k="First step" v="Create your AORMS account (5 GB included)" />
           <DataRow k="Office role" v="Remembers, warns, records" />
         </div>
       </TileBody>
@@ -662,7 +662,7 @@ export function IntegrationsSection() {
         <FeatureTile
           header="API & Data Exchange"
           dot="white"
-          meta="PRO EDITION"
+          meta="API ACCESS"
           title="Programmatic access and portable exports"
           bullets={["API access for custom integrations", "XLSX/PDF export across projects, invoices, GST filings and reports"]}
         />
@@ -740,7 +740,7 @@ export function CustomerSuccessSection() {
           title="One project record that the whole team, and the client, can point to"
           bullets={["Every approval, revision and invoice traceable to a date and a person"]}
         />
-        <KpiTile header="Adoption Path" dot="yellow" value="Community → Pro" sub="Start free with a small practice; grow into the full framework without migrating records" />
+        <KpiTile header="Pricing" dot="yellow" value="Storage + AI" sub="Full workspace on signup · pay for storage and model usage as you grow" />
         <KpiTile header="Data Ownership" dot="green" value="Yours" sub="Self-host at any time — your projects, drawings and financial records travel with you" />
       </div>
     </>
@@ -751,24 +751,24 @@ export function CustomerSuccessSection() {
 
 const FAQS = [
   {
-    q: "Is AORMS really free?",
-    a: "AORMS Community is free forever for up to three staff logins, with unlimited clients, contractors and projects, and no credit card required. It includes simple non-GST invoicing and basic bank reconciliation.",
+    q: "How much does AORMS cost?",
+    a: "One product — no Lite, Pro or Enterprise tiers. Every new account includes 5 GB of cloud storage and the full workspace. You pay for additional storage (per GB-month) and for hosted AI usage, or bring your own API key for Ask ESTI and AI Studio.",
   },
   {
-    q: "Can I use AORMS without an internet connection?",
-    a: "Yes. The Community edition ships as a native Windows desktop app that runs entirely offline, with your data stored on your own machine.",
+    q: "Are users, clients or contractors capped?",
+    a: "No. Unlimited staff logins, clients, contractors, consultants and active projects on every active licence.",
   },
   {
-    q: "What happens to my data on the free Community plan?",
-    a: "Your projects, drawings and client data remain yours. On Community, de-identified and aggregated data may be used to improve AORMS's AI models — this is disclosed in full in our legal terms and does not apply once you upgrade to Pro or self-host.",
+    q: "Is there a desktop app?",
+    a: "The AORMS workspace runs in the browser. AORMS Estimate is the desktop app (Windows) for detailed BOQ and measurement — you sign in before estimating and link exports to your projects.",
   },
   {
-    q: "What's the difference between Community and Pro?",
-    a: "Community covers a small practice's core record-keeping. Pro adds GST invoicing, HR and payroll, revision intelligence, unlimited seats, and self-hosting — cloud-hosted or on your own infrastructure.",
+    q: "Can I use my own AI API key?",
+    a: "Yes. In Company → AI you can set an OpenAI-compatible endpoint and API key. AORMS will prefer your provider for better performance; hosted usage is not metered while BYO is active.",
   },
   {
     q: "Can I self-host AORMS?",
-    a: "Yes, on the Pro edition. AORMS deploys on your own infrastructure with the same feature set as the cloud-hosted option.",
+    a: "Enterprise-style self-hosting remains available as a deployment option for firms that need on-premises infrastructure — contact us for setup. Pricing is still usage-based, not edition-based.",
   },
 ] as const;
 
@@ -796,8 +796,8 @@ export function FinalCtaSection({ children }: { children?: ReactNode }) {
     <>
       <SectionBreak
         eyebrow="15 / Get Started"
-        title="Start with a shared record, then adopt the full framework as the practice grows"
-        body="Community gives a small practice one shared record, free forever. Pro runs the whole practice to one standard — projects, GST, billing, revisions, site visits, portals and team load — cloud-hosted or self-hosted on your own infrastructure."
+        title="Start with the full workspace — pay for storage and AI as you grow"
+        body="Create an account with 5 GB included. Unlimited users and projects. Detailed estimating on the desktop with AORMS Estimate, linked to each project's cost management."
       />
       {children}
     </>

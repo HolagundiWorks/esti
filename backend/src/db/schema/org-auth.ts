@@ -54,6 +54,17 @@ export const orgSettings = pgTable("esti_orgsettings", {
   storageSettings: jsonb("storage_settings").notNull().default({ mode: "DEFAULT" }),
   /** Firm wellness — snack/lunch break reminder times. See WellnessSettings in @esti/contracts. */
   wellness: jsonb("wellness").notNull().default({ snackBreak: null, lunchBreak: null }),
+  /**
+   * 2026-07 single-product licence status. ACTIVE = full access; SUSPENDED = blocked.
+   * Replaces the legacy LITE/PRO/ENTERPRISE `plan` tiers.
+   */
+  licenceStatus: text("licence_status", { enum: ["ACTIVE", "SUSPENDED"] })
+    .notNull()
+    .default("ACTIVE"),
+  /** P3.4 — hosted AI token usage this calendar month (BYO-API calls excluded). */
+  aiTokensThisMonth: integer("ai_tokens_this_month").notNull().default(0),
+  /** Timestamp of the last monthly reset — null until first hosted generation. */
+  aiTokensMonthStart: timestamp("ai_tokens_month_start", { withTimezone: true }),
   /** When true, REST file uploads require uploadPassword in multipart form data. */
   uploadPasswordRequired: boolean("upload_password_required").notNull().default(false),
   /** Argon2 hash — never expose via API. */
