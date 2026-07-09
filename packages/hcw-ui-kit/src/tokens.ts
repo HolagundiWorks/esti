@@ -79,6 +79,20 @@ export const UNDERLINE_ORANGE = "inset 0 -2px 0 0 #ff4f18"; // hover bottom line
 export const UNDERLINE_RED = "inset 0 -2px 0 0 #c8442e";
 export const GLASS_ORANGE_30 = "rgba(255, 79, 24, 0.30)"; // selected toggle wash
 
+// ── Motion & focus (accessibility) ─────────────────────────────────────────────
+/** Media-query key that matches when the OS "reduce motion" preference is on.
+ *  Gate every transform/lift behind it so users who ask for calm keep the colour +
+ *  shadow cues but lose the movement (WCAG 2.3.3). Usable as an sx / styleOverride
+ *  object key: `{ [REDUCE_MOTION]: { transition: "none" } }`. */
+export const REDUCE_MOTION = "@media (prefers-reduced-motion: reduce)";
+/** Keyboard focus ring — the Radiant-Orange accent, offset off the control. Applied
+ *  on `:focus-visible` so keyboard users get the same "this is actionable" signal a
+ *  mouse user gets on hover, without showing a ring on plain mouse clicks. */
+export const FOCUS_RING = {
+  outline: `2px solid ${colors.accent}`,
+  outlineOffset: "2px",
+} as const;
+
 // ── Neumorphic recessed inputs (text-entry wells) ──────────────────────────────
 export const NEU_FILL = "#eceef2";
 export const NEU_INSET =

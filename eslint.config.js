@@ -33,7 +33,9 @@ export default tseslint.config(
     },
   },
   {
-    files: ["frontend/**/*.{ts,tsx}"],
+    // React lives in the frontend app and in the shared UI kit (packages/hcw-ui-kit),
+    // so the Rules of Hooks apply to both — lint the kit like a first-class surface.
+    files: ["frontend/**/*.{ts,tsx}", "packages/**/*.{ts,tsx}"],
     plugins: { "react-hooks": reactHooks },
     rules: { ...reactHooks.configs.recommended.rules },
   },
