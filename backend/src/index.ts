@@ -7,6 +7,7 @@ import Fastify from "fastify";
 import { sql } from "drizzle-orm";
 import { db } from "./db/index.js";
 import { runMigrations } from "./db/migrate.js";
+import { ensureCriticalSchema } from "./db/ensureCriticalSchema.js";
 import { env } from "./env.js";
 import { INPROC_WORKER, redis } from "./lib/redis.js";
 import { corsAllowOrigin, originDenial, parseAllowedOrigins } from "./lib/origin.js";
@@ -133,6 +134,7 @@ await app.register(rateLimit, { global: true, max: 600, timeWindow: "1 minute" }
 // Bring the schema up to date before serving traffic (idempotent).
 try {
   await runMigrations();
+  await ensureCriticalSchema(db);
   app.log.info("migrations applied");
 } catch (err) {
   app.log.error(err, "migration failed");
