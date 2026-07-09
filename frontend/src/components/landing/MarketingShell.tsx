@@ -1,6 +1,6 @@
 import CloseIcon from "@mui/icons-material/Close";
 import MenuIcon from "@mui/icons-material/Menu";
-import { Button, IconButton } from "@mui/material";
+import { Button, IconButton, useMediaQuery } from "@mui/material";
 import { type ReactNode, useState } from "react";
 import { createAccountUrl } from "../../lib/onboarding.js";
 import { isWikiHost, wikiAppPath, wikiPageUrl } from "../../lib/wiki-url.js";
@@ -26,6 +26,7 @@ export function MarketingShell({
   wiki?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 900px)");
   const onWiki = wiki || isWikiHost();
   const wikiHref = onWiki ? wikiAppPath() : wikiPageUrl();
 
@@ -48,15 +49,17 @@ export function MarketingShell({
         Skip to content
       </a>
 
-      <div className="lp2-blobs" aria-hidden>
-        <div className="lp2-blob lp2-blob--a" />
-        <div className="lp2-blob lp2-blob--b" />
-        <div className="lp2-blob lp2-blob--c" />
-        <div className="lp2-blob lp2-blob--d" />
-        <div className="lp2-blob lp2-blob--e" />
-      </div>
+      {!isMobile && (
+        <div className="lp2-blobs" aria-hidden>
+          <div className="lp2-blob lp2-blob--a" />
+          <div className="lp2-blob lp2-blob--b" />
+          <div className="lp2-blob lp2-blob--c" />
+          <div className="lp2-blob lp2-blob--d" />
+          <div className="lp2-blob lp2-blob--e" />
+        </div>
+      )}
 
-      {contours && <LandingContours />}
+      {contours && !isMobile && <LandingContours />}
 
       <aside className={`lp2-rail${open ? " lp2-rail--open" : ""}`} aria-label="AORMS">
         <div className="lp2-rail__brand-row">

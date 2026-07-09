@@ -1,45 +1,79 @@
 import { useEffect, useState } from "react";
-import { Box, Chip, Tab, Tabs } from "@mui/material";
 import AccountsTab from "./AccountsTab";
 import ApiKeysTab from "./ApiKeysTab";
 import LicensesTab from "./LicensesTab";
 import OrgsTab from "./OrgsTab";
 import ProductsTab from "./ProductsTab";
 import RequestsTab from "./RequestsTab";
+import {
+  AdminConsoleShell,
+  type AdminSectionKey,
+} from "../../components/portal/AdminConsoleShell.js";
+import { AdminSection } from "../../components/portal/AdminSection.js";
 import { trpc } from "../lib/trpc";
 
-export default function AdminApp() {
-  const [tab, setTab] = useState(0);
+const SECTION_COPY: Record<
+  AdminSectionKey,
+  { title: string; description: string }
+> = {
+  requests: {
+    title: "Licence requests",
+    description: "Review and fulfil plan requests from customers.",
+  },
+  licenses: {
+    title: "Licences",
+    description: "Issue, extend, suspend, and revoke product licences.",
+  },
+  accounts: {
+    title: "Accounts",
+    description: "Search accounts, reset passwords, suspend, or delete.",
+  },
+  orgs: {
+    title: "Organizations",
+    description: "Browse companies registered on the licensing platform.",
+  },
+  products: {
+    title: "Products & plans",
+    description: "Catalogue of licensable products and plan tiers.",
+  },
+  apikeys: {
+    title: "API keys",
+    description: "Platform integration keys for external services.",
+  },
+};
+
+export default function AdminApp({
+  email,
+  isPlatformAdmin,
+}: {
+  email: string;
+  isPlatformAdmin: boolean;
+}) {
+  const [section, setSection] = useState<AdminSectionKey>("requests");
   const [pending, setPending] = useState(0);
+
   useEffect(() => {
     void trpc.admin.requests.pendingCount.query().then(setPending).catch(() => setPending(0));
   }, []);
 
+  const copy = SECTION_COPY[section];
+
   return (
-    <>
-      <Tabs value={tab} onChange={(_e, v: number) => setTab(v)} variant="scrollable" aria-label="Admin sections">
-        <Tab
-          label={
-            <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
-              Requests
-              {pending > 0 && <Chip size="small" color="info" label={pending} />}
-            </Box>
-          }
-        />
-        <Tab label="Licenses" />
-        <Tab label="Accounts" />
-        <Tab label="Organizations" />
-        <Tab label="Products & plans" />
-        <Tab label="API keys" />
-      </Tabs>
-      <Box sx={{ mt: 2 }}>
-        {tab === 0 && <RequestsTab />}
-        {tab === 1 && <LicensesTab />}
-        {tab === 2 && <AccountsTab />}
-        {tab === 3 && <OrgsTab />}
-        {tab === 4 && <ProductsTab />}
-        {tab === 5 && <ApiKeysTab />}
-      </Box>
-    </>
+    <AdminConsoleShell
+      section={section}
+      onSectionChange={setSection}
+      pendingRequests={pending}
+      email={email}
+      isPlatformAdmin={isPlatformAdmin}
+    >
+      <AdminSection title={copy.title} description={copy.description}>
+        {section === "requests" && <RequestsTab />}
+        {section === "licenses" && <LicensesTab />}
+        {section === "accounts" && <AccountsTab />}
+        {section === "orgs" && <OrgsTab />}
+        {section === "products" && <ProductsTab />}
+        {section === "apikeys" && <ApiKeysTab />}
+      </AdminSection>
+    </AdminConsoleShell>
   );
 }

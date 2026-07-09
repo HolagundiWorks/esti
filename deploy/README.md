@@ -45,6 +45,7 @@ See [`docs/esti/SELF-HOST-INSTALL.md`](../docs/esti/SELF-HOST-INSTALL.md).
 | `deploy/install.sh` | **AORMS-site installer (default: aorms profile)** → sets profile env → runs `install_core` |
 | `deploy/install-enterprise.sh` | **Customer Core/Enterprise self-host** — firm-only front door + licence-key activation; reuses `install_core` |
 | `deploy/install-admin-console.sh` | **Licensing console at `admin.DOMAIN`** — vhost + TLS for the `dist/admin.html` entry; same-box `/platform/` proxy (run after the main install; needs the `admin.` DNS record) |
+| `deploy/install-wiki-tls.sh` | **Wiki at `wiki.DOMAIN`** — TLS for the wiki vhost (HTTP block is in `nginx-proxy.conf`; needs `wiki.` DNS + `dist/wiki/` from frontend build) |
 | `deploy/lib.sh` | Shared helpers + `write_env` + `install_core` (the one install flow) |
 | `deploy/update.sh` | In-place update (reads the profile from `.env`) |
 | `deploy/fetch-installers.sh` | **Retired** — legacy Lite/Pro desktop installers (see archive docs) |

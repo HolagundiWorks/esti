@@ -150,6 +150,7 @@ ensure_tls() {
          --non-interactive --agree-tos -m "$admin_email" --redirect; then
       systemctl reload nginx
       info "TLS issued for https://${domain} (+ www → apex redirect)"
+      _ensure_wiki_tls "$domain" "$admin_email"
       return 0
     fi
     warn "certbot could not cover www.${domain} (is its DNS set?) — retrying apex-only"
@@ -159,10 +160,28 @@ ensure_tls() {
     }
     systemctl reload nginx
     info "TLS issued for https://${domain}"
+    _ensure_wiki_tls "$domain" "$admin_email"
     return 0
   else
     warn "certbot not installed — falling back to self-signed cert"
     generate_self_signed "$domain" 30 || warn "self-signed TLS setup failed"
+  fi
+}
+
+# Issue TLS for wiki.DOMAIN when DNS is configured (optional subdomain).
+_ensure_wiki_tls() {
+  local domain="$1" admin_email="$2"
+  local wiki_domain="wiki.${domain}"
+  if ! dig +short "$wiki_domain" 2>/dev/null | grep -qE '^[0-9.]+'; then
+    warn "No DNS for ${wiki_domain} — skip wiki TLS (add A record, then: bash deploy/install-wiki-tls.sh)"
+    return 0
+  fi
+  if certbot --nginx -d "$wiki_domain" \
+       --non-interactive --agree-tos -m "$admin_email" --redirect; then
+    systemctl reload nginx
+    info "TLS issued for https://${wiki_domain}/"
+  else
+    warn "certbot failed for ${wiki_domain} — run: bash deploy/install-wiki-tls.sh"
   fi
 }
 esti_compose_network() { printf '%s' "esti-aorms-prod_esti-network"; }

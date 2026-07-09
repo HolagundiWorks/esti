@@ -33,7 +33,7 @@ export function RailLayout({
       sx={{
         flex: 1,
         minHeight: 0,
-        overflow: "hidden",
+        overflow: { xs: "visible", md: "hidden" },
         display: "flex",
         flexDirection: "column",
       }}
@@ -125,7 +125,7 @@ export function RailLayout({
             minWidth: 0,
             minHeight: 0,
             height: { md: "100%" },
-            overflowY: { md: "auto" },
+            overflowY: { xs: "visible", md: "auto" },
             display: "flex",
             flexDirection: "column",
             gap: 2,

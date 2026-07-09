@@ -30,7 +30,7 @@ export function AuthRailLayout({
         sx={{
           flex: 1,
           minHeight: 0,
-          overflow: "hidden",
+          overflow: { xs: "visible", md: "hidden" },
           display: "flex",
           flexDirection: "column",
         }}
@@ -65,7 +65,7 @@ export function AuthRailLayout({
               maxWidth: { md: "20%" },
               minWidth: 0,
               width: { xs: "100%", md: "auto" },
-              overflowY: { md: "auto" },
+              overflowY: { xs: "visible", md: "auto" },
               display: "flex",
               flexDirection: "column",
               gap: 1.5,
@@ -82,7 +82,7 @@ export function AuthRailLayout({
               minWidth: 0,
               minHeight: 0,
               height: { md: "100%" },
-              overflowY: { md: "auto" },
+              overflowY: { xs: "visible", md: "auto" },
               display: "flex",
               flexDirection: "column",
             }}

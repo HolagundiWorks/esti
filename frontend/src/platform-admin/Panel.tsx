@@ -2,17 +2,13 @@ import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { Box, Button, Chip, CircularProgress, Stack, Typography } from "@mui/material";
 import Login from "./Login";
 import AdminApp from "./admin/AdminApp";
-import { MuiRoot } from "../theme/MuiRoot.js";
+import { PortalShell } from "../components/portal/PortalShell.js";
 import { fetchMe, logout, type Me } from "./lib/auth";
 
 const Companies = lazy(() => import("./Companies"));
 const Credentials = lazy(() => import("./Credentials"));
 const RequestPlan = lazy(() => import("./RequestPlan"));
 const Security = lazy(() => import("./Security"));
-
-function backToSite() {
-  window.location.hash = "";
-}
 
 function TagChip({ color, label }: { color: string; label: string }) {
   return (
@@ -62,71 +58,86 @@ export default function Panel() {
     setMe(null);
   }
 
-  let body: ReactNode;
   if (loading) {
-    body = (
-      <Box component="main" sx={{ p: 3 }}>
-        <Loading />
-      </Box>
-    );
-  } else if (!me?.account) {
-    body = <Login onLogin={setMe} />;
-  } else {
-    const account = me.account;
-    body = (
-      <Box component="main" sx={{ p: 3 }}>
-        <Stack spacing={3}>
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-            <Typography variant="h4" component="h1" className="esti-grow">
-              AORMS Licensing Console
-            </Typography>
-            <TagChip
-              color={account.isPlatformAdmin ? "green" : "gray"}
-              label={account.isPlatformAdmin ? "Platform admin" : "Member"}
-            />
-            <Typography component="span">{account.email}</Typography>
-            {account.isPlatformAdmin && (
-              <Button variant="text" size="small" onClick={() => setShowAccount((s) => !s)}>
-                {showAccount ? "Back to console" : "My account (2FA, profile)"}
-              </Button>
-            )}
-            <Button variant="text" size="small" onClick={backToSite}>
-              Back to site
-            </Button>
-            <Button variant="text" size="small" onClick={handleLogout}>
-              Sign out
-            </Button>
-          </Stack>
-
-          {showAccount || !account.isPlatformAdmin ? (
-            // Ordinary members land straight on their account page: plan,
-            // companies (create / invites / join), security, credentials.
-            <Suspense fallback={<Loading />}>
-              <Stack spacing={2}>
-                {me.activeOrg && (
-                  <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                    <TagChip color="blue" label={`Working in: ${me.activeOrg.name}`} />
-                  </Stack>
-                )}
-                <RequestPlan />
-                <Companies me={me} onChange={setMe} />
-                <Security me={me} onChange={refreshMe} />
-                <Credentials />
-              </Stack>
-            </Suspense>
-          ) : (
-            <AdminApp />
-          )}
-        </Stack>
+    return (
+      <Box sx={{ minHeight: "100vh", bgcolor: "background.default", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <CircularProgress />
       </Box>
     );
   }
 
-  // Paint the console canvas light (Fog Gray) and fill the viewport so no dark
-  // body shows through — matching the rest of the app's light shell.
+  if (!me?.account) {
+    return <Login onLogin={setMe} />;
+  }
+
+  const account = me.account;
+  const ownsCompany = me.memberships.some((m) => m.role === "OWNER");
+  const isAdmin = account.isPlatformAdmin;
+  const memberView = showAccount || !isAdmin;
+
+  let content: ReactNode;
+  if (memberView) {
+    content = (
+      <Stack spacing={3}>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1}
+          sx={{ alignItems: { sm: "center" }, justifyContent: "space-between" }}
+        >
+          <Box>
+            <Typography variant="h4" component="h1">
+              My AORMS account
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Plan, companies, security, and API credentials for your portable identity.
+            </Typography>
+          </Box>
+          {isAdmin && (
+            <Button variant="outlined" size="small" onClick={() => setShowAccount(false)}>
+              Back to licensing console
+            </Button>
+          )}
+        </Stack>
+        <Suspense fallback={<Loading />}>
+          <Stack spacing={2}>
+            {me.activeOrg && (
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                <TagChip color="blue" label={`Working in: ${me.activeOrg.name}`} />
+              </Stack>
+            )}
+            <RequestPlan />
+            <Companies me={me} onChange={setMe} />
+            <Security me={me} onChange={refreshMe} />
+            <Credentials />
+          </Stack>
+        </Suspense>
+      </Stack>
+    );
+  } else {
+    content = (
+      <AdminApp email={account.email} isPlatformAdmin={isAdmin} />
+    );
+  }
+
   return (
-    <MuiRoot>
-      <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>{body}</Box>
-    </MuiRoot>
+    <PortalShell
+      active="licensing"
+      showCompanyNav={ownsCompany}
+      showLicensingNav={isAdmin}
+      footer={
+        <Stack spacing={1}>
+          {isAdmin && !memberView && (
+            <Button variant="text" size="small" fullWidth onClick={() => setShowAccount(true)}>
+              My account (2FA, profile)
+            </Button>
+          )}
+          <Button variant="text" size="small" fullWidth onClick={handleLogout}>
+            Sign out
+          </Button>
+        </Stack>
+      }
+    >
+      {content}
+    </PortalShell>
   );
 }

@@ -1,4 +1,5 @@
 import ArrowBack from "@mui/icons-material/ArrowBack";
+import { Surface } from "@hcw/ui-kit";
 import {
   Alert,
   AlertTitle,
@@ -6,7 +7,6 @@ import {
   Button,
   CircularProgress,
   MenuItem,
-  Paper,
   Stack,
   TextField,
   Typography,
@@ -17,6 +17,7 @@ import { CompanyAdminPanel } from "../components/company/CompanyAdminPanel.js";
 import { CompanyProfilePanel } from "../components/company/CompanyProfilePanel.js";
 import { PortalLicenceCard } from "../components/portal/PortalLicenceCard.js";
 import { PortalPageHeader, PortalTabPanel, PortalTabs } from "../components/portal/PortalChrome.js";
+import { PortalShell } from "../components/portal/PortalShell.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { useAuth } from "../lib/auth.js";
 import { useCapabilities } from "../lib/capabilities.js";
@@ -151,11 +152,11 @@ export function CompanyAccountPortal() {
 
   if (checking) {
     return (
-      <div className="cds--g100">
-        <main className="esti-portal-shell">
+      <PortalShell active="company">
+        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
           <CircularProgress />
-        </main>
-      </div>
+        </Box>
+      </PortalShell>
     );
   }
 
@@ -169,80 +170,86 @@ export function CompanyAccountPortal() {
 
   if (owned.length === 0) {
     return (
-      <div className="cds--g100">
-        <main className="esti-portal-shell">
-          <Stack spacing={2}>
-            <Typography variant="h4" component="h1">Company account</Typography>
-            <Alert severity="info">
-              <AlertTitle>No company to manage</AlertTitle>
-              You are not an owner of any company yet. Create one from your personal AORMS account, or ask an owner to invite you.
-            </Alert>
-            <Button component={RouterLink} to="/account" variant="outlined">
-              Personal AORMS account
-            </Button>
-            <Button variant="text" onClick={handleSignOut}>Sign out</Button>
-          </Stack>
-        </main>
-      </div>
+      <PortalShell
+        active="company"
+        footer={
+          <Button variant="text" size="small" fullWidth onClick={handleSignOut}>
+            Sign out
+          </Button>
+        }
+      >
+        <Stack spacing={2}>
+          <Typography variant="h4" component="h1">
+            Company account
+          </Typography>
+          <Alert severity="info">
+            <AlertTitle>No company to manage</AlertTitle>
+            You are not an owner of any company yet. Create one from your personal AORMS account, or ask an owner to invite you.
+          </Alert>
+          <Button component={RouterLink} to="/account" variant="outlined">
+            Personal AORMS account
+          </Button>
+        </Stack>
+      </PortalShell>
     );
   }
 
   const company = me.activeOrg && activeOwned ? me.activeOrg : owned[0]!.org;
+  const isPlatformAdmin = me.account.isPlatformAdmin;
 
   return (
-    <div className="cds--g100">
-      <main className="esti-portal-shell">
-        <Stack spacing={3}>
-          <PortalPageHeader
-            title="Company account"
-            subtitle="Firm identity, members, and workspace administration."
-            meta={
-              <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
-                <Typography variant="body2">{company.name}</Typography>
-                {company.publicId && <StatusDot color="cool-gray" label={company.publicId} />}
-              </Stack>
-            }
-            actions={
-              <>
-                <Button
-                  component={RouterLink}
-                  to="/login"
-                  variant="text"
-                  size="small"
-                  color="inherit"
-                  startIcon={<ArrowBack />}
-                >
-                  Workspace sign-in
-                </Button>
-                <Button component={RouterLink} to="/account" variant="text" size="small" color="inherit">
-                  Personal account
-                </Button>
-                <Button variant="text" size="small" color="inherit" onClick={handleSignOut}>
-                  Sign out
-                </Button>
-              </>
-            }
-          />
+    <PortalShell
+      active="company"
+      showCompanyNav
+      showLicensingNav={isPlatformAdmin}
+      footer={
+        <Button variant="text" size="small" fullWidth onClick={handleSignOut}>
+          Sign out
+        </Button>
+      }
+    >
+      <Stack spacing={3}>
+        <PortalPageHeader
+          title="Company account"
+          subtitle="Firm identity, members, and workspace administration."
+          meta={
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
+              <Typography variant="body2">{company.name}</Typography>
+              {company.publicId && <StatusDot color="cool-gray" label={company.publicId} />}
+            </Stack>
+          }
+          actions={
+            <Button
+              component={RouterLink}
+              to="/login"
+              variant="outlined"
+              size="small"
+              startIcon={<ArrowBack />}
+            >
+              Workspace sign-in
+            </Button>
+          }
+        />
 
-          {owned.length > 1 && (
-            <Paper sx={{ p: 2, maxWidth: 400 }}>
-              <TextField
-                select
-                label="Company"
-                size="small"
-                fullWidth
-                value={orgKey(company)}
-                disabled={switchBusy}
-                onChange={(e) => void handleSwitchCompany(e.target.value)}
-              >
-                {owned.map((m) => (
-                  <MenuItem key={orgKey(m.org)} value={orgKey(m.org)}>
-                    {m.org.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Paper>
-          )}
+        {owned.length > 1 && (
+          <Surface layer="flat" sx={{ p: 2, maxWidth: 400 }}>
+            <TextField
+              select
+              label="Company"
+              size="small"
+              fullWidth
+              value={orgKey(company)}
+              disabled={switchBusy}
+              onChange={(e) => void handleSwitchCompany(e.target.value)}
+            >
+              {owned.map((m) => (
+                <MenuItem key={orgKey(m.org)} value={orgKey(m.org)}>
+                  {m.org.name}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Surface>
+        )}
 
           {!user && (
             <Alert severity="warning">
@@ -286,7 +293,6 @@ export function CompanyAccountPortal() {
             </PortalTabPanel>
           </Suspense>
         </Stack>
-      </main>
-    </div>
+    </PortalShell>
   );
 }

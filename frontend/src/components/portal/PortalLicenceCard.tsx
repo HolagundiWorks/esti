@@ -1,5 +1,6 @@
 import { STANDARD_LICENCE_LABEL } from "@esti/contracts";
-import { Paper, Stack, Typography } from "@mui/material";
+import { Surface } from "@hcw/ui-kit";
+import { Stack, Typography } from "@mui/material";
 import { StatusDot } from "../StatusTag.js";
 import type { MyLicense } from "../../platform-admin/lib/auth.js";
 import { portalPaperSx } from "./PortalChrome.js";
@@ -13,7 +14,7 @@ export function PortalLicenceCard({
   license: MyLicense;
 }) {
   return (
-    <Paper sx={portalPaperSx}>
+    <Surface layer="flat" sx={portalPaperSx}>
       <Stack spacing={1.5}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
           <Typography variant="h6" component="h2" className="esti-grow">
@@ -35,6 +36,6 @@ export function PortalLicenceCard({
             : "Perpetual — no expiry"}
         </Typography>
       </Stack>
-    </Paper>
+    </Surface>
   );
 }

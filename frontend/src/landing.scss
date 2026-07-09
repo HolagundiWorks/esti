@@ -4590,20 +4590,96 @@ h1.esti-landing-lead-title {
   min-height: 100vh;
   background: #f2f4f7; /* flat Fog Gray canvas */
 }
-// The account / licence portal keeps the deep marketing base.
+// Account / licence portals — light flat canvas (matches workspace + login).
 .esti-portal-shell {
   min-height: 100vh;
-  background: #141517; /* flat Coal Black — no contour (white card reads on it) */
-}
-
-// Full-page portal (account / licence dashboard) — content flows on the
-// contour, constrained to a comfortable reading width.
-.esti-portal-shell {
+  background: #f2f4f7; /* Fog Gray */
   padding: var(--cds-spacing-07) var(--cds-spacing-06) var(--cds-spacing-09);
 
   > * {
     max-width: 72rem;
     margin-inline: auto;
+  }
+}
+
+// Rail + stage layout for account / licensing surfaces.
+$portal-rail: 240px;
+
+.esti-portal-layout {
+  display: flex;
+  align-items: stretch;
+  min-height: 100vh;
+  background: #f2f4f7;
+}
+
+.esti-portal-rail {
+  flex: 0 0 $portal-rail;
+  width: $portal-rail;
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  padding: var(--cds-spacing-05) var(--cds-spacing-04);
+  border-right: 1px solid var(--cds-border-subtle-01, #e0e0e0);
+}
+
+.esti-portal-stage {
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
+  overflow: auto;
+  padding: var(--cds-spacing-06) var(--cds-spacing-06) var(--cds-spacing-09);
+}
+
+.esti-admin-console {
+  display: grid;
+  grid-template-columns: minmax(11rem, 13rem) minmax(0, 1fr);
+  gap: var(--cds-spacing-05);
+  min-height: 28rem;
+  flex: 1;
+}
+
+.esti-admin-console__nav {
+  padding: var(--cds-spacing-03) 0;
+  align-self: start;
+  position: sticky;
+  top: 0;
+}
+
+.esti-admin-console__stage {
+  padding: var(--cds-spacing-05);
+  min-height: 28rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 900px) {
+  .esti-portal-layout {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .esti-portal-rail {
+    position: static;
+    width: 100%;
+    flex: none;
+    min-height: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--cds-border-subtle-01, #e0e0e0);
+  }
+
+  .esti-portal-stage {
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .esti-admin-console {
+    grid-template-columns: 1fr;
+  }
+
+  .esti-admin-console__nav {
+    position: static;
   }
 }
 
@@ -7008,5 +7084,45 @@ $lp2-gap: 1px;               // shared border thickness
 
 .esti-wiki-article__meta {
   @extend .esti-blog-article__byline;
+}
+
+// ── Mobile performance — drop stacked blur, fixed blobs, and 3-D contours ─────
+// Heavy backdrop-filter layers stall weak GPUs and can leave a blank screen.
+@media (max-width: 900px) {
+  .lp2-shell::before {
+    display: none;
+  }
+
+  .lp2-shell .lp2-rail,
+  .lp2-head,
+  .lp2-shell .lp2-tile,
+  .lp2-shell .lp2-step-tile,
+  .lp2-shell .lp2-pricing,
+  .lp2-shell .lp2-pricing__meter,
+  .lp2-shell .lp2-pricing__card,
+  .lp2-shell .lp2-faq__item,
+  .lp2-shell .lp2-footer {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+  }
+
+  .lp2-shell .lp2-rail {
+    background: rgba(6, 7, 12, 0.98) !important;
+    box-shadow: none !important;
+  }
+
+  .lp2-shell .lp2-tile,
+  .lp2-shell .lp2-step-tile,
+  .lp2-shell .lp2-pricing,
+  .lp2-shell .lp2-pricing__meter {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    box-shadow: none !important;
+  }
+
+  .lp2-head {
+    background: rgba(6, 7, 12, 0.92) !important;
+  }
 }
 

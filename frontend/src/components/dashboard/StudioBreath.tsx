@@ -1,3 +1,5 @@
+import { useMediaQuery } from "@mui/material";
+
 /**
  * Studio Intelligence ambient background — faint **topographic contour** lines
  * (organic wavy loops, not circles) whose centre sits at the bottom-right; they
@@ -34,6 +36,11 @@ function contourPath(baseR: number, seed: number): string {
 }
 
 export function StudioBreath() {
+  const skip =
+    useMediaQuery("(max-width: 900px)") ||
+    useMediaQuery("(prefers-reduced-motion: reduce)");
+  if (skip) return null;
+
   return (
     <div className="esti-si-breath" aria-hidden>
       <svg viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet">

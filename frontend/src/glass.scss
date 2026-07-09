@@ -154,10 +154,70 @@ $neu-input-radius: 8px; // shared soft-square radius
     max-width: 100% !important;
     width: 100% !important;
     flex: 1 1 auto !important;
+    overflow-y: visible !important;
+    min-height: auto !important;
   }
   // Ask ESTI renders as a full page on mobile — square it (neu rounding off).
   .esti-ai-bar {
     border-radius: 0 !important;
+  }
+
+  // ── App shell — allow the page to scroll (fixed 100vh + overflow:hidden clips content).
+  .esti-app-shell2 {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .esti-app-content2 {
+    overflow-y: visible;
+    flex: none;
+  }
+
+  .esti-app-content2 > main.esti-grow {
+    overflow: visible;
+    min-height: auto;
+    flex: none;
+    display: block;
+  }
+
+  .esti-app-content2--flush-top {
+    padding-top: calc(var(--esti-header-height, 48px) + 8px);
+  }
+
+  .esti-glass-dash {
+    overflow: visible !important;
+    min-height: auto !important;
+    flex: none !important;
+  }
+
+  .esti-auth-shell {
+    height: auto;
+    min-height: 100dvh;
+    overflow-y: auto;
+  }
+
+  .esti-auth-shell .esti-auth-blobs {
+    display: none;
+  }
+
+  // Drop expensive glass / ambient layers on small screens.
+  .esti-glass-dash .esti-dash-rail,
+  .esti-app-footer {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(255, 255, 255, 0.97) !important;
+    box-shadow: 0 1px 0 rgba(20, 21, 23, 0.06) !important;
+  }
+
+  .esti-app-shell2--studio-home::before,
+  .esti-glass-dash > .esti-si-breath {
+    display: none !important;
+  }
+
+  .esti-zone-glass-orb {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 }
 

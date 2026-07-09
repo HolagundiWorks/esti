@@ -1,7 +1,8 @@
-import { Paper, Stack, Tab, Tabs, Typography } from "@mui/material";
+import { Surface } from "@hcw/ui-kit";
+import { Stack, Tab, Tabs, Typography } from "@mui/material";
 import type { ReactNode, SyntheticEvent } from "react";
 
-/** Shared padding for portal cards on the dark account shell. */
+/** Shared padding for portal content cards. */
 export const portalPaperSx = { p: 3 } as const;
 
 export function PortalPageHeader({
@@ -57,7 +58,7 @@ export function PortalTabs({
   ariaLabel: string;
 }) {
   return (
-    <Paper sx={{ px: { xs: 1, sm: 2 }, py: 0.5 }}>
+    <Surface layer="flat" sx={{ px: { xs: 1, sm: 2 }, py: 0.5 }}>
       <Tabs
         value={value}
         onChange={onChange}
@@ -70,7 +71,7 @@ export function PortalTabs({
           <Tab key={label} label={label} />
         ))}
       </Tabs>
-    </Paper>
+    </Surface>
   );
 }
 
