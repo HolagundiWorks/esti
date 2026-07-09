@@ -70,15 +70,15 @@ export function SeoLanding({ slug }: { slug: string }) {
               <section className="esti-blog-roadmap" aria-label="Get started">
                 <h2>See AORMS on your own office</h2>
                 <p>
-                  Open the live demo workspace — no signup — or request a workspace for
+                  Open the live demo workspace — no signup — or create your account for
                   your practice.
                 </p>
                 <div className="esti-blog-card__tags">
                   <Button href="/demo" endIcon={<ArrowForward />}>
                     Open the live demo
                   </Button>
-                  <Button href="/#trial" variant="outlined">
-                    Request a workspace
+                  <Button href="/account?mode=create" variant="outlined">
+                    Create account
                   </Button>
                 </div>
               </section>

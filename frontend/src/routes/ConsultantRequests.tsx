@@ -11,6 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
 import {
   CONSULTANT_SUBMISSION_KIND_LABEL,
   CONSULTANT_SUBMISSION_KIND_TAG,
@@ -21,6 +22,7 @@ import {
   type ConsultantSubmissionKind as ConsultantSubmissionKindT,
 } from "@esti/contracts";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { Link } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
@@ -80,6 +82,20 @@ export function ConsultantRequests({ embedded = false }: { embedded?: boolean })
   });
 
   const noEngagements = !!assign.projectId && (engagementsQ.data?.rows ?? []).length === 0;
+
+  useScreenActions(
+    [
+      {
+        id: "assign-task",
+        zone: "center",
+        tone: "primary",
+        label: "Assign task",
+        icon: <AddIcon />,
+        onClick: () => setAssignOpen(true),
+      },
+    ],
+    [],
+  );
 
   const columns: GridColDef[] = [
     {
@@ -175,11 +191,6 @@ export function ConsultantRequests({ embedded = false }: { embedded?: boolean })
         <PageHeader
           title="Consultant requests"
           description="Deliverables, RFIs and notes raised by engaged consultants — and tasks you assign to them."
-          actions={
-            <Button variant="contained" size="small" onClick={() => setAssignOpen(true)}>
-              Assign task
-            </Button>
-          }
         />
       )}
 
@@ -212,11 +223,6 @@ export function ConsultantRequests({ embedded = false }: { embedded?: boolean })
             <MenuItem key={k} value={k}>{CONSULTANT_SUBMISSION_KIND_LABEL[k]}</MenuItem>
           ))}
         </TextField>
-        {embedded && (
-          <Button variant="contained" size="small" onClick={() => setAssignOpen(true)}>
-            Assign task
-          </Button>
-        )}
       </Stack>
 
       {listQ.error && (

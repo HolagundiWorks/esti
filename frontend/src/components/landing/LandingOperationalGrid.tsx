@@ -752,7 +752,7 @@ export function CustomerSuccessSection() {
 const FAQS = [
   {
     q: "How much does AORMS cost?",
-    a: "One product — no Lite, Pro or Enterprise tiers. Every new account includes 5 GB of cloud storage and the full workspace. You pay for additional storage (per GB-month) and for hosted AI usage, or bring your own API key for Ask ESTI and AI Studio.",
+    a: "One standard AORMS licence. Every new account includes 5 GB of cloud storage and the full workspace. You pay for additional storage (per GB-month) and for hosted AI usage, or bring your own API key for Ask ESTI and AI Studio.",
   },
   {
     q: "Are users, clients or contractors capped?",

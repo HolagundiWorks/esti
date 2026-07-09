@@ -9,7 +9,7 @@ Code identifiers (`@esti/*` packages, `esti_*` tables, repo name) keep the
 
 Monorepo (pnpm workspaces): `packages/contracts`, `backend` (Fastify + tRPC +
 Drizzle), `frontend` (React + Vite), plus a Python `worker`. Services run via
-podman (`compose.yaml`).
+Docker Compose (`compose.yaml`).
 
 ## UI / design system — HCW-UI-KIT
 
@@ -159,23 +159,23 @@ Tests: `worker/tests/test_jobs.py` (handler unit tests) and
 ## Dev / verify loop
 
 - Source for `backend` is bind-mounted but `tsx watch` does not reload across
-  the VM mount — `podman restart esti-backend` after backend changes.
+  the VM mount — `docker restart esti-backend` after backend changes.
 - `frontend` runs in the `esti-frontend` container (Vite at
   `http://localhost:5173`); typecheck/lint inside it:
-  `podman exec esti-frontend sh -lc "cd /app/esti/frontend && pnpm exec tsc -p tsconfig.json --noEmit"`
+  `docker exec esti-frontend sh -lc "cd /app/esti/frontend && pnpm exec tsc -p tsconfig.json --noEmit"`
   and `pnpm exec eslint <files>`.
 - After editing `packages/contracts`, rebuild it in the relevant container
   (`cd /app/esti/packages/contracts && pnpm build`).
 - Quick render check: `GET http://localhost:5173/src/<path>` should return 200.
 - Migrations live in `backend/drizzle/`; generate with drizzle-kit, copy the
   `.sql` + `meta/` into the container, applied on boot by `runMigrations()`.
-- **Apply migrations manually** using `podman cp` (stdin pipe is unreliable):
+- **Apply migrations manually** using `docker cp` (stdin pipe is unreliable):
   ```
-  podman cp backend/drizzle/NNNN_name.sql esti-db:/tmp/NNNN_name.sql
-  podman exec esti-db sh -lc "psql -U esti -d esti -f /tmp/NNNN_name.sql"
+  docker cp backend/drizzle/NNNN_name.sql esti-db:/tmp/NNNN_name.sql
+  docker exec esti-db sh -lc "psql -U esti -d esti -f /tmp/NNNN_name.sql"
   ```
   Multi-column `ALTER TABLE` via PowerShell heredoc to a container stdin only
-  applies the first column — always use `podman cp` + `-f` instead.
+  applies the first column — always use `docker cp` + `-f` instead.
 
 ## Conventions
 

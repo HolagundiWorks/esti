@@ -59,28 +59,16 @@ export function Legal() {
                 on your own infrastructure. We do not sell your data.
               </p>
 
-              <h2>4. Use of free-tier data for model training</h2>
+              <h2>4. Model training and your data</h2>
               <p>
-                <strong>AORMS Community (the free edition) does not include AI, LLM or ML
-                features, construction / PMC and tendering, GST-specific invoicing
-                (CGST/SGST split, SAC code, FY-sequential numbering) or GST returns and
-                26AS / AIS / GSTR reconciliation.</strong> Community supports simple non-GST
-                invoices and basic bank reconciliation for firms below the GST
-                registration threshold. In exchange for providing
-                AORMS Community at no cost, you grant Holagundi Consulting Works a licence to use the
-                data you create in AORMS Community — in de-identified and aggregated form — to develop,
-                train and improve our artificial intelligence, large-language and machine-learning
-                models. We take reasonable steps to strip direct identifiers (names, contacts, and
-                other personal data) before any such use, and we do not sell this data.
+                We do not use your project, drawing, invoice or client data to train third-party
+                models without a separate agreement. Operational records are processed only to
+                provide the Service. On a self-hosted deployment, your data stays on your
+                infrastructure. We do not sell your data.
               </p>
               <p>
-                This applies <strong>only to the free AORMS Community tier</strong>. Data in the paid
-                edition (AORMS-Pro) and in self-hosted deployments is
-                <strong> never used to train our models</strong>. Upgrading to a paid edition, or
-                self-hosting, opts you out of model-training use entirely. Where the law requires
-                consent for such processing, your acceptance of these terms on the free tier
-                constitutes that consent, and you may withdraw it by upgrading or by ceasing use of
-                AORMS Community.
+                If you use a <strong>bring-your-own API key</strong> for Ask ESTI and AI Studio,
+                inference runs on your chosen provider under their terms.
               </p>
 
               <h2>5. Privacy</h2>

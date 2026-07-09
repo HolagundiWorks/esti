@@ -170,7 +170,7 @@ export const AiSourceRef = z.object({
 export type AiSourceRef = z.infer<typeof AiSourceRef>;
 
 export const AiSettings = z.object({
-  enabled: z.boolean().default(false),
+  enabled: z.boolean().default(true),
   /** ollama = on-server (Core+); cloud = bring-your-own OpenAI-compatible API (Enterprise). */
   provider: AiProvider.default("ollama"),
   model: z.string().min(1).max(80).default("llama3.2"),
@@ -206,7 +206,7 @@ export function cloudAiConfigError(s: AiSettings): string | null {
 }
 
 export const DEFAULT_AI_SETTINGS: AiSettings = {
-  enabled: false,
+  enabled: true,
   provider: "ollama",
   model: "llama3.2",
   redactPii: true,

@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import SearchIcon from "@mui/icons-material/Search";
+import AddIcon from "@mui/icons-material/Add";
 import {
   PROJECT_STATUS_LABEL,
   PROJECT_STATUS_TAG,
@@ -20,6 +21,7 @@ import {
   formatINR,
 } from "@esti/contracts";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { Link, useNavigate } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
@@ -114,16 +116,25 @@ export function Projects() {
     },
   ];
 
+  useScreenActions(
+    [
+      {
+        id: "new-project",
+        zone: "center",
+        tone: "primary",
+        label: "New project",
+        icon: <AddIcon />,
+        onClick: () => setOpen(true),
+      },
+    ],
+    [],
+  );
+
   return (
     <>
       <RailLayout
         title="Projects"
         description="Architecture project offices — phases, fees, drawings and delivery."
-        actions={
-          <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-            New project
-          </Button>
-        }
         aside={
           <Stack spacing={1.5}>
             <TextField
@@ -176,11 +187,6 @@ export function Projects() {
             title: "No projects yet",
             description:
               "Create your first project office to start tracking phases, fees and invoices.",
-            action: (
-              <Button variant="contained" size="small" onClick={() => setOpen(true)}>
-                New project
-              </Button>
-            ),
           }}
         >
           <DataGrid

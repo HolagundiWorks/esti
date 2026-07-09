@@ -127,11 +127,7 @@ Yes. Site Progress lives under the project alongside phases, the drawing registe
 client decisions and revisions, so a snag, instruction or inspection is never an
 orphan note — it sits next to the drawing and the decision it belongs to.
 
-### Is there a free version for a small practice?
+### How do I get started?
 
-Yes. AORMS Community is free forever for practices up to three staff and includes the core
-project record. Move to Pro for GST invoicing, HR and external AI keys as the office
-grows.
-
-Start free on the Community edition at [/account?mode=create](/account?mode=create), or
-write to us at hi@aorms.in.
+Create your account at [/account?mode=create](/account?mode=create) — standard licence,
+5 GB included, unlimited users — or write to us at hi@aorms.in.

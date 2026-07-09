@@ -8,7 +8,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { PLAN_LABEL, type LicenseStatus } from "@esti/contracts";
+import { STANDARD_LICENCE_LABEL, type LicenseStatus } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../../lib/trpc.js";
 import { StatusDot } from "../StatusTag.js";
@@ -56,7 +56,7 @@ export function LicensePanel() {
       <Stack spacing={2}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <Typography component="h3" className="esti-label">Licence</Typography>
-          {view && <StatusDot color="blue" label={PLAN_LABEL[view.plan]} />}
+          {view && <StatusDot color="blue" label={STANDARD_LICENCE_LABEL} />}
           <StatusDot color={STATUS_TAG[status]} label={STATUS_LABEL[status]} />
         </Stack>
 
@@ -136,8 +136,8 @@ export function LicensePanel() {
         </Stack>
 
         <Typography component="p" className="esti-label esti-label--helper">
-          Your plan reflects this licence — billing is handled by Holagundi
-          Consulting Works. Keys are issued when you purchase or change a plan.
+          Standard AORMS licence — billing and storage add-ons are handled by Holagundi
+          Consulting Works. Keys are issued when you subscribe or renew.
         </Typography>
       </Stack>
     </Box>

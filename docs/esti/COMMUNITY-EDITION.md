@@ -1,12 +1,13 @@
 # AORMS Community edition — **retired**
 
-> **⚠ Superseded (2026-07-09).** The Community edition, Community desktop app,
-> and Lite/Pro/Enterprise tier split are **retired**. See:
+> **⚠ Removed (2026-07-09).** There is no Community edition, no free tier, and no
+> offline Community workspace. AORMS ships as **one standard licence** (`ACTIVE`).
 >
-> - [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) — one product, storage + AI usage pricing, 5 GB included
-> - [AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md) — implementation queue
+> - [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) — standard licence, storage + AI usage
+> - [AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md) — cleanup queue
 >
-> **Estimate** remains the only desktop app (auth required, linked to projects).
+> **Estimate** is the only desktop app (auth required, project-linked exports).
 
-Do not add new Community-edition code paths. Existing `ESTI_EDITION=COMMUNITY` and
-`seedCommunity.ts` references are removed in autopilot phase **P4**.
+Do not add Community-edition code paths, trial funnels, or tier-gated UI. Historical
+`seedCommunity.ts`, `ESTI_EDITION=COMMUNITY`, and backup-code recovery routes are
+legacy only and should not appear in new product copy.

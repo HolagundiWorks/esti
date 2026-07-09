@@ -13,6 +13,7 @@ import Add from "@mui/icons-material/Add";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { LESSON_CATEGORY_LABEL, type LessonCategory, type TagColor } from "@esti/contracts";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { Link } from "react-router-dom";
 import { ConfirmModal } from "./ConfirmModal.js";
 import { DataState } from "./DataState.js";
@@ -51,6 +52,20 @@ export function ProjectLessons({ projectId }: { projectId: string }) {
     setEditId(null);
     setOpen(false);
   }
+
+  useScreenActions(
+    [
+      {
+        id: "new-lesson",
+        zone: "center",
+        tone: "primary",
+        label: "New lesson",
+        icon: <Add />,
+        onClick: () => setOpen(true),
+      },
+    ],
+    [],
+  );
 
   const rows = listQ.data ?? [];
 
@@ -114,18 +129,11 @@ export function ProjectLessons({ projectId }: { projectId: string }) {
 
   return (
     <div>
-      <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", mb: 1 }}>
-        <div>
-          <Typography variant="h6">Lessons learned</Typography>
-          <Typography variant="body2" sx={{ m: 0, opacity: 0.85 }}>
-            Capture project-close insights; publish to the Knowledge Bank for reuse.
-          </Typography>
-        </div>
-        <div>
-          <Button variant="contained" size="small" startIcon={<Add />} onClick={() => setOpen(true)}>
-            New lesson
-          </Button>
-        </div>
+      <Stack spacing={0.5} sx={{ mb: 1 }}>
+        <Typography variant="h6">Lessons learned</Typography>
+        <Typography variant="body2" sx={{ m: 0, opacity: 0.85 }}>
+          Capture project-close insights; publish to the Knowledge Bank for reuse.
+        </Typography>
       </Stack>
 
       <DataState

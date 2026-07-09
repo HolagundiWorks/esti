@@ -3,7 +3,7 @@
 #   ./scripts/quickstart.sh          (ENGINE=docker ./scripts/quickstart.sh for docker)
 set -euo pipefail
 
-ENGINE="${ENGINE:-podman}"
+ENGINE="${ENGINE:-docker}"
 cd "$(dirname "$0")/.."
 
 echo "==> Building dev images (context = repo root; kits vendored under vendor/)…"

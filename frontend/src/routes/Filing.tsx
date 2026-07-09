@@ -1,8 +1,10 @@
-import { Box, Button, Stack, Tab, Tabs, Typography } from "@mui/material";
+import { Box, Stack, Tab, Tabs, Typography } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import { formatINR } from "@esti/contracts";
 import type { PeriodFilterInput } from "@esti/contracts";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { RailLayout } from "../components/RailLayout.js";
 import { PeriodFilter } from "../components/PeriodFilter.js";
 import { downloadXlsx } from "../lib/exportXlsx.js";
@@ -61,6 +63,27 @@ export function Filing() {
     net: p.netReceivablePaise,
   }));
 
+  async function exportRegister() {
+    const r = await exportQ.refetch();
+    if (r.data?.rows.length) downloadXlsx(r.data.rows, "Register", `invoice-register-${r.data.from}`);
+  }
+
+  useScreenActions(
+    gst.data
+      ? [
+          {
+            id: "export-register",
+            zone: "right",
+            tone: "primary",
+            label: "Export register",
+            icon: <FileDownloadIcon />,
+            onClick: () => void exportRegister(),
+          },
+        ]
+      : [],
+    [gst.data],
+  );
+
   return (
     <RailLayout
       title="Filing abstracts"
@@ -81,22 +104,9 @@ export function Filing() {
           <PeriodFilter value={period} onChange={setPeriod} />
           {gst.data && (
             <Box sx={{ p: 2 }}>
-              <Stack spacing={2} sx={{ alignItems: "flex-start" }}>
-                <Typography variant="body2">
-                  <strong>{gst.data.label}</strong> · {gst.data.from} to {gst.data.to}
-                </Typography>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  fullWidth
-                  onClick={async () => {
-                    const r = await exportQ.refetch();
-                    if (r.data?.rows.length) downloadXlsx(r.data.rows, "Register", `invoice-register-${r.data.from}`);
-                  }}
-                >
-                  Export invoice register (XLSX)
-                </Button>
-              </Stack>
+              <Typography variant="body2">
+                <strong>{gst.data.label}</strong> · {gst.data.from} to {gst.data.to}
+              </Typography>
             </Box>
           )}
         </Stack>

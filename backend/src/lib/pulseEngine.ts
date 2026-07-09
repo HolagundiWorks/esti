@@ -8,6 +8,7 @@ import {
   MISSING_PARAMETER_LABEL,
   PULSE_ACTION_LABEL,
   STANDUP_CUTOFF_LABEL,
+  bandForScore,
   composeStandupQuestion,
   computeConfidenceScore,
   computeTaskPriority,
@@ -20,12 +21,14 @@ import {
   type PulseActionType,
   type StandupSessionType,
 } from "@esti/contracts";
-import { and, eq, inArray, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import type { DB } from "../db/index.js";
 import { writeActivity } from "./activity.js";
 import {
   projectOffices,
   pulseActions,
+  snags,
+  siteVisits,
   standupQuestions,
   standupSessions,
   taskDependencies,
@@ -205,6 +208,124 @@ export async function recomputeScores(db: DB, opts: { projectId?: string } = {})
 }
 
 /**
+ * Site-delivery signals → MANUAL `SITE_MEASUREMENT` gaps on construction-support
+ * tasks. Fires when a project has a visit today or open snags.
+ */
+export async function reconcileSiteSignals(db: DB, opts: { projectId?: string } = {}) {
+  const visitRows = await db
+    .selectDistinct({ projectId: siteVisits.projectId })
+    .from(siteVisits)
+    .where(and(sql`${siteVisits.plannedDate} = CURRENT_DATE`, ne(siteVisits.status, "CANCELLED")));
+
+  const snagRows = await db
+    .selectDistinct({ projectId: snags.projectId })
+    .from(snags)
+    .where(inArray(snags.status, ["OPEN", "IN_PROGRESS"]));
+
+  let projectIds = new Set([...visitRows, ...snagRows].map((r) => r.projectId));
+  if (opts.projectId) {
+    if (!projectIds.has(opts.projectId)) return { projects: 0, raised: 0 };
+    projectIds = new Set([opts.projectId]);
+  }
+  if (projectIds.size === 0) return { projects: 0, raised: 0 };
+
+  const pidList = [...projectIds];
+  const siteTasks = await db
+    .select({ id: tasks.id })
+    .from(tasks)
+    .where(and(inArray(tasks.projectId, pidList), ACTIVE_STATUS, eq(tasks.workType, "CONSTRUCTION_SUPPORT")));
+
+  const taskIds = siteTasks.map((t) => t.id);
+  if (taskIds.length === 0) return { projects: projectIds.size, raised: 0 };
+
+  const openSiteGaps = await db
+    .select({ taskId: taskMissingParameters.taskId })
+    .from(taskMissingParameters)
+    .where(
+      and(
+        inArray(taskMissingParameters.taskId, taskIds),
+        eq(taskMissingParameters.parameterType, "SITE_MEASUREMENT"),
+        eq(taskMissingParameters.status, "OPEN"),
+      ),
+    );
+  const hasGap = new Set(openSiteGaps.map((r) => r.taskId));
+  const toRaise = taskIds.filter((id) => !hasGap.has(id));
+  if (toRaise.length) {
+    await db
+      .insert(taskMissingParameters)
+      .values(toRaise.map((taskId) => ({ taskId, parameterType: "SITE_MEASUREMENT" as const })));
+  }
+  return { projects: projectIds.size, raised: toRaise.length };
+}
+
+/** Reconcile site signals + AUTO gaps, then recompute Pulse scores. */
+export async function refreshPulseScores(db: DB, opts: { projectId?: string } = {}) {
+  await reconcileSiteSignals(db, opts);
+  await reconcileMissingParameters(db, opts);
+  return recomputeScores(db, opts);
+}
+
+/** Top-N ESTI-prioritised active tasks from stored scores (no recompute). */
+export async function queryPrioritizedTasks(db: DB, limit = 3, opts: { projectId?: string } = {}) {
+  const filters = [ACTIVE_STATUS];
+  if (opts.projectId) filters.push(eq(tasks.projectId, opts.projectId));
+
+  const rows = await db
+    .select({
+      id: tasks.id,
+      title: tasks.title,
+      projectId: tasks.projectId,
+      projectRef: projectOffices.ref,
+      projectTitle: projectOffices.title,
+      status: tasks.status,
+      priority: tasks.priority,
+      dueDate: tasks.dueDate,
+      priorityScore: tasks.priorityScore,
+      confidenceScore: tasks.confidenceScore,
+      workType: tasks.workType,
+    })
+    .from(tasks)
+    .leftJoin(projectOffices, eq(projectOffices.id, tasks.projectId))
+    .where(and(...filters))
+    .orderBy(desc(tasks.priorityScore))
+    .limit(limit);
+
+  const taskIds = rows.map((r) => r.id);
+  const gapRows = taskIds.length
+    ? await db
+        .select({
+          taskId: taskMissingParameters.taskId,
+          parameterType: taskMissingParameters.parameterType,
+        })
+        .from(taskMissingParameters)
+        .where(and(inArray(taskMissingParameters.taskId, taskIds), eq(taskMissingParameters.status, "OPEN")))
+    : [];
+
+  const gapsByTask = new Map<string, MissingParameterType[]>();
+  for (const g of gapRows) {
+    const list = gapsByTask.get(g.taskId) ?? [];
+    list.push(g.parameterType as MissingParameterType);
+    gapsByTask.set(g.taskId, list);
+  }
+
+  return rows.map((r) => {
+    const openGaps = gapsByTask.get(r.id) ?? [];
+    return {
+      ...r,
+      band: bandForScore(r.priorityScore),
+      openGaps,
+      gapSummary: openGaps.map((t) => MISSING_PARAMETER_LABEL[t]).join(" · ") || null,
+    };
+  });
+}
+
+/** Top-N ESTI-prioritised active tasks after a fresh Pulse refresh. */
+export async function loadPrioritizedTasks(db: DB, limit = 3, opts: { projectId?: string } = {}) {
+  await refreshPulseScores(db, opts);
+  return queryPrioritizedTasks(db, limit, opts);
+}
+
+/**
  * Module 3/4 — run one standup cycle for a project: reconcile gaps, then ask
  * one targeted, grouped question per task that still has open gaps (never a
  * generic "please update your tasks" — Design Rule §13). Each question is
@@ -215,6 +336,7 @@ export async function runStandupForProject(db: DB, opts: { projectId: string; se
   const [project] = await db.select().from(projectOffices).where(eq(projectOffices.id, opts.projectId));
   if (!project) throw new Error("Project not found");
 
+  await reconcileSiteSignals(db, { projectId: opts.projectId });
   await reconcileMissingParameters(db, { projectId: opts.projectId });
 
   const activeTasks = await db

@@ -1,96 +1,59 @@
-import ArrowForward from "@mui/icons-material/ArrowForward";
 import Check from "@mui/icons-material/Check";
-import { Box, Button, Stack, Typography } from "@mui/material";
-import type { ReactNode } from "react";
-import { PLAN_LABEL } from "@esti/contracts";
-import { Link as RouterLink } from "react-router-dom";
-import { StatusDot } from "../StatusTag.js";
-import { useEdition } from "../../lib/edition.js";
+import { Alert, AlertTitle, Box, Stack, Typography } from "@mui/material";
+import { STANDARD_LICENCE_LABEL, type LicenseStatus } from "@esti/contracts";
 import { trpc } from "../../lib/trpc.js";
+import { StatusDot } from "../StatusTag.js";
 
-/**
- * Guided Lite → Pro upgrade. Reads the workspace's own licence (not the
- * platform account), so it always shows the real current plan and the path
- * forward. Material UI.
- */
+const STATUS_TAG: Record<LicenseStatus, "green" | "teal" | "red" | "gray"> = {
+  VALID: "green",
+  GRACE: "teal",
+  EXPIRED: "red",
+  UNLICENSED: "gray",
+};
+
+const STATUS_LABEL: Record<LicenseStatus, string> = {
+  VALID: "Active",
+  GRACE: "Grace period",
+  EXPIRED: "Expired",
+  UNLICENSED: "Not activated",
+};
+
+/** Standard AORMS licence summary — one product, no upgrade funnel. */
 export function UpgradeToPro() {
   const licenseQ = trpc.license.status.useQuery();
-  const runtimeQ = trpc.auth.runtime.useQuery();
-  const { community } = useEdition();
-
-  if (community) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Stack spacing={1}>
-          <Typography variant="h6" component="h3">Upgrade to AORMS Pro</Typography>
-          <Typography variant="body2" color="text.secondary">
-            You&apos;re on the free Community edition — offline, on your own network. AORMS Pro adds
-            the cloud workspace, external portals, AI and more. To move up: package your whole
-            company in <strong>Company › Move to AORMS Pro</strong>, then import the bundle into your
-            new Pro workspace. Migration is one-way.
-          </Typography>
-        </Stack>
-      </Box>
-    );
-  }
-
   const view = licenseQ.data;
   if (!view) return null;
 
-  const isPro = view.plan === "PRO" && (view.status === "VALID" || view.status === "GRACE");
-  const desktop = runtimeQ.data?.desktop ?? false;
-
-  if (isPro) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          <Check fontSize="small" />
-          <Typography variant="body2" sx={{ flex: 1 }}>
-            You&apos;re on <strong>{PLAN_LABEL[view.plan]}</strong> — the full edition is unlocked.
-          </Typography>
-          <StatusDot color="green" label={PLAN_LABEL[view.plan]} />
-        </Stack>
-      </Box>
-    );
-  }
-
-  const steps: { n: string; text: string; action?: ReactNode }[] = [
-    { n: "1", text: "Request Pro from your AORMS account below — we email your licence once approved." },
-    {
-      n: "2",
-      text: "Activate the emailed key.",
-      action: (
-        <Button component={RouterLink} to="/company" variant="text" size="small" endIcon={<ArrowForward />}>
-          Company · Licence
-        </Button>
-      ),
-    },
-    { n: "3", text: "You're on Pro — the full edition unlocks instantly, no reinstall." },
-  ];
+  const status = view.status ?? "UNLICENSED";
+  const active = status === "VALID" || status === "GRACE";
 
   return (
     <Box sx={{ p: 3 }}>
-      <Stack spacing={2}>
+      <Stack spacing={1.5}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          <Typography variant="h6" component="h3" sx={{ flex: 1 }}>Upgrade to Pro</Typography>
-          <StatusDot color="cool-gray" label={PLAN_LABEL[view.plan]} />
+          {active && <Check fontSize="small" />}
+          <Typography variant="h6" component="h3" sx={{ flex: 1 }}>
+            {STANDARD_LICENCE_LABEL}
+          </Typography>
+          <StatusDot color={STATUS_TAG[status]} label={STATUS_LABEL[status]} />
         </Stack>
-
         <Typography variant="body2" color="text.secondary">
-          {desktop
-            ? "Pro lifts the seat limits and unlocks the full edition. Your studio stays on this computer — when you're ready, Pro also lets you move it to the cloud."
-            : "Pro lifts the seat limits and unlocks the full edition across your workspace."}
+          One standard AORMS licence — full workspace, unlimited users, 5 GB storage
+          included. Extra storage and hosted AI are usage-billed; you can add your own
+          API key under Company → AI.
         </Typography>
-
-        <Stack spacing={1.5}>
-          {steps.map((s) => (
-            <Stack key={s.n} direction="row" spacing={1} sx={{ alignItems: "center" }}>
-              <StatusDot color="teal" label={s.n} />
-              <Typography variant="body2" sx={{ flex: 1 }}>{s.text}</Typography>
-              {s.action}
-            </Stack>
-          ))}
-        </Stack>
+        {status === "GRACE" && view.graceDaysLeft != null && (
+          <Alert severity="warning">
+            <AlertTitle>Licence in grace period</AlertTitle>
+            {`${view.graceDaysLeft} day(s) remaining — renew in Company → Licence.`}
+          </Alert>
+        )}
+        {status === "EXPIRED" && (
+          <Alert severity="error">
+            <AlertTitle>Licence expired</AlertTitle>
+            Activate a current key in Company → Licence to restore writes.
+          </Alert>
+        )}
       </Stack>
     </Box>
   );

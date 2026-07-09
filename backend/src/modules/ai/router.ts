@@ -19,6 +19,7 @@ import { runAiGateway } from "../../lib/ai/gateway.js";
 import { redactPii } from "../../lib/ai/redact.js";
 import { getOrgSettings } from "../../lib/settings.js";
 import { demoBlocksAiDraft, demoBlocksAiSettings, DEMO_AI_DRAFT_MESSAGE, DEMO_AI_SETTINGS_MESSAGE } from "../../lib/demo-policy.js";
+import { assertPlanFeature } from "../../lib/plan.js";
 import { resolveCompanionCapabilities } from "../../lib/companion/capabilities.js";
 import { companionWriteProcedure, ownerProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 

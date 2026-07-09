@@ -7,14 +7,18 @@ import {
   ensureAccountPublicId,
   getAccountById,
   hasPlatformAdmin,
+  accountLoginBlock,
   loginWithPassword,
   loginWithWorkspaceCredentials,
+  adoptWorkspaceSessionOwner,
   registerWithPassword,
+  updateAccountProfile,
   upsertAccount,
   verifyEmailToken,
   type AccountView,
 } from "../modules/auth/service.js";
 import { env as workspaceEnv } from "../../env.js";
+import { SESSION_COOKIE as WORKSPACE_SESSION_COOKIE, userFromToken } from "../../auth/session.js";
 import { sendMail } from "../../lib/mail/transport.js";
 import {
   type OrgHandle,
@@ -26,18 +30,21 @@ import {
 } from "../modules/auth/tenant.js";
 import {
   acceptInvite,
+  accountUsageMinutes,
   adoptInvite,
   companyIdStatus,
   createCompany,
   declineInvite,
   generateCompanyId,
-  invitedEligible,
   inviteMember,
   isOrgAdmin,
   joinCompany,
   leaveCompany,
+  listMembers,
   pendingInvitesFor,
+  setMemberStatus,
 } from "../modules/membership/service.js";
+import { AORMS_ID_USAGE_MINUTES } from "@esti/contracts";
 import { provisionTrial } from "../modules/onboarding/service.js";
 import { listCertifications, listGrowth } from "../modules/portable/service.js";
 import {
@@ -48,6 +55,7 @@ import {
   totpEnabled,
 } from "../modules/auth/totp.js";
 import { PLAN_CODES, type PlanCode, createPlanRequest, myLicense, myRequest } from "../modules/request/service.js";
+import { AccountSignupProfile, AccountSignupProfileUpdate } from "@esti/contracts";
 
 /** The `me` view: the person + their active company + every company they can enter. */
 interface MeView {
@@ -70,7 +78,7 @@ async function buildMe(s: SessionData): Promise<MeView | null> {
     pendingInvitesFor(s.accountId),
     totpEnabled(s.accountId),
   ]);
-  const instantIdEligible = !account.publicId && (await invitedEligible(s.accountId));
+  const instantIdEligible = false;
   return { account, activeOrg, memberships, pendingInvites, instantIdEligible, totpEnabled: twoFactor };
 }
 
@@ -133,6 +141,27 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       return { account: null, activeOrg: null, memberships: [], pendingInvites: [], instantIdEligible: false, totpEnabled: false };
     }
     return me;
+  });
+
+  app.patch("/auth/profile", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const parsed = AccountSignupProfileUpdate.safeParse(req.body);
+    if (!parsed.success) {
+      reply.code(400);
+      return { error: "profile_invalid" };
+    }
+    try {
+      const account = await updateAccountProfile(s.accountId, parsed.data);
+      return { account };
+    } catch (e) {
+      const missing = e instanceof Error && e.message === "not_found";
+      reply.code(missing ? 404 : 500);
+      return { error: missing ? "not_found" : "update_failed" };
+    }
   });
 
   app.post("/auth/logout", async (_req, reply) => {
@@ -391,6 +420,56 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     return { ok: true };
   });
 
+  // --- List members (owner) — includes pending join requests ---
+  app.get("/auth/org-members", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const company = (req.query as { company?: string })?.company?.trim() ?? "";
+    const orgId = company ? await orgIdFromHandle(company) : null;
+    if (!orgId) {
+      reply.code(404);
+      return { error: "company_not_found" };
+    }
+    if (!(await isOrgAdmin(s.accountId, orgId))) {
+      reply.code(403);
+      return { error: "not_company_owner" };
+    }
+    const members = await listMembers(orgId);
+    return { ok: true, members };
+  });
+
+  // --- Approve or reject a join request (owner) ---
+  app.post("/auth/review-member", async (req, reply) => {
+    const s = readSession(req);
+    if (!s) {
+      reply.code(401);
+      return { error: "unauthenticated" };
+    }
+    const body = req.body as
+      | { company?: string; accountId?: string; action?: "approve" | "reject" }
+      | undefined;
+    const orgId = body?.company ? await orgIdFromHandle(body.company) : null;
+    const accountId = body?.accountId?.trim() ?? "";
+    if (!orgId || !accountId) {
+      reply.code(400);
+      return { error: "invalid_request" };
+    }
+    if (!(await isOrgAdmin(s.accountId, orgId))) {
+      reply.code(403);
+      return { error: "not_company_owner" };
+    }
+    if (body?.action !== "approve" && body?.action !== "reject") {
+      reply.code(400);
+      return { error: "invalid_request" };
+    }
+    await setMemberStatus(orgId, accountId, body.action === "approve" ? "ACTIVE" : "LEFT");
+    const members = await listMembers(orgId);
+    return { ok: true, members };
+  });
+
   // --- Accept / decline my pending invitation ---
   app.post("/auth/accept-invite", async (req, reply) => {
     const s = readSession(req);
@@ -421,8 +500,7 @@ export function registerAuthRoutes(app: FastifyInstance): void {
   });
 
   // --- Instant AORMS-U generation (Phase 34) ---
-  // Being invited into someone else's company waives the 100-hour usage
-  // requirement. The workspace-earned path stays in the firm app (usage.*).
+  // Generate AORMS-U after 100 hours of active use (workspace usage ledger).
   app.post("/auth/generate-id", async (req, reply) => {
     const s = readSession(req);
     if (!s) {
@@ -435,7 +513,8 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       return { error: "unauthenticated" };
     }
     if (account.publicId) return { ok: true, publicId: account.publicId };
-    if (!(await invitedEligible(s.accountId))) {
+    const minutes = await accountUsageMinutes(account.email);
+    if (minutes < AORMS_ID_USAGE_MINUTES) {
       reply.code(403);
       return { error: "not_eligible" };
     }
@@ -536,7 +615,7 @@ export function registerAuthRoutes(app: FastifyInstance): void {
   // --- Register with email + password ---
   app.post("/auth/register", async (req, reply) => {
     const body = req.body as
-      | { email?: string; password?: string; name?: string; portal?: boolean }
+      | { email?: string; password?: string; name?: string; portal?: boolean; profile?: unknown }
       | undefined;
     const email = body?.email?.trim().toLowerCase() ?? "";
     const password = body?.password ?? "";
@@ -549,19 +628,31 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       reply.code(400);
       return { error: "weak_password" };
     }
+    const portal = Boolean(body?.portal);
+    const profileParsed = body?.profile
+      ? AccountSignupProfile.safeParse(body.profile)
+      : null;
+    if (portal && (!profileParsed || !profileParsed.success)) {
+      reply.code(400);
+      return { error: "profile_invalid" };
+    }
     // Admin-console self-signup is a one-time bootstrap: once a platform admin
     // exists it is closed. Customer sign-up on the user portal (`portal: true`)
     // and product onboarding (the onboard cookie) create ordinary accounts and
     // are always open — they never grant admin (that's PLATFORM_ADMIN_EMAILS).
     const onboarding = Boolean(req.cookies?.[ONBOARD_COOKIE]);
-    const portal = Boolean(body?.portal);
     if (!onboarding && !portal && (await hasPlatformAdmin())) {
       reply.code(403);
       return { error: "registration_closed" };
     }
     let account: AccountView;
     try {
-      account = await registerWithPassword({ email, password, name });
+      account = await registerWithPassword({
+        email,
+        password,
+        name,
+        profile: profileParsed?.success ? profileParsed.data : undefined,
+      });
     } catch (e) {
       const taken = e instanceof Error && e.message === "email_taken";
       reply.code(taken ? 409 : 500);
@@ -640,6 +731,11 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       reply.code(400);
       return { error: "invalid_credentials" };
     }
+    const blocked = await accountLoginBlock(email);
+    if (blocked) {
+      reply.code(403);
+      return { error: blocked };
+    }
     let account = await loginWithPassword(email, password);
     // Unified single-box installs: fall back to the WORKSPACE login (the seeded
     // owner, owner-created staff) and mirror it onto a platform account, so one
@@ -700,6 +796,30 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     const redirect = intent ? ACCOUNT_URL : null;
     const activeOrg = orgId ? await orgHandleById(orgId) : null;
     return { ok: true, account, redirect, activeOrg };
+  });
+
+  // Workspace OWNER already signed in — open company account without re-auth.
+  app.post("/auth/session-from-workspace", async (req, reply) => {
+    if (!workspaceEnv.ESTI_UNIFIED_ACCOUNTS) {
+      reply.code(412);
+      return { error: "unified_disabled" };
+    }
+    const wsUser = await userFromToken(req.cookies?.[WORKSPACE_SESSION_COOKIE]);
+    if (!wsUser) {
+      reply.code(401);
+      return { error: "no_workspace_session" };
+    }
+    const account = await adoptWorkspaceSessionOwner(wsUser.id);
+    if (!account) {
+      reply.code(403);
+      return { error: "workspace_owner_required" };
+    }
+    const memberships = await membershipsFor(account.id);
+    const owned = memberships.find((m) => m.role === "OWNER");
+    const orgId = owned ? await orgIdFromHandle(owned.org.publicId ?? owned.org.slug) : undefined;
+    writeSession(reply, account.id, orgId ?? undefined);
+    const activeOrg = orgId ? await orgHandleById(orgId) : null;
+    return { ok: true, account, activeOrg };
   });
 
   // --- Self-serve onboarding (a product's "Create account") ---

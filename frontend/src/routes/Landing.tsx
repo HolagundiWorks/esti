@@ -4,12 +4,12 @@ import {
   EstimateSection,
   FaqSection,
   IntelligenceSection,
-  LandingFooter,
   PortalsSection,
   PricingSection,
   TrustStrip,
   WorkflowSection,
 } from "../components/landing/LandingSections.js";
+import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingHero } from "../components/landing/MarketingHero.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 import { applyLandingSeo, injectLandingJsonLd } from "../lib/landing-seo.js";
@@ -44,7 +44,7 @@ export function Landing() {
         <PortalsSection />
         <PricingSection />
         <FaqSection />
-        <LandingFooter visitCount={visitCount} />
+        <MarketingFooter visitCount={visitCount} />
       </MarketingShell>
     </>
   );

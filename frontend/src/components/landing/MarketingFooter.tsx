@@ -1,15 +1,14 @@
-import { Link, Stack } from "@mui/material";
 import { LANDING_SEO } from "../../lib/landing-seo.js";
 import { LANDING_NAV } from "../../lib/landing-slugs.js";
 import { formatVisitCount } from "../../lib/landing-visit.js";
-import { LandingBand, LandingEditorial } from "./LandingBand.js";
 
 const PRODUCT_LINKS = [
-  { href: "/#platform", label: "Platform" },
+  { href: "/#capabilities", label: "Capabilities" },
   { href: "/#pricing", label: "Pricing" },
+  { href: "/#faq", label: "FAQ" },
   { href: "/blog", label: "Blog" },
   { href: "/about", label: "About" },
-  { href: "/#trial", label: "Request access" },
+  { href: "/download", label: "AORMS Estimate" },
 ] as const;
 
 const CONTACT_LINKS = [
@@ -22,80 +21,75 @@ const CONTACT_LINKS = [
   { href: "/access", label: "Portal access (clients / contractors)" },
 ] as const;
 
+/** Sitewide lp2 footer — solutions mesh + Radiant Orange bar (marketing pages only). */
 export function MarketingFooter({
   visitCount,
 }: {
   visitCount?: number | null;
 }) {
   return (
-    <LandingBand className="esti-landing-footer">
-      <LandingEditorial>
-        {/* Sitewide solutions mesh — links every keyword landing page from every
-            marketing/blog page so authority is distributed and no page is orphaned. */}
-        <nav className="esti-landing-footer__solutions" aria-label="Solutions">
-          {LANDING_NAV.map((group) => (
-            <div key={group.heading} className="esti-landing-footer__solcol">
-              <h2>{group.heading}</h2>
-              <ul>
-                {group.links.map((l) => (
-                  <li key={l.slug}>
-                    <a href={`/${l.slug}`}>{l.label}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+    <footer className="lp2-footer" aria-label="AORMS footer">
+      <nav className="lp2-footer__solutions" aria-label="Solutions">
+        {LANDING_NAV.map((group) => (
+          <div key={group.heading} className="lp2-footer__sol-col">
+            <p className="lp2-footer__sol-head">{group.heading}</p>
+            <ul>
+              {group.links.map((l) => (
+                <li key={l.slug}>
+                  <a href={`/${l.slug}`}>{l.label}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
+
+      <div className="lp2-footer__bar">
+        <div className="lp2-footer__brand">
+          <span
+            role="img"
+            aria-label="AORMS"
+            className="esti-brand esti-brand--aorms lp2-footer__logo"
+          />
+          <p>{LANDING_SEO.footerBlurb}</p>
+        </div>
+
+        <nav className="lp2-footer__col" aria-label="Product">
+          <p className="lp2-footer__col-head">Product</p>
+          <ul>
+            {PRODUCT_LINKS.map((l) => (
+              <li key={l.href}>
+                <a href={l.href}>{l.label}</a>
+              </li>
+            ))}
+          </ul>
         </nav>
 
-        <footer className="esti-landing-footer__grid" aria-label="AORMS footer">
-            <div className="esti-landing-footer__brand">
-              <span
-                role="img"
-                aria-label="AORMS"
-                className="esti-landing-footer__aorms esti-brand esti-brand--aorms"
-              />
-              <p>{LANDING_SEO.footerBlurb}</p>
-            </div>
+        <nav className="lp2-footer__col" aria-label="Contact">
+          <p className="lp2-footer__col-head">Contact</p>
+          <ul>
+            {CONTACT_LINKS.map((l) => (
+              <li key={l.href}>
+                <a
+                  href={l.href}
+                  {...(l.href.startsWith("http")
+                    ? { target: "_blank", rel: "noopener noreferrer" }
+                    : {})}
+                >
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-            <nav className="esti-landing-footer__nav" aria-label="Product">
-              <h2>Product</h2>
-              <Stack spacing={1.5}>
-                {PRODUCT_LINKS.map((item) => (
-                  <Link key={item.href} href={item.href}>
-                    {item.label}
-                  </Link>
-                ))}
-              </Stack>
-            </nav>
-
-            <nav className="esti-landing-footer__nav" aria-label="Contact">
-              <h2>Contact</h2>
-              <Stack spacing={1.5}>
-                {CONTACT_LINKS.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    {...(item.href.startsWith("http")
-                      ? { target: "_blank", rel: "noopener noreferrer" }
-                      : {})}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </Stack>
-            </nav>
-
-            {/* "Developed by" + the AORMS identity section moved to the fixed rail
-                (MarketingShell). Only the visit counter remains here. */}
-            {visitCount != null && visitCount > 0 ? (
-              <div className="esti-landing-footer__bottom">
-                <span className="esti-landing-footer__visits">
-                  {formatVisitCount(visitCount)} visits
-                </span>
-              </div>
-            ) : null}
-          </footer>
-        </LandingEditorial>
-      </LandingBand>
+        {visitCount != null && visitCount > 0 ? (
+          <p className="lp2-footer__visits">{formatVisitCount(visitCount)} visits</p>
+        ) : null}
+      </div>
+    </footer>
   );
 }
+
+/** @deprecated Use MarketingFooter — kept for Landing.tsx import stability. */
+export const LandingFooter = MarketingFooter;

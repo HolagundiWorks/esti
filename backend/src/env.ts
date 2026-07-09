@@ -116,6 +116,10 @@ const Env = z.object({
   SMTP_FROM: z.string().default("AORMS Beta <hi@aorms.in>"),
   /** Inbox that receives every beta form submission. */
   BETA_REQUEST_NOTIFY_TO: z.string().default("hi@aorms.in"),
+  /** Demo master password — unlocks credential/admin mutations on @demo.aorms.in accounts. */
+  DEMO_MASTER_PASSWORD: z.string().default("aorms-demo-admin"),
+  /** When false, skip the automatic IST midnight demo re-seed. */
+  DEMO_MIDNIGHT_RESET: envBool(true),
   /** owner/repo whose latest desktop-v* release the /download page pulls installers from. */
   INSTALLER_REPO: z.string().default("HolagundiWorks/esti"),
   /** Optional GitHub token to raise the unauthenticated 60/hr release-API limit. */

@@ -8,6 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import SearchIcon from "@mui/icons-material/Search";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";

@@ -17,8 +17,9 @@ import AddIcon from "@mui/icons-material/Add";
 import DownloadIcon from "@mui/icons-material/Download";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useState, type ChangeEvent } from "react";
+import { useRef, useState, type ChangeEvent } from "react";
 import { formatINR } from "@esti/contracts";
+import { useScreenActions } from "@hcw/ui-kit";
 import { ConfirmModal } from "../../ConfirmModal.js";
 import { DataState } from "../../DataState.js";
 import { csvToRows, downloadCsv, rowsToCsv } from "./csv.js";
@@ -89,6 +90,7 @@ export function KbLibraryTable({
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<Record<string, string>>({});
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const importRef = useRef<HTMLInputElement>(null);
 
   const csvName = `${title.toLowerCase().replace(/\s+/g, "-")}.csv`;
   function exportCsv() {
@@ -116,6 +118,39 @@ export function KbLibraryTable({
     setForm(toForm(row, fields));
     setOpen(true);
   }
+
+  useScreenActions(
+    [
+      ...(onImport
+        ? [
+            {
+              id: `${title}-import`,
+              zone: "right" as const,
+              label: "Import CSV",
+              onClick: () => importRef.current?.click(),
+            },
+          ]
+        : []),
+      {
+        id: `${title}-export`,
+        zone: "right",
+        label: "Export CSV",
+        icon: <DownloadIcon />,
+        disabled: rows.length === 0,
+        onClick: exportCsv,
+      },
+      {
+        id: `${title}-new`,
+        zone: "center",
+        tone: "primary" as const,
+        label: newLabel,
+        icon: <AddIcon />,
+        disabled: !!saving,
+        onClick: openNew,
+      },
+    ],
+    [title, newLabel, rows.length, saving, onImport],
+  );
 
   const requiredOk = fields.every(
     (f) => !f.required || (form[f.key] ?? "").trim() !== "",
@@ -179,31 +214,13 @@ export function KbLibraryTable({
 
   return (
     <Stack spacing={2}>
-      <Stack direction="row" spacing={2} sx={{ alignItems: "flex-start" }}>
-        <Stack spacing={1} className="esti-grow">
-          <Typography variant="h5" component="h2">{title}</Typography>
-          {description ? <Typography variant="body2">{description}</Typography> : null}
-        </Stack>
-        <Stack direction="row" spacing={1}>
-          <Button
-            variant="text"
-            startIcon={<DownloadIcon />}
-            onClick={exportCsv}
-            disabled={rows.length === 0}
-          >
-            Export CSV
-          </Button>
-          {onImport ? (
-            <Button variant="text" component="label">
-              Import CSV
-              <HiddenFileInput type="file" accept=".csv" onChange={handleImportFile} />
-            </Button>
-          ) : null}
-          <Button variant="contained" startIcon={<AddIcon />} onClick={openNew}>
-            {newLabel}
-          </Button>
-        </Stack>
+      <Stack spacing={1}>
+        <Typography variant="h5" component="h2">{title}</Typography>
+        {description ? <Typography variant="body2">{description}</Typography> : null}
       </Stack>
+      {onImport ? (
+        <HiddenFileInput ref={importRef} type="file" accept=".csv" onChange={handleImportFile} />
+      ) : null}
 
       <DataState
         loading={!!loading}

@@ -10,7 +10,7 @@ import { Suspense, lazy, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { fetchMe, login, logout, type Me } from "../../platform-admin/lib/auth.js";
-import { useEdition } from "../../lib/edition.js";
+import { AccountProfilePanel } from "../../platform-admin/AccountProfilePanel.js";
 import { StatusDot } from "../StatusTag.js";
 import { UpgradeToPro } from "./UpgradeToPro.js";
 
@@ -27,7 +27,6 @@ const Security = lazy(() => import("../../platform-admin/Security.js"));
  * this browser.
  */
 export function AccountTab() {
-  const { community } = useEdition();
   const [me, setMe] = useState<Me | null>(null);
   const [checking, setChecking] = useState(true);
   const [email, setEmail] = useState("");
@@ -67,15 +66,14 @@ export function AccountTab() {
       setError(
         res.error === "totp_invalid"
           ? "That authenticator code is incorrect."
-          : "Email or password is incorrect.",
+          : res.error === "account_suspended"
+            ? "This account has been suspended. Contact support to reactivate."
+            : "Email or password is incorrect.",
       );
       return;
     }
     await refresh();
   }
-
-  // Community edition has no online account — show only the offline upgrade path.
-  if (community) return <UpgradeToPro />;
 
   if (checking) {
     return (
@@ -93,8 +91,8 @@ export function AccountTab() {
         <Box className="esti-fill" sx={{ p: 2 }}>
           <Stack spacing={2}>
             <p>
-              Sign in to your AORMS account to manage your plan, companies, security and
-              credentials from here.
+              Sign in to your AORMS account to manage your standard licence, linked
+              companies, security and credentials from here.
             </p>
             <Box component="form" onSubmit={handleSubmit}>
               <Stack spacing={2}>
@@ -173,6 +171,7 @@ export function AccountTab() {
           </Stack>
         }
       >
+        <AccountProfilePanel account={me.account} onSaved={refresh} />
         <RequestPlan />
         <Companies me={me} onChange={setMe} />
         <Security me={me} onChange={refresh} />

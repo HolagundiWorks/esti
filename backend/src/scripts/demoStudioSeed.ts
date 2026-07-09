@@ -89,7 +89,7 @@ export async function seedDemoTeamRoster(
         await db.update(users).set({ passwordHash: pwHash, isDemo: true, fullName: person.name }).where(eq(users.id, existing.id));
         userId = existing.id;
       } else {
-        const role = person.email === "accounts@demo.aorms.in" ? "ADMIN" : "STAFF";
+        const role = person.email === "accounts@demo.aorms.in" ? "HR_MANAGER" : "ASSOCIATE";
         const [created] = await db.insert(users).values({
           email: person.email,
           fullName: person.name,
@@ -253,7 +253,7 @@ export async function seedStudioGlanceAndLeads(
   const verdeId = projectIds[2];
 
   if (sharmaId) {
-    const [{ n: momCount }] = await db.select({ n: count() }).from(moms).where(eq(moms.projectId, sharmaId));
+    const momCount = (await db.select({ n: count() }).from(moms).where(eq(moms.projectId, sharmaId)))[0]?.n ?? 0;
     if (momCount === 0) {
       const { ref: momRef } = await nextRef(db, "mom", "MOM");
       await db.insert(moms).values({
@@ -279,7 +279,7 @@ export async function seedStudioGlanceAndLeads(
       });
     }
 
-    const [{ n: visitCount }] = await db.select({ n: count() }).from(siteVisits).where(eq(siteVisits.projectId, sharmaId));
+    const visitCount = (await db.select({ n: count() }).from(siteVisits).where(eq(siteVisits.projectId, sharmaId)))[0]?.n ?? 0;
     if (visitCount === 0) {
       await db.insert(siteVisits).values([
         { projectId: sharmaId, plannedDate: dayOffset(0), status: "CONFIRMED", notes: "Slab reinforcement inspection", createdById: principalId },
@@ -289,7 +289,7 @@ export async function seedStudioGlanceAndLeads(
   }
 
   if (verdeId) {
-    const [{ n: verdeVisits }] = await db.select({ n: count() }).from(siteVisits).where(eq(siteVisits.projectId, verdeId));
+    const verdeVisits = (await db.select({ n: count() }).from(siteVisits).where(eq(siteVisits.projectId, verdeId)))[0]?.n ?? 0;
     if (verdeVisits === 0) {
       await db.insert(siteVisits).values({
         projectId: verdeId,
@@ -301,7 +301,7 @@ export async function seedStudioGlanceAndLeads(
     }
   }
 
-  const [{ n: leadCount }] = await db.select({ n: count() }).from(leads);
+  const leadCount = (await db.select({ n: count() }).from(leads))[0]?.n ?? 0;
   if (leadCount === 0) {
     for (const lead of DEMO_LEADS) {
       const { ref } = await nextRef(db, "lead", "LD");
@@ -339,10 +339,12 @@ export async function seedStudioGlanceAndLeads(
   const ananyaId = memberIds.get("Ananya Iyer");
   const rahulId = memberIds.get("Rahul Menon");
   if (principalMemberId) {
-    const [{ n: rewardCount }] = await db
-      .select({ n: count() })
-      .from(rewardPoints)
-      .where(eq(rewardPoints.teamMemberId, principalMemberId));
+    const rewardCount = (
+      await db
+        .select({ n: count() })
+        .from(rewardPoints)
+        .where(eq(rewardPoints.teamMemberId, principalMemberId))
+    )[0]?.n ?? 0;
     if (rewardCount === 0) {
       const rewards = [
         { teamMemberId: principalMemberId, points: 15, reason: "Client presentation — Verde facade approval", awardType: "CLIENT_IMPACT" },
@@ -355,7 +357,7 @@ export async function seedStudioGlanceAndLeads(
     }
   }
 
-  const [{ n: activityCount }] = await db.select({ n: count() }).from(activities);
+  const activityCount = (await db.select({ n: count() }).from(activities))[0]?.n ?? 0;
   if (activityCount < 4 && sharmaId) {
     await db.insert(activities).values([
       { projectId: sharmaId, objectType: "invoice", eventType: "issued", actorId: principalId, actorName: "Vihaan Sharma", visibility: "STAFF", summary: "Invoice INV issued — Sharma Villa milestone 3" },

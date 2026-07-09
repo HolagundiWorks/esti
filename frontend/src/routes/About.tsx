@@ -154,10 +154,10 @@ export function About() {
 
               <h2>Editions</h2>
               <p>
-                <strong>AORMS Community</strong> is free forever for small practices — the core record
-                and simple invoicing. <strong>AORMS-Pro</strong> adds GST invoicing, HR and payroll,
-                and external AI keys. You can also self-host so your data never leaves your own
-                infrastructure. Read more in our{" "}
+                AORMS ships as <strong>one standard licence</strong> — the full workspace with
+                5 GB storage included and unlimited users. You pay for extra storage and hosted
+                AI usage, or bring your own API key. Detailed BOQ runs in{" "}
+                <strong>AORMS Estimate</strong> on the desktop. Read more in our{" "}
                 <a href="/blog">writing on architecture practice operations</a>.
               </p>
 
@@ -165,7 +165,7 @@ export function About() {
               <p>
                 We would rather have a real conversation than a sales funnel. Write to{" "}
                 <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> or{" "}
-                <a href="/account?mode=create">create a free AORMS Community account</a> and try it on a
+                <a href="/account?mode=create">create your AORMS account</a> and try it on a
                 real project.
               </p>
               <p>

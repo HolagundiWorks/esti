@@ -22,7 +22,7 @@ export async function syncDemoLoginPasswords(
   const pwHash = await hashPassword(password);
   const updated = await db
     .update(users)
-    .set({ passwordHash: pwHash, isDemo: true })
+    .set({ passwordHash: pwHash, isDemo: true, mustCompleteWorkspaceProfile: false })
     .where(or(eq(users.isDemo, true), like(users.email, "%@demo.aorms.in")))
     .returning({ id: users.id });
   await syncDemoUploadPassword(db, password);

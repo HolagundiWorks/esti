@@ -39,6 +39,13 @@ const LICENSE_GATE_ALLOW = new Set([
 // password — the change itself and signing out.
 const PASSWORD_ROTATE_ALLOW = new Set(["users.changePassword", "auth.logout"]);
 
+const WORKSPACE_PROFILE_ALLOW = new Set([
+  "auth.logout",
+  "auth.completeWorkspaceProfile",
+  "firm.get",
+  "users.myProfile",
+]);
+
 const authedProcedure = t.procedure.use(async ({ ctx, next, type, path }) => {
   if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
   // Preloaded/community accounts must rotate their password first — block every
@@ -46,7 +53,19 @@ const authedProcedure = t.procedure.use(async ({ ctx, next, type, path }) => {
   if (ctx.user.mustChangePassword && type === "mutation" && !PASSWORD_ROTATE_ALLOW.has(path)) {
     throw new TRPCError({ code: "FORBIDDEN", message: "password_change_required" });
   }
-  if (ctx.user.isDemo && type === "mutation" && DEMO_BLOCKED_MUTATIONS.has(path)) {
+  if (
+    ctx.user.mustCompleteWorkspaceProfile &&
+    type === "mutation" &&
+    !WORKSPACE_PROFILE_ALLOW.has(path)
+  ) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "workspace_profile_required" });
+  }
+  if (
+    ctx.user.isDemo &&
+    type === "mutation" &&
+    DEMO_BLOCKED_MUTATIONS.has(path) &&
+    !ctx.demoAdminUnlocked
+  ) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "Managing users and credentials is disabled on the demo account.",

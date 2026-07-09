@@ -28,7 +28,11 @@ export async function ensurePersonalOrg(account: AccountView): Promise<string> {
     .limit(1);
   if (owned) return owned.id;
 
-  const base = account.name?.trim() || account.email.split("@")[0] || "workspace";
+  const base =
+    account.profile?.firmName?.trim() ||
+    account.name?.trim() ||
+    account.email.split("@")[0] ||
+    "workspace";
   let slug = slugify(base);
   const [clash] = await db
     .select()
@@ -40,7 +44,11 @@ export async function ensurePersonalOrg(account: AccountView): Promise<string> {
   const orgId = newId("org");
   await db.insert(schema.organizations).values({
     id: orgId,
-    name: account.name ? `${account.name}'s workspace` : `${base}'s workspace`,
+    name: account.profile?.firmName?.trim()
+      ? `${account.profile.firmName.trim()}`
+      : account.name
+        ? `${account.name}'s workspace`
+        : `${base}'s workspace`,
     slug,
     billingEmail: account.email,
     ownerAccountId: account.id,

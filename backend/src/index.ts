@@ -35,10 +35,17 @@ import { registerLicenseRoutes } from "./modules/licensing/routes.js";
 import { refreshNow } from "./modules/license/consumer.js";
 import { applyFirmPlanFromEnv, licenseState } from "./lib/plan.js";
 import { seedCommunityAdmin } from "./lib/seedCommunity.js";
+import {
+  checkOllamaHealth,
+  ensureOllamaAiSettings,
+  ollamaBaseUrlFromEnv,
+  ollamaModelFromEnv,
+} from "./lib/ai/ollama-config.js";
 import { acquireCommunityInstanceLock, lanUrls } from "./lib/lanInstance.js";
 import { registerSyncRoutes } from "./modules/sync/routes.js";
 import { drainOutbox } from "./lib/sync/outbox.js";
 import { proposePulseActions, runDueStandups } from "./lib/pulseEngine.js";
+import { tickDemoMidnightReset } from "./lib/demoReset.js";
 import { createContext } from "./trpc/context.js";
 import { appRouter } from "./trpc/router.js";
 import { registerLicensingPlatform } from "./licensing-platform/register.js";
@@ -147,6 +154,24 @@ try {
   app.log.warn(err, "Community admin seed failed");
 }
 
+// AI Studio — point org settings at the compose Ollama service and log readiness.
+try {
+  const ai = await ensureOllamaAiSettings(db);
+  const baseUrl = ai.ollamaBaseUrl ?? ollamaBaseUrlFromEnv();
+  const model = ollamaModelFromEnv();
+  const health = await checkOllamaHealth({ baseUrl, model });
+  if (!health.ok) {
+    app.log.warn(
+      { baseUrl, model, error: health.error, modelsAvailable: health.modelsAvailable },
+      `Ollama not ready — pull the model: docker exec esti-ollama ollama pull ${model}`,
+    );
+  } else {
+    app.log.info({ baseUrl, model, modelsAvailable: health.modelsAvailable }, "Ollama ready for AI Studio");
+  }
+} catch (err) {
+  app.log.warn(err, "Ollama AI settings bootstrap failed");
+}
+
 // License (Phase B): log effective state on boot. On a managed node, refresh the
 // signed token from the hub now and on an interval so the offline-grace window
 // keeps extending while the hub is reachable (offline failures are tolerated).
@@ -206,6 +231,11 @@ const pulseActionsTick = async () => {
   }
 };
 setInterval(() => void pulseActionsTick(), 30 * 60_000).unref();
+
+const demoResetTick = () => void tickDemoMidnightReset(app.log).catch((err) => {
+  app.log.warn(err, "demo midnight reset failed");
+});
+setInterval(demoResetTick, 60_000).unref();
 
 if (isSmtpConfigured()) {
   app.log.info({ to: env.BETA_REQUEST_NOTIFY_TO }, "beta request mail enabled");

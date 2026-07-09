@@ -40,6 +40,12 @@ export const accounts = pgTable(
     /** One-shot email-verification token (hashed) + its expiry. Cleared on success. */
     emailVerifyToken: text("email_verify_token"),
     emailVerifyExpires: timestamp("email_verify_expires", { withTimezone: true }),
+    /** ACTIVE | SUSPENDED | DELETED — licence manager controls suspend/delete. */
+    status: text("status").notNull().default("ACTIVE"),
+    /** Standard signup profile (firm, contact, location, COA/GSTIN). */
+    profile: jsonb("profile").$type<Record<string, unknown>>().default({}).notNull(),
+    suspendedAt: timestamp("suspended_at", { withTimezone: true }),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt,
     updatedAt,
   },

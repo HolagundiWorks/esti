@@ -6870,8 +6870,7 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-pricing__meter--accent,
 .lp2-shell .lp2-pricing,
 .lp2-shell .lp2-trust,
-.lp2-shell .lp2-head,
-.lp2-shell .lp2-footer {
+.lp2-shell .lp2-head {
   background:      rgba(255, 255, 255, 0.28) !important;
   backdrop-filter: blur(28px) saturate(1.6) brightness(1.08) !important;
   -webkit-backdrop-filter: blur(28px) saturate(1.6) brightness(1.08) !important;
@@ -6903,5 +6902,60 @@ $lp2-gap: 1px;               // shared border thickness
   margin:         0 0 0.55rem;
   line-height:    1.5;
   text-shadow:    0 1px 3px rgba(255, 255, 255, 0.55);
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MARKETING FOOTER — solutions mesh (coal) + Radiant Orange bar (2026-07)
+// Canonical override; marketing / lp2-shell only — not AppFooterBar.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+.lp2-shell .lp2-footer {
+  background: #141517 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: rgba(255, 255, 255, 0.72);
+  margin-top: 2rem;
+}
+
+.lp2-shell .lp2-footer__solutions {
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lp2-shell .lp2-footer__bar {
+  background: var(--lp2-orange, #ff4f18) !important;
+  border-top: none !important;
+  box-shadow: none !important;
+}
+
+.lp2-shell .lp2-footer__bar .lp2-footer__col-head {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.lp2-shell .lp2-footer__bar .lp2-footer__col ul a {
+  color: rgba(255, 255, 255, 0.92);
+
+  &:hover {
+    color: #fff;
+  }
+}
+
+.lp2-shell .lp2-footer__bar .lp2-footer__brand p {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.lp2-shell .lp2-footer__bar .lp2-footer__logo {
+  filter: brightness(10);
+  opacity: 0.95;
+}
+
+.lp2-shell .lp2-footer__bar .lp2-footer__visits {
+  color: rgba(255, 255, 255, 0.75);
+  border-top-color: rgba(255, 255, 255, 0.28);
 }
 

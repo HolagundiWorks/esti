@@ -17,6 +17,7 @@ import { AlertsBell } from "../AlertsBell.js";
 import { FloatingCalculator } from "../FloatingCalculator.js";
 import { HeaderPomodoro } from "../HeaderPomodoro.js";
 import { UserIdCard } from "../UserIdCard.js";
+import { DemoAdminUnlock } from "../DemoAdminUnlock.js";
 import { WellnessPanel } from "../wellness/WellnessPanel.js";
 import { useWellnessReminders } from "../wellness/useWellnessReminders.js";
 import { OfficeHealthGlyph } from "./OfficeHealthGlyph.js";
@@ -26,9 +27,9 @@ import { useOfficeHealth } from "./useOfficeHealth.js";
  * Taskbar footer — glassmorphic bar (HCW-UI-Kit spatial model). Launcher
  * icons are round neumorphic chips on the frosted surface:
  *
- *   LEFT   — calculator · office health.
+ *   LEFT   — calculator · office health · task due.
  *   CENTER — Studio Intelligence · tasks · **Ask ESTI** · wellbeing · pomodoro (fixed viewport centre).
- *   RIGHT  — clock · due-dates · alerts · ID · sign out.
+ *   RIGHT  — clock · alerts · ID · sign out.
  *
  * The top border carries the office-health signal (green/amber/red), taken over
  * from the retired floating dock.
@@ -69,7 +70,7 @@ export function AppFooterBar({
   // Wellness reminders (hydration + firm breaks) run globally from the taskbar.
   useWellnessReminders();
 
-  const { state, pendingTasks, overdueInvoices } = useOfficeHealth();
+  const { state, pendingTasks } = useOfficeHealth();
   const healthToken =
     state === "critical"
       ? "var(--cds-support-error)"
@@ -119,6 +120,18 @@ export function AppFooterBar({
             <Typography variant="caption" sx={{ textTransform: "capitalize" }} noWrap>{state}</Typography>
           </Stack>
         </Tooltip>
+        {pendingTasks > 0 && (
+          <Tooltip title="Open tasks due">
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ cursor: "pointer", pl: 0.5 }}
+              onClick={() => navigate("/tasks")}
+            >
+              {pendingTasks} due
+            </Typography>
+          </Tooltip>
+        )}
       </Box>
 
       {/* CENTER — Studio Intelligence · tasks · Ask ESTI · wellbeing · pomodoro */}
@@ -165,21 +178,8 @@ export function AppFooterBar({
       {/* RIGHT — system tray */}
       <Stack direction="row" spacing={1} sx={{ alignItems: "center", flex: 1, justifyContent: "flex-end", minWidth: 0 }}>
         <TrayClock />
-        {(pendingTasks > 0 || overdueInvoices > 0) && (
-          <Tooltip title="Pending tasks · overdue invoices">
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ cursor: "pointer" }}
-              onClick={() => navigate("/tasks")}
-            >
-              {pendingTasks > 0 ? `${pendingTasks} due` : null}
-              {pendingTasks > 0 && overdueInvoices > 0 ? " · " : null}
-              {overdueInvoices > 0 ? `${overdueInvoices} inv` : null}
-            </Typography>
-          </Tooltip>
-        )}
         <AlertsBell />
+        <DemoAdminUnlock />
         <UserIdCard />
         <Tooltip title="Sign out">
           <IconButton size="small" onClick={onSignOut} aria-label="Sign out">

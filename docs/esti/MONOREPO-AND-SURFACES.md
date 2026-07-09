@@ -23,7 +23,7 @@ esti/                     pnpm workspace root
 ├─ frontend/              React + Vite + IBM Carbon — AORMS workspace SPA
 ├─ worker/                Python Redis-Streams consumer (PDF/DXF/reconcile)
 ├─ ese/                   @esti/ese — Estimation Specification Engine (own Fastify app)
-├─ desktop/               Tauri shell (AORMS Lite/Pro/Community)
+├─ desktop/               Tauri shell (AORMS Estimate desktop host)
 └─ estimate/              Estimate app — SPA + desktop-cpp/ (native C++ webview
                           host + vendored SQLite; no Rust, no server)
 ```

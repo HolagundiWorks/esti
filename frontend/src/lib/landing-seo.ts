@@ -23,7 +23,7 @@ export const LANDING_FAQ = [
   {
     question: "Who is AORMS for?",
     answer:
-      "Registered architects, interior designers and architectural consultancy practices in India — from solo studios to mid-sized firms. One product with unlimited users; no Lite, Pro or Enterprise editions.",
+      "Registered architects, interior designers and architectural consultancy practices in India — from solo studios to mid-sized firms. One standard licence with unlimited users.",
   },
   {
     question: "How much does AORMS cost?",

@@ -2,9 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Card,
-  CardActionArea,
-  CardContent,
   Checkbox,
   Dialog,
   DialogActions,
@@ -19,7 +16,6 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   DECISION_STATE_LABEL,
   DECISION_STATE_TAG,
@@ -35,50 +31,6 @@ import {
 import { trpc } from "../lib/trpc.js";
 import { AiDraftPanel } from "./AiStudio.js";
 import { StatusDot, StatusTag } from "./StatusTag.js";
-
-function StatCard({
-  label,
-  value,
-  detail,
-  onClick,
-  tag,
-}: {
-  label: string;
-  value: string | number;
-  detail: string;
-  onClick?: () => void;
-  tag: string;
-}) {
-  const body = (
-    <CardContent>
-      <Stack spacing={1}>
-        <Stack spacing={0.5}>
-          <Typography variant="subtitle2" component="h4">
-            {label}
-          </Typography>
-          <Typography variant="h4" component="h2">
-            {value}
-          </Typography>
-        </Stack>
-        <Box sx={{ alignSelf: "flex-start" }}>
-          <StatusDot color="blue" label={tag} />
-        </Box>
-        <Typography variant="body2">{detail}</Typography>
-      </Stack>
-    </CardContent>
-  );
-  return onClick ? (
-    <Card className="esti-fill">
-      <CardActionArea onClick={onClick} className="esti-fill">
-        {body}
-      </CardActionArea>
-    </Card>
-  ) : (
-    <Box className="esti-fill" sx={{ borderBottom: 1, borderColor: "divider" }}>
-      {body}
-    </Box>
-  );
-}
 
 function nextActionHint(
   state: DecisionState,
@@ -128,20 +80,7 @@ function isCoolingOff(d: {
 }
 
 export function ProjectOverview({ projectId }: { projectId: string }) {
-  const navigate = useNavigate();
   const utils = trpc.useUtils();
-  const tasksQ = trpc.tasks.listByProject.useQuery(
-    { projectId },
-    { enabled: !!projectId },
-  );
-  const approvalsQ = trpc.approvals.listByProject.useQuery(
-    { projectId },
-    { enabled: !!projectId },
-  );
-  const drawingsQ = trpc.drawings.listByProject.useQuery(
-    { projectId, currentOnly: true },
-    { enabled: !!projectId },
-  );
   const revisionsQ = trpc.drawings.recentRevisions.useQuery(
     { projectId },
     { enabled: !!projectId },
@@ -235,34 +174,9 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
   const programVersions = programVersionsQ.data ?? [];
   const programVersionNo = new Map(programVersions.map((pv) => [pv.id, pv.version]));
 
-  const tasks = tasksQ.data ?? [];
-  const approvals = approvalsQ.data?.rows ?? [];
-  const drawings = drawingsQ.data ?? [];
   const revisions = revisionsQ.data ?? [];
   const notes = notesQ.data?.rows ?? [];
   const allDecisions = decisionsQ.data?.rows ?? [];
-  const openTasks = tasks.filter((t) => t.status !== "DONE");
-  const overdueTasks = tasks.filter(
-    (t) =>
-      t.dueDate &&
-      t.dueDate < new Date().toISOString().slice(0, 10) &&
-      t.status !== "DONE",
-  );
-  const pendingApprovals = approvals.filter(
-    (a) =>
-      a.status === "DRAFT" || a.status === "SENT" || a.status === "REVISIONS",
-  );
-  const openNotes = notes.filter((n) => n.status !== "RESOLVED");
-  const activeDecisions = allDecisions.filter(
-    (d) => d.state !== "LOCKED" && d.state !== "ACCEPTED",
-  );
-  const health = [
-    openTasks.length > 0 ? "Tasks open" : null,
-    overdueTasks.length > 0 ? "Tasks overdue" : null,
-    pendingApprovals.length > 0 ? "Approvals pending" : null,
-    openNotes.length > 0 ? "Critical notes open" : null,
-    activeDecisions.length > 0 ? "Decisions in progress" : null,
-  ].filter(Boolean);
   const transitionDecision = allDecisions.find((d) => d.id === transitionId);
   const allowedNextStates = transitionDecision
     ? DECISION_TRANSITIONS[(transitionDecision.state ?? "OPEN") as DecisionState] ?? []
@@ -481,48 +395,6 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
 
   return (
     <Stack spacing={3}>
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <StatCard
-            label="Open tasks"
-            value={openTasks.length}
-            detail="Work items still in motion."
-            tag="Task load"
-            onClick={() => navigate("/tasks")}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <StatCard
-            label="Pending approvals"
-            value={pendingApprovals.length}
-            detail="Items waiting for client or internal sign-off."
-            tag="Approvals"
-            onClick={() => navigate("/tasks?tab=activity")}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <StatCard
-            label="Current drawings"
-            value={drawings.length}
-            detail="Latest drawing revisions in active use."
-            tag="Revisions"
-            onClick={() => navigate(`/projects/${projectId}?tab=drawings`)}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <StatCard
-            label="Health signals"
-            value={health.length}
-            detail={
-              health.length
-                ? health.join(" · ")
-                : "No obvious blockers right now."
-            }
-            tag="Overview"
-          />
-        </Grid>
-      </Grid>
-
       {revisions.length > 0 && (
         <Stack spacing={1}>
           <Typography variant="h6" component="h3">

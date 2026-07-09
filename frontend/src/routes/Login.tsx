@@ -1,23 +1,23 @@
 import ArrowBack from "@mui/icons-material/ArrowBack";
 import ArrowForward from "@mui/icons-material/ArrowForward";
 import Download from "@mui/icons-material/Download";
-import LoginIcon from "@mui/icons-material/Login";
 import {
   Alert,
   AlertTitle,
   Button,
   CircularProgress,
   MenuItem,
-  Paper,
   Stack,
   TextField,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router-dom";
 import { IS_DESKTOP, setDesktopToken } from "../lib/api-base.js";
-import { useEdition } from "../lib/edition.js";
 import { login as platformLogin } from "../platform-admin/lib/auth.js";
 import { trpc } from "../lib/trpc.js";
+import { AuthBrandBlock } from "../components/AormsLogo.js";
+import { AuthRailLayout } from "../components/AuthRailLayout.js";
+import { GoogleIconCircle } from "../components/GoogleIconCircle.js";
 
 // The firm WORKSPACE sign-in (esti_user). On unified installs one identity
 // spans several company workspaces (architects freelance alongside firm work),
@@ -56,7 +56,6 @@ function companyItem(c: CompanyOption): TenantItem {
 export function Login() {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
-  const { community } = useEdition();
   const [params, setParams] = useSearchParams();
 
   const [email, setEmail] = useState("");
@@ -141,7 +140,7 @@ export function Login() {
   async function openCompanyAccount(company: CompanyOption) {
     if (!password) {
       // Google path — the platform session already exists; just open the portal.
-      window.location.href = "/account";
+      window.location.href = "/company-account";
       return;
     }
     setCompanyBusy(true);
@@ -152,7 +151,7 @@ export function Login() {
       setCompanyError("Could not open that company right now — try again.");
       return;
     }
-    window.location.href = "/account";
+    window.location.href = "/company-account";
   }
 
   const errorText =
@@ -162,24 +161,23 @@ export function Login() {
   const showError = Boolean(login.error) && login.error?.message !== "totp_required";
 
   return (
-    <div className="cds--white">
-    <main className="esti-login-shell">
-      <Stack spacing={2} className="esti-login-panel">
-        <Paper sx={{ p: 3, borderTop: 3, borderTopColor: "primary.main" }}>
+    <AuthRailLayout
+      variant="workspace"
+      rail={
+        <Stack spacing={2}>
           <Stack spacing={3}>
             <Stack spacing={1}>
-              <div className="esti-login-brand">
-                <Stack spacing={0.5}>
-                  <h3>AORMS</h3>
-                  <p className="esti-label esti-label--secondary">Architecture Office OS</p>
-                </Stack>
-              </div>
-              <h2>{companies ? "Where are you working today?" : "Welcome back"}</h2>
-              {!companies && (
+              <AuthBrandBlock tagline="Architecture Office OS" />
+              <h2>{companies ? "Choose where to go" : "Welcome back"}</h2>
+              {companies ? (
+                <p className="esti-label esti-label--secondary">
+                  Open your workspace, manage your account, or review your company.
+                </p>
+              ) : (
                 <p className="esti-label esti-label--secondary">
                   {IS_DESKTOP
-                    ? "AORMS Community · this workspace lives on this computer."
-                    : "One account for your studio, your companies, and your AORMS identity."}
+                    ? "AORMS Estimate · sign in with your studio account."
+                    : "Sign in, then choose your workspace, account, or company."}
                 </p>
               )}
             </Stack>
@@ -204,9 +202,6 @@ export function Login() {
               (() => {
                 const owned = companies.filter((c) => c.role === "OWNER");
                 const current = selectedCompany();
-                // Target for the company-account button: the dropdown's
-                // selection when it's a company they own; with exactly one
-                // owned company it always targets that one.
                 const accountCompany =
                   current && current.role === "OWNER"
                     ? current
@@ -217,53 +212,17 @@ export function Login() {
                 const tenantItems = [WORKSPACE_ITEM, ...companies.map(companyItem)];
                 return (
                   <Stack spacing={2}>
-                    {showDropdown ? (
-                      <div className="esti-row">
-                        <TextField
-                          id="tenant-select"
-                          select
-                          className="esti-grow"
-                          label="Active company"
-                          value={(tenant ?? WORKSPACE_ITEM).id}
-                          onChange={(e) =>
-                            setTenant(tenantItems.find((item) => item.id === e.target.value) ?? null)
-                          }
-                        >
-                          {tenantItems.map((item) => (
-                            <MenuItem key={item.id} value={item.id}>
-                              {item.label}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                        <Button
-                          variant="contained"
-                          endIcon={<ArrowForward />}
-                          disabled={companyBusy}
-                          onClick={() => void enterWorkspace()}
-                        >
-                          {companyBusy ? "Opening..." : "Login"}
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        variant="contained"
-                        endIcon={<ArrowForward />}
-                        disabled={companyBusy}
-                        onClick={() => void enterWorkspace()}
-                      >
-                        {companyBusy
-                          ? "Opening..."
-                          : companies.length === 1
-                            ? `Login — ${companies[0]!.name}`
-                            : "Login — Personal workspace"}
-                      </Button>
-                    )}
-                    {companyError && (
-                      <Alert severity="error">
-                        <AlertTitle>Could not open the company</AlertTitle>
-                        {companyError}
-                      </Alert>
-                    )}
+                    <Button
+                      variant="contained"
+                      endIcon={<ArrowForward />}
+                      disabled={companyBusy}
+                      onClick={() => void enterWorkspace()}
+                    >
+                      {companyBusy ? "Opening…" : "Open workspace"}
+                    </Button>
+                    <Button component={RouterLink} to="/account" variant="outlined" disabled={companyBusy}>
+                      My AORMS account
+                    </Button>
                     {owned.length > 0 && (
                       <Button
                         variant="outlined"
@@ -272,23 +231,36 @@ export function Login() {
                       >
                         {accountCompany
                           ? `Company account — ${accountCompany.name}`
-                          : "Company account (select a company above)"}
+                          : "Company account (owner only)"}
                       </Button>
                     )}
-                    <Button component={RouterLink} to="/account" variant="text" size="small">
-                      Personal AORMS account
+                    <Button component={RouterLink} to="/account#join" variant="text" size="small">
+                      Request to join a company
                     </Button>
-                    {/* Pro desktop installer is disabled for now — link to the
-                        download page (Community installer + Pro "coming soon"). */}
-                    <Button
-                      component={RouterLink}
-                      to="/download"
-                      variant="text"
-                      size="small"
-                      endIcon={<Download />}
-                    >
-                      Get the AORMS desktop app
-                    </Button>
+                    {showDropdown ? (
+                      <TextField
+                        id="tenant-select"
+                        select
+                        label="Workspace context (optional)"
+                        size="small"
+                        value={(tenant ?? WORKSPACE_ITEM).id}
+                        onChange={(e) =>
+                          setTenant(tenantItems.find((item) => item.id === e.target.value) ?? null)
+                        }
+                      >
+                        {tenantItems.map((item) => (
+                          <MenuItem key={item.id} value={item.id}>
+                            {item.label}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    ) : null}
+                    {companyError && (
+                      <Alert severity="error">
+                        <AlertTitle>Could not open the company</AlertTitle>
+                        {companyError}
+                      </Alert>
+                    )}
                     <Button variant="text" size="small" onClick={() => setCompanies(null)}>
                       Sign in as someone else
                     </Button>
@@ -303,7 +275,7 @@ export function Login() {
                       variant="outlined"
                       size="large"
                       className="esti-grow"
-                      endIcon={<LoginIcon />}
+                      startIcon={<GoogleIconCircle />}
                       disabled={fromGoogle.isPending}
                       onClick={startGoogle}
                     >
@@ -374,15 +346,15 @@ export function Login() {
                 <div className="esti-row-between">
                   <Button
                     component={RouterLink}
-                    to={community ? "/recover" : "/forgot-password"}
+                    to="/forgot-password"
                     variant="text"
                     size="small"
                   >
-                    {community ? "Use backup code" : "Forgot password?"}
+                    Forgot password?
                   </Button>
                   {PUBLIC_SITE ? (
                     <Button component={RouterLink} to="/account?mode=create" variant="text" size="small">
-                      Create free account
+                      Create AORMS account
                     </Button>
                   ) : (
                     <Button component={RouterLink} to="/signup" variant="text" size="small">
@@ -393,11 +365,9 @@ export function Login() {
               </>
             )}
           </Stack>
-        </Paper>
 
-        {!companies && (
-          <Paper sx={{ p: 3, borderTop: 3, borderTopColor: "primary.main" }}>
-            <Stack spacing={1}>
+          {!companies && (
+            <Stack spacing={1} sx={{ pt: 1, borderTop: 1, borderColor: "divider" }}>
               {PUBLIC_SITE && (
                 <Button component={RouterLink} to="/account" variant="text" size="small">
                   Manage your AORMS account &amp; licence →
@@ -414,11 +384,9 @@ export function Login() {
                   Download AORMS desktop
                 </Button>
               )}
-              {!community && (
-                <Button component={RouterLink} to="/access" variant="text" size="small">
-                  Client / consultant / contractor portal
-                </Button>
-              )}
+              <Button component={RouterLink} to="/access" variant="text" size="small">
+                Client / consultant / contractor portal
+              </Button>
               <Button
                 component={RouterLink}
                 to="/"
@@ -429,10 +397,9 @@ export function Login() {
                 Back to home
               </Button>
             </Stack>
-          </Paper>
-        )}
-      </Stack>
-    </main>
-    </div>
+          )}
+        </Stack>
+      }
+    />
   );
 }

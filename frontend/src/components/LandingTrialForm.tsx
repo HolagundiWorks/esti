@@ -1,7 +1,5 @@
 /**
- * Public trial workspace request form — short version: who you are + how to
- * reach you. Freelancer vs firm (+ team size) and discipline; everything else is
- * derived. Carbon controls only.
+ * Public contact / demo request form — who you are and how to reach you.
  */
 import {
   Alert,

@@ -8,7 +8,6 @@ import {
   DialogTitle,
   Divider,
   Grid,
-  LinearProgress,
   MenuItem,
   Stack,
   TextField,
@@ -20,10 +19,8 @@ import SyncIcon from "@mui/icons-material/Sync";
 import {
   ASSIGNABLE_STAFF_ROLES,
   GENERAL_STAFF_ROLES,
-  PLAN_LABEL,
-  PLAN_LIMITS,
-  type Plan,
   STAFF_ROLE_LABEL,
+  STANDARD_LICENCE_LABEL,
   USER_TYPE_LABEL,
   accessLabelForUser,
   isStaffRole,
@@ -51,31 +48,21 @@ const TYPE_TAG_COLOR: Record<string, "purple" | "gray" | "blue" | "teal" | "cyan
   CONTRACTOR: "cyan",
 };
 
-export function Users() {
+export function Users({ embedded = false }: { embedded?: boolean }) {
   const { user } = useAuth();
   const utils = trpc.useUtils();
   const listQ = trpc.users.list.useQuery();
-  // Plan + seat caps are license-derived (Phase B) — activation lives in Company.
-  const licenseQ = trpc.license.status.useQuery();
   const invalidate = () => utils.users.list.invalidate();
-  const plan = (licenseQ.data?.plan ?? "LITE") as Plan;
-  const isLite = plan === "LITE";
-  // Lite only offers general staff seats (no accountant/HR functional seats).
-  const roleOptions = isLite ? GENERAL_STAFF_ROLES : ASSIGNABLE_STAFF_ROLES;
-
-  // Active-seat usage per functional bucket. Only enabled logins consume a seat;
-  // a disabled account frees its seat. The single OWNER (admin) is pinned.
   const rows = listQ.data ?? [];
   const activeIn = (roles: readonly string[]) =>
     rows.filter((u) => roles.includes(u.role) && !u.disabled).length;
-  // Seat caps come from the licence (with plan defaults as the fallback).
-  const caps = licenseQ.data?.seats ?? PLAN_LIMITS[plan];
-  const seats: Array<{ label: string; used: number; cap: number | null }> = [
-    { label: "Admin", used: rows.filter((u) => u.role === "OWNER").length, cap: 1 },
-    { label: "Accountant", used: activeIn(["ACCOUNTANT"]), cap: caps.accountants },
-    { label: "HR manager", used: activeIn(["HR_MANAGER"]), cap: caps.hrManagers },
-    { label: "Staff", used: activeIn(GENERAL_STAFF_ROLES), cap: caps.staff },
-  ].filter((s) => s.cap === null || s.cap > 0);
+  const seats: Array<{ label: string; used: number }> = [
+    { label: "Admin", used: rows.filter((u) => u.role === "OWNER").length },
+    { label: "Accountant", used: activeIn(["ACCOUNTANT"]) },
+    { label: "HR manager", used: activeIn(["HR_MANAGER"]) },
+    { label: "Staff", used: activeIn(GENERAL_STAFF_ROLES) },
+  ];
+  const roleOptions = ASSIGNABLE_STAFF_ROLES;
 
   const setDisabled = trpc.users.setDisabled.useMutation({
     onSuccess: invalidate,
@@ -141,25 +128,27 @@ export function Users() {
   });
 
   useScreenActions(
-    [
-      {
-        id: "add-staff-login",
-        zone: "center",
-        tone: "primary",
-        label: "Add staff login",
-        icon: <AddIcon />,
-        onClick: () => setAddOpen(true),
-      },
-      {
-        id: "resync-identity-types",
-        zone: "right",
-        label: resync.isPending ? "Syncing…" : "Resync identity types",
-        icon: <SyncIcon />,
-        disabled: resync.isPending,
-        onClick: () => resync.mutate(),
-      },
-    ],
-    [resync.isPending],
+    embedded
+      ? []
+      : [
+          {
+            id: "add-staff-login",
+            zone: "center",
+            tone: "primary",
+            label: "Add staff login",
+            icon: <AddIcon />,
+            onClick: () => setAddOpen(true),
+          },
+          {
+            id: "resync-identity-types",
+            zone: "right",
+            label: resync.isPending ? "Syncing…" : "Resync identity types",
+            icon: <SyncIcon />,
+            disabled: resync.isPending,
+            onClick: () => resync.mutate(),
+          },
+        ],
+    [embedded, resync.isPending],
   );
 
   const columns: GridColDef[] = [
@@ -279,38 +268,21 @@ export function Users() {
     },
   ];
 
-  return (
+  const body = (
     <>
-      <RailLayout
-        title="Users & access"
-        description="Owner / staff / portal logins. Client and consultant portal logins are created from their records (Clients / Consultants)."
-      >
-
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: embedded ? 0 : 3 }}>
         <Stack spacing={2}>
           <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-            <Typography variant="subtitle1" component="h3" className="esti-label">Seat usage</Typography>
-            <StatusDot color={plan === "LITE" ? "gray" : "blue"} label={PLAN_LABEL[plan]} />
+            <Typography variant="subtitle1" component="h3" className="esti-label">Active logins</Typography>
+            <StatusDot color="blue" label={STANDARD_LICENCE_LABEL} />
           </Stack>
           <Grid container spacing={2}>
             {seats.map((s) => (
               <Grid key={s.label} size={{ xs: 12, sm: 6, lg: 3 }}>
-                {s.cap === null ? (
-                  <Stack spacing={0.5}>
-                    <Typography variant="body2" className="esti-label">{s.label}</Typography>
-                    <Typography variant="body2">{s.used} active · Unlimited</Typography>
-                  </Stack>
-                ) : (
-                  <Stack spacing={0.5}>
-                    <Typography variant="body2" className="esti-label">{s.label}</Typography>
-                    <LinearProgress
-                      variant="determinate"
-                      value={Math.min(100, (s.used / s.cap) * 100)}
-                      color={s.used >= s.cap ? "error" : "primary"}
-                    />
-                    <Typography variant="caption" color="text.secondary">{s.used} / {s.cap} seats</Typography>
-                  </Stack>
-                )}
+                <Stack spacing={0.5}>
+                  <Typography variant="body2" className="esti-label">{s.label}</Typography>
+                  <Typography variant="body2">{s.used} active · Unlimited</Typography>
+                </Stack>
               </Grid>
             ))}
           </Grid>
@@ -325,7 +297,7 @@ export function Users() {
 
       <Divider sx={{ my: 2 }} />
 
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: embedded ? 0 : 3, pt: embedded ? 2 : undefined }}>
         <Stack spacing={2}>
           <Typography variant="subtitle1" component="h3">Logins</Typography>
           <DataGrid
@@ -340,7 +312,45 @@ export function Users() {
           />
         </Stack>
       </Box>
-      </RailLayout>
+    </>
+  );
+
+  return (
+    <>
+      {embedded ? (
+        <Box sx={{ p: 2 }}>
+          <Stack spacing={2}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
+              <Typography variant="h6" component="h2" className="esti-grow">
+                Users & access
+              </Typography>
+              <Button variant="contained" size="small" startIcon={<AddIcon />} onClick={() => setAddOpen(true)}>
+                Add staff login
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<SyncIcon />}
+                disabled={resync.isPending}
+                onClick={() => resync.mutate()}
+              >
+                {resync.isPending ? "Syncing…" : "Resync identity types"}
+              </Button>
+            </Stack>
+            <Typography variant="body2" color="text.secondary">
+              Owner / staff / portal logins. Client and consultant portal logins are created from their records.
+            </Typography>
+            {body}
+          </Stack>
+        </Box>
+      ) : (
+        <RailLayout
+          title="Users & access"
+          description="Owner / staff / portal logins. Client and consultant portal logins are created from their records (Clients / Consultants)."
+        >
+          {body}
+        </RailLayout>
+      )}
 
       <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Add staff login</DialogTitle>

@@ -1,5 +1,10 @@
-import { and, eq, gt, isNull, or } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, or } from "drizzle-orm";
 import { randomBytes } from "node:crypto";
+import {
+  AccountSignupProfile as AccountSignupProfileSchema,
+  type AccountSignupProfile,
+  type AccountStatus,
+} from "@esti/contracts";
 import { hashPassword, verifyPassword } from "../../../auth/session.js";
 import { db as workspaceDb } from "../../../db/index.js";
 import { users as workspaceUsers } from "../../../db/schema/index.js";
@@ -10,6 +15,7 @@ import { env } from "../../env.js";
 import { hashApiKey } from "../../lib/apikey.js";
 import { newId, newPublicId } from "../../lib/ids.js";
 import { membership, orgIdFromHandle, resolveCompany } from "./tenant.js";
+import { ensureFirmOrgForOwner } from "../membership/service.js";
 
 export interface AccountView {
   id: string;
@@ -19,9 +25,17 @@ export interface AccountView {
   name: string | null;
   avatarUrl: string | null;
   isPlatformAdmin: boolean;
+  status: AccountStatus;
+  profile: AccountSignupProfile | null;
 }
 
 type AccountRow = typeof schema.accounts.$inferSelect;
+
+function parseProfile(raw: unknown): AccountSignupProfile | null {
+  if (!raw || typeof raw !== "object" || Object.keys(raw as object).length === 0) return null;
+  const parsed = AccountSignupProfileSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
+}
 
 function view(a: AccountRow): AccountView {
   return {
@@ -31,12 +45,15 @@ function view(a: AccountRow): AccountView {
     name: a.name,
     avatarUrl: a.avatarUrl,
     isPlatformAdmin: a.isPlatformAdmin,
+    status: (a.status as AccountStatus) ?? "ACTIVE",
+    profile: parseProfile(a.profile),
   };
 }
 
 export async function getAccountById(id: string): Promise<AccountView | null> {
   const [a] = await db.select().from(schema.accounts).where(eq(schema.accounts.id, id)).limit(1);
-  return a ? view(a) : null;
+  if (!a || a.status === "DELETED") return null;
+  return view(a);
 }
 
 /** True once at least one platform-admin account exists (first-admin bootstrap done). */
@@ -108,8 +125,11 @@ export async function registerWithPassword(input: {
   email: string;
   password: string;
   name?: string | null;
+  profile?: AccountSignupProfile;
 }): Promise<AccountView> {
   const email = input.email.toLowerCase();
+  const displayName = input.profile?.fullName?.trim() || input.name?.trim() || null;
+  const profileJson = input.profile ?? null;
   const [existing] = await db
     .select({
       id: schema.accounts.id,
@@ -134,7 +154,9 @@ export async function registerWithPassword(input: {
       .update(schema.accounts)
       .set({
         passwordHash,
-        name: input.name ?? existing.name,
+        name: displayName ?? existing.name,
+        ...(profileJson ? { profile: profileJson } : {}),
+        status: "ACTIVE",
         isPlatformAdmin: grantAdmin,
         updatedAt: new Date(),
       })
@@ -146,10 +168,9 @@ export async function registerWithPassword(input: {
     .insert(schema.accounts)
     .values({
       id: newId("acc"),
-      // Earned identity (Phase 34): no AORMS-U handle at signup — generated
-      // after 100 hours of product usage (see mintPublicIdForEmail).
       email,
-      name: input.name ?? null,
+      name: displayName,
+      profile: profileJson ?? {},
       passwordHash,
       isPlatformAdmin: grantAdmin,
     })
@@ -219,7 +240,9 @@ export async function loginWithWorkspaceCredentials(
       })
       .where(eq(schema.accounts.id, existing.id))
       .returning();
-    return { kind: "ok", account: view(claimed!) };
+    const claimedAccount = view(claimed!);
+    if (u.role === "OWNER") await ensureFirmOrgForOwner(claimedAccount);
+    return { kind: "ok", account: claimedAccount };
   }
   const [created] = await db
     .insert(schema.accounts)
@@ -232,7 +255,69 @@ export async function loginWithWorkspaceCredentials(
       isPlatformAdmin: grantAdmin,
     })
     .returning();
-  return { kind: "ok", account: view(created!) };
+  const account = view(created!);
+  if (u.role === "OWNER") await ensureFirmOrgForOwner(account);
+  return { kind: "ok", account };
+}
+
+/**
+ * Trust an active workspace session (OWNER) to open the company account portal
+ * without re-entering credentials on unified single-box installs.
+ */
+export async function adoptWorkspaceSessionOwner(userId: string): Promise<AccountView | null> {
+  const [u] = await workspaceDb
+    .select()
+    .from(workspaceUsers)
+    .where(eq(workspaceUsers.id, userId))
+    .limit(1);
+  if (!u || u.disabled || u.role !== "OWNER") return null;
+
+  const email = u.email.trim().toLowerCase();
+  const grantAdmin = env.PLATFORM_ADMIN_EMAILS.includes(email);
+  const [existing] = await db
+    .select()
+    .from(schema.accounts)
+    .where(eq(schema.accounts.email, email))
+    .limit(1);
+
+  if (existing && (existing.passwordHash || existing.googleSub)) {
+    const account = view(existing);
+    await ensureFirmOrgForOwner(account);
+    return account;
+  }
+  if (!u.passwordHash) return null;
+
+  if (existing) {
+    const [claimed] = await db
+      .update(schema.accounts)
+      .set({
+        passwordHash: u.passwordHash,
+        name: existing.name ?? u.fullName,
+        publicId: existing.publicId ?? u.accountPublicId ?? null,
+        isPlatformAdmin: existing.isPlatformAdmin || grantAdmin,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.accounts.id, existing.id))
+      .returning();
+    const claimedAccount = view(claimed!);
+    await ensureFirmOrgForOwner(claimedAccount);
+    return claimedAccount;
+  }
+
+  const [created] = await db
+    .insert(schema.accounts)
+    .values({
+      id: newId("acc"),
+      email,
+      name: u.fullName,
+      passwordHash: u.passwordHash,
+      publicId: u.accountPublicId ?? null,
+      isPlatformAdmin: grantAdmin,
+    })
+    .returning();
+  const account = view(created!);
+  await ensureFirmOrgForOwner(account);
+  return account;
 }
 
 /** Stamp the email as verified (idempotent) — used after a Google sign-in. */
@@ -331,6 +416,19 @@ export async function verifyEmailToken(plainToken: string): Promise<boolean> {
 
 /** Verify email + password. Returns the account on success, else null. Upgrades
  *  to platform admin if the email is now in PLATFORM_ADMIN_EMAILS. */
+export async function accountLoginBlock(
+  emailRaw: string,
+): Promise<"account_suspended" | null> {
+  const email = emailRaw.toLowerCase();
+  const [a] = await db
+    .select({ status: schema.accounts.status })
+    .from(schema.accounts)
+    .where(eq(schema.accounts.email, email))
+    .limit(1);
+  if (a?.status === "SUSPENDED") return "account_suspended";
+  return null;
+}
+
 export async function loginWithPassword(
   emailRaw: string,
   password: string,
@@ -342,6 +440,7 @@ export async function loginWithPassword(
     .where(eq(schema.accounts.email, email))
     .limit(1);
   if (!a || !a.passwordHash) return null;
+  if (a.status === "SUSPENDED" || a.status === "DELETED") return null;
   if (!(await verifyPassword(a.passwordHash, password))) return null;
 
   if (!a.isPlatformAdmin && env.PLATFORM_ADMIN_EMAILS.includes(email)) {
@@ -391,4 +490,104 @@ export async function verifyLogin(input: {
     account: { publicId: account.publicId, email: account.email, name: account.name },
     role,
   };
+}
+
+export async function updateAccountProfile(
+  accountId: string,
+  patch: Partial<AccountSignupProfile>,
+): Promise<AccountView> {
+  const [row] = await db.select().from(schema.accounts).where(eq(schema.accounts.id, accountId)).limit(1);
+  if (!row || row.status === "DELETED") throw new Error("not_found");
+  const current = parseProfile(row.profile) ?? ({} as Partial<AccountSignupProfile>);
+  const merged = { ...current, ...patch };
+  const parsed = AccountSignupProfileSchema.parse(merged);
+  const [updated] = await db
+    .update(schema.accounts)
+    .set({ profile: parsed, name: parsed.fullName, updatedAt: new Date() })
+    .where(eq(schema.accounts.id, accountId))
+    .returning();
+  return view(updated!);
+}
+
+async function ownedOrgIds(accountId: string): Promise<string[]> {
+  const rows = await db
+    .select({ id: schema.organizations.id })
+    .from(schema.organizations)
+    .where(eq(schema.organizations.ownerAccountId, accountId));
+  return rows.map((r) => r.id);
+}
+
+/** Licence manager — suspend or reactivate an account and its owned-org licences. */
+export async function setAccountStatus(
+  accountId: string,
+  status: "ACTIVE" | "SUSPENDED",
+): Promise<AccountView> {
+  const [row] = await db.select().from(schema.accounts).where(eq(schema.accounts.id, accountId)).limit(1);
+  if (!row || row.status === "DELETED") throw new Error("not_found");
+  if (row.isPlatformAdmin && status === "SUSPENDED") throw new Error("cannot_suspend_admin");
+
+  const now = new Date();
+  const [updated] = await db
+    .update(schema.accounts)
+    .set({
+      status,
+      suspendedAt: status === "SUSPENDED" ? now : null,
+      updatedAt: now,
+    })
+    .where(eq(schema.accounts.id, accountId))
+    .returning();
+
+  const orgIds = await ownedOrgIds(accountId);
+  if (orgIds.length) {
+    await db
+      .update(schema.licenses)
+      .set({
+        status: status === "SUSPENDED" ? "SUSPENDED" : "ACTIVE",
+        updatedAt: now,
+      })
+      .where(
+        and(
+          inArray(schema.licenses.orgId, orgIds),
+          status === "SUSPENDED" ? eq(schema.licenses.status, "ACTIVE") : eq(schema.licenses.status, "SUSPENDED"),
+        ),
+      );
+  }
+
+  return view(updated!);
+}
+
+/** Licence manager — soft-delete account; revokes licences and frees the email. */
+export async function deleteAccount(accountId: string): Promise<void> {
+  const [row] = await db.select().from(schema.accounts).where(eq(schema.accounts.id, accountId)).limit(1);
+  if (!row) throw new Error("not_found");
+  if (row.isPlatformAdmin) throw new Error("cannot_delete_admin");
+  if (row.status === "DELETED") return;
+
+  const now = new Date();
+  const orgIds = await ownedOrgIds(accountId);
+
+  if (orgIds.length) {
+    await db
+      .update(schema.licenses)
+      .set({ status: "REVOKED", updatedAt: now })
+      .where(
+        and(
+          inArray(schema.licenses.orgId, orgIds),
+          or(eq(schema.licenses.status, "ACTIVE"), eq(schema.licenses.status, "SUSPENDED")),
+        ),
+      );
+  }
+
+  await db
+    .update(schema.accounts)
+    .set({
+      status: "DELETED",
+      email: `deleted+${accountId}@aorms.invalid`,
+      passwordHash: null,
+      googleSub: null,
+      totpSecret: null,
+      deletedAt: now,
+      updatedAt: now,
+    })
+    .where(eq(schema.accounts.id, accountId));
 }

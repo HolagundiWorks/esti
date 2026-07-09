@@ -26,6 +26,7 @@ import { ProjectTransmittals } from "../components/ProjectTransmittals.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
 import { ProjectLessons } from "../components/ProjectLessons.js";
 import { ProjectOverview } from "../components/ProjectOverview.js";
+import { ProjectRailSignals } from "../components/ProjectRailSignals.js";
 import { ProjectPipeline } from "../components/ProjectPipeline.js";
 import { ProjectProgram } from "../components/ProjectProgram.js";
 import { ProjectCpi } from "../components/ProjectCpi.js";
@@ -229,6 +230,8 @@ export function ProjectDetail() {
               )}
             </Box>
           </Box>
+
+          <ProjectRailSignals projectId={id} />
         </Stack>
       }
     >

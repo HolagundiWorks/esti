@@ -2,7 +2,7 @@
  * Configure and verify on-server Ollama for AI Studio.
  *
  *   pnpm --filter @esti/backend setup:ollama
- *   podman exec esti-backend sh -c "cd /app/esti/backend && pnpm setup:ollama"
+ *   docker exec esti-backend sh -c "cd /app/esti/backend && pnpm setup:ollama"
  */
 import { parseAiSettings } from "@esti/contracts";
 import { db } from "../db/index.js";
@@ -29,7 +29,7 @@ async function main(): Promise<void> {
       console.error(`  Models on server: ${health.modelsAvailable.join(", ")}`);
     }
     console.error(`\nPull the model in the Ollama container:`);
-    console.error(`  podman exec esti-ollama ollama pull ${model}`);
+    console.error(`  docker exec esti-ollama ollama pull ${model}`);
     process.exit(1);
   }
   console.log(`✓ Ollama reachable — models: ${health.modelsAvailable.join(", ")}`);

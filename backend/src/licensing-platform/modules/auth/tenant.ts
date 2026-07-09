@@ -62,6 +62,21 @@ export async function resolveCompany(inputRaw: string): Promise<CompanyResolutio
     .limit(1);
   if (byDomain) return { mode: "company", org: handle(byDomain) };
 
+  if (isEmail) {
+    const [byLoginEmail] = await db
+      .select()
+      .from(schema.organizations)
+      .where(eq(schema.organizations.loginEmail, s))
+      .limit(1);
+    if (byLoginEmail) return { mode: "company", org: handle(byLoginEmail) };
+    const [byBilling] = await db
+      .select()
+      .from(schema.organizations)
+      .where(eq(schema.organizations.billingEmail, s))
+      .limit(1);
+    if (byBilling) return { mode: "company", org: handle(byBilling) };
+  }
+
   if (!isEmail) {
     const [bySlug] = await db
       .select()
@@ -85,10 +100,26 @@ export async function orgIdFromHandle(inputRaw: string): Promise<string | null> 
     .where(
       asHandle.startsWith("AORMS-C-")
         ? eq(schema.organizations.publicId, asHandle)
-        : eq(schema.organizations.loginDomain, domain),
+        : s.includes("@")
+          ? eq(schema.organizations.loginEmail, s)
+          : eq(schema.organizations.loginDomain, domain),
     )
     .limit(1);
   if (row) return row.id;
+  if (s.includes("@")) {
+    const [byBilling] = await db
+      .select({ id: schema.organizations.id })
+      .from(schema.organizations)
+      .where(eq(schema.organizations.billingEmail, s))
+      .limit(1);
+    if (byBilling) return byBilling.id;
+    const [byDomain] = await db
+      .select({ id: schema.organizations.id })
+      .from(schema.organizations)
+      .where(eq(schema.organizations.loginDomain, domain))
+      .limit(1);
+    if (byDomain) return byDomain.id;
+  }
   if (!s.includes("@")) {
     const [bySlug] = await db
       .select({ id: schema.organizations.id })

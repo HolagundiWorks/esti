@@ -39,8 +39,8 @@ project can move through delivery while fee recovery remains visible. Completed 
 approved stages can become billing prompts instead of hidden spreadsheet rows.
 
 In Pro workflows, fee proposals connect to invoicing, GST handling,
-reconciliation and owner review. In Community, small practices can start with simple
-non-GST office records and grow into deeper commercial control later.
+reconciliation and owner review. Every account uses the same standard AORMS licence —
+full workspace from day one.
 
 ## Why architects need a specific tool
 

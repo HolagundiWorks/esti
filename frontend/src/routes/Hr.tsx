@@ -13,8 +13,11 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { LEAVE_TYPES, type LeaveTypeCode, formatINR, parseRupeeInput } from "@esti/contracts";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { useNavigate } from "react-router-dom";
 import { PayslipPdfCell } from "../components/PayslipPdfCell.js";
 import { RailLayout } from "../components/RailLayout.js";
@@ -98,6 +101,39 @@ export function Hr() {
       });
     },
   });
+
+  useScreenActions(
+    tab === 0
+      ? [
+          {
+            id: "open-register",
+            zone: "right",
+            label: "Open register",
+            icon: <OpenInNewIcon />,
+            onClick: () => navigate("/tasks?tab=attendance"),
+          },
+          {
+            id: "request-leave",
+            zone: "center",
+            tone: "primary",
+            label: "Request leave",
+            icon: <AddIcon />,
+            disabled: team.length === 0,
+            onClick: () => setLvOpen(true),
+          },
+          {
+            id: "generate-payslip",
+            zone: "center",
+            tone: "primary",
+            label: "Generate payslip",
+            icon: <AddIcon />,
+            disabled: team.length === 0,
+            onClick: () => setPyOpen(true),
+          },
+        ]
+      : [],
+    [tab, team.length, navigate],
+  );
 
   const leaveColumns: GridColDef[] = [
     { field: "name", headerName: "Member", flex: 1, minWidth: 140 },
@@ -217,21 +253,6 @@ export function Hr() {
             <Tab label="Staff profiles" />
             <Tab label="Applications" />
           </Tabs>
-        }
-        actions={
-          tab === 0 ? (
-            <>
-              <Button variant="text" fullWidth onClick={() => navigate("/tasks?tab=attendance")}>
-                Open register
-              </Button>
-              <Button variant="contained" fullWidth disabled={team.length === 0} onClick={() => setLvOpen(true)}>
-                Request leave
-              </Button>
-              <Button variant="contained" fullWidth disabled={team.length === 0} onClick={() => setPyOpen(true)}>
-                Generate payslip
-              </Button>
-            </>
-          ) : undefined
         }
       >
       {/* ── Operations panel ── */}

@@ -1,10 +1,13 @@
 import { AORMS_ID_USAGE_MINUTES } from "@esti/contracts";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db as workspaceDb } from "../../../db/index.js";
+import { firm } from "../../../db/schema/org-auth.js";
 import { usageStats, users as workspaceUsers } from "../../../db/schema/index.js";
 import { db, schema } from "../../db/client.js";
 import { newId, newPublicId } from "../../lib/ids.js";
 import { type OrgHandle, orgIdFromHandle } from "../auth/tenant.js";
+import type { AccountView } from "../auth/service.js";
+import { provisionTrial } from "../onboarding/service.js";
 
 export type MemberStatus = "INVITED" | "ACTIVE" | "LEFT";
 
@@ -63,6 +66,12 @@ export async function createCompany(
     .limit(1);
   if (clash) slug = `${slug}-${newId("s").slice(2, 6)}`;
 
+  const [acct] = await db
+    .select({ email: schema.accounts.email })
+    .from(schema.accounts)
+    .where(eq(schema.accounts.id, accountId))
+    .limit(1);
+
   const orgId = newId("org");
   const [org] = await db
     .insert(schema.organizations)
@@ -73,6 +82,7 @@ export async function createCompany(
       name: input.name,
       slug,
       loginDomain,
+      billingEmail: acct?.email ?? null,
       ownerAccountId: accountId,
     })
     .returning();
@@ -85,6 +95,25 @@ export async function createCompany(
     activatedAt: new Date(),
   });
   return orgHandle(org!);
+}
+
+/**
+ * Unified single-box installs: when a workspace OWNER is mirrored onto the
+ * platform, ensure they own a company org (named from esti_firm) so /company-account works.
+ */
+export async function ensureFirmOrgForOwner(account: AccountView): Promise<void> {
+  const [owned] = await db
+    .select({ id: schema.organizations.id })
+    .from(schema.organizations)
+    .where(eq(schema.organizations.ownerAccountId, account.id))
+    .limit(1);
+  if (owned) return;
+
+  const [f] = await workspaceDb.select({ companyName: firm.companyName }).from(firm).limit(1);
+  const name = f?.companyName?.trim() || account.name?.trim() || "Studio workspace";
+  const res = await createCompany(account.id, { name });
+  if ("error" in res) return;
+  await provisionTrial(account);
 }
 
 /**
@@ -326,6 +355,17 @@ export async function declineInvite(accountId: string, companyHandle: string): P
  * (esti_usage_stat, matched by email on a unified single-box install). The
  * AORMS-C handle unlocks at AORMS_ID_USAGE_MINUTES of company usage.
  */
+export async function accountUsageMinutes(emailRaw: string): Promise<number> {
+  const email = emailRaw.trim().toLowerCase();
+  const [row] = await workspaceDb
+    .select({ minutes: usageStats.minutes })
+    .from(usageStats)
+    .innerJoin(workspaceUsers, eq(workspaceUsers.id, usageStats.userId))
+    .where(eq(sql`lower(${workspaceUsers.email})`, email))
+    .limit(1);
+  return row?.minutes ?? 0;
+}
+
 export async function companyUsageMinutes(orgId: string): Promise<number> {
   const members = await db
     .select({ email: schema.accounts.email })

@@ -20,16 +20,13 @@
 | 🔲 | **Planned** — not built yet (placeholder where a nav slot exists) |
 
 ## Top-level menu (the `nav` tree in `frontend/src/App.tsx`)
-`Studio Intelligence · Projects · Tasks · AI Studio · Library · Studio · Third Parties · Office · Finance · LXOS · Admin`
-**Estimation lives inside a project** → **Cost Management** (not a top-level pillar):
-`Estimation · BOQ · BBS · Site Measurement · Work Orders · Contractor Bills · Cost
-Intelligence`. Import an `.aormsest` under the project and re-cost it (see
-[MONOREPO-AND-SURFACES](MONOREPO-AND-SURFACES.md)); the old `/estimation` and
-`/libraries/estimates` paths redirect to `/projects`. **AI Studio** appears only when the
-plan allows `ai` and rank ≥ 60. **Library** is its own top-level menu (Item · Compliance ·
-Master Plan · Standards); **Studio** holds Teams · Performance · HR. Header utilities (not
-sidebar): **Clock · Pomodoro · Global Search · Notifications (AlertsBell) · User Profile
-(ID card) · Sign out**.
+`Studio Intelligence · Projects · **Estimation** · Teams · Office · …` (ribbon model).
+
+**Estimation** ✅ (`/estimation`) — top-level workspace: pick a live project, model
+substructure/superstructure and item dependencies (ER-style), then measure → BOQ → BBS.
+Routes: `/estimation` (project picker) · `/estimation/:projectId` (workflow). Legacy
+`/libraries/estimates` redirects here. Project **Cost Management** tabs remain for import,
+site measurement, work orders, and certified bills.
 
 ---
 

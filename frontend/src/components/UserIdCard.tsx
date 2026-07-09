@@ -95,7 +95,7 @@ export function UserIdCard() {
             )}
             <Link
               component={RouterLink}
-              to="/profile"
+              to="/account"
               onClick={() => setAnchor(null)}
               className="esti-id-card__link"
             >

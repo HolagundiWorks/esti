@@ -2,19 +2,13 @@ import { Alert, Box, Button, Stack, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useState } from "react";
 import type { ChangeEvent } from "react";
-import { useEdition } from "../../lib/edition.js";
 import { trpc } from "../../lib/trpc.js";
 
-// Visually-hidden native file input (styled component, not a raw control tag).
 const HiddenFileInput = styled("input")({ display: "none" });
 
-/**
- * Cloud migration (owner). Export this studio as a JSON bundle, then import it
- * into a freshly provisioned EMPTY cloud tenant. Material UI.
- */
+/** Import or export a studio bundle between workspaces (owner). */
 export function MigrationPanel() {
   const utils = trpc.useUtils();
-  const { community } = useEdition();
   const preflightQ = trpc.migration.preflight.useQuery();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -63,11 +57,10 @@ export function MigrationPanel() {
   return (
     <Box sx={{ p: 3 }}>
       <Stack spacing={2}>
-        <Typography variant="h6" component="h3">{community ? "Move to AORMS Pro" : "Cloud migration"}</Typography>
+        <Typography variant="h6" component="h3">Studio migration</Typography>
         <Typography variant="body2" color="text.secondary">
-          {community
-            ? "Package this whole company as a bundle, then import it into a fresh AORMS Pro workspace. Migration is one-way, Community → Pro."
-            : "Import a company bundle exported from a Community install into this fresh, empty workspace. Import refuses a non-empty target and rolls back if verification fails."}
+          Export this workspace as a JSON bundle, or import a bundle into a fresh empty
+          workspace. Import refuses a non-empty target and rolls back if verification fails.
         </Typography>
         {pf && (
           <Typography variant="caption" color="text.secondary">
@@ -76,16 +69,13 @@ export function MigrationPanel() {
           </Typography>
         )}
         <Stack direction="row" spacing={1}>
-          {community ? (
-            <Button variant="contained" onClick={download} disabled={busy}>
-              {busy ? "Preparing…" : "Package company for Pro"}
-            </Button>
-          ) : (
-            <Button variant="contained" component="label" disabled={importMut.isPending}>
-              {importMut.isPending ? "Importing…" : "Import a company bundle"}
-              <HiddenFileInput type="file" accept=".json,application/json" onChange={onFile} />
-            </Button>
-          )}
+          <Button variant="outlined" onClick={download} disabled={busy}>
+            {busy ? "Preparing…" : "Export bundle"}
+          </Button>
+          <Button variant="contained" component="label" disabled={importMut.isPending}>
+            {importMut.isPending ? "Importing…" : "Import bundle"}
+            <HiddenFileInput type="file" accept=".json,application/json" onChange={onFile} />
+          </Button>
         </Stack>
         {msg && <Alert severity="success" onClose={() => setMsg(null)}>{msg}</Alert>}
         {err && <Alert severity="error" onClose={() => setErr(null)}>{err}</Alert>}

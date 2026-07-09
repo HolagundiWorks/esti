@@ -24,17 +24,7 @@ import {
   identityLookupConfigured,
 } from "../../lib/identityDelegate.js";
 import { mintPublicIdForEmail } from "../../licensing-platform/modules/auth/service.js";
-import { invitedEligibleByEmail } from "../../licensing-platform/modules/membership/service.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
-
-/**
- * Instant-ID bypass (Phase 34): being invited into someone's company waives
- * the 100-hour gate. Checked in-process on unified single-box installs; a
- * split firm node keeps the hour gate only (its hlp_ tables are shadows).
- */
-async function invitedBypass(email: string): Promise<boolean> {
-  return env.ESTI_UNIFIED_ACCOUNTS && invitedEligibleByEmail(email);
-}
 
 /** Can this install mint AORMS-U handles at all (in-process or via the hub)? */
 function identityMintConfigured(): boolean {
@@ -79,8 +69,7 @@ export const usageRouter = router({
       .where(eq(users.id, ctx.user.id))
       .limit(1);
     const minutes = stat?.minutes ?? 0;
-    const eligible =
-      aormsIdEligible(minutes) || (!me?.aormsId && (await invitedBypass(ctx.user.email)));
+    const eligible = aormsIdEligible(minutes);
     return {
       minutes,
       requiredMinutes: AORMS_ID_USAGE_MINUTES,
@@ -124,11 +113,10 @@ export const usageRouter = router({
       .from(usageStats)
       .where(eq(usageStats.userId, ctx.user.id))
       .limit(1);
-    if (!aormsIdEligible(stat?.minutes ?? 0) && !(await invitedBypass(me.email))) {
+    if (!aormsIdEligible(stat?.minutes ?? 0)) {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message:
-          "Your AORMS ID unlocks after 100 hours of active use (or instantly once a company invites you).",
+        message: "Your AORMS ID unlocks after 100 hours of active use.",
       });
     }
 

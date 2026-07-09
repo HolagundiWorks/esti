@@ -1,3 +1,9 @@
+import {
+  ACCOUNT_STATUS_LABEL,
+  type AccountSignupProfile,
+  type AccountStatus,
+} from "@esti/contracts";
+
 export interface Account {
   id: string;
   /** Portable personal handle — AORMS-U-XXXX. */
@@ -6,6 +12,8 @@ export interface Account {
   name: string | null;
   avatarUrl: string | null;
   isPlatformAdmin: boolean;
+  status?: AccountStatus;
+  profile?: AccountSignupProfile | null;
 }
 
 /** A company (tenant) handle as surfaced to the login UI + switcher. */
@@ -191,7 +199,7 @@ export async function generateCompanyId(
   return { publicId: j.publicId ?? null, error: j.error };
 }
 
-/** Instant AORMS-U mint (invited into a company waives the 100-hour gate). */
+/** Mint AORMS-U after 100 hours of active workspace use. */
 export async function generateAormsId(): Promise<{ publicId: string | null; error?: string }> {
   const r = await fetch("/platform/auth/generate-id", {
     method: "POST",
@@ -201,6 +209,42 @@ export async function generateAormsId(): Promise<{ publicId: string | null; erro
   });
   const j = (await r.json().catch(() => ({}))) as { publicId?: string; error?: string };
   return { publicId: j.publicId ?? null, error: j.error };
+}
+
+export interface OrgMemberRow {
+  accountId: string;
+  publicId: string | null;
+  email: string;
+  name: string | null;
+  role: string;
+  status: string;
+}
+
+export async function fetchOrgMembers(
+  company: string,
+): Promise<{ members: OrgMemberRow[]; error?: string }> {
+  const r = await fetch(`/platform/auth/org-members?company=${encodeURIComponent(company)}`, {
+    credentials: "include",
+  });
+  const j = (await r.json().catch(() => ({}))) as { members?: OrgMemberRow[]; error?: string };
+  if (!r.ok) return { members: [], error: j.error ?? "request_failed" };
+  return { members: j.members ?? [] };
+}
+
+export async function reviewMember(
+  company: string,
+  accountId: string,
+  action: "approve" | "reject",
+): Promise<{ members: OrgMemberRow[]; error?: string }> {
+  const r = await fetch("/platform/auth/review-member", {
+    method: "POST",
+    credentials: "include",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ company, accountId, action }),
+  });
+  const j = (await r.json().catch(() => ({}))) as { members?: OrgMemberRow[]; error?: string };
+  if (!r.ok) return { members: [], error: j.error ?? "request_failed" };
+  return { members: j.members ?? [] };
 }
 
 /** Move a pending invite onto the person's existing identity-holding account. */
@@ -298,11 +342,28 @@ export function register(input: {
   email: string;
   password: string;
   name?: string;
+  profile?: AccountSignupProfile;
   /** Customer user-portal sign-up (bypasses the admin-console signup lockdown). */
   portal?: boolean;
 }): Promise<AuthResult> {
   return postAuth("/platform/auth/register", input);
 }
+
+export async function updateAccountProfile(
+  profile: Partial<AccountSignupProfile>,
+): Promise<{ account: Account | null; error?: string }> {
+  const r = await fetch("/platform/auth/profile", {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(profile),
+  });
+  const j = (await r.json().catch(() => ({}))) as { account?: Account; error?: string };
+  if (!r.ok) return { account: null, error: j.error ?? "request_failed" };
+  return { account: j.account ?? null };
+}
+
+export { ACCOUNT_STATUS_LABEL };
 
 export function login(
   email: string,
@@ -311,6 +372,11 @@ export function login(
   code?: string,
 ): Promise<AuthResult> {
   return postAuth("/platform/auth/login", { email, password, company, code });
+}
+
+/** Unified installs: reuse workspace OWNER session for the company account portal. */
+export function sessionFromWorkspace(): Promise<Me & { error?: string }> {
+  return postMe("/platform/auth/session-from-workspace", {});
 }
 
 export async function devLogin(email: string): Promise<Account | null> {

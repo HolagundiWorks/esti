@@ -335,7 +335,7 @@ export function PricingSection() {
         id="price-head"
         tag="Pricing"
         title="Start with the full workspace. Pay for storage and AI as you grow."
-        body="One product. No Lite, Pro or Enterprise editions. Every new account gets the complete feature set and 5 GB of storage."
+        body="One standard AORMS licence. Every new account gets the complete feature set and 5 GB of storage."
       />
       <div className="lp2-pricing">
         <div className="lp2-pricing__included">
@@ -434,84 +434,3 @@ export function FaqSection() {
   );
 }
 
-// ─── 9. Footer ─────────────────────────────────────────────────────────────────
-
-import { LANDING_SEO } from "../../lib/landing-seo.js";
-import { LANDING_NAV } from "../../lib/landing-slugs.js";
-
-const PRODUCT_LINKS = [
-  { href: "/#pricing", label: "Pricing" },
-  { href: "/#faq", label: "FAQ" },
-  { href: "/blog", label: "Blog" },
-  { href: "/about", label: "About" },
-  { href: "/#pricing", label: "Request access" },
-] as const;
-
-const CONTACT_LINKS = [
-  { href: "mailto:hi@aorms.in", label: "hi@aorms.in" },
-  { href: "tel:+918951089191", label: "+91 89510 89191" },
-  { href: "https://www.linkedin.com/company/aorms", label: "LinkedIn" },
-  { href: "/investors", label: "Investors" },
-  { href: "/legal", label: "Legal" },
-] as const;
-
-export function LandingFooter({ visitCount }: { visitCount?: number | null }) {
-  return (
-    <footer className="lp2-footer" aria-label="AORMS footer">
-      {/* solutions mesh */}
-      <nav className="lp2-footer__solutions" aria-label="Solutions">
-        {LANDING_NAV.map(g => (
-          <div key={g.heading} className="lp2-footer__sol-col">
-            <p className="lp2-footer__sol-head">{g.heading}</p>
-            <ul>
-              {g.links.map(l => (
-                <li key={l.slug}><a href={`/${l.slug}`}>{l.label}</a></li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </nav>
-
-      {/* bottom bar */}
-      <div className="lp2-footer__bar">
-        <div className="lp2-footer__brand">
-          <span
-            role="img"
-            aria-label="AORMS"
-            className="esti-brand esti-brand--aorms lp2-footer__logo"
-          />
-          <p>{LANDING_SEO.footerBlurb}</p>
-        </div>
-
-        <nav className="lp2-footer__col" aria-label="Product">
-          <p className="lp2-footer__col-head">Product</p>
-          <ul>
-            {PRODUCT_LINKS.map(l => (
-              <li key={l.href}><a href={l.href}>{l.label}</a></li>
-            ))}
-          </ul>
-        </nav>
-
-        <nav className="lp2-footer__col" aria-label="Contact">
-          <p className="lp2-footer__col-head">Contact</p>
-          <ul>
-            {CONTACT_LINKS.map(l => (
-              <li key={l.href}>
-                <a
-                  href={l.href}
-                  {...(l.href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                >
-                  {l.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        {visitCount != null && visitCount > 0 && (
-          <p className="lp2-footer__visits">{visitCount.toLocaleString("en-IN")} visits</p>
-        )}
-      </div>
-    </footer>
-  );
-}

@@ -1,12 +1,8 @@
-import { DeviceLoginInput, DeviceRefreshInput } from "@esti/contracts";
+import { DeviceLoginInput, DeviceRefreshInput, WorkspaceProfileCompletion } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, count, eq, gt, sql } from "drizzle-orm";
 import { createHash, randomBytes } from "node:crypto";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { z } from "zod";
-
-const execFileAsync = promisify(execFile);
 import { createDeviceSession, refreshDeviceAccessToken } from "../../auth/device.js";
 import {
   SESSION_COOKIE,
@@ -35,6 +31,12 @@ import {
 } from "../../licensing-platform/modules/auth/service.js";
 import { activeCompaniesByEmail } from "../../licensing-platform/modules/membership/service.js";
 import { provisionLiteWorkspace } from "../../lib/provisionLite.js";
+import {
+  revokeDemoAdminSession,
+  unlockDemoAdminSession,
+  verifyDemoMasterPassword,
+} from "../../lib/demoAdmin.js";
+import { runDemoSeedForce } from "../../lib/demoReset.js";
 import { clearRateLimit, enforceRateLimit } from "../../lib/ratelimit.js";
 import { publicProcedure, router } from "../../trpc/trpc.js";
 
@@ -497,9 +499,12 @@ export const authRouter = router({
     if (!ctx.user) return null;
     const { getOrgSettings } = await import("../../lib/settings.js");
     const { DEFAULT_STORAGE_BYTES } = await import("@esti/contracts");
+    const { greetingGivenNameForEmail } = await import("../../lib/accountGreeting.js");
     const settings = await getOrgSettings(ctx.db);
+    const greetingGivenName = await greetingGivenNameForEmail(ctx.user.email, ctx.user.fullName);
     return {
       ...ctx.user,
+      greetingGivenName,
       /** 2026-07: ACTIVE | SUSPENDED — replaces plan tier logic. */
       licenceStatus: settings.licenceStatus,
       /** Effective storage quota in bytes (5 GiB base + purchased add-ons). */
@@ -568,11 +573,7 @@ export const authRouter = router({
     if (!ctx.user?.isDemo) {
       throw new TRPCError({ code: "FORBIDDEN", message: "Only available on demo accounts" });
     }
-    await execFileAsync("pnpm", ["seed:demo"], {
-      cwd: process.cwd(),
-      env: { ...process.env, SEED_DEMO_FORCE: "1" },
-      timeout: 90_000,
-    });
+    await runDemoSeedForce();
     // Switch session to the principal demo account so the page lands cleanly.
     const [principal] = await ctx.db
       .select()
@@ -587,7 +588,85 @@ export const authRouter = router({
     return { ok: true };
   }),
 
+  /** Unlock demo admin mutations for this session (DEMO_MASTER_PASSWORD). */
+  unlockDemoAdmin: publicProcedure
+    .input(z.object({ password: z.string().min(1).max(200) }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.user?.isDemo) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Demo accounts only" });
+      }
+      if (!verifyDemoMasterPassword(input.password)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid demo master password" });
+      }
+      unlockDemoAdminSession(ctx.sessionToken);
+      return { ok: true as const };
+    }),
+
+  /**
+   * One-time post-upgrade gate — existing users confirm critical firm and profile
+   * details before accessing the workspace.
+   */
+  completeWorkspaceProfile: publicProcedure
+    .input(WorkspaceProfileCompletion)
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
+      if (!ctx.user.mustCompleteWorkspaceProfile) return { ok: true as const };
+
+      const isOwner = ctx.user.role === "OWNER" || ctx.user.role === "PARTNER";
+      if (isOwner) {
+        if (
+          !input.companyName ||
+          !input.coaRegNo ||
+          !input.phone1 ||
+          !input.email ||
+          !input.city ||
+          !input.state
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Owners must confirm company name, COA no., phone, email, city, and state.",
+          });
+        }
+        const [current] = await ctx.db.select({ id: firm.id }).from(firm).limit(1);
+        if (current) {
+          await ctx.db
+            .update(firm)
+            .set({
+              companyName: input.companyName,
+              coaRegNo: input.coaRegNo,
+              architectName: input.fullName,
+              phone1: input.phone1,
+              phone1Type: "MOBILE",
+              email: input.email,
+              city: input.city,
+              state: input.state,
+              gstType: input.gstType ?? "REGULAR",
+              gstin: input.gstin?.trim() || null,
+            })
+            .where(eq(firm.id, current.id));
+        }
+      }
+
+      await ctx.db
+        .update(users)
+        .set({
+          fullName: input.fullName,
+          designation: input.designation,
+          mustCompleteWorkspaceProfile: false,
+        })
+        .where(eq(users.id, ctx.user.id));
+
+      await writeAudit(ctx.db, {
+        entity: "user",
+        entityId: ctx.user.id,
+        action: "WORKSPACE_PROFILE_COMPLETED",
+        actorId: ctx.user.id,
+      });
+      return { ok: true as const };
+    }),
+
   logout: publicProcedure.mutation(async ({ ctx }) => {
+    revokeDemoAdminSession(ctx.sessionToken);
     await revokeSessionByToken(ctx.db, ctx.sessionToken);
     ctx.setCookie(SESSION_COOKIE, "");
     if (ctx.user) {

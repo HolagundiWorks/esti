@@ -3,7 +3,6 @@ import { AppBar, IconButton, Toolbar, Tooltip, Typography } from "@mui/material"
 
 export function PortalHeader({
   companyName,
-  logoUrl,
   portalLabel,
   onSignOut,
   signingOut,
@@ -17,7 +16,6 @@ export function PortalHeader({
   return (
     <AppBar position="static" aria-label={`${companyName ?? "ESTI"} ${portalLabel}`}>
       <Toolbar>
-        {logoUrl && <img src={logoUrl} alt="" className="esti-portal-logo" />}
         <Typography component="span" sx={{ flexGrow: 1 }}>
           <strong>{companyName ?? "ESTI"}</strong> {portalLabel}
         </Typography>

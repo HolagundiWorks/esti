@@ -130,5 +130,4 @@ recipient and date of issue. Combined with the register's current and superseded
 versions and the immutable audit log, you can show exactly which consultant held
 which revision, and when.
 
-AORMS Community is free forever for small practices — start at
-[/account?mode=create](/account?mode=create) or write to hi@aorms.in.
+Create your AORMS account at [/account?mode=create](/account?mode=create) or write to hi@aorms.in.

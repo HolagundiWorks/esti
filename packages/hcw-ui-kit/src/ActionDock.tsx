@@ -147,6 +147,14 @@ export function ActionDock() {
   const ordered = [...left, ...center, ...right];
   const enabled = ordered.filter((a) => !a.disabled);
 
+  // Reserve scroll space under content — same 16px gutter as shell sides.
+  useEffect(() => {
+    const shell = document.querySelector(".esti-app-shell2");
+    if (!shell) return;
+    shell.classList.toggle("esti-app-shell2--dock-visible", actions.length > 0);
+    return () => shell.classList.remove("esti-app-shell2--dock-visible");
+  }, [actions.length]);
+
   // The roving target stays valid as screens republish: keep the tracked id while
   // it's still an enabled action, else fall back to the first enabled one.
   const activeId =

@@ -15,6 +15,7 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { formatINR } from "@esti/contracts";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { trpc } from "../../../lib/trpc.js";
 
 function RateFormModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -88,6 +89,20 @@ export function RateBookLibrary() {
   });
   const [open, setOpen] = useState(false);
 
+  useScreenActions(
+    [
+      {
+        id: "new-rate",
+        zone: "center",
+        tone: "primary",
+        label: "New rate",
+        icon: <AddIcon />,
+        onClick: () => setOpen(true),
+      },
+    ],
+    [],
+  );
+
   const columns: GridColDef[] = [
     { field: "code", headerName: "Code", width: 140 },
     { field: "description", headerName: "Description", flex: 2 },
@@ -136,11 +151,6 @@ export function RateBookLibrary() {
         autoHeight
         getRowHeight={() => "auto"}
       />
-      <Stack direction="row">
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
-          New rate
-        </Button>
-      </Stack>
       {open && <RateFormModal open onClose={() => setOpen(false)} />}
     </Stack>
   );

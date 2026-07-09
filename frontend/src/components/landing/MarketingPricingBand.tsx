@@ -39,7 +39,7 @@ const METERS = [
 export function MarketingPricingBand() {
   return (
     <>
-      <span id="trial" className="esti-lp-anchor" aria-hidden />
+      <span id="signup" className="esti-lp-anchor" aria-hidden />
       <div className="esti-lp-grid esti-lp-pricing-grid" id="pricing" aria-labelledby="pricing-title">
         <div className="esti-lp-tile esti-lp-tile--4x1 esti-lp-pricing-intro">
           <div className="esti-lp-tile__hdr">
@@ -48,7 +48,7 @@ export function MarketingPricingBand() {
             <span className="esti-lp-tile__hdr-meta">Usage-based</span>
           </div>
           <div className="esti-lp-pricing-intro__body">
-            <p className="esti-lp-section-label">One product — no Lite, Pro or Enterprise</p>
+            <p className="esti-lp-section-label">One standard licence</p>
             <h3 id="pricing-title" className="esti-lp-cta-h">
               Start with the full workspace. Pay for storage and AI as you scale.
             </h3>

@@ -24,7 +24,9 @@ import {
 import {
   ACTIVE_STATUS,
   decidePulseAction,
+  loadPrioritizedTasks,
   proposePulseActions,
+  queryPrioritizedTasks,
   reconcileMissingParameters,
   recomputeScores,
   runStandupForProject,
@@ -199,6 +201,29 @@ export const pulseRouter = router({
   recompute: protectedProcedure
     .input(z.object({ projectId: z.string().uuid().optional() }))
     .mutation(async ({ ctx, input }) => recomputeScores(ctx.db, { projectId: input.projectId })),
+
+  /**
+   * ESTI top-N prioritised tasks — reads stored scores only. Call
+   * `refreshTopTasks` to recompute from latest site and task data.
+   */
+  topTasks: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().uuid().optional(),
+        limit: z.number().int().min(1).max(10).default(3),
+      }),
+    )
+    .query(async ({ ctx, input }) => queryPrioritizedTasks(ctx.db, input.limit, { projectId: input.projectId })),
+
+  /** Reconcile site signals, recompute scores, and return fresh top-N tasks. */
+  refreshTopTasks: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().uuid().optional(),
+        limit: z.number().int().min(1).max(10).default(3),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => loadPrioritizedTasks(ctx.db, input.limit, { projectId: input.projectId })),
 
   /** Today's queue, banded by consequence — supersedes tasks.todayQueue for Pulse consumers. */
   queue: protectedProcedure

@@ -10,7 +10,9 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
 import { useEffect, useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { ConfirmModal } from "../ConfirmModal.js";
 import { DataState } from "../DataState.js";
 import { trpc } from "../../lib/trpc.js";
@@ -77,6 +79,39 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
 
   const activeVersion = versionsQ.data?.find((v) => v.id === versionId);
 
+  useScreenActions(
+    [
+      {
+        id: "spec-new-version",
+        zone: "center",
+        tone: "primary",
+        label: "New version",
+        icon: <AddIcon />,
+        onClick: () => setVOpen(true),
+      },
+      {
+        id: "spec-add-item",
+        zone: "center",
+        tone: "primary",
+        label: "Add item",
+        icon: <AddIcon />,
+        disabled: !versionId,
+        onClick: () => setIOpen(true),
+      },
+      ...(activeVersion && !activeVersion.active
+        ? [
+            {
+              id: "spec-set-active",
+              zone: "right" as const,
+              label: "Set active",
+              onClick: () => setActive.mutate({ id: versionId }),
+            },
+          ]
+        : []),
+    ],
+    [versionId, activeVersion?.active],
+  );
+
   const columns: GridColDef[] = [
     {
       field: "category",
@@ -124,17 +159,14 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
 
   return (
     <Stack spacing={2}>
-      <Stack direction="row" spacing={2} sx={{ alignItems: "flex-start" }}>
-        <Stack spacing={1} className="esti-grow">
-          <Typography variant={embedded ? "h5" : "h4"} component={embedded ? "h2" : "h1"}>
-            Brand catalogue
-          </Typography>
-          <Typography variant="body2">
-            Versioned make / brand and finish schedule rows used when creating
-            project spec sheets.
-          </Typography>
-        </Stack>
-        <Button variant="contained" onClick={() => setVOpen(true)}>New version</Button>
+      <Stack spacing={1}>
+        <Typography variant={embedded ? "h5" : "h4"} component={embedded ? "h2" : "h1"}>
+          Brand catalogue
+        </Typography>
+        <Typography variant="body2">
+          Versioned make / brand and finish schedule rows used when creating
+          project spec sheets.
+        </Typography>
       </Stack>
 
       <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
@@ -153,17 +185,6 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
             </MenuItem>
           ))}
         </TextField>
-        {activeVersion && !activeVersion.active && (
-          <Button
-            variant="outlined"
-            onClick={() => setActive.mutate({ id: versionId })}
-          >
-            Set active
-          </Button>
-        )}
-        <Button variant="contained" disabled={!versionId} onClick={() => setIOpen(true)}>
-          Add item
-        </Button>
       </Stack>
 
       <DataState

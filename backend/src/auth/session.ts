@@ -66,6 +66,8 @@ export interface AuthUser {
   isDemo: boolean;
   /** Preloaded/community account that must set a new password before doing anything. */
   mustChangePassword: boolean;
+  /** Existing installs — confirm critical firm/profile details before workspace access. */
+  mustCompleteWorkspaceProfile: boolean;
   /** Installation super-user: seeds, purges, system metadata. Independent of role rank. */
   isSystemAdmin: boolean;
   userCode: string | null;
@@ -87,6 +89,7 @@ export async function userFromToken(token: string | undefined): Promise<AuthUser
       contractorId: users.contractorId,
       isDemo: users.isDemo,
       mustChangePassword: users.mustChangePassword,
+      mustCompleteWorkspaceProfile: users.mustCompleteWorkspaceProfile,
       isSystemAdmin: users.isSystemAdmin,
       userCode: users.userCode,
       designation: users.designation,

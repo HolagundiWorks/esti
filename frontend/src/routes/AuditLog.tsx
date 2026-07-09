@@ -11,7 +11,10 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import ClearIcon from "@mui/icons-material/Clear";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { trpc } from "../lib/trpc.js";
@@ -29,7 +32,7 @@ function jsonDetail(value: unknown) {
 const fmtTime = (v: string | number | Date) =>
   new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date(v));
 
-export function AuditLog() {
+export function AuditLog({ embedded = false }: { embedded?: boolean }) {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 });
   const [filters, setFilters] = useState<Filters>({ search: "", entity: "", action: "" });
   const [applied, setApplied] = useState<Filters>(filters);
@@ -56,6 +59,30 @@ export function AuditLog() {
     setPaginationModel((m) => ({ ...m, page: 0 }));
   }
 
+  useScreenActions(
+    embedded
+      ? []
+      : [
+          {
+            id: "clear-filters",
+            zone: "left",
+            tone: "danger",
+            label: "Clear",
+            icon: <ClearIcon />,
+            onClick: clearFilters,
+          },
+          {
+            id: "apply-filters",
+            zone: "right",
+            tone: "primary",
+            label: "Apply filters",
+            icon: <FilterListIcon />,
+            onClick: applyFilters,
+          },
+        ],
+    [embedded, filters],
+  );
+
   const columns: GridColDef[] = [
     { field: "createdAt", headerName: "Time", flex: 1.2, minWidth: 160, renderCell: (p) => fmtTime(p.row.createdAt) },
     { field: "entity", headerName: "Entity", flex: 1, minWidth: 120 },
@@ -80,55 +107,68 @@ export function AuditLog() {
     },
   ];
 
-  return (
-    <>
-      <RailLayout
-        title="Audit log"
-        description="Append-only record of security-sensitive and operational changes."
-        aside={
-          <Stack spacing={1.5}>
-            <TextField
-              id="audit-search"
-              label="Search actor, entity, or action"
-              value={filters.search}
-              onChange={(e) => setFilters((c) => ({ ...c, search: e.target.value }))}
-              onKeyDown={(e) => e.key === "Enter" && applyFilters()}
-              fullWidth
-            />
-            <TextField
-              id="audit-entity"
-              select
-              label="Entity"
-              value={filters.entity}
-              onChange={(e) => setFilters((c) => ({ ...c, entity: e.target.value }))}
-              fullWidth
-            >
-              <MenuItem value="">All entities</MenuItem>
-              {(list.data?.filters.entities ?? []).map((entity) => (
-                <MenuItem key={entity} value={entity}>{entity}</MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              id="audit-action"
-              select
-              label="Action"
-              value={filters.action}
-              onChange={(e) => setFilters((c) => ({ ...c, action: e.target.value }))}
-              fullWidth
-            >
-              <MenuItem value="">All actions</MenuItem>
-              {(list.data?.filters.actions ?? []).map((action) => (
-                <MenuItem key={action} value={action}>{action}</MenuItem>
-              ))}
-            </TextField>
-            <Button variant="contained" fullWidth onClick={applyFilters}>Apply filters</Button>
-            <Button variant="outlined" fullWidth onClick={clearFilters}>Clear</Button>
-          </Stack>
-        }
+  const filterFields = (
+    <Stack spacing={1.5} direction={embedded ? "row" : "column"} sx={{ flexWrap: "wrap" }}>
+      <TextField
+        id="audit-search"
+        label="Search actor, entity, or action"
+        value={filters.search}
+        onChange={(e) => setFilters((c) => ({ ...c, search: e.target.value }))}
+        onKeyDown={(e) => e.key === "Enter" && applyFilters()}
+        fullWidth={!embedded}
+        size="small"
+        sx={embedded ? { minWidth: 200, flex: 1 } : undefined}
+      />
+      <TextField
+        id="audit-entity"
+        select
+        label="Entity"
+        value={filters.entity}
+        onChange={(e) => setFilters((c) => ({ ...c, entity: e.target.value }))}
+        fullWidth={!embedded}
+        size="small"
+        sx={embedded ? { minWidth: 140 } : undefined}
       >
+        <MenuItem value="">All entities</MenuItem>
+        {(list.data?.filters.entities ?? []).map((entity) => (
+          <MenuItem key={entity} value={entity}>
+            {entity}
+          </MenuItem>
+        ))}
+      </TextField>
+      <TextField
+        id="audit-action"
+        select
+        label="Action"
+        value={filters.action}
+        onChange={(e) => setFilters((c) => ({ ...c, action: e.target.value }))}
+        fullWidth={!embedded}
+        size="small"
+        sx={embedded ? { minWidth: 140 } : undefined}
+      >
+        <MenuItem value="">All actions</MenuItem>
+        {(list.data?.filters.actions ?? []).map((action) => (
+          <MenuItem key={action} value={action}>
+            {action}
+          </MenuItem>
+        ))}
+      </TextField>
+      {embedded && (
+        <>
+          <Button variant="outlined" size="small" startIcon={<ClearIcon />} onClick={clearFilters}>
+            Clear
+          </Button>
+          <Button variant="contained" size="small" startIcon={<FilterListIcon />} onClick={applyFilters}>
+            Apply filters
+          </Button>
+        </>
+      )}
+    </Stack>
+  );
 
+  const grid = (
+    <>
       {list.error && <Alert severity="error">{list.error.message}</Alert>}
-
       <DataGrid
         rows={rows}
         columns={columns}
@@ -141,7 +181,33 @@ export function AuditLog() {
         disableRowSelectionOnClick
         autoHeight
       />
-      </RailLayout>
+    </>
+  );
+
+  return (
+    <>
+      {embedded ? (
+        <Box sx={{ p: 2 }}>
+          <Stack spacing={2}>
+            <Typography variant="h6" component="h2">
+              Audit log
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Append-only record of security-sensitive and operational changes.
+            </Typography>
+            {filterFields}
+            {grid}
+          </Stack>
+        </Box>
+      ) : (
+        <RailLayout
+          title="Audit log"
+          description="Append-only record of security-sensitive and operational changes."
+          aside={filterFields}
+        >
+          {grid}
+        </RailLayout>
+      )}
 
       <Dialog open={selected !== null} onClose={() => setSelectedId(null)} fullWidth maxWidth="md">
         <DialogTitle>{selected ? `${selected.entity} · ${selected.action}` : "Audit details"}</DialogTitle>

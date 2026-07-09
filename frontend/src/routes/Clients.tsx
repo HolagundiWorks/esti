@@ -14,9 +14,11 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import SearchIcon from "@mui/icons-material/Search";
+import AddIcon from "@mui/icons-material/Add";
 import { ClientKind } from "@esti/contracts";
 import type { ReactNode } from "react";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -110,6 +112,26 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
         ].some((v) => String(v).toLowerCase().includes(q)),
       )
     : clients;
+
+  useScreenActions(
+    [
+      {
+        id: "new-client",
+        zone: "center",
+        tone: "primary",
+        label: "New client",
+        icon: <AddIcon />,
+        onClick: () => setOpen(true),
+      },
+      {
+        id: "portal-login",
+        zone: "right",
+        label: "Portal login",
+        onClick: () => setPortalOpen(true),
+      },
+    ],
+    [],
+  );
 
   const columns: GridColDef[] = [
     { field: "name", headerName: "Name", flex: 1.4, minWidth: 180 },
@@ -339,12 +361,6 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
         <Stack spacing={2}>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "center" }}>
             <Box sx={{ flex: 1, minWidth: 240 }}>{searchField}</Box>
-            <Button variant="outlined" onClick={() => setPortalOpen(true)}>
-              Create portal login
-            </Button>
-            <Button variant="contained" onClick={() => setOpen(true)}>
-              New client
-            </Button>
           </Box>
           {grid}
         </Stack>
@@ -368,16 +384,6 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
               </Alert>
             )}
           </Stack>
-        }
-        actions={
-          <>
-            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-              New client
-            </Button>
-            <Button variant="outlined" fullWidth onClick={() => setPortalOpen(true)}>
-              Portal login
-            </Button>
-          </>
         }
       >
         {grid}

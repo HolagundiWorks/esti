@@ -14,6 +14,7 @@ import {
   type SearchEntityType as SearchEntityTypeT,
 } from "@esti/contracts";
 import { useEffect, useMemo, useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { Link, useSearchParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
 import { PageHeader } from "../components/PageHeader.js";
@@ -78,6 +79,21 @@ export function SearchPage() {
   const hits = searchQ.data?.hits ?? [];
   const typeCounts = searchQ.data?.typeCounts ?? {};
 
+  useScreenActions(
+    [
+      {
+        id: "run-search",
+        zone: "right",
+        tone: "primary",
+        label: "Search",
+        icon: <SearchIcon />,
+        disabled: query.trim().length < 2,
+        onClick: runSearch,
+      },
+    ],
+    [query],
+  );
+
   return (
     <Stack spacing={3}>
       <PageHeader
@@ -107,9 +123,6 @@ export function SearchPage() {
               },
             }}
           />
-          <Button variant="contained" onClick={runSearch} disabled={query.trim().length < 2}>
-            Search
-          </Button>
         </Box>
 
         <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>

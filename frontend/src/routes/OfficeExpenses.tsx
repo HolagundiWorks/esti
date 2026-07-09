@@ -379,8 +379,9 @@ export function CashBook() {
           <Stack spacing={1.5}>
             <AccountsCarryForward period={period} onPeriodChange={setPeriod} />
             {cashAccount && (
-              <Typography variant="body2" className="esti-label">
-                <strong>Cash balance ({range.label}):</strong> {formatINR(cashAccount.balancePaise)}
+              <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+                <strong>Cash balance ({range.label}):</strong>{" "}
+                {formatINR(cashAccount.balancePaise)}
               </Typography>
             )}
           </Stack>

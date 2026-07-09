@@ -16,6 +16,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import { DataState } from "../DataState.js";
 import { useUploadAuth } from "../../lib/uploadAuth.js";
 import { trpc } from "../../lib/trpc.js";
@@ -80,6 +81,13 @@ export function ProjectEstimation({ projectId }: { projectId: string }) {
               if (f) void importFile(f);
             }}
           />
+        </Button>
+        <Button
+          variant="outlined"
+          component={RouterLink}
+          to={`/estimation/${projectId}`}
+        >
+          Estimation workspace
         </Button>
       </Stack>
 

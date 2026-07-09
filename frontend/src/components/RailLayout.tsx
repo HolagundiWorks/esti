@@ -2,17 +2,12 @@ import { Box, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 
 /**
- * Standard app screen shell — the **Rail / Stage** split used across screens.
+ * Standard app screen shell — **Rail · Stage** split (canonical Studio Intelligence
+ * geometry). Every authenticated screen using this component gets the glass rail
+ * panel, fixed full-height rail (desktop), and an independently scrolling stage.
  *
- * Nomenclature (canonical — use these terms everywhere):
- *  - **RAIL** (20%, `esti-dash-rail`): the fixed info column — heading + subtitle,
- *    optional yellow-accent rule, `tabs` (section nav) and `aside` (telemetry /
- *    filters / summary).
- *  - **STAGE** (80%, `esti-dash-stage`): the changing primary content
- *    (`children`) — lists, tables, panels.
- *
- * Keeps every screen consistent: fixed instruments on the Rail, the changing
- * items on the Stage. Colour comes from the theme; no raw values here.
+ *  - **RAIL** (20%, `.esti-dash-rail`): heading · vertical tabs · telemetry · actions
+ *  - **STAGE** (80%, `.esti-dash-stage`): primary work surface
  */
 export function RailLayout({
   title,
@@ -24,73 +19,97 @@ export function RailLayout({
 }: {
   title: string;
   description?: string;
-  /** Action buttons — pinned to the BOTTOM of the rail in a 3-per-row grid (each
-   *  button is 1/3 of the rail width). Pass `fullWidth` buttons. */
+  /** Action buttons — pinned to the bottom of the rail. Pass `fullWidth` buttons. */
   actions?: ReactNode;
   /** Vertical section tabs in the rail (MUI `<Tabs orientation="vertical">`). */
   tabs?: ReactNode;
-  /** Telemetry / filters / summary cards shown below the tabs in the rail. */
+  /** Telemetry / filters / summary below tabs in the rail. */
   aside?: ReactNode;
-  /** The 70% content pane. */
   children: ReactNode;
 }) {
   return (
-    <Box className="esti-glass-dash">
-      {/* On mobile the Rail stacks first, full width; the Stage follows below. */}
+    <Box
+      className="esti-glass-dash"
+      sx={{
+        flex: 1,
+        minHeight: 0,
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <Box
         sx={{
           display: "flex",
           flexDirection: { xs: "column", md: "row" },
+          flex: 1,
+          minHeight: 0,
+          overflow: { xs: "visible", md: "hidden" },
           gap: 2,
-          alignItems: "flex-start",
+          alignItems: "stretch",
           width: 1,
         }}
       >
-        {/* RAIL (20% on desktop, full width first on mobile) — a hairline
-            separator on its right edge divides it from the Stage (the same
-            rule Studio Intelligence uses, now standard on every screen). */}
+        {/* Spacer reserves rail width while the rail is fixed (desktop). */}
+        <Box
+          aria-hidden
+          className="esti-dash-rail-spacer"
+          sx={{
+            display: { xs: "none", md: "block" },
+            flex: "0 0 20%",
+            maxWidth: "20%",
+            flexShrink: 0,
+          }}
+        />
+
+        {/* ── RAIL (20%) ─────────────────────────────────────────────── */}
         <Box
           className="esti-dash-rail"
           sx={{
-            flex: { xs: "1 1 auto", md: "0 0 20%" },
-            width: { xs: 1, md: "auto" },
-            maxWidth: { xs: "100%", md: "20%" },
+            flex: { xs: "0 0 auto", md: "0 0 20%" },
+            maxWidth: { md: "20%" },
             minWidth: 0,
-            position: { xs: "static", md: "sticky" },
-            top: 0,
-            alignSelf: "flex-start",
-            maxHeight: { xs: "none", md: "calc(100vh - 132px)" },
-            overflowY: { xs: "visible", md: "auto" },
+            width: { xs: "100%", md: "auto" },
+            overflowY: { md: "auto" },
             display: "flex",
             flexDirection: "column",
-            gap: 2,
-            borderRight: { xs: 0, md: 1 },
-            borderColor: "divider",
-            pr: { xs: 0, md: 2 },
+            gap: 1.5,
           }}
         >
-          <Box sx={{ borderLeft: 3, borderLeftColor: "primary.main", pl: 1.5 }}>
-            <Typography variant="h4" component="h1">
+          <Box sx={{ minWidth: 0, width: 1 }}>
+            <Typography
+              variant="h5"
+              component="h1"
+              sx={{ fontWeight: 600, lineHeight: 1.15, mt: 0, wordBreak: "break-word" }}
+            >
               {title}
             </Typography>
             {description && (
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 0.5, wordBreak: "break-word" }}
+              >
                 {description}
               </Typography>
             )}
           </Box>
+
           {tabs}
-          {aside}
-          {/* Action buttons — pinned to the rail bottom, 3 per row (each 1/3 wide). */}
+          {aside && (
+            <Box sx={{ minWidth: 0, width: 1, flex: "1 1 auto", overflowY: "auto" }}>
+              {aside}
+            </Box>
+          )}
+
           {actions && (
             <Box
               sx={{
                 mt: { xs: 2, md: "auto" },
-                pt: 1.5,
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
+                pt: 1,
+                display: "flex",
+                flexDirection: "column",
                 gap: 1,
-                alignContent: "end",
               }}
             >
               {actions}
@@ -98,14 +117,15 @@ export function RailLayout({
           )}
         </Box>
 
-        {/* STAGE (80% on desktop, full width below the rail on mobile) */}
+        {/* ── STAGE (80%) ────────────────────────────────────────────── */}
         <Box
           className="esti-dash-stage"
           sx={{
-            flex: { xs: "1 1 auto", md: "1 1 80%" },
-            width: { xs: 1, md: "auto" },
-            maxWidth: { xs: "100%", md: "80%" },
+            flex: 1,
             minWidth: 0,
+            minHeight: 0,
+            height: { md: "100%" },
+            overflowY: { md: "auto" },
             display: "flex",
             flexDirection: "column",
             gap: 2,

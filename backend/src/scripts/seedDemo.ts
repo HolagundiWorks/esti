@@ -47,6 +47,7 @@ import { getOrgSettings } from "../lib/settings.js";
 import { nextRef } from "../lib/numbering.js";
 import { firmGstSystem } from "../lib/firm.js";
 import { ensureDefaultAccounts } from "../modules/expense/accounts.js";
+import { ensureDemoPlatformAccount } from "../lib/demoPlatformSeed.js";
 import { ensureAiStudioEnabled } from "./seedAiStudio.js";
 import {
   clearStudioDemoRows,
@@ -85,6 +86,7 @@ async function clearDemoWorkspace(principalId: string) {
 async function backfillStudioDemo(principalId: string, pwHash: string): Promise<void> {
   const memberIds = await seedDemoTeamRoster(db, principalId, pwHash);
   await upsertDemoFirm(db);
+  await ensureDemoPlatformAccount(DEMO_PASSWORD);
   const projectRows = await db
     .select({ id: projectOffices.id })
     .from(projectOffices)
@@ -109,6 +111,7 @@ async function main() {
   if (exists && !process.env.SEED_DEMO_FORCE) {
     await backfillStudioDemo(exists.id, pwHash);
     console.log("✓ demo workspace present — studio backfill applied (SEED_DEMO_FORCE=1 to wipe and re-seed)");
+    console.log(`    company account: ${principalEmail} / ${DEMO_PASSWORD}`);
     return;
   }
   if (exists && process.env.SEED_DEMO_FORCE) {
@@ -129,6 +132,8 @@ async function main() {
   }).returning();
   if (!principalMaybe) throw new Error("principal insert failed");
   const principal = principalMaybe;
+
+  await ensureDemoPlatformAccount(DEMO_PASSWORD);
 
   const memberIds = await seedDemoTeamRoster(db, principal.id, pwHash);
   const mid = memberIds;

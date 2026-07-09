@@ -7,7 +7,11 @@
  * surface (dark g100). Route: /  (root)
  */
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
+  Button,
   LinearProgress,
   Stack,
   Switch,
@@ -16,9 +20,9 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { can, formatINRShort } from "@esti/contracts";
+import { can, formatINRShort, PRIORITY_BAND_LABEL } from "@esti/contracts";
 import { OfficeHealthGlyph } from "../components/shell/OfficeHealthGlyph.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { STATE_WORD } from "../components/dashboard/zoneState.js";
@@ -26,10 +30,13 @@ import type { ZoneState } from "../components/dashboard/zoneState.js";
 import { CAPACITY_LABEL } from "../components/dashboard/dashboardUi.js";
 import { StudioBreath } from "../components/dashboard/StudioBreath.js";
 import AccountBalanceOutlined from "@mui/icons-material/AccountBalanceOutlined";
+import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
 import BusinessOutlined from "@mui/icons-material/BusinessOutlined";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 import WaterDropOutlined from "@mui/icons-material/WaterDropOutlined";
 import { setWellnessPrefs, useWellnessPrefs } from "../lib/wellnessPrefs.js";
-import { confidenceTag } from "../components/work/workHelpers.js";
+import { confidenceTag, PRIORITY_BAND_TAG } from "../components/work/workHelpers.js";
+import { ZonalComplianceCalculator } from "../components/compliance/ZonalComplianceCalculator.js";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { useNavigate } from "react-router-dom";
@@ -101,6 +108,12 @@ function filingDueDates(): { name: string; date: string; days: number }[] {
   return [mk(7, "TDS payment"), mk(11, "GSTR-1"), mk(20, "GSTR-3B")]
     .sort((a, b) => a.when.getTime() - b.when.getTime())
     .map((x) => ({ name: x.name, date: x.when.toLocaleDateString("en-IN", { day: "2-digit", month: "short" }), days: x.days }));
+}
+
+function pulseBandState(band: string): ZoneState {
+  if (band === "CRITICAL" || band === "ACTION_TODAY") return "critical";
+  if (band === "WATCH") return "watch";
+  return "stable";
 }
 
 // ── Attention vector ──────────────────────────────────────────────────────────
@@ -276,6 +289,21 @@ export function StudioAbstract() {
   const tiQ       = trpc.dashboard.teamIntelligence.useQuery(undefined, { enabled: hrEnabled });
   const attQ      = trpc.dashboard.attendanceToday.useQuery(undefined, { enabled: hrEnabled });
   const queueQ    = trpc.tasks.todayQueue.useQuery({ myTasks: false, limit: 20 }, { staleTime: 30_000 });
+  const utils     = trpc.useUtils();
+  const pulseTopQ = trpc.pulse.topTasks.useQuery(
+    { limit: 3 },
+    { staleTime: Infinity, retry: false },
+  );
+  const refreshEstiPriorities = trpc.pulse.refreshTopTasks.useMutation({
+    onSuccess: (data) => {
+      utils.pulse.topTasks.setData({ limit: 3 }, data);
+    },
+  });
+  const pulseTopUnavailable = pulseTopQ.isError;
+  const pulseQueueQ = trpc.pulse.queue.useQuery(
+    { limit: 3 },
+    { enabled: pulseTopUnavailable, staleTime: Infinity },
+  );
   const glanceQ   = trpc.dashboard.todayGlance.useQuery(undefined, { staleTime: 60_000 });
 
   const home = homeQ.data;
@@ -290,7 +318,12 @@ export function StudioAbstract() {
 
   // Main-screen 30/70 split: left rail carries heading + telemetry + these tabs;
   // the right 70% renders the selected tab's items.
-  const [tab, setTab] = useState<"priorities" | "projects" | "work" | "team">("priorities");
+  const [tab, setTab] = useState<"priorities" | "projects" | "work" | "team" | "zoning">("priorities");
+  const [estiExpanded, setEstiExpanded] = useState(false);
+
+  useEffect(() => {
+    if (tab !== "priorities") setEstiExpanded(false);
+  }, [tab]);
 
   // Module toggles (moved off the dock) — admin-only, shown in the page header.
   const isAdmin = can(user?.role, "firm:admin");
@@ -365,7 +398,9 @@ export function StudioAbstract() {
     ...(hrEnabled ? [{ label: "Team", state: ts, signal: teamSignal(ts) }] : []),
   ];
 
-  const firstName = (user?.fullName ?? "").trim().split(/\s+/)[0] || "there";
+  const firstName =
+    user?.greetingGivenName ??
+    ((user?.fullName ?? "").trim().split(/\s+/)[0] || "there");
   const companyName = firmQ.data?.companyName ?? "";
   const filingDue = filingDueDates();
 
@@ -396,20 +431,76 @@ export function StudioAbstract() {
     ...clientRisks.slice(0, 3).map((c: any) => ({ key: `cr-${c.id}`, label: c.name, detail: `${c.oldestInvoiceDays ?? 0}d oldest invoice`, state: "friction" as ZoneState, href: "/clients" })),
   ].slice(0, 7);
 
-  // Action items
-  const actionRows = [
+  // Action items — ESTI Pulse top 3 (on-demand ranked) + office ops
+  const estiTopTasks = (
+    pulseTopQ.isSuccess ? pulseTopQ.data ?? [] : pulseQueueQ.data ?? []
+  ).slice(0, 3);
+
+  const estiActionRows = estiTopTasks.map((t, i) => ({
+    id: `pulse-${t.id}`,
+    estiRank: i + 1,
+    item: t.title,
+    detail: ("gapSummary" in t && t.gapSummary) ? t.gapSummary : `${t.projectRef ?? "—"} · ${PRIORITY_BAND_LABEL[t.band] ?? t.band}`,
+    when: t.dueDate ?? "—",
+    priorityScore: t.priorityScore,
+    confidenceScore: t.confidenceScore,
+    band: t.band,
+    href: t.projectId ? `/projects/${t.projectId}?tab=tasks` : undefined,
+    state: pulseBandState(t.band),
+  }));
+
+  const officeActionRows = [
     ...overdueInvs.slice(0, 5).map((inv: any) => ({ id: `inv-${inv.id}`, item: `Invoice ${inv.ref}`, detail: formatINRShort(inv.netReceivablePaise), when: `${inv.daysOverdue}d overdue`, href: `/projects/${inv.projectId}?tab=invoices&invoiceId=${inv.id}`, state: (inv.daysOverdue > 30 ? "critical" : "friction") as ZoneState })),
     ...pending.slice(0, 5).map((ap: any) => ({ id: `ap-${ap.id}`, item: `${ap.projectRef} — ${ap.title}`, detail: "Approval pending", when: `${ap.daysWaiting}d`, href: `/projects/${ap.projectId}?tab=approvals&approvalId=${ap.id}`, state: (ap.daysWaiting > 14 ? "critical" : "friction") as ZoneState })),
     ...riskProjects.slice(0, 5).map((p: any) => ({ id: `proj-${p.id}`, item: `${p.ref} — ${p.title}`, detail: "Delivery risk", when: "—", href: projectIssueHref(p), state: "critical" as ZoneState })),
     ...(billingReady.length > 0 ? [{ id: "billing-ready", item: `${billingReady.length} phase${billingReady.length > 1 ? "s" : ""} ready to invoice`, detail: fh?.readyToBillPaise ? formatINRShort(fh.readyToBillPaise) : "—", when: "—", href: "/invoices", state: "watch" as ZoneState }] : []),
   ];
 
-  // ── DataGrid column definitions ─────────────────────────────────────────────
-  const actionCols: GridColDef[] = [
-    { field: "item", headerName: "Item", flex: 2, minWidth: 200, renderCell: (p) => glyphCell(p.row.state, p.row.item) },
-    { field: "detail", headerName: "Detail", flex: 1, minWidth: 120 },
-    { field: "when", headerName: "Age", width: 120 },
+  const estiSuggestCols: GridColDef[] = [
+    {
+      field: "item",
+      headerName: "Task",
+      flex: 2,
+      minWidth: 200,
+      sortable: false,
+      renderCell: (p) => (
+        <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", height: 1 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ minWidth: 14, fontWeight: 600 }}>
+            {p.row.estiRank}
+          </Typography>
+          {glyphCell(p.row.state, p.row.item)}
+        </Stack>
+      ),
+    },
+    { field: "detail", headerName: "Detail", flex: 1, minWidth: 120, sortable: false },
+    {
+      field: "priorityScore",
+      headerName: "Priority",
+      width: 100,
+      sortable: false,
+      renderCell: (p) => (
+        <StatusDot color={PRIORITY_BAND_TAG[p.row.band] ?? "gray"} label={`P${p.row.priorityScore}`} />
+      ),
+    },
+    {
+      field: "confidenceScore",
+      headerName: "Conf.",
+      width: 90,
+      sortable: false,
+      renderCell: (p) => (
+        <StatusDot color={confidenceTag(p.row.confidenceScore)} label={`${p.row.confidenceScore}%`} />
+      ),
+    },
+    { field: "when", headerName: "Due", width: 110, sortable: false },
   ];
+
+  const officeActionCols: GridColDef[] = [
+    { field: "item", headerName: "Item", flex: 2, minWidth: 200, sortable: false, renderCell: (p) => glyphCell(p.row.state, p.row.item) },
+    { field: "detail", headerName: "Detail", flex: 1, minWidth: 120, sortable: false },
+    { field: "when", headerName: "Due / age", width: 120, sortable: false },
+  ];
+
+  const actionGridProps = { ...gridProps, disableColumnSorting: true };
 
   const phRows = atRiskProjects.slice(0, 12).map((p: any) => ({ ...p, id: p.id }));
   const phCols: GridColDef[] = [
@@ -458,6 +549,95 @@ export function StudioAbstract() {
 
   const emptyText = (t: string) => <Typography variant="body2" color="text.secondary">{t}</Typography>;
 
+  /** Zone health + finance snapshot — lives inside the ESTI tab only. */
+  const estiSignalsPanel = (
+    <Box className="esti-esti-signals" sx={{ display: "flex", flexDirection: "column", gap: 1, flexShrink: 0 }}>
+      <Box
+        sx={{
+          borderTop: 1,
+          borderBottom: 1,
+          borderColor: "divider",
+          py: 1.25,
+          display: "flex",
+          alignItems: "center",
+          gap: { xs: 1.5, md: 2 },
+          flexWrap: { xs: "wrap", md: "nowrap" },
+        }}
+      >
+        <Typography
+          variant="overline"
+          color="text.secondary"
+          sx={{ flexShrink: 0, lineHeight: 1, whiteSpace: "nowrap" }}
+        >
+          Zone health
+        </Typography>
+        <Box
+          className="esti-dash-stage-head__zones"
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            display: { xs: "grid", md: "flex" },
+            gridTemplateColumns: { xs: "repeat(2, 1fr)" },
+            justifyContent: { md: "space-evenly" },
+            alignItems: "center",
+            gap: { xs: 1, md: 0 },
+          }}
+        >
+          {zones.map((z) => (
+            <Box key={z.label} className="esti-zone-health__item" title={z.signal} sx={{ px: 1 }}>
+              <OfficeHealthGlyph state={z.state} variant="glass" title={z.signal} />
+              <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "0.65rem", maxWidth: 1 }}>
+                {z.label}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+
+      <Accordion className="esti-dash-kpi-accordion" disableGutters elevation={0} defaultExpanded={false}>
+        <AccordionSummary expandIcon={<ExpandMore fontSize="small" />} aria-controls="dash-kpi-panel" id="dash-kpi-header">
+          <Typography variant="overline" color="text.secondary">
+            {canInvoice && fh ? "Finance snapshot" : "Office snapshot"}
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails id="dash-kpi-panel">
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" },
+              gap: 0,
+              width: 1,
+            }}
+          >
+            {kpiTiles.map((c, i) => (
+              <Box
+                key={c.label}
+                sx={{
+                  minWidth: 0,
+                  p: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  borderTop: { xs: i >= 2 ? 1 : 0, md: 0 },
+                  borderLeft: { xs: i % 2 !== 0 ? 1 : 0, md: i > 0 ? 1 : 0 },
+                  borderColor: "divider",
+                }}
+              >
+                <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2 }} noWrap>{c.label}</Typography>
+                <Typography sx={{ fontWeight: 300, fontSize: "1.1rem", lineHeight: 1.05 }} noWrap>{c.value}</Typography>
+                {c.sub != null && (
+                  <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.65rem" }} noWrap>
+                    {c.sub}
+                  </Typography>
+                )}
+              </Box>
+            ))}
+          </Box>
+        </AccordionDetails>
+      </Accordion>
+    </Box>
+  );
+
   return (
     <Box className="esti-glass-dash" sx={{ flex: 1, minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
       {/* Ambient resonant-breathing contour field (behind content; a passive pacer). */}
@@ -497,10 +677,9 @@ export function StudioAbstract() {
             display: "flex",
             flexDirection: "column",
             gap: 1.5,
-            p: 1.5,
           }}
         >
-          {/* Greeting — top aligns with Zone health on the stage */}
+          {/* Greeting — top of the rail */}
           <Box>
             <Typography variant="h5" sx={{ fontWeight: 300, lineHeight: 1.15, mt: 0 }}>{greetingFor()},</Typography>
             <Typography variant="h5" sx={{ fontWeight: 600, lineHeight: 1.15 }}>{firstName}</Typography>
@@ -577,7 +756,7 @@ export function StudioAbstract() {
           </Box>
         </Box>
 
-        {/* ── STAGE (80%) — zone health · KPIs · tabbed content ───────────────── */}
+        {/* ── STAGE (80%) — tabs + tab content ─────────────────────────────── */}
         <Box
           className="esti-dash-stage"
           sx={{
@@ -591,122 +770,119 @@ export function StudioAbstract() {
             gap: 1.5,
           }}
         >
-          {/* Zone health + finance KPIs — above section tabs */}
-          <Box
-            className="esti-dash-stage-head"
-            sx={{ display: "flex", flexDirection: "column", gap: 1.5, borderBottom: 1, borderColor: "divider", pb: 1.5 }}
+          <Tabs
+            value={tab}
+            onChange={(_, v) => setTab(v)}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              flexShrink: 0,
+              borderBottom: 1,
+              borderColor: "divider",
+              "& .MuiTab-root.Mui-selected": { fontWeight: 600 },
+            }}
           >
-            <Box
-              sx={{
-                borderTop: 1,
-                borderBottom: 1,
-                borderColor: "divider",
-                pt: 1.5,
-                pb: 1.5,
-                display: "flex",
-                alignItems: "center",
-                gap: { xs: 1.5, md: 2 },
-                flexWrap: { xs: "wrap", md: "nowrap" },
-              }}
-            >
-              <Typography
-                variant="overline"
-                color="text.secondary"
-                sx={{ flexShrink: 0, mt: 0, lineHeight: 1, whiteSpace: "nowrap" }}
-              >
-                Zone health
-              </Typography>
-              <Box
-                className="esti-dash-stage-head__zones"
-                sx={{
-                  flex: 1,
-                  minWidth: 0,
-                  display: { xs: "grid", md: "flex" },
-                  gridTemplateColumns: { xs: "repeat(2, 1fr)" },
-                  justifyContent: { md: "space-evenly" },
-                  alignItems: "center",
-                  gap: { xs: 1, md: 0 },
-                }}
-              >
-                {zones.map((z) => (
-                  <Box key={z.label} className="esti-zone-health__item" title={z.signal} sx={{ px: 1 }}>
-                    <OfficeHealthGlyph state={z.state} variant="glass" title={z.signal} />
-                    <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "0.65rem", maxWidth: 1 }}>
-                      {z.label}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" },
-                gap: 0,
-              }}
-            >
-              {kpiTiles.map((c, i) => (
-                <Box
-                  key={c.label}
-                  sx={{
-                    minWidth: 0,
-                    p: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    borderTop: { xs: i >= 2 ? 1 : 0, md: 0 },
-                    borderLeft: { xs: i % 2 !== 0 ? 1 : 0, md: i > 0 ? 1 : 0 },
-                    borderColor: "divider",
-                  }}
-                >
-                  <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2 }} noWrap>{c.label}</Typography>
-                  <Typography sx={{ fontWeight: 300, fontSize: "1.1rem", lineHeight: 1.05 }} noWrap>{c.value}</Typography>
-                  {c.sub != null && (
-                    <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.65rem" }} noWrap>
-                      {c.sub}
-                    </Typography>
-                  )}
-                </Box>
-              ))}
-            </Box>
-          </Box>
-
-          <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto">
-            <Tab value="priorities" label="Priorities" />
+            <Tab value="priorities" label="ESTI" />
             <Tab value="projects" label="Projects" />
             <Tab value="work" label="Work" />
             {hrEnabled && <Tab value="team" label="Team" />}
+            <Tab value="zoning" label="Zonal compliance" />
           </Tabs>
 
           {tab === "priorities" && (
-            <>
-              <SectionCard title="Action items">
-                {actionRows.length === 0
-                  ? emptyText("No action items — the office is operating normally.")
-                  : <DataGrid rows={actionRows} columns={actionCols} onRowClick={(p) => p.row.href && navigate(p.row.href)} {...gridProps} />}
-              </SectionCard>
-              <Sep />
-              <SectionCard title="Top risks">
-                {topRisks.length === 0 ? emptyText("No elevated risks right now.") : (
-                  <Stack spacing={1}>
-                    {topRisks.map((r) => (
-                      <Stack key={r.key} direction="row" spacing={1} sx={{ alignItems: "center", cursor: "pointer" }} onClick={() => navigate(r.href)}>
-                        <OfficeHealthGlyph state={r.state} size={12} />
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Typography variant="body2">{r.label}</Typography>
-                          <Typography variant="caption" color="text.secondary">{r.detail}</Typography>
-                        </Box>
-                        <ZoneChip state={r.state} />
+            <Box
+              className={`esti-esti-tab${estiExpanded ? " esti-esti-tab--focus" : ""}`}
+              sx={{
+                flex: 1,
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+                gap: 1.5,
+              }}
+            >
+              {estiSignalsPanel}
+
+              <Box className="esti-priorities-focus" sx={{ flexShrink: 0 }}>
+                <SectionCard
+                  title="ESTI priorities"
+                  action={(
+                    <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
+                      {estiExpanded ? (
+                        <Button size="small" variant="text" onClick={() => setEstiExpanded(false)}>
+                          Show all
+                        </Button>
+                      ) : (
+                        <Button size="small" variant="text" onClick={() => setEstiExpanded(true)}>
+                          Focus
+                        </Button>
+                      )}
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        disabled={refreshEstiPriorities.isPending}
+                        startIcon={<AutoAwesomeOutlined fontSize="small" />}
+                        onClick={() => refreshEstiPriorities.mutate({ limit: 3 })}
+                      >
+                        {refreshEstiPriorities.isPending ? "Ranking…" : "Refresh rankings"}
+                      </Button>
+                    </Stack>
+                  )}
+                >
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                    ESTI suggests you do these things first — refresh rankings when you want ESTI to re-score from latest task and site data.
+                  </Typography>
+                  {estiActionRows.length === 0
+                    ? emptyText("No priorities yet — refresh rankings to have ESTI score your active work.")
+                    : (
+                      <DataGrid
+                        rows={estiActionRows}
+                        columns={estiSuggestCols}
+                        onRowClick={(p) => p.row.href && navigate(p.row.href)}
+                        {...actionGridProps}
+                      />
+                    )}
+                </SectionCard>
+              </Box>
+
+              {!estiExpanded && (
+                <>
+                  <Sep />
+                  <SectionCard title="Action items">
+                    {officeActionRows.length === 0
+                      ? emptyText("No office action items — billing, approvals and delivery are on track.")
+                      : (
+                        <DataGrid
+                          rows={officeActionRows}
+                          columns={officeActionCols}
+                          onRowClick={(p) => p.row.href && navigate(p.row.href)}
+                          {...actionGridProps}
+                        />
+                      )}
+                  </SectionCard>
+                  <Sep />
+                  <SectionCard title="Top risks">
+                    {topRisks.length === 0 ? emptyText("No elevated risks right now.") : (
+                      <Stack spacing={1}>
+                        {topRisks.map((r) => (
+                          <Stack key={r.key} direction="row" spacing={1} sx={{ alignItems: "center", cursor: "pointer" }} onClick={() => navigate(r.href)}>
+                            <OfficeHealthGlyph state={r.state} size={12} />
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Typography variant="body2">{r.label}</Typography>
+                              <Typography variant="caption" color="text.secondary">{r.detail}</Typography>
+                            </Box>
+                            <ZoneChip state={r.state} />
+                          </Stack>
+                        ))}
                       </Stack>
-                    ))}
-                  </Stack>
-                )}
-              </SectionCard>
-            </>
+                    )}
+                  </SectionCard>
+                </>
+              )}
+            </Box>
           )}
 
           {tab === "projects" && (
+            <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
             <TabSplit
               title="Project health"
               action={
@@ -722,9 +898,11 @@ export function StudioAbstract() {
                 ? emptyText("All projects are on track.")
                 : <DataGrid rows={phRows} columns={phCols} onRowClick={(p) => navigate(projectIssueHref(p.row))} {...gridProps} />}
             </TabSplit>
+            </Box>
           )}
 
           {tab === "work" && (
+            <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
             <>
               <TabSplit
                 title="Work queue"
@@ -744,9 +922,11 @@ export function StudioAbstract() {
                 )}
               </TabSplit>
             </>
+            </Box>
           )}
 
           {tab === "team" && (
+            <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
             <TabSplit
               title="Team capacity"
               action={
@@ -762,6 +942,13 @@ export function StudioAbstract() {
                 ? emptyText("No team data yet.")
                 : <DataGrid rows={tcRows} columns={tcCols} {...gridProps} sx={{ ...GRID_SX, "& .MuiDataGrid-row": { cursor: "default" } }} />}
             </TabSplit>
+            </Box>
+          )}
+
+          {tab === "zoning" && (
+            <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+            <ZonalComplianceCalculator />
+            </Box>
           )}
         </Box>
       </Box>

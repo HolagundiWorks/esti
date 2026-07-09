@@ -75,7 +75,7 @@
 | P1.3 | `asPlan()` shim → always `ACTIVE` during transition | ⬜ |
 | P1.4 | Platform licence API — issue ACTIVE tokens only | ⬜ |
 | P1.5 | `auth.me` — expose `licenceStatus`, `storageQuotaBytes`, `storageUsedBytes` | ⬜ |
-| P1.6 | Remove upgrade prompts referencing Community → Pro | ⬜ |
+| P1.6 | Remove upgrade prompts referencing Community → Pro | ✅ |
 
 **Verify:** Existing demo + prod firms login with full features; no tier chip in UI.
 

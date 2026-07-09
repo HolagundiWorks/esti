@@ -26,6 +26,7 @@ import {
   CmsWoItemUpdate,
   CmsWorkOrderCreate,
   CmsWorkOrderUpdate,
+  CmsWorkflowUpdate,
   cmsAmountPaise,
   computeQuantity,
   type CmsElementMeasurementSummary,
@@ -38,6 +39,7 @@ import {
   cmsBillLines,
   cmsBills,
   cmsElements,
+  cmsEstimationWorkflow,
   cmsFinalSets,
   cmsLocations,
   cmsMeasurements,
@@ -83,6 +85,7 @@ const locations = router({
           parentId: input.parentId ?? null,
           kind: input.kind,
           name: input.name,
+          structureClass: input.structureClass ?? null,
         })
         .returning();
       return row!;
@@ -119,12 +122,16 @@ const elements = router({
           parentElementId: cmsElements.parentElementId,
           isComponent: cmsElements.isComponent,
           dependencyType: cmsElements.dependencyType,
+          dependsOnElementId: cmsElements.dependsOnElementId,
           locationId: cmsElements.locationId,
           locationName: cmsLocations.name,
           gridRef: cmsElements.gridRef,
           itemId: cmsElements.itemId,
           specificationId: cmsElements.specificationId,
           description: cmsElements.description,
+          structureClass: cmsElements.structureClass,
+          bbsElement: cmsElements.bbsElement,
+          bbsParams: cmsElements.bbsParams,
           measurementType: cmsElements.measurementType,
           dimensions: cmsElements.dimensions,
           quantity: cmsElements.quantity,
@@ -215,6 +222,10 @@ const elements = router({
           itemId: input.itemId ?? null,
           specificationId: input.specificationId ?? null,
           description,
+          structureClass: input.structureClass ?? null,
+          bbsElement: input.bbsElement ?? null,
+          bbsParams: input.bbsParams ?? {},
+          dependsOnElementId: input.dependsOnElementId ?? null,
           measurementType: input.measurementType,
           dimensions: input.dimensions,
           quantity,
@@ -1332,4 +1343,31 @@ const intelligence = router({
 });
 
 /** Cost Management System router — CMS-1 through CMS-8. */
-export const cmsRouter = router({ locations, elements, boq, finalSet, measurements, workOrders, bills, intelligence });
+const workflow = router({
+  get: protectedProcedure.input(CmsByProjectInput).query(async ({ ctx, input }) => {
+    const [row] = await ctx.db
+      .select()
+      .from(cmsEstimationWorkflow)
+      .where(eq(cmsEstimationWorkflow.projectId, input.projectId));
+    return row ?? { projectId: input.projectId, modelComplete: false, updatedAt: null };
+  }),
+  setModelComplete: protectedProcedure
+    .input(CmsWorkflowUpdate)
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .insert(cmsEstimationWorkflow)
+        .values({
+          projectId: input.projectId,
+          modelComplete: input.modelComplete,
+          updatedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: cmsEstimationWorkflow.projectId,
+          set: { modelComplete: input.modelComplete, updatedAt: new Date() },
+        })
+        .returning();
+      return row!;
+    }),
+});
+
+export const cmsRouter = router({ locations, elements, boq, finalSet, measurements, workOrders, bills, intelligence, workflow });

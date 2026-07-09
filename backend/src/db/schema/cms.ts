@@ -30,6 +30,7 @@ export const cmsLocations = pgTable("esti_cms_location", {
   parentId: uuid("parent_id"),
   kind: text("kind").notNull(), // ZONE | BUILDING | FLOOR | ROOM | SECTION
   name: text("name").notNull(),
+  structureClass: text("structure_class"), // SUBSTRUCTURE | SUPERSTRUCTURE | FINISHES | SERVICES
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: createdAt(),
 });
@@ -65,6 +66,7 @@ export const cmsElements = pgTable("esti_cms_element", {
   parentElementId: uuid("parent_element_id"),
   isComponent: boolean("is_component").notNull().default(false),
   dependencyType: text("dependency_type"), // MANDATORY | OPTIONAL | SEQUENCE (components)
+  dependsOnElementId: uuid("depends_on_element_id"),
   locationId: uuid("location_id").references(() => cmsLocations.id, {
     onDelete: "set null",
   }),
@@ -74,6 +76,9 @@ export const cmsElements = pgTable("esti_cms_element", {
     onDelete: "set null",
   }),
   description: text("description").notNull(),
+  structureClass: text("structure_class"), // SUBSTRUCTURE | SUPERSTRUCTURE | FINISHES | SERVICES
+  bbsElement: text("bbs_element"), // SLAB | BEAM | COLUMN | FOOTING
+  bbsParams: jsonb("bbs_params").notNull().default({}),
   measurementType: text("measurement_type").notNull().default("VOLUME"), // VOLUME|AREA|LENGTH|COUNT
   dimensions: jsonb("dimensions").notNull().default({}), // { length, height, thickness, nos } in mm
   quantity: doublePrecision("quantity").notNull().default(0), // derived, in the spec unit
@@ -185,4 +190,13 @@ export const cmsMeasurements = pgTable("esti_cms_measurement", {
   remarks: text("remarks"),
   status: text("status").notNull().default("DRAFT"), // DRAFT | VERIFIED
   createdAt: createdAt(),
+});
+
+/** Per-project estimation workflow gate — modelling must complete before measure tabs unlock. */
+export const cmsEstimationWorkflow = pgTable("esti_cms_estimation_workflow", {
+  projectId: uuid("project_id")
+    .primaryKey()
+    .references(() => projectOffices.id, { onDelete: "cascade" }),
+  modelComplete: boolean("model_complete").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

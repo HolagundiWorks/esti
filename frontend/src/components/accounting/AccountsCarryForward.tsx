@@ -1,15 +1,12 @@
-import { Box, Grid, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { formatINR, type PeriodFilterInput } from "@esti/contracts";
 import { PeriodFilter } from "../PeriodFilter.js";
 import { StatusDot } from "../StatusTag.js";
 import { trpc } from "../../lib/trpc.js";
 
 /**
- * The financial-year bar for the accounts section: an FY period selector plus a
- * "carried forward" band that a financial year must never hide — running
- * projects (they span years) and receivables from projects closed in prior
- * years (money still owed). Both come from `accounts.carryForward`, which is
- * deliberately NOT scoped to the selected FY. Material UI.
+ * Financial-year bar for the accounts rail — period selector plus carried-forward
+ * summaries. Layout is single-column for the 20% glass rail (never a 2-col grid).
  */
 export function AccountsCarryForward({
   period,
@@ -22,71 +19,62 @@ export function AccountsCarryForward({
   const cf = cfQ.data;
 
   return (
-    <Stack spacing={2}>
-      <PeriodFilter value={period} onChange={onPeriodChange} />
+    <Stack spacing={1.5} sx={{ minWidth: 0, width: 1 }}>
+      <PeriodFilter layout="rail" value={period} onChange={onPeriodChange} />
 
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Box className="esti-fill" sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-            <Stack spacing={1}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                <StatusDot color="teal" label="Carried forward" />
-                <span className="esti-label--secondary">Running projects</span>
-              </Stack>
-              <p className="esti-label">
-                {cf ? `${cf.runningCount} active / on-hold` : "—"}
-              </p>
-              <p className="esti-label--helper">
-                Contract value in play: {cf ? formatINR(cf.runningContractPaise) : "—"}
-              </p>
-            </Stack>
-          </Box>
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Box className="esti-fill" sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-            <Stack spacing={1}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                <StatusDot color="magenta" label="Carried forward" />
-                <span className="esti-label--secondary">Prior-year receivables</span>
-              </Stack>
-              <p className="esti-label">
-                {cf ? formatINR(cf.priorReceivablePaise) : "—"}
-              </p>
-              <p className="esti-label--helper">
-                {cf
-                  ? `${cf.priorReceivableCount} unpaid invoice(s) on projects closed in earlier years`
-                  : "—"}
-              </p>
-            </Stack>
-          </Box>
-        </Grid>
-      </Grid>
+      <Box sx={{ py: 1, borderTop: 1, borderBottom: 1, borderColor: "divider" }}>
+        <Stack spacing={0.75}>
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", flexWrap: "wrap" }}>
+            <StatusDot color="teal" label="Running" />
+            <Typography variant="caption" color="text.secondary">Running projects</Typography>
+          </Stack>
+          <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+            {cf ? `${cf.runningCount} active / on-hold` : "—"}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ wordBreak: "break-word" }}>
+            Contract value: {cf ? formatINR(cf.runningContractPaise) : "—"}
+          </Typography>
+        </Stack>
+      </Box>
+
+      <Box sx={{ py: 1, borderBottom: 1, borderColor: "divider" }}>
+        <Stack spacing={0.75}>
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", flexWrap: "wrap" }}>
+            <StatusDot color="magenta" label="Receivables" />
+            <Typography variant="caption" color="text.secondary">Prior-year receivables</Typography>
+          </Stack>
+          <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+            {cf ? formatINR(cf.priorReceivablePaise) : "—"}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ wordBreak: "break-word" }}>
+            {cf
+              ? `${cf.priorReceivableCount} unpaid invoice(s) from closed projects`
+              : "—"}
+          </Typography>
+        </Stack>
+      </Box>
 
       {cf && cf.priorReceivables.length > 0 && (
-        <Stack spacing={1}>
-          <Typography variant="subtitle2">
-            Receivables from closed projects (previous years)
+        <Stack spacing={0.75}>
+          <Typography variant="overline" color="text.secondary">
+            Prior receivables
           </Typography>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Invoice</TableCell>
-                <TableCell>Project</TableCell>
-                <TableCell>Dated</TableCell>
-                <TableCell>Outstanding</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {cf.priorReceivables.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell>{r.ref}</TableCell>
-                  <TableCell>{r.projectTitle}</TableCell>
-                  <TableCell>{r.dateInvoice ?? "—"}</TableCell>
-                  <TableCell>{formatINR(r.netReceivablePaise ?? 0)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          {cf.priorReceivables.map((r) => (
+            <Box
+              key={r.id}
+              sx={{ py: 0.75, borderBottom: 1, borderColor: "divider", minWidth: 0 }}
+            >
+              <Typography variant="caption" sx={{ fontWeight: 600, wordBreak: "break-word" }}>
+                {r.ref}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: "block", wordBreak: "break-word" }}>
+                {r.projectTitle}
+              </Typography>
+              <Typography variant="caption" sx={{ display: "block" }}>
+                {formatINR(r.netReceivablePaise ?? 0)}
+              </Typography>
+            </Box>
+          ))}
         </Stack>
       )}
     </Stack>

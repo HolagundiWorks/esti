@@ -18,17 +18,19 @@ import {
 import {
   type CompanyIdStatus,
   type Me,
+  type OrgMemberRow,
   acceptInvite,
   adoptIdentity,
   createCompany,
   declineInvite,
   fetchCompanyIdStatus,
   fetchMe,
-  generateAormsId,
+  fetchOrgMembers,
   generateCompanyId,
   inviteToCompany,
   joinCompany,
   leaveCompany,
+  reviewMember,
 } from "./lib/auth";
 
 const STATUS_TAG: Record<string, "green" | "teal"> = { ACTIVE: "green", INVITED: "teal" };
@@ -52,7 +54,16 @@ function TagChip({ color, label }: { color: string; label: string }) {
 }
 
 /** Self-serve activation: create a company, join one, invite people, or leave. */
-export default function Companies({ me, onChange }: { me: Me; onChange: (m: Me) => void }) {
+export default function Companies({
+  me,
+  onChange,
+  showPendingRequests = false,
+}: {
+  me: Me;
+  onChange: (m: Me) => void;
+  /** Company-account portal: owners review join requests here. */
+  showPendingRequests?: boolean;
+}) {
   const [name, setName] = useState("");
   const [domain, setDomain] = useState("");
   const [joinHandle, setJoinHandle] = useState("");
@@ -73,6 +84,8 @@ export default function Companies({ me, onChange }: { me: Me; onChange: (m: Me) 
       : me.memberships.find((m) => m.role === "OWNER")?.org ?? null;
   const ownedHandle = ownedOrg ? ownedOrg.publicId ?? ownedOrg.slug : null;
 
+  const [pendingMembers, setPendingMembers] = useState<OrgMemberRow[]>([]);
+
   // Earned company identity: AORMS-C unlocks at 100 hours of company usage.
   const [companyId, setCompanyId] = useState<CompanyIdStatus | null>(null);
   useEffect(() => {
@@ -88,6 +101,37 @@ export default function Companies({ me, onChange }: { me: Me; onChange: (m: Me) 
       alive = false;
     };
   }, [ownedHandle]);
+
+  useEffect(() => {
+    let alive = true;
+    if (showPendingRequests && ownedHandle) {
+      void fetchOrgMembers(ownedHandle).then((res) => {
+        if (alive) setPendingMembers(res.members.filter((m) => m.status === "INVITED"));
+      });
+    } else {
+      setPendingMembers([]);
+    }
+    return () => {
+      alive = false;
+    };
+  }, [showPendingRequests, ownedHandle, me.memberships.length]);
+
+  async function handleReview(accountId: string, action: "approve" | "reject") {
+    if (!ownedHandle) return;
+    setBusy(true);
+    const res = await reviewMember(ownedHandle, accountId, action);
+    setBusy(false);
+    if (res.error) {
+      setNote({ kind: "error", text: "Could not update the request." });
+      return;
+    }
+    setPendingMembers(res.members.filter((m) => m.status === "INVITED"));
+    setNote({
+      kind: "success",
+      text: action === "approve" ? "Access approved." : "Request declined.",
+    });
+    onChange(await fetchMe());
+  }
 
   async function handleCompanyId() {
     if (!ownedHandle) return;
@@ -122,7 +166,7 @@ export default function Companies({ me, onChange }: { me: Me; onChange: (m: Me) 
     }
     setName("");
     setDomain("");
-    setNote({ kind: "success", text: "Company created." });
+    setNote({ kind: "success", text: "Company created. Open your workspace to activate it." });
     onChange(res);
   }
 
@@ -145,7 +189,7 @@ export default function Companies({ me, onChange }: { me: Me; onChange: (m: Me) 
       text:
         res.status === "ACTIVE"
           ? "Joined — the company is now active."
-          : "Request sent — an admin must approve your access.",
+          : "Join request sent — the company owner will approve it in Company account.",
     });
     onChange(res);
   }
@@ -200,23 +244,6 @@ export default function Companies({ me, onChange }: { me: Me; onChange: (m: Me) 
     const res = await declineInvite(handle);
     setBusy(false);
     if (res.account) onChange(res);
-  }
-
-  async function handleInstantId() {
-    setBusy(true);
-    setNote(null);
-    const res = await generateAormsId();
-    setBusy(false);
-    if (!res.publicId) {
-      setNote({ kind: "error", text: "Could not generate the ID." });
-      return;
-    }
-    setNote({ kind: "success", text: `Your permanent AORMS ID is ${res.publicId}.` });
-    onChange({
-      ...me,
-      instantIdEligible: false,
-      account: me.account ? { ...me.account, publicId: res.publicId } : me.account,
-    });
   }
 
   async function handleAdopt(e: React.FormEvent) {
@@ -297,19 +324,26 @@ export default function Companies({ me, onChange }: { me: Me; onChange: (m: Me) 
           </Stack>
         )}
 
-        {me.instantIdEligible && (
-          <Alert
-            severity="info"
-            action={
-              <Button color="inherit" size="small" onClick={() => void handleInstantId()}>
-                Generate my AORMS ID
-              </Button>
-            }
-          >
-            <AlertTitle>Generate your AORMS ID now</AlertTitle>
-            Being invited into a company waives the 100-hour requirement — you can mint your
-            permanent identity handle immediately.
-          </Alert>
+        {showPendingRequests && pendingMembers.length > 0 && (
+          <Stack spacing={1}>
+            <Typography variant="subtitle2" component="h4">
+              Pending join requests
+            </Typography>
+            {pendingMembers.map((m) => (
+              <Stack key={m.accountId} direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                <Typography variant="body2" className="esti-grow">
+                  {m.name ?? m.email}
+                  {m.name ? ` · ${m.email}` : ""}
+                </Typography>
+                <Button size="small" variant="contained" disabled={busy} onClick={() => void handleReview(m.accountId, "approve")}>
+                  Approve
+                </Button>
+                <Button size="small" color="error" disabled={busy} onClick={() => void handleReview(m.accountId, "reject")}>
+                  Decline
+                </Button>
+              </Stack>
+            ))}
+          </Stack>
         )}
 
         {me.memberships.length > 0 ? (
@@ -409,17 +443,18 @@ export default function Companies({ me, onChange }: { me: Me; onChange: (m: Me) 
           </Stack>
         )}
 
-        <Box component="form" onSubmit={handleJoin}>
+        <Box component="form" onSubmit={handleJoin} id="join">
           <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
             <TextField
               id="co-join"
-              label="Join a company"
-              placeholder="acme.in · AORMS-C-2K4P"
+              label="Request to join a company"
+              placeholder="company@firm.in · acme.in · AORMS-C-2K4P"
+              helperText="Enter the company's contact email, domain, or AORMS-C ID."
               value={joinHandle}
               onChange={(e) => setJoinHandle(e.target.value)}
             />
             <Button type="submit" variant="outlined" disabled={busy || !joinHandle.trim()}>
-              Join
+              Request access
             </Button>
           </Stack>
         </Box>

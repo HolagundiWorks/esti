@@ -135,5 +135,4 @@ becomes; [revision tracking](/architecture-revision-tracking) is where it is mea
 
 ---
 
-AORMS Community is free forever for small practices — [create an account](/account?mode=create)
-or write to [hi@aorms.in](mailto:hi@aorms.in).
+Create your AORMS account at [/account?mode=create](/account?mode=create) or write to [hi@aorms.in](mailto:hi@aorms.in).

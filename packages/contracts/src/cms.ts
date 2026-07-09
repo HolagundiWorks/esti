@@ -15,6 +15,23 @@ export const CmsLocationKind = z.enum([
 ]);
 export type CmsLocationKind = z.infer<typeof CmsLocationKind>;
 
+/** Structural grouping for estimation modelling (substructure / superstructure). */
+export const CmsStructureClass = z.enum([
+  "SUBSTRUCTURE",
+  "SUPERSTRUCTURE",
+  "FINISHES",
+  "SERVICES",
+]);
+export type CmsStructureClass = z.infer<typeof CmsStructureClass>;
+
+/** IS-code BBS member type — maps an element to bar bending arrangement. */
+export const CmsBbsElement = z.enum(["SLAB", "BEAM", "COLUMN", "FOOTING"]);
+export type CmsBbsElement = z.infer<typeof CmsBbsElement>;
+
+/** BBS geometry + bar config stored on an element (mm; IS 456 / IS 2502 defaults). */
+export const CmsBbsParams = z.record(z.unknown()).default({});
+export type CmsBbsParams = z.infer<typeof CmsBbsParams>;
+
 export const CmsDimensions = z.object({
   length: z.number().min(0).optional(),
   height: z.number().min(0).optional(),
@@ -60,6 +77,7 @@ export const CmsLocationCreate = z.object({
   parentId: z.string().uuid().nullable().optional(),
   kind: CmsLocationKind,
   name: z.string().min(1).max(160),
+  structureClass: CmsStructureClass.optional(),
 });
 export type CmsLocationCreate = z.infer<typeof CmsLocationCreate>;
 
@@ -67,6 +85,7 @@ export const CmsLocationUpdate = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(160).optional(),
   parentId: z.string().uuid().nullable().optional(),
+  structureClass: CmsStructureClass.nullable().optional(),
 });
 export type CmsLocationUpdate = z.infer<typeof CmsLocationUpdate>;
 
@@ -74,6 +93,7 @@ export type CmsLocationUpdate = z.infer<typeof CmsLocationUpdate>;
 export const CmsElementCreate = z.object({
   projectId: z.string().uuid(),
   parentElementId: z.string().uuid().optional(),
+  dependsOnElementId: z.string().uuid().nullable().optional(),
   locationId: z.string().uuid().nullable().optional(),
   gridRef: z.string().max(80).optional(),
   itemId: z.string().uuid().optional(),
@@ -83,6 +103,9 @@ export const CmsElementCreate = z.object({
   dimensions: CmsDimensions.default({}),
   ratePaise: z.number().int().min(0).optional(),
   notes: z.string().max(1000).optional(),
+  structureClass: CmsStructureClass.optional(),
+  bbsElement: CmsBbsElement.nullable().optional(),
+  bbsParams: CmsBbsParams.optional(),
 });
 export type CmsElementCreate = z.infer<typeof CmsElementCreate>;
 
@@ -95,11 +118,21 @@ export const CmsElementUpdate = z.object({
   dimensions: CmsDimensions.optional(),
   ratePaise: z.number().int().min(0).optional(),
   notes: z.string().max(1000).nullable().optional(),
+  structureClass: CmsStructureClass.nullable().optional(),
+  bbsElement: CmsBbsElement.nullable().optional(),
+  bbsParams: CmsBbsParams.optional(),
+  dependsOnElementId: z.string().uuid().nullable().optional(),
 });
 export type CmsElementUpdate = z.infer<typeof CmsElementUpdate>;
 
 export const CmsByProjectInput = z.object({ projectId: z.string().uuid() });
 export type CmsByProjectInput = z.infer<typeof CmsByProjectInput>;
+
+export const CmsWorkflowUpdate = z.object({
+  projectId: z.string().uuid(),
+  modelComplete: z.boolean(),
+});
+export type CmsWorkflowUpdate = z.infer<typeof CmsWorkflowUpdate>;
 
 export const CmsIdInput = z.object({ id: z.string().uuid() });
 export type CmsIdInput = z.infer<typeof CmsIdInput>;

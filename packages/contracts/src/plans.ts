@@ -26,11 +26,14 @@ export const Plan = z.enum(["LITE", "PRO", "ENTERPRISE"]);
 /** @deprecated */
 export type Plan = z.infer<typeof Plan>;
 
-/** @deprecated */
+/** User-facing product name — one standard licence, no editions. */
+export const STANDARD_LICENCE_LABEL = "AORMS Standard";
+
+/** @deprecated All legacy tier codes map to the same product name. */
 export const PLAN_LABEL: Record<Plan, string> = {
-  LITE: "AORMS",
-  PRO: "AORMS",
-  ENTERPRISE: "AORMS",
+  LITE: STANDARD_LICENCE_LABEL,
+  PRO: STANDARD_LICENCE_LABEL,
+  ENTERPRISE: STANDARD_LICENCE_LABEL,
 };
 
 const PLAN_RANK: Record<Plan, number> = { LITE: 0, PRO: 1, ENTERPRISE: 2 };

@@ -4,6 +4,7 @@ import {
   Archive,
   Book,
   Business as Building,
+  CalculateOutlined,
   Description as Document,
   Email,
   Apartment as Enterprise,
@@ -17,7 +18,6 @@ import {
   Receipt,
   Assessment as Report,
   Rule,
-  Settings as SettingsIcon,
   Store,
   Terminal,
   Build as Tools,
@@ -33,7 +33,7 @@ import {
   type LazyExoticComponent,
 } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { can, planAllows, ROLE_RANK, isStaffRole, type PlanFeature } from "@esti/contracts";
+import { can, ROLE_RANK, isStaffRole } from "@esti/contracts";
 import { ThemeContext } from "./lib/theme-context.js";
 import { isLandingSlug } from "./lib/landing-slugs.js";
 import { useAuth } from "./lib/auth.js";
@@ -43,6 +43,7 @@ import { AiAgentCommand } from "./components/AiAgentCommand.js";
 import { ActionDock, ActionDockProvider } from "@hcw/ui-kit";
 import { AppRibbon } from "./components/shell/AppRibbon.js";
 import { AppFooterBar } from "./components/shell/AppFooterBar.js";
+import { AormsLogo } from "./components/AormsLogo.js";
 import { UsageIdentity } from "./components/identity/UsageIdentity.js";
 import { PomodoroProvider } from "./contexts/PomodoroContext.js";
 import { UploadAuthProvider } from "./lib/uploadAuth.js";
@@ -54,8 +55,8 @@ import { Signup } from "./routes/Signup.js";
 import { Login } from "./routes/Login.js";
 import { ExternalLogin } from "./routes/ExternalLogin.js";
 import { ForcePasswordChange } from "./routes/ForcePasswordChange.js";
+import { ForceWorkspaceProfile } from "./routes/ForceWorkspaceProfile.js";
 import { RecoverWithBackupCode } from "./routes/RecoverWithBackupCode.js";
-import { useEdition } from "./lib/edition.js";
 import { ForgotPassword } from "./routes/ForgotPassword.js";
 import { ResetPassword } from "./routes/ResetPassword.js";
 
@@ -78,9 +79,7 @@ function lazyRoute(
 
 const Alerts = lazyRoute(() => import("./routes/Alerts.js"), "Alerts");
 const ArchivedProjects = lazyRoute(() => import("./routes/ArchivedProjects.js"), "ArchivedProjects");
-const AuditLog = lazyRoute(() => import("./routes/AuditLog.js"), "AuditLog");
 const CollaboratorPortal = lazyRoute(() => import("./routes/CollaboratorPortal.js"), "CollaboratorPortal");
-const Company = lazyRoute(() => import("./routes/Company.js"), "Company");
 const SitePortal = lazyRoute(() => import("./routes/SitePortal.js"), "SitePortal");
 const Blog = lazyRoute(() => import("./routes/Blog.js"), "Blog");
 const BlogPost = lazyRoute(() => import("./routes/BlogPost.js"), "BlogPost");
@@ -113,12 +112,16 @@ const Portal = lazyRoute(() => import("./routes/Portal.js"), "Portal");
 const PlatformAdmin = lazyRoute(() => import("./platform-admin/Panel.js"), "default");
 // AORMS account + licence portal (hlp_account) — its own hub destination.
 const AccountPortal = lazyRoute(() => import("./routes/AccountPortal.js"), "AccountPortal");
+const CompanyAccountPortal = lazyRoute(
+  () => import("./routes/CompanyAccountPortal.js"),
+  "CompanyAccountPortal",
+);
 const ProjectDetail = lazyRoute(() => import("./routes/ProjectDetail.js"), "ProjectDetail");
 const Projects = lazyRoute(() => import("./routes/Projects.js"), "Projects");
+const Estimation = lazyRoute(() => import("./routes/Estimation.js"), "Estimation");
 const Reconcile = lazyRoute(() => import("./routes/Reconcile.js"), "Reconcile");
 const SearchPage = lazyRoute(() => import("./routes/Search.js"), "SearchPage");
 const AiStudioPage = lazyRoute(() => import("./components/AiStudio.js"), "AiStudioPage");
-const Settings = lazyRoute(() => import("./routes/Settings.js"), "Settings");
 const Work = lazyRoute(() => import("./routes/Work.js"), "Work");
 const Team = lazyRoute(() => import("./routes/Team.js"), "Team");
 const Hr = lazyRoute(() => import("./routes/Hr.js"), "Hr");
@@ -127,7 +130,6 @@ const Clients = lazyRoute(() => import("./routes/Clients.js"), "Clients");
 const Consultants = lazyRoute(() => import("./routes/Consultants.js"), "Consultants");
 const Contractors = lazyRoute(() => import("./routes/Contractors.js"), "Contractors");
 const Lxos = lazyRoute(() => import("./routes/Lxos.js"), "Lxos");
-const Users = lazyRoute(() => import("./routes/Users.js"), "Users");
 const SystemAdmin = lazyRoute(() => import("./routes/SystemAdmin.js"), "SystemAdmin");
 
 
@@ -149,7 +151,6 @@ export function App() {
 
 function AppShell() {
   const { user, isLoading } = useAuth();
-  const { community } = useEdition();
   const { pathname } = useLocation();
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({
@@ -169,16 +170,6 @@ function AppShell() {
   });
   const licenseBlocked = !!licenseQ.data?.blocked;
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
-  // Plan gates: a Lite firm doesn't see HR, AI, GST billing, reconciliation,
-  // rate books or audit-log nav. planAllows() defaults LITE until the licence loads.
-  const plan = licenseQ.data?.plan ?? settingsQ.data?.plan ?? "LITE";
-  // Plan tier tints the workspace header (replaces the old plan Tag):
-  // LITE → yellow-40 (light); every paid tier → Pro blue-80 (dark). Written
-  // enum-agnostically so it holds whether `plan` is LITE/CORE/ENTERPRISE or the
-  // collapsed LITE/PRO model.
-  const planHeaderClass =
-    plan === "LITE" ? "esti-app-header--lite" : "esti-app-header--pro";
-  const planAllowsFeature = (feature: PlanFeature) => planAllows(plan, feature);
   const isStaff =
     !!user &&
     (isStaffRole(user.role) ||
@@ -231,6 +222,10 @@ function AppShell() {
   if (PUBLIC_SITE && pathname === "/account")
     return <AccountPortal />;
 
+  // Company owner portal — profile, members, company licence (second login screen).
+  if (PUBLIC_SITE && pathname === "/company-account")
+    return <CompanyAccountPortal />;
+
   if (isLoading) return <Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}><CircularProgress aria-label="Loading AORMS" /></Box>;
   if (!user)
     return (
@@ -247,6 +242,7 @@ function AppShell() {
     );
   // Preloaded/community accounts must set their own password before anything else.
   if (user.mustChangePassword) return <ForcePasswordChange />;
+  if (user.mustCompleteWorkspaceProfile) return <ForceWorkspaceProfile />;
 
   // Client-role users get the read-only portal, not the office workspace.
   if (user.role === "CLIENT")
@@ -316,15 +312,16 @@ function AppShell() {
   // to the header admin menu (adminGroups below). See docs/esti/NAVIGATION.md.
   const nav: NavNode[] = prune([
     { label: "Projects", to: "/projects", icon: Building },
+    { label: "Estimation", to: "/estimation", icon: CalculateOutlined },
     {
       kind: "menu",
       label: "Teams",
       icon: UserMultiple,
       items: [
-        ...(planAllowsFeature("hr") && hrEnabled
+        ...(hrEnabled
           ? [
               { label: "Teams", to: "/team", icon: Events },
-              ...(planAllowsFeature("performance") && atLeast(60)
+              ...(atLeast(60)
                 ? [{ label: "Performance", to: "/performance", icon: Analytics }]
                 : []),
               ...(can(user.role, "hr:manage") ? [{ label: "HR", to: "/hr", icon: Identification }] : []),
@@ -352,10 +349,10 @@ function AppShell() {
               { label: "Office Expenses", to: "/accounting/office-expenses", icon: Purchase },
             ]
           : []),
-        ...(planAllowsFeature("hr") && hrEnabled && can(user.role, "hr:manage")
+        ...(hrEnabled && can(user.role, "hr:manage")
           ? [{ label: "Payroll", to: "/finance/payroll", icon: Money }]
           : []),
-        ...(planAllowsFeature("gstFiling") && can(user.role, "reports:view")
+        ...(can(user.role, "reports:view")
           ? [{ label: "Financial Reports", to: "/filing", icon: Report }]
           : []),
       ],
@@ -365,48 +362,36 @@ function AppShell() {
   // Admin menu icon in the header ribbon; grouped: Third Parties, Library, system.
   const adminGroups: { heading: string; items: NavLink[] }[] = [
     {
-      heading: community ? "Contacts" : "Third Parties",
+      heading: "Third Parties",
       items: [
         ...(can(user.role, "write")
-          ? [{ label: community ? "Contacts" : "Clients", to: "/clients", icon: User }]
+          ? [{ label: "Clients", to: "/clients", icon: User }]
           : []),
-        ...(!community && atLeast(60)
+        ...(atLeast(60)
           ? [
               { label: "Consultants", to: "/consultants", icon: UserProfile },
               { label: "Contractors", to: "/contractors", icon: Tools },
             ]
           : []),
-        ...(!community && can(user.role, "write") ? [{ label: "Vendors", to: "/vendors", icon: Store }] : []),
+        ...(can(user.role, "write") ? [{ label: "Vendors", to: "/vendors", icon: Store }] : []),
       ],
     },
     {
       heading: "Library",
-      items: planAllowsFeature("knowledgeBank")
-        ? [
-            { label: "Item Library", to: "/knowledge-bank", icon: ListChecked },
-            { label: "Compliance Library", to: "/libraries/compliance", icon: Rule },
-            { label: "Master Plan Library", to: "/libraries/master-plans", icon: MapIcon },
-            { label: "Standards Library", to: "/libraries/standards", icon: Book },
-          ]
-        : [],
+      items: [
+        { label: "Item Library", to: "/knowledge-bank", icon: ListChecked },
+        { label: "Compliance Library", to: "/libraries/compliance", icon: Rule },
+        { label: "Master Plan Library", to: "/libraries/master-plans", icon: MapIcon },
+        { label: "Standards Library", to: "/libraries/standards", icon: Book },
+      ],
     },
     {
       heading: "Admin",
       items: [
-        ...(can(user.role, "firm:admin")
-          ? [
-              { label: "Company", to: "/company", icon: Building },
-              { label: "Users", to: "/users", icon: UserMultiple },
-            ]
-          : []),
-        ...(planAllowsFeature("auditLog") && can(user.role, "firm:admin")
-          ? [{ label: "Audit Logs", to: "/audit", icon: Book }]
-          : []),
         ...(can(user.role, "project:delete")
           ? [{ label: "Archived projects", to: "/archived-projects", icon: Archive }]
           : []),
         ...(user.isSystemAdmin ? [{ label: "System", to: "/system-admin", icon: Terminal }] : []),
-        { label: "Settings", to: "/settings", icon: SettingsIcon },
       ],
     },
   ].filter((g) => g.items.length > 0);
@@ -417,16 +402,15 @@ function AppShell() {
     <ThemeContext.Provider value="white">
       <ActionDockProvider>
         <div className={`esti-app-shell2${user.isDemo ? " esti-app-shell--demo" : ""}${isStudioHome ? " esti-app-shell2--studio-home" : ""}`}>
-          {/* Floating AORMS logo — bottom-right corner, dimmed (dark mark on light canvas). */}
-          <span role="img" aria-label="AORMS" className="esti-app-logo-float esti-brand esti-brand--aorms" />
-          {/* Ribbon — full bar elsewhere; floating top-right on Studio Intelligence. */}
-          <AppRibbon nav={nav} firmName={firmName} adminGroups={adminGroups} variant={isStudioHome ? "float" : "bar"} />
+          <AormsLogo variant="watermark" className="esti-app-logo-float" />
+          {/* Ribbon — floating top-right; rails and stage start below the header line. */}
+          <AppRibbon nav={nav} firmName={firmName} adminGroups={adminGroups} variant="float" />
           <div className={`esti-app-content2${isStudioHome ? " esti-app-content2--flush-top" : ""}`}>
             <main className="esti-grow">
               {licenseBlocked && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                   <AlertTitle>Workspace licence required</AlertTitle>
-                  Your licence is missing or expired — changes are blocked until it is activated. Open Company → Licence to activate a key.
+                  Your licence is missing or expired — changes are blocked until it is activated. Open Company account → Licence to activate a key.
                 </Alert>
               )}
               <Routes>
@@ -438,13 +422,13 @@ function AppShell() {
                 <Route path="/alerts" element={<Alerts />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
+                <Route path="/estimation" element={<Estimation />} />
+                <Route path="/estimation/:projectId" element={<Estimation />} />
+                <Route path="/libraries/estimates" element={<Navigate to="/estimation" replace />} />
                 <Route path="/knowledge-bank" element={<KnowledgeBank />} />
                 <Route path="/libraries/compliance" element={<ComplianceLibrary />} />
                 <Route path="/libraries/master-plans" element={<MasterPlanLibrary />} />
                 <Route path="/libraries/standards" element={<StandardsLibrary />} />
-                {/* Estimation lives inside a project → Cost Management. Old links redirect. */}
-                <Route path="/estimation" element={<Navigate to="/projects" replace />} />
-                <Route path="/libraries/estimates" element={<Navigate to="/projects" replace />} />
                 {atLeast(60) && <Route path="/vendors" element={<Vendors />} />}
                 {hrEnabled && can(user.role, "hr:manage") && (
                   <Route path="/finance/payroll" element={<Payroll />} />
@@ -529,13 +513,13 @@ function AppShell() {
                   <Route path="/filing" element={<Filing />} />
                 )}
                 {can(user.role, "firm:admin") && (
-                  <Route path="/company" element={<Company />} />
+                  <Route path="/company" element={<Navigate to="/company-account" replace />} />
                 )}
                 {can(user.role, "firm:admin") && (
-                  <Route path="/users" element={<Users />} />
+                  <Route path="/users" element={<Navigate to="/company-account" replace />} />
                 )}
                 {can(user.role, "firm:admin") && (
-                  <Route path="/audit" element={<AuditLog />} />
+                  <Route path="/audit" element={<Navigate to="/company-account" replace />} />
                 )}
                 {user.isSystemAdmin && (
                   <Route path="/system-admin" element={<SystemAdmin />} />
@@ -546,7 +530,7 @@ function AppShell() {
                     element={<ArchivedProjects />}
                   />
                 )}
-                <Route path="/settings" element={<Settings />} />
+                <Route path="/settings" element={<Navigate to="/account#settings" replace />} />
                 <Route path="/profile" element={<Profile />} />
                 {hrEnabled && atLeast(60) && (
                   <Route path="/performance" element={<Performance />} />
@@ -563,7 +547,7 @@ function AppShell() {
           {/* Taskbar footer (HCW-UI-Kit) — the former floating dock's widgets now
               live here: launcher icons LEFT, search centred, tray + clock RIGHT. */}
           <AppFooterBar
-            planClass={planHeaderClass}
+            planClass="esti-app-header--pro"
             onSignOut={() => logout.mutate()}
           />
         </div>

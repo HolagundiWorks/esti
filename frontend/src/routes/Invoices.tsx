@@ -13,6 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
 import {
   GstSystem,
   INVOICE_STATUS_TAG,
@@ -25,6 +26,7 @@ import {
 } from "@esti/contracts";
 import type { InvoiceStatus as InvoiceStatusT, PeriodFilterInput } from "@esti/contracts";
 import { useState } from "react";
+import { useScreenActions } from "@hcw/ui-kit";
 import { Link } from "react-router-dom";
 import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { DataState } from "../components/DataState.js";
@@ -74,6 +76,22 @@ export function Invoices() {
   const tdsPaise = firmTdsDefault ? computeTds194j(taxablePaise) : 0;
   const net = breakup.grandTotal - tdsPaise;
   const showSac = firmGst === GstSystem.REGULAR;
+
+  useScreenActions(
+    canInvoice
+      ? [
+          {
+            id: "new-invoice",
+            zone: "center",
+            tone: "primary",
+            label: "New invoice",
+            icon: <AddIcon />,
+            onClick: () => setOpen(true),
+          },
+        ]
+      : [],
+    [canInvoice],
+  );
 
   const columns: GridColDef[] = [
     { field: "ref", headerName: "Ref", flex: 0.8, minWidth: 120 },
@@ -173,13 +191,6 @@ export function Invoices() {
       <RailLayout
         title="Invoices"
         description="GST tax invoices & bills of supply across all projects."
-        actions={
-          canInvoice ? (
-            <Button variant="contained" fullWidth onClick={() => setOpen(true)}>
-              New invoice
-            </Button>
-          ) : undefined
-        }
         aside={
           <Stack spacing={1.5}>
             <PeriodFilter value={period} onChange={setPeriod} />

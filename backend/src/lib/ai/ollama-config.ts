@@ -30,15 +30,26 @@ export function defaultOllamaAiSettings(overrides: Partial<AiSettings> = {}): Ai
   };
 }
 
+/** In Docker dev, org settings often still point at localhost — prefer the container URL. */
+export function resolveOllamaBaseUrlForDocker(stored: string | null | undefined): string {
+  const envUrl = ollamaBaseUrlFromEnv();
+  const s = stored?.trim();
+  if (!s) return envUrl;
+  if (/localhost|127\.0\.0\.1/.test(s)) return envUrl;
+  return s;
+}
+
 export async function ensureOllamaAiSettings(db: DB): Promise<AiSettings> {
   const [row] = await db.select().from(orgSettings).limit(1);
-  if (!row) return defaultOllamaAiSettings({ enabled: false });
+  if (!row) return defaultOllamaAiSettings();
 
   const current = parseAiSettings(row.aiSettings);
   const next = defaultOllamaAiSettings({
-    enabled: current.enabled || true,
+    enabled: current.enabled,
     redactPii: current.redactPii,
-    ollamaBaseUrl: current.ollamaBaseUrl ?? ollamaBaseUrlFromEnv(),
+    provider: "ollama",
+    model: current.model?.trim() || ollamaModelFromEnv(),
+    ollamaBaseUrl: resolveOllamaBaseUrlForDocker(current.ollamaBaseUrl),
   });
 
   await db

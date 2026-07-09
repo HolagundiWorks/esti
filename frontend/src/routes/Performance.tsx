@@ -238,11 +238,51 @@ export function Performance() {
     return acc;
   }, {});
 
+  const kpiAside = (
+    <Stack spacing={1.5} sx={{ width: 1 }}>
+      <Box sx={{ py: 1, borderBottom: 1, borderColor: "divider" }}>
+        <Stack spacing={0.5}>
+          <Box><StatusDot color="gray" label="Team" /></Box>
+          <Typography variant="h5" component="p" sx={{ lineHeight: 1.1 }}>{teamSize}</Typography>
+          <Typography variant="caption" color="text.secondary">Active members</Typography>
+        </Stack>
+      </Box>
+      <Box sx={{ py: 1, borderBottom: 1, borderColor: "divider" }}>
+        <Stack spacing={0.5}>
+          <Box><StatusDot color="blue" label="Average score" /></Box>
+          <Typography variant="h5" component="p" sx={{ lineHeight: 1.1 }}>
+            {avgScore > 0 ? avgScore : "—"}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">30-day rolling</Typography>
+        </Stack>
+      </Box>
+      <Box sx={{ py: 1, borderBottom: 1, borderColor: "divider" }}>
+        <Stack spacing={0.5}>
+          <Box><StatusDot color="teal" label="Platinum" /></Box>
+          <Typography variant="h5" component="p" sx={{ lineHeight: 1.1 }}>
+            {bandCounts["PLATINUM"] ?? 0}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">Score ≥ 96</Typography>
+        </Stack>
+      </Box>
+      <Box sx={{ py: 1, borderBottom: 1, borderColor: "divider" }}>
+        <Stack spacing={0.5}>
+          <Box><StatusDot color="warm-gray" label="Gold" /></Box>
+          <Typography variant="h5" component="p" sx={{ lineHeight: 1.1 }}>
+            {bandCounts["GOLD"] ?? 0}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">Score 91–95</Typography>
+        </Stack>
+      </Box>
+    </Stack>
+  );
+
   return (
     <>
       <RailLayout
         title="Performance"
         description="ASPRF — Architectural Staff Performance and Recognition Framework. Rolling 30-day scores from tasks and decisions."
+        aside={kpiAside}
         tabs={
           <Tabs
             orientation="vertical"
@@ -278,46 +318,6 @@ export function Performance() {
           </Stack>
         </Box>
       )}
-
-      {/* KPI summary */}
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-            <Stack spacing={0.5}>
-              <Box><StatusDot color="gray" label="Team" /></Box>
-              <Typography variant="h5" component="p">{teamSize}</Typography>
-              <Typography variant="body2" color="text.secondary">Active members</Typography>
-            </Stack>
-          </Box>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-            <Stack spacing={0.5}>
-              <Box><StatusDot color="blue" label="Average score" /></Box>
-              <Typography variant="h5" component="p">{avgScore > 0 ? avgScore : "—"}</Typography>
-              <Typography variant="body2" color="text.secondary">30-day rolling</Typography>
-            </Stack>
-          </Box>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-            <Stack spacing={0.5}>
-              <Box><StatusDot color="teal" label="Platinum" /></Box>
-              <Typography variant="h5" component="p">{bandCounts["PLATINUM"] ?? 0}</Typography>
-              <Typography variant="body2" color="text.secondary">Score ≥ 96</Typography>
-            </Stack>
-          </Box>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-            <Stack spacing={0.5}>
-              <Box><StatusDot color="warm-gray" label="Gold" /></Box>
-              <Typography variant="h5" component="p">{bandCounts["GOLD"] ?? 0}</Typography>
-              <Typography variant="body2" color="text.secondary">Score 91–95</Typography>
-            </Stack>
-          </Box>
-        </Grid>
-      </Grid>
 
       {tab === 0 && (
         <DataState
