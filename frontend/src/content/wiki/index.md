@@ -11,4 +11,4 @@ Welcome to the **AORMS Wiki** — the canonical guide for using the Architecture
 
 AORMS is a **single cloud workspace** for Indian architects and interior designers. There is **one standard licence** with unlimited users, clients, contractors, and projects. You sign in at [aorms.in](https://aorms.in/login) in your browser — there are **no desktop apps to install** and **no edition tiers** (Lite, Pro, or Enterprise).
 
-Everything in this wiki assumes you are working in the **browser workspace**. Estimation, BOQ, drawings, finance, and portals all live inside the same account.
+Everything in this wiki assumes you are working in the **browser workspace**. Projects, drawings, finance, and portals all live inside the same account.

@@ -11,7 +11,7 @@ updated: 2026-07-09
 
 AORMS has **no product tiers**. Every active account receives:
 
-- The **full workspace** (projects, finance, HR, portals, AI, estimation, library)
+- The **full workspace** (projects, finance, HR, portals, AI, libraries)
 - **Unlimited users**, clients, contractors, consultants, and projects
 - **5 GB** included cloud storage
 
@@ -66,9 +66,9 @@ Existing users may be prompted once to complete **firm profile** fields (GSTIN, 
 
 ## AI configuration
 
-1. **Company → AI Studio settings** (firm admin).
-2. Set **OpenAI-compatible** base URL and API key for BYO.
-3. Ask ESTI and AI Studio prefer BYO when configured; fall back to hosted model if unreachable.
+1. **Company account → Administration → AI Studio settings** (firm owner only).
+2. AI Studio runs on a self-hosted Ollama model by default — no API keys needed. Optionally switch the provider to a firm-supplied **OpenAI-compatible** endpoint, model, and API key.
+3. A PII-redaction toggle applies to stored AI output either way.
 
 ---
 

@@ -39,8 +39,8 @@ AORMS uses a fixed **glass rail** (left), a scrolling **stage** (centre), a **ta
 
 Recommended order for a new principal or office manager:
 
-1. **Studio Intelligence** (`/`) — read the overview KPIs and Action Centre.
-2. **Company** — upload your firm logo, confirm GST and address, review storage usage.
+1. **Studio Intelligence** (`/`) — read the ESTI priorities and top risks.
+2. **Company account** (`/company-account`) — confirm firm GSTIN/PAN/address and review storage usage.
 3. **Third Parties → Clients** — add one real client and one active project.
 4. **Projects → open the project** — create phases, add a drawing register entry, assign one task.
 5. **Tasks** (`/tasks`) — log attendance-linked work for today.
@@ -54,7 +54,6 @@ Recommended order for a new principal or office manager:
 ## 6. Where to go next
 
 - **[How to use AORMS](how-to-use-aorms)** — full workflow guide from enquiry to final account.
-- **[Estimation and BOQ](estimation-and-boq)** — in-browser measurement and cost management.
 - **[Finance and billing](finance-and-billing)** — proposals, GST invoices, reconciliation.
 - **[Account and licence](account-and-licence)** — storage, AI usage, and company settings.
 

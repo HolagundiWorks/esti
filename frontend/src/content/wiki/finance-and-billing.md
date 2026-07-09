@@ -15,47 +15,46 @@ AORMS finance modules follow **Indian consultancy practice** — COA fee scales,
 
 **Route:** Office → Proposals (`/office/proposals`)
 
-1. Create a **fee proposal** or **scope agreement** on the unified proposal model.
-2. Enter stage-wise fees, percentages, or lump sums per COA convention.
-3. Track **internal approval** and **client approval** on the same record.
+1. Create a **fee proposal** or **scope agreement** on the unified proposal model — the same form covers both; a proposal is a fee proposal when it uses a COA/per-sqm fee basis, and a scope agreement when it's mostly a lump-sum with a filled-in scope.
+2. Enter fees on the COA scale, per sq.m rate, or as a lump sum — the dialog flags amounts below the COA minimum and requires an override reason to proceed.
+3. Track **client approval** (Pending / Approved / Rejected / On hold) from the project's Pipeline → Activation panel — this is also the gate that activates the project.
 4. Approved proposals become the **billing baseline** for the project.
 
 ---
 
 ## GST invoicing
 
-**Route:** Finance → Invoices (`/finance/invoices`)
+**Route:** Invoices (`/invoices`)
 
-1. **Create invoice** — select client, project, and tax profile.
-2. Line items use consultancy **SAC codes**; CGST/SGST or IGST from place of supply.
+1. **New invoice** — select the project; the firm's GST profile (Not applicable / Composition / Regular, set in Company account) drives the tax logic automatically.
+2. Regular firms add a consultancy **SAC code**; tax splits CGST/SGST intra-state or IGST inter-state. TDS (10% u/s 194J) applies per the firm default.
 3. Amounts are stored in **paise** internally; the UI formats INR.
-4. Issue PDF; track payment status and credit notes as your policy requires.
+4. Move Draft → **Issue** (queues the PDF) → **Paid**, or **Cancel** instead of deleting an issued invoice.
 
 ---
 
 ## Reconciliation
 
-**Route:** Finance → Reconcile (`/finance/reconcile`)
+**Route:** Reconcile (`/reconcile`)
 
-1. Import **bank statements**, **26AS**, **AIS**, or **GSTR** files (formats supported by the worker).
-2. Review suggested matches; confirm or override.
-3. Unmatched entries stay flagged for the accountant.
+1. Upload a **bank statement** (CSV/XLSX) with a batch label; remap Date/Description/Amount columns if headers don't match.
+2. Review the matched lines (by reference and amount) in the batch.
+3. **Settle matched** to mark those invoices Paid, or export the batch as XLSX. Unmatched lines stay flagged.
 
 ---
 
 ## Filing abstracts
 
-**Route:** Finance → Filing (`/finance/filing`)
+**Route:** Financial Reports (`/filing`)
 
-- Generate **GST** and **TDS** filing abstracts for the compliance period.
-- Export for your CA or internal review — tied to reconciled data where possible.
+- **GST abstract** and **TDS abstract** tabs — a period-by-period breakdown built from issued/paid invoices.
+- **Export register** downloads an XLSX invoice register for your CA.
 
 ---
 
-## Office cash book and project expenses
+## Office cash book and expenses
 
-- **Cash book** — office-level receipts and payments.
-- **Project expenses** — attribute costs to projects for internal job costing.
+- **Cash book** (`/accounting/cash-book`) and **Office Expenses** (`/accounting/office-expenses`) share one form — category, amount, date, payee, payment method — for firm overhead. Each entry moves Draft → Submitted → Audited (or Rejected) → Closed.
 
 ---
 
@@ -74,7 +73,7 @@ When HR is enabled for your firm:
 2. Open **Proposals** — verify the milestone amount for that stage.
 3. **Create invoice** for the milestone; attach reference to the proposal line.
 4. Send PDF to client; record receipt in reconcile when paid.
-5. Studio Intelligence **Financial** zone should return to green for that project.
+5. Studio Intelligence's **ESTI** tab finance snapshot should return to green for that project.
 
 ---
 
