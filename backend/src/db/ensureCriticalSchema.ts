@@ -30,12 +30,4 @@ export async function ensureCriticalSchema(db: DB): Promise<void> {
       ADD COLUMN IF NOT EXISTS suspended_at timestamptz,
       ADD COLUMN IF NOT EXISTS deleted_at timestamptz
   `);
-
-  await db.execute(sql`
-    CREATE TABLE IF NOT EXISTS esti_cms_estimation_workflow (
-      project_id uuid PRIMARY KEY REFERENCES esti_projectoffice(id) ON DELETE CASCADE,
-      model_complete boolean NOT NULL DEFAULT false,
-      updated_at timestamptz NOT NULL DEFAULT now()
-    )
-  `);
 }

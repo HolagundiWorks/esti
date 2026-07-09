@@ -894,6 +894,174 @@ $neu-input-radius: 8px; // shared soft-square radius
   color: var(--cds-text-primary, #141517);
 }
 
+// ── Stretch guide — simple animated silhouette per step ───────────────────────
+.esti-stretch-glyph {
+  width: 88px;
+  height: 112px;
+  border-radius: 44px 44px 12px 12px;
+  background: $neu-bg;
+  box-shadow: 6px 6px 16px $neu-dark, -6px -6px 16px $neu-light,
+    inset 0 -8px 0 rgba(255, 79, 24, 0.12);
+  position: relative;
+  transform-origin: center bottom;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    width: 28px;
+    height: 28px;
+    margin-left: -14px;
+    border-radius: 50%;
+    background: rgba(20, 21, 23, 0.08);
+  }
+}
+
+.esti-stretch-glyph--active.esti-stretch-glyph--neck {
+  animation: esti-stretch-neck 4s ease-in-out infinite;
+}
+.esti-stretch-glyph--active.esti-stretch-glyph--shoulders {
+  animation: esti-stretch-shoulders 3s ease-in-out infinite;
+}
+.esti-stretch-glyph--active.esti-stretch-glyph--wrists {
+  animation: esti-stretch-wrists 2.5s ease-in-out infinite;
+}
+.esti-stretch-glyph--active.esti-stretch-glyph--stand {
+  animation: esti-stretch-stand 3.5s ease-in-out infinite;
+}
+
+@keyframes esti-stretch-neck {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
+}
+@keyframes esti-stretch-shoulders {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes esti-stretch-wrists {
+  0%, 100% { transform: rotate(0deg) scaleX(1); }
+  50% { transform: rotate(-4deg) scaleX(1.04); }
+}
+@keyframes esti-stretch-stand {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.08); }
+}
+
+// ── Eye exercise guide — animated iris / blink / figure-eight ─────────────────
+.esti-eye-glyph {
+  width: 120px;
+  height: 72px;
+  border-radius: 50%;
+  background: $neu-bg;
+  box-shadow: 6px 6px 16px $neu-dark, -6px -6px 16px $neu-light;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.esti-eye-glyph__iris {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff 0%, var(--esti-brand-accent) 45%, #c43a10 100%);
+  box-shadow: inset 0 0 0 2px rgba(20, 21, 23, 0.12);
+  transform: translate(0, 0);
+}
+
+.esti-eye-glyph--active.esti-eye-glyph--far .esti-eye-glyph__iris {
+  animation: esti-eye-far 3s ease-in-out infinite;
+}
+.esti-eye-glyph--active.esti-eye-glyph--blink {
+  animation: esti-eye-blink-lid 2.5s ease-in-out infinite;
+}
+.esti-eye-glyph--active.esti-eye-glyph--figure8 .esti-eye-glyph__iris {
+  animation: esti-eye-figure8 4s ease-in-out infinite;
+}
+.esti-eye-glyph--active.esti-eye-glyph--palm {
+  opacity: 0.35;
+  animation: esti-eye-palm 3s ease-in-out infinite;
+}
+
+@keyframes esti-eye-far {
+  0%, 100% { transform: scale(0.85); }
+  50% { transform: scale(1.05); }
+}
+@keyframes esti-eye-blink-lid {
+  0%, 45%, 55%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.08); }
+}
+@keyframes esti-eye-figure8 {
+  0% { transform: translate(-18px, 0); }
+  25% { transform: translate(0, -10px); }
+  50% { transform: translate(18px, 0); }
+  75% { transform: translate(0, 10px); }
+  100% { transform: translate(-18px, 0); }
+}
+@keyframes esti-eye-palm {
+  0%, 100% { filter: brightness(0.7); }
+  50% { filter: brightness(1); }
+}
+
+// ── Animated wellness reminder banner (stretch / eye breaks) ──────────────────
+.esti-wellness-reminder {
+  position: fixed;
+  bottom: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1250;
+  min-width: min(92vw, 22rem);
+  max-width: 24rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(255, 79, 24, 0.35);
+  box-shadow: 0 8px 28px rgba(20, 21, 23, 0.12);
+  animation:
+    esti-wellness-reminder-in 0.35s ease,
+    esti-wellness-reminder-pulse 2.2s ease-in-out infinite 0.35s;
+}
+
+.esti-wellness-reminder__icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 79, 24, 0.12);
+  color: var(--esti-brand-accent);
+  animation: esti-wellness-icon-bob 1.8s ease-in-out infinite;
+}
+
+.esti-wellness-reminder--stretch .esti-wellness-reminder__icon-wrap {
+  animation: esti-wellness-icon-bob 1.8s ease-in-out infinite;
+}
+
+@keyframes esti-wellness-reminder-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes esti-wellness-reminder-pulse {
+  0%, 100% { box-shadow: 0 8px 28px rgba(20, 21, 23, 0.12), 0 0 0 0 rgba(255, 79, 24, 0.25); }
+  50% { box-shadow: 0 8px 28px rgba(20, 21, 23, 0.12), 0 0 0 10px rgba(255, 79, 24, 0); }
+}
+@keyframes esti-wellness-icon-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .esti-stretch-glyph--active,
+  .esti-eye-glyph--active,
+  .esti-eye-glyph--active .esti-eye-glyph__iris,
+  .esti-wellness-reminder,
+  .esti-wellness-reminder__icon-wrap {
+    animation: none !important;
+  }
+}
+
 // ── Auth rail shell (U2) — login / signup / recovery ─────────────────────────
 .esti-auth-shell {
   position: relative;

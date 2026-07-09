@@ -20,8 +20,6 @@ import {
 import { normalizeEmail } from "../lib/email.js";
 import { applyFirmPlanFromEnv } from "../lib/plan.js";
 import { ensureAiStudioEnabled } from "./seedAiStudio.js";
-import { seedCivilWbs } from "./seedCivilWbs.js";
-import { seedCpwdRates } from "./seedCpwdRates.js";
 import { seedOfficeTemplates } from "./seedOfficeTemplates.js";
 
 const email = normalizeEmail(process.env.SEED_OWNER_EMAIL ?? "owner@hcw.in");
@@ -30,12 +28,6 @@ const fullName = process.env.SEED_OWNER_NAME ?? "HCW Owner";
 
 async function main(): Promise<void> {
   await ensureAiStudioEnabled(db);
-
-  // Knowledge Bank: civil-works WBS item library (idempotent).
-  await seedCivilWbs(db);
-
-  // Office rate book: CPWD Delhi DSR rates (idempotent; skips if already seeded).
-  await seedCpwdRates(db);
 
   // Standard office templates — letters, COA fee proposals, contracts (idempotent).
   await seedOfficeTemplates(db);

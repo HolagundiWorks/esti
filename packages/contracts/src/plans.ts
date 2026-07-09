@@ -98,7 +98,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
 export const PLAN_FEATURES = [
   "pmc", "costing", "revisionIntelligence", "gstFiling", "hr",
   "performance", "consultantPortal", "contractorPortal",
-  "ai", "aiByoApi", "byos", "esticad", "auditLog", "knowledgeBank",
+  "ai", "aiByoApi", "byos", "esticad", "auditLog", "specCatalog",
   "sso", "apiAccess", "multiOffice", "whiteLabel",
 ] as const;
 /** @deprecated */
@@ -109,7 +109,7 @@ const _FEATURE_MIN_PLAN: Record<PlanFeature, Plan> = {
   pmc: "LITE", costing: "LITE", revisionIntelligence: "LITE", gstFiling: "LITE",
   hr: "LITE", performance: "LITE", consultantPortal: "LITE", contractorPortal: "LITE",
   ai: "LITE", aiByoApi: "LITE", byos: "LITE", esticad: "LITE", auditLog: "LITE",
-  knowledgeBank: "LITE", sso: "LITE", apiAccess: "LITE", multiOffice: "LITE",
+  specCatalog: "LITE", sso: "LITE", apiAccess: "LITE", multiOffice: "LITE",
   whiteLabel: "LITE",
 };
 

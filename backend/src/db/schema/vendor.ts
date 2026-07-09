@@ -16,7 +16,6 @@ import {
   uuid,
 } from "./_helpers.js";
 import { users } from "./org-auth.js";
-import { kbMaterials } from "./knowledge-bank.js";
 
 export const vendors = pgTable("esti_vendor", {
   id: id(),
@@ -64,7 +63,6 @@ export const vendorQuoteLines = pgTable("esti_vendor_quote_line", {
   quoteId: uuid("quote_id")
     .notNull()
     .references(() => vendorQuotes.id, { onDelete: "cascade" }),
-  materialId: uuid("material_id").references(() => kbMaterials.id, { onDelete: "set null" }),
   materialName: text("material_name").notNull(),
   unit: text("unit").notNull(),
   ratePaise: integer("rate_paise").notNull().default(0),
@@ -78,9 +76,6 @@ export const vendorPrices = pgTable("esti_vendor_price", {
   vendorId: uuid("vendor_id")
     .notNull()
     .references(() => vendors.id, { onDelete: "cascade" }),
-  materialId: uuid("material_id").references(() => kbMaterials.id, {
-    onDelete: "set null",
-  }),
   materialName: text("material_name").notNull(),
   unit: text("unit").notNull(),
   ratePaise: integer("rate_paise").notNull().default(0),

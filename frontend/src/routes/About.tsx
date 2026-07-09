@@ -148,16 +148,15 @@ export function About() {
                 <a href="/gst-billing-software-architects-india">GST billing</a> with reconciliation;
                 a <a href="/architecture-client-portal-software">client portal</a> for approvals and
                 minutes; consultant coordination; site supervision; team, attendance and fair
-                performance scoring; and a keyboard-first{" "}
-                <a href="https://wiki.aorms.in/estimation-and-boq">in-browser estimation and BOQ</a> on each project.
+                performance scoring; and a versioned{" "}
+                <a href="/libraries/spec-catalog">specification catalogue</a> for project spec sheets.
               </p>
 
               <h2>Editions</h2>
               <p>
                 AORMS ships as <strong>one standard licence</strong> — the full workspace with
                 5 GB storage included and unlimited users. You pay for extra storage and hosted
-                AI usage, or bring your own API key. Detailed BOQ runs in{" "}
-                <strong>AORMS Estimate</strong> on the desktop. Read more in our{" "}
+                AI usage, or bring your own API key. Read more in our{" "}
                 <a href="/blog">writing on architecture practice operations</a>.
               </p>
 

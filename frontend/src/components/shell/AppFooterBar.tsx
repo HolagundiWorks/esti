@@ -19,7 +19,10 @@ import { HeaderPomodoro } from "../HeaderPomodoro.js";
 import { UserIdCard } from "../UserIdCard.js";
 import { DemoAdminUnlock } from "../DemoAdminUnlock.js";
 import { WellnessPanel } from "../wellness/WellnessPanel.js";
+import { WellnessReminderBanner } from "../wellness/WellnessReminderBanner.js";
 import { useWellnessReminders } from "../wellness/useWellnessReminders.js";
+import type { WellnessSection } from "../wellness/wellnessExercises.js";
+import { WELLNESS_OPEN_EVENT } from "../wellness/wellnessExercises.js";
 import { OfficeHealthGlyph } from "./OfficeHealthGlyph.js";
 import { useOfficeHealth } from "./useOfficeHealth.js";
 
@@ -64,8 +67,19 @@ export function AppFooterBar({
   const navigate = useNavigate();
   const [showCalc, setShowCalc] = useState(false);
   const [showWellness, setShowWellness] = useState(false);
+  const [wellnessSection, setWellnessSection] = useState<WellnessSection>("breathe");
   const calcTriggerRef = useRef<HTMLButtonElement>(null);
   const wellnessTriggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      const detail = (e as CustomEvent<{ section?: WellnessSection }>).detail;
+      if (detail?.section) setWellnessSection(detail.section);
+      setShowWellness(true);
+    };
+    window.addEventListener(WELLNESS_OPEN_EVENT, onOpen);
+    return () => window.removeEventListener(WELLNESS_OPEN_EVENT, onOpen);
+  }, []);
 
   // Wellness reminders (hydration + firm breaks) run globally from the taskbar.
   useWellnessReminders();
@@ -161,7 +175,7 @@ export function AppFooterBar({
             <span className="esti-brand esti-brand--esti esti-ai-bar__mark" role="img" aria-label="ESTI" />
           </IconButton>
         </Tooltip>
-        <Tooltip title="Wellness — breathe">
+        <Tooltip title="Wellness — breathe, stretch, eyes">
           <IconButton
             ref={wellnessTriggerRef}
             size="small"
@@ -193,10 +207,12 @@ export function AppFooterBar({
         onClose={() => setShowCalc(false)}
         triggerRef={calcTriggerRef}
       />
+      <WellnessReminderBanner />
       <WellnessPanel
         open={showWellness}
         onClose={() => setShowWellness(false)}
         triggerRef={wellnessTriggerRef}
+        initialSection={wellnessSection}
       />
     </Box>
   );

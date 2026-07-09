@@ -9,7 +9,6 @@ export const DocumentEntityType = z.enum([
   "INSPECTION",
   "SPEC_SHEET",
   "MOOD_BOARD",
-  "ESTIMATE",
   "MOM",
   "FEE_PROPOSAL",
 ]);
@@ -23,7 +22,6 @@ export const DOCUMENT_ENTITY_LABEL: Record<DocumentEntityType, string> = {
   INSPECTION: "Site report",
   SPEC_SHEET: "Specification",
   MOOD_BOARD: "Mood board",
-  ESTIMATE: "BOQ / estimate",
   MOM: "Meeting minutes",
   FEE_PROPOSAL: "Fee proposal",
 };
@@ -48,11 +46,9 @@ export const DEFAULT_NUMBERING_SCOPES: Record<string, { prefix: string; padding:
   inspection: { prefix: "SIR", padding: 4 },
   specsheet: { prefix: "SPC", padding: 4 },
   moodboard: { prefix: "MOOD", padding: 4 },
-  estimate: { prefix: "EST", padding: 4 },
   proposal: { prefix: "PRP", padding: 4 },
   feeproposal: { prefix: "FEE", padding: 4 },
   mom: { prefix: "MOM", padding: 4 },
-  bbs: { prefix: "BBS", padding: 4 },
   expense: { prefix: "EXP", padding: 4 },
 };
 

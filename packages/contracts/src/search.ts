@@ -13,9 +13,7 @@ export const SearchEntityType = z.enum([
   "CRITICAL_NOTE",
   "LESSON",
   "OFFICE_TEMPLATE",
-  "DSR_ITEM",
   "SPEC_CATALOG",
-  "SPEC_STANDARD",
   "CONSULTANT",
   "CONTRACTOR",
   "TENDER",
@@ -39,9 +37,7 @@ export const SEARCH_ENTITY_LABEL: Record<SearchEntityType, string> = {
   CRITICAL_NOTE: "Critical note",
   LESSON: "Lesson learned",
   OFFICE_TEMPLATE: "Office template",
-  DSR_ITEM: "Rate book item",
   SPEC_CATALOG: "Spec catalogue",
-  SPEC_STANDARD: "Specification standard",
   CONSULTANT: "Consultant",
   CONTRACTOR: "Contractor / vendor",
   TENDER: "Tender",
@@ -52,12 +48,10 @@ export const SEARCH_ENTITY_LABEL: Record<SearchEntityType, string> = {
   SPEC_SHEET: "Specification sheet",
 };
 
-/** Knowledge Bank facet — subset of universal search types. */
-export const KB_SEARCH_TYPES: SearchEntityType[] = [
+/** Spec catalogue facet — subset of universal search types. */
+export const SPEC_CATALOG_SEARCH_TYPES: SearchEntityType[] = [
   "OFFICE_TEMPLATE",
-  "DSR_ITEM",
   "SPEC_CATALOG",
-  "SPEC_STANDARD",
   "DRAWING",
   "CONTRACTOR",
   "LESSON",
@@ -152,11 +146,8 @@ export function searchResultHref(
       return projectId ? `/projects/${projectId}?tab=${entityType === "LESSON" ? "lessons" : "overview"}` : "/projects";
     case "OFFICE_TEMPLATE":
       return "/office/documents";
-    case "DSR_ITEM":
-      return "/knowledge-bank?tab=dsr";
     case "SPEC_CATALOG":
-    case "SPEC_STANDARD":
-      return "/knowledge-bank?tab=specification";
+      return "/libraries/spec-catalog";
     case "CONSULTANT":
       return "/consultants";
     case "CONTRACTOR":

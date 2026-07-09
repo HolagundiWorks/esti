@@ -1,5 +1,4 @@
 import {
-  KB_SEARCH_TYPES,
   SearchEntityType,
   searchResultHref,
   type SearchHit,
@@ -26,7 +25,6 @@ import {
   proposals,
   specCatalogItems,
   specSheets,
-  specificationStandards,
   tasks,
 } from "../../db/schema.js";
 
@@ -487,36 +485,6 @@ async function searchKnowledge(db: DB, q: string): Promise<SearchHit[]> {
     })),
   );
 
-  const specStdRows = await db
-    .select({
-      id: specificationStandards.id,
-      code: specificationStandards.code,
-      title: specificationStandards.title,
-      specificationText: specificationStandards.specificationText,
-    })
-    .from(specificationStandards)
-    .where(
-      and(
-        eq(specificationStandards.status, "PUBLISHED"),
-        or(
-          ilike(specificationStandards.code, like),
-          ilike(specificationStandards.title, like),
-          ilike(specificationStandards.specificationText, like),
-        ),
-      ),
-    )
-    .limit(PER_TYPE_LIMIT);
-  hits.push(
-    ...specStdRows.map((r) => ({
-      entityType: "SPEC_STANDARD" as const,
-      entityId: r.id,
-      title: `${r.code} · ${r.title}`,
-      snippet: snippet(r.specificationText, 120),
-      href: searchResultHref("SPEC_STANDARD", r.id),
-      rank: rank(r.code, r.title, q),
-    })),
-  );
-
   return hits;
 }
 
@@ -768,9 +736,7 @@ export async function runUniversalSearch(
   if (wants(types, "LESSON")) batches.push(searchLessons(db, q, caps, projectId));
   if (
     wants(types, "OFFICE_TEMPLATE") ||
-    wants(types, "DSR_ITEM") ||
-    wants(types, "SPEC_CATALOG") ||
-    wants(types, "SPEC_STANDARD")
+    wants(types, "SPEC_CATALOG")
   ) {
     batches.push(searchKnowledge(db, q));
   }
@@ -796,17 +762,4 @@ export async function runUniversalSearch(
   }
 
   return { hits, typeCounts };
-}
-
-/** Knowledge Bank scoped search — published catalogue rows only. */
-export async function runKnowledgeBankSearch(
-  db: DB,
-  role: string,
-  input: Pick<SearchQueryInput, "q" | "limit">,
-): Promise<SearchHit[]> {
-  const { hits } = await runUniversalSearch(db, role, {
-    ...input,
-    types: [...KB_SEARCH_TYPES],
-  });
-  return hits;
 }

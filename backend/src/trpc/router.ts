@@ -46,7 +46,6 @@ import { licensingRouter } from "../modules/licensing/router.js";
 import { licenseRouter } from "../modules/license/router.js";
 import { migrationRouter } from "../modules/migration/router.js";
 import { projectArchiveRouter } from "../modules/projectArchive/router.js";
-import { estimateRouter } from "../modules/estimate/router.js";
 import { syncRouter } from "../modules/sync/router.js";
 import { taskRouter } from "../modules/task/router.js";
 import { pulseRouter } from "../modules/pulse/router.js";
@@ -60,9 +59,6 @@ import { reportsRouter } from "../modules/reports/router.js";
 import { phaseRouter } from "../modules/phase/router.js";
 import { projectOfficeRouter } from "../modules/projectoffice/router.js";
 import { workloadRouter } from "../modules/workload/router.js";
-import { knowledgeBankRouter } from "../modules/knowledgebank/router.js";
-import { kbRouter } from "../modules/knowledgebank/kb.js";
-import { cmsRouter } from "../modules/cms/router.js";
 import { specCatalogRouter } from "../modules/knowledgebank/specCatalog.js";
 import { attendanceRouter } from "../modules/attendance/router.js";
 import { appointmentRouter } from "../modules/appointment/router.js";
@@ -163,7 +159,6 @@ export const appRouter = router({
   license: licenseRouter,
   migration: migrationRouter,
   projectArchive: projectArchiveRouter,
-  estimates: estimateRouter,
   sync: syncRouter,
   firm: firmRouter,
   users: userRouter,
@@ -177,9 +172,6 @@ export const appRouter = router({
   leaves: leaveRouter,
   payroll: payrollRouter,
   hrProfile: hrProfileRouter,
-  knowledgeBank: knowledgeBankRouter,
-  kb: kbRouter,
-  cms: cmsRouter,
   specCatalog: specCatalogRouter,
   attendance: attendanceRouter,
   aspRf: aspRfRouter,

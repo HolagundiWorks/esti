@@ -33,6 +33,8 @@ import AccountBalanceOutlined from "@mui/icons-material/AccountBalanceOutlined";
 import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
 import BusinessOutlined from "@mui/icons-material/BusinessOutlined";
 import ExpandMore from "@mui/icons-material/ExpandMore";
+import FitnessCenter from "@mui/icons-material/FitnessCenter";
+import RemoveRedEye from "@mui/icons-material/RemoveRedEye";
 import WaterDropOutlined from "@mui/icons-material/WaterDropOutlined";
 import { setWellnessPrefs, useWellnessPrefs } from "../lib/wellnessPrefs.js";
 import { confidenceTag, PRIORITY_BAND_TAG } from "../components/work/workHelpers.js";
@@ -760,6 +762,28 @@ export function StudioAbstract() {
                 checked={wellnessPrefs.hydrationEnabled}
                 onChange={(e) => setWellnessPrefs({ hydrationEnabled: e.target.checked })}
                 slotProps={{ input: { "aria-label": "Hydration reminder" } }}
+              />
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, minHeight: 38 }}>
+              <FitnessCenter fontSize="small" color="action" />
+              <Typography variant="body2" sx={{ flex: 1 }} noWrap>Stretch reminder</Typography>
+              <Switch
+                size="small"
+                sx={railToggleSwitchSx}
+                checked={wellnessPrefs.stretchEnabled}
+                onChange={(e) => setWellnessPrefs({ stretchEnabled: e.target.checked })}
+                slotProps={{ input: { "aria-label": "Stretch reminder" } }}
+              />
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, minHeight: 38 }}>
+              <RemoveRedEye fontSize="small" color="action" />
+              <Typography variant="body2" sx={{ flex: 1 }} noWrap>Eye break reminder</Typography>
+              <Switch
+                size="small"
+                sx={railToggleSwitchSx}
+                checked={wellnessPrefs.eyeExerciseEnabled}
+                onChange={(e) => setWellnessPrefs({ eyeExerciseEnabled: e.target.checked })}
+                slotProps={{ input: { "aria-label": "Eye break reminder" } }}
               />
             </Box>
           </Box>

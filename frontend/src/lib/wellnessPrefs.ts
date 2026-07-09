@@ -9,11 +9,23 @@ export interface WellnessPrefs {
   hydrationEnabled: boolean;
   hydrationMin: number; // reminder interval, minutes
   pattern: string; // last-used breathing pattern key
+  stretchEnabled: boolean;
+  stretchMin: number; // desk stretch reminder interval, minutes
+  eyeExerciseEnabled: boolean;
+  eyeExerciseMin: number; // eye break reminder interval, minutes
 }
 
 const KEY = "esti.wellness.prefs";
 const EVENT = "esti:wellness-prefs";
-const DEFAULTS: WellnessPrefs = { hydrationEnabled: true, hydrationMin: 15, pattern: "relax" };
+const DEFAULTS: WellnessPrefs = {
+  hydrationEnabled: true,
+  hydrationMin: 15,
+  pattern: "relax",
+  stretchEnabled: true,
+  stretchMin: 45,
+  eyeExerciseEnabled: true,
+  eyeExerciseMin: 30,
+};
 
 export function getWellnessPrefs(): WellnessPrefs {
   try {

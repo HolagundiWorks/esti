@@ -2,12 +2,12 @@
 export const LANDING_SEO = {
   title: "AORMS | Practice management software for architects & designers in India",
   description:
-    "AORMS is the cloud practice OS for Indian architects and interior designers — projects, COA fee proposals, drawing transmittals, revision intelligence, GST billing, in-browser estimation, team load and client portals. One standard licence, 5 GB included, unlimited users.",
+    "AORMS is the cloud practice OS for Indian architects and interior designers — projects, COA fee proposals, drawing transmittals, revision intelligence, GST billing, specification catalogues, team load and client portals. One standard licence, 5 GB included, unlimited users.",
   keywords:
     "architecture practice management software India, software for architects, architect office management, interior design practice software, architectural consultancy software, client revision management architects, drawing approval software, architect fee proposal software COA, GST billing architects India, architecture project management, ESTI AI architect assistant, BOQ estimating software CPWD, AORMS cloud workspace",
   ogTitle: "AORMS — Practice OS for architects & designers",
   ogDescription:
-    "One cloud workspace for Indian architectural studios: projects, fees, revisions, GST, estimation, team and portals. Unlimited users. 5 GB included. No desktop installs.",
+    "One cloud workspace for Indian architectural studios: projects, fees, revisions, GST, specification catalogues, team and portals. Unlimited users. 5 GB included. No desktop installs.",
   twitterTitle: "AORMS — for architects who are tired of chasing their record",
   twitterDescription:
     "Projects, fees, revisions and GST in one browser workspace. Built for Indian architects. One licence · unlimited users · pay for storage and AI.",
@@ -34,12 +34,12 @@ export const LANDING_FAQ = [
   {
     question: "Is there a desktop app to download?",
     answer:
-      "No. AORMS runs entirely in the browser at aorms.in. Estimation, BOQ, drawings, finance, and portals are all inside the same cloud workspace.",
+      "No. AORMS runs entirely in the browser at aorms.in. Drawings, finance, specification catalogues, and portals are all inside the same cloud workspace.",
   },
   {
     question: "Where is the documentation?",
     answer:
-      "The official AORMS Wiki at wiki.aorms.in covers getting started, workflows, estimation, finance, and account setup.",
+      "The official AORMS Wiki at wiki.aorms.in covers getting started, workflows, finance, and account setup.",
   },
   {
     question: "Can I use my own AI API key?",
@@ -49,7 +49,7 @@ export const LANDING_FAQ = [
   {
     question: "What does AORMS help an architecture firm manage?",
     answer:
-      "Client revisions, project phases, drawing transmittals and approvals, COA fee proposals, GST invoicing and reconciliation, consultant and contractor coordination, team workload, in-browser estimation, and ESTI AI-assisted office reasoning.",
+      "Client revisions, project phases, drawing transmittals and approvals, COA fee proposals, GST invoicing and reconciliation, consultant and contractor coordination, team workload, specification catalogues, and ESTI AI-assisted office reasoning.",
   },
 ] as const;
 
@@ -123,7 +123,7 @@ export function injectLandingJsonLd(): void {
         url: "https://aorms.in",
         description: LANDING_SEO.description,
         featureList:
-          "project management, COA fee proposals, drawing transmittals, revision intelligence, GST billing, 26AS/AIS/GSTR reconciliation, HR and payroll, ASPRF team performance, client and consultant portals, Studio Intelligence, Ask ESTI, AI Studio, BYO AI API key, in-browser BOQ estimation",
+          "project management, COA fee proposals, drawing transmittals, revision intelligence, GST billing, 26AS/AIS/GSTR reconciliation, HR and payroll, ASPRF team performance, client and consultant portals, Studio Intelligence, Ask ESTI, AI Studio, BYO AI API key, specification catalogues",
         audience: {
           "@type": "Audience",
           audienceType: "Indian architects, interior designers and architectural consultancies",

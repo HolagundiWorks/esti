@@ -8,7 +8,7 @@ export const OFFICE_ROUTES: string[] = [
   "/activity",
   "/alerts",
   "/projects",
-  "/knowledge-bank",
+  "/libraries/spec-catalog",
   "/search",
   "/invoices",
   "/accounting/office-expenses",

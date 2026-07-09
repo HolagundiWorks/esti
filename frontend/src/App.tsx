@@ -4,7 +4,6 @@ import {
   Archive,
   Book,
   Business as Building,
-  CalculateOutlined,
   Description as Document,
   Email,
   Apartment as Enterprise,
@@ -101,7 +100,7 @@ const OfficeExpenses = lazyRoute(() => import("./routes/OfficeExpenses.js"), "Of
 const CashBook = lazyRoute(() => import("./routes/OfficeExpenses.js"), "CashBook");
 const Proposals = lazyRoute(() => import("./routes/Proposals.js"), "Proposals");
 const Leads = lazyRoute(() => import("./routes/Leads.js"), "Leads");
-const KnowledgeBank = lazyRoute(() => import("./routes/KnowledgeBank.js"), "KnowledgeBank");
+const SpecCatalogLibrary = lazyRoute(() => import("./routes/SpecCatalogLibrary.js"), "SpecCatalogLibrary");
 const ComplianceLibrary = lazyRoute(() => import("./routes/ComplianceLibrary.js"), "ComplianceLibrary");
 const MasterPlanLibrary = lazyRoute(() => import("./routes/MasterPlanLibrary.js"), "MasterPlanLibrary");
 const StandardsLibrary = lazyRoute(() => import("./routes/StandardsLibrary.js"), "StandardsLibrary");
@@ -119,7 +118,6 @@ const CompanyAccountPortal = lazyRoute(
 );
 const ProjectDetail = lazyRoute(() => import("./routes/ProjectDetail.js"), "ProjectDetail");
 const Projects = lazyRoute(() => import("./routes/Projects.js"), "Projects");
-const Estimation = lazyRoute(() => import("./routes/Estimation.js"), "Estimation");
 const Reconcile = lazyRoute(() => import("./routes/Reconcile.js"), "Reconcile");
 const SearchPage = lazyRoute(() => import("./routes/Search.js"), "SearchPage");
 const AiStudioPage = lazyRoute(() => import("./components/AiStudio.js"), "AiStudioPage");
@@ -225,7 +223,7 @@ function AppShell() {
   if (PUBLIC_SITE && pathname === "/about")
     return <About />;
 
-  // Legacy download URL — estimation is in-browser; send visitors to the wiki.
+  // Legacy download URL — redirects to the wiki getting-started guide.
   if (PUBLIC_SITE && pathname === "/download")
     return <Navigate to="/wiki/getting-started" replace />;
 
@@ -323,7 +321,6 @@ function AppShell() {
   // to the header admin menu (adminGroups below). See docs/esti/NAVIGATION.md.
   const nav: NavNode[] = prune([
     { label: "Projects", to: "/projects", icon: Building },
-    { label: "Estimation", to: "/estimation", icon: CalculateOutlined },
     {
       kind: "menu",
       label: "Teams",
@@ -390,7 +387,7 @@ function AppShell() {
     {
       heading: "Library",
       items: [
-        { label: "Item Library", to: "/knowledge-bank", icon: ListChecked },
+        { label: "Specification catalogue", to: "/libraries/spec-catalog", icon: ListChecked },
         { label: "Compliance Library", to: "/libraries/compliance", icon: Rule },
         { label: "Master Plan Library", to: "/libraries/master-plans", icon: MapIcon },
         { label: "Standards Library", to: "/libraries/standards", icon: Book },
@@ -433,10 +430,11 @@ function AppShell() {
                 <Route path="/alerts" element={<Alerts />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
-                <Route path="/estimation" element={<Estimation />} />
-                <Route path="/estimation/:projectId" element={<Estimation />} />
-                <Route path="/libraries/estimates" element={<Navigate to="/estimation" replace />} />
-                <Route path="/knowledge-bank" element={<KnowledgeBank />} />
+                <Route path="/libraries/spec-catalog" element={<SpecCatalogLibrary />} />
+                <Route path="/knowledge-bank" element={<Navigate to="/libraries/spec-catalog" replace />} />
+                <Route path="/estimation" element={<Navigate to="/projects" replace />} />
+                <Route path="/estimation/:projectId" element={<Navigate to="/projects" replace />} />
+                <Route path="/libraries/estimates" element={<Navigate to="/projects" replace />} />
                 <Route path="/libraries/compliance" element={<ComplianceLibrary />} />
                 <Route path="/libraries/master-plans" element={<MasterPlanLibrary />} />
                 <Route path="/libraries/standards" element={<StandardsLibrary />} />
@@ -518,7 +516,7 @@ function AppShell() {
                 {hrEnabled && <Route path="/hr" element={<Hr />} />}
                 <Route
                   path="/dsr"
-                  element={<Navigate to="/knowledge-bank" replace />}
+                  element={<Navigate to="/libraries/spec-catalog" replace />}
                 />
                 {can(user.role, "reports:view") && (
                   <Route path="/filing" element={<Filing />} />

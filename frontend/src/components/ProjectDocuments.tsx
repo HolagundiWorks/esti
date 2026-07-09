@@ -125,74 +125,7 @@ export function ProjectDocuments({ projectId, includeSpecs = true }: { projectId
       <Inspections projectId={projectId} />
       <ProjectMom projectId={projectId} />
       {includeSpecs && <ProjectSpecSheets projectId={projectId} />}
-      <FinalEstimationRecords projectId={projectId} />
     </Stack>
-  );
-}
-
-// --- Final estimation records (frozen CMS sets, archived from the BOQ tab) ---
-function FinalEstimationRecords({ projectId }: { projectId: string }) {
-  const setsQ = trpc.cms.finalSet.listByProject.useQuery({ projectId });
-  const sets = setsQ.data ?? [];
-  const columns: GridColDef[] = [
-    { field: "revisionNo", headerName: "Rev", width: 90, renderCell: (p) => `Rev ${p.row.revisionNo}` },
-    { field: "title", headerName: "Title", flex: 1.4, minWidth: 160 },
-    {
-      field: "status",
-      headerName: "Status",
-      width: 110,
-      renderCell: (p) => (
-        <StatusDot color={p.row.status === "FINAL" ? "green" : "gray"} label={p.row.status} />
-      ),
-    },
-    {
-      field: "totalPaise",
-      headerName: "Total",
-      flex: 0.8,
-      minWidth: 120,
-      renderCell: (p) => formatINR(p.row.totalPaise),
-    },
-    {
-      field: "document",
-      headerName: "Document",
-      sortable: false,
-      filterable: false,
-      flex: 1,
-      minWidth: 140,
-      renderCell: (p) =>
-        p.row.pdfStatus === "READY" && p.row.pdfKey ? (
-          <Button variant="text" size="small" href={`/files/${p.row.pdfKey}`} target="_blank" rel="noreferrer">
-            Open PDF
-          </Button>
-        ) : p.row.pdfStatus === "PENDING" || p.row.pdfStatus === "PROCESSING" ? (
-          <span>Generating…</span>
-        ) : (
-          <StatusDot color="gray" label={p.row.pdfStatus} />
-        ),
-    },
-  ];
-  return (
-    <div>
-      <Typography variant="h6" component="h3">Final estimation records</Typography>
-      <DataState
-        loading={setsQ.isLoading}
-        isEmpty={!setsQ.isLoading && sets.length === 0}
-        columnCount={5}
-        empty={{
-          title: "No final estimation records",
-          description: "Freeze an estimate in Cost Management → BOQ to archive a revision here.",
-        }}
-      >
-        <DataGrid
-          rows={sets}
-          columns={columns}
-          density="compact"
-          disableRowSelectionOnClick
-          hideFooter
-          autoHeight
-        />
-      </DataState>
-    </div>
   );
 }
 

@@ -201,48 +201,6 @@ services:
       esti-minio:
         condition: service_started
 
-  # ── ESE (Estimation Specification Engine — ese.<domain>) ──────────────────────
-  # Back-office pack publisher. Shares the AORMS Postgres (its own ese_* tables,
-  # self-provisioned on boot). Not started by `up -d backend worker` — bring it up
-  # explicitly (deploy/install-ese.sh) and set ESE_ENABLED=true so update.sh
-  # rebuilds it. Port 4100 bound to localhost; host nginx proxies ese.<domain>.
-  ese:
-    build:
-      context: .
-      dockerfile: ese/Dockerfile.prod
-    container_name: esti-ese
-    restart: always
-    env_file: .env
-    environment:
-      NODE_ENV:           production
-      ESE_PORT:           "4100"
-      DATABASE_URL:       ${DATABASE_URL}
-      ESE_ADMIN_USER:     ${ESE_ADMIN_USER:-kbadmin}
-      ESE_ADMIN_PASSWORD: ${ESE_ADMIN_PASSWORD:-}
-      SESSION_SECRET:     ${SESSION_SECRET}
-      ESE_STORAGE_DIR:    /app/.ese-files
-      OLLAMA_URL:         ${OLLAMA_BASE_URL:-http://esti-ollama:11434}
-      OLLAMA_MODEL:       ${OLLAMA_MODEL:-llama3.2}
-    ports:
-      - "127.0.0.1:4100:4100"
-    volumes:
-      - esefiles:/app/.ese-files
-    networks:
-      - esti-network
-    depends_on:
-      esti-db:
-        condition: service_healthy
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "node -e \"fetch('http://127.0.0.1:4100/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-      start_period: 20s
-
 networks:
   esti-network:
     driver: bridge
@@ -253,4 +211,3 @@ volumes:
   miniodata:
   ollamadata:
   mlruns:
-  esefiles:
