@@ -16,6 +16,7 @@ import {
 import { getActionCenter } from "../../modules/dashboard/readModels/index.js";
 import { getFirm } from "../firm.js";
 import { AGENT_ANSWER_RULES, AORMS_OPERATOR_SYSTEM } from "./aorms-operator.js";
+import { WIKI_PRODUCT_KNOWLEDGE } from "./wiki-knowledge.generated.js";
 import { buildAgentMockAnswer } from "./agent-response.js";
 import {
   formatOperatorSnapshot,
@@ -270,7 +271,7 @@ async function assembleAgentContext(
   const question = input.prompt!.trim();
 
   return {
-    systemPrompt: `${AORMS_OPERATOR_SYSTEM}\n\n${AGENT_ANSWER_RULES}`,
+    systemPrompt: `${AORMS_OPERATOR_SYSTEM}\n\n## Product documentation (AORMS Wiki — how-to canon)\n${WIKI_PRODUCT_KNOWLEDGE}\n\n${AGENT_ANSWER_RULES}`,
     userPrompt: `## Live context (permission-filtered)\n${liveBlock}\n\n## User question\n${question}\n\nAnswer using the live context above. Name AORMS screens when pointing the user to more detail.`,
     sources,
     promptSummary: `AGENT${snapshot.project ? ` · ${snapshot.project.ref}` : ""} · ${question.slice(0, 80)}`,

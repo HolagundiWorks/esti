@@ -17,6 +17,7 @@
     "@carbon/icons-react": "^11.42.0",
     "@carbon/react": "^1.71.0",
     "@esti/contracts": "workspace:*",
+    "@xyflow/react": "^12.11.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.23.8",

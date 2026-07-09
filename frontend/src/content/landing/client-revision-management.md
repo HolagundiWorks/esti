@@ -35,7 +35,7 @@ The real cost of poor client revision management is the unbilled change. If a cl
 
 The point is not to fight clients — it is to remove the ambiguity that causes the friction. When every change has a source, a category, an approval and a link to the fee, the conversation shifts from "did you ask for this?" to "here is the record, and here is the additional fee for the scope change you approved." That is the difference between a frustrating relationship and a professional one.
 
-This sits inside the wider [office management](/architecture-office-management-software) and [practice management](/architecture-practice-management-software) system, self-hosted on your own server with role-based access. [Book a demo](/demo) to see Revision Intelligence on a live project.
+This sits inside the wider [office management](/architecture-office-management-software) and [practice management](/architecture-practice-management-software) system, cloud workspace at aorms.in with role-based access. [Book a demo](/demo) to see Revision Intelligence on a live project.
 
 ## Frequently asked questions
 

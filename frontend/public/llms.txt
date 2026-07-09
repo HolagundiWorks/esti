@@ -5,23 +5,30 @@ AORMS stands for Architecture Office Resource Management System.
 AORMS is architecture office management software for Indian architecture firms, solo architects, and small practices.
 
 Core capabilities:
-- Client revision management
-- Meeting minutes that ESTI turns into client revision requests (minutes-to-revision flow)
-- Project phase tracking
-- Architecture document approvals
-- Fee proposal workflows
-- Contractor billing and reconciliation
-- Cognitive dashboard
-- ESTI AI assistant
-- Indian practice-focused office workflows
+- Cloud browser workspace at aorms.in — one standard licence, unlimited users, 5 GB included storage
+- Client revision management and revision intelligence
+- Meeting minutes → ESTI drafts client revision requests
+- Drawing register, transmittals and client approval workflows
+- COA fee proposals and GST invoicing with reconciliation
+- In-browser project estimation and BOQ (rate books, materials, BBS)
+- Studio Intelligence dashboard and Ask ESTI (BYO API key supported)
+- Official documentation at wiki.aorms.in
 
 Website:
 https://aorms.in
 
 ## Public Pages
 - [AORMS home](https://aorms.in/)
+- [AORMS Wiki](https://wiki.aorms.in/)
 - [Blog](https://aorms.in/blog)
 - [Live demo](https://aorms.in/demo)
+
+## Wiki
+- [Getting started](https://wiki.aorms.in/getting-started)
+- [How to use AORMS](https://wiki.aorms.in/how-to-use-aorms)
+- [Estimation and BOQ](https://wiki.aorms.in/estimation-and-boq)
+- [Finance and billing](https://wiki.aorms.in/finance-and-billing)
+- [Account and licence](https://wiki.aorms.in/account-and-licence)
 
 ## Solutions
 - [Approvals That Never Get Stuck](https://aorms.in/architecture-approval-workflow-software): Architecture approval workflow software for internal sign-offs and client portal decisions — with approval ageing so you always know which approvals are stuck.
@@ -40,9 +47,8 @@ https://aorms.in
 - [COA-Compliant Billing for Architects](https://aorms.in/coa-compliant-billing-software): A COA compliant architecture billing system that structures fees by COA Scale of Charges service stages and bills against phase milestones — with GST and TDS built in.
 - [Construction Client Management Software](https://aorms.in/construction-client-management-software): Keep clients informed and accountable through construction — drawings, transmittals, RFIs, approvals, running bills and progress in one scoped client portal. AORMS manages the client relationship through the build, not just design.
 - [Contractor Billing Software for Architects](https://aorms.in/contractor-billing-software-for-architects): Contractor billing software for architects — track measurements, bills, approvals, reconciliation and project evidence between site, office and contractor.
-- [ESTI AI Assistant for Architects](https://aorms.in/esti-ai-assistant-for-architects): ESTI AI assistant for architects — reads project, client, fee, approval and team records to explain risk and recommend the next office action.
-- [Estimate Like a Measurement Book, Not a Form](https://aorms.in/architecture-estimation-software): Keyboard-first BOQ estimation and measurement-book costing for Indian architecture practices — element-wise quantities, rate references, and auto totals built into the project record.
-- [GST Billing for Architecture Firms](https://aorms.in/gst-billing-software-architects-india): GST billing software for architects India — correct CGST/SGST or IGST split, TDS u/s 194J, SAC codes, gap-free FY-sequential invoices and GSTR reconciliation.
+- [Minutes of Meeting, on the Project Record](https://aorms.in/minutes-of-meeting-software-for-architects): Minutes of meeting software for architects: record and issue MoM on the project record, visible in the client portal, with ESTI drafting revision requests.
+- [Run Every Project On One Record](https://aorms.in/architecture-project-management-software): Architecture project management software for Indian practices — phases, drawing registers, site supervision and in-browser estimation on one project record.
 - [GST on Architecture Work in India](https://aorms.in/gst-on-architecture-services): How GST applies to architecture work in India — the 18% rate, the SAC code for architectural services, when registration is required, TDS under 194J, and how AORMS bills it correctly.
 - [HSN / SAC Code for Architecture Services](https://aorms.in/hsn-sac-code-for-architects): Architecture is a service, so invoices use a SAC code (9983 family) — not an HSN code. What the architectural-services SAC code is, where it goes on a GST invoice, and how AORMS adds it automatically.
 - [Keep Every Client On The Record](https://aorms.in/architecture-client-management-software): Architect client management software for Indian practices — CRM, client log, COA proposals, GST invoices and a client portal where decisions go on the record.
@@ -81,6 +87,13 @@ https://aorms.in
 - [Measuring team performance fairly — the ASPRF score](https://aorms.in/blog/measuring-team-performance-asprf): Counting finished tasks rewards the wrong behaviour. ASPRF weighs reliability, quality, impact, collaboration, learning, and wellbeing — with anti-gaming built in.
 - [Smart access — team hierarchy and who can see what](https://aorms.in/blog/team-access-and-hierarchy): Roles, capabilities, staff levels, teams, and scoped portals. Everyone sees exactly what their work needs — and nothing it doesn't.
 - [Try AORMS — the live demo and how to explore it](https://aorms.in/blog/demo-and-how-to-use): A fully seeded practice you can open in one click — projects, billing, a team, client and contractor portals — no signup, no password.
+- [How better revision tracking prevents scope creep](https://aorms.in/blog/how-better-revision-tracking-prevents-scope-creep): Scope creep is cumulative — revision tracking makes the total visible before the fee leaks away.
+- [Why architecture teams miss early project warning signs](https://aorms.in/blog/why-architecture-teams-miss-early-warning-signs): Late surprises are usually visible weeks earlier in tasks, revisions, fees, and site notes.
+- [Architecture practice management — the missing system](https://aorms.in/blog/architecture-practice-management-missing-system): The practice record that connects fees, drawings, revisions, and site still lives in fragments without a practice spine.
+- [Managing multiple client feedback loops efficiently](https://aorms.in/blog/managing-multiple-client-feedback-loops): One project record and scoped portals collapse parallel feedback channels.
+- [Why managing architecture projects on Excel breaks down](https://aorms.in/blog/why-managing-architecture-projects-on-excel-breaks-down): Where spreadsheet-based project records fail as commissions multiply.
+- [The real cost of poor project visibility](https://aorms.in/blog/cost-of-poor-project-visibility-architecture): Poor visibility taxes margin, trust, and principal time.
+- [Best software for managing client approvals](https://aorms.in/blog/best-software-client-approvals-architecture-firms): What to require from approval workflow software in Indian practice.
 
 ## More
 - [All articles](https://aorms.in/blog)

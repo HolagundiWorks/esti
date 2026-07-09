@@ -37,13 +37,13 @@ const SLIDES = [
     n: "05",
     kicker: "Product & moat",
     title: "Deep domain encoding, not another dashboard",
-    body: "The moat is the depth: a cognition and architectural-reasoning engine that ranks tasks and reasons through missing data; a revision-intelligence model that separates billable client scope from internal error; an end-to-end estimation, BOQ, and construction-cost engine; scoped client, contractor, and consultant portals; and a fair, anti-gaming team performance score. It is self-hostable, so a firm's data stays its own — a real differentiator in this market.",
+    body: "The moat is the depth: a cognition and architectural-reasoning engine that ranks tasks and reasons through missing data; a revision-intelligence model that separates billable client scope from internal error; in-browser estimation and BOQ; scoped client, contractor, and consultant portals; and a fair, anti-gaming team performance score. One standard cloud licence with unlimited users — usage-based storage and AI.",
   },
   {
     n: "06",
     kicker: "Business model",
     title: "Self-hosted licence and hosted SaaS",
-    body: "Two paths to the same product: a self-hosted licence for firms that want their data on their own infrastructure, and a managed hosted offering for those that want zero ops. Pricing scales by firm and seat. The public marketing surfaces and a one-click demo double as a low-cost acquisition channel.",
+    body: "AORMS is cloud SaaS at aorms.in — one standard licence, unlimited users, 5 GB included storage, and metered storage plus AI beyond that. BYO API key supported. The public marketing surfaces, wiki, and demo double as a low-cost acquisition channel.",
   },
   {
     n: "07",

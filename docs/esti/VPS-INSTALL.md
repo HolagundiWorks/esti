@@ -5,7 +5,8 @@ installer (`deploy/install.sh`) does everything — Docker, nginx, TLS, seeding,
 auto-start. You only provision the box, point DNS, and run the installer.
 
 > Quick reference for the scripts is in [`deploy/README.md`](../../deploy/README.md).
-> HTTPS + Google-auth specifics: [`AORMS-LITE-AND-GOOGLE-AUTH.md`](AORMS-LITE-AND-GOOGLE-AUTH.md).
+> Public documentation: [wiki.aorms.in](https://wiki.aorms.in).
+> Legacy Lite installer guide: [`docs/archive/esti/AORMS-LITE-AND-GOOGLE-AUTH.md`](../archive/esti/AORMS-LITE-AND-GOOGLE-AUTH.md).
 
 ---
 
@@ -277,39 +278,14 @@ Legacy `FIRM_PLAN=CORE` / `FIRM_PLAN=ENTERPRISE` values still resolve to Pro.
 
 ---
 
-## 9a. Hosting the desktop installers (`/download`)
+## 9a. Desktop installers (retired)
 
-The Windows `.exe` installers can't be built on a Linux VPS. GitHub Actions
-(`.github/workflows/desktop.yml`, **windows-latest**) builds all three editions
-and publishes them on a `desktop-v*` Release; the VPS just pulls them down and
-hosts them under `/downloads/`.
+The Windows Lite/Pro/Enterprise `/download` portal and `fetch-installers.sh` flow
+were **retired 2026-07**. New deployments serve the **cloud workspace** only.
+`/download` on the marketing site redirects to the wiki.
 
-**1. Build them once (on GitHub):**
-```bash
-git tag desktop-v1.0.0 && git push origin desktop-v1.0.0   # or: Actions → desktop-installer → Run workflow
-```
-This yields a `desktop-v*` Release with `AORMS-Lite-Setup.exe`,
-`AORMS-Core-Setup.exe`, `AORMS-Enterprise-Setup.exe`.
-
-**2. Pull them onto the VPS** (private repo — `gh` must be authed):
-```bash
-apt-get install -y gh && gh auth login     # or: export GH_TOKEN=<token>
-cd /opt/esti
-bash deploy/fetch-installers.sh            # newest desktop-v* release
-bash deploy/fetch-installers.sh desktop-v1.0.0   # or pin a tag
-```
-
-The script downloads the `.exe`s, writes `VITE_LITE_DOWNLOAD_URL` and
-`VITE_PRO_DOWNLOAD_URL` into `.env` (the Pro button maps to `AORMS-Pro-Setup.exe`
-when the release ships one, else the legacy `AORMS-Core-Setup.exe`), **rebuilds
-the SPA** (those URLs are build-time constants), and atomic-swaps `frontend/dist`
-with the installers carried into `dist/downloads/`. Afterwards
-`https://<your-domain>/download` serves the Lite and Pro downloads.
-
-- Run `deploy/install.sh` first — `fetch-installers.sh` errors if `.env` is missing.
-- `deploy/update.sh` preserves `dist/downloads/` across the swap, so a normal code
-  update won't wipe the hosted installers — only re-run `fetch-installers.sh` when
-  you publish a **new** installer version.
+Operators on legacy VPS layouts may still have `frontend/dist/downloads/` from an
+older install — safe to delete. See [ADMIN-GUIDE](ADMIN-GUIDE.md) §6b.
 
 ---
 

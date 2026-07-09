@@ -16,11 +16,12 @@ import { fileURLToPath } from "node:url";
 import { marked } from "marked";
 
 const SITE = "https://aorms.in";
+const WIKI_SITE = "https://wiki.aorms.in";
 const SITE_NAME = "AORMS";
 const HOME_SEO = {
-  title: "AORMS | Architecture Office Management Software for Indian Architects",
+  title: "AORMS | Practice management software for architects & designers in India",
   description:
-    "AORMS helps Indian architecture firms manage client revisions, project workflows, fee proposals, approvals, billing, contractor coordination, and office operations in one platform.",
+    "AORMS is the cloud practice OS for Indian architects and interior designers — projects, COA fee proposals, drawing transmittals, revision intelligence, GST billing, in-browser estimation, team load and client portals. One standard licence, 5 GB included, unlimited users. Docs: wiki.aorms.in.",
   canonical: `${SITE}/`,
 };
 
@@ -34,6 +35,7 @@ if (process.env.VITE_PUBLIC_SITE === "false") {
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const distDir = join(root, "dist");
 const contentDir = join(root, "src", "content", "blog");
+const wikiDir = join(root, "src", "content", "wiki");
 const landingDir = join(root, "src", "content", "landing");
 const slugsPath = join(root, "src", "lib", "landing-slugs.ts");
 const templatePath = join(distDir, "index.html");
@@ -121,6 +123,25 @@ function extractFaqs(body) {
   return faqs;
 }
 
+function loadWiki() {
+  if (!existsSync(wikiDir)) return [];
+  return readdirSync(wikiDir)
+    .filter((f) => f.endsWith(".md"))
+    .map((f) => {
+      const { data, body } = parseFrontmatter(readFileSync(join(wikiDir, f), "utf8"));
+      const slug = data.slug || f.replace(/\.md$/, "");
+      return {
+        slug,
+        title: data.title || slug,
+        excerpt: data.excerpt || "",
+        updated: data.updated || "",
+        draft: data.draft === "true",
+        body,
+      };
+    })
+    .filter((p) => !p.draft && p.slug !== "index");
+}
+
 function loadLanding() {
   if (!existsSync(landingDir)) return [];
   return readdirSync(landingDir)
@@ -201,6 +222,7 @@ function writePage(routePath, html) {
 
 // ── build ───────────────────────────────────────────────────────────────────
 const posts = loadPosts();
+const wikiPages = loadWiki();
 const landing = loadLanding();
 assertSlugsInSync(landing);
 
@@ -213,7 +235,8 @@ const homeFeatureLinks = [
   ["Fee proposals", "/architect-fee-proposal-software", "Connect stage-wise fees to billing readiness, GST workflows, receipts and reconciliation."],
   ["Contractor billing and reconciliation", "/contractor-billing-software-for-architects", "Follow measurements, contractor verification, office review, item-wise bills and client-facing approval."],
   ["Cognitive dashboard", "/architecture-erp-india", "See what moved, what is blocked, what needs approval, what is billable and who owns the next action."],
-  ["ESTI AI assistant", "/esti-ai-assistant-for-architects", "Read the office record, explain risk and suggest the next responsible action without replacing human approval."],
+  ["In-browser estimation and BOQ", "/architecture-project-management-software", "Rate-book-linked BOQ, materials takeoff and bar bending schedules inside each project — no separate desktop install."],
+  ["ESTI AI assistant", "/architecture-office-management-software", "Ask ESTI reads your office record to explain fee risk, revisions and site progress — BYO API key supported."],
   ["Indian architecture practice workflows", "/architecture-office-management-india", "Work with GST, COA fee logic, tenders, site work, client approvals and practice-specific office records."],
 ];
 const homeArticleGroups = [
@@ -318,6 +341,47 @@ for (const p of posts) {
   );
 }
 
+// Wiki index + pages → dist/wiki/ (aorms.in/wiki and wiki.aorms.in)
+const wikiIndexBody = `<main class="esti-wiki"><h1>AORMS Wiki</h1><p>Official documentation for the AORMS cloud workspace.</p><ul>${wikiPages
+  .map((p) => `<li><a href="/${p.slug}"><strong>${esc(p.title)}</strong> — ${esc(p.excerpt)}</a></li>`)
+  .join("")}</ul></main>`;
+writePage(
+  "wiki",
+  renderPage({
+    title: "AORMS Wiki",
+    description: "How to use AORMS — workflows, estimation, finance, and account setup.",
+    canonical: `${WIKI_SITE}/`,
+    bodyHtml: wikiIndexBody,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "AORMS Wiki",
+      url: WIKI_SITE,
+    },
+  }),
+);
+
+for (const p of wikiPages) {
+  const articleHtml = `<main class="esti-wiki"><article class="esti-wiki-article"><h1>${esc(p.title)}</h1>${marked.parse(p.body, { async: false })}</article></main>`;
+  writePage(
+    join("wiki", p.slug),
+    renderPage({
+      title: p.title,
+      description: p.excerpt,
+      canonical: `${WIKI_SITE}/${p.slug}`,
+      bodyHtml: articleHtml,
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        headline: p.title,
+        description: p.excerpt,
+        dateModified: p.updated || undefined,
+        mainEntityOfPage: { "@type": "WebPage", "@id": `${WIKI_SITE}/${p.slug}` },
+      },
+    }),
+  );
+}
+
 // Each keyword landing page → dist/<slug>/index.html
 for (const p of landing) {
   const url = `${SITE}/${p.slug}`;
@@ -371,6 +435,14 @@ const today = new Date().toISOString().slice(0, 10);
 const urls = [
   { loc: `${SITE}/`, lastmod: today, changefreq: "weekly", priority: "1.0" },
   { loc: `${SITE}/blog`, lastmod: posts[0]?.date || today, changefreq: "weekly", priority: "0.8" },
+  { loc: `${WIKI_SITE}/`, lastmod: today, changefreq: "weekly", priority: "0.9" },
+  ...wikiPages.map((p) => ({
+    loc: `${WIKI_SITE}/${p.slug}`,
+    lastmod: p.updated || today,
+    changefreq: "weekly",
+    priority: "0.85",
+  })),
+  { loc: `${SITE}/wiki`, lastmod: today, changefreq: "weekly", priority: "0.7" },
   ...landing.map((p) => ({ loc: `${SITE}/${p.slug}`, lastmod: p.updated || today, changefreq: "monthly", priority: "0.8" })),
   { loc: `${SITE}/about`, lastmod: today, changefreq: "monthly", priority: "0.6" },
   { loc: `${SITE}/legal`, lastmod: today, changefreq: "yearly", priority: "0.3" },
@@ -411,11 +483,15 @@ ${SITE}
 
 ## Public Pages
 - [AORMS home](${SITE}/)
+- [AORMS Wiki](${WIKI_SITE}/)
 - [Blog](${SITE}/blog)
 - [Live demo](${SITE}/demo)
 
 ## Solutions
 ${landing.map((p) => `- [${p.title}](${SITE}/${p.slug}): ${p.metaDescription}`).join("\n")}
+
+## Wiki (official product documentation)
+${wikiPages.map((p) => `- [${p.title}](${WIKI_SITE}/${p.slug}): ${p.excerpt}`).join("\n")}
 
 ## Articles
 ${posts.map((p) => `- [${p.title}](${SITE}/blog/${p.slug}): ${p.excerpt}`).join("\n")}
@@ -425,4 +501,4 @@ ${posts.map((p) => `- [${p.title}](${SITE}/blog/${p.slug}): ${p.excerpt}`).join(
 `;
 writeFileSync(join(distDir, "llms.txt"), llms, "utf8");
 
-console.log(`[prerender] ${posts.length} post(s) + blog index + sitemap.xml (${urls.length} urls) + llms.txt written to dist/`);
+console.log(`[prerender] ${posts.length} post(s) + ${wikiPages.length} wiki page(s) + blog index + sitemap.xml (${urls.length} urls) + llms.txt written to dist/`);

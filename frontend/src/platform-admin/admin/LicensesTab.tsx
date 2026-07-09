@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import MoreVert from "@mui/icons-material/MoreVert";
+import { licensingPlanLabel } from "@esti/contracts";
 import { trpc } from "../lib/trpc";
 
 type Licenses = Awaited<ReturnType<typeof trpc.admin.licenses.list.query>>;
@@ -56,13 +57,8 @@ export default function LicensesTab() {
   const [extendId, setExtendId] = useState<string | null>(null);
   const [extendDate, setExtendDate] = useState("");
 
-  // Change plan (upgrade / downgrade).
-  const [planChange, setPlanChange] = useState<{ id: string; productCode: string } | null>(null);
-  const [changePlanId, setChangePlanId] = useState("");
-
   const [detail, setDetail] = useState<Detail | null>(null);
 
-  // Row action menu (replaces Carbon OverflowMenu).
   const [menu, setMenu] = useState<{ anchor: HTMLElement; license: Licenses[number] } | null>(null);
 
   async function load() {
@@ -83,7 +79,14 @@ export default function LicensesTab() {
     });
   }, []);
 
-  const plansForProduct = products.find((p) => p.id === productId)?.plans ?? [];
+  const selectedProduct = products.find((p) => p.id === productId);
+  const plansForProduct = selectedProduct?.plans ?? [];
+  const singlePlan = selectedProduct?.code === "AORMS" || plansForProduct.length <= 1;
+
+  useEffect(() => {
+    const p = products.find((x) => x.id === productId);
+    if (p?.plans[0]) setPlanId(p.plans[0].id);
+  }, [productId, products]);
 
   async function create() {
     setError(null);
@@ -116,22 +119,6 @@ export default function LicensesTab() {
     await load();
   }
 
-  const plansForChange =
-    products.find((p) => p.code === planChange?.productCode)?.plans ?? [];
-
-  async function doChangePlan() {
-    if (!planChange || !changePlanId) return;
-    setError(null);
-    try {
-      await trpc.admin.licenses.changePlan.mutate({ licenseId: planChange.id, planId: changePlanId });
-      setPlanChange(null);
-      setChangePlanId("");
-      await load();
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  }
-
   async function openDetail(licenseId: string) {
     setDetail(await trpc.admin.licenses.get.query({ licenseId }));
   }
@@ -149,7 +136,14 @@ export default function LicensesTab() {
     { field: "key", headerName: "Key", flex: 1.4, minWidth: 200 },
     { field: "orgName", headerName: "Organization", flex: 1.2, minWidth: 160 },
     { field: "productCode", headerName: "Product", flex: 1, minWidth: 120 },
-    { field: "planCode", headerName: "Plan", flex: 1, minWidth: 120 },
+    {
+      field: "planCode",
+      headerName: "Plan",
+      flex: 1,
+      minWidth: 140,
+      valueGetter: () => licensingPlanLabel(),
+      renderCell: () => licensingPlanLabel(),
+    },
     {
       field: "status",
       headerName: "Status",
@@ -279,19 +273,6 @@ export default function LicensesTab() {
         <MenuItem
           onClick={() => {
             if (menu) {
-              const l = menu.license;
-              setPlanChange({ id: l.id, productCode: l.productCode });
-              const plans = products.find((p) => p.code === l.productCode)?.plans ?? [];
-              setChangePlanId(plans.find((pl) => pl.code !== l.planCode)?.id ?? plans[0]?.id ?? "");
-            }
-            closeMenu();
-          }}
-        >
-          Change plan…
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            if (menu) {
               setExtendId(menu.license.id);
               setExtendDate("");
             }
@@ -328,7 +309,6 @@ export default function LicensesTab() {
         </MenuItem>
       </Menu>
 
-      {/* Create license */}
       <Dialog open={createOpen} onClose={() => setCreateOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>New license</DialogTitle>
         <DialogContent>
@@ -352,11 +332,7 @@ export default function LicensesTab() {
               select
               label="Product"
               value={productId}
-              onChange={(e) => {
-                setProductId(e.target.value);
-                const p = products.find((x) => x.id === e.target.value);
-                setPlanId(p?.plans[0]?.id ?? "");
-              }}
+              onChange={(e) => setProductId(e.target.value)}
               fullWidth
             >
               {products.map((p) => (
@@ -365,20 +341,26 @@ export default function LicensesTab() {
                 </MenuItem>
               ))}
             </TextField>
-            <TextField
-              id="lic-plan"
-              select
-              label="Plan"
-              value={planId}
-              onChange={(e) => setPlanId(e.target.value)}
-              fullWidth
-            >
-              {plansForProduct.map((pl) => (
-                <MenuItem key={pl.id} value={pl.id}>
-                  {pl.name}
-                </MenuItem>
-              ))}
-            </TextField>
+            {singlePlan ? (
+              <Typography variant="body2" color="text.secondary">
+                Plan: {licensingPlanLabel()}
+              </Typography>
+            ) : (
+              <TextField
+                id="lic-plan"
+                select
+                label="Plan"
+                value={planId}
+                onChange={(e) => setPlanId(e.target.value)}
+                fullWidth
+              >
+                {plansForProduct.map((pl) => (
+                  <MenuItem key={pl.id} value={pl.id}>
+                    {pl.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
             <TextField
               id="lic-expires"
               type="date"
@@ -405,7 +387,6 @@ export default function LicensesTab() {
         </DialogActions>
       </Dialog>
 
-      {/* Extend */}
       <Dialog open={extendId !== null} onClose={() => setExtendId(null)} fullWidth maxWidth="sm">
         <DialogTitle>Extend / set expiry</DialogTitle>
         <DialogContent>
@@ -431,43 +412,6 @@ export default function LicensesTab() {
         </DialogActions>
       </Dialog>
 
-      {/* Change plan (upgrade / downgrade) */}
-      <Dialog open={planChange !== null} onClose={() => setPlanChange(null)} fullWidth maxWidth="sm">
-        <DialogTitle>Change plan</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <Typography variant="body2">
-              Move this licence to another {planChange?.productCode} plan. Seat/device limits adopt
-              the new plan; the node applies it on its next licence refresh.
-            </Typography>
-            <TextField
-              id="change-plan"
-              select
-              label="New plan"
-              value={changePlanId}
-              onChange={(e) => setChangePlanId(e.target.value)}
-              fullWidth
-            >
-              {plansForChange.map((pl) => (
-                <MenuItem key={pl.id} value={pl.id}>
-                  {pl.name}
-                </MenuItem>
-              ))}
-            </TextField>
-            {error && <Alert severity="error">{error}</Alert>}
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button variant="outlined" onClick={() => setPlanChange(null)}>
-            Cancel
-          </Button>
-          <Button variant="contained" disabled={!changePlanId} onClick={doChangePlan}>
-            Apply
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Details: devices + event log */}
       <Dialog open={detail !== null} onClose={() => setDetail(null)} fullWidth maxWidth="lg">
         <DialogTitle>{detail ? `License ${detail.license.key}` : ""}</DialogTitle>
         {detail && (

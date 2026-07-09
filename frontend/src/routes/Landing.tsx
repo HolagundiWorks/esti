@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import {
   CapabilitiesSection,
-  EstimateSection,
+  EstimationSection,
   FaqSection,
   IntelligenceSection,
   PortalsSection,
@@ -34,13 +34,13 @@ export function Landing() {
 
   return (
     <>
-      <MarketingShell downloads contours>
+      <MarketingShell contours>
         <MarketingHero />
         <TrustStrip />
         <CapabilitiesSection />
         <WorkflowSection />
         <IntelligenceSection />
-        <EstimateSection />
+        <EstimationSection />
         <PortalsSection />
         <PricingSection />
         <FaqSection />

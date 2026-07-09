@@ -187,7 +187,7 @@ schedule savings actually live.
   delay is one of its most common forms.
 - **Why generic project management tools fail architecture firms** — and why they reduce
   approvals to a checkbox.
-- *Best software for managing client approvals in architecture firms* — coming soon.
+- [Best software for managing client approvals in architecture firms](/blog/best-software-client-approvals-architecture-firms)
 
 ---
 

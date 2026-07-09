@@ -539,7 +539,7 @@ Demo workspace: `seedDemo.ts` (team mode, `principal@demo.aorms.in`). See [DEMO-
 - [x] GST/TDS filters by FY/assessment year, quarter, and month everywhere.
 - [x] Rich accountant exports and reconciliation column mapping/remapping.
 - [x] **APBF Phase 0 (Appointment)** — pre-engagement site visit, scope, letter of appointment.
-- [~] Visual estimation connector — superseded by Phase 13 ESTICAD companion ([ESTICAD-COMPANION](ESTICAD-COMPANION.md)).
+- [~] Visual estimation connector — superseded by Phase 13 ESTICAD companion ([ESTICAD-COMPANION](../archive/esti/ESTICAD-COMPANION.md) — archived).
 
 **Gate met:** calculations remain deterministic, integer-paise where monetary, and tested (`fy.test.ts`, phase plan sum).
 
@@ -586,7 +586,7 @@ Demo workspace: `seedDemo.ts` (team mode, `principal@demo.aorms.in`). See [DEMO-
 
 ## Phase 13 - ESTICAD Companion Integration [P2] — ✅ Complete (2026-06-19)
 
-Native **ESTICAD** desktop CAD connects to AORMS for cloud takeoff and proxied Ollama AI. Spec: [ESTICAD-COMPANION](ESTICAD-COMPANION.md). ESTICAD roadmap: Phase 3 (takeoff) and Phase 6 (AI) redefined on the companion model.
+Native **ESTICAD** desktop CAD connects to AORMS for cloud takeoff and proxied Ollama AI. Spec: [ESTICAD-COMPANION](../archive/esti/ESTICAD-COMPANION.md) (archived). ESTICAD roadmap: Phase 3 (takeoff) and Phase 6 (AI) redefined on the companion model.
 
 **Policy (approved 2026-06-17):** offline drafting OK; takeoff online-only for paying firm staff with `write`; no local measurement data; world-coordinate measurements without mandatory DXF upload; server-published takeoff catalog JSON; full ESTICAD `AI_USE_CASES` set via ESTI gateway.
 
@@ -615,7 +615,7 @@ Native **ESTICAD** desktop CAD connects to AORMS for cloud takeoff and proxied O
 
 - [x] `companion.linkDrawing` — create/link `esti_drawing` without file upload (`ref`, `title`, `projectId`).
 - [x] `drawings.setScale` callable from companion for `TOSCALE` calibration.
-- [x] Document `esticad://project/{id}/drawing/{id}` deep-link contract — see [ESTICAD-COMPANION](ESTICAD-COMPANION.md).
+- [x] Document `esticad://project/{id}/drawing/{id}` deep-link contract — see [ESTICAD-COMPANION](../archive/esti/ESTICAD-COMPANION.md) (archived).
 - [x] AORMS UI: **Open in ESTICAD** on project drawings tab.
 
 **Gate met:** linked drawing accepts measurements; scale persists on drawing row.
@@ -632,7 +632,7 @@ Native **ESTICAD** desktop CAD connects to AORMS for cloud takeoff and proxied O
 
 - [x] Company panel: connected devices list + revoke (**Company → Connected devices**).
 - [x] API integration tests: device auth, capability denial, companion create/list/delete — `test:companion`.
-- [x] Document companion REST surface in [ESTICAD-COMPANION](ESTICAD-COMPANION.md).
+- [x] Document companion REST surface in [ESTICAD-COMPANION](../archive/esti/ESTICAD-COMPANION.md) (archived).
 
 **Gate met:** owner can revoke device; revoked token cannot create measurements or call AI.
 
@@ -964,7 +964,7 @@ Condensed session notes — detail lives in phase sections above.
 | 2026-06-16 | Phase 11 AI Studio — Ollama gateway, AORMS Agent bar, billing/CRIF drafts |
 | 2026-06-17 | Phase 12 partial — list caps, release metadata, backup scripts, worker idempotency, CI builds |
 | 2026-06-17 | Phase 12 continued — PRODUCTION-OPS checklist, restore drill script, list caps on key routers, smoke tests |
-| 2026-06-17 | Phase 13 planned — ESTICAD companion integration spec ([ESTICAD-COMPANION](ESTICAD-COMPANION.md)) |
+| 2026-06-17 | Phase 13 planned — ESTICAD companion integration spec ([ESTICAD-COMPANION](../archive/esti/ESTICAD-COMPANION.md) — archived) |
 | 2026-06-17 | Web takeoff removed — `DrawingViewer` deleted; **Open in ESTICAD** on project drawings; `measurements.create`/`remove` blocked for browser |
 | 2026-06-18 | Phase 12 — cursor pagination on decisions, comments, transmittals, measurements |
 | 2026-06-18 | Phase 13A — device auth (`0053`), companion capabilities + takeoff catalog REST/tRPC |

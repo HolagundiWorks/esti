@@ -90,6 +90,5 @@ cd build && cpack -G NSIS -C Release           # → AORMS-Estimate-Setup.exe
 
 CI does all of this and **publishes `AORMS-Estimate-Setup.exe` to a GitHub
 Release** — see `.github/workflows/estimate.yml` (manual dispatch, or push an
-`estimate-v*` tag). That asset name is what the landing download link
-(`VITE_ESTIMATION_DOWNLOAD_URL`) and the backend resolver (`desktopInstallers`,
-matched on `estimate-v*`) point at — keep it stable.
+`estimate-v*` tag). That asset name is what `VITE_ESTIMATION_DOWNLOAD_URL` (when
+set at build time) points at — keep it stable.

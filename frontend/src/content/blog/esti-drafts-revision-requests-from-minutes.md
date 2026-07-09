@@ -74,7 +74,7 @@ The same honesty that applies everywhere in AORMS applies here:
 - **Every run is on the record.** Portal ESTI runs are logged like every AI
   Studio run — who asked, which minutes, what came back.
 - **Your AI, your rules.** It runs through the same engine the office already
-  controls: on-server Ollama by default, or your own API key on Enterprise,
+  controls: on-server Ollama by default, or your own OpenAI-compatible API key in Company settings,
   gated by the firm's AI settings.
 
 ## Why this matters for fees

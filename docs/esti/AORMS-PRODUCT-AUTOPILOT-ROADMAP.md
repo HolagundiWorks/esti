@@ -52,10 +52,10 @@
 |---|------|--------|-------|
 | P0.1 | Rewrite [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) | ✅ | Single product · storage + AI |
 | P0.2 | This roadmap | ✅ | |
-| P0.3 | Retire [COMMUNITY-EDITION.md](COMMUNITY-EDITION.md) banner | ✅ | Pointer to PLANS |
-| P0.4 | Landing hero + pricing band (rail/stage) | ✅ | Fresh redesign — glass rail, stage-head zones, `LandingPageContent.tsx` |
-| P0.5 | FAQ + operational grid copy | ✅ | `LandingOperationalGrid.tsx` |
-| P0.6 | Remove Community/Pro from trial form | ✅ | `LandingTrialForm.tsx` |
+| P0.3 | Retire Community edition docs | ✅ | Archived to `docs/archive/esti/COMMUNITY-EDITION.md` |
+| P0.4 | Landing hero + pricing (rail/stage) | ✅ | `MarketingShell` + `LandingSections.tsx` |
+| P0.5 | FAQ + capability copy | ✅ | `LandingSections.tsx` (FaqSection, CapabilitiesSection) |
+| P0.6 | Remove Community/Pro from trial form | ✅ | `LandingTrialForm.tsx` removed |
 | P0.7 | Update [README.md](README.md) index blurb | ✅ | |
 
 **Verify:** `GET /` — rail shows Estimate download only; pricing shows storage + AI; no Community/Pro/Enterprise tiles.
@@ -114,7 +114,7 @@
 | # | Task | Status |
 |---|------|--------|
 | P4.1 | Remove `desktop/` Lite/Core/Enterprise packaging from release workflow | ⬜ |
-| P4.2 | Drop `marketing.desktopInstallers` Community URLs from landing/API | ⬜ |
+| P4.2 | Drop `marketing.desktopInstallers` API | ✅ | Endpoint removed; `/download` redirects to wiki |
 | P4.3 | Remove `ESTI_EDITION=COMMUNITY` first-run seed path (or repurpose) | ⬜ |
 | P4.4 | Delete/disable `seedCommunity.ts` appliance docs | ⬜ |
 | P4.5 | Download page — Estimate only | ⬜ |

@@ -5,6 +5,7 @@ import { BoqPreviewPanel } from "./components/BoqPreviewPanel.js";
 import { BbsPanel } from "./components/BbsPanel.js";
 import { ItemsPanel } from "./components/ItemsPanel.js";
 import { MaterialsPanel } from "./components/MaterialsPanel.js";
+import { ModelGraphPanel } from "./components/ModelGraphPanel.js";
 import { RateBookPanel } from "./components/RateBookPanel.js";
 import { RateItemPicker } from "./components/RateItemPicker.js";
 import { SavedPanel } from "./components/SavedPanel.js";
@@ -105,8 +106,9 @@ export function App() {
           <Tab>1 · Rate book</Tab>
           <Tab disabled={!rateBookIndex}>2 · Add items</Tab>
           <Tab disabled={!rateBookIndex}>3 · Measure</Tab>
-          <Tab disabled={!rateBookIndex}>4 · BOQ &amp; materials</Tab>
-          <Tab>5 · BBS / steel</Tab>
+          <Tab disabled={!rateBookIndex}>4 · Model graph</Tab>
+          <Tab disabled={!rateBookIndex}>5 · BOQ &amp; materials</Tab>
+          <Tab>6 · BBS / steel</Tab>
         </TabList>
         <TabPanels>
           <TabPanel><RateBookPanel /></TabPanel>
@@ -116,6 +118,7 @@ export function App() {
             </Stack>
           </TabPanel>
           <TabPanel><ItemsPanel /></TabPanel>
+          <TabPanel><ModelGraphPanel /></TabPanel>
           <TabPanel>
             <Stack gap={7}>
               <BoqPreviewPanel costed={costed} />

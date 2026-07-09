@@ -32,13 +32,16 @@ drawings/PDF/reconciliation. See
 - Architect-side site supervision: site instructions, inspections, snags, and
   progress reports.
 - Drawing register: DXF upload, revision control, issue PDFs, transmittals, and
-  **Open in ESTICAD** for quantity takeoff (ESTICAD capture only; list and
-  estimate in AORMS — no browser measure tool).
+  **in-browser estimation** (BOQ, materials, BBS) on each project.
 
-Cost estimation and BOQ structures — rebuilding as the Cost Management System on
-the Construction Knowledge Bank foundation — support architect workflows such as
-drawing takeoff. General-purpose ERP, commerce, warehouse, labour,
+Cost estimation and BOQ — rebuilding as the Cost Management System on
+the Construction Knowledge Bank foundation — support architect workflows.
+General-purpose ERP, commerce, warehouse, labour,
 subcontractor-accounting, and contractor execution systems are out of scope.
+
+**User guide:** [wiki.aorms.in](https://wiki.aorms.in) · **Licence:** one standard
+cloud workspace ([PLANS-AND-TIERS](docs/esti/PLANS-AND-TIERS.md)) — no desktop
+app installs for the main product.
 
 ## Fixed India profile
 

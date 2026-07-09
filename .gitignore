@@ -48,5 +48,11 @@ data/
 # Desktop edition installers (build output)
 desktop/dist-installers/
 
+# VPS installer staging (legacy fetch-installers.sh)
+deploy/.installers/
+
 # Locally-staged desktop installers for the /download page (large binaries)
 frontend/public/downloads/
+
+# Editor / agent metadata
+.cursor/

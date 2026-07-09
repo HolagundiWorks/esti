@@ -199,7 +199,7 @@
 **Goal:** All **zone / office health** indicators use the same liquid-glass orb UI
 (glow only — no inner glyph, no box-shadow). Canonical implementation:
 `OfficeHealthGlyph` `variant="glass"` + `.esti-zone-glass-orb` in `frontend/src/glass.scss`
-(documented exception — [CARBON-UI-DIRECTION.md](CARBON-UI-DIRECTION.md) `glass.scss`).
+(documented exception — [MATERIAL-UI-DIRECTION.md](MATERIAL-UI-DIRECTION.md) `glass.scss`).
 
 **Spec (locked after human review on Studio Intelligence):**
 

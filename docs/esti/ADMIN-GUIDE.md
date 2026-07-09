@@ -7,7 +7,7 @@ deeper references:
 - Deployment step-by-step → [`VPS-INSTALL.md`](VPS-INSTALL.md)
 - Scripts quick-reference → [`../../deploy/README.md`](../../deploy/README.md)
 - Identity model in full → [`AORMS-IDENTITY.md`](AORMS-IDENTITY.md)
-- HTTPS + Google sign-in → [`AORMS-LITE-AND-GOOGLE-AUTH.md`](AORMS-LITE-AND-GOOGLE-AUTH.md)
+- HTTPS + Google sign-in → Google OAuth env vars in §5 (legacy Lite installer guide archived under `docs/archive/esti/`)
 - Ops runbook → [`PRODUCTION-OPS.md`](PRODUCTION-OPS.md)
 - Access / roles → [`ACCESS-HIERARCHY.md`](ACCESS-HIERARCHY.md)
 
@@ -42,7 +42,9 @@ All on your one domain (`https://<domain>`), TLS-terminated by nginx.
 | URL | What it is | Auth |
 |---|---|---|
 | `/` | Firm app home (**Studio Intelligence**) — or the public Landing if `VITE_PUBLIC_SITE=true` | firm session |
-| `/login` | **Firm workspace login** (`esti_user`) — the only form shown by default, on every build. On public-site builds also hosts an explicit "Create account" flow to sign up + request a plan (Lite/Core/Enterprise), backed by the central platform — a separate action, not a second default. Managing an existing account lives at Profile → Account (inside the workspace) instead. No separate `/account` page. | firm session |
+| `/login` | **Firm workspace login** — create account on public-site builds; one **standard AORMS licence** (no Lite/Core/Enterprise picker) | firm session |
+| `/account`, `/company-account` | Personal and company account portals | platform session |
+| `/wiki` | Wiki mirror; canonical host [wiki.aorms.in](https://wiki.aorms.in) | public |
 | `/demo` | One-click auto-login into the seeded demo (profile 2 only) | baked demo creds |
 | `/platform-admin` | **Licensing console** — Holagundi platform admins **only**; simple email + password, no company step | platform session (admin) |
 | `/platform` | Platform backend root (not a page) | — |
@@ -50,7 +52,7 @@ All on your one domain (`https://<domain>`), TLS-terminated by nginx.
 | `/platform/auth/*` | Platform auth: `resolve-company`, `login`, `switch-company`, `create/join/leave-company`, `request-plan`, `my-request`, `my-credentials` | — |
 | `/platform/v1` | **Product Licence API** — a firm node activates/refreshes its licence here | product API key |
 | `/platform/auth/google/callback` | Google OAuth redirect (if Google sign-in enabled) | — |
-| `/download` | Desktop installer portal (Lite/Core/Enterprise `.exe`) | public |
+| `/download` | **Retired** — redirects to `/wiki/getting-started` | public |
 | `/health`, `/readyz` | Liveness / readiness (proxied to backend) | public |
 | `/trpc`, `/upload`, `/storage`, `/calendar` | Firm app API + file routes (proxied) | firm session |
 
@@ -158,8 +160,7 @@ Written by the installer; edit + `bash deploy/update.sh` to apply. Key groups:
 | `DEPLOY_PROFILE` | the chosen profile |
 | `VITE_PUBLIC_SITE` | `true` = show Landing/blog when logged out |
 | `SEED_DEMO` | seed the demo workspace on install |
-| `FIRM_PLAN` | `LITE` \| `CORE` \| `ENTERPRISE` — the fallback tier when unlicensed |
-| `VITE_{LITE,PRO}_DOWNLOAD_URL` | `/downloads/…exe` (set by `fetch-installers.sh`; Pro falls back to the legacy Core exe) |
+| `FIRM_PLAN` | **Deprecated shim** — legacy `LITE`/`CORE`/`ENTERPRISE` env values; runtime uses standard licence + `LicenceStatus` |
 
 **Central identity + licence authority**
 | Key | Default | Meaning |
@@ -196,30 +197,15 @@ The installer/`update.sh` builds the frontend with Vite (4 GB heap) inside the `
 build-only container and atomic-swaps `frontend/dist`, served statically by nginx.
 `VITE_*` values are **build-time** — changing them requires a rebuild (`deploy/update.sh`).
 
-### 6b. Desktop installers (built on GitHub, hosted by the VPS)
-Windows `.exe` can't be built on Linux. **GitHub Actions** (`.github/workflows/desktop.yml`,
-windows-latest) builds all three editions and publishes them on a `desktop-v*` Release.
+### 6b. Desktop installers (retired)
 
-```bash
-# 1. Build once (on GitHub): push a tag OR Actions → desktop-installer → Run workflow
-git tag desktop-v1.0.0 && git push origin desktop-v1.0.0
-# → Release desktop-v1.0.0 with AORMS-{Lite,Core,Enterprise}-Setup.exe
+Full AORMS **Lite/Pro/Manager** desktop installers and the `/download` portal were
+retired 2026-07. The product is **cloud-only** at aorms.in. Legacy scripts
+(`deploy/fetch-installers.sh`, `.github/workflows/desktop.yml`) remain for
+operators migrating old VPS layouts but are not required for new installs.
 
-# 2. Host on the VPS (private repo → gh must be authed):
-apt-get install -y gh && gh auth login          # or export GH_TOKEN=<token>
-cd /opt/esti
-bash deploy/fetch-installers.sh                  # newest desktop-v* release
-bash deploy/fetch-installers.sh desktop-v1.0.0   # or pin a tag
-```
-`fetch-installers.sh` downloads the `.exe`s, writes `VITE_LITE_DOWNLOAD_URL` and
-`VITE_PRO_DOWNLOAD_URL` into `.env` (Pro maps to `AORMS-Pro-Setup.exe` when the release
-has one, else the legacy `AORMS-Core-Setup.exe`), **rebuilds the SPA** (so the buttons
-go live), and serves them under `/downloads/`.
-`update.sh` preserves `dist/downloads/` — re-run `fetch-installers.sh` only for a **new**
-installer version.
-
-> Installers are **unsigned** → SmartScreen/Defender warns on first run. Code-signing is the
-> open follow-up.
+The separate **AORMS Estimate** app (`estimate/`) has its own release workflow
+(`.github/workflows/estimate.yml`) if you distribute it outside the main SPA.
 
 ---
 
@@ -234,8 +220,8 @@ installer version.
    + seats from the signed licence.
 
 **How a customer gets licensed (self-serve → admin fulfils):**
-1. Customer opens `/login` → **Create account** → creates a platform account and picks
-   Lite / Core / Enterprise (the merged account portal — see §3).
+1. Customer opens `/login` → **Create account** → creates a platform account and requests
+   a workspace licence (the merged account portal — see §3).
 2. Holagundi admin sees it in `/platform-admin` → **Requests** (tab badge shows the pending
    count) → **Approve & email**. This creates a perpetual `ACTIVE` licence on the requested
    plan and emails the key to the customer via SMTP (§5 mail config), with a link back to
@@ -373,7 +359,7 @@ Then open `https://<domain>`, log in as the owner. Profile 2 → `/demo`. Licens
 | `esti-db is unhealthy` | stale volume → `docker compose -f compose.prod.yaml down -v`, re-run installer |
 | Demo login 401 | `SEED_DEMO_PASSWORD` ≠ `demo1234` → reset, re-run `seedDemo.js` |
 | Landing only shows when logged in | `VITE_PUBLIC_SITE=false` → set `true`, `update.sh` |
-| `/download` buttons say "Coming soon" | installers not fetched → `deploy/fetch-installers.sh` |
+| `/download` | Retired — redirects to `/wiki/getting-started`; no installer fetch needed |
 | Node won't license | `ESTI_PRODUCT_API_KEY` empty/invalid, or `aorms.in` unreachable → set key, check egress |
 
 ---

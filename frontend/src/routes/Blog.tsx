@@ -8,12 +8,10 @@ import { applyBlogListSeo } from "../lib/blog-seo.js";
 
 // Roadmap of articles in the pipeline — shown as titles, not thin placeholder pages.
 const COMING_NEXT = [
-  "How better revision tracking prevents scope creep",
-  "Why architecture teams miss early project warning signs",
-  "Architecture practice management: the missing system",
-  "Managing multiple client feedback loops efficiently",
-  "Why managing architecture projects on Excel breaks down",
-  "The real cost of poor project visibility in architecture studios",
+  "COA stage-wise fee structures — a billing guide for Indian architects",
+  "Transmittal anatomy — what every drawing issue record should contain",
+  "TDS on architecture invoices — what firms miss at year-end",
+  "Scope-of-work letters vs fee proposals — when to use which",
 ];
 
 export function Blog() {

@@ -1,7 +1,7 @@
 ---
 title: Architecture Consultancy Management Software
 metaTitle: Architecture Consultancy Management Software — AORMS
-metaDescription: Run an architecture consultancy end to end — clients, proposals, projects, consultants, drawings, revisions, COA fees and GST billing — in one self-hosted, India-native system.
+metaDescription: Run an architecture consultancy end to end — clients, proposals, projects, consultants, drawings, revisions, COA fees and GST billing — in one cloud-hosted, India-native system.
 keyword: architecture consultancy management
 category: solution
 updated: 2026-06-24
@@ -32,7 +32,7 @@ Consultancy billing is where money leaks. AORMS raises invoices against COA fee 
 
 ## One system, on your own server
 
-Because it is one system rather than five disconnected tools, the consultancy's data stays connected and auditable — and because AORMS is **self-hosted with role-based access**, it stays inside your firm. This is the same platform described on the [office management](/architecture-office-management-software), [firm management](/architecture-firm-management-software) and [practice management](/architecture-practice-management-software) pages, viewed through the lens of a consultancy that has to coordinate outside parties.
+Because it is one system rather than five disconnected tools, the consultancy's data stays connected and auditable — and because AORMS is **cloud SaaS with role-based access**, it stays inside your firm. This is the same platform described on the [office management](/architecture-office-management-software), [firm management](/architecture-firm-management-software) and [practice management](/architecture-practice-management-software) pages, viewed through the lens of a consultancy that has to coordinate outside parties.
 
 [Book a demo](/demo) and walk a consultancy engagement from proposal to reconciled invoice.
 
@@ -54,6 +54,6 @@ Yes. Every design decision is logged with its revision category and source, draw
 
 It is. Invoices are raised against COA Scale of Charges proposals, with the correct GST split, SAC code, TDS under 194J and gap-free FY-sequential numbering, plus GSTR and TDS filing abstracts.
 
-### Is AORMS cloud or self-hosted?
+### Is AORMS cloud or cloud-hosted?
 
-AORMS is self-hosted on your own server with role-based access, so a consultancy's client and financial data stays inside the firm rather than on a third-party cloud.
+AORMS is cloud workspace at aorms.in with role-based access, so a consultancy's client and financial data stays inside the firm rather than on a third-party cloud.

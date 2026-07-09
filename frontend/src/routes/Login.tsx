@@ -1,6 +1,5 @@
 import ArrowBack from "@mui/icons-material/ArrowBack";
 import ArrowForward from "@mui/icons-material/ArrowForward";
-import Download from "@mui/icons-material/Download";
 import {
   Alert,
   AlertTitle,
@@ -375,13 +374,12 @@ export function Login() {
               )}
               {PUBLIC_SITE && (
                 <Button
-                  component={RouterLink}
-                  to="/download"
+                  component="a"
+                  href="https://wiki.aorms.in"
                   variant="text"
                   size="small"
-                  endIcon={<Download />}
                 >
-                  Download AORMS desktop
+                  AORMS Wiki
                 </Button>
               )}
               <Button component={RouterLink} to="/access" variant="text" size="small">

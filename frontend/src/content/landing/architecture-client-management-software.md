@@ -45,7 +45,7 @@ Threaded comments and critical notes sit alongside, so internal discussion about
 
 ## Built for Indian practices, kept on your terms
 
-AORMS is India-native: paise-based money, the April–March financial year, COA-based fee proposals, and GST/TDS-correct invoicing. It is self-hosted with role-based access, so your client list, your fee data and your clients' decisions stay on infrastructure your practice controls — not a vendor's cloud.
+AORMS is India-native: paise-based money, the April–March financial year, COA-based fee proposals, and GST/TDS-correct invoicing. It is cloud SaaS with role-based access, so your client list, your fee data and your clients' decisions stay on infrastructure your practice controls — not a vendor's cloud.
 
 If you want the relationship in the context of the whole office, see [architecture office management software](/architecture-office-management-software). To put a single project in front of a client, the [architecture project management software](/architecture-project-management-software) page covers the delivery side. To see the client portal yourself, [book a demo](/demo).
 
@@ -73,4 +73,4 @@ Yes. Invoices are produced with correct CGST/SGST or IGST, TDS under section 194
 
 ### Where is our client data stored?
 
-AORMS is self-hosted with role-based access, so your client records, communication log and fee data remain on infrastructure your practice controls rather than a third-party cloud.
+AORMS is cloud SaaS with role-based access, so your client records, communication log and fee data remain on infrastructure your practice controls rather than a third-party cloud.

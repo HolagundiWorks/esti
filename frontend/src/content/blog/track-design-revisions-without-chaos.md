@@ -178,7 +178,7 @@ The result is exactly what this article is after: every revision retained, every
   happens to your fee when revisions are not tracked.
 - **Why architecture firms lose projects due to poor client communication** — the
   broader failure mode that lost revisions feed into.
-- *How better revision tracking prevents scope creep* — coming soon.
+- [How better revision tracking prevents scope creep](/blog/how-better-revision-tracking-prevents-scope-creep)
 
 ---
 

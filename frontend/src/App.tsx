@@ -83,13 +83,14 @@ const CollaboratorPortal = lazyRoute(() => import("./routes/CollaboratorPortal.j
 const SitePortal = lazyRoute(() => import("./routes/SitePortal.js"), "SitePortal");
 const Blog = lazyRoute(() => import("./routes/Blog.js"), "Blog");
 const BlogPost = lazyRoute(() => import("./routes/BlogPost.js"), "BlogPost");
+const Wiki = lazyRoute(() => import("./routes/Wiki.js"), "Wiki");
+const WikiPage = lazyRoute(() => import("./routes/WikiPage.js"), "WikiPage");
 const SeoLanding = lazy(() =>
   import("./routes/SeoLanding.js").then((m) => ({ default: m.SeoLanding })),
 );
 const Investors = lazyRoute(() => import("./routes/Investors.js"), "Investors");
 const Legal = lazyRoute(() => import("./routes/Legal.js"), "Legal");
 const About = lazyRoute(() => import("./routes/About.js"), "About");
-const Download = lazyRoute(() => import("./routes/Download.js"), "Download");
 const Contracts = lazyRoute(() => import("./routes/Contracts.js"), "Contracts");
 const DocumentsRegister = lazyRoute(() => import("./routes/DocumentsRegister.js"), "DocumentsRegister");
 const Letters = lazyRoute(() => import("./routes/Letters.js"), "Letters");
@@ -185,8 +186,19 @@ function AppShell() {
   // admin.* hostname.
   const ADMIN_CONSOLE_URL = (import.meta.env.VITE_ADMIN_URL as string | undefined) ?? "";
   const isAdminSubdomain = /^admin\./.test(window.location.hostname);
+  const isWikiSubdomain = /^wiki\./.test(window.location.hostname);
   if (!ADMIN_CONSOLE_URL && (isAdminSubdomain || pathname.startsWith("/platform-admin")))
     return <PlatformAdmin />;
+
+  // AORMS Wiki — wiki.aorms.in (root paths) or aorms.in/wiki/* mirror.
+  if (PUBLIC_SITE && (isWikiSubdomain || pathname === "/wiki" || pathname.startsWith("/wiki/"))) {
+    return (
+      <Routes>
+        <Route path={isWikiSubdomain ? "/" : "/wiki"} element={<Wiki />} />
+        <Route path={isWikiSubdomain ? "/:slug" : "/wiki/:slug"} element={<WikiPage />} />
+      </Routes>
+    );
+  }
 
   // Public marketing surfaces — only shipped in the public-site (demo/dev) variant.
   if (PUBLIC_SITE && (pathname === "/blog" || pathname.startsWith("/blog/")))
@@ -213,9 +225,9 @@ function AppShell() {
   if (PUBLIC_SITE && pathname === "/about")
     return <About />;
 
-  // Download portal — Lite / Pro desktop installers.
+  // Legacy download URL — estimation is in-browser; send visitors to the wiki.
   if (PUBLIC_SITE && pathname === "/download")
-    return <Download />;
+    return <Navigate to="/wiki/getting-started" replace />;
 
   // AORMS account + licence portal (hlp_account) — available on every build variant.
   if (pathname === "/account")

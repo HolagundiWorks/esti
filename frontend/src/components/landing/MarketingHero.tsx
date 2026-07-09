@@ -1,7 +1,7 @@
 const SIGNALS = [
   "Unlimited users, clients and projects",
   "5 GB storage included — usage-based AI",
-  "AORMS Estimate on Windows for BOQ",
+  "One cloud workspace — no installs",
 ] as const;
 
 export function MarketingHero() {

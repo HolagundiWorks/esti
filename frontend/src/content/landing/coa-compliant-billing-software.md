@@ -58,7 +58,7 @@ Add the immutable audit log and activity timeline, and every fee decision and in
 
 ## Built for Indian practice
 
-This only works because AORMS is India-native by default: COA service stages, GST and SAC codes, TDS, and the April–March financial year are part of the model, not add-ons. It is self-hosted on your own server with role-based access, so partners control who can issue proposals and raise invoices, and your fee data stays in the firm.
+This only works because AORMS is India-native by default: COA service stages, GST and SAC codes, TDS, and the April–March financial year are part of the model, not add-ons. It is cloud workspace at aorms.in with role-based access, so partners control who can issue proposals and raise invoices, and your fee data stays in the firm.
 
 If you have been managing COA fees in spreadsheets and billing from memory, see how the structured approach works — explore [practice management](/architecture-practice-management-software), the [GST billing](/gst-billing-software-architects-india) and [office management India](/architecture-office-management-india) pages, or [book a demo](/demo).
 

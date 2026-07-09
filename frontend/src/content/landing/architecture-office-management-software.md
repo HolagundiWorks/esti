@@ -87,11 +87,11 @@ multi-dimensional performance picture. Clients, consultants and contractors each
 get a scoped portal — they see only what you share, and approvals happen on the
 record rather than in a chat thread.
 
-## Built for India, self-hosted by default
+## Built for India, cloud-hosted by default
 
 AORMS speaks the language of an Indian practice out of the box: GST and SAC codes,
 the April–March financial year, TDS, COA service stages and the Scale of Charges,
-and site/authority context for Indian projects. It is self-hosted — your
+and site/authority context for Indian projects. It is cloud-hosted — your
 drawings, invoices and client data stay on your own infrastructure — with
 role-based access and separate client and consultant portals controlling exactly
 what outsiders see.
@@ -128,6 +128,6 @@ built in — not bolted on.
 
 ### Can the office data stay private?
 
-AORMS is self-hosted on your own server, so drawings, invoices and client data
+AORMS is cloud workspace at aorms.in, so drawings, invoices and client data
 never leave your infrastructure. Role-based access and separate read-only client
 and consultant portals ensure outsiders see only what you choose to share.

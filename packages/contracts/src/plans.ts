@@ -29,6 +29,14 @@ export type Plan = z.infer<typeof Plan>;
 /** User-facing product name — one standard licence, no editions. */
 export const STANDARD_LICENCE_LABEL = "AORMS Standard";
 
+/** Canonical plan code in the licensing platform catalogue (2026-07 pivot). */
+export const STANDARD_PLAN_CODE = "STANDARD";
+
+/** Map any legacy tier code to the single customer-facing label. */
+export function licensingPlanLabel(_code?: string | null): string {
+  return STANDARD_LICENCE_LABEL;
+}
+
 /** @deprecated All legacy tier codes map to the same product name. */
 export const PLAN_LABEL: Record<Plan, string> = {
   LITE: STANDARD_LICENCE_LABEL,

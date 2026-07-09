@@ -43,7 +43,7 @@ h2 {
 
 // Structural, colourless layout helpers only (no colour/gradient/shadow).
 .est-shell {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: var(--cds-spacing-05);
 }
@@ -88,6 +88,104 @@ h2 {
 }
 .est-help {
   @include type.type-style("label-01");
+}
+
+// ── React Flow data-model graph ─────────────────────────────────────────────
+.est-graph-intro {
+  padding: var(--cds-spacing-05);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cds-spacing-05);
+}
+.est-graph-shell {
+  height: 560px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--cds-border-subtle-01, #e0e0e0);
+  background: var(--cds-layer-01, #f4f4f4);
+}
+.est-graph-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.35rem;
+}
+.est-graph-minimap {
+  border-radius: 6px;
+}
+.est-flow-node {
+  width: 220px;
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid var(--cds-border-subtle-01, #c6c6c6);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 2px 8px rgba(20, 21, 23, 0.08);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+.est-flow-node--selected {
+  border-color: #ff4f18;
+  box-shadow: 0 0 0 2px rgba(255, 79, 24, 0.25);
+}
+.est-flow-node--chapter {
+  border-left: 3px solid #6929c4;
+}
+.est-flow-node--rate {
+  border-left: 3px solid #0f62fe;
+}
+.est-flow-node--derived {
+  border-left: 3px solid #1192e8;
+}
+.est-flow-node--material {
+  border-left: 3px solid #009d9a;
+}
+.est-flow-node--bbs {
+  border-left: 3px solid #8a3ffc;
+}
+.est-flow-node__eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.625rem;
+  opacity: 0.7;
+}
+.est-flow-node__code {
+  margin: 0.15rem 0 0;
+  font-weight: 600;
+}
+.est-flow-node__title {
+  margin: 0.1rem 0 0;
+}
+.est-flow-node__meta {
+  margin: 0.25rem 0 0;
+  opacity: 0.85;
+}
+.est-flow-node__hint,
+.est-flow-node__qty {
+  margin: 0.2rem 0 0;
+  opacity: 0.65;
+  font-size: 0.6875rem;
+}
+.est-flow-handle {
+  width: 7px;
+  height: 7px;
+  background: #8d8d8d;
+  border: none;
+}
+.est-flow-edge-label {
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e0e0e0;
+}
+.est-flow-edge-label--derivation {
+  border-color: #1192e8;
+  color: #0043ce;
+}
+.est-flow-edge-label--recipe {
+  border-color: #009d9a;
+  color: #005d5d;
 }
 
 // ── Product-wide LIQUID GLASS over Carbon (matches AORMS app + ESE) ───────────

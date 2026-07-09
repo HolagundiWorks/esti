@@ -1,7 +1,7 @@
 ---
 title: Keep The Practice Coherent
 metaTitle: Architecture Practice Management Software
-metaDescription: Architecture practice management software that holds standards, knowledge, people and clients together as a practice grows. India-native, self-hosted.
+metaDescription: Architecture practice management software that holds standards, knowledge, people and clients together as a practice grows. India-native, cloud-hosted.
 keyword: architecture practice management software
 category: solution
 updated: 2026-06-24
@@ -54,7 +54,7 @@ Financial discipline is part of practice maturity. Fees follow the COA Scale of 
 
 ## Built for the Indian practice, on your own server
 
-AORMS is India-native — GST, SAC, COA, the April–March financial year, tenders, site records and client approval habits — and self-hosted on your own server with role-based access. For a practice that intends to last, owning its own system and its own data is part of being a serious institution.
+AORMS is India-native — GST, SAC, COA, the April–March financial year, tenders, site records and client approval habits — and cloud workspace at aorms.in with role-based access. For a practice that intends to last, owning its own system and its own data is part of being a serious institution.
 
 To see how AORMS would carry your practice's standards, [book a demo](/demo).
 
@@ -78,4 +78,4 @@ Every project uses the same structure, so a new joiner learns one way of working
 
 ### Is it suitable for an Indian practice specifically?
 
-Yes. AORMS is built India-native with GST, SAC codes, the COA Scale of Charges, the April–March financial year, tenders, site work and contractor records. It is self-hosted on your own server, so the practice owns its data and its standards rather than renting them.
+Yes. AORMS is built India-native with GST, SAC codes, the COA Scale of Charges, the April–March financial year, tenders, site work and contractor records. It is cloud workspace at aorms.in, so the practice owns its data and its standards rather than renting them.

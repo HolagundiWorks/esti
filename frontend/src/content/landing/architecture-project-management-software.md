@@ -38,7 +38,7 @@ Drawings are where project risk hides. A sheet gets revised, the revision goes o
 
 AORMS's drawing register keeps the **current version** of every sheet explicit, with its approval state and a full revision history. Every revision is classified by category — MINOR, MAJOR or CRITICAL — and by source — CLIENT_DRIVEN, INTERNAL_ERROR, TECHNICAL_QUERY or SCOPE_CHANGE. That turns revisions from invisible churn into a record you can read: how much of the rework on this project came from scope creep versus internal error? The revision risk rolls up to the dashboard so a project lead sees the pattern before it becomes a problem. For practices that want to go deeper here, see [drawing revision tracking software](/drawing-revision-tracking-software).
 
-Measurement sheets sit alongside the register, and the ESTICAD desktop companion handles drawing takeoff so quantities flow back into the same project.
+Measurement sheets sit alongside the register, and the in-browser estimation module handles drawing takeoff so quantities flow back into the same project.
 
 ## Programme, PMC and the construction schedule
 
@@ -53,7 +53,7 @@ Because the construction schedule and the design phases share a record, a delay 
 
 ## Built for India, owned by you
 
-AORMS is India-native by default. Money is handled in paise, the financial year runs April to March, fee proposals follow the COA Scale of Charges, and GST/TDS workflows stay connected to the project record. The system is self-hosted with role-based access, so your project data — drawings, fees, client decisions — stays on infrastructure you control.
+AORMS is India-native by default. Money is handled in paise, the financial year runs April to March, fee proposals follow the COA Scale of Charges, and GST/TDS workflows stay connected to the project record. The system is cloud SaaS with role-based access, so your project data — drawings, fees, client decisions — stays on infrastructure you control.
 
 If you are evaluating AORMS for the wider practice, the [architecture practice management software](/architecture-practice-management-software) and [software for architecture firms](/software-for-architecture-firms) pages cover the office-level view. To see the project record in motion, [book a demo](/demo).
 
@@ -77,7 +77,7 @@ Fee proposals are built on the COA Scale of Charges and billing is tied to phase
 
 ### Is the project data hosted on someone else's servers?
 
-No. AORMS is self-hosted with role-based access, so your drawings, fee data and client decisions stay on infrastructure your practice controls.
+No. AORMS is cloud SaaS with role-based access, so your drawings, fee data and client decisions stay on infrastructure your practice controls.
 
 ### Does it work for Indian practices specifically?
 

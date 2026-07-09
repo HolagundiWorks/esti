@@ -34,7 +34,7 @@ roles cannot call office procedures or access unrelated projects.
 
 ## Global Experience
 
-- Carbon React only, using the Carbon 2x Grid and Carbon tokens.
+- **Material UI** styled by `@hcw/ui-kit` (Carbon React removed 2026-07).
 - Desktop, tablet, and mobile layouts; full-height light/dark shell.
 - Global footer: `ESTI AORMS | hi@aorms.in | Developed by Holagundi Consulting Works`.
 - Firm logo and document branding; no user-defined application colour palette.
@@ -47,7 +47,7 @@ roles cannot call office procedures or access unrelated projects.
 
 ### Dashboard And Activity Center
 
-The dashboard provides configurable Carbon boards for project stage/type,
+The dashboard provides configurable KPI boards for project stage/type,
 tasks, workload, availability, approvals, drawing revisions, site activity,
 accounting, risks, recent revisions, and project health. Personal
 wellness widgets are optional and never displace operational information.
@@ -182,7 +182,7 @@ accounting systems.
   cloud-only takeoff (world-coordinate measurements, server-published catalog,
   no local measurement storage) and proxied Ollama AI for the full CAD use-case
   set. Requires a paying firm account and staff write access; offline drafting
-  without takeoff is supported. See [ESTICAD-COMPANION](ESTICAD-COMPANION.md).
+  without takeoff is supported. See [ESTICAD-COMPANION](../archive/esti/ESTICAD-COMPANION.md) (archived — in-browser estimation supersedes desktop companion)..
 - ~~Visual estimation connector in the web app~~ — **superseded** by the ESTICAD
   companion (Phase 13). Do not add a second quantity pipeline in AORMS web.
 

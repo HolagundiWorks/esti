@@ -90,7 +90,7 @@ record, backed by an immutable audit log and a project activity timeline.
 ## Built for Indian practices, end to end
 
 Change management is not a standalone module bolted onto a billing tool. In AORMS
-it runs inside one self-hosted, role-based, India-native system that already
+it runs inside one cloud-hosted, role-based, India-native system that already
 understands the COA fee basis, the GST and TDS rules, permits tracking, and the
 authority context around the project. A change accepted is a change that flows
 through to the invoice without re-keying. See how it sits within the broader

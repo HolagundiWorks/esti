@@ -1,73 +1,21 @@
+import { TRPCError } from "@trpc/server";
 import { and, desc, eq, ne } from "drizzle-orm";
+import { STANDARD_LICENCE_LABEL, STANDARD_PLAN_CODE } from "@esti/contracts";
 import { sendMail } from "../../../lib/mail/transport.js";
 import { db, schema } from "../../db/client.js";
 import { env } from "../../env.js";
 import { newId, newLicenseKey } from "../../lib/ids.js";
+import { getAormsStandardPlanRow } from "../../lib/standardPlan.js";
 import { type AccountView, getAccountById } from "../auth/service.js";
 import { ensurePersonalOrg } from "../onboarding/service.js";
 
-// The two current editions offered self-serve. Legacy codes (CORE/ENTERPRISE)
-// are still accepted on fulfilment (mapped to PRO) so any in-flight request or
-// old link keeps working after the collapse.
-export const PLAN_CODES = ["LITE", "PRO"] as const;
+/** Single edition — legacy tier codes fold here on fulfilment. */
+export const PLAN_CODES = [STANDARD_PLAN_CODE] as const;
 export type PlanCode = (typeof PLAN_CODES)[number];
 
-/** Fold a requested code (incl. legacy CORE/ENTERPRISE) to a current edition. */
-export function normalizePlanCode(code: string): PlanCode {
-  const c = code.trim().toUpperCase();
-  if (c === "LITE") return "LITE";
-  return "PRO"; // CORE / ENTERPRISE / PRO all become PRO
-}
-
-const PLAN_DEFS: Record<PlanCode, { name: string; seats: number | null; deviceLimit: number | null }> = {
-  LITE: { name: "AORMS Lite", seats: 3, deviceLimit: 3 },
-  // Pro is the full edition (former Core + Enterprise): unlimited seats/devices
-  // by default; a specific licence may still set explicit seat overrides.
-  PRO: { name: "AORMS Pro", seats: null, deviceLimit: null },
-};
-
-async function findPlan(planCode: string) {
-  const [row] = await db
-    .select({
-      productId: schema.products.id,
-      planId: schema.plans.id,
-      seats: schema.plans.seats,
-      deviceLimit: schema.plans.deviceLimit,
-      meterLimit: schema.plans.meterLimit,
-    })
-    .from(schema.plans)
-    .innerJoin(schema.products, eq(schema.products.id, schema.plans.productId))
-    .where(and(eq(schema.products.code, "AORMS"), eq(schema.plans.code, planCode)))
-    .limit(1);
-  return row ?? null;
-}
-
-/** Ensure the AORMS product + the requested plan exist (idempotent self-heal). */
-async function ensureAormsPlan(planCode: PlanCode) {
-  const existing = await findPlan(planCode);
-  if (existing) return existing;
-  let [product] = await db
-    .select({ id: schema.products.id })
-    .from(schema.products)
-    .where(eq(schema.products.code, "AORMS"))
-    .limit(1);
-  if (!product) {
-    await db
-      .insert(schema.products)
-      .values({ id: newId("prod"), code: "AORMS", name: "AORMS", kind: "APP" })
-      .onConflictDoNothing();
-    [product] = await db
-      .select({ id: schema.products.id })
-      .from(schema.products)
-      .where(eq(schema.products.code, "AORMS"))
-      .limit(1);
-  }
-  const def = PLAN_DEFS[planCode];
-  await db
-    .insert(schema.plans)
-    .values({ id: newId("plan"), productId: product!.id, code: planCode, name: def.name, seats: def.seats, deviceLimit: def.deviceLimit })
-    .onConflictDoNothing();
-  return (await findPlan(planCode))!;
+/** Fold any requested/legacy code to STANDARD. */
+export function normalizePlanCode(_code: string): PlanCode {
+  return STANDARD_PLAN_CODE;
 }
 
 export interface PlanRequestRow {
@@ -192,12 +140,10 @@ export async function pendingRequestCount(): Promise<number> {
   return rows.length;
 }
 
-function licenseEmail(planCode: string, key: string) {
-  // The account portal is merged into /login (a "Create account" tab there) —
-  // there is no separate /account URL to send someone to.
+function licenseEmail(key: string) {
   const accountUrl = `${env.FRONTEND_ORIGIN}/login`;
-  const subject = `Your AORMS ${planCode} licence`;
-  const text = `Your AORMS ${planCode} licence is ready.
+  const subject = `Your ${STANDARD_LICENCE_LABEL} licence`;
+  const text = `Your ${STANDARD_LICENCE_LABEL} licence is ready.
 
 Licence key: ${key}
 
@@ -205,7 +151,7 @@ Activate it in your AORMS install (Company → Licence → Activate). Manage you
 companies, and credentials at ${accountUrl}.
 
 — AORMS`;
-  const html = `<p>Your AORMS <strong>${planCode}</strong> licence is ready.</p>
+  const html = `<p>Your <strong>${STANDARD_LICENCE_LABEL}</strong> licence is ready.</p>
 <p><strong>Licence key:</strong> <code>${key}</code></p>
 <p>Activate it in your AORMS install (Company → Licence → Activate). Manage your account,
 companies, and credentials at <a href="${accountUrl}">${accountUrl}</a>.</p>
@@ -229,13 +175,11 @@ export async function fulfilRequest(
   if (!req) return { ok: false, error: "not_found" };
   if (req.status !== "PENDING") return { ok: false, error: "already_decided" };
 
-  // Accept legacy tier codes on in-flight requests, issuing them as the current
-  // edition (CORE/ENTERPRISE → PRO).
   const planCode = normalizePlanCode(req.planCode);
   const account = await getAccountById(req.accountId);
   if (!account) return { ok: false, error: "account_gone" };
 
-  const plan = await ensureAormsPlan(planCode);
+  const plan = await getAormsStandardPlanRow();
   const orgId = await ensurePersonalOrg(account);
 
   // Reuse a live licence for this org+product if one exists, else create.
@@ -282,7 +226,7 @@ export async function fulfilRequest(
     .set({ status: "FULFILLED", licenseId, orgId, decidedBy: adminEmail, decidedAt: new Date() })
     .where(eq(schema.planRequests.id, requestId));
 
-  const mail = licenseEmail(planCode, key);
+  const mail = licenseEmail(key);
   const res = await sendMail({ to: req.email, ...mail });
   return { ok: true, key, emailed: res.sent, emailReason: res.reason };
 }

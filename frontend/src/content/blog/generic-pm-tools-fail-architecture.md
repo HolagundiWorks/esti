@@ -163,7 +163,7 @@ architecture practice — and no amount of discipline makes the wrong shape fit.
   the specific workflows generic tools cannot handle.
 - **How to build an efficient drawing approval workflow for architecture projects** —
   the approval process generic tools reduce to a checkbox.
-- *Why managing architecture projects on Excel eventually breaks down* — coming soon.
+- [Why managing architecture projects on Excel breaks down](/blog/why-managing-architecture-projects-on-excel-breaks-down)
 
 ---
 

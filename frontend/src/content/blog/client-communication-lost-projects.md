@@ -185,7 +185,7 @@ wrote down.
   the discipline that keeps decisions and changes from getting lost.
 - **The hidden cost of untracked client revisions in architecture projects** — where
   poor communication quietly turns into lost fees.
-- *Managing multiple client feedback loops efficiently* — coming soon.
+- [Managing multiple client feedback loops efficiently](/blog/managing-multiple-client-feedback-loops)
 
 ---
 

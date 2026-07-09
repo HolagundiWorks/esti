@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, Chip, Stack } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import { licensingPlanLabel } from "@esti/contracts";
 import { trpc } from "../lib/trpc";
 
 type Requests = Awaited<ReturnType<typeof trpc.admin.requests.list.query>>;
@@ -69,7 +70,14 @@ export default function RequestsTab() {
       renderCell: (p) => fmt(p.row.createdAt),
     },
     { field: "email", headerName: "Email", flex: 1.4, minWidth: 200 },
-    { field: "planCode", headerName: "Plan", flex: 1, minWidth: 120 },
+    {
+      field: "planCode",
+      headerName: "Plan",
+      flex: 1,
+      minWidth: 140,
+      valueGetter: () => licensingPlanLabel(),
+      renderCell: () => licensingPlanLabel(),
+    },
     {
       field: "status",
       headerName: "Status",

@@ -219,40 +219,43 @@ export function IntelligenceSection() {
   );
 }
 
-// ─── 5. Estimate desktop ───────────────────────────────────────────────────────
+// ─── 5. In-browser estimation ──────────────────────────────────────────────────
 
-export function EstimateSection() {
+export function EstimationSection() {
   return (
     <section className="lp2-section" aria-labelledby="est-head">
       <SectionHead
         id="est-head"
-        tag="AORMS Estimate"
-        title="Detailed BOQ on Windows — linked back to every project"
-        body="The workspace runs in the browser. AORMS Estimate is the Windows desktop app for measurement, materials and bar bending schedules. Sign in, estimate, export a sealed file — it attaches to the project's cost management."
+        tag="Estimation"
+        title="BOQ and measurement inside every project"
+        body="Take off quantities, build the BOQ, schedule steel, and link CPWD or firm rates — all in the browser. No separate app to install."
       />
       <div className="lp2-grid lp2-grid--3" id="estimation">
         <Tile
           dot="green"
           tag="Measure once"
-          title="Enter dimensions; all child quantities derive automatically"
-          bullets={["CPWD rate book and project-specific rates"]}
+          title="Structure model drives derived quantities"
+          bullets={["Dimensions cascade to items and materials"]}
         />
         <Tile
           dot="yellow"
           tag="Materials & BBS"
-          title="Takeoff, recipes and bar bending schedules in one session"
-          bullets={["Steel scheduled and priced like any other line item"]}
+          title="Takeoff, recipes and bar bending schedules together"
+          bullets={["Steel priced like any other BOQ line"]}
         />
         <Tile
           dot="green"
-          tag="Project link"
-          title="Sign in before estimating — exports attach to the project record"
-          bullets={["No duplicate qty math across systems"]}
+          tag="Project record"
+          title="Estimates stay on the project for the full commission"
+          bullets={["Export PDF when ready — one source of truth"]}
         />
       </div>
     </section>
   );
 }
+
+/** @deprecated Use EstimationSection — desktop Estimate funnel removed 2026-07. */
+export const EstimateSection = EstimationSection;
 
 // ─── 6. Portals ────────────────────────────────────────────────────────────────
 
@@ -311,7 +314,7 @@ const METERS = [
     features: [
       "Usage visible in Company settings",
       "Archive closed projects to reclaim space",
-      "BYO S3 / NAS for self-hosted",
+      "Additional GB-month as you grow",
     ],
   },
   {
@@ -366,18 +369,6 @@ export function PricingSection() {
               </ul>
             </div>
           ))}
-          <div className="lp2-pricing__meter lp2-pricing__meter--estimate">
-            <div className="lp2-pricing__meter-hdr">
-              <span className="lp2-dot lp2-dot--white" aria-hidden />
-              <span className="lp2-pricing__meter-tag">AORMS Estimate</span>
-            </div>
-            <p className="lp2-pricing__price">Free download</p>
-            <p className="lp2-pricing__sub">Windows desktop · sign in · no separate tier</p>
-            <ul className="lp2-tile__bullets">
-              <li>Full BOQ with CPWD rates and BBS</li>
-              <li>Exports attach to the project record</li>
-            </ul>
-          </div>
         </div>
       </div>
     </section>
@@ -397,11 +388,15 @@ const FAQS = [
   },
   {
     q: "Is there a desktop app?",
-    a: "The workspace runs in the browser. AORMS Estimate is a Windows desktop app for detailed BOQ — sign in before estimating and link exports to your projects. No other desktop app.",
+    a: "No. AORMS runs entirely in your browser at aorms.in — projects, finance, estimation, and portals in one cloud workspace. See wiki.aorms.in for setup guides.",
+  },
+  {
+    q: "Where is the documentation?",
+    a: "The official AORMS Wiki lives at wiki.aorms.in — getting started, workflows, finance, estimation, and account setup.",
   },
   {
     q: "Can I self-host AORMS?",
-    a: "On-premises deployment is available. Pricing is still usage-based (storage + AI), not edition-based. Write to hi@aorms.in.",
+    a: "AORMS is offered as cloud SaaS. Write to hi@aorms.in for dedicated deployment questions.",
   },
   {
     q: "What AI can AORMS use?",

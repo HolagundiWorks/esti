@@ -6,9 +6,9 @@ const PRODUCT_LINKS = [
   { href: "/#capabilities", label: "Capabilities" },
   { href: "/#pricing", label: "Pricing" },
   { href: "/#faq", label: "FAQ" },
+  { href: "https://wiki.aorms.in", label: "Wiki" },
   { href: "/blog", label: "Blog" },
   { href: "/about", label: "About" },
-  { href: "/download", label: "AORMS Estimate" },
 ] as const;
 
 const CONTACT_LINKS = [

@@ -1,7 +1,7 @@
 ---
 title: Run The Whole Firm
 metaTitle: Architecture Firm Management Software
-metaDescription: Architecture firm management software that ties projects, fee pipeline, cash flow and team utilisation into one principal's view. Self-hosted, India-native.
+metaDescription: Architecture firm management software that ties projects, fee pipeline, cash flow and team utilisation into one principal's view. cloud-hosted, India-native.
 keyword: architecture firm management software
 category: solution
 updated: 2026-06-24
@@ -55,7 +55,7 @@ A firm deals with outsiders constantly. AORMS gives you separate read-only porta
 
 ## India-native, on your own server
 
-AORMS is built for the Indian practice: GST, SAC, COA fee logic, the April–March financial year, tenders, site work and project evidence. It is self-hosted on your own server with role-based access, so client data, fees and drawings stay inside the firm rather than on someone else's cloud. For owners who care where the business's data lives, that is not a small thing.
+AORMS is built for the Indian practice: GST, SAC, COA fee logic, the April–March financial year, tenders, site work and project evidence. It is cloud workspace at aorms.in with role-based access, so client data, fees and drawings stay inside the firm rather than on someone else's cloud. For owners who care where the business's data lives, that is not a small thing.
 
 If you want to see the firm-level view on your own projects, [book a demo](/demo) or read more on the [blog](/blog).
 
@@ -79,4 +79,4 @@ The roster, assignments, attendance and workload live in the same place as the p
 
 ### Is the firm's data kept private?
 
-AORMS is self-hosted on your own server with role-based access, so fees, client data and drawings stay inside the firm. The separate client, consultant and contractor portals are read-only and show outsiders only what you choose to share.
+AORMS is cloud workspace at aorms.in with role-based access, so fees, client data and drawings stay inside the firm. The separate client, consultant and contractor portals are read-only and show outsiders only what you choose to share.

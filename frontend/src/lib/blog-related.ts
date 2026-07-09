@@ -73,10 +73,19 @@ const TAG_TO_LANDING: Record<string, string[]> = {
   ],
   Product: [
     "architecture-office-management-software",
-    "architecture-estimation-software",
+    "architecture-practice-management-software",
+    "software-for-architecture-firms",
   ],
-  AI: ["architecture-office-management-software", "architecture-practice-management-software"],
-  Estimation: ["architecture-estimation-software", "architect-fee-proposal-software"],
+  AI: [
+    "architecture-office-management-software",
+    "architecture-practice-management-software",
+    "minutes-of-meeting-software-for-architects",
+  ],
+  Estimation: [
+    "architecture-project-management-software",
+    "architect-fee-proposal-software",
+    "coa-compliant-billing-software",
+  ],
 };
 
 /** Sensible defaults for posts whose tags map to nothing specific. */

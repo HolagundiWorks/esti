@@ -79,6 +79,6 @@ Tier enums in code are **deprecated shims** only.
 ## Related docs
 
 - [AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md)
-- [COMMUNITY-EDITION.md](COMMUNITY-EDITION.md) — retired pointer
+- [docs/archive/esti/COMMUNITY-EDITION.md](../archive/esti/COMMUNITY-EDITION.md) — archived (retired 2026-07-09)
 - [MONOREPO-AND-SURFACES.md](MONOREPO-AND-SURFACES.md)
 - [ESTIMATION-ARCHITECTURE.md](ESTIMATION-ARCHITECTURE.md)

@@ -137,7 +137,7 @@ and number the first time, so the abstract adds up before you open the portal.
 
 You can run all of this in a spreadsheet — many firms do. A practice system mainly removes
 the error-prone steps: deriving the split from the *site* state, holding FY-sequential
-numbers without gaps, and tracking the receivable net of TDS. AORMS-Pro does this inside
+numbers without gaps, and tracking the receivable net of TDS. AORMS does this inside
 invoicing, alongside COA fee-stage [proposals](/architect-fee-proposal-software), so the
 tax mechanics fall out of the work rather than being reassembled at year end.
 

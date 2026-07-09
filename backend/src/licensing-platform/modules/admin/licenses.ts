@@ -3,6 +3,7 @@ import { and, desc, eq, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "../../db/client.js";
 import { newId, newLicenseKey } from "../../lib/ids.js";
+import { consolidateToStandardPlan } from "../../lib/standardPlan.js";
 import { platformAdminProcedure, router } from "../../trpc/trpc.js";
 
 async function writeEvent(
@@ -18,6 +19,7 @@ export const licensesRouter = router({
   list: platformAdminProcedure
     .input(z.object({ orgId: z.string().optional(), productId: z.string().optional() }).optional())
     .query(async ({ input }) => {
+      await consolidateToStandardPlan();
       const conds: SQL[] = [];
       if (input?.orgId) conds.push(eq(schema.licenses.orgId, input.orgId));
       if (input?.productId) conds.push(eq(schema.licenses.productId, input.productId));

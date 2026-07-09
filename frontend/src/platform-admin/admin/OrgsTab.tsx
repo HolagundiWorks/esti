@@ -49,6 +49,12 @@ export default function OrgsTab() {
   const [certIssuer, setCertIssuer] = useState("");
   const [certNote, setCertNote] = useState<string | null>(null);
 
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; slug: string } | null>(
+    null,
+  );
+  const [deleteSlug, setDeleteSlug] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   async function load() {
     setOrgs(await trpc.admin.orgs.list.query());
   }
@@ -124,6 +130,20 @@ export default function OrgsTab() {
     }
   }
 
+  async function removeOrg() {
+    if (!deleteTarget) return;
+    setDeleteError(null);
+    try {
+      await trpc.admin.orgs.remove.mutate({ orgId: deleteTarget.id, confirmSlug: deleteSlug });
+      setDeleteTarget(null);
+      setDeleteSlug("");
+      if (manage?.id === deleteTarget.id) setManage(null);
+      await load();
+    } catch (e) {
+      setDeleteError((e as Error).message);
+    }
+  }
+
   const orgColumns: GridColDef<Orgs[number]>[] = [
     { field: "name", headerName: "Name", flex: 1.2, minWidth: 160 },
     {
@@ -161,6 +181,27 @@ export default function OrgsTab() {
           onClick={() => openMembers({ id: p.row.id, name: p.row.name })}
         >
           Manage
+        </Button>
+      ),
+    },
+    {
+      field: "delete",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      width: 100,
+      renderCell: (p) => (
+        <Button
+          variant="text"
+          color="error"
+          size="small"
+          onClick={() => {
+            setDeleteError(null);
+            setDeleteSlug("");
+            setDeleteTarget({ id: p.row.id, name: p.row.name, slug: p.row.slug });
+          }}
+        >
+          Delete
         </Button>
       ),
     },
@@ -363,6 +404,44 @@ export default function OrgsTab() {
         <DialogActions>
           <Button variant="contained" onClick={() => setManage(null)}>
             Done
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Delete organization</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2">
+              Permanently delete <strong>{deleteTarget?.name}</strong> and revoke all licences,
+              members, and API keys for this workspace. This cannot be undone.
+            </Typography>
+            <TextField
+              id="delete-slug"
+              label={`Type slug to confirm: ${deleteTarget?.slug ?? ""}`}
+              value={deleteSlug}
+              onChange={(e) => setDeleteSlug(e.target.value)}
+              fullWidth
+            />
+            {deleteError && <Alert severity="error">{deleteError}</Alert>}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={() => setDeleteTarget(null)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            disabled={!deleteTarget || deleteSlug !== deleteTarget.slug}
+            onClick={removeOrg}
+          >
+            Delete workspace
           </Button>
         </DialogActions>
       </Dialog>

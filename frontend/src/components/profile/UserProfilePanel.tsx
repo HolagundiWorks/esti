@@ -87,7 +87,6 @@ export function UserProfilePanel() {
   });
   const usage = usageQ.data;
 
-  const estimateDownloadUrl = import.meta.env.VITE_ESTIMATION_DOWNLOAD_URL ?? "";
   const { isExternal } = useCapabilities();
 
   const [tab, setTab] = useState(0);
@@ -209,28 +208,19 @@ export function UserProfilePanel() {
     ...(!isExternal
       ? [
           {
-            label: "Downloads",
+            label: "Help",
             panel: (
               <Box className="esti-fill" sx={{ p: 2 }}>
                 <Stack spacing={1.5}>
                   <Typography variant="h6" component="h4">
-                    AORMS Estimate
+                    AORMS Wiki
                   </Typography>
                   <Typography variant="body2" component="p" className="esti-label esti-label--secondary">
-                    The workspace runs in the browser. Detailed BOQ and measurement use the Windows desktop
-                    estimator — sign in with your studio account.
+                    Estimation, workflows, and account setup — official documentation at wiki.aorms.in.
                   </Typography>
-                  <Stack spacing={1}>
-                    {estimateDownloadUrl ? (
-                      <Button variant="contained" href={estimateDownloadUrl}>
-                        Download AORMS Estimate
-                      </Button>
-                    ) : (
-                      <Button variant="text" component={RouterLink} to="/download">
-                        Get the Estimate installer
-                      </Button>
-                    )}
-                  </Stack>
+                  <Button variant="contained" href="https://wiki.aorms.in/getting-started" target="_blank" rel="noopener noreferrer">
+                    Open getting started guide
+                  </Button>
                 </Stack>
               </Box>
             ),

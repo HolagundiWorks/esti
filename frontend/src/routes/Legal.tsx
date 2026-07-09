@@ -55,16 +55,14 @@ export function Legal() {
               <h2>3. Your data</h2>
               <p>
                 Your projects, drawings, invoices, and client data remain yours. We process them
-                only to provide the Service. On a self-hosted deployment, your data stays entirely
-                on your own infrastructure. We do not sell your data.
+                only to provide the Service on our cloud infrastructure at aorms.in. We do not sell your data.
               </p>
 
               <h2>4. Model training and your data</h2>
               <p>
                 We do not use your project, drawing, invoice or client data to train third-party
                 models without a separate agreement. Operational records are processed only to
-                provide the Service. On a self-hosted deployment, your data stays on your
-                infrastructure. We do not sell your data.
+                provide the Service. We do not sell your data.
               </p>
               <p>
                 If you use a <strong>bring-your-own API key</strong> for Ask ESTI and AI Studio,

@@ -31,11 +31,11 @@ See [`docs/esti/SELF-HOST-INSTALL.md`](../docs/esti/SELF-HOST-INSTALL.md).
 
 | Profile | Public site | Demo data | Plan | Notes |
 |---|---|---|---|---|
-| **aorms** (default) | ✅ | — | Enterprise→PRO | Landing + main app + licensing platform + unified accounts |
-| `landing` | ✅ | — | Enterprise→PRO | Public marketing site only; owner account only |
-| `demo` | ✅ | ✅ seeded | Enterprise→PRO | Seeded demo workspace (manual sign-in with demo creds) |
-| `core` / `enterprise` | — | — | Core/Ent→PRO | Firm workspace — prefer `install-enterprise.sh` |
-| `licensing` | — | — | Enterprise→PRO | Licensing platform without the public site |
+| **aorms** (default) | ✅ | — | Standard | Landing + main app + licensing + wiki subdomain |
+| `landing` | ✅ | — | Standard | Public marketing site |
+| `demo` | ✅ | ✅ seeded | Standard | Seeded demo workspace |
+| `core` / `enterprise` | — | — | Standard | Firm workspace — prefer `install-enterprise.sh` |
+| `licensing` | — | — | Standard | Licensing platform without public site |
 | `learning` | — | — | — | In the pipeline — exits gracefully |
 
 ## Files
@@ -47,25 +47,18 @@ See [`docs/esti/SELF-HOST-INSTALL.md`](../docs/esti/SELF-HOST-INSTALL.md).
 | `deploy/install-admin-console.sh` | **Licensing console at `admin.DOMAIN`** — vhost + TLS for the `dist/admin.html` entry; same-box `/platform/` proxy (run after the main install; needs the `admin.` DNS record) |
 | `deploy/lib.sh` | Shared helpers + `write_env` + `install_core` (the one install flow) |
 | `deploy/update.sh` | In-place update (reads the profile from `.env`) |
-| `deploy/fetch-installers.sh` | Pull the desktop installers from a GitHub Release → host on `/download` |
+| `deploy/fetch-installers.sh` | **Retired** — legacy Lite/Pro desktop installers (see archive docs) |
 | `deploy/backup.sh` / `restore.sh` | Postgres + MinIO backup / restore |
 | `deploy/nginx-proxy.conf` | nginx vhost template |
 
-## Desktop installers on /download
+## Desktop installers (retired 2026-07)
 
-Windows `.exe` installers can't be built on a Linux VPS. GitHub Actions
-(`.github/workflows/desktop.yml`, **windows-latest**) builds all three editions and
-publishes them on a `desktop-v*` tag; the VPS just hosts them:
+Full AORMS Lite/Pro/Manager `/download` hosting was **retired**. The product is
+cloud-only at aorms.in; `/download` redirects to the wiki. The script
+`fetch-installers.sh` and workflow `desktop.yml` remain for legacy VPS layouts
+only.
 
-```bash
-# 1. Build (once): GitHub → Actions → desktop-installer → Run workflow,
-#    or push a tag:  git tag desktop-v1.0.0 && git push origin desktop-v1.0.0
-# 2. On the VPS (needs gh authed for a private repo: `gh auth login`):
-cd /opt/esti && bash deploy/fetch-installers.sh        # latest desktop-v* release
-```
-It downloads the 3 `.exe`, sets `VITE_*_DOWNLOAD_URL` in `.env`, rebuilds the SPA so
-the buttons go live, and serves them under `/downloads/`. `update.sh` preserves them
-across future deploys.
+The separate **AORMS Estimate** app (`estimate/`) uses `.github/workflows/estimate.yml`.
 
 ## Before a first install
 
@@ -155,7 +148,7 @@ GOOGLE_REDIRECT_URI=https://<domain>/platform/auth/google/callback
 PLATFORM_ADMIN_EMAILS=you@firm.in
 ```
 
-then `bash deploy/update.sh`. See [`docs/esti/AORMS-LITE-AND-GOOGLE-AUTH.md`](../docs/esti/AORMS-LITE-AND-GOOGLE-AUTH.md).
+then `bash deploy/update.sh`. Google OAuth: set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in `.env` (legacy Lite guide: `docs/archive/esti/AORMS-LITE-AND-GOOGLE-AUTH.md`).
 
 ## Switching profiles on an existing box
 

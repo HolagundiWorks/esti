@@ -28,7 +28,7 @@ The TypeScript backend owns domain rules, authorization, state transitions,
 money/tax, numbering, audit, and activity. The Python worker owns no
 authoritative business state. ESTICAD owns local geometry only; takeoff
 measurements and CAD AI runs are authoritative in PostgreSQL via the companion
-API ([ESTICAD-COMPANION](ESTICAD-COMPANION.md)).
+API ([ESTICAD-COMPANION](../archive/esti/ESTICAD-COMPANION.md) (archived).).
 
 The same authority boundary applies to the AORMS cognition engine:
 deterministic TypeScript read models calculate office health and interventions,
@@ -141,7 +141,7 @@ AI providers are accessed through a backend gateway. Retrieval is permission
 filtered; prompts and outputs are auditable; secrets stay server-side; sensitive
 data transmission is explicit; output remains a draft until a human issues it.
 
-ESTICAD uses the same gateway for all CAD AI scenarios ([ESTICAD-COMPANION](ESTICAD-COMPANION.md)); it does not call Ollama locally.
+ESTICAD uses the same gateway for all CAD AI scenarios ([ESTICAD-COMPANION](../archive/esti/ESTICAD-COMPANION.md) (archived).); it does not call Ollama locally.
 
 ### Companion Clients (ESTICAD)
 

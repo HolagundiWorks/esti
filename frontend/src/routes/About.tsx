@@ -149,7 +149,7 @@ export function About() {
                 a <a href="/architecture-client-portal-software">client portal</a> for approvals and
                 minutes; consultant coordination; site supervision; team, attendance and fair
                 performance scoring; and a keyboard-first{" "}
-                <a href="/architecture-estimation-software">estimation and BOQ</a> workspace.
+                <a href="https://wiki.aorms.in/estimation-and-boq">in-browser estimation and BOQ</a> on each project.
               </p>
 
               <h2>Editions</h2>

@@ -47,7 +47,7 @@ Because the log is immutable, it is a true record, not a story that can be edite
 
 ## Built for India, owned by you
 
-AORMS is self-hosted with role-based access, so workflow data — approvals, transmittals, the audit trail — stays on infrastructure your practice controls. It is India-native throughout, from COA-based fee proposals to GST-correct billing and the April–March financial year.
+AORMS is cloud SaaS with role-based access, so workflow data — approvals, transmittals, the audit trail — stays on infrastructure your practice controls. It is India-native throughout, from COA-based fee proposals to GST-correct billing and the April–March financial year.
 
 For the wider picture, see [architecture firm management software](/architecture-firm-management-software) and, for change-heavy practices, [architecture change management software](/architecture-change-management-software). To see the workflows in action, [book a demo](/demo).
 
@@ -75,4 +75,4 @@ No. The audit log is immutable, and an activity timeline records changes across 
 
 ### Is workflow data kept on our own systems?
 
-Yes. AORMS is self-hosted with role-based access, so approvals, transmittals and the full audit trail stay on infrastructure your practice controls.
+Yes. AORMS is cloud SaaS with role-based access, so approvals, transmittals and the full audit trail stay on infrastructure your practice controls.

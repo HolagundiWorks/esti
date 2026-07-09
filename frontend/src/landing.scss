@@ -6959,3 +6959,54 @@ $lp2-gap: 1px;               // shared border thickness
   border-top-color: rgba(255, 255, 255, 0.28);
 }
 
+// Wiki — same editorial layout as blog (documentation on wiki.aorms.in).
+.esti-wiki {
+  @extend .esti-blog;
+}
+
+.esti-wiki-card {
+  @extend .esti-blog-card;
+}
+
+.esti-wiki-article {
+  @extend .esti-blog-article;
+}
+
+.esti-wiki__head {
+  @extend .esti-blog__head;
+}
+
+.esti-wiki__back {
+  @extend .esti-blog__back;
+}
+
+.esti-wiki__empty {
+  @extend .esti-blog__empty;
+}
+
+.esti-wiki__section {
+  margin-block-end: var(--cds-spacing-08);
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 400;
+    margin-block-end: var(--cds-spacing-04);
+    color: var(--cds-text-primary);
+  }
+}
+
+.esti-wiki__cta {
+  margin-block-start: var(--cds-spacing-04);
+  color: var(--cds-text-secondary);
+}
+
+.esti-wiki-card__meta {
+  font-size: 0.875rem;
+  color: var(--cds-text-helper);
+  margin-block-start: var(--cds-spacing-03);
+}
+
+.esti-wiki-article__meta {
+  @extend .esti-blog-article__byline;
+}
+

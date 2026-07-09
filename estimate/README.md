@@ -22,9 +22,10 @@ re-cost inside any AORMS project (→ Cost Management).
 1. **Rate book** — load embedded CPWD DSR 2021 (4,252 rate items, 261 cement recipes) or import an ESE `RateLibraryPack`.
 2. **Add items** — search by code/description; each row is a priced **rate item** with its full **specification** text.
 3. **Measure** — enter Nos·L·B·H per the item's unit template (m² → Nos×L×H, m³ → Nos×L×B×H, etc.).
-4. **BOQ & materials** — abstract grouped by CPWD chapter; materials auto-derived from recipes (`qty × coefficient`).
-5. **BBS / steel** — slab/beam/column/footing geometry → bar schedule (IS 456 / IS 2502) → steel by diameter.
-6. **Export** — sealed `.aormsest` → import in AORMS › Project › Cost Management.
+4. **Model graph** — React Flow canvas of chapters → rate items → derived children → materials (read-only; quantities sync from measurements).
+5. **BOQ & materials** — abstract grouped by CPWD chapter; materials auto-derived from recipes (`qty × coefficient`).
+6. **BBS / steel** — slab/beam/column/footing geometry → bar schedule (IS 456 / IS 2502) → steel by diameter.
+7. **Export** — sealed `.aormsest` → import in AORMS › Project › Cost Management.
 
 **Auto-derivation:** brick/masonry items (chapter 6) spawn plaster `13.1.1` at ×2 face area when you measure the parent.
 
@@ -54,11 +55,10 @@ pnpm --filter @esti/estimate build      # tsc + vite build → estimate/dist
 ```
 
 The native desktop app (webview host + C++ engine + SQLite) lives in
-[`desktop-cpp/`](desktop-cpp/README.md). Its Windows installer
-(`AORMS-Estimate-Setup.exe`, NSIS) is built in CI —
-`.github/workflows/estimate.yml` (manual dispatch, or push an `estimate-v*` tag
-to publish a GitHub Release). The landing download link resolves that asset live
-(backend `desktopInstallers`), with `VITE_ESTIMATION_DOWNLOAD_URL` as fallback.
+[`desktop-cpp/`](desktop-cpp/README.md). Its Windows installer is built in CI —
+`.github/workflows/estimate.yml`. This is **separate** from the main AORMS cloud
+workspace (estimation also runs in-browser on projects — see
+[wiki.aorms.in/estimation-and-boq](https://wiki.aorms.in/estimation-and-boq)).
 
 ## Offline fonts
 

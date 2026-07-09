@@ -1,14 +1,18 @@
-# AORMS — Self-Hosted Install (Core / Enterprise)
+# AORMS — Self-Hosted Firm Workspace
 
 For a **firm that hosts AORMS on its own server**. This installs the AORMS firm
 workspace only — **no** public marketing landing, **no** demo data, and **no**
-licensing console. Your install is a *licence consumer*: it activates its Core or
-Enterprise licence against the central AORMS platform at `aorms.in`.
+licensing console. Your install is a *licence consumer*: it activates an **ACTIVE**
+standard licence against the central AORMS platform at `aorms.in`.
+
+> **Product law:** one standard licence — no Lite/Pro/Enterprise feature split. See
+> [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md). The installer still accepts legacy
+> `EDITION=core|enterprise` labels for older keys; both profiles run the same workspace.
 
 > This is a separate front door from Holagundi's own deployment. Holagundi's site
 > (landing + demo + the `/platform-admin` licensing console) uses `deploy/install.sh`;
 > **customers use `deploy/install-enterprise.sh`** (this guide). Both share the same tested
-> install core, so you get identical infrastructure — just a firm-only surface.
+> install core — just a firm-only surface.
 
 ---
 
@@ -23,7 +27,7 @@ Internet (HTTPS) → host nginx (TLS, static SPA, proxies /trpc /upload /storage
 ```
 
 - Login is at `https://<your-domain>/login` — your firm's own users.
-- Files are stored in the built-in MinIO (S3). Core+ can point at your own NAS/S3 later.
+- Files are stored in the built-in MinIO (S3). You can point at your own NAS/S3 later.
 - Only the backend binds a port, on loopback only. DB/Redis/MinIO are never exposed.
 
 ## 2. Before you install
@@ -58,7 +62,7 @@ You'll be asked, in order:
 
 | Prompt | Notes |
 |---|---|
-| Edition | **1) Core** or **2) Enterprise** — matches your licence |
+| Edition | **Legacy label** — `core` or `enterprise` (installer only; same workspace) |
 | Domain | your hostname, e.g. `studio.example.in` |
 | TLS email | for the Let's Encrypt certificate |
 | Postgres / session secrets | **Enter = auto-generate** (recommended) |
@@ -77,15 +81,15 @@ EDITION=enterprise DOMAIN=studio.example.in \
   ESTI_PRODUCT_API_KEY='…' \
   sudo -E bash deploy/install-enterprise.sh
 ```
-`EDITION` ∈ `core | enterprise`. Anything you don't pass is prompted; secrets left
-unset auto-generate.
+`EDITION` ∈ `core | enterprise` (legacy installer labels). Anything you don't pass is
+prompted; secrets left unset auto-generate.
 
 ## 4. Licensing
 
 - Your node points at `ESTI_LICENSE_API_URL=https://aorms.in/platform` (the default)
   and activates with `ESTI_PRODUCT_API_KEY`.
-- **A blank key can't brick anything** — the app simply runs on its edition's plan
-  (Core / Enterprise) *unmanaged* until a licence is activated.
+- **A blank key can't brick anything** — the app runs *unmanaged* until a licence is
+  activated.
 - **Activate later:** edit `/opt/esti/.env` → set `ESTI_PRODUCT_API_KEY=…`, then
   `bash deploy/update.sh`.
 

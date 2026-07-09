@@ -120,7 +120,7 @@ const Env = z.object({
   DEMO_MASTER_PASSWORD: z.string().default("aorms-demo-admin"),
   /** When false, skip the automatic IST midnight demo re-seed. */
   DEMO_MIDNIGHT_RESET: envBool(true),
-  /** owner/repo whose latest desktop-v* release the /download page pulls installers from. */
+  /** Legacy: owner/repo for `deploy/fetch-installers.sh` (retired `/download` portal). */
   INSTALLER_REPO: z.string().default("HolagundiWorks/esti"),
   /** Optional GitHub token to raise the unauthenticated 60/hr release-API limit. */
   GITHUB_TOKEN: z.string().default(""),

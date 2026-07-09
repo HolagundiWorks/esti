@@ -78,15 +78,14 @@ are covered on the
 point is simply that the register and the approval state are one and the same
 object.
 
-## Measurement sheets and ESTICAD takeoff
+## Measurement sheets and drawing takeoff
 
 The register is not only design drawings. Measurement sheets live alongside them,
 so quantities are part of the same controlled record. And because takeoff feeds
-estimates, AORMS ships **ESTICAD**, a desktop companion that handles drawing
-takeoff against a takeoff catalog and links drawings back to the register through
-device-authenticated sessions. Takeoff stops being a loose spreadsheet on one
-engineer's machine and becomes linked, traceable data against the drawing it was
-measured from.
+estimates, AORMS includes **in-browser estimation** that handles drawing
+takeoff against a takeoff catalog and links quantities back to the register.
+Takeoff stops being a loose spreadsheet on one engineer's machine and becomes
+linked, traceable data against the drawing it was measured from.
 
 ## Who sees what — controlled distribution
 
@@ -131,11 +130,11 @@ of that issue. Transmittals are treated as first-class document issues, so you c
 prove from the record exactly which party held which version on which date —
 backed by an immutable audit log rather than email memory.
 
-### Can ESTICAD takeoff link back to the drawing register?
+### Can drawing takeoff link back to the drawing register?
 
-Yes. ESTICAD is a desktop companion that handles drawing takeoff against a takeoff
-catalog and links drawings back to the register through device-authenticated
-sessions. Takeoff becomes traceable data against the drawing it was measured from,
+Yes. In-browser estimation handles takeoff against linked drawings and keeps
+quantities on the same project record as the register — no separate desktop app.
+Takeoff becomes traceable data against the drawing it was measured from,
 rather than a loose spreadsheet.
 
 ### Do clients and consultants see the whole register?

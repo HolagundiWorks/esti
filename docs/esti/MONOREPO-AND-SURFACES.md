@@ -20,7 +20,7 @@ esti/                     pnpm workspace root
 │                         (money, .aormsest EstimateFile + re-cost engine, BBS,
 │                         permissions). Browser-safe: no node/DB imports. THE seam.
 ├─ backend/               Fastify + tRPC + Drizzle (Postgres) — AORMS API
-├─ frontend/              React + Vite + IBM Carbon — AORMS workspace SPA
+├─ frontend/              React + Vite + MUI / @hcw/ui-kit — AORMS workspace SPA
 ├─ worker/                Python Redis-Streams consumer (PDF/DXF/reconcile)
 ├─ ese/                   @esti/ese — Estimation Specification Engine (own Fastify app)
 ├─ desktop/               Tauri shell (AORMS Estimate desktop host)
@@ -49,7 +49,7 @@ Any "yes" that matters → a **subdomain** (or a binary).
 | Client / consultant portals | external | — | session-scoped | `/portal`, `/collab` extensions |
 
 ### Estimation → nested inside a project (Cost Management)
-It is a module *of* the workspace: same session cookie, same Carbon shell, same
+It is a module *of* the workspace: same session cookie, same HCW shell, same
 `can(role, capability)` permissions, and it re-costs against the same project rate
 book. A subdomain would add cross-origin auth cost for **zero** isolation benefit.
 So the AORMS estimation surface lives **inside a project → Cost Management**

@@ -49,13 +49,13 @@ India-native does not mean narrow. AORMS runs the rest of the practice too:
 - People management — roster, assignments, workload, attendance, leave, payroll and ASPRF performance scoring.
 - Read-only client, consultant and contractor portals so outsiders see exactly what they should and nothing more.
 - A dashboard of KPIs with an Action Center, an immutable audit log, and an activity timeline for accountability.
-- The ESTICAD desktop companion for drawing takeoff that feeds quantities back into the system.
+- The in-browser estimation module for drawing takeoff that feeds quantities back into the system.
 
 You can compare the broader capabilities on the [practice management](/architecture-practice-management-software) and [project management](/architecture-project-management-software) pages, and see the India-operations view on [architecture office management India](/architecture-office-management-india).
 
-## Self-hosted, on your terms
+## cloud-hosted, on your terms
 
-AORMS is self-hosted on your own server with role-based access, so your client list, fee proposals and drawings stay inside your firm. For Indian practices wary of putting commercial data on someone else's cloud, that is not a nice-to-have.
+AORMS is cloud workspace at aorms.in with role-based access, so your client list, fee proposals and drawings stay inside your firm. For Indian practices wary of putting commercial data on someone else's cloud, that is not a nice-to-have.
 
 If you want the best software for architecture firms in India, the test is simple: does it understand a GST invoice, a COA stage, a client approval and a contractor handoff without being told? [Book a demo](/demo) to see the office record in motion.
 
@@ -71,7 +71,7 @@ The easiest way to see the India-native approach is to enter the demo office and
 
 ### What is the best software for architecture firms in India?
 
-The best fit is whichever tool understands Indian billing, approvals, site work and the financial year without workarounds. AORMS is purpose-built for Indian practices — GST and TDS invoicing, COA fee proposals, tenders, contractor records and rate-book costing in one self-hosted system — rather than a foreign product adapted at the edges.
+The best fit is whichever tool understands Indian billing, approvals, site work and the financial year without workarounds. AORMS is purpose-built for Indian practices — GST and TDS invoicing, COA fee proposals, tenders, contractor records and rate-book costing in one cloud-hosted system — rather than a foreign product adapted at the edges.
 
 ### Does it handle GST and TDS, or only project management?
 
@@ -83,4 +83,4 @@ Yes. AORMS keeps authority notes, permit records, tender movement, site instruct
 
 ### Is my data safe if the software is India-native?
 
-AORMS is self-hosted on your own server with role-based access, so your fee proposals, client data and drawings never leave your control. That matters as much in India as the tax and project-record features do.
+AORMS is cloud workspace at aorms.in with role-based access, so your fee proposals, client data and drawings never leave your control. That matters as much in India as the tax and project-record features do.

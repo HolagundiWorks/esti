@@ -53,7 +53,7 @@ GST-correct invoices are only as good as the fee structure behind them. In AORMS
 
 ## One India-native system
 
-Because AORMS is India-native by default — GST and SAC codes, TDS, the April–March financial year, COA stages, tenders and site records all built in — the billing does not sit on its own. It connects to projects, phases, the drawing register and the rest of the practice, with an immutable audit log and activity timeline behind every invoice. It is self-hosted on your own server with role-based access, so your financial data stays inside the firm and only authorised people can issue invoices.
+Because AORMS is India-native by default — GST and SAC codes, TDS, the April–March financial year, COA stages, tenders and site records all built in — the billing does not sit on its own. It connects to projects, phases, the drawing register and the rest of the practice, with an immutable audit log and activity timeline behind every invoice. It is cloud workspace at aorms.in with role-based access, so your financial data stays inside the firm and only authorised people can issue invoices.
 
 See how it fits the wider office on the [office management India](/architecture-office-management-india) and [practice management](/architecture-practice-management-software) pages, or [book a demo](/demo).
 

@@ -96,7 +96,7 @@ that requested it — backed by the immutable audit log and activity timeline.
 
 Approvals do not sit alone. They connect to fee proposals on the COA Scale of
 Charges, to GST-correct invoicing, to permits tracking, and to the statutory
-records a project has to preserve. Because AORMS is one system — self-hosted,
+records a project has to preserve. Because AORMS is one system — cloud-hosted,
 role-based, India-native — an approval being granted can be the thing that unblocks
 the next stage of billing or issue, not a dead-end form. See the wider
 [architecture practice management software](/architecture-practice-management-software)

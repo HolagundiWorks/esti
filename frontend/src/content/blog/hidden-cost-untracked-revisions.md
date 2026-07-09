@@ -169,7 +169,7 @@ system provides.
   practical system for capturing revisions cleanly.
 - **Why architecture firms lose projects due to poor client communication** — the
   broader failure that untracked revisions are part of.
-- *How better revision tracking prevents scope creep* — coming soon.
+- [How better revision tracking prevents scope creep](/blog/how-better-revision-tracking-prevents-scope-creep)
 
 ---
 
