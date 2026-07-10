@@ -17,6 +17,7 @@ import Settings from "@mui/icons-material/Settings";
 import Task from "@mui/icons-material/Task";
 import ManageAccounts from "@mui/icons-material/ManageAccounts";
 import Group from "@mui/icons-material/Group";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { trpc } from "../lib/trpc.js";
 import { useAuth } from "../lib/auth.js";
@@ -171,6 +172,7 @@ export function SystemAdmin() {
       title="System administration"
       description="Installation-level controls: module toggles and data management. Visible only to system administrators."
     >
+      <PageBreadcrumb items={[{ label: "Admin" }, { label: "System" }]} />
       {(setHr.error || setPmc.error || setModule.error) && (
         <Alert severity="error">
           <strong>Could not update module</strong>

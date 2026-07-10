@@ -296,7 +296,6 @@ export function SitePortal() {
           </Button>
         </DialogActions>
       </Dialog>
-      </Stack>
     </ExternalPortalShell>
   );
 }

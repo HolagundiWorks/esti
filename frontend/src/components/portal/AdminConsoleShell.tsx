@@ -82,7 +82,7 @@ export function AdminConsoleShell({
                 onClick={() => onSectionChange(s.key)}
                 sx={{ borderRadius: 1, mx: 0.5, my: 0.25 }}
               >
-                <ListItemText primary={s.label} primaryTypographyProps={{ variant: "body2" }} />
+                <ListItemText primary={s.label} slotProps={{ primary: { variant: "body2" } }} />
                 {s.key === "requests" && pendingRequests > 0 && (
                   <Badge badgeContent={pendingRequests} color="primary" sx={{ mr: 1 }} />
                 )}

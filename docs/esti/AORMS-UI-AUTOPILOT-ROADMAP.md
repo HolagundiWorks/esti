@@ -178,7 +178,7 @@ Roll in pillar order (each batch = one PR / agent run):
 | Company | `Company.tsx` | ✅ | Redirects → company-account |
 | Users | `Users.tsx` | ✅ | Redirects → company-account#members |
 | Audit log | `AuditLog.tsx` | ✅ | Redirects → company-account#administration |
-| System admin | `SystemAdmin.tsx` | ⬜ | System-admin only |
+| System admin | `SystemAdmin.tsx` | ✅ | Breadcrumb + RailLayout |
 | LXOS placeholder | `Lxos.tsx` | ✅ | Breadcrumb + Coming soon |
 
 **Per-screen checklist (autopilot):**
