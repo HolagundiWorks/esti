@@ -8,7 +8,7 @@ import { IconButton, useMediaQuery } from "@mui/material";
 import { ActionDock, ActionDockProvider, useScreenActions } from "@hcw/ui-kit";
 import { type ReactNode, useEffect, useState } from "react";
 import { createAccountUrl } from "../../lib/onboarding.js";
-import { isWikiHost, wikiAppPath, wikiPageUrl } from "../../lib/wiki-url.js";
+import { wikiAppPath, WIKI_SHELL_NAV } from "../../lib/wiki-url.js";
 import { LandingContours } from "./LandingContours.js";
 
 const SECTION_LINKS = [
@@ -18,6 +18,8 @@ const SECTION_LINKS = [
   { href: "/#pricing", label: "Pricing" },
   { href: "/#faq", label: "FAQ" },
 ] as const;
+
+export type MarketingNavLink = { href: string; label: string };
 
 const RAIL_COLLAPSED_KEY = "aorms.lp2.railCollapsed";
 
@@ -31,15 +33,26 @@ export function MarketingShell({
   children,
   contours,
   wiki,
+  sectionLinks,
+  tagline,
 }: {
   children: ReactNode;
   contours?: boolean;
-  /** Rendered on wiki.aorms.in — adjusts nav links. */
+  /** Wiki documentation shell — rail nav + sign-in dock only. */
   wiki?: boolean;
+  /** Override default landing section anchors (e.g. design-system page). */
+  sectionLinks?: readonly MarketingNavLink[];
+  /** Rail tagline under the brand mark. */
+  tagline?: string;
 }) {
   return (
     <ActionDockProvider>
-      <MarketingShellInner contours={contours} wiki={wiki}>
+      <MarketingShellInner
+        contours={contours}
+        wiki={wiki}
+        sectionLinks={sectionLinks}
+        tagline={tagline}
+      >
         {children}
       </MarketingShellInner>
     </ActionDockProvider>
@@ -50,10 +63,14 @@ function MarketingShellInner({
   children,
   contours,
   wiki,
+  sectionLinks,
+  tagline,
 }: {
   children: ReactNode;
   contours?: boolean;
   wiki?: boolean;
+  sectionLinks?: readonly MarketingNavLink[];
+  tagline?: string;
 }) {
   const isMobile = useMediaQuery("(max-width: 900px)");
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -68,9 +85,8 @@ function MarketingShellInner({
     }
   });
 
-  const onWiki = wiki || isWikiHost();
-  const wikiHref = onWiki ? wikiAppPath() : wikiPageUrl();
-  const primaryHref = onWiki ? "https://aorms.in/login" : createAccountUrl();
+  const onWiki = wiki === true;
+  const primaryHref = onWiki ? "/login" : createAccountUrl();
   const primaryLabel = onWiki ? "Sign in to AORMS" : "Create account";
 
   useEffect(() => {
@@ -112,16 +128,12 @@ function MarketingShellInner({
   );
 
   const navLinks = onWiki
-    ? [
-        { href: wikiAppPath(), label: "Wiki home" },
-        { href: wikiAppPath("getting-started"), label: "Getting started" },
-        { href: wikiAppPath("how-to-use-aorms"), label: "How to use AORMS" },
-        { href: "https://aorms.in/", label: "AORMS home" },
-      ]
+    ? [...(sectionLinks ?? WIKI_SHELL_NAV)]
     : [
-        ...SECTION_LINKS,
-        { href: wikiHref, label: "Wiki" },
+        ...(sectionLinks ?? SECTION_LINKS),
+        { href: wikiAppPath(), label: "Wiki" },
         { href: "/blog", label: "Blog" },
+        ...(sectionLinks ? [] : [{ href: "/design-system", label: "Design system" }]),
       ];
 
   const railOpen = isMobile ? mobileOpen : !collapsed;
@@ -185,7 +197,8 @@ function MarketingShellInner({
         {railOpen && (
           <>
             <p className="lp2-rail__tagline">
-              {onWiki ? "Documentation" : "Practice OS for Indian studios"}
+              {tagline ??
+                (onWiki ? "Documentation" : "Practice OS for Indian studios")}
             </p>
 
             <nav className="lp2-rail__nav" aria-label="Sections">

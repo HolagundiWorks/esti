@@ -65,7 +65,7 @@ designed for a five-minute principal review, not a quarterly report.
 2. **Close the loop weekly** — billing-ready must map to invoices or explicit deferral.
 3. **Portal discipline** — client approvals visible in the same record as drawings.
 4. **Train deputies** — document the morning review on the
-   [wiki](https://wiki.aorms.in/how-to-use-aorms).
+   [wiki](https://aorms.in/wiki/how-to-use-aorms).
 
 ## Frequently asked questions
 
@@ -80,7 +80,7 @@ Intuition is valuable; it should not be the **only** integration layer.
 ### How does cloud help?
 
 One signed-in workspace means deputies and principals see the same filtered truth —
-see [account and licence](https://wiki.aorms.in/account-and-licence).
+see [account and licence](https://aorms.in/wiki/account-and-licence).
 
 ## Related reading
 

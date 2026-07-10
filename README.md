@@ -39,7 +39,7 @@ the Construction Knowledge Bank foundation — support architect workflows.
 General-purpose ERP, commerce, warehouse, labour,
 subcontractor-accounting, and contractor execution systems are out of scope.
 
-**User guide:** [wiki.aorms.in](https://wiki.aorms.in) · **Licence:** one standard
+**User guide:** [aorms.in/wiki](https://aorms.in/wiki) · **Licence:** one standard
 cloud workspace ([PLANS-AND-TIERS](docs/esti/PLANS-AND-TIERS.md)) — no desktop
 app installs for the main product.
 

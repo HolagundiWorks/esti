@@ -60,7 +60,7 @@ Approved client changes with fee impact should link to **proposal milestones** a
 record alongside proposals and GST invoices — so billing-ready work is not
 orphaned in email.
 
-See the [finance and billing guide](https://wiki.aorms.in/finance-and-billing) on
+See the [finance and billing guide](https://aorms.in/wiki/finance-and-billing) on
 the wiki for the bill-a-stage workflow.
 
 ## Practical rollout for a small studio
@@ -100,4 +100,4 @@ project-native register (like AORMS) keeps revisions beside the sheets they affe
 ---
 
 *Holagundi Consulting Works builds AORMS — the cloud practice OS for Indian architects.
-Documentation: [wiki.aorms.in](https://wiki.aorms.in).*
+Documentation: [aorms.in/wiki](https://aorms.in/wiki).*

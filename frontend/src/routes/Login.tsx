@@ -375,7 +375,7 @@ export function Login() {
               {PUBLIC_SITE && (
                 <Button
                   component="a"
-                  href="https://wiki.aorms.in"
+                  href="/wiki"
                   variant="text"
                   size="small"
                 >

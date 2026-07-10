@@ -56,6 +56,8 @@ Docker Compose (`compose.yaml`).
 
 **Canonical guides:** **[`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md)** — the
 layer philosophy, spatial model and adoption path (single source of truth).
+**[`docs/esti/HCW-UI-UX-PRINCIPLES.md`](docs/esti/HCW-UI-UX-PRINCIPLES.md)** — UX laws,
+cognitive load, accessibility, and review checklist.
 [`docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md`](docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md) —
 glass-rail rollout + login-in-rail queue.
 [`docs/esti/AORMS-BRANDING-KIT.md`](docs/esti/AORMS-BRANDING-KIT.md) — brand marks +
@@ -65,6 +67,7 @@ colour/type heritage. [`docs/esti/MATERIAL-UI-DIRECTION.md`](docs/esti/MATERIAL-
 ### UI task order
 
 1. Read [`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md) — layers, spatial model, dock zones.
+   Read [`docs/esti/HCW-UI-UX-PRINCIPLES.md`](docs/esti/HCW-UI-UX-PRINCIPLES.md) — UX laws, a11y, review checklist.
 2. Build app/portal/landing screens from `@mui/material` + `@hcw/ui-kit` (`MuiRoot`,
  `Surface`, `GlassRail`, `useScreenActions`, `HealthGlassOrb`) — never hard-coded
  hex/gradients; raw colour lives ONLY in `packages/hcw-ui-kit/src/tokens.ts`.

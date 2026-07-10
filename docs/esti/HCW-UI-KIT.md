@@ -1,5 +1,9 @@
 # HCW-UI-Kit — the layered design system
 
+**UX principles (why):** **[HCW-UI-UX-PRINCIPLES.md](HCW-UI-UX-PRINCIPLES.md)** — laws,
+spatial roles, dock contract, a11y, and screen review checklist. **This document (how):**
+tokens, layers, components, and SCSS. **Live showcase:** `/design-system` on the public site.
+
 **HCW-UI-Kit** (*Human Centric Works UI Kit*, package `@hcw/ui-kit`) is the single,
 centralised design system deployed against **every** AORMS portal — the workspace
 app, the client & consultant portals, the licensing console, ESE, the Estimate

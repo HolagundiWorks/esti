@@ -46,7 +46,7 @@ External channels still exist for relationship warmth. The **record** lives in o
 | Fee / payment query | Finance thread on client record — not project chat |
 
 Publish these rules in your client onboarding pack. Reference the
-[AORMS wiki](https://wiki.aorms.in/how-to-use-aorms) for client portal setup.
+[AORMS wiki](https://aorms.in/wiki/how-to-use-aorms) for client portal setup.
 
 ## Technology is not the whole answer
 
@@ -83,4 +83,4 @@ Same rule — receipt is logged; files attach to the drawing register row.
 
 ---
 
-*Practice OS for Indian architects — [aorms.in](https://aorms.in) · [wiki.aorms.in](https://wiki.aorms.in)*
+*Practice OS for Indian architects — [aorms.in](https://aorms.in) · [aorms.in/wiki](https://aorms.in/wiki)*

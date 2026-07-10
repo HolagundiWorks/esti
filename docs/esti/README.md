@@ -12,7 +12,7 @@ direction. **Obsolete specs** live under [`../archive/`](../archive/README.md) w
 a banner explaining what superseded them — do not use archived files for
 implementation.
 
-**Public user documentation:** [wiki.aorms.in](https://wiki.aorms.in) (getting
+**Public user documentation:** [aorms.in/wiki](https://aorms.in/wiki) (getting
 started, workflows, estimation, finance, account setup).
 
 ## Read first

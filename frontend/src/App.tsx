@@ -36,6 +36,7 @@ import { Navigate, Route, Routes, useLocation, useParams } from "react-router-do
 import { can, ROLE_RANK, isStaffRole } from "@esti/contracts";
 import { ThemeContext } from "./lib/theme-context.js";
 import { isLandingSlug } from "./lib/landing-slugs.js";
+import { isWikiHost, wikiSubdomainRedirectTarget } from "./lib/wiki-url.js";
 import { useAuth } from "./lib/auth.js";
 import { setDesktopToken } from "./lib/api-base.js";
 import { trpc } from "./lib/trpc.js";
@@ -89,6 +90,7 @@ const SeoLanding = lazy(() =>
   import("./routes/SeoLanding.js").then((m) => ({ default: m.SeoLanding })),
 );
 const Investors = lazyRoute(() => import("./routes/Investors.js"), "Investors");
+const DesignSystem = lazyRoute(() => import("./routes/DesignSystem.js"), "DesignSystem");
 const Legal = lazyRoute(() => import("./routes/Legal.js"), "Legal");
 const About = lazyRoute(() => import("./routes/About.js"), "About");
 const Contracts = lazyRoute(() => import("./routes/Contracts.js"), "Contracts");
@@ -135,6 +137,11 @@ const SystemAdmin = lazyRoute(() => import("./routes/SystemAdmin.js"), "SystemAd
 
 
 // ─── App ──────────────────────────────────────────────────────────────────────
+
+function WikiSubdomainRedirect() {
+  const { pathname, search, hash } = useLocation();
+  return <Navigate to={wikiSubdomainRedirectTarget(pathname, search, hash)} replace />;
+}
 
 function EstimationToMeasurementRedirect() {
   const { projectId } = useParams();
@@ -196,16 +203,18 @@ function AppShell() {
   // admin.* hostname.
   const ADMIN_CONSOLE_URL = (import.meta.env.VITE_ADMIN_URL as string | undefined) ?? "";
   const isAdminSubdomain = /^admin\./.test(window.location.hostname);
-  const isWikiSubdomain = /^wiki\./.test(window.location.hostname);
   if (!ADMIN_CONSOLE_URL && (isAdminSubdomain || pathname.startsWith("/platform-admin")))
     return <PlatformAdmin />;
 
-  // AORMS Wiki — wiki.aorms.in (root paths) or aorms.in/wiki/* mirror.
-  if (PUBLIC_SITE && (isWikiSubdomain || pathname === "/wiki" || pathname.startsWith("/wiki/"))) {
+  // Legacy wiki subdomain — wiki.DOMAIN → aorms.in/wiki (canonical path).
+  if (isWikiHost()) return <WikiSubdomainRedirect />;
+
+  // AORMS Wiki — aorms.in/wiki/*
+  if (PUBLIC_SITE && (pathname === "/wiki" || pathname.startsWith("/wiki/"))) {
     return (
       <Routes>
-        <Route path={isWikiSubdomain ? "/" : "/wiki"} element={<Wiki />} />
-        <Route path={isWikiSubdomain ? "/:slug" : "/wiki/:slug"} element={<WikiPage />} />
+        <Route path="/wiki" element={<Wiki />} />
+        <Route path="/wiki/:slug" element={<WikiPage />} />
       </Routes>
     );
   }
@@ -222,6 +231,10 @@ function AppShell() {
   // Public keyword landing pages (SEO) — `/architecture-office-management-software`, etc.
   if (PUBLIC_SITE && isLandingSlug(pathname))
     return <SeoLanding slug={pathname.replace(/^\/+/, "").replace(/\/+$/, "")} />;
+
+  // HCW-UI-Kit design system showcase — public reference page.
+  if (PUBLIC_SITE && pathname === "/design-system")
+    return <DesignSystem />;
 
   // Investor brief — standalone public page, not linked from the marketing nav.
   if (PUBLIC_SITE && pathname === "/investors")

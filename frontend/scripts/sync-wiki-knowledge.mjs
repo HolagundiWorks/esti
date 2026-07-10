@@ -42,7 +42,7 @@ const pages = readdirSync(wikiDir)
   .sort((a, b) => a.order - b.order);
 
 const sections = pages
-  .map((p) => `### ${p.title} (wiki.aorms.in/${p.slug})\n\n${p.body}`)
+  .map((p) => `### ${p.title} (aorms.in/wiki/${p.slug})\n\n${p.body}`)
   .join("\n\n---\n\n");
 
 const header = `/**
@@ -56,7 +56,7 @@ const body = `${header}
 export const WIKI_PRODUCT_KNOWLEDGE = \`\\
 ## Official AORMS Wiki (canonical product documentation)
 
-Public URL: https://wiki.aorms.in
+Public URL: https://aorms.in/wiki
 
 ${sections.replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$\{/g, "\\${")}
 \`;

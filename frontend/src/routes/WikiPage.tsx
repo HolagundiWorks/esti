@@ -5,7 +5,8 @@ import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 import { applyWikiPageSeo } from "../lib/wiki-seo.js";
 import { getWikiPage, listWikiPages } from "../lib/wiki.js";
-import { isWikiHost, wikiAppPath } from "../lib/wiki-url.js";
+import { WIKI_SHELL_NAV, wikiAppPath } from "../lib/wiki-url.js";
+import { useLpReveal } from "../lib/use-lp-reveal.js";
 
 export function WikiPage() {
   const { slug = "" } = useParams();
@@ -14,14 +15,14 @@ export function WikiPage() {
   const i = pages.findIndex((p) => p.slug === slug);
   const prev = i > 0 ? pages[i - 1] : undefined;
   const next = i >= 0 && i < pages.length - 1 ? pages[i + 1] : undefined;
+  useLpReveal();
 
   const html = useMemo(() => {
     if (!page) return "";
     const raw = marked.parse(page.markdown, { async: false }) as string;
-    const base = isWikiHost() ? "" : "/wiki";
     return raw.replace(/href="([^"]+)"/g, (match, href) => {
       if (/^(https?:|mailto:|#|\/)/.test(href)) return match;
-      return `href="${base}/${href}"`;
+      return `href="${wikiAppPath(href)}"`;
     });
   }, [page]);
 
@@ -30,8 +31,8 @@ export function WikiPage() {
   }, [page]);
 
   return (
-    <MarketingShell wiki>
-      <main id="main-content" className="esti-wiki">
+    <MarketingShell wiki contours sectionLinks={WIKI_SHELL_NAV} tagline="Official documentation">
+      <div className="esti-wiki">
         <Link to={wikiAppPath()} className="esti-wiki__back">
           ← Wiki home
         </Link>
@@ -71,7 +72,7 @@ export function WikiPage() {
             )}
           </article>
         )}
-      </main>
+      </div>
       <MarketingFooter />
     </MarketingShell>
   );

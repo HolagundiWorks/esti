@@ -44,7 +44,7 @@ All on your one domain (`https://<domain>`), TLS-terminated by nginx.
 | `/` | Firm app home (**Studio Intelligence**) — or the public Landing if `VITE_PUBLIC_SITE=true` | firm session |
 | `/login` | **Firm workspace login** — create account on public-site builds; one **standard AORMS licence** (no Lite/Core/Enterprise picker) | firm session |
 | `/account`, `/company-account` | Personal and company account portals | platform session |
-| `/wiki` | Wiki mirror; canonical host [wiki.aorms.in](https://wiki.aorms.in) | public |
+| `/wiki` | Official documentation (canonical) | public |
 | `/demo` | One-click auto-login into the seeded demo (profile 2 only) | baked demo creds |
 | `/platform-admin` | **Licensing console** — Holagundi platform admins **only**; simple email + password, no company step | platform session (admin) |
 | `/platform` | Platform backend root (not a page) | — |

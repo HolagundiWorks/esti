@@ -14,7 +14,7 @@
 >
 > **Spatial model (HCW-UI-Kit):** glass **ribbon** (top) · **rail** (20%) · **stage**
 > (80%) · **ActionDock** (bottom-centre CTAs) · glass **taskbar footer**. See
-> [HCW-UI-KIT.md](HCW-UI-KIT.md).
+> [HCW-UI-KIT.md](HCW-UI-KIT.md) · UX rationale: [HCW-UI-UX-PRINCIPLES.md](HCW-UI-UX-PRINCIPLES.md).
 
 ## Status legend
 | Tag | Meaning |

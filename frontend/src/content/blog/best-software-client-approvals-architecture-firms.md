@@ -69,7 +69,7 @@ In the cloud workspace:
 - **Studio Intelligence Approval zone** surfaces blockers across projects.
 
 No separate desktop install — sign in at [aorms.in](https://aorms.in). Setup guide:
-[wiki getting started](https://wiki.aorms.in/getting-started).
+[wiki getting started](https://aorms.in/wiki/getting-started).
 
 ## Comparison mindset (not a feature checklist)
 
@@ -111,4 +111,4 @@ before send. See [minutes to revision requests](/blog/esti-drafts-revision-reque
 
 ---
 
-*AORMS — Indian architecture practice management in the browser. Docs: [wiki.aorms.in](https://wiki.aorms.in)*
+*AORMS — Indian architecture practice management in the browser. Docs: [aorms.in/wiki](https://aorms.in/wiki)*

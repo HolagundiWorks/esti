@@ -16,12 +16,12 @@ import { fileURLToPath } from "node:url";
 import { marked } from "marked";
 
 const SITE = "https://aorms.in";
-const WIKI_SITE = "https://wiki.aorms.in";
+const WIKI_BASE = `${SITE}/wiki`;
 const SITE_NAME = "AORMS";
 const HOME_SEO = {
   title: "AORMS | Practice management software for architects & designers in India",
   description:
-    "AORMS is the cloud practice OS for Indian architects and interior designers — fee recovery (what to invoice, next payment stage, incoming, due dates), MoM-led client revisions, GST billing, drawings, studio load and portals. One licence, 5 GB included, unlimited users. Docs: wiki.aorms.in.",
+    "AORMS is the cloud practice OS for Indian architects and interior designers — fee recovery (what to invoice, next payment stage, incoming, due dates), MoM-led client revisions, GST billing, drawings, studio load and portals. One licence, 5 GB included, unlimited users. Docs: aorms.in/wiki.",
   canonical: `${SITE}/`,
 };
 
@@ -341,22 +341,22 @@ for (const p of posts) {
   );
 }
 
-// Wiki index + pages → dist/wiki/ (aorms.in/wiki and wiki.aorms.in)
+// Wiki index + pages → dist/wiki/ (aorms.in/wiki/*)
 const wikiIndexBody = `<main class="esti-wiki"><h1>AORMS Wiki</h1><p>Official documentation for the AORMS cloud workspace.</p><ul>${wikiPages
-  .map((p) => `<li><a href="/${p.slug}"><strong>${esc(p.title)}</strong> — ${esc(p.excerpt)}</a></li>`)
+  .map((p) => `<li><a href="/wiki/${p.slug}"><strong>${esc(p.title)}</strong> — ${esc(p.excerpt)}</a></li>`)
   .join("")}</ul></main>`;
 writePage(
   "wiki",
   renderPage({
     title: "AORMS Wiki",
     description: "How to use AORMS — workflows, fee recovery, revisions, finance, and account setup.",
-    canonical: `${WIKI_SITE}/`,
+    canonical: `${WIKI_BASE}`,
     bodyHtml: wikiIndexBody,
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "WebSite",
       name: "AORMS Wiki",
-      url: WIKI_SITE,
+      url: WIKI_BASE,
     },
   }),
 );
@@ -368,7 +368,7 @@ for (const p of wikiPages) {
     renderPage({
       title: p.title,
       description: p.excerpt,
-      canonical: `${WIKI_SITE}/${p.slug}`,
+      canonical: `${WIKI_BASE}/${p.slug}`,
       bodyHtml: articleHtml,
       jsonLd: {
         "@context": "https://schema.org",
@@ -376,7 +376,7 @@ for (const p of wikiPages) {
         headline: p.title,
         description: p.excerpt,
         dateModified: p.updated || undefined,
-        mainEntityOfPage: { "@type": "WebPage", "@id": `${WIKI_SITE}/${p.slug}` },
+        mainEntityOfPage: { "@type": "WebPage", "@id": `${WIKI_BASE}/${p.slug}` },
       },
     }),
   );
@@ -435,14 +435,13 @@ const today = new Date().toISOString().slice(0, 10);
 const urls = [
   { loc: `${SITE}/`, lastmod: today, changefreq: "weekly", priority: "1.0" },
   { loc: `${SITE}/blog`, lastmod: posts[0]?.date || today, changefreq: "weekly", priority: "0.8" },
-  { loc: `${WIKI_SITE}/`, lastmod: today, changefreq: "weekly", priority: "0.9" },
+  { loc: `${WIKI_BASE}`, lastmod: today, changefreq: "weekly", priority: "0.9" },
   ...wikiPages.map((p) => ({
-    loc: `${WIKI_SITE}/${p.slug}`,
+    loc: `${WIKI_BASE}/${p.slug}`,
     lastmod: p.updated || today,
     changefreq: "weekly",
     priority: "0.85",
   })),
-  { loc: `${SITE}/wiki`, lastmod: today, changefreq: "weekly", priority: "0.7" },
   ...landing.map((p) => ({ loc: `${SITE}/${p.slug}`, lastmod: p.updated || today, changefreq: "monthly", priority: "0.8" })),
   { loc: `${SITE}/about`, lastmod: today, changefreq: "monthly", priority: "0.6" },
   { loc: `${SITE}/legal`, lastmod: today, changefreq: "yearly", priority: "0.3" },
@@ -474,7 +473,7 @@ Core capabilities:
 - Drawing register, transmittals and client approval workflows
 - COA fee proposals and GST invoicing with reconciliation
 - Studio Intelligence dashboard and Ask ESTI (BYO API key supported)
-- Official documentation at wiki.aorms.in
+- Official documentation at aorms.in/wiki
 - Cloud browser workspace at aorms.in — one standard licence, unlimited users, 5 GB included storage
 
 Website:
@@ -482,7 +481,7 @@ ${SITE}
 
 ## Public Pages
 - [AORMS home](${SITE}/)
-- [AORMS Wiki](${WIKI_SITE}/)
+- [AORMS Wiki](${WIKI_BASE})
 - [Blog](${SITE}/blog)
 - [Live demo](${SITE}/demo)
 
@@ -490,7 +489,7 @@ ${SITE}
 ${landing.map((p) => `- [${p.title}](${SITE}/${p.slug}): ${p.metaDescription}`).join("\n")}
 
 ## Wiki (official product documentation)
-${wikiPages.map((p) => `- [${p.title}](${WIKI_SITE}/${p.slug}): ${p.excerpt}`).join("\n")}
+${wikiPages.map((p) => `- [${p.title}](${WIKI_BASE}/${p.slug}): ${p.excerpt}`).join("\n")}
 
 ## Articles
 ${posts.map((p) => `- [${p.title}](${SITE}/blog/${p.slug}): ${p.excerpt}`).join("\n")}

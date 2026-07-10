@@ -1,6 +1,6 @@
 /**
  * Markdown-backed AORMS wiki — pages live in `src/content/wiki/*.md` and ship
- * with the frontend build. Canonical host: wiki.aorms.in.
+ * with the frontend build. Canonical URL: aorms.in/wiki.
  */
 
 const files = import.meta.glob("../content/wiki/*.md", {

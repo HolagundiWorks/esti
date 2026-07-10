@@ -17,7 +17,7 @@ export const LANDING_SEO = {
     "AORMS is the Architecture Office Resource Management System — built by Holagundi Consulting Works in Hospet, Karnataka, for Indian architectural and interior design consultancies. Fee recovery and MoM-led revisions on one living record.",
   canonical: "https://aorms.in/",
   siteName: "AORMS",
-  wikiUrl: "https://wiki.aorms.in/",
+  wikiUrl: "https://aorms.in/wiki",
 } as const;
 
 export const LANDING_FAQ = [
@@ -44,7 +44,7 @@ export const LANDING_FAQ = [
   {
     question: "Where is the documentation?",
     answer:
-      "The official AORMS Wiki at wiki.aorms.in covers getting started, workflows, finance, and account setup.",
+      "The official AORMS Wiki at aorms.in/wiki covers getting started, workflows, finance, and account setup.",
   },
   {
     question: "How does client revision management work?",
@@ -96,8 +96,8 @@ export function injectLandingJsonLd(): void {
       },
       {
         "@type": "WebSite",
-        "@id": "https://wiki.aorms.in/#website",
-        url: "https://wiki.aorms.in/",
+        "@id": "https://aorms.in/wiki#website",
+        url: "https://aorms.in/wiki",
         name: "AORMS Wiki",
         description: "Official documentation for the AORMS cloud workspace.",
         inLanguage: "en-IN",

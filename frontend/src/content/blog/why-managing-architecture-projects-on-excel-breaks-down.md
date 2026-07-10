@@ -64,7 +64,7 @@ A **project-native cloud workspace** where:
 - Studio Intelligence surfaces billing-ready and approval-blocked work.
 
 AORMS offers that model in the browser — one standard licence, unlimited users.
-Migration path: [getting started on the wiki](https://wiki.aorms.in/getting-started).
+Migration path: [getting started on the wiki](https://aorms.in/wiki/getting-started).
 
 ## A pragmatic migration path
 
@@ -95,4 +95,4 @@ Compare senior hours lost to reconciliation vs cloud workspace usage (storage + 
 
 ---
 
-*AORMS — [wiki.aorms.in](https://wiki.aorms.in) for workflows · [aorms.in](https://aorms.in) to sign up.*
+*AORMS — [aorms.in/wiki](https://aorms.in/wiki) for workflows · [aorms.in](https://aorms.in) to sign up.*

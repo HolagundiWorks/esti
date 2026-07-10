@@ -7,6 +7,8 @@ licensing console, marketing site chrome (via shared primitives), and future app
 Thesis: **depth encodes importance** — flat (info) · soft (objects) · glass (action).
 Full spatial model + marketing rules:
 [`docs/esti/HCW-UI-KIT.md`](../../docs/esti/HCW-UI-KIT.md).
+UX principles (laws, a11y, checklist):
+[`docs/esti/HCW-UI-UX-PRINCIPLES.md`](../../docs/esti/HCW-UI-UX-PRINCIPLES.md).
 
 ## Exports
 

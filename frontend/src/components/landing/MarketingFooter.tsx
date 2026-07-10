@@ -1,3 +1,5 @@
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { useState } from "react";
 import { LANDING_SEO } from "../../lib/landing-seo.js";
 import { LANDING_NAV } from "../../lib/landing-slugs.js";
 import { formatVisitCount } from "../../lib/landing-visit.js";
@@ -8,8 +10,9 @@ const PRODUCT_LINKS = [
   { href: "/#capabilities", label: "Capabilities" },
   { href: "/#pricing", label: "Pricing" },
   { href: "/#faq", label: "FAQ" },
-  { href: "https://wiki.aorms.in", label: "Wiki" },
+  { href: "/wiki", label: "Wiki" },
   { href: "/blog", label: "Blog" },
+  { href: "/design-system", label: "Design system" },
   { href: "/about", label: "About" },
 ] as const;
 
@@ -29,22 +32,46 @@ export function MarketingFooter({
 }: {
   visitCount?: number | null;
 }) {
+  const [solutionsOpen, setSolutionsOpen] = useState(false);
+
   return (
     <footer className="lp2-footer" aria-label="AORMS footer">
-      <nav className="lp2-footer__solutions" aria-label="Solutions">
-        {LANDING_NAV.map((group) => (
-          <div key={group.heading} className="lp2-footer__sol-col">
-            <p className="lp2-footer__sol-head">{group.heading}</p>
-            <ul>
-              {group.links.map((l) => (
-                <li key={l.slug}>
-                  <a href={`/${l.slug}`}>{l.label}</a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </nav>
+      <section
+        className={`lp2-footer__solutions-wrap${solutionsOpen ? " lp2-footer__solutions-wrap--open" : ""}`}
+      >
+        <button
+          type="button"
+          className="lp2-footer__solutions-toggle"
+          aria-expanded={solutionsOpen}
+          aria-controls="lp2-footer-solutions"
+          onClick={() => setSolutionsOpen((open) => !open)}
+        >
+          <span className="lp2-footer__solutions-toggle__label">Solutions</span>
+          <ExpandMoreIcon
+            className="lp2-footer__solutions-toggle__icon"
+            fontSize="small"
+            aria-hidden
+          />
+        </button>
+        <nav
+          id="lp2-footer-solutions"
+          className="lp2-footer__solutions"
+          aria-label="Solutions"
+        >
+          {LANDING_NAV.map((group) => (
+            <div key={group.heading} className="lp2-footer__sol-col">
+              <p className="lp2-footer__sol-head">{group.heading}</p>
+              <ul>
+                {group.links.map((l) => (
+                  <li key={l.slug}>
+                    <a href={`/${l.slug}`}>{l.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
+      </section>
 
       <div className="lp2-footer__bar">
         <div className="lp2-footer__brand">

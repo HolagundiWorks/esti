@@ -239,7 +239,7 @@ Capabilities are enforced server-side via `can(role, capability)` — the UI hid
 ## Getting help
 
 - **Email:** [hi@aorms.in](mailto:hi@aorms.in)
-- **Wiki:** [wiki.aorms.in](https://wiki.aorms.in)
+- **Wiki:** [aorms.in/wiki](https://aorms.in/wiki)
 - **Blog:** [aorms.in/blog](https://aorms.in/blog) — practice notes and release context
 
 ---

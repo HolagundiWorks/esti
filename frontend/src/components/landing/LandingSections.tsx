@@ -683,11 +683,11 @@ const FAQS = [
   },
   {
     q: "Is there a desktop app?",
-    a: "No. AORMS runs entirely in your browser at aorms.in — projects, finance, drawings and portals in one cloud workspace. See wiki.aorms.in for setup guides.",
+    a: "No. AORMS runs entirely in your browser at aorms.in — projects, finance, drawings and portals in one cloud workspace. See aorms.in/wiki for setup guides.",
   },
   {
     q: "Where is the documentation?",
-    a: "The official AORMS Wiki lives at wiki.aorms.in — getting started, workflows, finance and account setup.",
+    a: "The official AORMS Wiki lives at aorms.in/wiki — getting started, workflows, finance and account setup.",
   },
   {
     q: "Can I self-host AORMS?",
@@ -717,14 +717,14 @@ export function FaqSection() {
         id="faq-head"
         tag="FAQ"
         problem="Switching tools raises the same questions every principal asks."
-        solution="Open a question for the answer — write to hi@aorms.in if yours is not listed."
+        solution="Answers below — write to hi@aorms.in if yours is not listed."
       />
       <div className="lp2-faq lp2-reveal" style={revealStyle(40)}>
         {FAQS.map((f) => (
-          <details key={f.q} className="lp2-faq__item">
-            <summary className="lp2-faq__q">{f.q}</summary>
+          <article key={f.q} className="lp2-faq__item">
+            <h3 className="lp2-faq__q">{f.q}</h3>
             <p className="lp2-faq__a">{f.a}</p>
-          </details>
+          </article>
         ))}
       </div>
       <KeywordStrip label="At a glance" marks={FAQ_KEYWORDS} />

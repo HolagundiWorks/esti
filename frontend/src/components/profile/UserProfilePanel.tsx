@@ -216,9 +216,9 @@ export function UserProfilePanel() {
                     AORMS Wiki
                   </Typography>
                   <Typography variant="body2" component="p" className="esti-label esti-label--secondary">
-                    Estimation, workflows, and account setup — official documentation at wiki.aorms.in.
+                    Estimation, workflows, and account setup — official documentation at aorms.in/wiki.
                   </Typography>
-                  <Button variant="contained" href="https://wiki.aorms.in/getting-started" target="_blank" rel="noopener noreferrer">
+                  <Button variant="contained" href="/wiki/getting-started">
                     Open getting started guide
                   </Button>
                 </Stack>

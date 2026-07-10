@@ -45,4 +45,4 @@ Nothing here is a mock-up. Every number on the dashboard is computed from the
 seeded records — which is the point: it behaves like the real thing because it
 *is* the real thing, just pre-filled.
 
-For step-by-step onboarding after the demo, see the **[AORMS Wiki](https://wiki.aorms.in/getting-started)**.
+For step-by-step onboarding after the demo, see the **[AORMS Wiki](https://aorms.in/wiki/getting-started)**.

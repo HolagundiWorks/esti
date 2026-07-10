@@ -91,7 +91,7 @@ data, not Gantt bars. Integrate or replace the record layer, not every tool.
 
 One cloud workspace links projects, tasks, decisions, drawings, proposals, and
 invoices. Studio Intelligence ranks what needs attention today. See
-[how to use AORMS](https://wiki.aorms.in/how-to-use-aorms).
+[how to use AORMS](https://aorms.in/wiki/how-to-use-aorms).
 
 ## Related reading
 
@@ -101,4 +101,4 @@ invoices. Studio Intelligence ranks what needs attention today. See
 
 ---
 
-*AORMS — cloud practice OS for Indian architects. [wiki.aorms.in](https://wiki.aorms.in)*
+*AORMS — cloud practice OS for Indian architects. [aorms.in/wiki](https://aorms.in/wiki)*

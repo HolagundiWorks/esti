@@ -11,7 +11,7 @@ Core capabilities:
 - Drawing register, transmittals and client approval workflows
 - COA fee proposals and GST invoicing with reconciliation
 - Studio Intelligence dashboard and Ask ESTI (BYO API key supported)
-- Official documentation at wiki.aorms.in
+- Official documentation at aorms.in/wiki
 - Cloud browser workspace at aorms.in — one standard licence, unlimited users, 5 GB included storage
 
 Website:
@@ -19,15 +19,15 @@ https://aorms.in
 
 ## Public Pages
 - [AORMS home](https://aorms.in/)
-- [AORMS Wiki](https://wiki.aorms.in/)
+- [AORMS Wiki](https://aorms.in/wiki/)
 - [Blog](https://aorms.in/blog)
 - [Live demo](https://aorms.in/demo)
 
 ## Wiki
-- [Getting started](https://wiki.aorms.in/getting-started)
-- [How to use AORMS](https://wiki.aorms.in/how-to-use-aorms)
-- [Finance and billing](https://wiki.aorms.in/finance-and-billing)
-- [Account and licence](https://wiki.aorms.in/account-and-licence)
+- [Getting started](https://aorms.in/wiki/getting-started)
+- [How to use AORMS](https://aorms.in/wiki/how-to-use-aorms)
+- [Finance and billing](https://aorms.in/wiki/finance-and-billing)
+- [Account and licence](https://aorms.in/wiki/account-and-licence)
 
 ## Note
 Solution and article listings below are regenerated on build from markdown frontmatter (see `frontend/scripts/prerender-blog.mjs`). Source of truth for page blurbs is each landing/blog `.md` file.

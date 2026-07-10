@@ -53,7 +53,7 @@ The firm compensates with senior time — principals become human databases.
 
 AORMS is built as that spine: **one standard licence**, unlimited users, full workspace
 at [aorms.in](https://aorms.in). Official workflows are documented at
-[wiki.aorms.in](https://wiki.aorms.in).
+[aorms.in/wiki](https://aorms.in/wiki).
 
 ## Implementing without a big-bang migration
 
