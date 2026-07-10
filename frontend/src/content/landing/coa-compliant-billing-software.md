@@ -4,7 +4,7 @@ metaTitle: COA Compliant Architecture Billing System
 metaDescription: A COA compliant architecture billing system that structures fees by COA Scale of Charges service stages and bills against phase milestones — with GST and TDS built in.
 keyword: coa compliant architecture billing system
 category: india
-updated: 2026-06-24
+updated: 2026-07-10
 intro: Fees structured by COA service stages, then billed only as each phase is delivered — so what you propose and what you invoice never drift apart.
 ---
 
@@ -58,7 +58,7 @@ Add the immutable audit log and activity timeline, and every fee decision and in
 
 ## Built for Indian practice
 
-This only works because AORMS is India-native by default: COA service stages, GST and SAC codes, TDS, and the April–March financial year are part of the model, not add-ons. It is cloud workspace at aorms.in with role-based access, so partners control who can issue proposals and raise invoices, and your fee data stays in the firm.
+This only works because AORMS is India-native by default: COA service stages, GST and SAC codes, TDS, and the April–March financial year are part of the model, not add-ons. Fee recovery — knowing what is ready to invoice, what is incoming and what is overdue — stays visible across every project in the office. It is cloud workspace at aorms.in with role-based access, so partners control who can issue proposals and raise invoices, and your fee data stays in the firm.
 
 If you have been managing COA fees in spreadsheets and billing from memory, see how the structured approach works — explore [practice management](/architecture-practice-management-software), the [GST billing](/gst-billing-software-architects-india) and [office management India](/architecture-office-management-india) pages, or [book a demo](/demo).
 

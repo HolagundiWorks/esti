@@ -78,7 +78,9 @@ canvas + ambient pulse.
 
 #### Glass panel recipe (rail)
 
-Documented exception in `glass.scss` (blur/rgba) — promote to `@hcw/ui-kit` in U6:
+Documented exception in `glass.scss` (blur/rgba). **U6 (2026-07):** layout
+primitives live in `@hcw/ui-kit` (`GlassRail`, `HealthGlassOrb`, `Surface`).
+`glass.scss` retains Studio pulse, orb CSS, and frosted panel recipes only:
 
 - `border: 1px solid rgba(255,255,255,0.5)` · `border-radius: 14px`
 - Background: `linear-gradient(145deg, rgba(255,255,255,0.44), rgba(255,255,255,0.2))`
@@ -176,13 +178,15 @@ brand font once (`@fontsource/urbanist` weights 400/500/600/700).
 
 ```
 packages/hcw-ui-kit/src/
-├─ tokens.ts        colour, radius, type + the three LAYER recipes (single source of truth)
-├─ theme.ts         the shared MUI theme built from the tokens
-├─ MuiRoot.tsx      provider (theme + dayjs localization)
-├─ Surface.tsx      <Surface layer="flat|soft|glass"> depth primitive
-├─ ActionDock.tsx   ActionDockProvider · useScreenActions · <ActionDock/> (3 zones)
-├─ TaskbarFooter.tsx <TaskbarFooter> + <TaskbarButton> (Windows-taskbar footer)
-└─ BrandMark.tsx    asset-free wordmark
+├─ tokens.ts         colour, radius, type + the three LAYER recipes (single source of truth)
+├─ theme.ts          the shared MUI theme built from the tokens
+├─ MuiRoot.tsx       provider (theme + dayjs localization)
+├─ Surface.tsx       <Surface layer="flat|soft|glass"> depth primitive
+├─ GlassRail.tsx     rail · stage shell for portals / auth
+├─ HealthGlassOrb.tsx zone / office-health indicator (flat | glass)
+├─ ActionDock.tsx    ActionDockProvider · useScreenActions · <ActionDock/> (3 zones)
+├─ TaskbarFooter.tsx <TaskbarFooter left|center|right> + <TaskbarButton>
+└─ BrandMark.tsx     asset-free wordmark
 ```
 
 Source-only (like `@esti/contracts`); the consuming portal's bundler compiles it.

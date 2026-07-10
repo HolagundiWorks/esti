@@ -1,7 +1,7 @@
 ---
-title: Why AORMS? The story behind the office intelligence system
-date: 2026-06-22
-excerpt: Architecture firms rarely fail on design. They fail in the quiet operational gaps between projects. AORMS was built to close them.
+title: Why we built AORMS — the story behind the practice management system
+date: 2026-07-10
+excerpt: Brilliant design work held together by spreadsheets, WhatsApp, and one senior person's memory — and fees leaking away before invoices were raised. AORMS was built to close that gap.
 tags: Vision, Story
 author: Holagundi Consulting Works
 ---
@@ -11,10 +11,13 @@ design work held together by spreadsheets, WhatsApp groups, and the memory of
 one or two senior people. The drawings are excellent. The *operations* are
 improvised.
 
-That gap is where firms quietly lose money and momentum — an approval that sat
-two weeks too long, an invoice that was never raised, a consultant who went
-silent before a deadline. None of it is a design failure. All of it is a
-**coordination failure**.
+That gap is where practices quietly lose money and momentum — a fee stage
+completed but never invoiced, a client-driven change absorbed without a record,
+an approval that sat two weeks too long and delayed the cash tied to it. None of
+it is a design failure. All of it is a **coordination failure**, and the largest
+single piece of it is fee recovery: the work was delivered, the stage was
+complete, but no invoice was raised because no one connected the delivery to the
+billing.
 
 ## The insight
 

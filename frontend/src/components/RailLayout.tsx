@@ -78,9 +78,16 @@ export function RailLayout({
         >
           <Box sx={{ minWidth: 0, width: 1 }}>
             <Typography
+              variant="overline"
+              color="text.secondary"
+              sx={{ letterSpacing: 1, display: "block", lineHeight: 1.2 }}
+            >
+              Workspace
+            </Typography>
+            <Typography
               variant="h5"
               component="h1"
-              sx={{ fontWeight: 600, lineHeight: 1.15, mt: 0, wordBreak: "break-word" }}
+              sx={{ fontWeight: 600, lineHeight: 1.15, mt: 0.25, wordBreak: "break-word" }}
             >
               {title}
             </Typography>

@@ -1,4 +1,4 @@
-import { ProjectListParams, CompanionDrawingSetScale, clampListLimit } from "@esti/contracts";
+import { ProjectListParams, CompanionDrawingSetScale, clampListLimit, drawingSourceKind } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, gt, or } from "drizzle-orm";
 import { z } from "zod";
@@ -8,7 +8,7 @@ import { writeActivity } from "../../lib/activity.js";
 import { assertCompanionTakeoff } from "../../lib/companion/writeGate.js";
 import { firmPayload } from "../../lib/firm.js";
 import { enqueueJob } from "../../lib/redis.js";
-import { getObjectText, presignedGet } from "../../lib/storage.js";
+import { getObjectBuffer, getObjectText, presignedGet } from "../../lib/storage.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 export const drawingRouter = router({
@@ -18,12 +18,16 @@ export const drawingRouter = router({
       const where = input.currentOnly
         ? and(eq(drawings.projectId, input.projectId), eq(drawings.isCurrent, true))
         : eq(drawings.projectId, input.projectId);
-      return ctx.db
+      const rows = await ctx.db
         .select()
         .from(drawings)
         .where(where)
         .orderBy(desc(drawings.createdAt))
         .limit(clampListLimit(input.limit));
+      return rows.map((row) => ({
+        ...row,
+        sourceKind: drawingSourceKind({ storageKey: row.storageKey, fileName: row.fileName }),
+      }));
     }),
 
   /** All revisions of a drawing (pass any revision's id), oldest first. */
@@ -50,7 +54,12 @@ export const drawingRouter = router({
       const issuePdfUrl = row.issuePdfKey
         ? await presignedGet(row.issuePdfKey).catch(() => null)
         : null;
-      return { ...row, svgUrl, issuePdfUrl };
+      return {
+        ...row,
+        sourceKind: drawingSourceKind({ storageKey: row.storageKey, fileName: row.fileName }),
+        svgUrl,
+        issuePdfUrl,
+      };
     }),
 
   /** Render a watermarked issue-set PDF of the drawing (for client/authority). */
@@ -100,6 +109,26 @@ export const drawingRouter = router({
       if (!row?.svgKey) return null;
       const svg = await getObjectText(row.svgKey).catch(() => null);
       return svg ? { svg } : null;
+    }),
+
+  /**
+   * Proxy the original uploaded PDF bytes as base64 (same-origin — avoids MinIO CORS).
+   * Used by Plan Measurement PDF.js canvas. Only for PDF-sourced drawings.
+   */
+  pdf: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [row] = await ctx.db.select().from(drawings).where(eq(drawings.id, input.id));
+      if (!row) return null;
+      const kind = drawingSourceKind({ storageKey: row.storageKey, fileName: row.fileName });
+      if (kind !== "PDF") return null;
+      const buf = await getObjectBuffer(row.storageKey).catch(() => null);
+      if (!buf) return null;
+      return {
+        base64: buf.toString("base64"),
+        fileName: row.fileName,
+        pageNo: 0,
+      };
     }),
 
   /** Drawing scale calibration — ESTICAD companion only (TOSCALE). */

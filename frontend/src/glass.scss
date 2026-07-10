@@ -1,15 +1,17 @@
 // ── Studio Intelligence — liquid-glass reskin (LIGHT / MP025) ────────────────
 //
-// DOCUMENTED EXCEPTION (see docs/esti/CARBON-UI-DIRECTION.md). At the user's
+// U6 shrink policy (2026-07): Prefer `@hcw/ui-kit` for layout primitives
+// (`GlassRail`, `HealthGlassOrb`, `Surface`, `TaskbarFooter`, `ActionDock`).
+// This file keeps **app-only** glass: Studio ambient pulse, `.esti-zone-glass-orb*`
+// (aliased by kit HealthGlassOrb), neumorphic float widgets, and frosted panel
+// recipes that still need rgba/blur. Do not add new portal chrome here — use the kit.
+//
+// DOCUMENTED EXCEPTION (see docs/esti/HCW-UI-KIT.md). At the user's
 // request the app rides a hyper-minimalist LIGHT surface (the MP025 palette):
 // a soft off-white canvas with near-white frosted-glass panels floating on top.
 // The structure stays component-driven — only the surface treatment (light
 // ambient backdrop + frosted-white panels) is layered on, mirroring how
 // landing.scss dresses the marketing surfaces.
-//
-// This file is exempt from the Carbon visual guard (carbon-policy-rules.mjs →
-// EXCLUDED_FILES) because the frosted-glass look inherently needs rgba/blur/
-// shadow the guard forbids in the staff workspace.
 //
 // AORMS Branding Kit tokens referenced here (docs/esti/AORMS-BRANDING-KIT.md):
 //   Fog Gray #F2F4F7 · Pure White #FFFFFF · Coal Black #141517

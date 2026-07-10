@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import { useScreenActions } from "@hcw/ui-kit";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { ActivityTab } from "../components/work/ActivityTab.js";
 import { AttendanceTab } from "../components/work/AttendanceTab.js";
@@ -99,6 +100,12 @@ export function Work() {
         </Tabs>
       }
     >
+      <PageBreadcrumb
+        items={[
+          { label: "Tasks" },
+          { label: allTabs[tabIndex]?.label ?? "Tasks" },
+        ]}
+      />
       <Box>{allTabs[tabIndex]?.panel}</Box>
     </RailLayout>
   );

@@ -14,6 +14,7 @@ import { styled } from "@mui/material/styles";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useRef, useState } from "react";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
@@ -279,6 +280,7 @@ export function ArchivedProjects() {
         title="Archived projects"
         description="Retained projects hidden from active work. Restore preserves full history. Export downloads a JSON bundle before permanent purge. Purge is irreversible and requires the retention period to have expired (default 90 days after archive)."
       >
+        <PageBreadcrumb items={[{ label: "Admin" }, { label: "Archived projects" }]} />
         {message && (
         <Alert severity="success" onClose={() => setMessage(null)}>
           <AlertTitle>Done</AlertTitle>

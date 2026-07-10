@@ -3,6 +3,8 @@ import { LANDING_NAV } from "../../lib/landing-slugs.js";
 import { formatVisitCount } from "../../lib/landing-visit.js";
 
 const PRODUCT_LINKS = [
+  { href: "/#fee-recovery", label: "Fee recovery" },
+  { href: "/#revisions", label: "Client revisions" },
   { href: "/#capabilities", label: "Capabilities" },
   { href: "/#pricing", label: "Pricing" },
   { href: "/#faq", label: "FAQ" },

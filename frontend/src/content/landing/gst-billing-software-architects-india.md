@@ -4,7 +4,7 @@ metaTitle: GST Billing Software for Architects India
 metaDescription: GST billing software for architects India — correct CGST/SGST or IGST split, TDS u/s 194J, SAC codes, gap-free FY-sequential invoices and GSTR reconciliation.
 keyword: gst billing software for architects india
 category: india
-updated: 2026-06-24
+updated: 2026-07-10
 intro: Get the place-of-supply split, SAC code, TDS and invoice numbering right the first time — and walk into filing season with reconciled abstracts already done.
 ---
 
@@ -53,7 +53,7 @@ GST-correct invoices are only as good as the fee structure behind them. In AORMS
 
 ## One India-native system
 
-Because AORMS is India-native by default — GST and SAC codes, TDS, the April–March financial year, COA stages, tenders and site records all built in — the billing does not sit on its own. It connects to projects, phases, the drawing register and the rest of the practice, with an immutable audit log and activity timeline behind every invoice. It is cloud workspace at aorms.in with role-based access, so your financial data stays inside the firm and only authorised people can issue invoices.
+Because AORMS is India-native by default — GST and SAC codes, TDS, the April–March financial year and COA stages all built in — the billing does not sit on its own. It connects to projects, phases, the drawing register and the rest of the practice, with an immutable audit log and activity timeline behind every invoice. It is cloud workspace at aorms.in with role-based access, so your financial data stays inside the firm and only authorised people can issue invoices.
 
 See how it fits the wider office on the [office management India](/architecture-office-management-india) and [practice management](/architecture-practice-management-software) pages, or [book a demo](/demo).
 

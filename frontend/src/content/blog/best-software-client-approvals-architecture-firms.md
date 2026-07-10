@@ -1,7 +1,7 @@
 ---
 title: Best software for managing client approvals in architecture firms
 date: 2026-07-09
-excerpt: Client approvals fail when the issued drawing, the approval evidence, and the fee record live in different places. What to require from approval workflow software in Indian practice.
+excerpt: Client approvals protect fee, liability, and programme — but only when the issued drawing, the approval evidence, and the fee record live on one durable trace. What to require from approval workflow software in Indian practice.
 tags: Approvals, Client, Drawings, Workflow
 author: Holagundi Consulting Works
 ---
@@ -9,9 +9,13 @@ author: Holagundi Consulting Works
 Client approval is not a courtesy checkbox. It is the **evidence layer** that protects
 fee, liability, and programme when a client later says "we never signed off on that."
 
-The best approval workflow for an architecture firm is not the tool with the most
+The best approval workflow for an architecture practice is not the tool with the most
 features. It is the one that keeps **issued drawings**, **approval state**, and
-**project history** on one durable record.
+**project history** on one durable record — and connects that record to the minutes of
+meeting where changes were first agreed, so the revision request, the approval, and the
+fee impact all trace back to the same source. See how ESTI turns meeting minutes into
+formal revision requests the client reviews and submits in
+[From meeting minutes to site-safe revisions](/blog/esti-drafts-revision-requests-from-minutes).
 
 ## What goes wrong without approval software
 

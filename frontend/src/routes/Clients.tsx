@@ -20,8 +20,10 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
+import { pushToast } from "../lib/toast.js";
 import { trpc } from "../lib/trpc.js";
 
 const PAGE_SIZES = [10, 25, 50];
@@ -48,6 +50,7 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
   });
 
   const [open, setOpen] = useState(false);
+  const [nameTouched, setNameTouched] = useState(false);
   const [form, setForm] = useState({
     name: "",
     kind: "INDIVIDUAL",
@@ -56,6 +59,8 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
     email: "",
     phone: "",
   });
+  const nameMissing = !form.name.trim();
+  const nameError = nameTouched && nameMissing;
   const set = (k: keyof typeof form) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -63,6 +68,7 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
     onSuccess: () => {
       utils.clients.list.invalidate();
       setOpen(false);
+      setNameTouched(false);
       setForm({
         name: "",
         kind: "INDIVIDUAL",
@@ -71,6 +77,7 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
         email: "",
         phone: "",
       });
+      pushToast({ kind: "success", title: "Client created" });
     },
   });
 
@@ -114,23 +121,25 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
     : clients;
 
   useScreenActions(
-    [
-      {
-        id: "new-client",
-        zone: "center",
-        tone: "primary",
-        label: "New client",
-        icon: <AddIcon />,
-        onClick: () => setOpen(true),
-      },
-      {
-        id: "portal-login",
-        zone: "right",
-        label: "Portal login",
-        onClick: () => setPortalOpen(true),
-      },
-    ],
-    [],
+    open || portalOpen
+      ? []
+      : [
+          {
+            id: "new-client",
+            zone: "center",
+            tone: "primary",
+            label: "New client",
+            icon: <AddIcon />,
+            onClick: () => setOpen(true),
+          },
+          {
+            id: "portal-login",
+            zone: "right",
+            label: "Portal login",
+            onClick: () => setPortalOpen(true),
+          },
+        ],
+    [open, portalOpen],
   );
 
   const columns: GridColDef[] = [
@@ -232,12 +241,31 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
 
   const dialogs = (
     <>
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+      <Dialog
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setNameTouched(false);
+        }}
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle>New client</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField id="c-name" label="Name" value={form.name} onChange={set("name")} />
-            <TextField id="c-kind" select label="Type" value={form.kind} onChange={set("kind")}>
+            <TextField
+              id="c-name"
+              label="Name"
+              value={form.name}
+              onChange={set("name")}
+              onBlur={() => setNameTouched(true)}
+              required
+              autoComplete="organization"
+              autoFocus
+              error={nameError}
+              helperText={nameError ? "Name is required" : undefined}
+            />
+            <TextField id="c-kind" select label="Type" value={form.kind} onChange={set("kind")} required>
               {ClientKind.options.map((k) => (
                 <MenuItem key={k} value={k}>
                   {k}
@@ -249,16 +277,30 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
               label="GSTIN (optional)"
               value={form.gstin}
               onChange={set("gstin")}
+              autoComplete="off"
             />
-            <TextField id="c-city" label="City" value={form.city} onChange={set("city")} />
+            <TextField
+              id="c-city"
+              label="City"
+              value={form.city}
+              onChange={set("city")}
+              autoComplete="address-level2"
+            />
             <TextField
               id="c-email"
               label="Email"
               type="email"
               value={form.email}
               onChange={set("email")}
+              autoComplete="email"
             />
-            <TextField id="c-phone" label="Phone" value={form.phone} onChange={set("phone")} />
+            <TextField
+              id="c-phone"
+              label="Phone"
+              value={form.phone}
+              onChange={set("phone")}
+              autoComplete="tel"
+            />
             {create.error && (
               <Alert severity="error">
                 <strong>Could not create</strong> — {create.error.message}
@@ -267,22 +309,30 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button variant="text" onClick={() => setOpen(false)}>
+          <Button
+            variant="text"
+            onClick={() => {
+              setOpen(false);
+              setNameTouched(false);
+            }}
+          >
             Cancel
           </Button>
           <Button
             variant="contained"
-            disabled={!form.name || create.isPending}
-            onClick={() =>
+            disabled={nameMissing || create.isPending}
+            onClick={() => {
+              setNameTouched(true);
+              if (nameMissing) return;
               create.mutate({
-                name: form.name,
+                name: form.name.trim(),
                 kind: form.kind as (typeof ClientKind.options)[number],
                 gstin: form.gstin || undefined,
                 city: form.city || undefined,
                 email: form.email || undefined,
                 phone: form.phone || undefined,
-              })
-            }
+              });
+            }}
           >
             {create.isPending ? "Creating…" : "Create"}
           </Button>
@@ -386,6 +436,7 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
           </Stack>
         }
       >
+        <PageBreadcrumb items={[{ label: "Clients" }]} />
         {grid}
       </RailLayout>
       {dialogs}

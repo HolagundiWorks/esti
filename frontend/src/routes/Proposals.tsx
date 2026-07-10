@@ -27,6 +27,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
 import { FeeProposalPdfCell } from "../components/FeeProposalPdfCell.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
@@ -42,17 +43,19 @@ export function Proposals() {
   const [open, setOpen] = useState(false);
 
   useScreenActions(
-    [
-      {
-        id: "new-proposal",
-        zone: "center",
-        tone: "primary",
-        label: "New proposal",
-        icon: <AddIcon />,
-        onClick: () => setOpen(true),
-      },
-    ],
-    [],
+    open
+      ? []
+      : [
+          {
+            id: "new-proposal",
+            zone: "center",
+            tone: "primary",
+            label: "New proposal",
+            icon: <AddIcon />,
+            onClick: () => setOpen(true),
+          },
+        ],
+    [open],
   );
 
   const [projectId, setProjectId] = useState("");
@@ -156,6 +159,7 @@ export function Proposals() {
         title="Proposals"
         description="COA fee proposals and scope agreements across all projects."
       >
+        <PageBreadcrumb items={[{ label: "Office" }, { label: "Proposals" }]} />
         <DataState
           loading={listQ.isLoading}
           isEmpty={(listQ.data ?? []).length === 0}

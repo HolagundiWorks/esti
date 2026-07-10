@@ -21,7 +21,7 @@ const SITE_NAME = "AORMS";
 const HOME_SEO = {
   title: "AORMS | Practice management software for architects & designers in India",
   description:
-    "AORMS is the cloud practice OS for Indian architects and interior designers — projects, COA fee proposals, drawing transmittals, revision intelligence, GST billing, in-browser estimation, team load and client portals. One standard licence, 5 GB included, unlimited users. Docs: wiki.aorms.in.",
+    "AORMS is the cloud practice OS for Indian architects and interior designers — fee recovery (what to invoice, next payment stage, incoming, due dates), MoM-led client revisions, GST billing, drawings, studio load and portals. One licence, 5 GB included, unlimited users. Docs: wiki.aorms.in.",
   canonical: `${SITE}/`,
 };
 
@@ -229,15 +229,15 @@ assertSlugsInSync(landing);
 // Homepage → dist/index.html. This gives browsers, text-only readers, Google and
 // AI crawlers a meaningful document before React loads the visual Carbon UI.
 const homeFeatureLinks = [
-  ["Client revision tracking", "/client-revision-management-for-architects", "Record client-driven changes, internal corrections, technical queries and scope shifts with approval evidence."],
+  ["Fee recovery", "/architect-fee-proposal-software", "See what needs invoicing, the next COA payment stage, incoming receipts and due dates — GST invoices and filing reminders on the same trail."],
+  ["Client revisions from MoM", "/client-revision-management-for-architects", "Meeting → minutes → ESTI extracts → client request → architect marks criticality → client approves → then site moves."],
+  ["Minutes of meeting", "/minutes-of-meeting-software-for-architects", "Issue MoM on the project record; ESTI drafts revision requests the client reviews and sends."],
   ["Project and phase management", "/architecture-project-management-software", "Keep enquiries, phases, drawings, site notes and handover evidence attached to one project record."],
   ["Document approvals", "/architect-document-approval-system", "Track what was issued, reviewed, approved and changed without losing decisions in chat threads."],
-  ["Fee proposals", "/architect-fee-proposal-software", "Connect stage-wise fees to billing readiness, GST workflows, receipts and reconciliation."],
-  ["Contractor billing and reconciliation", "/contractor-billing-software-for-architects", "Follow measurements, contractor verification, office review, item-wise bills and client-facing approval."],
-  ["Cognitive dashboard", "/architecture-erp-india", "See what moved, what is blocked, what needs approval, what is billable and who owns the next action."],
-  ["In-browser estimation and BOQ", "/architecture-project-management-software", "Rate-book-linked BOQ, materials takeoff and bar bending schedules inside each project — no separate desktop install."],
-  ["ESTI AI assistant", "/architecture-office-management-software", "Ask ESTI reads your office record to explain fee risk, revisions and site progress — BYO API key supported."],
-  ["Indian architecture practice workflows", "/architecture-office-management-india", "Work with GST, COA fee logic, tenders, site work, client approvals and practice-specific office records."],
+  ["COA-compliant billing", "/coa-compliant-billing-software", "Structure fees on the COA Scale of Charges and bill when stages are delivered, with GST and TDS on the record."],
+  ["Studio Intelligence", "/architecture-erp-india", "See what moved, what is blocked, what needs invoicing, what needs approval and who owns the next action."],
+  ["ESTI AI assistant", "/architecture-office-management-software", "Ask ESTI reads your office record to explain fee stages, MoM revisions and site progress — BYO API key supported."],
+  ["Indian architecture practice workflows", "/architecture-office-management-india", "Work with GST, COA fee logic, MoM-led revisions, client approvals and practice-specific office records."],
 ];
 const homeArticleGroups = [
   {
@@ -349,7 +349,7 @@ writePage(
   "wiki",
   renderPage({
     title: "AORMS Wiki",
-    description: "How to use AORMS — workflows, estimation, finance, and account setup.",
+    description: "How to use AORMS — workflows, fee recovery, revisions, finance, and account setup.",
     canonical: `${WIKI_SITE}/`,
     bodyHtml: wikiIndexBody,
     jsonLd: {
@@ -468,15 +468,14 @@ AORMS stands for Architecture Office Resource Management System.
 AORMS is architecture office management software for Indian architecture firms, solo architects, and small practices.
 
 Core capabilities:
-- Client revision management
-- Meeting minutes that ESTI turns into client revision requests (minutes-to-revision flow)
-- Project phase tracking
-- Architecture document approvals
-- Fee proposal workflows
-- Contractor billing and reconciliation
-- Cognitive dashboard
-- ESTI AI assistant
-- Indian practice-focused office workflows
+- Fee recovery — what needs invoicing, next payment stage, incoming receipts, due dates, GST reminders
+- Client revision management — MoM → ESTI extracts → client request → architect marks criticality → client approves → then site
+- Meeting minutes on the project record with ESTI-drafted revision requests
+- Drawing register, transmittals and client approval workflows
+- COA fee proposals and GST invoicing with reconciliation
+- Studio Intelligence dashboard and Ask ESTI (BYO API key supported)
+- Official documentation at wiki.aorms.in
+- Cloud browser workspace at aorms.in — one standard licence, unlimited users, 5 GB included storage
 
 Website:
 ${SITE}

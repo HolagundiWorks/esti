@@ -14,9 +14,9 @@ import { useCallback, useRef, useState, type ComponentType, type ReactNode } fro
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 /**
- * Top navigation — firm name (h1) + section buttons. Plain links navigate
- * directly; sections with children open a hover dropdown (same interaction as
- * the admin menu). Text-only items, hairline separators.
+ * Top navigation — firm name (h1) + section buttons. Menus open on hover
+ * (pointer) or click / Enter / Space / ArrowDown (keyboard). Focus management
+ * is enabled for keyboard/click opens (WCAG 2.1.1).
  */
 export type RibbonLink = { label: string; to: string; icon?: ComponentType<any> };
 export type RibbonNode =
@@ -26,6 +26,9 @@ export type RibbonNode =
 type AdminGroup = { heading: string; items: { label: string; to: string; icon?: ComponentType<any> }[] };
 
 const HOVER_CLOSE_MS = 120;
+
+/** Persistent chrome hit target — WCAG 2.5.8 / Fitts. */
+const chromeIconSx = { width: 44, height: 44 };
 
 function leaves(node: RibbonNode): RibbonLink[] {
   return "items" in node ? node.items.flatMap(leaves) : [node];
@@ -38,7 +41,9 @@ function pathActive(pathname: string, to: string): boolean {
 
 const navSx = (active: boolean) => ({
   textTransform: "none",
-  minHeight: 36,
+  minHeight: 44,
+  minWidth: 44,
+  px: 1.5,
   borderRadius: 0,
   color: active ? "text.primary" : "text.secondary",
   borderBottom: "2px solid",
@@ -49,7 +54,10 @@ const navSx = (active: boolean) => ({
   },
 });
 
-const ribbonMenuSlotProps = (onEnter: () => void, onLeave: () => void) => ({
+type OpenMode = "hover" | "focus";
+
+/** Pointer-friendly: no focus trap so hover can move into the menu. */
+const hoverMenuExtras = (onEnter: () => void, onLeave: () => void) => ({
   hideBackdrop: true,
   disableAutoFocus: true,
   disableEnforceFocus: true,
@@ -66,8 +74,31 @@ const ribbonMenuSlotProps = (onEnter: () => void, onLeave: () => void) => ({
   },
 });
 
-function useRibbonHoverMenu() {
+/** Keyboard/click: restore focus management so Arrow keys and Escape work. */
+const focusMenuExtras = (onEnter: () => void, onLeave: () => void, labelledBy: string) => ({
+  hideBackdrop: true,
+  disableAutoFocus: false,
+  disableEnforceFocus: false,
+  disableRestoreFocus: false,
+  disableScrollLock: true,
+  sx: { pointerEvents: "none" as const },
+  slotProps: {
+    paper: {
+      onMouseEnter: onEnter,
+      onMouseLeave: onLeave,
+      sx: { pointerEvents: "auto", mt: 0.25, minWidth: 180 },
+    },
+    list: {
+      sx: { py: 0.5 },
+      "aria-labelledby": labelledBy,
+      autoFocusItem: true,
+    },
+  },
+});
+
+function useRibbonMenu() {
   const [openId, setOpenId] = useState<string | null>(null);
+  const [mode, setMode] = useState<OpenMode>("hover");
   const closeTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const cancelClose = useCallback(() => {
@@ -75,26 +106,43 @@ function useRibbonHoverMenu() {
   }, []);
 
   const scheduleClose = useCallback(() => {
+    // Only auto-close hover menus; focus menus close via Escape / item click / toggle.
+    if (mode === "focus") return;
     cancelClose();
     closeTimer.current = setTimeout(() => setOpenId(null), HOVER_CLOSE_MS);
+  }, [cancelClose, mode]);
+
+  const openHover = useCallback((id: string) => {
+    cancelClose();
+    setMode("hover");
+    setOpenId(id);
   }, [cancelClose]);
 
-  const openMenu = useCallback((id: string) => {
+  const toggleFocus = useCallback((id: string) => {
     cancelClose();
-    setOpenId(id);
+    setOpenId((prev) => {
+      if (prev === id) {
+        setMode("hover");
+        return null;
+      }
+      setMode("focus");
+      return id;
+    });
   }, [cancelClose]);
 
   const closeMenu = useCallback(() => {
     cancelClose();
     setOpenId(null);
+    setMode("hover");
   }, [cancelClose]);
 
-  return { openId, openMenu, closeMenu, cancelClose, scheduleClose };
+  return { openId, mode, openHover, toggleFocus, closeMenu, cancelClose, scheduleClose };
 }
 
-function RibbonHoverMenu({
+function RibbonMenu({
   menuId,
   openId,
+  mode,
   anchorEl,
   onTriggerEnter,
   onTriggerLeave,
@@ -108,6 +156,7 @@ function RibbonHoverMenu({
 }: {
   menuId: string;
   openId: string | null;
+  mode: OpenMode;
   anchorEl: HTMLElement | null;
   onTriggerEnter: () => void;
   onTriggerLeave: () => void;
@@ -119,6 +168,13 @@ function RibbonHoverMenu({
   trigger: ReactNode;
   children: ReactNode;
 }) {
+  const open = openId === menuId && Boolean(anchorEl);
+  const labelledBy = `ribbon-trigger-${menuId}`;
+  const extras =
+    mode === "focus"
+      ? focusMenuExtras(onMenuEnter, onMenuLeave, labelledBy)
+      : hoverMenuExtras(onMenuEnter, onMenuLeave);
+
   return (
     <Box
       component="span"
@@ -128,12 +184,13 @@ function RibbonHoverMenu({
     >
       {trigger}
       <Menu
+        id={`ribbon-menu-${menuId}`}
         anchorEl={anchorEl}
-        open={openId === menuId && Boolean(anchorEl)}
+        open={open}
         onClose={onClose}
         anchorOrigin={anchorOrigin}
         transformOrigin={transformOrigin}
-        {...ribbonMenuSlotProps(onMenuEnter, onMenuLeave)}
+        {...extras}
       >
         {children}
       </Menu>
@@ -145,7 +202,9 @@ function SectionMenu({
   node,
   menuId,
   openId,
-  openMenu,
+  mode,
+  openHover,
+  toggleFocus,
   closeMenu,
   cancelClose,
   scheduleClose,
@@ -153,7 +212,9 @@ function SectionMenu({
   node: Extract<RibbonNode, { kind: "menu" }>;
   menuId: string;
   openId: string | null;
-  openMenu: (id: string) => void;
+  mode: OpenMode;
+  openHover: (id: string) => void;
+  toggleFocus: (id: string) => void;
   closeMenu: () => void;
   cancelClose: () => void;
   scheduleClose: () => void;
@@ -163,25 +224,39 @@ function SectionMenu({
   const btnRef = useRef<HTMLButtonElement>(null);
   const items = leaves(node);
   const active = items.some((l) => pathActive(pathname, l.to));
-  const go = (to: string) => { closeMenu(); navigate(to); };
+  const go = (to: string) => {
+    closeMenu();
+    navigate(to);
+  };
+  const isOpen = openId === menuId;
 
   return (
-    <RibbonHoverMenu
+    <RibbonMenu
       menuId={menuId}
       openId={openId}
+      mode={mode}
       anchorEl={btnRef.current}
-      onTriggerEnter={() => openMenu(menuId)}
+      onTriggerEnter={() => openHover(menuId)}
       onTriggerLeave={scheduleClose}
       onMenuEnter={cancelClose}
       onMenuLeave={scheduleClose}
       onClose={closeMenu}
       trigger={(
         <Button
+          id={`ribbon-trigger-${menuId}`}
           ref={btnRef}
           variant="text"
           color="inherit"
           aria-haspopup="menu"
-          aria-expanded={openId === menuId}
+          aria-expanded={isOpen}
+          aria-controls={isOpen ? `ribbon-menu-${menuId}` : undefined}
+          onClick={() => toggleFocus(menuId)}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              if (!isOpen) toggleFocus(menuId);
+            }
+          }}
           sx={navSx(active)}
         >
           {node.label}
@@ -201,7 +276,7 @@ function SectionMenu({
           {it.label}
         </MenuItem>
       ))}
-    </RibbonHoverMenu>
+    </RibbonMenu>
   );
 }
 
@@ -209,7 +284,9 @@ function AdminMenu({
   groups,
   menuId,
   openId,
-  openMenu,
+  mode,
+  openHover,
+  toggleFocus,
   closeMenu,
   cancelClose,
   scheduleClose,
@@ -217,23 +294,30 @@ function AdminMenu({
   groups: AdminGroup[];
   menuId: string;
   openId: string | null;
-  openMenu: (id: string) => void;
+  mode: OpenMode;
+  openHover: (id: string) => void;
+  toggleFocus: (id: string) => void;
   closeMenu: () => void;
   cancelClose: () => void;
   scheduleClose: () => void;
 }) {
   const navigate = useNavigate();
   const btnRef = useRef<HTMLButtonElement>(null);
-  const go = (to: string) => { closeMenu(); navigate(to); };
+  const go = (to: string) => {
+    closeMenu();
+    navigate(to);
+  };
+  const isOpen = openId === menuId;
 
   if (groups.length === 0) return null;
 
   return (
-    <RibbonHoverMenu
+    <RibbonMenu
       menuId={menuId}
       openId={openId}
+      mode={mode}
       anchorEl={btnRef.current}
-      onTriggerEnter={() => openMenu(menuId)}
+      onTriggerEnter={() => openHover(menuId)}
       onTriggerLeave={scheduleClose}
       onMenuEnter={cancelClose}
       onMenuLeave={scheduleClose}
@@ -241,14 +325,22 @@ function AdminMenu({
       anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       transformOrigin={{ vertical: "top", horizontal: "right" }}
       trigger={(
-        <Tooltip title="Admin · Library · Third Parties" disableHoverListener={openId === menuId}>
+        <Tooltip title="Admin · Library · Third Parties" disableHoverListener={isOpen}>
           <IconButton
+            id={`ribbon-trigger-${menuId}`}
             ref={btnRef}
-            size="small"
             aria-label="Admin menu"
             aria-haspopup="menu"
-            aria-expanded={openId === menuId}
-            sx={{ ml: 0.5 }}
+            aria-expanded={isOpen}
+            aria-controls={isOpen ? `ribbon-menu-${menuId}` : undefined}
+            onClick={() => toggleFocus(menuId)}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                if (!isOpen) toggleFocus(menuId);
+              }
+            }}
+            sx={{ ml: 0.5, ...chromeIconSx }}
           >
             <MenuOutlined fontSize="small" />
           </IconButton>
@@ -273,7 +365,7 @@ function AdminMenu({
           </MenuItem>
         )),
       ])}
-    </RibbonHoverMenu>
+    </RibbonMenu>
   );
 }
 
@@ -292,7 +384,8 @@ export function AppRibbon({
   variant?: "bar" | "float";
 }) {
   const { pathname } = useLocation();
-  const { openId, openMenu, closeMenu, cancelClose, scheduleClose } = useRibbonHoverMenu();
+  const { openId, mode, openHover, toggleFocus, closeMenu, cancelClose, scheduleClose } =
+    useRibbonMenu();
   const isFloat = variant === "float";
 
   const closeMenus = () => {
@@ -325,7 +418,9 @@ export function AppRibbon({
                 node={n}
                 menuId={n.label}
                 openId={openId}
-                openMenu={openMenu}
+                mode={mode}
+                openHover={openHover}
+                toggleFocus={toggleFocus}
                 closeMenu={closeMenu}
                 cancelClose={cancelClose}
                 scheduleClose={scheduleClose}
@@ -348,7 +443,9 @@ export function AppRibbon({
             groups={adminGroups}
             menuId={ADMIN_MENU_ID}
             openId={openId}
-            openMenu={openMenu}
+            mode={mode}
+            openHover={openHover}
+            toggleFocus={toggleFocus}
             closeMenu={closeMenu}
             cancelClose={cancelClose}
             scheduleClose={scheduleClose}

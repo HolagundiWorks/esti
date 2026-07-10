@@ -5,6 +5,7 @@ import { formatINR } from "@esti/contracts";
 import type { PeriodFilterInput } from "@esti/contracts";
 import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { PeriodFilter } from "../components/PeriodFilter.js";
 import { downloadXlsx } from "../lib/exportXlsx.js";
@@ -112,6 +113,7 @@ export function Filing() {
         </Stack>
       }
     >
+      <PageBreadcrumb items={[{ label: "Office" }, { label: "Financial Reports" }]} />
       {tab === 0 && (
         <Box>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>GST by month</Typography>

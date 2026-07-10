@@ -1,18 +1,20 @@
 ---
-title: How to price architectural services in India
+title: How to structure and recover fees for architectural services in India
 date: 2026-07-04
-excerpt: A practical guide for Indian architects — the COA fee stages, percentage vs lump-sum vs area-based fees, stage-wise invoicing, and pricing revisions.
+excerpt: COA stage fees, percentage vs lump-sum vs area-based pricing, stage-wise invoicing, and protecting fee recovery when clients drive revisions — a working guide for Indian practices.
 tags: Finance, Practice, India
 author: Holagundi Consulting Works
 ---
 
 Pricing is the part of practice most architects were never taught. You can design a
 building, run a site and detail a staircase, and still feel uncertain quoting a fee for the
-whole thing. The result is familiar: a number picked to win the job, a scope that was never
-written down, and a client who assumes "the fee" covers every change they can think of. This
-is a working guide to pricing architectural services in India — the Council of Architecture's
-fee framework, the three common ways to structure a fee, invoicing against stages, and pricing
-the revisions that quietly eat a practice's margin.
+whole thing. The result is familiar: a number picked to win the project, a scope that was never
+written down, and a client who assumes "the fee" covers every change they can think of. And
+even when the pricing is right, fee recovery — actually raising the invoice at the right
+stage, for the right amount, with the right GST split — is where many practices quietly lose
+the margin they priced for. This is a working guide to pricing and recovering architectural
+service fees in India: the Council of Architecture's fee framework, the three common ways to
+structure a fee, stage-wise invoicing, and protecting what you earn when revisions arrive.
 
 ## The COA fee framework, and what it actually is
 

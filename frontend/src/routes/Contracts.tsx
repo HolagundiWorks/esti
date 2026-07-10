@@ -22,6 +22,7 @@ import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusTag } from "../components/StatusTag.js";
@@ -49,17 +50,19 @@ export function Contracts() {
   const [open, setOpen] = useState(false);
 
   useScreenActions(
-    [
-      {
-        id: "new-contract",
-        zone: "center",
-        tone: "primary",
-        label: "New contract",
-        icon: <AddIcon />,
-        onClick: () => setOpen(true),
-      },
-    ],
-    [],
+    open
+      ? []
+      : [
+          {
+            id: "new-contract",
+            zone: "center",
+            tone: "primary",
+            label: "New contract",
+            icon: <AddIcon />,
+            onClick: () => setOpen(true),
+          },
+        ],
+    [open],
   );
 
   const [f, setF] = useState({
@@ -188,6 +191,7 @@ export function Contracts() {
         title="Contracts"
         description="Agreements with clients, consultants and vendors."
       >
+        <PageBreadcrumb items={[{ label: "Office" }, { label: "Contracts" }]} />
         <DataState
           loading={listQ.isLoading}
           isEmpty={rows.length === 0}

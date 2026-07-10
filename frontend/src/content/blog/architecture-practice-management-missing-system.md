@@ -1,19 +1,19 @@
 ---
 title: Architecture practice management — the missing system
 date: 2026-07-09
-excerpt: Firms buy CAD, accounting, and PM tools — but the practice record that connects fees, drawings, revisions, and site still lives in fragments. That gap is what practice management software must fill.
+excerpt: Practices run sophisticated project work on a fragmented office record — fees, drawings, revisions, and site held in separate tools. The missing spine is the one that connects commercial, delivery, and fee recovery for each project.
 tags: Operations, Practice, Product
 author: Holagundi Consulting Works
 ---
 
-Indian architecture consultancies run sophisticated design work on a **fragmented office
+Indian architecture practices run sophisticated design work on a **fragmented office
 record**. CAD holds geometry. Tally holds vouchers. Email holds approvals. WhatsApp
 holds site photos. The **practice narrative** — who approved what, when a stage
-completed, what fee was due — lives nowhere durable.
+completed, what fee was due and whether it was raised — lives nowhere durable.
 
 That missing system is **practice management** in the architecture sense: not generic
 ERP, not project Gantt alone, but the **spine** that connects commercial, delivery,
-and compliance for each commission.
+and fee recovery for each project.
 
 ## What "practice management" means for architects
 

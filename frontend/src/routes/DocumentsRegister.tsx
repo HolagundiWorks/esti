@@ -29,9 +29,10 @@ import { useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import { Link } from "react-router-dom";
 import { useScreenActions } from "@hcw/ui-kit";
+import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
-import { DataState } from "../components/DataState.js";
 import { StatusTag } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 import { downloadXlsx } from "../lib/exportXlsx.js";
@@ -76,28 +77,30 @@ export function DocumentsRegister() {
   const [tplOpen, setTplOpen] = useState(false);
 
   useScreenActions(
-    [
-      {
-        id: "new-template",
-        zone: "center",
-        tone: "primary",
-        label: "New template",
-        icon: <AddIcon />,
-        onClick: () => setTplOpen(true),
-      },
-      {
-        id: "export-xlsx",
-        zone: "right",
-        label: "Export XLSX",
-        icon: <Download />,
-        disabled: exportQ.isFetching,
-        onClick: async () => {
-          const data = await exportQ.refetch();
-          if (data.data?.length) downloadXlsx(data.data, "Register", "esti-document-register");
-        },
-      },
-    ],
-    [exportQ.isFetching],
+    tplOpen
+      ? []
+      : [
+          {
+            id: "new-template",
+            zone: "center",
+            tone: "primary",
+            label: "New template",
+            icon: <AddIcon />,
+            onClick: () => setTplOpen(true),
+          },
+          {
+            id: "export-xlsx",
+            zone: "right",
+            label: "Export XLSX",
+            icon: <Download />,
+            disabled: exportQ.isFetching,
+            onClick: async () => {
+              const data = await exportQ.refetch();
+              if (data.data?.length) downloadXlsx(data.data, "Register", "esti-document-register");
+            },
+          },
+        ],
+    [tplOpen, exportQ.isFetching],
   );
   const [tplForm, setTplForm] = useState({ kind: "LETTER" as OfficeTemplateKind, title: "", body: "" });
 
@@ -190,6 +193,7 @@ export function DocumentsRegister() {
           </Stack>
         }
       >
+        <PageBreadcrumb items={[{ label: "Office" }, { label: "Documents" }]} />
         <DataState loading={listQ.isLoading} isEmpty={rows.length === 0} columnCount={7} empty={{ title: "No documents", description: "Create letters, site reports, BOQs, or MOM on a project." }}>
           <DataGrid
             rows={rows}

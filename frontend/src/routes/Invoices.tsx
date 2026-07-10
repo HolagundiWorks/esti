@@ -30,6 +30,7 @@ import { useScreenActions } from "@hcw/ui-kit";
 import { Link } from "react-router-dom";
 import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { PeriodFilter } from "../components/PeriodFilter.js";
 import { StatusTag } from "../components/StatusTag.js";
@@ -78,8 +79,9 @@ export function Invoices() {
   const showSac = firmGst === GstSystem.REGULAR;
 
   useScreenActions(
-    canInvoice
-      ? [
+    open || !canInvoice
+      ? []
+      : [
           {
             id: "new-invoice",
             zone: "center",
@@ -88,9 +90,8 @@ export function Invoices() {
             icon: <AddIcon />,
             onClick: () => setOpen(true),
           },
-        ]
-      : [],
-    [canInvoice],
+        ],
+    [open, canInvoice],
   );
 
   const columns: GridColDef[] = [
@@ -197,6 +198,7 @@ export function Invoices() {
           </Stack>
         }
       >
+        <PageBreadcrumb items={[{ label: "Office" }, { label: "Invoices" }]} />
         <DataState
           loading={listQ.isLoading}
           isEmpty={(listQ.data ?? []).length === 0}

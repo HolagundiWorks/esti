@@ -27,8 +27,8 @@ import { OfficeHealthGlyph } from "../components/shell/OfficeHealthGlyph.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { STATE_WORD } from "../components/dashboard/zoneState.js";
 import type { ZoneState } from "../components/dashboard/zoneState.js";
-import { CAPACITY_LABEL } from "../components/dashboard/dashboardUi.js";
 import { StudioBreath } from "../components/dashboard/StudioBreath.js";
+import { StudioTeamPanel } from "../components/dashboard/StudioTeamPanel.js";
 import AccountBalanceOutlined from "@mui/icons-material/AccountBalanceOutlined";
 import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
 import BusinessOutlined from "@mui/icons-material/BusinessOutlined";
@@ -42,6 +42,7 @@ import { ZonalComplianceCalculator } from "../components/compliance/ZonalComplia
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { useNavigate } from "react-router-dom";
+import { useScreenActions } from "@hcw/ui-kit";
 
 // ── Zone state ────────────────────────────────────────────────────────────────
 
@@ -52,9 +53,6 @@ const ZCOLOR: Record<ZoneState, string> = {
   critical: "var(--cds-support-error)",
   inactive: "var(--cds-text-disabled)",
 };
-
-const loadPct = (c: string): number =>
-  ({ OVERLOADED: 95, HIGH: 75, MODERATE: 55, AVAILABLE: 30 }[c] ?? 50);
 
 // ── State derivation ──────────────────────────────────────────────────────────
 
@@ -323,6 +321,23 @@ export function StudioAbstract() {
   const [tab, setTab] = useState<"priorities" | "projects" | "work" | "team" | "zoning">("priorities");
   const [estiExpanded, setEstiExpanded] = useState(false);
 
+  useScreenActions(
+    tab === "priorities"
+      ? [
+          {
+            id: "refresh-esti-rankings",
+            zone: "right",
+            tone: "primary",
+            label: refreshEstiPriorities.isPending ? "Ranking…" : "Refresh rankings",
+            icon: <AutoAwesomeOutlined />,
+            disabled: refreshEstiPriorities.isPending,
+            onClick: () => refreshEstiPriorities.mutate({ limit: 3 }),
+          },
+        ]
+      : [],
+    [tab, refreshEstiPriorities.isPending],
+  );
+
   useEffect(() => {
     if (tab !== "priorities") setEstiExpanded(false);
   }, [tab]);
@@ -528,25 +543,6 @@ export function StudioAbstract() {
   const apCols: GridColDef[] = [
     { field: "title", headerName: "Item", flex: 2, minWidth: 200, renderCell: (p) => glyphCell(p.row.daysWaiting > 14 ? "critical" : "watch", `${p.row.projectRef} — ${p.row.title}`) },
     { field: "daysWaiting", headerName: "Waiting", width: 110, renderCell: (p) => <StatusDot color={p.row.daysWaiting > 14 ? "red" : p.row.daysWaiting > 7 ? "magenta" : "warm-gray"} label={`${p.row.daysWaiting}d`} /> },
-  ];
-
-  const tcRows = ti.slice(0, 10).map((m: any) => ({ ...m, id: m.memberId ?? m.assignee }));
-  const tcCols: GridColDef[] = [
-    { field: "assignee", headerName: "Member", flex: 1, minWidth: 140 },
-    { field: "totalOpen", headerName: "Open", width: 80, type: "number" },
-    { field: "overdueCount", headerName: "Late", width: 80, renderCell: (p) => ((p.row.overdueCount ?? 0) > 0 ? <StatusDot color="magenta" label={p.row.overdueCount} /> : <span>—</span>) },
-    { field: "load", headerName: "Load", width: 130, sortable: false, renderCell: (p) => {
-      const st: ZoneState = p.row.capacity === "OVERLOADED" ? "critical" : p.row.capacity === "HIGH" ? "watch" : "stable";
-      return (
-        <Box sx={{ width: 1, display: "flex", alignItems: "center", height: 1 }}>
-          <LinearProgress variant="determinate" value={loadPct(p.row.capacity)} color={st === "critical" ? "error" : st === "watch" ? "warning" : "success"} sx={{ width: 1 }} />
-        </Box>
-      );
-    } },
-    { field: "capacity", headerName: "Capacity", width: 130, renderCell: (p) => {
-      const st: ZoneState = p.row.capacity === "OVERLOADED" ? "critical" : p.row.capacity === "HIGH" ? "watch" : "stable";
-      return <StatusDot color={tagKind(st)} label={CAPACITY_LABEL[p.row.capacity] ?? p.row.capacity} />;
-    } },
   ];
 
   const emptyText = (t: string) => <Typography variant="body2" color="text.secondary">{t}</Typography>;
@@ -849,15 +845,6 @@ export function StudioAbstract() {
                           Focus
                         </Button>
                       )}
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        disabled={refreshEstiPriorities.isPending}
-                        startIcon={<AutoAwesomeOutlined fontSize="small" />}
-                        onClick={() => refreshEstiPriorities.mutate({ limit: 3 })}
-                      >
-                        {refreshEstiPriorities.isPending ? "Ranking…" : "Refresh rankings"}
-                      </Button>
                     </Stack>
                   )}
                 >
@@ -898,7 +885,7 @@ export function StudioAbstract() {
                       <Stack spacing={1}>
                         {topRisks.map((r) => (
                           <Stack key={r.key} direction="row" spacing={1} sx={{ alignItems: "center", cursor: "pointer" }} onClick={() => navigate(r.href)}>
-                            <OfficeHealthGlyph state={r.state} size={12} />
+                            <OfficeHealthGlyph state={r.state} size={12} variant="glass" />
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                               <Typography variant="body2">{r.label}</Typography>
                               <Typography variant="caption" color="text.secondary">{r.detail}</Typography>
@@ -961,7 +948,7 @@ export function StudioAbstract() {
           {tab === "team" && (
             <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
             <TabSplit
-              title="Team capacity"
+              title="Team workload"
               action={
                 <Stack spacing={1}>
                   <ZoneChip state={ts} label={teamSignal(ts)} />
@@ -971,9 +958,7 @@ export function StudioAbstract() {
                 </Stack>
               }
             >
-              {ti.length === 0
-                ? emptyText("No team data yet.")
-                : <DataGrid rows={tcRows} columns={tcCols} {...gridProps} sx={{ ...GRID_SX, "& .MuiDataGrid-row": { cursor: "default" } }} />}
+              <StudioTeamPanel members={ti} attendance={att} />
             </TabSplit>
             </Box>
           )}

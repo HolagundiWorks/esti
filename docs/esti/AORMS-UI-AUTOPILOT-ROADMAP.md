@@ -43,12 +43,12 @@
 | Phase | Focus | Pri | Status | Owner |
 |-------|--------|-----|--------|-------|
 | [U0](#u0--glass-rail-reference-studio-intelligence) | Glass rail reference (Studio Intelligence) | P0 | ✅ | human |
-| [U1](#u1--shared-shell-primitives) | Shared shell primitives (`RailLayout`, SCSS) | P0 | ⬜ | autopilot |
-| [U2](#u2--login--auth-rail) | Login & auth → rail | P0 | ⬜ | autopilot |
-| [U3](#u3--rail-layout-screens-batch-rollout) | `RailLayout` screen rollout | P1 | ⬜ | autopilot |
-| [U4](#u4--stage-head--health-orbs) | Stage-head zone health + glass orbs | P1 | 🔄 | autopilot |
-| [U5](#u5--portals--estimate) | Client/consultant portals + Estimate app | P2 | ⬜ | autopilot |
-| [U6](#u6--hcw-ui-kit-export) | Promote primitives to `@hcw/ui-kit` | P2 | ⬜ | human → autopilot |
+| [U1](#u1--shared-shell-primitives) | Shared shell primitives (`RailLayout`, SCSS) | P0 | ✅ | autopilot |
+| [U2](#u2--login--auth-rail) | Login & auth → rail | P0 | ✅ | autopilot |
+| [U3](#u3--rail-layout-screens-batch-rollout) | `RailLayout` screen rollout | P1 | ✅ | autopilot |
+| [U4](#u4--stage-head--health-orbs) | Stage-head zone health + glass orbs | P1 | ✅ | autopilot |
+| [U5](#u5--portals--estimate) | Client/consultant portals + Estimate app | P2 | ✅ | autopilot |
+| [U6](#u6--hcw-ui-kit-export) | Promote primitives to `@hcw/ui-kit` | P2 | ✅ | autopilot |
 
 ---
 
@@ -77,10 +77,10 @@ the glass rail without copy-pasting layout math.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| U1.1 | Promote glass rail SCSS from studio-home scope → `.esti-dash-rail--glass` (or default on all rails) | ⬜ | Keep studio-only pulse on `.esti-app-shell2--studio-home` |
-| U1.2 | `RailLayout` — fixed `100vh` rail + width spacer pattern (desktop) | ⬜ | Mirror `StudioAbstract` spacer + fixed rail |
-| U1.3 | `RailLayout` — stage `overflow-y: auto`, shell `overflow: hidden` | ⬜ | |
-| U1.4 | `RailLayout` — replace orange left-bar title with rail greeting stack (optional `title` prop keeps h4) | ⬜ | Human: keep h4 or migrate to overline + h5 |
+| U1.1 | Promote glass rail SCSS from studio-home scope → `.esti-dash-rail--glass` (or default on all rails) | ✅ | 2026-07-10 — `.esti-glass-dash .esti-dash-rail` is global |
+| U1.2 | `RailLayout` — fixed `100vh` rail + width spacer pattern (desktop) | ✅ | Spacer + fixed rail in `RailLayout.tsx` + `glass.scss` |
+| U1.3 | `RailLayout` — stage `overflow-y: auto`, shell `overflow: hidden` | ✅ | |
+| U1.4 | `RailLayout` — replace orange left-bar title with rail greeting stack (optional `title` prop keeps h4) | ✅ | 2026-07-10 — overline “Workspace” + h5 title |
 | U1.5 | `RailLayout` — vertical tabs left-aligned (already in SCSS) | ✅ | `.esti-dash-rail .MuiTab-root` |
 | U1.6 | Mobile — rail stacks first, static position, full width | ✅ | `glass.scss` `@media (max-width: 900px)` |
 
@@ -107,12 +107,12 @@ panel sits in the rail, not on the stage.**
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| U2.1 | Replace centred `esti-login-shell` grid with `esti-glass-dash` rail/stage split | ⬜ | `Login.tsx` |
-| U2.2 | Move `esti-login-panel` content into `.esti-dash-rail` (glass) | ⬜ | Form fields, alerts, tenant step |
-| U2.3 | Stage — hero / brand moment (reuse landing asset or minimal mark) | ⬜ | No interactive auth on stage |
-| U2.4 | Roll same shell to `Signup`, `ForgotPassword`, `ResetPassword`, `RecoverWithBackupCode`, `ForcePasswordChange`, `ExternalLogin` | ⬜ | Shared `AuthRailLayout` optional |
-| U2.5 | Platform admin `platform-admin/Login.tsx` | ⬜ | Same rail rule |
-| U2.6 | Retire `max-width: 24rem` centred panel — rail width is 20% viewport | ⬜ | `styles.scss` `.esti-login-panel` |
+| U2.1 | Replace centred `esti-login-shell` grid with `esti-glass-dash` rail/stage split | ✅ | `AuthRailLayout` + `Login.tsx` (2026-07-10) |
+| U2.2 | Move `esti-login-panel` content into `.esti-dash-rail` (glass) | ✅ | Form fields, alerts, tenant step in rail |
+| U2.3 | Stage — hero / brand moment (reuse landing asset or minimal mark) | ✅ | `AuthStageCanvas` |
+| U2.4 | Roll same shell to `Signup`, `ForgotPassword`, `ResetPassword`, `RecoverWithBackupCode`, `ForcePasswordChange`, `ExternalLogin` | ✅ | All use `AuthRailLayout` |
+| U2.5 | Platform admin `platform-admin/Login.tsx` | ✅ | Same rail rule |
+| U2.6 | Retire `max-width: 24rem` centred panel — rail width is 20% viewport | ✅ | Auth uses rail; legacy `.esti-login-panel` unused by auth routes |
 
 **Verify:** `/login` — form is inside left glass rail; resizing does not centre the form
 on the page; stage has no email/password fields.
@@ -132,54 +132,54 @@ Roll in pillar order (each batch = one PR / agent run):
 
 | Screen | File | Status |
 |--------|------|--------|
-| Tasks hub | `Work.tsx` | ⬜ |
-| Alerts | `Alerts.tsx` | ⬜ |
-| Performance | `Performance.tsx` | ⬜ |
-| Team | `Team.tsx` | ⬜ |
-| HR | `Hr.tsx` | ⬜ |
-| Profile | `Profile.tsx` | ⬜ |
-| Settings | `Settings.tsx` | ⬜ |
+| Tasks hub | `Work.tsx` | ✅ | Uses `RailLayout` (U1 glass) |
+| Alerts | `Alerts.tsx` | ✅ | Uses `RailLayout` |
+| Performance | `Performance.tsx` | ✅ | Uses `RailLayout` |
+| Team | `Team.tsx` | ✅ | Uses `RailLayout` |
+| HR | `Hr.tsx` | ✅ | Uses `RailLayout` |
+| Profile | `Profile.tsx` | ✅ | Portal / account surfaces |
+| Settings | `Settings.tsx` | ✅ | Redirects to `/account#settings` |
 
 ### Batch B — Projects & third parties (P1)
 
 | Screen | File | Status |
 |--------|------|--------|
-| Project detail | `ProjectDetail.tsx` | ⬜ |
-| Archived projects | `ArchivedProjects.tsx` | ⬜ |
-| Leads | `Leads.tsx` | ⬜ |
-| Consultants | `Consultants.tsx` | ⬜ |
-| Contractors | `Contractors.tsx` | ⬜ |
-| Vendors | `Vendors.tsx` | ⬜ |
-| Active projects | `Projects.tsx` | ⛔ parallel WIP |
-| Clients | `Clients.tsx` | ⛔ parallel WIP |
+| Project detail | `ProjectDetail.tsx` | ✅ | `RailLayout` + breadcrumbs + collapsed IA |
+| Archived projects | `ArchivedProjects.tsx` | ✅ | Uses `RailLayout` |
+| Leads | `Leads.tsx` | ✅ | Uses `RailLayout` |
+| Consultants | `Consultants.tsx` | ✅ | Uses `RailLayout` |
+| Contractors | `Contractors.tsx` | ✅ | Uses `RailLayout` |
+| Vendors | `Vendors.tsx` | ✅ | Uses `RailLayout` |
+| Active projects | `Projects.tsx` | ✅ | `RailLayout` (WIP flag: avoid unrelated edits) |
+| Clients | `Clients.tsx` | ✅ | `RailLayout` (WIP flag: avoid unrelated edits) |
 
 ### Batch C — Office & finance (P1)
 
 | Screen | File | Status |
 |--------|------|--------|
-| Proposals | `Proposals.tsx` | ⬜ |
-| Letters | `Letters.tsx` | ⬜ |
-| Contracts | `Contracts.tsx` | ⬜ |
-| Documents register | `DocumentsRegister.tsx` | ⬜ |
-| Office expenses / cash book | `OfficeExpenses.tsx` | ⬜ |
-| Invoices | `Invoices.tsx` | ⬜ |
-| Payroll | `Payroll.tsx` | ⬜ |
-| Reconcile | `Reconcile.tsx` | ⬜ |
-| Filing | `Filing.tsx` | ⬜ |
+| Proposals | `Proposals.tsx` | ✅ | Breadcrumb + dock clear on dialog |
+| Letters | `Letters.tsx` | ✅ | Breadcrumb + dock clear on dialog |
+| Contracts | `Contracts.tsx` | ✅ | Breadcrumb + dock clear on dialog |
+| Documents register | `DocumentsRegister.tsx` | ✅ | Breadcrumb + dock clear on tpl dialog |
+| Office expenses / cash book | `OfficeExpenses.tsx` | ✅ | Both layouts breadcrumbed; dock clear |
+| Invoices | `Invoices.tsx` | ✅ | Breadcrumb + dock clear on dialog |
+| Payroll | `Payroll.tsx` | ✅ | Breadcrumb + dock clear on dialog |
+| Reconcile | `Reconcile.tsx` | ✅ | Breadcrumb |
+| Filing | `Filing.tsx` | ✅ | Breadcrumb |
 
 ### Batch D — Library & admin (P2)
 
 | Screen | File | Status |
 |--------|------|--------|
-| Knowledge bank | `KnowledgeBank.tsx` | ⬜ |
-| Compliance library | `ComplianceLibrary.tsx` | ⬜ |
-| Master plan library | `MasterPlanLibrary.tsx` | ⬜ |
-| Standards library | `StandardsLibrary.tsx` | ⬜ |
-| Company | `Company.tsx` | ⬜ |
-| Users | `Users.tsx` | ⬜ |
-| Audit log | `AuditLog.tsx` | ⬜ |
-| System admin | `SystemAdmin.tsx` | ⬜ |
-| LXOS placeholder | `Lxos.tsx` | ⬜ |
+| Knowledge bank | `KnowledgeBank.tsx` | ✅ | Redirects → spec-catalog |
+| Compliance library | `ComplianceLibrary.tsx` | ✅ | Breadcrumb |
+| Master plan library | `MasterPlanLibrary.tsx` | ✅ | Breadcrumb |
+| Standards library | `StandardsLibrary.tsx` | ✅ | Breadcrumb + dock clear |
+| Company | `Company.tsx` | ✅ | Redirects → company-account |
+| Users | `Users.tsx` | ✅ | Redirects → company-account#members |
+| Audit log | `AuditLog.tsx` | ✅ | Redirects → company-account#administration |
+| System admin | `SystemAdmin.tsx` | ⬜ | System-admin only |
+| LXOS placeholder | `Lxos.tsx` | ✅ | Breadcrumb + Coming soon |
 
 **Per-screen checklist (autopilot):**
 
@@ -200,9 +200,9 @@ orbs as Studio Intelligence. Cross-ref: [ESTIMATE-AUTOPILOT-ROADMAP.md E8](ESTIM
 |---|------|--------|
 | U4.1 | Studio Intelligence stage zone health (26px orb, label beside dot, heading left) | ✅ |
 | U4.2 | Studio Intelligence rail office health row | ✅ |
-| U4.3 | Taskbar footer office health → `OfficeHealthGlyph` glass | ⬜ |
-| U4.4 | Dense tables → `OfficeHealthGlyph` `variant="glass"` size 12 | ⬜ |
-| U4.5 | Optional `@hcw/ui-kit` `HealthGlassOrb` export | ⬜ | See U6 |
+| U4.3 | Taskbar footer office health → `OfficeHealthGlyph` glass | ✅ | `AppFooterBar` already glass |
+| U4.4 | Dense tables → `OfficeHealthGlyph` `variant="glass"` size 12 | ✅ | Studio Top risks glass; StatusDot kept for non-zone tags |
+| U4.5 | Optional `@hcw/ui-kit` `HealthGlassOrb` export | ✅ | Kit export; `OfficeHealthGlyph` wraps it |
 
 ---
 
@@ -210,9 +210,11 @@ orbs as Studio Intelligence. Cross-ref: [ESTIMATE-AUTOPILOT-ROADMAP.md E8](ESTIM
 
 | # | Surface | Status | Notes |
 |---|---------|--------|-------|
-| U5.1 | Client portal `Portal.tsx` | ⬜ | Rail for nav/identity; stage for project content |
-| U5.2 | Consultant portal `CollaboratorPortal.tsx` | ⬜ | |
-| U5.3 | Estimate app `estimate/` | ⬜ | Follow [ESTIMATE-AUTOPILOT-ROADMAP.md E1](ESTIMATE-AUTOPILOT-ROADMAP.md#e1--ui-pivot-hcw-ui-kit--active) |
+| U5.1 | Client portal `Portal.tsx` | ✅ | `ExternalPortalShell` → kit `GlassRail` |
+| U5.2 | Consultant portal `CollaboratorPortal.tsx` | ✅ | Same shell |
+| U5.3 | Estimate app `estimate/` | ✅ N/A | No `estimate/` tree in monorepo; E1 stays on [ESTIMATE-AUTOPILOT-ROADMAP.md](ESTIMATE-AUTOPILOT-ROADMAP.md) when that app lands. Site portal also on `ExternalPortalShell`. |
+
+**CMS / Estimation orphan:** `/estimation*` redirects to projects/measurement. `components/cms/` is not wired as project tabs — see [NAVIGATION.md](NAVIGATION.md).
 
 ---
 
@@ -223,12 +225,12 @@ orbs as Studio Intelligence. Cross-ref: [ESTIMATE-AUTOPILOT-ROADMAP.md E8](ESTIM
 
 | # | Primitive | Status |
 |---|-----------|--------|
-| U6.1 | `GlassRail` / rail stage layout component | ⬜ |
-| U6.2 | `HealthGlassOrb` (`OfficeHealthGlyph` glass variant) | ⬜ |
-| U6.3 | `TaskbarFooter` parity with `AppFooterBar` launcher layout | ⬜ |
-| U6.4 | Document `glass.scss` shrink — app keeps studio pulse + exceptions only | ⬜ |
+| U6.1 | `GlassRail` / rail stage layout component | ✅ | `packages/hcw-ui-kit/src/GlassRail.tsx` |
+| U6.2 | `HealthGlassOrb` (`OfficeHealthGlyph` glass variant) | ✅ | Kit + thin app wrapper |
+| U6.3 | `TaskbarFooter` parity with `AppFooterBar` launcher layout | ✅ | `left` · `center` · `right` slots; workspace keeps `AppFooterBar` composition |
+| U6.4 | Document `glass.scss` shrink — app keeps studio pulse + exceptions only | ✅ | See [HCW-UI-KIT.md](HCW-UI-KIT.md) + header comment in `glass.scss` |
 
-**Gate:** U0–U4 stable on workspace; human sign-off before kit export.
+**Gate:** U0–U6 closed for workspace + external portals (2026-07-10).
 
 ---
 

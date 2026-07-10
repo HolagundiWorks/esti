@@ -29,6 +29,7 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
@@ -295,6 +296,7 @@ export function Performance() {
           </Tabs>
         }
       >
+      <PageBreadcrumb items={[{ label: "Teams" }, { label: "Performance" }]} />
       {myScoreQ.data && (
         <Box className="esti-form-panel" sx={{ p: 2 }}>
           <Stack spacing={1.5}>

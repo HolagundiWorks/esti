@@ -1,16 +1,18 @@
 ---
 title: The hidden cost of untracked client revisions in architecture projects
 date: 2026-06-14
-excerpt: Untracked revisions don't just cause rework — they quietly erode your fee, fuel disputes, and hide quality problems. A detailed look at what scope creep really costs, and how to make the invisible visible.
+excerpt: Untracked client revisions silently erode fee recovery — each absorbed request blends into the project until there is nothing left to bill. A clear look at the real cost, and how to make it visible.
 tags: Revisions, Finance
 author: Holagundi Consulting Works
 ---
 
-Rework is the visible cost of untracked client revisions. It is the cost firms talk
+Rework is the visible cost of untracked client revisions. It is the cost practices talk
 about: the hours spent redrawing, the late nights before a deadline. But rework is
 not the most expensive consequence of failing to track revisions. The most expensive
 one is invisible — it is the **fee you never billed**, leaking out one reasonable
-client request at a time.
+client request at a time. Fee recovery depends on knowing what was client-driven, when
+it happened, and whether it was billable — and none of that can be reconstructed at
+project close if it was not logged when it occurred.
 
 This article examines the full cost of untracked revisions in architecture
 projects: not just the obvious rework, but the quiet erosion of margin, the disputes

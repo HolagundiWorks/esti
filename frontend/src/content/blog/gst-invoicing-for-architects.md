@@ -1,14 +1,15 @@
 ---
 title: GST invoicing for Indian architecture practices, done right
 date: 2026-06-12
-excerpt: SAC codes, CGST/SGST vs IGST, TDS, and composition levy — the small details that decide whether your filing reconciles cleanly.
+excerpt: SAC codes, CGST/SGST vs IGST, TDS net receivable, and composition levy — the details that keep fee recovery on track and your filing clean at every stage.
 tags: Finance, Compliance, India
 author: Holagundi Consulting Works
 ---
 
 Architectural services in India are billed under **SAC 998322**. Getting the
 tax split right is less about the rate and more about a handful of rules that are
-easy to miss when you are invoicing between projects.
+easy to miss when you are invoicing between projects — and getting them wrong is
+the most reliable way to delay fee recovery or fail a filing reconciliation.
 
 ## Intra-state vs inter-state
 

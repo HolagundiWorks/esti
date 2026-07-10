@@ -10,6 +10,10 @@
  * Buttons are neumorphic at rest (Layer 2) and lift to glass on hover (Layer 3) —
  * actionability itself is what glows. The dock floats bottom-centre, above the
  * taskbar footer, and hides when no screen has published actions.
+ *
+ * **Modal exception:** while a create/edit `Dialog` is open, publish `[]` so the
+ * dock does not compete with `DialogActions` (commit stays in the dialog). Re-publish
+ * screen actions when the dialog closes.
  */
 import {
   createContext,
@@ -216,7 +220,9 @@ export function ActionDock() {
       sx={{
         position: "fixed",
         left: "50%",
-        bottom: 72, // clears the 56px taskbar footer
+        // App shell: 72px clears the taskbar. Marketing (no footer) sets
+        // --esti-dock-bottom on .lp2-shell (see landing.scss).
+        bottom: "var(--esti-dock-bottom, 72px)",
         transform: "translateX(-50%)",
         zIndex: 1250,
         display: "flex",

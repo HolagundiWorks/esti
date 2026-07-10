@@ -12,6 +12,7 @@ import type { ReconcileColumnMapping } from "@esti/contracts";
 import { formatINR, formatINRShort } from "@esti/contracts";
 import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
@@ -314,6 +315,7 @@ export function Reconcile() {
         </Stack>
       }
     >
+      <PageBreadcrumb items={[{ label: "Office" }, { label: "Reconcile" }]} />
       <DataGrid
         rows={listQ.data ?? []}
         columns={batchColumns}

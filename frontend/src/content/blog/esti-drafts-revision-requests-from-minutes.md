@@ -1,7 +1,7 @@
 ---
-title: Your clients hate writing revision requests. Now ESTI writes them.
-date: 2026-07-03
-excerpt: Architects record the minutes. Clients approve the changes. ESTI does the part both sides avoid — turning what was discussed into formal, categorised revision requests the client just reviews and sends.
+title: From meeting minutes to site-safe revisions — ESTI drafts, architects assess, clients approve
+date: 2026-07-10
+excerpt: Meeting happens, minutes are issued, ESTI extracts revision drafts — but before site or drawings move, the architect marks criticality and the client approves the implications. The full gate, not just the draft.
 tags: ESTI, Revisions, Client, AI, Product
 author: Holagundi Consulting Works
 ---
@@ -58,9 +58,32 @@ That conversion is exactly the kind of work ESTI exists for.
    assessment (does it affect cost? timeline? is it billable?), and the
    revision statistics that feed the project's revision intelligence.
 
-The client never wrote a revision request. The office never chased one. And the
+6. **The architect marks criticality and implications** — the office reviews each
+   incoming request and sets the revision category: minor, major, or critical. Along
+   with the category, the implications are recorded: does this change affect the fee?
+   The programme? A structural element? A statutory approval already issued? This is
+   the assessment that turns a client request into a managed change — and it is done
+   by the architect, not delegated to ESTI.
+
+7. **The client approves the implications** — the assessed implications are sent back
+   through the portal for the client to acknowledge. The client sees: *"You have
+   requested X. The practice assesses this as a major change that will affect the fee
+   and the working drawings stage."* Until the client acknowledges, the revision is
+   flagged as pending scope sign-off. A client who sees the implications before work
+   begins rarely disputes them afterwards.
+
+8. **Only then do site and drawings move** — once the client has approved the
+   implications, the revision is cleared for production. Drawings are updated, site
+   instructions are issued, and consultant coordination proceeds on the basis of a
+   change the client has both requested and understood. The revision that used to
+   seep into the project invisibly is now a dated, approved, categorised record with
+   the client's sign-off on its scope — before a single line is redrawn.
+
+The client never wrote a revision request. The office never chased one. The
+architect assessed the implications and the client approved them. And the
 change that used to vanish into a voice note is now a numbered, categorised,
-dated record traceable back to the exact meeting where it was agreed.
+dated record — with scope sign-off — traceable back to the exact meeting where
+it was agreed, and cleared before a single drawing changes.
 
 ## What ESTI will not do
 

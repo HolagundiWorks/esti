@@ -60,6 +60,9 @@ import { phaseRouter } from "../modules/phase/router.js";
 import { projectOfficeRouter } from "../modules/projectoffice/router.js";
 import { workloadRouter } from "../modules/workload/router.js";
 import { specCatalogRouter } from "../modules/knowledgebank/specCatalog.js";
+import { itemLibraryRouter } from "../modules/itemLibrary/router.js";
+import { measurementRouter } from "../modules/measurement/router.js";
+import { planMarkupRouter } from "../modules/planMarkup/router.js";
 import { attendanceRouter } from "../modules/attendance/router.js";
 import { appointmentRouter } from "../modules/appointment/router.js";
 import { rewardRouter } from "../modules/reward/router.js";
@@ -173,6 +176,9 @@ export const appRouter = router({
   payroll: payrollRouter,
   hrProfile: hrProfileRouter,
   specCatalog: specCatalogRouter,
+  itemLibrary: itemLibraryRouter,
+  measurement: measurementRouter,
+  planMarkup: planMarkupRouter,
   attendance: attendanceRouter,
   aspRf: aspRfRouter,
   rewards: rewardRouter,

@@ -9,15 +9,15 @@ import { drawings, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { verifyUploadPassword } from "../../lib/uploadSecurity.js";
 import { writeActivity } from "../../lib/activity.js";
-import { looksLikeDwg, looksLikeDxf } from "../../lib/filetype.js";
+import { looksLikeDwg, looksLikeDxf, looksLikePdf } from "../../lib/filetype.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { nextRef } from "../../lib/numbering.js";
 import { BUCKET, putObject } from "../../lib/storage.js";
 
 /**
- * Binary upload lives outside tRPC (which is JSON-only). The DXF is stored
- * content-addressed in object storage, a drawing row is created PENDING, and a
- * dxf_to_svg job is enqueued for the Python worker.
+ * Binary upload lives outside tRPC (which is JSON-only).
+ * - DXF → content-addressed storage, PENDING, enqueue dxf_to_svg.
+ * - PDF → content-addressed storage, READY immediately (Plan Measurement uses PDF.js).
  */
 export function registerDrawingUpload(app: FastifyInstance): void {
   app.post("/upload/drawing", {
@@ -56,19 +56,22 @@ export function registerDrawingUpload(app: FastifyInstance): void {
     if (fileBuf.length > DRAWING_MAX_BYTES) return reply.code(413).send({ error: "file too large" });
     if (looksLikeDwg(fileBuf)) {
       return reply.code(415).send({
-        error: "DWG is not supported — use Save As / Export to DXF (.dxf) from your CAD tool",
+        error: "DWG is not supported — use Save As / Export to DXF (.dxf) from your CAD tool, or upload a PDF plan",
       });
     }
-    // Content sniff: reject anything that isn't a real (ASCII or binary) DXF.
-    if (!looksLikeDxf(fileBuf)) {
+
+    const isPdf = looksLikePdf(fileBuf);
+    const isDxf = !isPdf && looksLikeDxf(fileBuf);
+    if (!isPdf && !isDxf) {
       return reply.code(415).send({
-        error: "not a valid DXF file — export as ASCII or Binary DXF (.dxf), not DWG",
+        error: "not a valid DXF or PDF — export as ASCII/Binary DXF (.dxf) or upload a plan PDF",
       });
     }
 
     const fileHash = createHash("sha256").update(fileBuf).digest("hex");
-    const storageKey = `dxf/${fileHash}.dxf`;
-    await putObject(storageKey, fileBuf, "application/dxf");
+    const storageKey = isPdf ? `pdf/${fileHash}.pdf` : `dxf/${fileHash}.dxf`;
+    const contentType = isPdf ? "application/pdf" : "application/dxf";
+    await putObject(storageKey, fileBuf, contentType);
 
     // Revision chaining: if rootId is given, supersede the current revision of
     // that drawing chain and bump the revision number.
@@ -102,7 +105,7 @@ export function registerDrawingUpload(app: FastifyInstance): void {
         fileHash,
         storageKey,
         sizeBytes: fileBuf.length,
-        status: "PENDING",
+        status: isPdf ? "READY" : "PENDING",
         revNo,
         rootId,
         revisionNote: parsed.data.revisionNote ?? null,
@@ -110,19 +113,28 @@ export function registerDrawingUpload(app: FastifyInstance): void {
       })
       .returning();
 
-    await enqueueJob("dxf_to_svg", {
-      drawingId: row!.id,
-      bucket: BUCKET,
-      storageKey,
-      fileHash,
-    }, String(req.id));
+    if (!isPdf) {
+      await enqueueJob("dxf_to_svg", {
+        drawingId: row!.id,
+        bucket: BUCKET,
+        storageKey,
+        fileHash,
+      }, String(req.id));
+    }
 
     await writeAudit(db, {
       entity: "drawing",
       entityId: row!.id,
       action: rootId ? "UPLOAD_REVISION" : "UPLOAD",
       actorId: user!.id,
-      after: { projectId: parsed.data.projectId, ref, fileHash, revNo, rootId },
+      after: {
+        projectId: parsed.data.projectId,
+        ref,
+        fileHash,
+        revNo,
+        rootId,
+        sourceKind: isPdf ? "PDF" : "DXF",
+      },
     });
 
     await writeActivity(db, {
@@ -135,7 +147,13 @@ export function registerDrawingUpload(app: FastifyInstance): void {
       summary: rootId
         ? `Drawing revision ${ref} (rev ${revNo}) uploaded`
         : `Drawing ${ref} uploaded`,
-      metadata: { ref, revNo, fileName, title: parsed.data.title },
+      metadata: {
+        ref,
+        revNo,
+        fileName,
+        title: parsed.data.title,
+        sourceKind: isPdf ? "PDF" : "DXF",
+      },
     });
 
     return reply.code(201).send(row);

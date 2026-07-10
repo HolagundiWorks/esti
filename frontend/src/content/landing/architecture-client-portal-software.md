@@ -1,11 +1,11 @@
 ---
 title: Architecture Client Portal Software
-metaTitle: Architecture Client Portal Software for Indian Firms
-metaDescription: Architecture client portal software for drawings, approvals, RFIs, revisions, invoices and project evidence — scoped access for Indian architecture firms.
+metaTitle: Architecture Client Portal — Approvals, MoM, Revision Requests & ESTI
+metaDescription: Architecture client portal for Indian firms — clients read issued MoM, submit ESTI-drafted revision requests, approve the architect's criticality assessment, and confirm drawings. Nothing reaches the site without a portal approval.
 keyword: architecture client portal software
 category: moat
-updated: 2026-06-25
-intro: Give clients a clear place to approve, review and respond without exposing the whole office system.
+updated: 2026-07-10
+intro: The client portal is where minutes land, ESTI-drafted revision requests are reviewed and sent, and architect assessments are approved — so the client's yes is always on the record before site work proceeds.
 ---
 
 Architecture client portal software should reduce confusion, not create another
@@ -28,6 +28,20 @@ request lands back on the office timeline.
 The portal works because it is not separate from the project. A drawing issue,
 approval, client request and revision warning all belong to the same record.
 
+## The revision sequence the portal enables
+
+The portal is where the MoM-to-revision flow comes alive. Once meeting minutes are
+issued, they appear in the portal for the client to read. From there:
+
+1. The client asks ESTI to draft revision requests from those minutes.
+2. ESTI returns each change as an editable request — the client reviews, edits and
+   submits only the real ones.
+3. The office receives formal, categorised requests. The architect marks criticality
+   and implications.
+4. The client receives a notification in the portal and **approves the architect's
+   assessment** — creating a timestamped record.
+5. Only after that approval do site or drawing changes proceed.
+
 ## Why email and chat fail
 
 Email and WhatsApp are useful for conversation, but weak for proof. A client can
@@ -35,8 +49,8 @@ say a drawing was never seen, an approval was not final, or a change was only a
 small request. When decisions are scattered, the practice carries the risk.
 
 In AORMS, the portal turns client movement into evidence. Requests are classified,
-approvals are recorded, and major or critical revisions can warn the client that
-cost, timeline or scope may be affected.
+approvals are recorded with a timestamp, and every stage of the revision chain is
+visible to both sides.
 
 ## Connected to the office
 
@@ -70,6 +84,8 @@ settings remain private.
 
 ### How does the portal help with revisions?
 
-Revision requests are attached to the project record and can be classified by
-impact. Major and critical changes can warn the client before the practice accepts
-work that affects cost, scope or timeline.
+The portal is the channel for the full MoM-to-site sequence. Minutes issued by the
+office appear in the portal. The client asks ESTI to draft revision requests, edits
+and submits the real ones. After the architect marks criticality and implications,
+the client approves that assessment through the portal. Only then do site or
+drawing changes proceed. Every step is recorded with a timestamp.

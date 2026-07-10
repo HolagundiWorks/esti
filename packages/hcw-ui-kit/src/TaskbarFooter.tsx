@@ -1,10 +1,15 @@
 /**
- * TaskbarFooter — a full-width bottom bar styled like a Windows taskbar: the
- * persistent app widgets / launchers sit on the LEFT (start-menu / taskbar apps),
- * the clock sits on the RIGHT (system-tray). Low-profile, flat white with a
- * hairline top edge; individual launcher chips are neumorphic (`TaskbarButton`).
+ * TaskbarFooter — full-width bottom bar (HCW spatial model).
+ * Parity with workspace `AppFooterBar` launcher layout:
  *
- *   <TaskbarFooter left={<><TaskbarButton icon={<Timer/>} label="Pomodoro" /> …</>} />
+ *   LEFT   — utilities (calculator, health, …)
+ *   CENTER — primary launchers (home, search, Ask ESTI, …)
+ *   RIGHT  — tray (clock, alerts, identity, sign-out)
+ *
+ * Default surface is flat white; pass `sx` / glass tokens for frosted chrome.
+ * Workspace keeps `AppFooterBar` as the product composition; this is the kit shell.
+ *
+ *   <TaskbarFooter left={…} center={…} right={…} />
  */
 import { Box, IconButton, Tooltip, type BoxProps } from "@mui/material";
 import { useEffect, useState, type ReactNode } from "react";
@@ -67,10 +72,17 @@ export function TaskbarButton({
 export function TaskbarFooter({
   left,
   center,
+  right,
   showClock = true,
   sx,
   ...rest
-}: { left?: ReactNode; center?: ReactNode; showClock?: boolean } & BoxProps) {
+}: {
+  left?: ReactNode;
+  center?: ReactNode;
+  /** Tray cluster (alerts, ID, sign-out). Clock prepends when `showClock`. */
+  right?: ReactNode;
+  showClock?: boolean;
+} & BoxProps) {
   return (
     <Box
       component="footer"
@@ -92,9 +104,14 @@ export function TaskbarFooter({
       }}
       {...rest}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>{left}</Box>
-      <Box sx={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>{center}</Box>
-      {showClock && <Clock />}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>{left}</Box>
+      <Box sx={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", gap: 0.5 }}>
+        {center}
+      </Box>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0, justifyContent: "flex-end" }}>
+        {showClock && <Clock />}
+        {right}
+      </Box>
     </Box>
   );
 }

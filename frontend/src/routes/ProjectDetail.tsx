@@ -1,11 +1,4 @@
-import {
-  Box,
-  CircularProgress,
-  Stack,
-  Tab,
-  Tabs,
-  Typography,
-} from "@mui/material";
+import { Box, Skeleton, Stack, Tab, Tabs, Typography } from "@mui/material";
 import {
   PROJECT_STATUS_LABEL,
   PROJECT_STATUS_TAG,
@@ -14,31 +7,39 @@ import {
   type ProjectStatus,
 } from "@esti/contracts";
 import { RailLayout } from "../components/RailLayout.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { type ReactNode, useEffect, useMemo } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { ProjectApprovals } from "../components/ProjectApprovals.js";
-import { ProjectCommunicationsLog } from "../components/ProjectCommunicationsLog.js";
-import { ProjectDrawings } from "../components/ProjectDrawings.js";
-import { ProjectDocuments, ProjectSpecSheets } from "../components/ProjectDocuments.js";
-import { ProjectPermits } from "../components/ProjectPermits.js";
+import { ProjectMeasurementPanel } from "../components/measurement/ProjectMeasurementPanel.js";
+import { DrawingsApprovalsPanel } from "../components/project/DrawingsApprovalsPanel.js";
+import { DocumentsSpecsPanel } from "../components/project/DocumentsSpecsPanel.js";
+import { ProjectBriefPanel } from "../components/project/ProjectBriefPanel.js";
+import { ProjectDeliveryPanel } from "../components/project/ProjectDeliveryPanel.js";
 import { ProjectSettings } from "../components/ProjectSettings.js";
-import { ProjectTransmittals } from "../components/ProjectTransmittals.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
 import { ProjectLessons } from "../components/ProjectLessons.js";
 import { ProjectOverview } from "../components/ProjectOverview.js";
 import { ProjectRailSignals } from "../components/ProjectRailSignals.js";
-import { ProjectPipeline } from "../components/ProjectPipeline.js";
-import { ProjectProgram } from "../components/ProjectProgram.js";
-import { ProjectCpi } from "../components/ProjectCpi.js";
-import { ProjectInfo } from "../components/ProjectInfo.js";
-import { ProjectMinutes } from "../components/ProjectMinutes.js";
-import { ProjectSiteVisits } from "../components/ProjectSiteVisits.js";
 import { StatusTag } from "../components/StatusTag.js";
 import { useCapabilities } from "../lib/capabilities.js";
 import { trpc } from "../lib/trpc.js";
 
 type ProjectTab = { slug: string; label: string; panel: ReactNode };
 type ProjectGroup = { slug: string; label: string; tabs: ProjectTab[] };
+
+/** Map legacy deep-link tab slugs onto the collapsed IA. */
+const LEGACY_TAB: Record<string, string> = {
+  "running-bills": "measurement",
+  costing: "measurement",
+  pipeline: "brief",
+  program: "brief",
+  info: "brief",
+  cpi: "brief",
+  "spec-sheets": "documents",
+  "site-visits": "delivery",
+  communications: "delivery",
+  minutes: "delivery",
+};
 
 export function ProjectDetail() {
   const { id = "" } = useParams();
@@ -56,51 +57,44 @@ export function ProjectDetail() {
   const isResidential = /residential/i.test(project.data?.projectType ?? "");
 
   const projectGroups = useMemo((): ProjectGroup[] => {
-    // ── Setup (shared) — identity, info, schedule and admin live above the heads.
+    // Setup — Overview · Brief (nested) · Settings. Hick/Miller: fewer primaries.
     const setupTabs: ProjectTab[] = [
       { slug: "overview", label: "Overview", panel: <ProjectOverview projectId={id} /> },
-      { slug: "pipeline", label: "Pipeline", panel: <ProjectPipeline projectId={id} /> },
-      { slug: "program", label: "Program", panel: <ProjectProgram projectId={id} /> },
-      { slug: "info", label: "Project Info", panel: <ProjectInfo projectId={id} /> },
-      // CPI — residential onboarding questionnaire (only for residential projects).
-      ...(isResidential
-        ? [{ slug: "cpi", label: "CPI", panel: <ProjectCpi projectId={id} /> } satisfies ProjectTab]
-        : []),
-      { slug: "permits", label: "Permits", panel: <ProjectPermits projectId={id} /> },
+      {
+        slug: "brief",
+        label: "Brief",
+        panel: <ProjectBriefPanel projectId={id} showCpi={isResidential} />,
+      },
       { slug: "settings", label: "Settings", panel: <ProjectSettings projectId={id} /> },
     ];
 
-    // ── Consultancy — design delivery.
+    // Workspace — Measurement · Drawings · Documents · Team? · Delivery · Lessons.
     const consultancyTabs: ProjectTab[] = [
+      {
+        slug: "measurement",
+        label: "Measurement",
+        panel: <ProjectMeasurementPanel projectId={id} />,
+      },
       {
         slug: "drawings",
         label: "Drawings & approvals",
-        panel: (
-          <>
-            <ProjectDrawings projectId={id} />
-            <ProjectTransmittals projectId={id} />
-            <ProjectApprovals projectId={id} />
-          </>
-        ),
+        panel: <DrawingsApprovalsPanel projectId={id} />,
       },
       {
         slug: "documents",
         label: "Documents",
-        panel: <ProjectDocuments projectId={id} includeSpecs={false} />,
+        panel: <DocumentsSpecsPanel projectId={id} />,
       },
-      { slug: "spec-sheets", label: "Specifications", panel: <ProjectSpecSheets projectId={id} /> },
     ];
     if (showTeam) {
       consultancyTabs.push({ slug: "team", label: "Team", panel: <ProjectTeam projectId={id} /> });
     }
     consultancyTabs.push(
-      { slug: "site-visits", label: "Site Progress", panel: <ProjectSiteVisits projectId={id} /> },
       {
-        slug: "communications",
-        label: "Communications",
-        panel: <ProjectCommunicationsLog projectId={id} />,
+        slug: "delivery",
+        label: "Delivery",
+        panel: <ProjectDeliveryPanel projectId={id} />,
       },
-      { slug: "minutes", label: "Minutes", panel: <ProjectMinutes projectId={id} /> },
       { slug: "lessons", label: "Lessons", panel: <ProjectLessons projectId={id} /> },
     );
 
@@ -113,7 +107,7 @@ export function ProjectDetail() {
   const projectTabs = projectGroups.flatMap((g) => g.tabs);
 
   const rawTab = searchParams.get("tab") ?? "overview";
-  const tabSlug = rawTab === "running-bills" ? "costing" : rawTab;
+  const tabSlug = LEGACY_TAB[rawTab] ?? rawTab;
   const tabIndex = Math.max(
     0,
     projectTabs.findIndex((t) => t.slug === tabSlug),
@@ -125,21 +119,33 @@ export function ProjectDetail() {
   );
   const activeGroup = projectGroups[groupIndex] ?? projectGroups[0]!;
   const innerIndex = Math.max(0, activeGroup.tabs.findIndex((t) => t.slug === activeTab));
+  const activeLabel = projectTabs.find((t) => t.slug === activeTab)?.label ?? activeTab;
 
   useEffect(() => {
-    if (tabSlug !== activeTab) {
+    if (tabSlug !== activeTab || rawTab !== activeTab) {
       setSearchParams({ tab: activeTab }, { replace: true });
     }
-  }, [tabSlug, activeTab, setSearchParams]);
+  }, [tabSlug, activeTab, rawTab, setSearchParams]);
 
-  if (project.isLoading)
-    return <CircularProgress aria-label="Loading project" />;
-  if (!project.data)
+  if (project.isLoading) {
+    return (
+      <RailLayout title="Loading project…" description="Fetching project details">
+        <Stack spacing={1.5} aria-busy="true" aria-label="Loading project">
+          <Skeleton variant="rectangular" height={40} />
+          <Skeleton variant="rectangular" height={36} />
+          <Skeleton variant="rectangular" height={220} />
+          <Skeleton variant="rectangular" height={120} />
+        </Stack>
+      </RailLayout>
+    );
+  }
+  if (!project.data) {
     return (
       <Typography component="p">
         Project not found. <Link to="/projects">Back</Link>
       </Typography>
     );
+  }
   const p = project.data;
   const phases = phasesQ.data ?? [];
   const currentPhase =
@@ -152,7 +158,6 @@ export function ProjectDetail() {
   const contractValuePaise = (p as { contractValuePaise?: number })
     .contractValuePaise;
 
-  // Compact project overview — a labelled fact for the rail's aside.
   const Fact = ({ label, value }: { label: string; value: ReactNode }) => (
     <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1, py: 0.5, borderBottom: 1, borderColor: "divider" }}>
       <Typography variant="caption" color="text.secondary">{label}</Typography>
@@ -166,21 +171,15 @@ export function ProjectDetail() {
       description={`${workTypeLabel} · ${p.projectType} · ${p.jurisdiction}`}
       aside={
         <Stack spacing={1.5}>
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
-            <StatusTag
-              value={p.status as ProjectStatus}
-              map={PROJECT_STATUS_TAG}
-              label={
-                PROJECT_STATUS_LABEL[p.status as keyof typeof PROJECT_STATUS_LABEL] ??
-                p.status
-              }
-            />
-            <Typography variant="caption" component="span">
-              <Link to="/projects">← All projects</Link>
-            </Typography>
-          </Stack>
+          <StatusTag
+            value={p.status as ProjectStatus}
+            map={PROJECT_STATUS_TAG}
+            label={
+              PROJECT_STATUS_LABEL[p.status as keyof typeof PROJECT_STATUS_LABEL] ??
+              p.status
+            }
+          />
 
-          {/* Overview — project at a glance (moved into the rail). */}
           <Box>
             <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 1 }}>
               Overview
@@ -190,7 +189,7 @@ export function ProjectDetail() {
                 <Fact
                   label="Stage"
                   value={
-                    <Link to={`/projects/${id}?tab=info`}>{currentPhase.label}</Link>
+                    <Link to={`/projects/${id}?tab=brief`}>{currentPhase.label}</Link>
                   }
                 />
               )}
@@ -216,7 +215,15 @@ export function ProjectDetail() {
         </Stack>
       }
     >
-      {/* Stage — section navigation (two-level tabs) + the active panel. */}
+      <PageBreadcrumb
+        items={[
+          { label: "Projects", to: "/projects" },
+          { label: p.ref, to: `/projects/${id}?tab=overview` },
+          { label: activeGroup.label },
+          { label: activeLabel },
+        ]}
+      />
+
       <Tabs
         value={groupIndex}
         onChange={(_e, selectedIndex: number) =>

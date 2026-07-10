@@ -2,12 +2,27 @@ import { z } from "zod";
 
 /**
  * Drawings & automated takeoff (ADR-10).
- * A DXF is uploaded, stored content-addressed in object storage, and handed to
- * the Python worker (ezdxf) which extracts per-layer entity counts + model
- * bounds and writes the result back. Status drives the SPA poll.
+ * - DXF: stored content-addressed, worker (ezdxf) renders SVG + takeoff; status polls PENDING→READY.
+ * - PDF: stored as the plan source; READY immediately (no worker); Plan Measurement renders via PDF.js.
  */
 export const DrawingStatus = z.enum(["PENDING", "PROCESSING", "READY", "FAILED"]);
 export type DrawingStatus = z.infer<typeof DrawingStatus>;
+
+/** How the plan sheet is sourced for Measurement Plan reader. */
+export const DrawingSourceKind = z.enum(["DXF", "PDF"]);
+export type DrawingSourceKind = z.infer<typeof DrawingSourceKind>;
+
+/** Infer source kind from storage key prefix or file name. */
+export function drawingSourceKind(opts: {
+  storageKey?: string | null;
+  fileName?: string | null;
+}): DrawingSourceKind {
+  const key = (opts.storageKey ?? "").toLowerCase();
+  if (key.startsWith("pdf/")) return "PDF";
+  const name = (opts.fileName ?? "").toLowerCase();
+  if (name.endsWith(".pdf")) return "PDF";
+  return "DXF";
+}
 
 /** Per-layer takeoff row produced by the worker. */
 export const DrawingLayer = z.object({
@@ -37,4 +52,4 @@ export const DrawingUploadFields = z.object({
 });
 export type DrawingUploadFields = z.infer<typeof DrawingUploadFields>;
 
-export const DRAWING_MAX_BYTES = 25 * 1024 * 1024; // 25 MB DXF cap
+export const DRAWING_MAX_BYTES = 25 * 1024 * 1024; // 25 MB DXF / PDF cap

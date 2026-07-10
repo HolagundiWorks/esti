@@ -10,20 +10,19 @@ import {
   Stack,
   TextField,
   Typography,
-  styled,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
-import Launch from "@mui/icons-material/Launch";
 import { can } from "@esti/contracts";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { DrawingIssueCell } from "./DrawingIssueCell.js";
 import { StatusDot } from "./StatusTag.js";
 import { useAuth } from "../lib/auth.js";
-import { ESTICAD_DOWNLOAD_URL, esticadDrawingUrl, openEsticadDrawing } from "../lib/esticadLink.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 
-const HiddenFileInput = styled("input")({ display: "none" });
+function titleFromFileName(name: string): string {
+  return name.replace(/\.[^.]+$/, "").trim() || name;
+}
 
 const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
   PENDING: "gray",
@@ -36,9 +35,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
   const { user } = useAuth();
   const { authorizedFetch, uploadRequired } = useUploadAuth();
   const canUpload = !!user && can(user.role, "write");
-  const canTakeoff = canUpload;
   const utils = trpc.useUtils();
-  const [esticadHint, setEsticadHint] = useState<string | null>(null);
   const drawingsQ = trpc.drawings.listByProject.useQuery(
     { projectId },
     {
@@ -56,6 +53,8 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const revFileInputRef = useRef<HTMLInputElement>(null);
 
   const [revFor, setRevFor] = useState<{ id: string; title: string } | null>(null);
   const [revFile, setRevFile] = useState<File | null>(null);
@@ -65,16 +64,6 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
     { id: histId ?? "" },
     { enabled: !!histId },
   );
-
-  function launchEsticad(drawingId: string) {
-    setEsticadHint(null);
-    openEsticadDrawing(projectId, drawingId);
-    const link = esticadDrawingUrl(projectId, drawingId);
-    void navigator.clipboard?.writeText(link).catch(() => undefined);
-    setEsticadHint(
-      `Opening ESTICAD… If nothing happens, install ESTICAD and ensure you are signed in with your AORMS account. Link copied: ${link}`,
-    );
-  }
 
   async function postUpload(fd: FormData) {
     const res = await authorizedFetch("/upload/drawing", (form) => {
@@ -89,18 +78,29 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
     utils.drawings.listByProject.invalidate({ projectId });
   }
 
+  function pickFile(next: File | null) {
+    setFile(next);
+    setError(null);
+    if (next && !title.trim()) setTitle(titleFromFileName(next.name));
+  }
+
   async function upload() {
-    if (!file || !title) return;
+    if (!file) {
+      setError("Choose a DXF file first.");
+      return;
+    }
+    const resolvedTitle = title.trim() || titleFromFileName(file.name);
     setBusy(true);
     setError(null);
     try {
       const fd = new FormData();
       fd.append("projectId", projectId);
-      fd.append("title", title);
+      fd.append("title", resolvedTitle);
       fd.append("file", file);
       await postUpload(fd);
       setTitle("");
       setFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
@@ -123,6 +123,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
       setRevFor(null);
       setRevFile(null);
       setRevNote("");
+      if (revFileInputRef.current) revFileInputRef.current.value = "";
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
@@ -154,6 +155,12 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
       ),
     },
     {
+      field: "sourceKind",
+      headerName: "Type",
+      width: 80,
+      renderCell: (p) => p.row.sourceKind ?? "DXF",
+    },
+    {
       field: "status",
       headerName: "Status",
       flex: 0.8,
@@ -166,29 +173,6 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
       ),
     },
     { field: "entityCount", headerName: "Entities", width: 90 },
-    {
-      field: "takeoff",
-      headerName: "Takeoff",
-      sortable: false,
-      filterable: false,
-      flex: 1,
-      minWidth: 170,
-      renderCell: (p) => (
-        <>
-          {p.row.status === "READY" && canTakeoff && (
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<Launch />}
-              onClick={() => launchEsticad(p.row.id)}
-            >
-              Open in ESTICAD
-            </Button>
-          )}
-          {p.row.status === "READY" && !canTakeoff && "—"}
-        </>
-      ),
-    },
     {
       field: "issue",
       headerName: "Issue",
@@ -249,25 +233,10 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
       <Typography variant="h6" component="h3" sx={{ mt: 4 }}>
         Drawings
       </Typography>
-      <Alert severity="info" sx={{ mb: 1.5 }}>
-        <AlertTitle>Quantity takeoff in ESTICAD</AlertTitle>
-        {canTakeoff
-          ? "Upload DXF drawings here for the project register. Measure walls, slabs, and structural elements in the free ESTICAD desktop app — quantities sync to this project automatically."
-          : "Drawings are listed here for issue control. Quantity takeoff is performed in ESTICAD by staff with write access."}
-      </Alert>
-      {canTakeoff && (
-        <p className="esti-label">
-          <a href={ESTICAD_DOWNLOAD_URL} target="_blank" rel="noopener noreferrer">
-            Download ESTICAD
-          </a>
-          {" · "}
-          Sign in with your AORMS account, run <code>ESTILINK</code>, then open a drawing from the Takeoff column below.
-        </p>
-      )}
       {!canUpload && (
         <Alert severity="info">
           <AlertTitle>Upload not available</AlertTitle>
-          Your role is read-only. Ask a project lead or sign in with an Associate (or higher) account to upload DXF drawings.
+          Your role is read-only. Ask a project lead or sign in with an Associate (or higher) account to upload DXF or PDF drawings.
         </Alert>
       )}
       {canUpload && uploadRequired && user?.isDemo && (
@@ -276,36 +245,51 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
           This demo has upload protection enabled — enter the upload password when prompted, same as a live firm.
         </Alert>
       )}
-      <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-end", my: 1.5 }}>
+      <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-end", my: 1.5, flexWrap: "wrap" }}>
         <TextField
           id="dwg-title"
           label="Drawing title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          placeholder="Filled from file name if blank"
           sx={{ maxWidth: 280 }}
+          disabled={!canUpload}
         />
-        <Button variant="outlined" component="label" disabled={!canUpload}>
-          {file ? file.name : "Choose DXF"}
-          <HiddenFileInput
-            type="file"
-            accept=".dxf,.DXF,application/dxf,image/vnd.dxf,application/x-dxf"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setFile(e.target.files?.[0] ?? null)
-            }
-          />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".dxf,.DXF,.pdf,.PDF,application/dxf,application/pdf,image/vnd.dxf,application/x-dxf"
+          style={{ display: "none" }}
+          onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+        />
+        <Button
+          variant="outlined"
+          disabled={!canUpload}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {file ? file.name : "Choose DXF / PDF"}
         </Button>
         <Button
           variant="contained"
-          disabled={!canUpload || !file || !title || busy}
-          onClick={upload}
+          disabled={!canUpload || !file || busy}
+          onClick={() => void upload()}
         >
           {busy ? "Uploading…" : "Upload drawing"}
         </Button>
       </Box>
-      {canUpload && (
+      {canUpload && !file && (
         <p className="esti-label esti-label--secondary">
-          AutoCAD / Revit / SketchUp: export or Save As <strong>DXF</strong> (.dxf), not DWG.
-          Processing runs in the background — status updates in a few seconds.
+          Choose a <strong>.dxf</strong> or <strong>.pdf</strong> plan, then click Upload drawing.
+          DWG is not accepted — use Save As / Export to DXF from your CAD tool, or export a PDF.
+        </p>
+      )}
+      {canUpload && file && (
+        <p className="esti-label esti-label--secondary">
+          Ready to upload <strong>{file.name}</strong>
+          {title.trim() ? ` as “${title.trim()}”` : ""}.
+          {file.name.toLowerCase().endsWith(".pdf")
+            ? " PDF plans are ready immediately for Measurement."
+            : " DXF processing runs in the background — status updates in a few seconds."}
         </p>
       )}
       {error && (
@@ -314,19 +298,10 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
           {error}
         </Alert>
       )}
-      {esticadHint && (
-        <Alert severity="info" onClose={() => setEsticadHint(null)}>
-          <AlertTitle>ESTICAD</AlertTitle>
-          {esticadHint}
-        </Alert>
-      )}
 
       <Stack spacing={0.5} sx={{ mt: 2 }}>
         <Typography variant="subtitle1" component="h4">
           Uploaded drawings
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          DXF register — open ESTICAD to measure quantities
         </Typography>
         <DataGrid
           rows={drawingsQ.data ?? []}
@@ -353,19 +328,22 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <p>
-              The new DXF supersedes the current revision; the previous version is
+              The new DXF or PDF supersedes the current revision; the previous version is
               kept in history.
             </p>
             <Box>
-              <Button variant="outlined" component="label">
-                {revFile ? revFile.name : "Choose DXF"}
-                <HiddenFileInput
-                  type="file"
-                  accept=".dxf"
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setRevFile(e.target.files?.[0] ?? null)
-                  }
-                />
+              <input
+                ref={revFileInputRef}
+                type="file"
+                accept=".dxf,.DXF,.pdf,.PDF,application/pdf"
+                style={{ display: "none" }}
+                onChange={(e) => setRevFile(e.target.files?.[0] ?? null)}
+              />
+              <Button
+                variant="outlined"
+                onClick={() => revFileInputRef.current?.click()}
+              >
+                {revFile ? revFile.name : "Choose DXF / PDF"}
               </Button>
             </Box>
             <TextField

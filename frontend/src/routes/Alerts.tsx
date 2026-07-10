@@ -1,6 +1,7 @@
 import { Box, Divider, Link, Stack, Typography } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { Link as RouterLink } from "react-router-dom";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
@@ -128,6 +129,7 @@ export function Alerts() {
       title="Alerts"
       description="Immediate items needing action, plus a daily digest of lower-priority follow-ups."
     >
+      <PageBreadcrumb items={[{ label: "Alerts" }]} />
       <AlertTable title={`Immediate action (${alerts.length})`} alerts={alerts} />
 
       {digest && (

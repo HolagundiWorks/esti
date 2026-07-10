@@ -22,6 +22,7 @@ import {
 import { type CSSProperties, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import { useScreenActions } from "@hcw/ui-kit";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { DataState } from "../components/DataState.js";
@@ -69,17 +70,19 @@ export function Team() {
   });
 
   useScreenActions(
-    [
-      {
-        id: "new-member",
-        zone: "center",
-        tone: "primary",
-        label: "New member",
-        icon: <AddIcon />,
-        onClick: () => setOpen(true),
-      },
-    ],
-    [],
+    open
+      ? []
+      : [
+          {
+            id: "new-member",
+            zone: "center",
+            tone: "primary",
+            label: "New member",
+            icon: <AddIcon />,
+            onClick: () => setOpen(true),
+          },
+        ],
+    [open],
   );
 
   const members = (list.data ?? []).filter(
@@ -104,6 +107,7 @@ export function Team() {
           </Stack>
         }
       >
+      <PageBreadcrumb items={[{ label: "Teams" }, { label: "Team" }]} />
       {/* Portrait tile grid */}
       <DataState
         loading={list.isLoading}

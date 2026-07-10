@@ -18,6 +18,7 @@ import {
 import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { trpc } from "../lib/trpc.js";
@@ -75,17 +76,19 @@ export function Consultants() {
     })) ?? [];
 
   useScreenActions(
-    [
-      {
-        id: "new-consultant",
-        zone: "center",
-        tone: "primary",
-        label: "New consultant",
-        icon: <AddIcon />,
-        onClick: () => setOpen(true),
-      },
-    ],
-    [],
+    open || !!login
+      ? []
+      : [
+          {
+            id: "new-consultant",
+            zone: "center",
+            tone: "primary",
+            label: "New consultant",
+            icon: <AddIcon />,
+            onClick: () => setOpen(true),
+          },
+        ],
+    [open, login],
   );
 
   const [query, setQuery] = useState("");
@@ -140,6 +143,7 @@ export function Consultants() {
           </Stack>
         }
       >
+      <PageBreadcrumb items={[{ label: "Third Parties" }, { label: "Consultants" }]} />
       {loginMsg && (
         <Alert severity="success" onClose={() => setLoginMsg(null)}>
           {loginMsg}

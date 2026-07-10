@@ -2,19 +2,19 @@
 export const LANDING_SEO = {
   title: "AORMS | Practice management software for architects & designers in India",
   description:
-    "AORMS is the cloud practice OS for Indian architects and interior designers — projects, COA fee proposals, drawing transmittals, revision intelligence, GST billing, specification catalogues, team load and client portals. One standard licence, 5 GB included, unlimited users.",
+    "AORMS is the cloud practice OS for Indian architects and interior designers — fee recovery, MoM-led client revisions, GST billing, drawings, studio load and portals. Unlimited users. 5 GB included.",
   keywords:
-    "architecture practice management software India, software for architects, architect office management, interior design practice software, architectural consultancy software, client revision management architects, drawing approval software, architect fee proposal software COA, GST billing architects India, architecture project management, ESTI AI architect assistant, BOQ estimating software CPWD, AORMS cloud workspace",
+    "architecture practice management software India, fee recovery architects, architect fee proposal software COA, GST billing architects India, client revision management architects, minutes of meeting architects, MoM revision workflow, drawing approval software, architecture project management, ESTI AI architect assistant, AORMS cloud workspace",
   ogTitle: "AORMS — Practice OS for architects & designers",
   ogDescription:
-    "One cloud workspace for Indian architectural studios: projects, fees, revisions, GST, specification catalogues, team and portals. Unlimited users. 5 GB included. No desktop installs.",
-  twitterTitle: "AORMS — for architects who are tired of chasing their record",
+    "One cloud workspace for Indian architectural studios: fee recovery, MoM-to-site revisions, GST, drawings, studio load and portals. Unlimited users. 5 GB included.",
+  twitterTitle: "AORMS — from chaos to clarity",
   twitterDescription:
-    "Projects, fees, revisions and GST in one browser workspace. Built for Indian architects. One licence · unlimited users · pay for storage and AI.",
+    "Fees, MoM-led revisions, GST and studio load in one browser workspace. Built for Indian architects. Unlimited users · 5 GB included.",
   headline:
-    "The practice OS for architects and designers who are tired of chasing their own record.",
+    "From chaos to clarity. One living record for the practice.",
   footerBlurb:
-    "AORMS is the Architecture Office Resource Management System — built by Holagundi Consulting Works in Hospet, Karnataka, for Indian architectural and interior design consultancies.",
+    "AORMS is the Architecture Office Resource Management System — built by Holagundi Consulting Works in Hospet, Karnataka, for Indian architectural and interior design consultancies. Fee recovery and MoM-led revisions on one living record.",
   canonical: "https://aorms.in/",
   siteName: "AORMS",
   wikiUrl: "https://wiki.aorms.in/",
@@ -27,6 +27,11 @@ export const LANDING_FAQ = [
       "Registered architects, interior designers and architectural consultancy practices in India — from solo studios to mid-sized firms. One standard licence with unlimited users.",
   },
   {
+    question: "How does fee recovery work?",
+    answer:
+      "AORMS shows what is ready to invoice, the next COA payment stage, incoming receipts and due dates on the project record. GST invoices and filing reminders stay on the same trail — so money tracking is not a side spreadsheet.",
+  },
+  {
     question: "How much does AORMS cost?",
     answer:
       "Every new account includes 5 GB of cloud storage and the full workspace. You pay for additional storage (per GB-month) and for hosted AI usage, or bring your own OpenAI-compatible API key for Ask ESTI and AI Studio.",
@@ -34,7 +39,7 @@ export const LANDING_FAQ = [
   {
     question: "Is there a desktop app to download?",
     answer:
-      "No. AORMS runs entirely in the browser at aorms.in. Drawings, finance, specification catalogues, and portals are all inside the same cloud workspace.",
+      "No. AORMS runs entirely in the browser at aorms.in. Drawings, finance, portals and studio intelligence are all inside the same cloud workspace.",
   },
   {
     question: "Where is the documentation?",
@@ -42,14 +47,19 @@ export const LANDING_FAQ = [
       "The official AORMS Wiki at wiki.aorms.in covers getting started, workflows, finance, and account setup.",
   },
   {
+    question: "How does client revision management work?",
+    answer:
+      "The client schedules a meeting; discussion becomes minutes of meeting. ESTI extracts implied revisions and the client submits a revision request. The architect marks criticality and implications, the client approves — then changes proceed on drawings and site with a dated trail.",
+  },
+  {
     question: "Can I use my own AI API key?",
     answer:
-      "Yes. In Company → AI you can set an OpenAI-compatible endpoint and API key. AORMS prefers your provider for better performance; hosted usage is not metered while BYO is active.",
+      "Yes. In Company → AI you can set an OpenAI-compatible endpoint and API key. AORMS prefers your provider for better performance; hosted usage is not metered while BYO is active. ESTI also extracts revision items from minutes of meeting.",
   },
   {
     question: "What does AORMS help an architecture firm manage?",
     answer:
-      "Client revisions, project phases, drawing transmittals and approvals, COA fee proposals, GST invoicing and reconciliation, consultant and contractor coordination, team workload, specification catalogues, and ESTI AI-assisted office reasoning.",
+      "Fee recovery (invoice-ready work, payment stages, receipts, due dates), MoM-led client revisions, project phases, drawing transmittals and approvals, COA fee proposals, GST invoicing and reconciliation, consultant and contractor coordination, studio load, and ESTI AI-assisted office reasoning.",
   },
 ] as const;
 
@@ -123,7 +133,7 @@ export function injectLandingJsonLd(): void {
         url: "https://aorms.in",
         description: LANDING_SEO.description,
         featureList:
-          "project management, COA fee proposals, drawing transmittals, revision intelligence, GST billing, 26AS/AIS/GSTR reconciliation, HR and payroll, ASPRF team performance, client and consultant portals, Studio Intelligence, Ask ESTI, AI Studio, BYO AI API key, specification catalogues",
+          "fee recovery, invoice-ready work, COA payment stages, GST billing, due-date reminders, minutes of meeting, ESTI revision extraction, client revision approval, drawing transmittals, studio load, client and consultant portals, Studio Intelligence, Ask ESTI, AI Studio, BYO AI API key",
         audience: {
           "@type": "Audience",
           audienceType: "Indian architects, interior designers and architectural consultancies",

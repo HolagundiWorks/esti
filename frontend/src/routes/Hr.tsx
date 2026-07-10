@@ -19,6 +19,7 @@ import { LEAVE_TYPES, type LeaveTypeCode, formatINR, parseRupeeInput } from "@es
 import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { useNavigate } from "react-router-dom";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { PayslipPdfCell } from "../components/PayslipPdfCell.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -103,8 +104,9 @@ export function Hr() {
   });
 
   useScreenActions(
-    tab === 0
-      ? [
+    lvOpen || pyOpen || tab !== 0
+      ? []
+      : [
           {
             id: "open-register",
             zone: "right",
@@ -130,9 +132,8 @@ export function Hr() {
             disabled: team.length === 0,
             onClick: () => setPyOpen(true),
           },
-        ]
-      : [],
-    [tab, team.length, navigate],
+        ],
+    [lvOpen, pyOpen, tab, team.length, navigate],
   );
 
   const leaveColumns: GridColDef[] = [
@@ -255,6 +256,7 @@ export function Hr() {
           </Tabs>
         }
       >
+      <PageBreadcrumb items={[{ label: "Teams" }, { label: "HR" }]} />
       {/* ── Operations panel ── */}
       {tab === 0 && (
         <Stack spacing={3}>

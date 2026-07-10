@@ -1,7 +1,7 @@
 ---
-title: How architecture firms can track design revisions without workflow chaos
+title: How to track design revisions without workflow chaos
 date: 2026-06-18
-excerpt: Revisions are the work, not a failure — but tracking them in file names, email threads, and memory creates chaos. A complete, practical system for tracking every design revision cleanly.
+excerpt: Revisions are the work, not a failure — but tracking them in file names, email threads, and memory loses fees and causes disputes. A complete, practical system for tracking every design revision cleanly, for studios of any size.
 tags: Revisions, Workflow
 author: Holagundi Consulting Works
 ---

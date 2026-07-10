@@ -30,11 +30,17 @@ import {
 } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
+import SaveOutlined from "@mui/icons-material/SaveOutlined";
+import { useScreenActions } from "@hcw/ui-kit";
 import { useCapabilities } from "../lib/capabilities.js";
 import { derivePhaseStageStatus, PHASE_STAGE_TAG } from "../lib/currentPhase.js";
+import { pushToast } from "../lib/toast.js";
 import { trpc } from "../lib/trpc.js";
 import { CurrentPhaseSelect } from "./CurrentPhaseSelect.js";
 import { ProjectEngagements } from "./ProjectEngagements.js";
+import { ProjectFloorsPanel } from "./ProjectFloorsPanel.js";
+import { ProjectStructuralDefaultsPanel } from "./ProjectStructuralDefaultsPanel.js";
 import { StatusDot, StatusTag } from "./StatusTag.js";
 
 const ACTIVITY_TAG: Record<
@@ -85,6 +91,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
       utils.projectOffice.byId.invalidate({ id: projectId });
       utils.projectOffice.list.invalidate();
       setMsg("Project updated");
+      pushToast({ kind: "success", title: "Project updated" });
     },
   });
 
@@ -96,6 +103,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
       utils.projectOffice.activationStatus.invalidate({ id: projectId });
       setStatusDraft("");
       setMsg("Project status updated");
+      pushToast({ kind: "success", title: "Status updated" });
     },
   });
 
@@ -112,6 +120,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   const remove = trpc.projectOffice.remove.useMutation({
     onSuccess: () => {
       utils.projectOffice.list.invalidate();
+      pushToast({ kind: "success", title: "Project archived" });
       navigate("/projects");
     },
   });
@@ -122,6 +131,78 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   }
 
   const p = projectQ.data;
+  const savedPmc = (p as { pmcEnabled?: boolean } | undefined)?.pmcEnabled ?? false;
+  const pmcDirty = firmPmcEnabled && pmcEnabled !== savedPmc;
+
+  useScreenActions(
+    [
+      ...(canProjectDelete
+        ? [
+            {
+              id: "archive-project",
+              zone: "left" as const,
+              tone: "danger" as const,
+              label: "Archive",
+              icon: <DeleteOutlined />,
+              onClick: () => setConfirmDelete(true),
+            },
+          ]
+        : []),
+      ...(statusDraft
+        ? [
+            {
+              id: "update-status",
+              zone: "right" as const,
+              tone: "primary" as const,
+              label: updateStatus.isPending ? "Updating…" : "Update status",
+              icon: <SaveOutlined />,
+              disabled: updateStatus.isPending,
+              onClick: () => {
+                if (statusDraft) updateStatus.mutate({ id: projectId, status: statusDraft });
+              },
+            },
+          ]
+        : pmcDirty
+          ? [
+              {
+                id: "save-pmc",
+                zone: "right" as const,
+                tone: "primary" as const,
+                label: update.isPending ? "Saving…" : "Save PMC",
+                icon: <SaveOutlined />,
+                disabled: update.isPending || !p,
+                onClick: () => {
+                  if (!p) return;
+                  update.mutate({
+                    id: projectId,
+                    title: p.title,
+                    status: p.status as ProjectStatus,
+                    projectType: p.projectType as (typeof ProjectType.options)[number],
+                    workType: ((p as { workType?: string }).workType ?? "ARCHITECTURE") as
+                      | "ARCHITECTURE"
+                      | "INTERIOR"
+                      | "LANDSCAPE"
+                      | "MISC",
+                    jurisdiction: p.jurisdiction as (typeof Jurisdiction.options)[number],
+                    dateStart: p.dateStart ?? null,
+                    pmcEnabled,
+                  });
+                },
+              },
+            ]
+          : []),
+    ],
+    [
+      canProjectDelete,
+      statusDraft,
+      pmcDirty,
+      pmcEnabled,
+      update.isPending,
+      updateStatus.isPending,
+      p,
+      projectId,
+    ],
+  );
 
   return (
     <Box sx={{ mt: 2 }}>
@@ -181,23 +262,18 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
                       {updateStatus.error.message}
                     </Alert>
                   )}
-                  <div>
-                    <Button
-                      variant="contained"
-                      disabled={!statusDraft || updateStatus.isPending}
-                      onClick={() => {
-                        if (statusDraft) updateStatus.mutate({ id: projectId, status: statusDraft });
-                      }}
-                    >
-                      Update status
-                    </Button>
-                  </div>
+                  <Typography variant="caption" color="text.secondary">
+                    Use the Action Dock (bottom) to commit the status change.
+                  </Typography>
                 </>
               );
             })()}
           </Stack>
         </Box>
       )}
+
+      <ProjectFloorsPanel projectId={projectId} />
+      <ProjectStructuralDefaultsPanel projectId={projectId} />
 
       {firmPmcEnabled && (
       <Box sx={{ maxWidth: 640, p: 2, mt: 2 }}>
@@ -215,28 +291,11 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
             }
             label="PMC on this project"
           />
-          <div>
-            <Button
-              variant="contained"
-              disabled={update.isPending || !projectQ.data}
-              onClick={() => {
-                const p = projectQ.data;
-                if (!p) return;
-                update.mutate({
-                  id: projectId,
-                  title: p.title,
-                  status: p.status as ProjectStatus,
-                  projectType: p.projectType as (typeof ProjectType.options)[number],
-                  workType: ((p as { workType?: string }).workType ?? "ARCHITECTURE") as "ARCHITECTURE" | "INTERIOR" | "LANDSCAPE" | "MISC",
-                  jurisdiction: p.jurisdiction as (typeof Jurisdiction.options)[number],
-                  dateStart: p.dateStart ?? null,
-                  pmcEnabled,
-                });
-              }}
-            >
-              Save PMC setting
-            </Button>
-          </div>
+          {pmcDirty && (
+            <Typography variant="caption" color="text.secondary">
+              Use the Action Dock (bottom) to save the PMC setting.
+            </Typography>
+          )}
         </Stack>
       </Box>
       )}
@@ -404,11 +463,9 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
           <Typography variant="body2" sx={{ mt: 1, mb: 1.5 }}>
             Archive this project from active work while retaining its phases,
             fees, invoices, drawings, estimates, and audit history. Authorized
-            managers can restore it later.
+            managers can restore it later. Use the Action Dock (left) to start
+            archive.
           </Typography>
-          <Button variant="contained" color="error" onClick={() => setConfirmDelete(true)}>
-            Archive project
-          </Button>
         </Box>
       )}
 

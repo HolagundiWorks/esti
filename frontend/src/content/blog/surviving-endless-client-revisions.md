@@ -1,7 +1,7 @@
 ---
-title: Why every architect feels like they're drawing the same project twice
-date: 2026-06-24
-excerpt: Revision frustration isn't a client problem or a discipline problem — it's an information problem. Here's why endless revisions feel inevitable, and how to turn them from a source of resentment into a record you control.
+title: Revisions aren't the problem — the missing record is
+date: 2026-07-10
+excerpt: Every architect feels the weight of drawing the same project twice. It is not a client problem or a discipline problem — it is a record problem. And records can be built.
 tags: Revisions, Practice
 author: Holagundi Consulting Works
 ---
@@ -13,8 +13,11 @@ You can't prove it. You make the change. And a little more of your goodwill, you
 your enthusiasm for the project quietly drains away.
 
 Most architects call this **revision frustration** and treat it as the weather — something
-that happens to you, that you endure. It isn't. It is an information problem, and
-information problems can be solved.
+that happens to you, that you endure. It isn't. It is a record problem: no log of what was
+requested, no category to show whether the change was minor or a re-plan, no link between
+the request and the fee that should have moved with it. Record problems can be fixed —
+and the fix is not a stricter client or a more disciplined team. It is a workflow where
+every change has a source, a weight, and an approval before the drawings move.
 
 ## Why it feels inevitable
 

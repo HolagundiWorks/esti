@@ -1,19 +1,19 @@
 ---
-title: Where architecture firms quietly lose revenue
+title: Fee recovery for architecture practices: five places your billing goes missing
 date: 2026-07-04
-excerpt: Fee leakage in an architecture practice is rarely theft or bad pricing — it is small and invisible. Five places money leaks, and how a record closes each.
+excerpt: Earned fees slip away before an invoice is raised — staged billing gaps, unlogged client changes, approval delays, and more. Five leakage points in a design practice, and how a live record closes each.
 tags: Finance, Practice
 author: Holagundi Consulting Works
 ---
 
-When a practice has a thin year, the instinct is to blame the obvious things: fees quoted
-too low, a slow market, a client who did not pay. Those happen. But for most Indian
-architecture practices the larger loss is quieter — not money stolen or badly priced, but
-money genuinely earned that never turned into an invoice. It seeps out one reasonable decision
-at a time, in places that never show on a profit statement because the loss is an *absence*.
-This article walks through the five most common leakage points in a design-led practice, and
-the one cheap habit that closes them all: recording a fact the moment it happens, while there
-is time to bill it.
+Fee recovery is the discipline of turning delivered work into a raised invoice — and for most
+Indian architecture practices, the gap between what was delivered and what was billed is the
+single largest controllable loss in the firm. It is rarely a pricing failure. The fees were
+agreed; the stages were completed; the client was satisfied. What went missing was the record:
+a stage never marked complete, a client-driven change never logged, an approval never tied to
+a payment milestone. This article traces the five most common gaps in fee recovery for a
+design-led practice, and the one habit that closes them all — recording the fact at the moment
+it happens, while there is still time to raise the invoice.
 
 ## 1. Client revisions you absorb for free
 

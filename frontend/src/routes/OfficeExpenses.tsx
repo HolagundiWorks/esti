@@ -29,6 +29,7 @@ import { useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import { useScreenActions } from "@hcw/ui-kit";
 import { AccountsCarryForward } from "../components/accounting/AccountsCarryForward.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -301,8 +302,9 @@ export function OfficeExpenses() {
   const [open, setOpen] = useState(false);
 
   useScreenActions(
-    canManage
-      ? [
+    open || !canManage
+      ? []
+      : [
           {
             id: "new-expense",
             zone: "center",
@@ -311,9 +313,8 @@ export function OfficeExpenses() {
             icon: <AddIcon />,
             onClick: () => setOpen(true),
           },
-        ]
-      : [],
-    [canManage],
+        ],
+    [open, canManage],
   );
 
   return (
@@ -327,6 +328,7 @@ export function OfficeExpenses() {
           </Stack>
         }
       >
+        <PageBreadcrumb items={[{ label: "Office" }, { label: "Office Expenses" }]} />
         {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
         {listQ.data && (
           <ExpenseTable rows={listQ.data as ExpenseRow[]} canManage={canManage} canAudit={canAudit} />
@@ -355,8 +357,9 @@ export function CashBook() {
   const [open, setOpen] = useState(false);
 
   useScreenActions(
-    canManage
-      ? [
+    open || !canManage
+      ? []
+      : [
           {
             id: "new-cash-voucher",
             zone: "center",
@@ -365,9 +368,8 @@ export function CashBook() {
             icon: <AddIcon />,
             onClick: () => setOpen(true),
           },
-        ]
-      : [],
-    [canManage],
+        ],
+    [open, canManage],
   );
 
   return (
@@ -387,6 +389,7 @@ export function CashBook() {
           </Stack>
         }
       >
+        <PageBreadcrumb items={[{ label: "Office" }, { label: "Cashbook" }]} />
         {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
         {listQ.data && (
           <ExpenseTable rows={listQ.data as ExpenseRow[]} canManage={canManage} canAudit={canAudit} />

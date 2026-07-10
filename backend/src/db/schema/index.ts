@@ -12,6 +12,8 @@ export * from "./compliance.js";
 export * from "./master-plan.js";
 export * from "./standards.js";
 export * from "./spec-catalog.js";
+export * from "./item-library.js";
+export * from "./measurement-plan.js";
 export * from "./vendor.js";
 export * from "./collaboration.js";
 export * from "./hr-work.js";

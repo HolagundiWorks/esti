@@ -14,6 +14,7 @@ import { formatINR, parseRupeeInput } from "@esti/contracts";
 import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
@@ -36,18 +37,20 @@ export function Payroll() {
   const [open, setOpen] = useState(false);
 
   useScreenActions(
-    [
-      {
-        id: "generate-payslip",
-        zone: "center",
-        tone: "primary",
-        label: "Generate payslip",
-        icon: <AddIcon />,
-        disabled: team.length === 0,
-        onClick: () => setOpen(true),
-      },
-    ],
-    [team.length],
+    open
+      ? []
+      : [
+          {
+            id: "generate-payslip",
+            zone: "center",
+            tone: "primary",
+            label: "Generate payslip",
+            icon: <AddIcon />,
+            disabled: team.length === 0,
+            onClick: () => setOpen(true),
+          },
+        ],
+    [open, team.length],
   );
 
   const [py, setPy] = useState({ teamMemberId: "", month: "", gross: "", deductions: "" });
@@ -133,6 +136,7 @@ export function Payroll() {
         title="Payroll"
         description="Monthly payslips — gross, deductions and net pay."
       >
+        <PageBreadcrumb items={[{ label: "Office" }, { label: "Payroll" }]} />
         <DataState
           loading={payrollQ.isLoading}
           isEmpty={rows.length === 0}

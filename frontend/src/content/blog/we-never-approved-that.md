@@ -1,7 +1,7 @@
 ---
 title: "We never approved that": the four words that cost architects the most
 date: 2026-06-22
-excerpt: Most architect-client disputes come down to one unprovable claim about what was approved. The fix isn't a better memory or a sterner email — it's an approval record that can't be argued with.
+excerpt: Most architect-client disputes compress into four words. The fix is not a better memory or a sterner email — it is an approval record that cannot be argued with, starting from the minutes of meeting where the change was first discussed.
 tags: Approvals, Practice
 author: Holagundi Consulting Works
 ---
@@ -37,7 +37,12 @@ There are three weaknesses hiding in that flow:
 
 You can't solve this by being more diligent about saving emails, any more than you can
 solve a leaking roof by mopping faster. The fix is to make approval a *structured event*
-rather than a conversational one.
+rather than a conversational one — and the chain starts earlier than most practices
+realise: at the minutes of meeting where changes are first discussed. When ESTI converts
+those minutes into formal revision requests the client reviews and submits, and the
+practice then marks criticality and the client approves the implications, the approval
+record already exists before the drawing ever changes. By the time a transmittal issues,
+there is nothing left to dispute.
 
 A real approval record answers, immutably:
 

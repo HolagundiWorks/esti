@@ -32,11 +32,11 @@ export function HeaderPomodoro() {
       <Tooltip title={`Focus timer${pomActive ? ` · ${fmtPomTime(pom.timeLeft)}` : ""} (Alt+T)`}>
         <IconButton
           ref={btnRef}
-          size="small"
           color={open ? "primary" : "default"}
           className={pomActive ? "esti-header-pom--active" : undefined}
           aria-label="Focus timer"
           onClick={() => setOpen((o) => !o)}
+          sx={{ width: 44, height: 44 }}
         >
           <TimerOutlined />
         </IconButton>

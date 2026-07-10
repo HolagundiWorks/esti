@@ -1,15 +1,15 @@
 ---
-title: Revision intelligence — turning "endless revisions" into data
+title: Revision intelligence — turning client-driven changes into billable data
 date: 2026-06-10
-excerpt: Not all revisions are equal. AORMS classifies every change by category and source, so client scope creep and internal errors stop hiding in the same number.
+excerpt: Not all revisions are equal. AORMS classifies every change by category and source, so client scope creep, fee implications, and internal errors stop hiding in the same number.
 tags: Product, Finance
 author: Holagundi Consulting Works
 ---
 
-Every practice complains about revisions, but almost none can answer the
+Every practice knows the weight of revisions, but almost none can answer the
 question that matters: *were these revisions our fault, the client's, or the
-brief's?* Without that answer, scope creep is invisible and quality problems are
-unaccountable.
+brief's?* Without that answer, scope creep is invisible, fee recovery is
+guesswork, and quality problems are unaccountable.
 
 AORMS makes every revision carry two dimensions.
 

@@ -1,7 +1,7 @@
 ---
 title: How better revision tracking prevents scope creep in architecture projects
 date: 2026-07-09
-excerpt: Scope creep is cumulative — individual reasonable requests that never get logged. Revision tracking makes the total visible before the fee leaks away.
+excerpt: Scope creep is cumulative — individually reasonable requests that are never logged. Revision tracking makes the total visible while there is still fee to recover and a conversation worth having.
 tags: Revisions, Practice, Workflow
 author: Holagundi Consulting Works
 ---
@@ -9,10 +9,11 @@ author: Holagundi Consulting Works
 Scope creep rarely arrives as one dramatic demand. It arrives as a dozen small,
 reasonable requests — each easy to say yes to, none dramatic enough to trigger a
 fee conversation. By handover, the delivered project is larger than the brief, and
-the margin is gone.
+the fee recovery opportunity has quietly closed.
 
 **Revision tracking** does not make clients easier. It makes the **accumulating total**
-visible while you can still act on it.
+visible while you can still act on it — and keeps fee recovery tied to changes rather
+than recovered, badly, at project close.
 
 ## Why individual requests hide the total
 

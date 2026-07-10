@@ -17,6 +17,7 @@ import {
   Receipt,
   Assessment as Report,
   Rule,
+  Straighten,
   Store,
   Terminal,
   Build as Tools,
@@ -31,7 +32,7 @@ import {
   type ComponentType,
   type LazyExoticComponent,
 } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { can, ROLE_RANK, isStaffRole } from "@esti/contracts";
 import { ThemeContext } from "./lib/theme-context.js";
 import { isLandingSlug } from "./lib/landing-slugs.js";
@@ -101,6 +102,7 @@ const CashBook = lazyRoute(() => import("./routes/OfficeExpenses.js"), "CashBook
 const Proposals = lazyRoute(() => import("./routes/Proposals.js"), "Proposals");
 const Leads = lazyRoute(() => import("./routes/Leads.js"), "Leads");
 const SpecCatalogLibrary = lazyRoute(() => import("./routes/SpecCatalogLibrary.js"), "SpecCatalogLibrary");
+const ItemLibraryLibrary = lazyRoute(() => import("./routes/ItemLibraryLibrary.js"), "ItemLibraryLibrary");
 const ComplianceLibrary = lazyRoute(() => import("./routes/ComplianceLibrary.js"), "ComplianceLibrary");
 const MasterPlanLibrary = lazyRoute(() => import("./routes/MasterPlanLibrary.js"), "MasterPlanLibrary");
 const StandardsLibrary = lazyRoute(() => import("./routes/StandardsLibrary.js"), "StandardsLibrary");
@@ -133,6 +135,16 @@ const SystemAdmin = lazyRoute(() => import("./routes/SystemAdmin.js"), "SystemAd
 
 
 // ─── App ──────────────────────────────────────────────────────────────────────
+
+function EstimationToMeasurementRedirect() {
+  const { projectId } = useParams();
+  return (
+    <Navigate
+      to={projectId ? `/projects/${projectId}?tab=measurement` : "/projects"}
+      replace
+    />
+  );
+}
 
 export function App() {
   return (
@@ -297,10 +309,9 @@ function AppShell() {
       </Routes>
     );
 
-  // Navigation tree — the Canonical V3 nav (Dashboard · Projects · Tasks · Studio ·
-  // Third Parties · Office · Finance · LXOS · Admin). Spec: docs/esti/NAVIGATION.md.
-  // A node is either a leaf `link` or a `menu` (collapsible; may nest, e.g. Studio ›
-  // Libraries). Search is a header utility; AI Studio is a top-level sidebar entry.
+  // Navigation tree — ribbon: Projects · Teams · Office. Library / Third Parties /
+  // Admin live in the ribbon hamburger. Studio · Tasks · Search live in the footer.
+  // Spec: docs/esti/NAVIGATION.md (synced 2026-07-10).
   type NavLink = { label: string; to: string; icon?: ComponentType<any> };
   type NavNode =
     | (NavLink & { kind?: "link" })
@@ -316,11 +327,14 @@ function AppShell() {
       )
       .filter((n) => !("items" in n) || n.items.length > 0);
 
-  // Top ribbon nav — three sections only: Projects · Teams · Office (Finance
-  // folded into Office). Library, Third Parties and the admin/system items move
-  // to the header admin menu (adminGroups below). See docs/esti/NAVIGATION.md.
+  // Ribbon: Projects · Clients · Teams · Office. Remaining Third Parties + Library
+  // + Admin live in the hamburger. Studio · Tasks · Search live in the footer.
+  // Spec: docs/esti/NAVIGATION.md.
   const nav: NavNode[] = prune([
     { label: "Projects", to: "/projects", icon: Building },
+    ...(can(user.role, "write")
+      ? [{ label: "Clients", to: "/clients", icon: User }]
+      : []),
     {
       kind: "menu",
       label: "Teams",
@@ -367,14 +381,11 @@ function AppShell() {
     },
   ]);
 
-  // Admin menu icon in the header ribbon; grouped: Third Parties, Library, system.
+  // Admin hamburger: remaining Third Parties, Library, system.
   const adminGroups: { heading: string; items: NavLink[] }[] = [
     {
       heading: "Third Parties",
       items: [
-        ...(can(user.role, "write")
-          ? [{ label: "Clients", to: "/clients", icon: User }]
-          : []),
         ...(atLeast(60)
           ? [
               { label: "Consultants", to: "/consultants", icon: UserProfile },
@@ -388,6 +399,7 @@ function AppShell() {
       heading: "Library",
       items: [
         { label: "Specification catalogue", to: "/libraries/spec-catalog", icon: ListChecked },
+        { label: "Standard items", to: "/libraries/items", icon: Straighten },
         { label: "Compliance Library", to: "/libraries/compliance", icon: Rule },
         { label: "Master Plan Library", to: "/libraries/master-plans", icon: MapIcon },
         { label: "Standards Library", to: "/libraries/standards", icon: Book },
@@ -410,11 +422,14 @@ function AppShell() {
     <ThemeContext.Provider value="white">
       <ActionDockProvider>
         <div className={`esti-app-shell2${user.isDemo ? " esti-app-shell--demo" : ""}${isStudioHome ? " esti-app-shell2--studio-home" : ""}`}>
+          <a href="#esti-main" className="esti-skip-link">
+            Skip to main content
+          </a>
           <AormsLogo variant="watermark" className="esti-app-logo-float" />
           {/* Ribbon — floating top-right; rails and stage start below the header line. */}
           <AppRibbon nav={nav} firmName={firmName} adminGroups={adminGroups} variant="float" />
           <div className={`esti-app-content2${isStudioHome ? " esti-app-content2--flush-top" : ""}`}>
-            <main className="esti-grow">
+            <main id="esti-main" className="esti-grow" tabIndex={-1}>
               {licenseBlocked && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                   <AlertTitle>Workspace licence required</AlertTitle>
@@ -431,9 +446,13 @@ function AppShell() {
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
                 <Route path="/libraries/spec-catalog" element={<SpecCatalogLibrary />} />
+                <Route path="/libraries/items" element={<ItemLibraryLibrary />} />
                 <Route path="/knowledge-bank" element={<Navigate to="/libraries/spec-catalog" replace />} />
                 <Route path="/estimation" element={<Navigate to="/projects" replace />} />
-                <Route path="/estimation/:projectId" element={<Navigate to="/projects" replace />} />
+                <Route
+                  path="/estimation/:projectId"
+                  element={<EstimationToMeasurementRedirect />}
+                />
                 <Route path="/libraries/estimates" element={<Navigate to="/projects" replace />} />
                 <Route path="/libraries/compliance" element={<ComplianceLibrary />} />
                 <Route path="/libraries/master-plans" element={<MasterPlanLibrary />} />
@@ -555,8 +574,8 @@ function AppShell() {
           {/* HCW-UI-Kit global action dock — screens publish CTAs via useScreenActions;
               renders nothing until they do (zero regression until adopted). */}
           <ActionDock />
-          {/* Taskbar footer (HCW-UI-Kit) — the former floating dock's widgets now
-              live here: launcher icons LEFT, search centred, tray + clock RIGHT. */}
+          {/* Taskbar footer (HCW-UI-Kit) — launchers CENTRE (Studio · Tasks · Search ·
+              Ask ESTI · Wellness · Pomodoro), tray RIGHT. */}
           <AppFooterBar
             planClass="esti-app-header--pro"
             onSignOut={() => logout.mutate()}

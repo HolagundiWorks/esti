@@ -29,6 +29,7 @@ import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusTag } from "../components/StatusTag.js";
@@ -49,19 +50,23 @@ export function Leads() {
 
   // Create lead
   const [open, setOpen] = useState(false);
+  // Convert lead
+  const [convertId, setConvertId] = useState<string | null>(null);
 
   useScreenActions(
-    [
-      {
-        id: "new-lead",
-        zone: "center",
-        tone: "primary",
-        label: "New lead",
-        icon: <AddIcon />,
-        onClick: () => setOpen(true),
-      },
-    ],
-    [],
+    open || !!convertId
+      ? []
+      : [
+          {
+            id: "new-lead",
+            zone: "center",
+            tone: "primary",
+            label: "New lead",
+            icon: <AddIcon />,
+            onClick: () => setOpen(true),
+          },
+        ],
+    [open, convertId],
   );
 
   const blank = {
@@ -81,8 +86,6 @@ export function Leads() {
 
   const setStatus = trpc.leads.setStatus.useMutation({ onSuccess: inv });
 
-  // Convert lead
-  const [convertId, setConvertId] = useState<string | null>(null);
   const [conv, setConv] = useState({ projectTitle: "", projectType: "", workType: "ARCHITECTURE", clientId: "" });
   const convert = trpc.leads.convert.useMutation({
     onSuccess: () => { inv(); setConvertId(null); },
@@ -213,6 +216,7 @@ export function Leads() {
           </Tabs>
         }
       >
+        <PageBreadcrumb items={[{ label: "Leads" }]} />
         {tab === 0 && (
         <DataState
           loading={listQ.isLoading}

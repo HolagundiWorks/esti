@@ -13,6 +13,7 @@ import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { StatusDot } from "../components/StatusTag.js";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { useUploadAuth } from "../lib/uploadAuth.js";
@@ -158,6 +159,7 @@ export function MasterPlanLibrary() {
         </Stack>
       }
     >
+      <PageBreadcrumb items={[{ label: "Library" }, { label: "Master Plans" }]} />
       <DataState
         loading={listQ.isLoading}
         isEmpty={(listQ.data ?? []).length === 0}

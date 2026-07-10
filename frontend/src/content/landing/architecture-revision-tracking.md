@@ -1,11 +1,11 @@
 ---
 title: Architecture Revision Tracking
-metaTitle: Architecture Revision Tracking Software for Design Teams
-metaDescription: Track every architecture revision by category and source, see its cost and timeline impact, and stop scope creep. AORMS revision intelligence for Indian practices.
+metaTitle: Architecture Revision Tracking — Category, Source & Approval Trail
+metaDescription: Architecture revision tracking that records every change with its category, source and client-approved implications — MoM to ESTI extract to architect assessment to client approval before site work proceeds.
 keyword: architecture revision management
 category: moat
-updated: 2026-06-24
-intro: Every revision recorded with its category, its source, and its impact — so change stops being the invisible cost that quietly erodes a project's fee.
+updated: 2026-07-10
+intro: Every revision recorded with its category, its source, the architect's assessment of implications and the client's approval — so change stops being the invisible cost that quietly erodes a project's fee.
 ---
 
 Revisions are where architecture projects leak money. A client asks for "a small
@@ -66,14 +66,20 @@ client portal, the chain stays intact: a client decision in the portal becomes a
 classified revision, which links to the drawing it changed and the fee impact it
 carried. Nothing falls between systems.
 
-## Revisions and the client portal
+## Revisions, the portal and the approval chain
 
-Clients submit decisions through their portal. When a decision implies a Major or
-Critical revision, the warning is shown *before* acceptance — the client sees that
-the change may move the timeline, the cost or the scope. This single moment of
-honesty does more to control scope creep than any amount of after-the-fact
-explanation, because it reframes change from "free" to "a choice with a price,"
-agreed by both sides.
+The revision record begins well before a drawing is changed. Meeting minutes are
+issued to the client portal. ESTI extracts each change discussed as a draft
+revision request. The client reviews and submits the real ones. The architect then
+marks the final **criticality** (Minor, Major or Critical) and records the
+**implications** — cost, timeline, scope, billability. The client receives a
+notification and **approves the architect's assessment** through the portal. Only
+after that approval does the change proceed to site or drawing work.
+
+This sequence turns the revision from an informal instruction into a documented,
+agreed event. The client's approval is timestamped, attached to the project record,
+and feeds directly into revision intelligence — so the pattern across the project is
+accurate rather than reconstructed from memory.
 
 ## Billing the change you can finally see
 
@@ -100,10 +106,11 @@ all three. Recording the source makes each one actionable.
 
 ### Can revision tracking reduce scope creep?
 
-Yes. When a client submits a decision through the portal that implies a Major or
-Critical revision, AORMS shows the timeline, cost and scope warning before they
-accept. Reframing change as a choice with a price — agreed up front — controls scope
-creep far better than explaining the cost afterwards.
+Yes. Every revision goes through a deliberate sequence before it reaches the team:
+the client submits the request, the architect marks criticality and implications,
+and the client approves that assessment. Reframing change as "a choice with recorded
+consequences, agreed by both sides" — before any drawing work begins — controls
+scope creep far more effectively than explaining the cost afterwards.
 
 ### Does revision tracking connect to billing?
 

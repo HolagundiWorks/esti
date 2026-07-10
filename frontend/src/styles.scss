@@ -126,6 +126,29 @@ body,
   min-width: 0;
 }
 
+/* WCAG 2.4.1 — skip link; visible on keyboard focus only. */
+.esti-skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 10000;
+  padding: 0.5rem 1rem;
+  background: var(--cds-background, #fff);
+  color: var(--cds-text-primary, #141517);
+  border: 1px solid var(--cds-border-strong, rgba(20, 21, 23, 0.2));
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform 0.15s ease;
+}
+.esti-skip-link:focus {
+  transform: translateY(0);
+  outline: 2px solid var(--cds-link-primary, #3b5568);
+  outline-offset: 2px;
+}
+
 // Horizontal tile headers (title + tag/arrow) — layout only; spacing-05 (16px).
 .esti-row {
   display: flex;

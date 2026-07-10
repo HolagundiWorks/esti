@@ -22,6 +22,7 @@ import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
@@ -81,17 +82,19 @@ export function Contractors() {
   };
 
   useScreenActions(
-    [
-      {
-        id: "new-contractor",
-        zone: "center",
-        tone: "primary",
-        label: "New contractor",
-        icon: <AddIcon />,
-        onClick: () => setForm({ ...EMPTY }),
-      },
-    ],
-    [],
+    form !== null || rating !== null
+      ? []
+      : [
+          {
+            id: "new-contractor",
+            zone: "center",
+            tone: "primary",
+            label: "New contractor",
+            icon: <AddIcon />,
+            onClick: () => setForm({ ...EMPTY }),
+          },
+        ],
+    [form, rating],
   );
 
   const columns: GridColDef[] = [
@@ -241,6 +244,7 @@ export function Contractors() {
           </Stack>
         }
       >
+      <PageBreadcrumb items={[{ label: "Third Parties" }, { label: "Contractors" }]} />
       {listQ.error && (
         <Alert severity="error">{listQ.error.message}</Alert>
       )}

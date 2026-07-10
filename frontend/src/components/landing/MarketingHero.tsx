@@ -1,30 +1,41 @@
+import type { CSSProperties } from "react";
+
 const SIGNALS = [
-  "Unlimited users, clients and projects",
-  "5 GB storage included — usage-based AI",
-  "One cloud workspace — no installs",
+  "Invoice-ready work, payment stages and due dates — on one record",
+  "Revisions raised from minutes of meeting — verified, then on site",
+  "Studio load you can see before someone is overloaded",
 ] as const;
 
+/**
+ * Hero — brand first, one composition. CTAs live in the ActionDock.
+ */
 export function MarketingHero() {
   return (
     <section className="lp2-hero-wrap" id="top" aria-labelledby="lp2-h1">
       <div className="lp2-hero">
-        <p className="lp2-hero__eyebrow">
-          Architecture Office Resource Management System
+        <p className="lp2-hero__brand lp2-hero-anim" style={{ "--lp-i": 0 } as CSSProperties}>
+          AORMS
         </p>
 
-        <h1 id="lp2-h1" className="lp2-hero__h1">
-          Run your practice with the same discipline as your drawings.
+        <h1 id="lp2-h1" className="lp2-hero__h1 lp2-hero-anim" style={{ "--lp-i": 1 } as CSSProperties}>
+          From chaos to clarity.
+          <span className="lp2-hero__h1-line">One living record for the practice.</span>
         </h1>
 
-        <p className="lp2-hero__sub">
-          One cloud workspace for Indian architects and interior designers —
-          projects, fee recovery, revision intelligence, GST and team, in a single record.
+        <p className="lp2-hero__sub lp2-hero-anim" style={{ "--lp-i": 2 } as CSSProperties}>
+          Fees, MoM-led revisions, GST and studio load stop living in folders,
+          chats and spreadsheets — and share a single cloud workspace shaped for
+          how Indian architecture studios actually work.
         </p>
 
-        <ul className="lp2-hero__signals" aria-label="Key facts">
-          {SIGNALS.map((s) => (
-            <li key={s}>
-              <span className="lp2-dot lp2-dot--orange" aria-hidden />
+        <ul className="lp2-hero__signals" aria-label="What gets clearer">
+          {SIGNALS.map((s, i) => (
+            <li
+              key={s}
+              className="lp2-hero-anim"
+              style={{ "--lp-i": 3 + i } as CSSProperties}
+            >
+              <span className="lp2-dot lp2-dot--orange lp2-dot--pulse" aria-hidden />
               {s}
             </li>
           ))}

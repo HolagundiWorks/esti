@@ -19,6 +19,9 @@ export { createAormsTheme, aormsTheme } from "./theme.js";
 export { MuiRoot } from "./MuiRoot.js";
 export { BrandMark } from "./BrandMark.js";
 export { Surface } from "./Surface.js";
+export { GlassRail } from "./GlassRail.js";
+export { HealthGlassOrb } from "./HealthGlassOrb.js";
+export type { HealthZoneState } from "./HealthGlassOrb.js";
 export {
   ActionDock,
   ActionDockProvider,

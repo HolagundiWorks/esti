@@ -1,7 +1,7 @@
 ---
 title: GST for architecture firms in India: a practical guide
 date: 2026-07-04
-excerpt: A plain-English GST guide for Indian architects — SAC codes, the 18% rate, place of supply, reverse charge, TDS, input tax credit, and clean reconciliation.
+excerpt: SAC codes, 18% rate, place of supply, TDS net receivable, ITC, and how clean invoicing at every COA stage supports fee recovery — a plain-English guide for Indian practices.
 tags: Finance, Compliance, India
 author: Holagundi Consulting Works
 ---
@@ -9,9 +9,11 @@ author: Holagundi Consulting Works
 Most architects did not train to be tax accountants, yet GST touches almost every
 invoice a practice raises. The rules are not especially hard, but they are specific,
 and a handful of them are easy to get subtly wrong — the tax split, the place of
-supply, which TDS applies, what you can claim back. This is a working guide to the GST
-an Indian architecture practice actually encounters. It is not a substitute for your
-chartered accountant; it is meant to make that conversation shorter and your own
+supply, which TDS applies, what you can claim back. Getting them right is not only a
+compliance matter: an invoice raised with the wrong split or SAC code delays payment
+and disrupts the fee recovery cycle a stage at a time. This is a working guide to the
+GST an Indian architecture practice actually encounters. It is not a substitute for
+your chartered accountant; it is meant to make that conversation shorter and your own
 book-keeping cleaner.
 
 ## Which SAC code, and which rate

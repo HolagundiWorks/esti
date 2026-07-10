@@ -19,6 +19,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
@@ -481,6 +482,12 @@ export function ComplianceLibrary() {
         </Tabs>
       }
     >
+      <PageBreadcrumb
+        items={[
+          { label: "Library" },
+          { label: "Compliance" },
+        ]}
+      />
       {tab === 0 && <DocumentsTab openSignal={docSignal} />}
       {tab === 1 && (
         <Stack spacing={2}>

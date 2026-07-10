@@ -1,11 +1,11 @@
 ---
 title: Change Without Losing Margin
-metaTitle: Architecture Change Management Software
-metaDescription: Architecture change management software that treats scope change as a contract event — separating client requests from errors and protecting fee and margin.
+metaTitle: Architecture Change Management Software — Contract Events, Not Favours
+metaDescription: Architecture change management software that treats scope change as a contract event — MoM to ESTI extract to client request to architect assessment to client approval to site — so every change is categorised, agreed and billable.
 keyword: architecture change management software
 category: moat
-updated: 2026-06-24
-intro: Treat every change as a contract event, not a favour — separate a scope change from a client request from a technical query, and protect margin with a record you can bill from.
+updated: 2026-07-10
+intro: Every change is a contract event — separated by source and category, assessed by the architect, approved by the client before site work proceeds, and traceable back to the meeting where it was agreed.
 ---
 
 Change is not the enemy of an architecture project; unpriced change is. A client

@@ -41,7 +41,7 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
-import { PortalHeader } from "../components/PortalHeader.js";
+import { ExternalPortalShell } from "../components/portal/ExternalPortalShell.js";
 import { PortalMinutes } from "../components/PortalMinutes.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot, StatusTag } from "../components/StatusTag.js";
@@ -432,15 +432,12 @@ export function Portal() {
   ];
 
   return (
-    <>
-      <PortalHeader
-        companyName={brandingQ.data?.companyName}
-        logoUrl={brandingQ.data?.logoUrl}
-        portalLabel="Client portal"
-        onSignOut={() => logout.mutate()}
-        signingOut={logout.isPending}
-      />
-      <Box component="main" sx={{ p: { xs: 2, md: 4 } }}>
+    <ExternalPortalShell
+      companyName={brandingQ.data?.companyName}
+      portalLabel="Client portal"
+      onSignOut={() => logout.mutate()}
+      signingOut={logout.isPending}
+    >
         {!openId && (
           <Stack spacing={3}>
             <Stack spacing={1}>
@@ -1025,8 +1022,7 @@ export function Portal() {
             <Button variant="contained" onClick={() => setThreadFor(null)}>Close</Button>
           </DialogActions>
         </Dialog>
-      </Box>
-    </>
+    </ExternalPortalShell>
   );
 }
 

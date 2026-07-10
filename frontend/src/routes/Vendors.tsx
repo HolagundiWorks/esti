@@ -24,6 +24,7 @@ import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -92,28 +93,30 @@ export function Vendors() {
   const selected = rows.find((v) => v.id === selectedId);
 
   useScreenActions(
-    [
-      {
-        id: "new-vendor",
-        zone: "center",
-        tone: "primary",
-        label: "New vendor",
-        icon: <Add />,
-        onClick: () => setForm({ ...EMPTY }),
-      },
-      ...(selected
-        ? [
-            {
-              id: "add-price",
-              zone: "center" as const,
-              label: "Add price",
-              icon: <Add />,
-              onClick: () => setPriceForm({ ...EMPTY_PRICE }),
-            },
-          ]
-        : []),
-    ],
-    [selected],
+    form !== null || rating !== null || priceForm !== null
+      ? []
+      : [
+          {
+            id: "new-vendor",
+            zone: "center",
+            tone: "primary",
+            label: "New vendor",
+            icon: <Add />,
+            onClick: () => setForm({ ...EMPTY }),
+          },
+          ...(selected
+            ? [
+                {
+                  id: "add-price",
+                  zone: "center" as const,
+                  label: "Add price",
+                  icon: <Add />,
+                  onClick: () => setPriceForm({ ...EMPTY_PRICE }),
+                },
+              ]
+            : []),
+        ],
+    [form, rating, priceForm, selected],
   );
 
   const submit = () => {
@@ -309,6 +312,7 @@ export function Vendors() {
           </Stack>
         }
       >
+      <PageBreadcrumb items={[{ label: "Third Parties" }, { label: "Vendors" }]} />
       {listQ.error && (
         <Alert severity="error">
           <strong>Could not load vendors</strong> — {listQ.error.message}

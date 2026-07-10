@@ -21,7 +21,7 @@ export const colors = {
   borderStrong: "rgba(20, 21, 23, 0.20)",
   textPrimary: "#141517", // Coal Black — ink
   textSecondary: "#5b616b", // muted slate-grey
-  textHelper: "#8a9099", // quiet label grey
+  textHelper: "#667085", // slate helper — ≥4.5:1 on Fog Gray / white (WCAG AA)
   textOnColor: "#FFFFFF",
   ink: "#141517", // Coal Black — primary text/ink
   onAccent: "#FFFFFF", // text on the orange accent

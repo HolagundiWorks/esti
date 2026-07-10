@@ -1,11 +1,11 @@
 ---
 title: Approvals That Never Get Stuck
-metaTitle: Architecture Approval Workflow Software
-metaDescription: Architecture approval workflow software for internal sign-offs and client portal decisions — with approval ageing so you always know which approvals are stuck.
+metaTitle: Architecture Approval Workflow Software — Internal Sign-offs & Portal Approvals
+metaDescription: Architecture approval workflow software — internal sign-offs, client portal decisions, and the revision-approval chain where clients approve the architect's criticality assessment before site changes proceed.
 keyword: architecture approval workflow software
 category: moat
-updated: 2026-06-24
-intro: Internal approval chains and client sign-offs in one record, with ageing on every pending decision so the question "which approvals are stuck" always has an answer.
+updated: 2026-07-10
+intro: Internal approval chains and client sign-offs in one record — including the revision approval where the client confirms the architect's criticality and implications assessment before any site or drawing work proceeds.
 ---
 
 Projects rarely stall because the work is hard. They stall because something is
@@ -43,11 +43,15 @@ change — come straight back onto the record as a tracked event. There is no
 re-keying an email into a tracker, no ambiguity about whether the client "more or
 less agreed." The approval either exists in the record or it does not.
 
-This matters most when a decision carries a cost. When a client decision implies a
-Major or Critical change, the consequence is shown before they accept — the
-mechanics of that live in [revision intelligence](/architecture-revision-tracking),
-but the approval-process point is simple: the client's yes is captured cleanly, on
-the record, at the moment they give it.
+The revision approval chain is a specific and important instance of this. After
+meeting minutes are issued to the portal and the client submits revision requests
+(using ESTI to draft them), the architect marks criticality and implications for
+each change. The client then approves that assessment through the portal —
+confirming "yes, I accept this is a Major change with a two-week timeline
+extension and additional fee." That approval is timestamped, attached to the
+project record, and is what gates the change proceeding to site or drawing work.
+For the full sequence, see [minutes of meeting software for architects](/minutes-of-meeting-software-for-architects)
+and [revision tracking](/architecture-revision-tracking).
 
 ## Approval ageing — the question that runs the office
 

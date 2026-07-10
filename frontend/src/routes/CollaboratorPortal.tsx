@@ -33,7 +33,7 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
-import { PortalHeader } from "../components/PortalHeader.js";
+import { ExternalPortalShell } from "../components/portal/ExternalPortalShell.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
@@ -234,15 +234,12 @@ export function CollaboratorPortal() {
   ];
 
   return (
-    <>
-      <PortalHeader
-        companyName={brandingQ.data?.companyName}
-        logoUrl={brandingQ.data?.logoUrl}
-        portalLabel="Consultant portal"
-        onSignOut={() => logout.mutate()}
-        signingOut={logout.isPending}
-      />
-      <Box component="main" sx={{ p: 4 }}>
+    <ExternalPortalShell
+      companyName={brandingQ.data?.companyName}
+      portalLabel="Consultant portal"
+      onSignOut={() => logout.mutate()}
+      signingOut={logout.isPending}
+    >
         {!openId && (
           <Stack spacing={2}>
             <Stack spacing={1}>
@@ -530,7 +527,6 @@ export function CollaboratorPortal() {
             <Button variant="text" onClick={() => setThreadFor(null)}>Close</Button>
           </DialogActions>
         </Dialog>
-      </Box>
-    </>
+    </ExternalPortalShell>
   );
 }

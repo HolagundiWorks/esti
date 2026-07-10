@@ -1,11 +1,11 @@
 ---
 title: Minutes of Meeting, on the Project Record
-metaTitle: Minutes of Meeting Software for Architects | AORMS
-metaDescription: Minutes of meeting software for architects: record and issue MoM on the project record, visible in the client portal, with AORMS drafting revision requests.
+metaTitle: MoM to Revision — Minutes, ESTI Extraction & Approval Trail for Architects
+metaDescription: Minutes of meeting software for architects: record and issue MoM on the project, ESTI extracts revision requests, the client submits them, the architect marks criticality and implications, the client approves — then site changes proceed.
 keyword: minutes of meeting software for architects
 category: moat
-updated: 2026-07-04
-intro: Record the minutes on the project itself, issue them to the client portal, and let AORMS turn what was agreed into categorised revision requests the client reviews and sends.
+updated: 2026-07-10
+intro: Record the minutes, issue them to the portal, let ESTI extract each change as a draft revision request, have the client submit the real ones, then the architect marks criticality and implications, the client approves — only then does site or drawing work proceed.
 ---
 
 Every architect knows the meeting where four changes are agreed across the table,
@@ -67,20 +67,29 @@ scope, fees or commitments, and if the minutes contain no changes it says so. Ev
 run is logged like any AORMS run: who asked,
 which minutes, what came back.
 
-## Where the revision request goes next
+## Where the revision request goes next — architect marks criticality
 
-A sent request lands in the office's client-requests queue as a formal change
-request — with its conversation thread, its impact assessment (cost? timeline?
-billable?), and its place in the project's revision statistics. From there it feeds
-[revision tracking](/architecture-revision-tracking), where every change carries a
-category (minor, major, critical) and a source (client-driven, internal error,
-technical query, scope change).
+A sent request lands in the office's client-requests queue. The architect then
+reviews it and does something that matters: marks the **criticality** (minor, major
+or critical) and records the **implications** — cost, timeline, scope, billability.
+ESTI has already suggested a category, but the architect owns the final call. This
+is the moment of professional judgement, not the software's guess.
 
-That classification only works if the records feeding it are honest. Because these
-requests came from minutes the client saw and sent themselves, the project's
-revision history becomes arithmetic rather than an argument from memory: six
-client-driven changes this stage, two of them major, each traceable to the meeting
-where it was agreed. For the full walk-through, see
+Once the architect has assessed the request and recorded its implications, the
+**client receives a notification** and is asked to **approve the architect's
+assessment** — "yes, I accept that this is a Major change that will extend the
+timeline by two weeks and attract additional fee." That approval is timestamped and
+attached to the project record.
+
+Only after the client approves does the change proceed to site or drawing work.
+Nothing reaches the team as a drawing action until that approval exists. The chain
+is: minutes → ESTI extract → client request → architect assessment → client
+approval → site or drawing change.
+
+That discipline means the project's revision history becomes arithmetic rather than
+an argument: six client-driven changes this stage, two of them major with recorded
+implications, each approved by the client and traceable to the meeting where it
+was agreed. See [revision tracking](/architecture-revision-tracking) and
 [how AORMS drafts revision requests from minutes](/blog/esti-drafts-revision-requests-from-minutes).
 
 ## How minutes of meeting works in AORMS
@@ -91,10 +100,15 @@ where it was agreed. For the full walk-through, see
    same action used for drawings and transmittals.
 3. **The client sees the issued minutes** in their portal — one shared record, both
    sides reading identical words.
-4. **The client asks AORMS to draft revision requests** from those minutes; AORMS
+4. **The client asks ESTI to draft revision requests** from those minutes; ESTI
    returns each change as an editable request with a suggested impact category.
 5. **The client reviews, edits and sends** only the real ones — the office receives
-   formal, categorised, dated change requests that feed revision intelligence.
+   formal, dated change requests.
+6. **The architect marks criticality and implications** — overriding ESTI's
+   suggestion where judgement requires — and records the cost, timeline and fee
+   consequences of the change.
+7. **The client approves the architect's assessment** through the portal — only then
+   does the change proceed to site or drawing work.
 
 ## Frequently asked questions
 
@@ -112,13 +126,15 @@ issuing publishes a dated, locked record to the client portal where the client r
 the same words your team does — the same deliberate action used to issue drawings and
 transmittals.
 
-### How does AORMS turn minutes into revision requests?
+### How does ESTI turn minutes into revision requests?
 
-From an issued set of minutes, the client presses one button and AORMS drafts each
+From an issued set of minutes, the client presses one button and ESTI drafts each
 change discussed as a ready-to-send request — a subject, a description and a
-suggested category of minor, major or critical. The client edits and sends; AORMS
-never sends on its own, never invents changes that were not in the minutes, and logs
-every run.
+suggested impact category of minor, major or critical. The client edits and sends;
+ESTI never sends on its own, never invents changes that were not in the minutes, and
+logs every run. After the client sends, the architect reviews the request, marks the
+final criticality and implications, and the client then approves that assessment
+before any site or drawing work proceeds.
 
 ### Do I have to use AORMS to raise a revision request?
 
@@ -129,9 +145,11 @@ avoid, by drafting from what the minutes already say.
 ### How is this different from revision tracking?
 
 Revision tracking classifies and analyses changes once they exist. This is the step
-before it: the meeting-to-record-to-request flow that creates a change request in the
-first place. The minutes are where a change is agreed; the revision request is what it
-becomes; [revision tracking](/architecture-revision-tracking) is where it is measured.
+before it: the meeting-to-record-to-request-to-approval flow that creates a properly
+documented change in the first place. The minutes are where a change is agreed; ESTI
+extracts the request; the architect marks criticality and implications; the client
+approves; [revision tracking](/architecture-revision-tracking) measures the pattern
+across the project. Each step is distinct and deliberate.
 
 ---
 

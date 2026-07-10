@@ -1,11 +1,11 @@
 ---
 title: Keep Every Client On The Record
-metaTitle: Architect Client Management Software
-metaDescription: Architect client management software for Indian practices — CRM, client log, COA proposals, GST invoices and a client portal where decisions go on the record.
+metaTitle: Architect Client Management Software — Proposals, Approvals & Revision Trail
+metaDescription: Architect client management software for Indian practices — CRM, client log, COA proposals, GST invoices, and a portal where revision requests, approvals and decisions go on the permanent record.
 keyword: architect client management software
 category: solution
-updated: 2026-06-24
-intro: From first enquiry to signed decisions, AORMS keeps the client relationship — log, proposals, fees and portal approvals — on one record so nothing important is lost in email.
+updated: 2026-07-10
+intro: From first enquiry to signed decisions — and through every revision request in between — AORMS keeps the client relationship on one record so nothing important is lost in email or memory.
 ---
 
 ## Keep Every Client On The Record
@@ -39,7 +39,9 @@ This changes the dynamic of client sign-off. Instead of chasing a reply and then
 
 ## Decisions and revisions, attributed fairly
 
-Client-driven change is a normal part of architecture, but it is only manageable if it is recorded. AORMS ties client decisions into the project's revision history: when a revision is caused by the client, it is sourced as CLIENT_DRIVEN, distinct from an internal error or a technical query. Over a project, that distinction is the difference between absorbing rework silently and having an honest conversation — backed by the record — about scope and additional fees.
+Client-driven change is a normal part of architecture, but it is only manageable if it is recorded. In AORMS the revision trail follows a deliberate sequence: meeting minutes issued to the portal → ESTI extracts each change as a draft revision request → the client reviews and submits the real ones → the architect marks criticality and implications → the client approves the architect's assessment → only then do site or drawing changes proceed. That sequence protects both sides.
+
+When a revision is caused by the client, it is sourced as CLIENT_DRIVEN, distinct from an internal error or a technical query. Over a project, that distinction is the difference between absorbing rework silently and having an honest conversation — backed by the record — about scope and additional fees.
 
 Threaded comments and critical notes sit alongside, so internal discussion about a client matter stays connected to the client and the project rather than scattered across chat.
 
