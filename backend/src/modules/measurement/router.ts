@@ -463,7 +463,15 @@ export const measurementRouter = router({
               heightMm,
             });
 
-      const values: Record<string, unknown> = {
+      const existing = await ctx.db
+        .select({ sortOrder: measurementRows.sortOrder })
+        .from(measurementRows)
+        .where(eq(measurementRows.bookId, input.bookId))
+        .orderBy(desc(measurementRows.sortOrder))
+        .limit(1);
+      const sortOrder = input.sortOrder ?? (existing[0]?.sortOrder ?? 0) + 10;
+
+      const values = {
         bookId: input.bookId,
         levelId: input.levelId ?? null,
         libraryItemId: input.libraryItemId ?? null,
@@ -472,15 +480,15 @@ export const measurementRouter = router({
         lengthMm,
         breadthMm,
         heightMm,
+        beamDepthMm: beamDepthMm ?? null,
+        lintelHeightMm: lintelHeightMm ?? null,
         quantity,
         uom: input.uom,
         ratePaise: input.ratePaise ?? null,
         derivation: linkedToLevel ? ("AUTO" as const) : derivation,
         specCatalogItemId: input.specCatalogItemId ?? null,
-        sortOrder: input.sortOrder ?? 0,
+        sortOrder,
       };
-      if (beamDepthMm !== undefined) values.beamDepthMm = beamDepthMm;
-      if (lintelHeightMm !== undefined) values.lintelHeightMm = lintelHeightMm;
 
       if (input.id) {
         const [row] = await ctx.db
@@ -492,18 +500,7 @@ export const measurementRouter = router({
         return row;
       }
 
-      const existing = await ctx.db
-        .select({ sortOrder: measurementRows.sortOrder })
-        .from(measurementRows)
-        .where(eq(measurementRows.bookId, input.bookId))
-        .orderBy(desc(measurementRows.sortOrder))
-        .limit(1);
-      const sortOrder = input.sortOrder ?? (existing[0]?.sortOrder ?? 0) + 10;
-
-      const [row] = await ctx.db
-        .insert(measurementRows)
-        .values({ ...values, sortOrder })
-        .returning();
+      const [row] = await ctx.db.insert(measurementRows).values(values).returning();
       return row!;
     }),
 

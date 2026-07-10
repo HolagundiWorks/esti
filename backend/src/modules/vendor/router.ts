@@ -134,7 +134,6 @@ export const vendorRouter = router({
       .insert(vendorPrices)
       .values({
         vendorId: input.vendorId,
-        materialId: input.materialId ?? null,
         materialName: input.materialName,
         unit: input.unit,
         ratePaise: input.ratePaise,
@@ -154,15 +153,11 @@ export const vendorRouter = router({
     return { ok: true as const };
   }),
 
-  /** Price history for a material across all vendors — latest first. Filter by
-   *  a KB materialId (preferred) or a free-text materialName match. */
+  /** Price history for a material across all vendors — latest first (name match). */
   priceHistory: protectedProcedure
     .input(VendorPriceHistoryInput)
     .query(async ({ ctx, input }) => {
-      if (!input.materialId && !input.materialName) return [];
-      const filter = input.materialId
-        ? eq(vendorPrices.materialId, input.materialId)
-        : eq(vendorPrices.materialName, input.materialName!);
+      if (!input.materialName) return [];
       return ctx.db
         .select({
           id: vendorPrices.id,
@@ -176,7 +171,7 @@ export const vendorRouter = router({
         })
         .from(vendorPrices)
         .leftJoin(vendors, eq(vendorPrices.vendorId, vendors.id))
-        .where(filter)
+        .where(eq(vendorPrices.materialName, input.materialName))
         .orderBy(desc(vendorPrices.effectiveDate));
     }),
 
@@ -236,7 +231,6 @@ export const vendorRouter = router({
       await ctx.db.insert(vendorQuoteLines).values(
         input.lines.map((l) => ({
           quoteId: quote!.id,
-          materialId: l.materialId ?? null,
           materialName: l.materialName,
           unit: l.unit,
           ratePaise: l.ratePaise,
@@ -255,7 +249,6 @@ export const vendorRouter = router({
         await ctx.db.insert(vendorPrices).values(
           lines.map((l) => ({
             vendorId: quote.vendorId,
-            materialId: l.materialId ?? null,
             materialName: l.materialName,
             unit: l.unit,
             ratePaise: l.ratePaise,
@@ -288,10 +281,7 @@ export const vendorRouter = router({
     compare: protectedProcedure
       .input(VendorQuoteCompareInput)
       .query(async ({ ctx, input }): Promise<VendorQuoteComparisonRow[]> => {
-        if (!input.materialId && !input.materialName) return [];
-        const filter = input.materialId
-          ? eq(vendorQuoteLines.materialId, input.materialId)
-          : eq(vendorQuoteLines.materialName, input.materialName!);
+        if (!input.materialName) return [];
         const rows = await ctx.db
           .select({
             vendorId: vendorQuotes.vendorId,
@@ -305,7 +295,7 @@ export const vendorRouter = router({
           .from(vendorQuoteLines)
           .innerJoin(vendorQuotes, eq(vendorQuoteLines.quoteId, vendorQuotes.id))
           .leftJoin(vendors, eq(vendorQuotes.vendorId, vendors.id))
-          .where(filter);
+          .where(eq(vendorQuoteLines.materialName, input.materialName));
         // keep the latest quote per vendor
         const latestByVendor = new Map<string, (typeof rows)[number]>();
         for (const r of rows) {
