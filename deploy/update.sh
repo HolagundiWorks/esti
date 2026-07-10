@@ -23,11 +23,17 @@ docker compose -f compose.prod.yaml build backend worker
 docker compose -f compose.prod.yaml up -d backend worker
 wait_for_backend_health 30 2 && info "Backend healthy." || warn "Backend /health failed — docker logs esti-backend"
 
+# ESE was retired from compose.prod.yaml (2026-07 estimation teardown). Skip when
+# the service is absent even if legacy .env still has ESE_ENABLED=true.
 if [[ "${ESE_ENABLED:-false}" == "true" ]]; then
-  section "Rebuilding ESE"
-  docker compose -f compose.prod.yaml build ese
-  docker compose -f compose.prod.yaml up -d ese
-  info "ESE rebuilt (ese.<domain>)."
+  if docker compose -f compose.prod.yaml config --services 2>/dev/null | grep -qx ese; then
+    section "Rebuilding ESE"
+    docker compose -f compose.prod.yaml build ese
+    docker compose -f compose.prod.yaml up -d ese
+    info "ESE rebuilt (ese.<domain>)."
+  else
+    warn "ESE_ENABLED=true but compose.prod.yaml has no ese service — skipping (set ESE_ENABLED=false in .env)."
+  fi
 fi
 
 section "Seeds (idempotent)"
