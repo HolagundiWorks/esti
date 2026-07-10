@@ -37,7 +37,7 @@ export function SeoLanding({ slug }: { slug: string }) {
 
   return (
       <MarketingShell>
-        <main id="main-content" className="esti-blog">
+        <div className="esti-blog">
           <Link to="/" className="esti-blog__back">← AORMS home</Link>
 
           {!page ? (
@@ -102,7 +102,7 @@ export function SeoLanding({ slug }: { slug: string }) {
               )}
             </article>
           )}
-        </main>
+        </div>
         <MarketingFooter />
       </MarketingShell>
   );

@@ -149,10 +149,8 @@ function Section({
 
 const PLATFORM_MARKS: readonly Keyword[] = [
   { pain: "What to invoice", solution: "Ready on the record" },
-  { pain: "Next payment stage", solution: "Visible" },
-  { pain: "GST filing dates", solution: "Reminded" },
   { pain: "Client revisions", solution: "MoM → approval" },
-  { pain: "Drawings", solution: "Single portal" },
+  { pain: "GST & due dates", solution: "On the trail" },
   { pain: "Studio load", solution: "Seen early" },
 ];
 
@@ -454,7 +452,6 @@ export function IntelligenceSection() {
             "Fee, revision, project and studio zones with health at a glance",
             "See what blocks cashflow or site tomorrow — not what was loudest",
           ]}
-          wide
           delay={40}
         />
         <Tile
@@ -720,18 +717,14 @@ export function FaqSection() {
         id="faq-head"
         tag="FAQ"
         problem="Switching tools raises the same questions every principal asks."
-        solution="Straight answers below — write to hi@aorms.in if yours is not listed."
+        solution="Open a question for the answer — write to hi@aorms.in if yours is not listed."
       />
-      <div className="lp2-grid lp2-grid--2">
-        {FAQS.map((f, i) => (
-          <article
-            key={f.q}
-            className="lp2-tile lp2-tile--faq lp2-reveal"
-            style={revealStyle(30 + (i % 4) * 50)}
-          >
-            <h3 className="lp2-tile__title lp2-tile__title--q">{f.q}</h3>
-            <p className="lp2-tile__detail">{f.a}</p>
-          </article>
+      <div className="lp2-faq lp2-reveal" style={revealStyle(40)}>
+        {FAQS.map((f) => (
+          <details key={f.q} className="lp2-faq__item">
+            <summary className="lp2-faq__q">{f.q}</summary>
+            <p className="lp2-faq__a">{f.a}</p>
+          </details>
         ))}
       </div>
       <KeywordStrip label="At a glance" marks={FAQ_KEYWORDS} />

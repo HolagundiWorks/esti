@@ -2,6 +2,7 @@ import { Button } from "@mui/material";
 import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
 import EmailOutlined from "@mui/icons-material/EmailOutlined";
 import { useEffect } from "react";
+import { AormsLogo } from "../components/AormsLogo.js";
 import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 
@@ -75,6 +76,9 @@ export function Investors() {
       <div className="esti-investor">
 
         <section className="esti-investor__hero">
+          <div className="esti-investor__brand" aria-label="AORMS">
+            <AormsLogo variant="hero" />
+          </div>
           <p className="esti-investor__eyebrow">Investor brief</p>
           <h1>The office intelligence system for architecture practices.</h1>
           <p className="esti-investor__lead">

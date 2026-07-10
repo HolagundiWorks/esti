@@ -34,14 +34,19 @@ Docker Compose (`compose.yaml`).
 >    widgets, highlight cards, text-entry wells (recessed). `<Surface layer="soft">`.
 > 3. **Layer 3 — GLASS (glassmorphism):** the live layer — **button hover, CTAs,
 >    the ActionDock, priority (error/warning) alerts**. `<Surface layer="glass">`.
+>    Marketing variants: `clearGlass` (rail over atmosphere) and `headingGlass`
+>    (full-width section openers). Landing sub-cards stay **flat** — no glass on
+>    every tile (see HCW-UI-KIT.md § Marketing shell).
 >
 > **Spatial model — Rail · Stage · Taskbar footer · ActionDock:** the app shell is
 > glass **rail** (20%, full viewport height, fixed) + **stage** (scrolls independently),
 > with a **glass taskbar footer** (calculator LEFT · launcher cluster CENTRE · tray
 > RIGHT — `AppFooterBar`; the old FloatingDock is retired) and a **global,
 > context-aware ActionDock** floating bottom-centre. Studio Intelligence (`/`) is the
-> canonical glass-rail reference; rollout queue:
-> [`docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md`](docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md).
+> canonical glass-rail reference; marketing uses the same model without a taskbar
+> (dock-only CTAs). Rollout:
+> [`docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md`](docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md)
+> (U0–U6 ✅).
 > **Login/auth forms sit in the rail, not on the stage.** Screen CTAs migrate into
 > the dock via `useScreenActions` (left=destroy · center=create · right=commit);
 > inline page buttons are removed as screens adopt it.
@@ -61,11 +66,14 @@ colour/type heritage. [`docs/esti/MATERIAL-UI-DIRECTION.md`](docs/esti/MATERIAL-
 
 1. Read [`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md) — layers, spatial model, dock zones.
 2. Build app/portal/landing screens from `@mui/material` + `@hcw/ui-kit` (`MuiRoot`,
-   `Surface`, `useScreenActions`) — never hard-coded hex/gradients; raw colour lives
-   ONLY in `packages/hcw-ui-kit/src/tokens.ts`. `frontend/src/theme/` is a thin
-   re-export shim of the kit — don't add styling there. `frontend/src/styles.scss`'s
-   `:root` block is a static, Carbon-derived `--cds-*` compatibility layer for
-   pre-HCW-UI-Kit call sites — prefer kit tokens for new code, don't add to it.
+ `Surface`, `GlassRail`, `useScreenActions`, `HealthGlassOrb`) — never hard-coded
+ hex/gradients; raw colour lives ONLY in `packages/hcw-ui-kit/src/tokens.ts`.
+ `frontend/src/theme/` is a thin re-export shim of the kit — don't add styling there.
+ `frontend/src/styles.scss`'s `:root` block is a static, Carbon-derived `--cds-*`
+ compatibility layer for pre-HCW-UI-Kit call sites — prefer kit tokens for new code,
+ don't add to it. Marketing atmosphere (contours) and editorial type stay in
+ `landing.scss`; marketing glass hierarchy follows HCW-UI-KIT.md (clear rail +
+ heading glass only).
 3. No automated visual-policy guard runs in CI for this repo (the old Carbon
    enforcement guard was removed with `@carbon/react`); code review is the check.
 

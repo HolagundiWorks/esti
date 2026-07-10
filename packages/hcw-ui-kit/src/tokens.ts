@@ -147,12 +147,47 @@ export const GLASS_SURFACE = {
   boxShadow: "0 10px 34px rgba(20, 21, 23, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.7)",
 } as const;
 
+/**
+ * Layer 3 variant — **clear glass** (marketing rail / section heading bands).
+ * More translucent than `GLASS_SURFACE` so atmosphere (contours) stays readable.
+ * Do **not** use on dense sub-cards — flat/transparent + hairlines instead.
+ */
+export const CLEAR_GLASS_SURFACE = {
+  background:
+    "linear-gradient(175deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 45%, rgba(255, 255, 255, 0.14) 100%)",
+  backdropFilter: "blur(18px) saturate(1.35) brightness(1.06)",
+  WebkitBackdropFilter: "blur(18px) saturate(1.35) brightness(1.06)",
+  border: "1px solid rgba(255, 255, 255, 0.45)",
+  borderRadius: 0,
+  boxShadow:
+    "6px 0 28px rgba(20, 21, 23, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.65), inset 1px 0 0 rgba(255, 255, 255, 0.35)",
+} as const;
+
+/**
+ * Layer 3 variant — **heading glass** (full-width section openers on marketing).
+ * Same clear recipe, stronger top edge; pairs with accent left rule in CSS.
+ */
+export const HEADING_GLASS_SURFACE = {
+  background:
+    "linear-gradient(155deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.10) 55%, rgba(255, 255, 255, 0.16) 100%)",
+  backdropFilter: "blur(16px) saturate(1.3) brightness(1.05)",
+  WebkitBackdropFilter: "blur(16px) saturate(1.3) brightness(1.05)",
+  borderTop: "1px solid rgba(255, 255, 255, 0.55)",
+  borderRight: "1px solid rgba(20, 21, 23, 0.06)",
+  borderBottom: "1px solid rgba(20, 21, 23, 0.08)",
+  borderLeft: `4px solid ${colors.accent}`,
+  borderRadius: 0,
+  boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(20, 21, 23, 0.04)",
+} as const;
+
 /** The three layers, by name. `flat` is intentionally empty (it IS the canvas). */
-export type SurfaceLayer = "flat" | "soft" | "glass";
+export type SurfaceLayer = "flat" | "soft" | "glass" | "clearGlass" | "headingGlass";
 export const LAYERS: Record<SurfaceLayer, Record<string, unknown>> = {
   flat: {},
   soft: NEU_RAISED,
   glass: GLASS_SURFACE,
+  clearGlass: CLEAR_GLASS_SURFACE,
+  headingGlass: HEADING_GLASS_SURFACE,
 };
 
 /** The token bundle, handy for a one-shot import. */

@@ -3,8 +3,8 @@ export function AormsLogo({
   variant = "md",
   className,
 }: {
-  /** `rail` auth rail · `stage` auth canvas · `watermark` app corner · `md` default */
-  variant?: "sm" | "md" | "rail" | "stage" | "watermark";
+  /** `rail` auth rail · `stage` auth canvas · `hero` marketing hero · `watermark` app corner · `md` default */
+  variant?: "sm" | "md" | "rail" | "stage" | "hero" | "watermark";
   className?: string;
 }) {
   return (

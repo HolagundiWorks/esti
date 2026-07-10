@@ -1,12 +1,12 @@
 /**
- * Surface — the three-layer depth primitive. Pick the layer by the element's
- * ROLE, not by taste (HCW-UI-Kit thesis: depth encodes importance):
+ * Surface — the depth primitive. Pick the layer by the element's ROLE, not by
+ * taste (HCW-UI-Kit thesis: depth encodes importance):
  *
- *   layer="flat"  → hyperminimalist. Information at rest: tables, text, lists.
- *   layer="soft"  → neumorphic. An object you work within: widget, highlight
- *                    card, panel. Extruded off the canvas.
- *   layer="glass" → glassmorphism. The live/floating layer: CTAs, the action
- *                    dock, priority alerts, an active/important widget.
+ *   layer="flat"         → hyperminimalist. Information at rest.
+ *   layer="soft"         → neumorphic. Object you work within.
+ *   layer="glass"        → frosted glass. Dock, alerts, active widgets.
+ *   layer="clearGlass"   → translucent glass (marketing rail) — atmosphere shows through.
+ *   layer="headingGlass" → full-width section opener glass (marketing hierarchy).
  *
  *   <Surface layer="soft" sx={{ p: 2 }}>…a summary card…</Surface>
  */

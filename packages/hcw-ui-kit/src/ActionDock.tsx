@@ -14,6 +14,10 @@
  * **Modal exception:** while a create/edit `Dialog` is open, publish `[]` so the
  * dock does not compete with `DialogActions` (commit stays in the dialog). Re-publish
  * screen actions when the dialog closes.
+ *
+ * **Marketing exception:** public `MarketingShell` mounts its own `ActionDockProvider`.
+ * Create-account / Sign-in live **only** in the dock — never duplicate them in the
+ * marketing rail (Hick / Fitts / single CTA locus).
  */
 import {
   createContext,

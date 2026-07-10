@@ -10,7 +10,8 @@
  * Spatial model: Rail · Stage · TaskbarFooter · ActionDock.
  *
  *   import { MuiRoot, ActionDockProvider, ActionDock, TaskbarFooter,
- *            useScreenActions, Surface, BrandMark } from "@hcw/ui-kit";
+ *            useScreenActions, Surface, GlassRail, HealthGlassOrb,
+ *            BrandMark } from "@hcw/ui-kit";
  *
  * Full spec: docs/esti/HCW-UI-KIT.md.
  */

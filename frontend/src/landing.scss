@@ -1940,40 +1940,120 @@
   }
 }
 
-// ── Contour background: plan → HILL elevation (chaos → clarity) ──────────────
-// depth=0: near-plan (tiny tilt). depth=1: steep hill — rings stack in Z + Y
-// so the mountain silhouette is unmistakable.
+// ── Fluid contour background — visual hierarchy (chaos → clarity) ────────────
+// far  = soft atmosphere · mid = readable topo · near = Radiant Orange crest
+// depth=0: near-plan. depth=1: hill elevation with stacked rings.
 .esti-lp-contours {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  perspective: 1100px;
-  perspective-origin: 50% 85%;
-  --lp-depth: 0;
-  --lp-rings: 18;
-  // Tall steps — must be large vs terrain size or the hill reads flat.
-  --lp-step: 28px;
-  --lp-rise: 22px;
+  perspective: 1200px;
+  // Camera looks toward bottom-right where the hill sits
+  perspective-origin: 88% 92%;
+  --lp-depth: 0.08;
+  --lp-flow: 0;
+  // Z-stack steps (2026-07): 3× prior values for stronger hill elevation
+  --lp-step-far: 42px;
+  --lp-step-mid: 66px;
+  --lp-step-near: 90px;
+  --lp-rise-far: 30px;
+  --lp-rise-mid: 48px;
+  --lp-rise-near: 72px;
 }
+
+// Quiet Fog canvas wash — glow anchored bottom-right with the hill
+.esti-lp-contours__wash {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 50% at 92% 88%,
+      rgba(255, 79, 24, 0.09) 0%, transparent 58%),
+    radial-gradient(ellipse 40% 35% at 12% 18%,
+      rgba(20, 21, 23, 0.025) 0%, transparent 55%),
+    linear-gradient(165deg, #f5f6f9 0%, #eef0f4 48%, #e8ebf0 100%);
+}
+
 .esti-lp-contours__terrain {
   position: absolute;
-  left: 50%;
-  bottom: 8vh;
-  width: min(140vw, 1100px);
-  height: min(90vw, 720px);
-  // Near-plan → steep elevation (~68°). Camera looks slightly down the hill.
-  transform: translateX(-50%)
-    translateY(calc(8vh - var(--lp-depth) * 22vh))
-    rotateX(calc(8deg + var(--lp-depth) * 60deg))
-    rotateZ(calc(var(--lp-depth) * -6deg));
-  transform-origin: 50% 85%;
+  // Anchor to bottom-right corner
+  left: auto;
+  right: -8vw;
+  bottom: -6vh;
+  width: min(95vw, 920px);
+  height: min(85vw, 720px);
+  transform:
+    translateY(calc(var(--lp-depth) * -10vh))
+    translateX(calc(var(--lp-flow) * -2vw))
+    rotateX(calc(6deg + var(--lp-depth) * 58deg))
+    rotateZ(calc(4deg + var(--lp-depth) * -4deg));
+  transform-origin: 85% 90%;
   transform-style: preserve-3d;
-  opacity: calc(0.55 + var(--lp-depth) * 0.4);
+  opacity: calc(0.72 + var(--lp-depth) * 0.28);
   will-change: transform, opacity;
-  transition: none;
+  // Smooth CSS fallback between JS lerp frames
+  transition: opacity 0.35s ease-out;
 }
+
+.esti-lp-contours__band {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+// FAR — soft, wide, low contrast (recedes)
+.esti-lp-contours__band--far {
+  opacity: calc(0.28 + var(--lp-depth) * 0.18);
+  filter: blur(1.2px);
+
+  .esti-lp-contours__layer {
+    transform:
+      translateY(calc((var(--lp-rings-far) - 1 - var(--i)) * var(--lp-rise-far) * var(--lp-depth) * -0.55))
+      translateZ(calc((var(--lp-rings-far) - 1 - var(--i)) * var(--lp-step-far) * var(--lp-depth) * 0.55));
+  }
+
+  .esti-lp-contours__ring {
+    fill: none;
+    stroke: rgba(91, 97, 107, calc(0.12 + var(--lp-depth) * 0.14));
+    stroke-width: 1.1;
+  }
+}
+
+// MID — readable topographic body
+.esti-lp-contours__band--mid {
+  opacity: calc(0.55 + var(--lp-depth) * 0.3);
+
+  .esti-lp-contours__layer {
+    transform:
+      translateY(calc((var(--lp-rings-mid) - 1 - var(--i)) * var(--lp-rise-mid) * var(--lp-depth) * -1))
+      translateZ(calc((var(--lp-rings-mid) - 1 - var(--i)) * var(--lp-step-mid) * var(--lp-depth)));
+  }
+
+  .esti-lp-contours__ring {
+    fill: rgba(255, 79, 24, calc(0.01 + var(--lp-depth) * 0.025));
+    stroke: rgba(255, 79, 24, calc(0.22 + var(--lp-depth) * 0.28));
+    stroke-width: calc(1.25 + var(--lp-depth) * 0.35);
+  }
+}
+
+// NEAR — strong Radiant Orange crest (focal hierarchy)
+.esti-lp-contours__band--near {
+  opacity: calc(0.75 + var(--lp-depth) * 0.25);
+
+  .esti-lp-contours__layer {
+    transform:
+      translateY(calc((var(--lp-rings-near) - 1 - var(--i)) * var(--lp-rise-near) * var(--lp-depth) * -1.15))
+      translateZ(calc((var(--lp-rings-near) - 1 - var(--i)) * var(--lp-step-near) * var(--lp-depth) * 1.15));
+  }
+
+  .esti-lp-contours__ring {
+    fill: rgba(255, 79, 24, calc(0.03 + var(--lp-depth) * 0.05));
+    stroke: rgba(255, 79, 24, calc(0.42 + var(--lp-depth) * 0.4));
+    stroke-width: calc(1.7 + var(--lp-depth) * 0.55);
+  }
+}
+
 .esti-lp-contours__layer {
   position: absolute;
   inset: 0;
@@ -1981,19 +2061,45 @@
   height: 100%;
   display: block;
   overflow: visible;
-  // Inner rings (low --i) rise highest — classic contour hill.
-  // Z stack + screen-Y rise so elevation is visible even without perfect 3D.
-  transform:
-    translateY(calc((var(--lp-rings) - 1 - var(--i)) * var(--lp-rise) * var(--lp-depth) * -1))
-    translateZ(calc((var(--lp-rings) - 1 - var(--i)) * var(--lp-step) * var(--lp-depth)));
   will-change: transform;
 }
+
 .esti-lp-contours__ring {
-  fill: rgba(255, 79, 24, calc(0.02 + var(--lp-depth) * 0.04));
-  stroke: rgba(255, 79, 24, calc(0.35 + var(--lp-depth) * 0.5));
-  stroke-width: calc(1.5 + var(--lp-depth) * 0.6);
   vector-effect: non-scaling-stroke;
   paint-order: stroke fill;
+  animation: lp2-contour-fluid 36s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  transform-origin: 50% 50%;
+}
+
+.esti-lp-contours__band--far .esti-lp-contours__ring {
+  animation-duration: 48s;
+  animation-delay: calc(var(--i) * -1.8s);
+}
+.esti-lp-contours__band--mid .esti-lp-contours__ring {
+  animation-duration: 38s;
+  animation-delay: calc(var(--i) * -1.2s);
+}
+.esti-lp-contours__band--near .esti-lp-contours__ring {
+  animation-duration: 30s;
+  animation-delay: calc(var(--i) * -0.75s);
+}
+
+@keyframes lp2-contour-fluid {
+  0%, 100% { transform: scale(1) translate(0, 0); }
+  25%      { transform: scale(1.008) translate(0.25%, -0.2%); }
+  50%      { transform: scale(1.004) translate(-0.15%, 0.15%); }
+  75%      { transform: scale(0.996) translate(-0.2%, 0.1%); }
+}
+
+@media (max-width: 900px) {
+  .esti-lp-contours__terrain {
+    right: -18vw;
+    bottom: -8vh;
+    width: 140vw;
+    height: 110vw;
+    left: auto;
+  }
+  .esti-lp-contours__band--far { filter: none; opacity: 0.22; }
 }
 
 // ── RAIL / STAGE landing layout ──────────────────────────────────────────────
@@ -4245,6 +4351,19 @@ h1.esti-landing-lead-title {
     color: var(--cds-text-helper);
   }
 
+  &__brand {
+    margin: 0 0 var(--cds-spacing-03);
+    line-height: 0;
+
+    .esti-brand,
+    .esti-aorms-logo--hero {
+      display: block;
+      height: clamp(2rem, 5vw, 3rem);
+      width: auto;
+      max-width: min(90vw, 18rem);
+    }
+  }
+
   &__hero {
     padding-block: var(--cds-spacing-08) var(--cds-spacing-09);
     border-bottom: 1px solid var(--cds-border-subtle);
@@ -4723,6 +4842,9 @@ $lp2-gap: 1px;               // shared border thickness
     color: var(--lp-accent);
     padding: 0.5rem 0.75rem;
     border-radius: 4px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
   }
 }
 
@@ -4801,6 +4923,8 @@ $lp2-gap: 1px;               // shared border thickness
 
 .lp2-rail__collapse {
   color: var(--lp-ink-muted);
+  width: 44px;
+  height: 44px;
 
   &:hover {
     color: var(--lp-accent);
@@ -4823,14 +4947,15 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 .lp2-rail__link {
-  display: block;
-  padding: 0.35rem 0;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0.5rem;
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--lp-ink);
   text-decoration: none;
   border-left: 2px solid transparent;
-  padding-left: 0.5rem;
   margin-left: -0.5rem;
   transition: color 0.12s, border-color 0.12s;
 
@@ -4838,29 +4963,55 @@ $lp2-gap: 1px;               // shared border thickness
     color: var(--lp-accent);
     border-left-color: var(--lp-accent);
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--lp-accent);
+    outline-offset: 2px;
+  }
 }
 
 .lp2-rail__ctas {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.5rem;
   margin-bottom: 1rem;
 
-  .lp2-rail__cta-primary.MuiButton-contained {
+  .lp2-rail__cta-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
     background: var(--lp-accent);
+    color: #fff;
     font-size: 0.8125rem;
     font-weight: 700;
     letter-spacing: 0.02em;
+    text-decoration: none;
+    text-align: center;
     &:hover { background: var(--lp-accent-hover); }
+    &:focus-visible {
+      outline: 2px solid var(--lp-accent);
+      outline-offset: 2px;
+    }
   }
 
-  .lp2-rail__cta-text.MuiButton-text {
-    font-size: 0.8125rem;
-    color: var(--lp-ink-muted);
+  .lp2-rail__cta-text {
+    display: inline-flex;
+    align-items: center;
     justify-content: flex-start;
-    padding-left: 0;
-    min-height: 30px;
+    min-height: 44px;
+    padding: 0.35rem 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--lp-ink-muted);
+    text-decoration: none;
     &:hover { color: var(--lp-accent); }
+    &:focus-visible {
+      outline: 2px solid var(--lp-accent);
+      outline-offset: 2px;
+    }
   }
 }
 
@@ -4998,12 +5149,16 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 .lp2-hero__brand {
-  font-size: clamp(2.75rem, 7vw, 4.5rem);
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 1;
-  color: var(--lp-accent);
   margin: 0 0 1.5rem;
+  line-height: 0;
+
+  .esti-brand,
+  .esti-aorms-logo--hero {
+    display: block;
+    height: clamp(2.75rem, 7vw, 4.5rem);
+    width: auto;
+    max-width: min(90vw, 22rem);
+  }
 }
 
 .lp2-hero__eyebrow {
@@ -5164,7 +5319,9 @@ $lp2-gap: 1px;               // shared border thickness
 // Section head — column on the left, full width at top
 .lp2-section-head {
   padding: 3rem $lp2-pad 2rem;
-  max-width: 52rem;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
   border-left: 4px solid var(--lp-accent);
 }
 
@@ -5183,7 +5340,7 @@ $lp2-gap: 1px;               // shared border thickness
   line-height: 1.18;
   letter-spacing: -0.02em;
   color: var(--lp-ink);
-  max-width: 32rem;
+  max-width: none;
   margin: 0 0 1rem;
 }
 
@@ -5191,7 +5348,7 @@ $lp2-gap: 1px;               // shared border thickness
   font-size: 1.0625rem;
   line-height: 1.6;
   color: var(--lp-ink-muted);
-  max-width: 44rem;
+  max-width: 52rem;
   margin: 0;
 }
 
@@ -5649,7 +5806,7 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 .lp2-shell .lp2-rail__ctas {
-  .lp2-rail__cta-primary.MuiButton-contained {
+  .lp2-rail__cta-primary {
     background: var(--lp2-orange);
     box-shadow: 0 0 20px var(--lp2-orange-glow);
     color: #fff;
@@ -5658,7 +5815,7 @@ $lp2-gap: 1px;               // shared border thickness
       box-shadow: 0 0 28px rgba(255, 79, 24, 0.6);
     }
   }
-  .lp2-rail__cta-text.MuiButton-text {
+  .lp2-rail__cta-text {
     color: var(--lp2-ink-muted);
     &:hover { color: var(--lp2-ink); }
   }
@@ -5755,25 +5912,20 @@ $lp2-gap: 1px;               // shared border thickness
   background:
     linear-gradient(
       140deg,
-      rgba(255, 255, 255, 0.075) 0%,
-      rgba(255, 255, 255, 0.032) 100%
+      rgba(255, 255, 255, 0.10) 0%,
+      rgba(255, 255, 255, 0.08) 100%
     );
-  backdrop-filter: blur(16px) saturate(1.5);
-  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(28px) saturate(1.35);
+  -webkit-backdrop-filter: blur(28px) saturate(1.35);
   border-right-color:  var(--lp2-border);
   border-bottom-color: var(--lp2-border);
-  box-shadow:
-    0 2px 24px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  box-shadow: none;
+  transition: background 0.2s;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.10);
-    box-shadow:
-      0 8px 40px rgba(0, 0, 0, 0.42),
-      0 0 0 1px rgba(255, 79, 24, 0.25),
-      inset 0 1px 0 rgba(255, 255, 255, 0.10);
-    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: none;
+    transform: none;
   }
 
   &--faq:hover { transform: none; }
@@ -5806,7 +5958,7 @@ $lp2-gap: 1px;               // shared border thickness
       rgba(255, 79, 24, 0.04) 100%
     );
   border-right-color: var(--lp2-border);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: none;
 }
 
 .lp2-shell .lp2-pricing__tag {
@@ -5825,7 +5977,7 @@ $lp2-gap: 1px;               // shared border thickness
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom-color: var(--lp2-border);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: none;
 
   &--accent {
     background:
@@ -5835,9 +5987,7 @@ $lp2-gap: 1px;               // shared border thickness
         rgba(255, 79, 24, 0.04) 100%
       );
     border-left-color: var(--lp2-orange);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.07),
-      -3px 0 18px rgba(255, 79, 24, 0.18);
+    box-shadow: none;
   }
 
   &--estimate { background: rgba(255, 255, 255, 0.03); }
@@ -6029,7 +6179,13 @@ $lp2-gap: 1px;               // shared border thickness
 // ── Hero ──────────────────────────────────────────────────────────────────────
 
 .lp2-shell .lp2-hero__brand {
-  color: var(--lp2-orange);
+  color: transparent;
+  filter: none;
+
+  .esti-brand {
+    // Mask fill stays Radiant Orange via --esti-brand-accent / styles.scss
+    filter: none;
+  }
 }
 
 .lp2-shell .lp2-hero__eyebrow {
@@ -6091,23 +6247,18 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-grid { border-top-color: var(--lp2-border); }
 
 .lp2-shell .lp2-tile {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(18px) saturate(1.2);
-  -webkit-backdrop-filter: blur(18px) saturate(1.2);
-  border-right-color:  var(--lp2-border);
-  border-bottom-color: var(--lp2-border);
-  box-shadow:
-    0 2px 20px rgba(20, 21, 23, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.90);
-  transition: background 0.18s, box-shadow 0.18s, transform 0.18s;
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(28px) saturate(1.35);
+  -webkit-backdrop-filter: blur(28px) saturate(1.35);
+  border-right-color:  rgba(255, 255, 255, 0.18);
+  border-bottom-color: rgba(255, 255, 255, 0.18);
+  box-shadow: none;
+  transition: background 0.18s, border-color 0.18s;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.90);
-    box-shadow:
-      0 8px 36px rgba(20, 21, 23, 0.10),
-      0 0 0 1px rgba(255, 79, 24, 0.18),
-      inset 0 1px 0 rgba(255, 255, 255, 0.95);
-    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: none;
+    transform: none;
   }
 
   &--faq:hover { transform: none; }
@@ -6140,22 +6291,20 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-pricing__meters { background: transparent; }
 
 .lp2-shell .lp2-pricing__meter {
-  background: rgba(255, 255, 255, 0.68);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
   border-bottom-color: var(--lp2-border);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.90);
+  box-shadow: none;
 
   &--accent {
-    background: rgba(255, 255, 255, 0.78);
+    background: rgba(255, 255, 255, 0.12);
     border-left: 3px solid var(--lp2-orange);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.95),
-      -3px 0 14px rgba(255, 79, 24, 0.12);
+    box-shadow: none;
   }
 
   &--estimate {
-    background: rgba(242, 244, 247, 0.55);
+    background: rgba(242, 244, 247, 0.35);
   }
 }
 
@@ -6237,17 +6386,7 @@ $lp2-gap: 1px;               // shared border thickness
   border-right: 1px solid rgba(255, 255, 255, 0.72);
 
   // Multi-layer depth shadow — physical profundity
-  box-shadow:
-    // Outer cast shadow — depth from stage surface
-    6px 0 48px rgba(60, 40, 120, 0.18),
-    // Mid shadow — panel thickness
-    2px 0 16px rgba(20, 21, 23, 0.12),
-    // Inner top highlight — light on top face of glass
-    inset 0 1px 0 rgba(255, 255, 255, 0.90),
-    // Inner right shadow — inner face in shadow
-    inset -1px 0 0 rgba(255, 255, 255, 0.20),
-    // Inner bottom shadow — lower face recedes
-    inset 0 -1px 0 rgba(20, 21, 23, 0.06);
+  box-shadow: none;
 
   // Orange left edge accent — stronger, with warm glow
   &::before {
@@ -6258,7 +6397,7 @@ $lp2-gap: 1px;               // shared border thickness
       rgba(255, 79, 24, 0.15) 100%
     );
     width: 3px;
-    box-shadow: 2px 0 14px rgba(255, 79, 24, 0.35);
+    box-shadow: none;
   }
 
   // FLUTED GLASS — deeper, more visible on transparent surface
@@ -6468,17 +6607,7 @@ $lp2-gap: 1px;               // shared border thickness
   border-top:   1px solid rgba(255, 255, 255, 0.40);
 
   // Layered shadow — profundity
-  box-shadow:
-    // Outer: warm cast shadow (orange blobs tint the shadow)
-    8px 0 56px rgba(180, 60, 10, 0.20),
-    // Mid: dark panel edge
-    2px 0 12px rgba(20, 21, 23, 0.10),
-    // Inset top specular — glass face catching top light
-    inset 0  2px 0 rgba(255, 255, 255, 0.70),
-    // Inset left — leading face in full light
-    inset 2px 0 0 rgba(255, 255, 255, 0.38),
-    // Inset right — inner rear face
-    inset -1px 0 0 rgba(255, 255, 255, 0.16);
+  box-shadow: none;
 
   // Orange left accent — strong warm edge
   &::before {
@@ -6489,7 +6618,7 @@ $lp2-gap: 1px;               // shared border thickness
       rgba(255, 79, 24, 0.40) 100%
     );
     width: 3px;
-    box-shadow: 2px 0 18px rgba(255, 79, 24, 0.50);
+    box-shadow: none;
   }
 
   // FLUTED glass — strong enough on nearly transparent panel
@@ -6553,15 +6682,28 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 .lp2-shell .esti-lp-contours__terrain {
-  opacity: calc(0.5 + var(--lp-depth, 0) * 0.45);
+  left: auto !important;
+  right: -8vw !important;
+  bottom: -6vh !important;
+  width: min(95vw, 920px) !important;
+  height: min(85vw, 720px) !important;
+  transform-origin: 85% 90% !important;
+  opacity: calc(0.75 + var(--lp-depth, 0) * 0.25) !important;
 }
 
-// Stage tiles — slightly warm glass so they fit the scene
+// Stage tiles — clear liquid glass over the contour scene
 .lp2-shell .lp2-tile {
-  background: rgba(255, 250, 245, 0.72);
-  backdrop-filter: blur(12px) saturate(1.3);
-  -webkit-backdrop-filter: blur(12px) saturate(1.3);
-  border-color: rgba(255, 200, 160, 0.28);
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.04) 48%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
+  backdrop-filter: blur(12px) saturate(1.25) brightness(1.04);
+  -webkit-backdrop-filter: blur(12px) saturate(1.25) brightness(1.04);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: none;
 }
 
 
@@ -6674,14 +6816,20 @@ $lp2-gap: 1px;               // shared border thickness
 // Applied to every card surface in the stage.
 
 @mixin frost-card {
-  background: rgba(255, 255, 255, 0.22) !important;
-  backdrop-filter: blur(22px) saturate(1.6) brightness(1.08) !important;
-  -webkit-backdrop-filter: blur(22px) saturate(1.6) brightness(1.08) !important;
-  border: 1px solid rgba(255, 255, 255, 0.52) !important;
+  // Clear glass (name kept for call sites) — light refraction, not milky frost
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.03) 48%,
+      rgba(255, 255, 255, 0.07) 100%
+    ) !important;
+  backdrop-filter: blur(10px) saturate(1.2) brightness(1.03) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.2) brightness(1.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
   box-shadow:
-    0 4px 32px rgba(180, 60, 10, 0.14),
-    0 1px 0   rgba(255, 255, 255, 0.70) inset,
-    0 -1px 0  rgba(20, 21, 23, 0.04) inset !important;
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 1px 0 0 rgba(255, 255, 255, 0.18) !important;
 }
 
 // Content tiles
@@ -6694,20 +6842,20 @@ $lp2-gap: 1px;               // shared border thickness
 
 // Trust / platform strip
 .lp2-shell .lp2-trust {
-  background: rgba(255, 255, 255, 0.18) !important;
-  backdrop-filter: blur(18px) saturate(1.5) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(1.5) !important;
-  border-top:    1px solid rgba(255, 255, 255, 0.45) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.30) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(10px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.2) !important;
+  border-top:    1px solid rgba(255, 255, 255, 0.35) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22) !important;
 }
 
 // Stage head bar (zone labels across the top)
 .lp2-shell .lp2-head {
-  background: rgba(255, 255, 255, 0.20) !important;
-  backdrop-filter: blur(20px) saturate(1.5) brightness(1.06) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(1.5) brightness(1.06) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.42) !important;
-  box-shadow: 0 2px 18px rgba(180, 60, 10, 0.10) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(10px) saturate(1.2) brightness(1.03) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.2) brightness(1.03) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: none !important;
 }
 
 // Section heading row
@@ -6747,12 +6895,12 @@ $lp2-gap: 1px;               // shared border thickness
   color: var(--lp2-orange);
 }
 
-// Footer — also frosted
+// Footer — clear coal glass (final colour set later; keep blur light here)
 .lp2-shell .lp2-footer {
-  background: rgba(255, 255, 255, 0.20) !important;
-  backdrop-filter: blur(20px) saturate(1.4) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.44) !important;
+  background: rgba(20, 21, 23, 0.45) !important;
+  backdrop-filter: blur(14px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.2) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
 }
 
 
@@ -6891,12 +7039,7 @@ $lp2-gap: 1px;               // shared border thickness
     brightness(1.12) !important;
   border-right: 1px solid rgba(255, 255, 255, 0.60) !important;
   border-top:   1px solid rgba(255, 255, 255, 0.40) !important;
-  box-shadow:
-    6px 0 60px rgba(180, 150, 120, 0.22),
-    2px 0 14px rgba(20, 21, 23, 0.08),
-    inset 0  2px 0 rgba(255, 255, 255, 0.80),
-    inset 2px 0 0 rgba(255, 255, 255, 0.42),
-    inset -1px 0 0 rgba(255, 255, 255, 0.18) !important;
+  box-shadow: none !important;
 }
 
 
@@ -6999,15 +7142,14 @@ $lp2-gap: 1px;               // shared border thickness
   filter: blur(3px) !important;
 }
 
-// ── Rail box-shadow — neutral (no warm orange tint) ───────────────────────────
+// ── Rail box-shadow — thick glass edge ────────────────────────────────────────
 
 .lp2-shell .lp2-rail {
   box-shadow:
-    6px 0 60px rgba(140, 145, 165, 0.20),
-    2px 0 14px rgba(20, 21, 23, 0.07),
-    inset 0  2px 0 rgba(255, 255, 255, 0.85),
-    inset 2px 0 0 rgba(255, 255, 255, 0.45),
-    inset -1px 0 0 rgba(255, 255, 255, 0.20) !important;
+    8px 0 32px rgba(20, 21, 23, 0.10),
+    2px 0 8px rgba(20, 21, 23, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 1px 0 0 rgba(255, 255, 255, 0.28) !important;
 }
 
 // ── Card shadows — neutral ─────────────────────────────────────────────────────
@@ -7017,9 +7159,10 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-pricing__meter,
 .lp2-shell .lp2-pricing {
   box-shadow:
-    0 4px 32px rgba(140, 145, 165, 0.14),
-    0 1px 0   rgba(255, 255, 255, 0.75) inset,
-    0 -1px 0  rgba(20, 21, 23, 0.04) inset !important;
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 1px 0 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(20, 21, 23, 0.08),
+    inset -1px 0 0 rgba(20, 21, 23, 0.05) !important;
 }
 
 
@@ -7036,32 +7179,64 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-pricing__meter,
 .lp2-shell .lp2-pricing__meter--accent,
 .lp2-shell .lp2-pricing {
-  background:      rgba(255, 255, 255, 0.82) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow:      none !important;
-  border:          none !important;
-  border-left:     1px solid rgba(20, 21, 23, 0.10) !important;
-  border-right:    1px solid rgba(20, 21, 23, 0.10) !important;
-  border-bottom:   1px solid rgba(20, 21, 23, 0.10) !important;
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.04) 48%,
+      rgba(255, 255, 255, 0.08) 100%
+    ) !important;
+  backdrop-filter: blur(12px) saturate(1.25) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.25) brightness(1.04) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 1px 0 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(20, 21, 23, 0.06),
+    inset -1px 0 0 rgba(20, 21, 23, 0.04) !important;
+  border-style: solid !important;
+  border-width: 1px !important;
+  border-top-color: rgba(255, 255, 255, 0.65) !important;
+  border-left-color: rgba(255, 255, 255, 0.45) !important;
+  border-right-color: rgba(20, 21, 23, 0.10) !important;
+  border-bottom-color: rgba(20, 21, 23, 0.12) !important;
   border-radius:   0 !important;
 }
 
 .lp2-shell .lp2-trust {
-  background:      rgba(255, 255, 255, 0.75) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow:      none !important;
-  border:          none !important;
-  border-bottom:   1px solid rgba(20, 21, 23, 0.10) !important;
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.04) 48%,
+      rgba(255, 255, 255, 0.08) 100%
+    ) !important;
+  backdrop-filter: blur(12px) saturate(1.25) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.25) brightness(1.04) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 1px 0 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(20, 21, 23, 0.06),
+    inset -1px 0 0 rgba(20, 21, 23, 0.04) !important;
+  border-style: solid !important;
+  border-width: 1px !important;
+  border-top-color: rgba(255, 255, 255, 0.65) !important;
+  border-left-color: rgba(255, 255, 255, 0.45) !important;
+  border-right-color: rgba(20, 21, 23, 0.10) !important;
+  border-bottom-color: rgba(20, 21, 23, 0.12) !important;
   border-radius:   0 !important;
 }
 
 .lp2-shell .lp2-head {
-  background:      rgba(255, 255, 255, 0.80) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow:      none !important;
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.04) 100%
+    ) !important;
+  backdrop-filter: blur(10px) saturate(1.2) brightness(1.03) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.2) brightness(1.03) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
   border:          none !important;
   border-bottom:   1px solid rgba(20, 21, 23, 0.10) !important;
   border-radius:   0 !important;
@@ -7079,7 +7254,7 @@ $lp2-gap: 1px;               // shared border thickness
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TILES — frosted glass (2026-07)
+// TILES — clear liquid glass (2026-07)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 .lp2-shell .lp2-tile,
@@ -7091,18 +7266,27 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-pricing,
 .lp2-shell .lp2-trust,
 .lp2-shell .lp2-head {
-  background:      rgba(255, 255, 255, 0.28) !important;
-  backdrop-filter: blur(28px) saturate(1.6) brightness(1.08) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(1.6) brightness(1.08) !important;
-  border:          none !important;
-  border-left:     1px solid rgba(255, 255, 255, 0.58) !important;
-  border-right:    1px solid rgba(255, 255, 255, 0.58) !important;
-  border-bottom:   1px solid rgba(255, 255, 255, 0.40) !important;
-  border-top:      1px solid rgba(255, 255, 255, 0.70) !important;
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.04) 48%,
+      rgba(255, 255, 255, 0.08) 100%
+    ) !important;
+  backdrop-filter: blur(12px) saturate(1.25) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.25) brightness(1.04) !important;
+  border-style: solid !important;
+  border-width: 1px !important;
+  border-top-color: rgba(255, 255, 255, 0.65) !important;
+  border-left-color: rgba(255, 255, 255, 0.45) !important;
+  border-right-color: rgba(20, 21, 23, 0.10) !important;
+  border-bottom-color: rgba(20, 21, 23, 0.12) !important;
   border-radius:   0 !important;
   box-shadow:
-    0 4px 32px rgba(140, 145, 165, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.80) !important;
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 1px 0 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(20, 21, 23, 0.06),
+    inset -1px 0 0 rgba(20, 21, 23, 0.04) !important;
 }
 
 
@@ -7142,33 +7326,119 @@ $lp2-gap: 1px;               // shared border thickness
   z-index: 9500;
 }
 
+// FAQ — progressive disclosure; 3 cards per row on desktop
+.lp2-faq {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem 1rem;
+  padding: 0 $lp2-pad 2.5rem;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lp2-faq__item {
+  border: 1px solid var(--lp-border, rgba(20, 21, 23, 0.12));
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  overflow: hidden;
+  min-height: 0;
+  align-self: start;
+}
+
+.lp2-faq__q {
+  list-style: none;
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--lp-ink, inherit);
+  &:focus-visible {
+    outline: 2px solid var(--lp-accent, #ff4f18);
+    outline-offset: -2px;
+  }
+  &::-webkit-details-marker { display: none; }
+}
+
+.lp2-faq__a {
+  margin: 0;
+  padding: 0 1rem 1rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--lp-ink-muted, rgba(20, 21, 23, 0.7));
+}
+
+.lp2-shell .lp2-faq__item {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: var(--lp2-border, rgba(255, 255, 255, 0.1));
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+}
+
+.lp2-shell .lp2-faq__q { color: var(--lp2-ink, rgba(255, 255, 255, 0.92)); }
+.lp2-shell .lp2-faq__a { color: var(--lp2-ink-muted, rgba(255, 255, 255, 0.58)); }
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MARKETING FOOTER — solutions mesh (coal) + Radiant Orange bar (2026-07)
-// Canonical override; marketing / lp2-shell only — not AppFooterBar.
+// MARKETING FOOTER — clear coal glass mesh + clear orange glass bar
 // ═══════════════════════════════════════════════════════════════════════════════
 
 .lp2-shell .lp2-footer {
-  background: #141517 !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  // Clear coal glass over the contour — not solid black
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20, 21, 23, 0.52) 0%,
+      rgba(20, 21, 23, 0.42) 100%
+    ) !important;
+  backdrop-filter: blur(14px) saturate(1.2) brightness(1.02) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.2) brightness(1.02) !important;
   border: none !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.28) !important;
   border-radius: 0 !important;
-  box-shadow: none !important;
-  color: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    inset 0 0 48px rgba(255, 255, 255, 0.14),
+    inset 0 0 18px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06) !important;
+  color: rgba(255, 255, 255, 0.78);
   margin-top: 2rem;
 }
 
 .lp2-shell .lp2-footer__solutions {
-  background: transparent;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
 }
 
 .lp2-shell .lp2-footer__bar {
-  background: var(--lp2-orange, #ff4f18) !important;
-  border-top: none !important;
-  box-shadow: none !important;
+  // Clear Radiant Orange glass — tinted, not solid fill
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 79, 24, 0.55) 0%,
+      rgba(255, 79, 24, 0.38) 48%,
+      rgba(219, 62, 15, 0.48) 100%
+    ) !important;
+  backdrop-filter: blur(12px) saturate(1.35) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.35) brightness(1.05) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.42) !important;
+  box-shadow:
+    inset 0 0 56px rgba(255, 200, 160, 0.35),
+    inset 0 0 22px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 140, 80, 0.25) !important;
 }
 
 .lp2-shell .lp2-footer__bar .lp2-footer__col-head {
@@ -7367,105 +7637,106 @@ $lp2-gap: 1px;               // shared border thickness
   }
 
   .esti-lp-contours__terrain {
-    transform: translateX(-50%) translateY(0) rotateX(42deg) rotateZ(-3deg) !important;
-    opacity: 0.7 !important;
+    transform: translateY(0) rotateX(42deg) rotateZ(2deg) !important;
+    opacity: 0.85 !important;
   }
 
   .esti-lp-contours__layer {
-    transform:
-      translateY(calc((var(--lp-rings) - 1 - var(--i)) * -12px))
-      translateZ(calc((var(--lp-rings) - 1 - var(--i)) * 16px)) !important;
+    // Keep a readable mid elevation when motion is reduced
+  }
+
+  .esti-lp-contours__ring {
+    animation: none !important;
   }
 }
 
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// REFERENCE GLASS GRADING (2026-07)
-// Matches the 3D glassmorphism reference:
-//   background: rgba(255,255,255,0.10) · blur(24–40px) · 1px rgba(255,255,255,0.22)
-//   top/left specular rim · soft lift shadow · orange spheres diffuse behind
+// CLEAR / LIQUID GLASS — marketing surfaces (2026-07)
+// Regular cards = clear liquid glass (not frosted/matte).
+// Empty / gap fills only = fluted glass.
 // Scoped to .lp2-shell only.
 // ═══════════════════════════════════════════════════════════════════════════════
 
-@keyframes lp2-glass-rim {
-  0%, 100% {
-    box-shadow:
-      0 8px 32px rgba(31, 38, 80, 0.14),
-      0 2px 8px rgba(255, 79, 24, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.55),
-      inset 1px 0 0 rgba(255, 255, 255, 0.28),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.08);
-  }
-  50% {
-    box-shadow:
-      0 12px 40px rgba(31, 38, 80, 0.18),
-      0 4px 14px rgba(255, 79, 24, 0.12),
-      inset 0 1px 0 rgba(255, 255, 255, 0.7),
-      inset 1px 0 0 rgba(255, 255, 255, 0.36),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.12);
-  }
+// Vertical ribbed glass — empty cells only
+@mixin lp2-flute-overlay {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.0)   0px,
+      rgba(255, 255, 255, 0.34)  1px,
+      rgba(255, 255, 255, 0.10)  3px,
+      rgba(255, 255, 255, 0.0)   6px,
+      rgba(255, 255, 255, 0.18)  7px,
+      rgba(255, 255, 255, 0.04)  10px,
+      rgba(255, 255, 255, 0.0)   14px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(20, 21, 23, 0.0)    0px,
+      rgba(20, 21, 23, 0.03)   5px,
+      rgba(20, 21, 23, 0.0)    8px,
+      rgba(20, 21, 23, 0.02)   12px,
+      rgba(20, 21, 23, 0.0)    16px
+    );
+  mix-blend-mode: overlay;
+  opacity: 0.9;
 }
 
-@keyframes lp2-glass-sheen {
-  0%   { transform: translateX(-130%) skewX(-16deg); opacity: 0; }
-  18%  { opacity: 0.35; }
-  55%  { opacity: 0.18; }
-  78%  { transform: translateX(140%) skewX(-16deg); opacity: 0; }
-  100% { transform: translateX(140%) skewX(-16deg); opacity: 0; }
-}
-
-// Reference recipe — low-opacity frost, heavy blur, crisp light edge
-@mixin lp2-ref-glass {
+// Clear liquid glass — transparent pane, light refraction, thick edge
+@mixin lp2-clear-glass {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  // ~10% white tint — spheres/contours must read through as soft glow
-  background: rgba(255, 255, 255, 0.10) !important;
-  backdrop-filter: blur(28px) saturate(1.35) brightness(1.05) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(1.35) brightness(1.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  // Nearly clear — contours read through as soft glow, not milky frost
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.04) 42%,
+      rgba(255, 255, 255, 0.08) 100%
+    ) !important;
+  // Light blur = clear glass refraction (not heavy frost)
+  backdrop-filter: blur(12px) saturate(1.25) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.25) brightness(1.04) !important;
+  border-style: solid !important;
+  border-width: 1px !important;
+  border-top-color: rgba(255, 255, 255, 0.65) !important;
+  border-left-color: rgba(255, 255, 255, 0.45) !important;
+  border-right-color: rgba(20, 21, 23, 0.10) !important;
+  border-bottom-color: rgba(20, 21, 23, 0.12) !important;
   border-radius: 0 !important;
   box-shadow:
-    0 8px 32px rgba(31, 38, 80, 0.14),
-    0 2px 8px rgba(255, 79, 24, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    inset 1px 0 0 rgba(255, 255, 255, 0.28),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.08) !important;
-  animation: lp2-glass-rim 8s ease-in-out infinite;
-  transition:
-    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.45s ease,
-    border-color 0.35s ease,
-    background 0.4s ease;
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 1px 0 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(20, 21, 23, 0.06),
+    inset -1px 0 0 rgba(20, 21, 23, 0.04) !important;
+  animation: none !important;
+  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 
-  // Soft specular sweep — light catching the glass face
   &::before {
-    content: '';
-    position: absolute;
-    inset: -30% -50%;
-    z-index: 0;
-    pointer-events: none;
-    background: linear-gradient(
-      105deg,
-      transparent 40%,
-      rgba(255, 255, 255, 0.38) 49%,
-      rgba(255, 255, 255, 0.08) 53%,
-      transparent 62%
-    );
-    animation: lp2-glass-sheen 11s ease-in-out infinite;
+    display: none !important;
+    content: none !important;
   }
 
-  // Inner glass rim
+  // Liquid edge thickness
   &::after {
-    content: '';
+    content: '' !important;
+    display: block !important;
     position: absolute;
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    border-radius: inherit;
     box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.12),
-      inset 0 18px 36px rgba(255, 255, 255, 0.06);
+      inset 2px 0 0 rgba(255, 255, 255, 0.16),
+      inset 0 2px 0 rgba(255, 255, 255, 0.2),
+      inset -1px 0 0 rgba(20, 21, 23, 0.05),
+      inset 0 -1px 0 rgba(20, 21, 23, 0.06);
   }
 
   > * {
@@ -7480,61 +7751,152 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-tile--faq,
 .lp2-shell .lp2-pricing__meter,
 .lp2-shell .lp2-pricing__meter--accent {
-  @include lp2-ref-glass;
+  @include lp2-clear-glass;
   margin: 0 !important;
 }
 
 .lp2-shell .lp2-section-head,
 .lp2-shell .lp2-trust,
 .lp2-shell .lp2-keywords {
-  @include lp2-ref-glass;
+  @include lp2-clear-glass;
   margin: 0;
 }
 
-// Grid — flush tiles, no gaps
+// Grid — flush tiles; empty cells show fluted glass underneath
 .lp2-shell .lp2-grid {
+  position: relative;
+  isolation: isolate;
   border-top: none !important;
   gap: 0 !important;
   padding: 0 !important;
-  background: transparent !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  backdrop-filter: blur(8px) saturate(1.15) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(1.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  overflow: hidden;
+
+  &::before {
+    @include lp2-flute-overlay;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 .lp2-shell .lp2-tile,
 .lp2-shell .lp2-step-tile {
-  border-right: 1px solid rgba(255, 255, 255, 0.18) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-style: solid !important;
+  border-width: 1px !important;
+  border-top-color: rgba(255, 255, 255, 0.65) !important;
+  border-left-color: rgba(255, 255, 255, 0.45) !important;
+  border-right-color: rgba(20, 21, 23, 0.10) !important;
+  border-bottom-color: rgba(20, 21, 23, 0.12) !important;
   min-height: 100%;
+  height: 100%;
+  align-self: stretch;
+
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.04) 48%,
+      rgba(255, 255, 255, 0.08) 100%
+    ) !important;
+  backdrop-filter: blur(12px) saturate(1.25) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.25) brightness(1.04) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 1px 0 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(20, 21, 23, 0.06),
+    inset -1px 0 0 rgba(20, 21, 23, 0.04) !important;
+
+  &::before {
+    display: none !important;
+    content: none !important;
+  }
+
+  &::after {
+    content: '' !important;
+    display: block !important;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    box-shadow:
+      inset 2px 0 0 rgba(255, 255, 255, 0.16),
+      inset 0 2px 0 rgba(255, 255, 255, 0.2),
+      inset -1px 0 0 rgba(20, 21, 23, 0.05),
+      inset 0 -1px 0 rgba(20, 21, 23, 0.06);
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 
   &:hover {
-    transform: none;
+    transform: none !important;
     z-index: 2;
-    background: rgba(255, 255, 255, 0.16) !important;
-    border-color: rgba(255, 255, 255, 0.42) !important;
+    background:
+      linear-gradient(
+        155deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0.07) 48%,
+        rgba(255, 255, 255, 0.12) 100%
+      ) !important;
     box-shadow:
-      0 12px 36px rgba(31, 38, 80, 0.16),
-      inset 0 1px 0 rgba(255, 255, 255, 0.7),
-      inset 1px 0 0 rgba(255, 255, 255, 0.35) !important;
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      inset 1px 0 0 rgba(255, 255, 255, 0.28),
+      inset 0 -1px 0 rgba(20, 21, 23, 0.06),
+      inset -1px 0 0 rgba(20, 21, 23, 0.04) !important;
   }
 
   &.lp2-tile--faq:hover {
-    transform: none;
+    transform: none !important;
   }
 }
 
-// Section head — same glass, orange accent as thin left light
+// Explicit empty fluted filler cells
+.lp2-shell .lp2-tile--flute,
+.lp2-shell .lp2-flute-fill {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: 0 !important;
+  min-height: 100%;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(22px) saturate(1.25) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  pointer-events: none;
+
+  &::before {
+    display: none !important;
+  }
+
+  &::after {
+    @include lp2-flute-overlay;
+    display: block !important;
+  }
+}
+
+// Section head — flat glass + thin orange accent
 .lp2-shell .lp2-section-head {
   margin: 0;
   padding: 2.25rem 1.75rem 1.75rem !important;
   max-width: none;
-  border-left: 1px solid rgba(255, 255, 255, 0.22) !important;
-  box-shadow:
-    0 8px 32px rgba(31, 38, 80, 0.14),
-    inset 3px 0 0 rgba(255, 79, 24, 0.75),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    inset 1px 0 0 rgba(255, 255, 255, 0.28) !important;
+  border-left: 3px solid var(--lp2-orange, #ff4f18) !important;
+  box-shadow: none !important;
 
   &:hover {
-    transform: none;
+    transform: none !important;
   }
 }
 
@@ -7552,14 +7914,56 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 .lp2-shell .lp2-pricing {
-  background: transparent !important;
-  border: none !important;
+  // Fluted underlay for any empty pricing cells
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(22px) saturate(1.25) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.25) brightness(1.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
   box-shadow: none !important;
-  backdrop-filter: none !important;
   display: grid;
   gap: 0 !important;
   padding: 0 !important;
   animation: none !important;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  &::before {
+    @include lp2-flute-overlay;
+    z-index: 0;
+  }
+
+  &::after {
+    display: none !important;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.lp2-shell .lp2-pricing__included {
+  border-radius: 0 !important;
+  // Clear coal glass — not solid black
+  background:
+    linear-gradient(
+      155deg,
+      rgba(20, 21, 23, 0.55) 0%,
+      rgba(20, 21, 23, 0.38) 50%,
+      rgba(20, 21, 23, 0.48) 100%
+    ) !important;
+  backdrop-filter: blur(12px) saturate(1.2) brightness(1.02) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.2) brightness(1.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  border-top-color: rgba(255, 255, 255, 0.38) !important;
+  box-shadow:
+    inset 0 0 48px rgba(255, 255, 255, 0.14),
+    inset 0 0 18px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 1px 0 0 rgba(255, 255, 255, 0.12) !important;
+  overflow: hidden;
+  color: #fff;
 
   &::before,
   &::after {
@@ -7567,38 +7971,27 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-.lp2-shell .lp2-pricing__included {
-  border-radius: 0 !important;
-  background: rgba(20, 21, 23, 0.72) !important;
-  backdrop-filter: blur(24px) saturate(1.2) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(1.2) !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
-  box-shadow:
-    0 12px 40px rgba(20, 21, 23, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
-  overflow: hidden;
-}
-
 .lp2-shell .lp2-pricing__meters {
   background: transparent !important;
   gap: 0 !important;
   display: flex;
   flex-direction: column;
-}
 
-.lp2-shell .lp2-pricing__meter {
-  margin: 0 !important;
-
-  &--accent {
-    border-color: rgba(255, 255, 255, 0.32) !important;
-    box-shadow:
-      0 8px 32px rgba(31, 38, 80, 0.14),
-      inset 3px 0 0 rgba(255, 79, 24, 0.7),
-      inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+  &::after {
+    display: none !important;
   }
 }
 
-// Chips — mini glass pills
+.lp2-shell .lp2-pricing__meter {
+  @include lp2-clear-glass;
+  margin: 0 !important;
+
+  &--accent {
+    border-left: 3px solid var(--lp2-orange, #ff4f18) !important;
+  }
+}
+
+// Chips — flat mini glass
 .lp2-shell .lp2-trust__marks li,
 .lp2-shell .lp2-keywords__list li {
   padding: 0.35rem 0.7rem 0.35rem 0.5rem;
@@ -7607,20 +8000,20 @@ $lp2-gap: 1px;               // shared border thickness
   border: 1px solid rgba(255, 255, 255, 0.22);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+  box-shadow: none;
+  transition: background 0.25s ease, border-color 0.25s ease;
 
   &:hover {
     background: rgba(255, 255, 255, 0.18);
     border-color: rgba(255, 255, 255, 0.4);
-    transform: translateY(-1px);
+    transform: none;
   }
 }
 
 // Ink on transparent glass — soft white halo for legibility
 .lp2-shell .lp2-tile__title,
 .lp2-shell .lp2-section-head__title,
-.lp2-shell .lp2-hero__h1,
-.lp2-shell .lp2-hero__brand {
+.lp2-shell .lp2-hero__h1 {
   text-shadow: 0 1px 12px rgba(255, 255, 255, 0.55);
 }
 
@@ -7631,10 +8024,8 @@ $lp2-gap: 1px;               // shared border thickness
   text-shadow: 0 1px 8px rgba(255, 255, 255, 0.4);
 }
 
-.lp2-shell .lp2-hero__brand {
-  text-shadow:
-    0 0 48px rgba(255, 79, 24, 0.4),
-    0 1px 12px rgba(255, 255, 255, 0.55);
+.lp2-shell .lp2-hero__brand .esti-brand {
+  filter: drop-shadow(0 0 28px rgba(255, 79, 24, 0.35));
 }
 
 // ── Stage-spread spheres (depth of field like the reference) ─────────────────
@@ -7682,16 +8073,23 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-blob--g { animation: lp2-blob-drift 16s ease-in-out infinite reverse; animation-delay: -7s; }
 .lp2-blob--h { animation: lp2-blob-drift 20s ease-in-out infinite; animation-delay: -11s; }
 
-// Rail — same reference glass grading
+// Rail — thick glass pane
 .lp2-shell .lp2-rail {
-  background: rgba(255, 255, 255, 0.10) !important;
-  backdrop-filter: blur(36px) saturate(1.4) brightness(1.06) !important;
-  -webkit-backdrop-filter: blur(36px) saturate(1.4) brightness(1.06) !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.28) !important;
+  background:
+    linear-gradient(
+      170deg,
+      rgba(255, 255, 255, 0.20) 0%,
+      rgba(255, 255, 255, 0.08) 55%,
+      rgba(255, 255, 255, 0.14) 100%
+    ) !important;
+  backdrop-filter: blur(48px) saturate(1.55) brightness(1.1) !important;
+  -webkit-backdrop-filter: blur(48px) saturate(1.55) brightness(1.1) !important;
+  border-right: 1px solid rgba(20, 21, 23, 0.12) !important;
   box-shadow:
-    8px 0 40px rgba(31, 38, 80, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    inset 1px 0 0 rgba(255, 255, 255, 0.25) !important;
+    8px 0 32px rgba(20, 21, 23, 0.10),
+    2px 0 8px rgba(20, 21, 23, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 1px 0 0 rgba(255, 255, 255, 0.28) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -7704,20 +8102,372 @@ $lp2-gap: 1px;               // shared border thickness
   .lp2-shell .lp2-keywords {
     animation: none !important;
 
-    &::before {
-      animation: none !important;
-      opacity: 0 !important;
-    }
-
     &:hover {
       transform: none !important;
     }
   }
 
-  .lp2-blob--f,
-  .lp2-blob--g,
-  .lp2-blob--h {
+  .esti-lp-contours__ring {
     animation: none !important;
   }
+
+  .esti-lp-contours__terrain {
+    transform: translateY(0) rotateX(42deg) rotateZ(2deg) !important;
+    opacity: 0.85 !important;
+  }
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CANONICAL BG — fluid contours only (2026-07)
+// Kill blobs + old atmosphere blooms. Contour hierarchy is the sole scene.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+.lp2-blobs,
+.lp2-blob,
+.lp2-blobs::before,
+.lp2-blobs::after {
+  display: none !important;
+  opacity: 0 !important;
+  animation: none !important;
+  background: none !important;
+  filter: none !important;
+}
+
+.lp2-shell {
+  background: #eef0f4 !important;
+
+  &::before {
+    background: none !important;
+    content: none !important;
+    display: none !important;
+  }
+}
+
+.lp2-shell .lp2-stage,
+.lp2-shell .lp2-content {
+  background: transparent !important;
+}
+
+// Contour hierarchy wins over older stroke overrides
+.lp2-shell .esti-lp-contours__band--far .esti-lp-contours__ring {
+  stroke: rgba(91, 97, 107, calc(0.14 + var(--lp-depth, 0) * 0.16)) !important;
+  fill: none !important;
+  filter: none !important;
+}
+
+.lp2-shell .esti-lp-contours__band--mid .esti-lp-contours__ring {
+  stroke: rgba(255, 79, 24, calc(0.24 + var(--lp-depth, 0) * 0.3)) !important;
+  fill: rgba(255, 79, 24, calc(0.012 + var(--lp-depth, 0) * 0.028)) !important;
+  filter: none !important;
+}
+
+.lp2-shell .esti-lp-contours__band--near .esti-lp-contours__ring {
+  stroke: rgba(255, 79, 24, calc(0.45 + var(--lp-depth, 0) * 0.4)) !important;
+  fill: rgba(255, 79, 24, calc(0.035 + var(--lp-depth, 0) * 0.05)) !important;
+  filter: drop-shadow(0 1px 4px rgba(255, 79, 24, calc(0.1 + var(--lp-depth, 0) * 0.15))) !important;
+}
+
+.lp2-shell .esti-lp-contours__terrain {
+  left: auto !important;
+  right: -8vw !important;
+  bottom: -6vh !important;
+  width: min(95vw, 920px) !important;
+  height: min(85vw, 720px) !important;
+  transform-origin: 85% 90% !important;
+  opacity: calc(0.75 + var(--lp-depth, 0) * 0.25) !important;
+}
+
+.lp2-shell .esti-lp-contours {
+  perspective-origin: 88% 92% !important;
+}
+
+.lp2-shell .esti-lp-contours__wash {
+  display: block !important;
+  background:
+    radial-gradient(ellipse 55% 50% at 92% 88%,
+      rgba(255, 79, 24, 0.09) 0%, transparent 58%),
+    radial-gradient(ellipse 40% 35% at 12% 18%,
+      rgba(20, 21, 23, 0.025) 0%, transparent 55%),
+    linear-gradient(165deg, #f5f6f9 0%, #eef0f4 48%, #e8ebf0 100%) !important;
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CLEAR LIQUID GLASS — final override (beats milky frost layers)
+// Clear glass + clear coal glass + clear orange glass.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+.lp2-shell .lp2-tile,
+.lp2-shell .lp2-step-tile,
+.lp2-shell .lp2-tile--wide,
+.lp2-shell .lp2-tile--faq,
+.lp2-shell .lp2-section-head,
+.lp2-shell .lp2-trust,
+.lp2-shell .lp2-keywords,
+.lp2-shell .lp2-pricing__meter,
+.lp2-shell .lp2-pricing__meter--accent {
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.03) 50%,
+      rgba(255, 255, 255, 0.07) 100%
+    ) !important;
+  backdrop-filter: blur(10px) saturate(1.2) brightness(1.03) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.2) brightness(1.03) !important;
+}
+
+.lp2-shell .lp2-rail {
+  background:
+    linear-gradient(
+      170deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.04) 55%,
+      rgba(255, 255, 255, 0.08) 100%
+    ) !important;
+  backdrop-filter: blur(14px) saturate(1.25) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.25) brightness(1.04) !important;
+}
+
+// Pricing “included” — clear coal glass + bright inner glow
+.lp2-shell .lp2-pricing__included {
+  background:
+    linear-gradient(
+      155deg,
+      rgba(20, 21, 23, 0.55) 0%,
+      rgba(20, 21, 23, 0.38) 50%,
+      rgba(20, 21, 23, 0.48) 100%
+    ) !important;
+  backdrop-filter: blur(12px) saturate(1.2) brightness(1.02) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.2) brightness(1.02) !important;
+  box-shadow:
+    inset 0 0 48px rgba(255, 255, 255, 0.14),
+    inset 0 0 18px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 1px 0 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+// Footer — clear coal glass mesh + bright inner glow
+.lp2-shell .lp2-footer {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20, 21, 23, 0.52) 0%,
+      rgba(20, 21, 23, 0.42) 100%
+    ) !important;
+  backdrop-filter: blur(14px) saturate(1.2) brightness(1.02) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.2) brightness(1.02) !important;
+  box-shadow:
+    inset 0 0 48px rgba(255, 255, 255, 0.14),
+    inset 0 0 18px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+// Footer orange bar — clear Radiant Orange glass + warm inner glow
+.lp2-shell .lp2-footer__bar {
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 79, 24, 0.55) 0%,
+      rgba(255, 79, 24, 0.38) 48%,
+      rgba(219, 62, 15, 0.48) 100%
+    ) !important;
+  backdrop-filter: blur(12px) saturate(1.35) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.35) brightness(1.05) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.42) !important;
+  box-shadow:
+    inset 0 0 56px rgba(255, 200, 160, 0.35),
+    inset 0 0 22px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 140, 80, 0.25) !important;
+}
+
+// Accent pricing meter — clear orange glass + warm inner glow
+.lp2-shell .lp2-pricing__meter--accent {
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 79, 24, 0.18) 0%,
+      rgba(255, 255, 255, 0.06) 45%,
+      rgba(255, 79, 24, 0.10) 100%
+    ) !important;
+  backdrop-filter: blur(10px) saturate(1.3) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.3) brightness(1.04) !important;
+  box-shadow:
+    inset 0 0 40px rgba(255, 160, 100, 0.28),
+    inset 0 0 14px rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 3px 0 0 rgba(255, 79, 24, 0.55) !important;
+}
+
+// Stage head — clear glass strip (not heavy frost)
+.lp2-shell .lp2-head {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.10) 0%,
+      rgba(255, 255, 255, 0.04) 100%
+    ) !important;
+  backdrop-filter: blur(10px) saturate(1.2) brightness(1.03) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.2) brightness(1.03) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+}
+
+// Marketing ActionDock — clear glass tray (landing only)
+.lp2-shell [role="toolbar"][aria-label="Screen actions"] {
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0.09) 100%
+    ) !important;
+  backdrop-filter: blur(12px) saturate(1.25) brightness(1.04) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.25) brightness(1.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border-top-color: rgba(255, 255, 255, 0.6) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 8px 28px rgba(20, 21, 23, 0.12) !important;
+}
+
+// Kill milky text-shadow haze on clear glass (legibility via contrast, not frost)
+.lp2-shell .lp2-tile__title,
+.lp2-shell .lp2-section-head__title,
+.lp2-shell .lp2-hero__h1,
+.lp2-shell .lp2-hero__answer {
+  text-shadow: none !important;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HIERARCHY GLASS (2026-07) — final override
+// Glass ONLY on rail + section heading bands. Sub-cards are flat/transparent so
+// the contour background reads clearly. Heading bands span full content width.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Rail — clear glass (see-through, light frost, soft edge)
+.lp2-shell .lp2-rail {
+  background:
+    linear-gradient(
+      175deg,
+      rgba(255, 255, 255, 0.22) 0%,
+      rgba(255, 255, 255, 0.08) 45%,
+      rgba(255, 255, 255, 0.14) 100%
+    ) !important;
+  backdrop-filter: blur(18px) saturate(1.35) brightness(1.06) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.35) brightness(1.06) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.45) !important;
+  box-shadow:
+    6px 0 28px rgba(20, 21, 23, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 1px 0 0 rgba(255, 255, 255, 0.35) !important;
+}
+
+// Section heading — glass band, full content width (visual hierarchy)
+.lp2-shell .lp2-section-head {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  padding: 2.75rem $lp2-pad 2rem !important;
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.28) 0%,
+      rgba(255, 255, 255, 0.10) 55%,
+      rgba(255, 255, 255, 0.16) 100%
+    ) !important;
+  backdrop-filter: blur(16px) saturate(1.3) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.3) brightness(1.05) !important;
+  border-left: 4px solid var(--lp2-orange, #ff4f18) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.55) !important;
+  border-right: 1px solid rgba(20, 21, 23, 0.06) !important;
+  border-bottom: 1px solid rgba(20, 21, 23, 0.08) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 8px 24px rgba(20, 21, 23, 0.04) !important;
+}
+
+.lp2-shell .lp2-section-head__title {
+  max-width: none !important;
+}
+
+.lp2-shell .lp2-section-head__body {
+  max-width: 52rem !important;
+}
+
+// Sub-cards — NO glass. Transparent / hairline only so contours stay clear.
+.lp2-shell .lp2-tile,
+.lp2-shell .lp2-step-tile,
+.lp2-shell .lp2-tile--wide,
+.lp2-shell .lp2-tile--faq,
+.lp2-shell .lp2-pricing__meter,
+.lp2-shell .lp2-pricing__meter--accent,
+.lp2-shell .lp2-pricing,
+.lp2-shell .lp2-pricing__included,
+.lp2-shell .lp2-trust,
+.lp2-shell .lp2-keywords,
+.lp2-shell .lp2-faq__item {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.lp2-shell .lp2-tile,
+.lp2-shell .lp2-step-tile,
+.lp2-shell .lp2-tile--faq {
+  border-right: 1px solid rgba(20, 21, 23, 0.10) !important;
+  border-bottom: 1px solid rgba(20, 21, 23, 0.10) !important;
+  border-top-color: transparent !important;
+  border-left-color: transparent !important;
+}
+
+.lp2-shell .lp2-tile:hover,
+.lp2-shell .lp2-step-tile:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  transform: none !important;
+}
+
+.lp2-shell .lp2-pricing__meter,
+.lp2-shell .lp2-pricing__meter--accent {
+  border-bottom: 1px solid rgba(20, 21, 23, 0.10) !important;
+  border-right: 1px solid rgba(20, 21, 23, 0.08) !important;
+}
+
+.lp2-shell .lp2-pricing__included {
+  background: rgba(20, 21, 23, 0.04) !important;
+  border-right: 1px solid rgba(20, 21, 23, 0.10) !important;
+  color: inherit;
+}
+
+.lp2-shell .lp2-pricing__included .lp2-pricing__tag,
+.lp2-shell .lp2-pricing__included .lp2-pricing__list li {
+  color: var(--lp2-ink, #141517) !important;
+}
+
+.lp2-shell .lp2-trust,
+.lp2-shell .lp2-keywords {
+  border-top: 1px solid rgba(20, 21, 23, 0.08) !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+.lp2-shell .lp2-faq__item {
+  border: 1px solid rgba(20, 21, 23, 0.12) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.lp2-shell .lp2-faq__q {
+  color: var(--lp2-ink, #141517) !important;
+}
+
+.lp2-shell .lp2-faq__a {
+  color: var(--lp2-ink-muted, rgba(20, 21, 23, 0.68)) !important;
 }
 

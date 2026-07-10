@@ -28,7 +28,7 @@ export function BlogPost() {
 
   return (
       <MarketingShell>
-      <main id="main-content" className="esti-blog">
+      <div className="esti-blog">
         <Link to="/blog" className="esti-blog__back">← All posts</Link>
 
         {!post ? (
@@ -98,7 +98,7 @@ export function BlogPost() {
             )}
           </article>
         )}
-      </main>
+      </div>
       <MarketingFooter />
       </MarketingShell>
   );

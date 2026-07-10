@@ -229,8 +229,9 @@ orbs as Studio Intelligence. Cross-ref: [ESTIMATE-AUTOPILOT-ROADMAP.md E8](ESTIM
 | U6.2 | `HealthGlassOrb` (`OfficeHealthGlyph` glass variant) | ✅ | Kit + thin app wrapper |
 | U6.3 | `TaskbarFooter` parity with `AppFooterBar` launcher layout | ✅ | `left` · `center` · `right` slots; workspace keeps `AppFooterBar` composition |
 | U6.4 | Document `glass.scss` shrink — app keeps studio pulse + exceptions only | ✅ | See [HCW-UI-KIT.md](HCW-UI-KIT.md) + header comment in `glass.scss` |
+| U6.5 | Clear / heading glass tokens + marketing hierarchy in kit | ✅ | `CLEAR_GLASS_SURFACE`, `HEADING_GLASS_SURFACE`; `GlassRail glass="clear"`; docs + README |
 
-**Gate:** U0–U6 closed for workspace + external portals (2026-07-10).
+**Gate:** U0–U6 closed for workspace + external portals + marketing hierarchy (2026-07-10).
 
 ---
 

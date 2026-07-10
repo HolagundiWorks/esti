@@ -24,7 +24,7 @@ export function Blog() {
 
   return (
       <MarketingShell>
-      <main id="main-content" className="esti-blog">
+      <div className="esti-blog">
         <header className="esti-blog__head">
           <h1>Blog</h1>
           <p>Office intelligence, revisions, approvals, billing, and delivery notes for Indian architecture practices.</p>
@@ -38,8 +38,13 @@ export function Blog() {
               <Grid key={p.slug} size={{ xs: 12, md: 6 }}>
                 <Paper
                   className="esti-blog-card"
-                  onClick={() => navigate(`/blog/${p.slug}`)}
-                  sx={{ cursor: "pointer" }}
+                  component="a"
+                  href={`/blog/${p.slug}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate(`/blog/${p.slug}`);
+                  }}
+                  sx={{ cursor: "pointer", display: "block", textDecoration: "none", color: "inherit" }}
                 >
                   <div className="esti-blog-card__meta">
                     <span>{formatPostDate(p.date)}</span>
@@ -77,7 +82,7 @@ export function Blog() {
             ))}
           </ul>
         </section>
-      </main>
+      </div>
       <MarketingFooter />
       </MarketingShell>
   );

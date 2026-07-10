@@ -1,43 +1,56 @@
 # @hcw/ui-kit — HCW-UI-Kit
 
 **HCW-UI-Kit** (*Human Centric Works UI Kit*) — the centralised, **layered** design
-system deployed against **every** AORMS portal (workspace app, client & consultant
-portals, licensing console, ESE, the Estimate app, any future deployable).
+system for every AORMS surface: workspace app, client/consultant/site portals,
+licensing console, marketing site chrome (via shared primitives), and future apps.
 
-Thesis: **depth encodes importance** — three material languages stacked by z-depth:
-**hyperminimalist (flat)** for information at rest, **neumorphic (soft)** for objects
-you work within, **glassmorphism (glass)** for the live layer (hover, CTAs, the
-action dock, alerts). Full spec + spatial model (Rail · Stage · TaskbarFooter ·
-ActionDock): [`docs/esti/HCW-UI-KIT.md`](../../docs/esti/HCW-UI-KIT.md).
+Thesis: **depth encodes importance** — flat (info) · soft (objects) · glass (action).
+Full spatial model + marketing rules:
+[`docs/esti/HCW-UI-KIT.md`](../../docs/esti/HCW-UI-KIT.md).
 
-It is the ONE place raw brand values live. Change a token here and every portal
-that mounts the kit updates together.
+## Exports
 
-## What's in it
+| Export | Role |
+|--------|------|
+| `colors`, `RADIUS`, `FONT_FAMILY`, `tokens`, `LAYERS`, `NEU_*`, `GLASS_SURFACE`, `CLEAR_GLASS_SURFACE`, `HEADING_GLASS_SURFACE`, … | Design tokens (`tokens.ts`) |
+| `aormsTheme`, `createAormsTheme()` | Shared MUI theme |
+| `MuiRoot` | Theme + dayjs provider |
+| `Surface` | `layer="flat\|soft\|glass\|clearGlass\|headingGlass"` |
+| `GlassRail` | Rail · stage shell (`glass="frost\|clear"`) |
+| `HealthGlassOrb` | Zone / office-health indicator |
+| `ActionDock`, `ActionDockProvider`, `useScreenActions` | Global 3-zone CTAs |
+| `TaskbarFooter`, `TaskbarButton`, `TASKBAR_HEIGHT` | Footer shell (`left` · `center` · `right`) |
+| `BrandMark` | Asset-free wordmark |
 
-| Export | What |
-|---|---|
-| `colors`, `RADIUS`, `BUTTON_RADIUS`, `FONT_FAMILY`, `tokens`, surface recipes (`NEU_POP`, `FLAT_POP`, `NEU_INSET`, …) | **Design tokens** — the single source of truth (`tokens.ts`) |
-| `aormsTheme`, `createAormsTheme()` | the shared **Material UI theme** built from the tokens (`theme.ts`) |
-| `MuiRoot` | the **provider** — wrap a portal once; supplies theme + dayjs localization |
-| `BrandMark` | asset-free **wordmark** primitive (accent square + uppercase wordmark) |
-
-## Use it in a portal
+## Mount
 
 ```tsx
-import { MuiRoot, BrandMark, colors } from "@esti/ui-kit";
+import {
+  MuiRoot,
+  ActionDockProvider,
+  ActionDock,
+  TaskbarFooter,
+  GlassRail,
+  Surface,
+  useScreenActions,
+} from "@hcw/ui-kit";
 
-root.render(
-  <MuiRoot>
-    <BrandMark label="AORMS Estimate" size="lg" />
-    {/* every @mui/material surface below inherits the brand */}
-    <App />
-  </MuiRoot>,
-);
+<MuiRoot>
+  <ActionDockProvider>
+    <GlassRail rail={<>…nav…</>}>
+      <Surface layer="soft" sx={{ p: 2 }}>…</Surface>
+    </GlassRail>
+    <ActionDock />
+    <TaskbarFooter left={…} center={…} right={…} />
+  </ActionDockProvider>
+</MuiRoot>
 ```
 
-Add it to the portal's `package.json` (`"@esti/ui-kit": "workspace:*"`), and import
-the **brand font** once in the entry point (Urbanist, self-hosted, offline-safe):
+```json
+"@hcw/ui-kit": "workspace:*"
+```
+
+Brand font (once per app entry):
 
 ```ts
 import "@fontsource/urbanist/400.css";
@@ -46,24 +59,26 @@ import "@fontsource/urbanist/600.css";
 import "@fontsource/urbanist/700.css";
 ```
 
-Layer portal-specific overrides while keeping 100% of the brand defaults:
+## Layer pick (quick)
 
-```tsx
-import { createAormsTheme, MuiRoot } from "@esti/ui-kit";
-import { createTheme } from "@mui/material/styles";
-const theme = createTheme(createAormsTheme(), { /* portal tweaks */ });
-<MuiRoot theme={theme}>…</MuiRoot>;
-```
+| Need | Layer |
+|------|--------|
+| Table, body copy, list | `flat` |
+| Dialog, summary card, panel | `soft` |
+| Dock, alert, active widget | `glass` |
+| Marketing / translucent rail | `clearGlass` |
+| Full-width section heading band | `headingGlass` |
 
-## Peer dependencies
+**Marketing sub-cards stay flat** (no glass) so contour atmosphere stays sharp —
+see HCW-UI-KIT.md § Glass hierarchy.
 
-The kit is React + MUI based and declares peers (provided by the consuming
-portal): `react`, `react-dom`, `@mui/material`, `@mui/x-data-grid`,
-`@mui/x-date-pickers`, `@emotion/react`, `@emotion/styled`, `dayjs`.
+## Peers
+
+`react`, `react-dom`, `@mui/material`, `@mui/x-data-grid`, `@mui/x-date-pickers`,
+`@emotion/react`, `@emotion/styled`, `dayjs`.
 
 ## Source-only
 
-Like `@esti/contracts`, this package ships TypeScript source (`main` →
-`src/index.ts`); the consuming portal's bundler compiles it. No build step.
+Ships TypeScript source (`main` → `src/index.ts`); the consumer bundler compiles it.
 
-Full design spec: [`docs/esti/AORMS-BRANDING-KIT.md`](../../docs/esti/AORMS-BRANDING-KIT.md).
+Brand heritage: [`docs/esti/AORMS-BRANDING-KIT.md`](../../docs/esti/AORMS-BRANDING-KIT.md).

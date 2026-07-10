@@ -23,7 +23,8 @@ const RAIL_COLLAPSED_KEY = "aorms.lp2.railCollapsed";
 
 /**
  * Marketing shell — glass rail + scrolling stage (2026-07 redesign).
- * Rail collapses on desktop; page CTAs publish to the ActionDock.
+ * Rail collapses on desktop; **page CTAs publish only to the ActionDock**
+ * (never duplicated in the rail — Fitts / Hick / dock policy).
  * Provider lives here because public marketing routes sit outside the app shell.
  */
 export function MarketingShell({
@@ -59,10 +60,11 @@ function MarketingShellInner({
   const [collapsed, setCollapsed] = useState(() => {
     try {
       const stored = localStorage.getItem(RAIL_COLLAPSED_KEY);
-      // Default collapsed; only expand when the user explicitly chose "0".
-      return stored !== "0";
+      // Default expanded so section links are visible (Hick / discoverability).
+      // Collapse only when the user explicitly chose "1".
+      return stored === "1";
     } catch {
-      return true;
+      return false;
     }
   });
 
@@ -137,20 +139,7 @@ function MarketingShellInner({
         Skip to content
       </a>
 
-      {!isMobile && (
-        <div className="lp2-blobs" aria-hidden>
-          <div className="lp2-blob lp2-blob--a" />
-          <div className="lp2-blob lp2-blob--b" />
-          <div className="lp2-blob lp2-blob--c" />
-          <div className="lp2-blob lp2-blob--d" />
-          <div className="lp2-blob lp2-blob--e" />
-          <div className="lp2-blob lp2-blob--f" />
-          <div className="lp2-blob lp2-blob--g" />
-          <div className="lp2-blob lp2-blob--h" />
-        </div>
-      )}
-
-      {contours && !isMobile && <LandingContours />}
+      {contours && <LandingContours />}
 
       <aside className={railClass} aria-label="AORMS">
         <div className="lp2-rail__brand-row">
