@@ -6,19 +6,18 @@ withdraws. Agents: update this file in the same change that alters a fact
 
 ## Open
 
-| # | Category | Item | Evidence / note | Sev |
-| --- | --- | --- | --- | --- |
-| D18 | Token | Raw `fontSize` on real text — 3 sites | Evidence-based audit 2026-07-12 (R1b `rg` sweep): `StudioTeamPanel.tsx:232` (`fontSize:"1.1rem"`), `AiStudioSettingsPanel.tsx:72` + `ZonalComplianceCalculator.tsx:336` (Alert `"0.8rem"`). Migrate to `TYPE_SCALE` tokens / `Typography` variants. | Low |
+**None.** D18 closed 2026-07-12 (3 raw-`fontSize`-on-text → `TYPE_SCALE`). Remaining
+scope is **roadmap-class** (below) — product/design programmes, not design defects.
 
-*Low note (not registered, sanctioned):* `ZonalComplianceCalculator` keeps a
-centralised 9-colour SVG plot palette (AA-verified) — canvas/SVG is sanctioned, but
-ideally migrates to `DATA_VIZ` tokens. (D3s and D11 retired 2026-07-12.)
+*Assessed & sanctioned (no change): `ZonalComplianceCalculator`'s centralised
+9-colour SVG plot palette — canvas/SVG is an explicit token-rule exception; the
+values are bespoke AA-tuned and don't map to categorical `DATA_VIZ`, so forcing
+tokens would regress contrast.*
 
 ## Roadmap-class (not debt — tracked in 13-Roadmaps; require product/design programmes)
 
 - **RTL / i18n** (ex-D15) — a product feature programme, not a design defect.
 - **Figma library / variables bridge** (ex-D16) — design-tool deliverable outside agent reach.
-- **Wizard template** — no shipped reference exists; documented as an explicit gap in [05-TEMPLATES.md](../05-TEMPLATES.md).
 
 ## Component conformance (Quality-checklist §Gate)
 
@@ -29,6 +28,7 @@ ideally migrates to `DATA_VIZ` tokens. (D3s and D11 retired 2026-07-12.)
 
 ## Retired (most recent first)
 
+- 2026-07-12 · **Actionable-gap sweep:** D18 closed (3 raw-`fontSize` → `TYPE_SCALE.kpi`/`.body2`; typecheck clean) · **Wizard template T9** documented in [05-TEMPLATES.md](../05-TEMPLATES.md) from `AccountHub.tsx` (catalog now T1–T9) · **perf bundle budget** added to hcwux CI (`scripts/size-budget.mjs`, 40 KB gzip ceiling; current ~29 KB) · ZonalCompliance SVG palette assessed → sanctioned (canvas/SVG exception; no regressioning recolor).
 - 2026-07-12 · **D11 closed** — `Clients.tsx` `TagChip` fork (Carbon `--cds-tag-*` Chip) → kit `StatusDot`; both dialogs (New client · Create client login) gained `aria-labelledby` (WCAG 4.1.2). The last agent-actionable debt item — the Open queue is now empty.
 - 2026-07-12 · **D3s closed** — owner signed off the dark & high-contrast schemes (accepted as shipped; the marketing-page "chrome stays light" label-cascade caveat is documented and accepted). The last human-gated theme item.
 - 2026-07-11 · D2e VR in CI: added the `visual` job to `.github/workflows/ci.yml` (pinned `mcr.microsoft.com/playwright:v1.49.0-jammy`, builds + `vite preview` + asserts, uploads diffs on failure). Committed **linux baselines** generated in that same image — verified deterministic on a clean run — so CI is green on first run (win32 baselines kept for local dev). Vite `allowedHosts: [host.docker.internal]` added so container tooling can reach the dev server.

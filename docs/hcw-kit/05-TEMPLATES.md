@@ -80,6 +80,24 @@ honest busy state and lands the output action in place. Money via formatINR;
 en-IN dates.
 ```
 
-*Gaps to fill as products demand them (register D-item when real): wizard
-(multi-step) template — no shipped reference yet; use dialogs + goal-gradient
-progress per the UX checklists when one is first needed.*
+## T9 — Wizard / multi-step flow (reference: `AccountHub.tsx`)
+
+```
+Multi-step guided flow on the shell contract:
+├ RAIL   step progress — Stepper (MuiStepper themed: accent-active · success
+│        completed · accent-outlined current) OR a Step checklist that
+│        auto-completes from state (AccountHub: Account ✓ → Company → Workspace)
+├ STAGE  the CURRENT step only — one concern per step (form / summary / confirm),
+│        chunked (Tesler): never the whole flow at once
+└ DOCK   LEFT "Back" (reversible) · RIGHT "Next" / "Finish" (commit) — publish []
+         while a step-level Dialog is open
+```
+Rules: goal-gradient progress always visible (Nielsen #1 + goal-gradient law); one
+step = one decision (Miller); "Next" disabled until the step validates (error
+prevention); completed steps stay reachable to edit. Kit theming: `MuiStepper` /
+`MuiStepIcon` / `MuiStepConnector` (governed in `theme.ts`).
+
+---
+
+*Template catalog complete (T1–T9). Register a D-item only if a new pattern is
+needed without a shipped reference to clone.*
