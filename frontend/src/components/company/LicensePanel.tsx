@@ -38,6 +38,7 @@ export function LicensePanel() {
   const [key, setKey] = useState("");
 
   const activate = trpc.license.activate.useMutation({
+    meta: { errorTitle: "Couldn't activate the license" },
     onSuccess: () => {
       setKey("");
       void utils.license.status.invalidate();
@@ -45,6 +46,7 @@ export function LicensePanel() {
     },
   });
   const refresh = trpc.license.refresh.useMutation({
+    meta: { errorTitle: "Couldn't refresh the license" },
     onSuccess: () => void utils.license.status.invalidate(),
   });
 

@@ -520,9 +520,11 @@ export function ProjectCpi({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
   const cpiQ = trpc.cpi.get.useQuery({ projectId });
   const generate = trpc.cpi.generateReport.useMutation({
+    meta: { errorTitle: "Couldn't generate the CPI report" },
     onSuccess: (res) => setReportDraft(res.report),
   });
   const saveReport = trpc.cpi.saveReport.useMutation({
+    meta: { errorTitle: "Couldn't save the CPI report" },
     onSuccess: () => {
       setReportDraft(null);
       void utils.cpi.get.invalidate({ projectId });
@@ -661,7 +663,10 @@ function CpiSectionBody({ projectId, def, saved, onSaved }: {
 }) {
   const [answers, setAnswers] = useState<Answers>(saved);
   useEffect(() => setAnswers(saved), [saved]);
-  const save = trpc.cpi.saveSection.useMutation({ onSuccess: onSaved });
+  const save = trpc.cpi.saveSection.useMutation({
+    meta: { errorTitle: "Couldn't save the CPI section" },
+    onSuccess: onSaved,
+  });
   const dirty = JSON.stringify(answers) !== JSON.stringify(saved);
   const answered = Object.keys(saved).length > 0;
 

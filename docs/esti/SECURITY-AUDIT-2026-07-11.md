@@ -2,7 +2,7 @@
 
 **Audit date:** 2026-07-11 · **Scope:** Backend API, tRPC, licensing platform, file storage, frontend SPA (authenticated + public marketing), deploy/nginx. **Method:** Code review + remediation pass.
 
-**Companion:** [PUBLIC-PAGES-AUDIT-2026-07-11.md](../marketing/PUBLIC-PAGES-AUDIT-2026-07-11.md) (URL/UX audit).
+**Companion:** [PUBLIC-PAGES-AUDIT-2026-07-11.md](../marketing/PUBLIC-PAGES-AUDIT-2026-07-11.md) · [11-audits/README.md](../hcw-kit/11-audits/README.md)
 
 ---
 

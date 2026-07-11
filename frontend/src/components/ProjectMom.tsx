@@ -25,13 +25,14 @@ export function ProjectMom({ projectId }: { projectId: string }) {
   const listQ = trpc.moms.listByProject.useQuery({ projectId });
   const templatesQ = trpc.documents.listTemplates.useQuery({ kind: "MOM" });
   const inv = () => utils.moms.listByProject.invalidate({ projectId });
-  const create = trpc.moms.create.useMutation({ onSuccess: inv });
-  const issue = trpc.moms.issue.useMutation({ onSuccess: inv });
+  const create = trpc.moms.create.useMutation({ meta: { errorTitle: "Couldn't create the minutes" }, onSuccess: inv });
+  const issue = trpc.moms.issue.useMutation({ meta: { errorTitle: "Couldn't issue the minutes" }, onSuccess: inv });
   const update = trpc.moms.update.useMutation({
+    meta: { errorTitle: "Couldn't update the minutes" },
     onSuccess: () => detailId && utils.moms.byId.invalidate({ id: detailId }),
   });
-  const addAction = trpc.moms.addAction.useMutation({ onSuccess: () => utils.moms.byId.invalidate() });
-  const convert = trpc.moms.convertActionToTask.useMutation({ onSuccess: inv });
+  const addAction = trpc.moms.addAction.useMutation({ meta: { errorTitle: "Couldn't add the action item" }, onSuccess: () => utils.moms.byId.invalidate() });
+  const convert = trpc.moms.convertActionToTask.useMutation({ meta: { errorTitle: "Couldn't convert the action to a task" }, onSuccess: inv });
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ title: "", meetingDate: "", venue: "", attendees: "", minutes: "" });

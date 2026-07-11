@@ -13,6 +13,7 @@ export function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const reset = trpc.auth.resetPassword.useMutation({
+    meta: { errorTitle: "Couldn't reset the password" },
     onSuccess: () => setTimeout(() => navigate("/login", { replace: true }), 2000),
   });
 

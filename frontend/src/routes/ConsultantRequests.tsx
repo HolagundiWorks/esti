@@ -49,6 +49,7 @@ export function ConsultantRequests({ embedded = false }: { embedded?: boolean })
     { id: string; subject: string; status: SubmissionStatus; responseNote: string } | null
   >(null);
   const setStatusM = trpc.consultantRequests.setStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the request status" },
     onSuccess: () => {
       utils.consultantRequests.list.invalidate();
       utils.consultantRequests.openCount.invalidate();
@@ -62,6 +63,7 @@ export function ConsultantRequests({ embedded = false }: { embedded?: boolean })
     { enabled: !!threadFor },
   );
   const reply = trpc.consultantRequests.reply.useMutation({
+    meta: { errorTitle: "Couldn't send the reply" },
     onSuccess: () => utils.consultantRequests.thread.invalidate(),
   });
 
@@ -74,6 +76,7 @@ export function ConsultantRequests({ embedded = false }: { embedded?: boolean })
     { enabled: !!assign.projectId },
   );
   const assignM = trpc.consultantRequests.assign.useMutation({
+    meta: { errorTitle: "Couldn't assign the task" },
     onSuccess: () => {
       utils.consultantRequests.list.invalidate();
       utils.consultantRequests.openCount.invalidate();

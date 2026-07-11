@@ -40,8 +40,8 @@ silently obeyed.
 13. Always pass the accessibility gate (Playbook §7) before calling work done.
 14. Always leave the system more consistent, more reusable, and less indebted
     than you found it — and record it: update the
-    [Design Debt Register](11-audits/DESIGN-DEBT-REGISTER.md), the KB §6 ledger,
-    and the program tracker when facts change.
+    [Design Debt Register](11-audits/DESIGN-DEBT-REGISTER.md) and the
+    [audit index](11-audits/README.md) when facts change.
 15. Always verify like an engineer: typecheck kit + consumers, run kit tests,
     boot what you changed; report results plainly, including what was NOT
     verified (e.g. visual QA pending).

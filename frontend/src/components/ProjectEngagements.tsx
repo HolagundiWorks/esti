@@ -38,9 +38,11 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
     utils.engagements.listByProject.invalidate({ projectId });
 
   const updateStatus = trpc.engagements.updateStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the engagement status" },
     onSuccess: invalidate,
   });
   const pay = trpc.engagements.recordPayment.useMutation({
+    meta: { errorTitle: "Couldn't record the payment" },
     onSuccess: () => {
       invalidate();
       setPayId(null);
@@ -56,6 +58,7 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
   const [payAmt, setPayAmt] = useState("");
 
   const create = trpc.engagements.create.useMutation({
+    meta: { errorTitle: "Couldn't create the engagement" },
     onSuccess: () => {
       invalidate();
       setOpen(false);

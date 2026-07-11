@@ -8,17 +8,15 @@ withdraws. Agents: update this file in the same change that alters a fact
 
 | # | Category | Item | Evidence / note | Sev |
 | --- | --- | --- | --- | --- |
-| D1b | Perf/UX | Extend the optimistic-write pattern beyond the flagship sites (task board/tab interactions, other toggles) | pattern established in Leads.setStatus + Users.setDisabled (cancel→snapshot→set→rollback→settle) | Med |
-| D2c | Testing | Visual-regression snapshots (render tests + gallery now exist) | needs a headless-browser harness; the flaky preview pane suggests Playwright in CI | Low |
-| D3 | Theme | Dark/HC visual **sign-off** + a Settings scheme switcher | preview LIVE at `/design-system#schemes` (toggle light/dark/HC) — owner judges there | Med |
-| D5 | Component | Charts ungoverned (MUI X Charts raw) | last canonical outside the kit | Med |
-| D8c | Feedback | Adopt `meta.errorTitle` across remaining mutations (mechanism + exemplars live) | opportunistic per Rulebook §14; convention in KB R8 | Low |
-| D11 | Duplicate | `TagChip` fork in `Clients.tsx` (parallel-WIP file) | migrate to StatusDot when WIP lands | Low |
-| D12 | MUI gaps | DatePicker popup, Pagination, Stepper un-themed | govern before first heavy use (Mapping 🟨) | Low |
-| D14 | Security-adjacent | Desktop token localStorage fallback on Tauri invoke failure; surface-host TLS beyond wiki.; `wss:` connect-src broad | review-noted (2026-07-11) | Low |
-| D15 | Scale | RTL / i18n unsupported | long-term | Low |
-| D16 | DesignerX | No Figma library / variables bridge | external deliverable | Low |
-| D17 | Templates | Section 05 empty — no dashboard/admin/report/detail page templates | hierarchy gap | Low |
+| D3s | Theme | **Owner sign-off of dark/high-contrast** (the only human act left — engineering is complete) | judge at `/design-system#schemes` or Settings→Appearance (preview-labelled switcher live); SCSS chrome darkening follows sign-off | Med |
+| D2d | Testing | Generate + commit VR baselines (harness DELIVERED: `e2e/tests/visual-regression.spec.ts`, `visual` project) | first run: `pnpm exec playwright test visual-regression --update-snapshots`; wire into CI after | Low |
+| D11 | Duplicate | `TagChip` fork + unnamed dialog in `Clients.tsx` (parallel-WIP file) | migrate to StatusDot + aria when WIP lands | Low |
+
+## Roadmap-class (not debt — tracked in 13-Roadmaps; require product/design programmes)
+
+- **RTL / i18n** (ex-D15) — a product feature programme, not a design defect.
+- **Figma library / variables bridge** (ex-D16) — design-tool deliverable outside agent reach.
+- **Wizard template** — no shipped reference exists; documented as an explicit gap in [05-TEMPLATES.md](../05-TEMPLATES.md).
 
 ## Component conformance (Quality-checklist §Gate)
 
@@ -29,6 +27,7 @@ withdraws. Agents: update this file in the same change that alters a fact
 
 ## Retired (most recent first)
 
+- 2026-07-11 · **Phase-D completion sweep:** D8c — `meta.errorTitle` adopted on **259 mutations across ~99 files** (5 agent batches; every user-facing mutation now titles its failure toast) · D1b — optimistic writes extended to `tasks.update` (shared `listInput`, instant status/priority flips) · D12 — Pagination/Stepper/PickerDay themed in the kit (0.5.0) · D14 — desktop token now fails CLOSED (no localStorage re-persist), `install-surface-tls.sh` provisions all 9 surface hosts, CSP `wss:` tightened to `wss://DOMAIN + *.DOMAIN` · D5 — zero live `@mui/x-charts` usage found; `DATA_VIZ` mandated on first use (mapping stays 🟨 govern-before-use) · D17 — [05-TEMPLATES.md](../05-TEMPLATES.md) documents 8 canonical page anatomies from shipped screens · D3 engineering — `MuiRoot({scheme})` + persisted Settings→Appearance switcher (preview-labelled) · D2c harness — Playwright VR spec + `visual` project (baselines = D2d)
 - 2026-07-11 · D2b (render tests): jsdom + testing-library suite for all six promoted primitives (kit 0.4.1, **27 tests total**) — behaviour contracts incl. ConfirmModal's accessible name and DataState's loading/empty grammar → narrowed to D2c (VR snapshots)
 - 2026-07-11 · D2 (gallery half): `/design-system` extended as the living gallery — StatusDot + Avatar specimens and a **Schemes section** (light/dark/HC toggle over a ThemeProvider'd specimen panel: buttons, inputs, Switch/Checkbox, StatusDot, Avatar, error alert). DOM-verified rendering in-browser. → narrowed to D2b (VR snapshots + render tests)
 - 2026-07-11 · D10 Work tabs: merged Client/Consultant requests into one "Requests" tab (max 7 tabs; legacy slugs alias via `canonicalWorkTab`); NAVIGATION.md synced

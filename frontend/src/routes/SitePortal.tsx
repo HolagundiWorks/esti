@@ -50,8 +50,9 @@ export function SitePortal() {
   );
   const invalidate = () => utils.inspections.listForSite.invalidate({ projectId: projectId! });
 
-  const submit = trpc.inspections.submit.useMutation({ onSuccess: invalidate });
+  const submit = trpc.inspections.submit.useMutation({ meta: { errorTitle: "Couldn't submit the inspection" }, onSuccess: invalidate });
   const createForSite = trpc.inspections.createForSite.useMutation({
+    meta: { errorTitle: "Couldn't create the inspection" },
     onSuccess: () => { invalidate(); setCreateOpen(false); resetForm(); },
   });
 
@@ -60,6 +61,7 @@ export function SitePortal() {
     { enabled: !!projectId },
   );
   const confirmBySupervisor = trpc.siteVisits.confirmBySupervisor.useMutation({
+    meta: { errorTitle: "Couldn't confirm the site visit" },
     onSuccess: () => utils.siteVisits.listForSite.invalidate({ projectId: projectId! }),
   });
 

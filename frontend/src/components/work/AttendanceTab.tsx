@@ -41,6 +41,7 @@ export function AttendanceTab() {
   }, [registerQ.data]);
 
   const mark = trpc.attendance.mark.useMutation({
+    meta: { errorTitle: "Couldn't mark the attendance" },
     onSuccess: () => {
       utils.attendance.dayRegister.invalidate({ date });
       utils.dashboard.attendanceToday.invalidate();
@@ -48,6 +49,7 @@ export function AttendanceTab() {
   });
 
   const saveAll = trpc.attendance.markDay.useMutation({
+    meta: { errorTitle: "Couldn't save the attendance register" },
     onSuccess: () => {
       utils.attendance.dayRegister.invalidate({ date });
       utils.dashboard.attendanceToday.invalidate();

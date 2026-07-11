@@ -49,9 +49,9 @@ function DisciplinePanel({
   const utils = trpc.useUtils();
   const q = trpc.standards.listByDiscipline.useQuery({ discipline: discipline as never });
   const inv = () => utils.standards.listByDiscipline.invalidate({ discipline: discipline as never });
-  const create = trpc.standards.create.useMutation({ onSuccess: inv });
-  const remove = trpc.standards.remove.useMutation({ onSuccess: inv });
-  const removeFile = trpc.standards.removeFile.useMutation({ onSuccess: inv });
+  const create = trpc.standards.create.useMutation({ meta: { errorTitle: "Couldn't create the standard" }, onSuccess: inv });
+  const remove = trpc.standards.remove.useMutation({ meta: { errorTitle: "Couldn't delete the standard" }, onSuccess: inv });
+  const removeFile = trpc.standards.removeFile.useMutation({ meta: { errorTitle: "Couldn't delete the file" }, onSuccess: inv });
   const { authorizedFetch } = useUploadAuth();
 
   const [open, setOpen] = useState(false);

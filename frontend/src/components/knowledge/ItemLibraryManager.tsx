@@ -65,6 +65,7 @@ export function ItemLibraryManager({ embedded = false }: { embedded?: boolean })
   const [vOpen, setVOpen] = useState(false);
   const [vLabel, setVLabel] = useState("");
   const createVersion = trpc.itemLibrary.createVersion.useMutation({
+    meta: { errorTitle: "Couldn't create the library version" },
     onSuccess: (row) => {
       utils.itemLibrary.listVersions.invalidate();
       setVersionId(row.id);
@@ -73,6 +74,7 @@ export function ItemLibraryManager({ embedded = false }: { embedded?: boolean })
     },
   });
   const setActive = trpc.itemLibrary.setActiveVersion.useMutation({
+    meta: { errorTitle: "Couldn't activate the library version" },
     onSuccess: () => {
       utils.itemLibrary.listVersions.invalidate();
       utils.itemLibrary.activeCatalog.invalidate();
@@ -82,6 +84,7 @@ export function ItemLibraryManager({ embedded = false }: { embedded?: boolean })
   const [iOpen, setIOpen] = useState(false);
   const [iForm, setIForm] = useState(blankItemForm());
   const upsertItem = trpc.itemLibrary.upsertItem.useMutation({
+    meta: { errorTitle: "Couldn't save the item" },
     onSuccess: () => {
       utils.itemLibrary.listItems.invalidate({ versionId });
       utils.itemLibrary.activeCatalog.invalidate();
@@ -90,6 +93,7 @@ export function ItemLibraryManager({ embedded = false }: { embedded?: boolean })
     },
   });
   const removeItem = trpc.itemLibrary.removeItem.useMutation({
+    meta: { errorTitle: "Couldn't delete the item" },
     onSuccess: () => {
       utils.itemLibrary.listItems.invalidate({ versionId });
       utils.itemLibrary.activeCatalog.invalidate();

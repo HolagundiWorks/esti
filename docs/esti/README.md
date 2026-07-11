@@ -45,6 +45,7 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) | **Read first for code** — AORMS-Studio system state |
 | [NAVIGATION](NAVIGATION.md) | **Canonical navigation IA** — sidebar and module placement |
 | [HCW-UI-UX-PRINCIPLES](HCW-UI-UX-PRINCIPLES.md) | **UX audit checklist** — marketing + product surfaces |
+| [11-audits/README](../hcw-kit/11-audits/README.md) | **Audit index** — Studio · public · security · kit snapshots |
 | [PLANS-AND-TIERS](PLANS-AND-TIERS.md) | **Standard licence** — ACTIVE workspace, 5 GB included, storage + AI usage |
 | [AORMS-PRODUCT-AUTOPILOT-ROADMAP](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md) | Product pivot implementation queue |
 | [AORMS-UI-AUTOPILOT-ROADMAP](AORMS-UI-AUTOPILOT-ROADMAP.md) | Glass-rail + marketing shell rollout |

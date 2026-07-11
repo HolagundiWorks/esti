@@ -36,6 +36,7 @@ export function Team() {
   const utils = trpc.useUtils();
   const list = trpc.team.list.useQuery();
   const update = trpc.team.update.useMutation({
+    meta: { errorTitle: "Couldn't update the team member" },
     onSuccess: () => utils.team.list.invalidate(),
   });
 
@@ -54,6 +55,7 @@ export function Team() {
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const create = trpc.team.create.useMutation({
+    meta: { errorTitle: "Couldn't add the team member" },
     onSuccess: () => {
       utils.team.list.invalidate();
       setOpen(false);

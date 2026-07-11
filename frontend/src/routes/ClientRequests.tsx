@@ -56,6 +56,7 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
     { id: string; subject: string; status: PortalSubmissionStatusT; responseNote: string } | null
   >(null);
   const setStatusM = trpc.clientRequests.setStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the request status" },
     onSuccess: () => {
       utils.clientRequests.list.invalidate();
       utils.clientRequests.openCount.invalidate();
@@ -77,6 +78,7 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
     architectComment: string;
   } | null>(null);
   const sendImpact = trpc.clientRequests.sendImpactAssessment.useMutation({
+    meta: { errorTitle: "Couldn't send the impact assessment" },
     onSuccess: () => {
       utils.clientRequests.list.invalidate();
       utils.clientRequests.openCount.invalidate();
@@ -90,6 +92,7 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
     { enabled: !!threadFor },
   );
   const reply = trpc.clientRequests.reply.useMutation({
+    meta: { errorTitle: "Couldn't send the reply" },
     onSuccess: () => utils.clientRequests.thread.invalidate(),
   });
 

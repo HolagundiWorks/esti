@@ -150,18 +150,22 @@ export function PlanReaderPanel({ projectId }: { projectId: string }) {
   );
 
   const upsertCalib = trpc.planMarkup.upsertCalibration.useMutation({
+    meta: { errorTitle: "Couldn't save the calibration" },
     onSuccess: () => utils.planMarkup.getForDrawing.invalidate({ projectId, drawingId }),
   });
   const upsertItem = trpc.planMarkup.upsertItem.useMutation({
+    meta: { errorTitle: "Couldn't save the markup item" },
     onSuccess: () => {
       utils.planMarkup.getForDrawing.invalidate({ projectId, drawingId });
       setDraftPts([]);
     },
   });
   const removeItem = trpc.planMarkup.removeItem.useMutation({
+    meta: { errorTitle: "Couldn't delete the markup item" },
     onSuccess: () => utils.planMarkup.getForDrawing.invalidate({ projectId, drawingId }),
   });
   const derive = trpc.measurement.deriveFromMarkup.useMutation({
+    meta: { errorTitle: "Couldn't derive the measurements" },
     onSuccess: () => {
       utils.measurement.getBook.invalidate({ projectId });
       utils.planMarkup.getForDrawing.invalidate({ projectId, drawingId });

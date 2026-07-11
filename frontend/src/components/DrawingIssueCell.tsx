@@ -30,6 +30,7 @@ export function DrawingIssueCell({
   );
 
   const issue = trpc.drawings.issuePdf.useMutation({
+    meta: { errorTitle: "Couldn't issue the drawing" },
     onSuccess: () => {
       setActive(true);
       setOpen(false);

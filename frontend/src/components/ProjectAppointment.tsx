@@ -7,9 +7,11 @@ export function ProjectAppointment({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
   const q = trpc.appointments.byProject.useQuery({ projectId });
   const upsert = trpc.appointments.upsert.useMutation({
+    meta: { errorTitle: "Couldn't save the appointment" },
     onSuccess: () => utils.appointments.byProject.invalidate({ projectId }),
   });
   const complete = trpc.appointments.complete.useMutation({
+    meta: { errorTitle: "Couldn't complete the appointment" },
     onSuccess: () => utils.appointments.byProject.invalidate({ projectId }),
   });
 

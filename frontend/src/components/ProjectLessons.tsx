@@ -29,10 +29,10 @@ export function ProjectLessons({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
   const listQ = trpc.lessons.listByProject.useQuery({ projectId });
   const inv = () => utils.lessons.listByProject.invalidate({ projectId });
-  const create = trpc.lessons.create.useMutation({ onSuccess: inv });
-  const update = trpc.lessons.update.useMutation({ onSuccess: inv });
-  const publish = trpc.lessons.publish.useMutation({ onSuccess: inv });
-  const remove = trpc.lessons.remove.useMutation({ onSuccess: inv });
+  const create = trpc.lessons.create.useMutation({ meta: { errorTitle: "Couldn't create the lesson" }, onSuccess: inv });
+  const update = trpc.lessons.update.useMutation({ meta: { errorTitle: "Couldn't update the lesson" }, onSuccess: inv });
+  const publish = trpc.lessons.publish.useMutation({ meta: { errorTitle: "Couldn't publish the lesson" }, onSuccess: inv });
+  const remove = trpc.lessons.remove.useMutation({ meta: { errorTitle: "Couldn't delete the lesson" }, onSuccess: inv });
 
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);

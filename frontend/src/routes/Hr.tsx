@@ -51,9 +51,11 @@ export function Hr() {
   const [tab, setTab] = useState(0);
 
   const setLeave = trpc.leaves.setStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the leave request" },
     onSuccess: () => utils.leaves.list.invalidate(),
   });
   const markPaid = trpc.payroll.markPaid.useMutation({
+    meta: { errorTitle: "Couldn't mark the payslip as paid" },
     onSuccess: () => utils.payroll.list.invalidate(),
   });
 
@@ -68,6 +70,7 @@ export function Hr() {
     reason: "",
   });
   const createLeave = trpc.leaves.create.useMutation({
+    meta: { errorTitle: "Couldn't create the leave request" },
     onSuccess: () => {
       utils.leaves.list.invalidate();
       setLvOpen(false);
@@ -91,6 +94,7 @@ export function Hr() {
     deductions: "",
   });
   const generate = trpc.payroll.generate.useMutation({
+    meta: { errorTitle: "Couldn't generate the payslip" },
     onSuccess: () => {
       utils.payroll.list.invalidate();
       setPyOpen(false);

@@ -41,6 +41,7 @@ function TransmittalPdfCell({
     },
   );
   const gen = trpc.transmittals.generatePdf.useMutation({
+    meta: { errorTitle: "Couldn't generate the transmittal PDF" },
     onSuccess: () => {
       setActive(true);
       utils.transmittals.byId.invalidate({ id });
@@ -80,6 +81,7 @@ export function ProjectTransmittals({ projectId }: { projectId: string }) {
   const [picked, setPicked] = useState<Record<string, number>>({}); // drawingId -> copies
 
   const create = trpc.transmittals.create.useMutation({
+    meta: { errorTitle: "Couldn't create the transmittal" },
     onSuccess: () => {
       utils.transmittals.listByProject.invalidate({ projectId });
       setOpen(false);

@@ -30,6 +30,7 @@ export function ProjectInvoicesPanel({
   const listQ = trpc.invoices.listByProject.useQuery({ projectId, limit: 200 });
 
   const updateStatus = trpc.invoices.updateStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the invoice status" },
     onSuccess: () => {
       void utils.invoices.listByProject.invalidate({ projectId });
       void utils.dashboard.home.invalidate();

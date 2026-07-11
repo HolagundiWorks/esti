@@ -18,6 +18,7 @@ export function ForcePasswordChange() {
   const [confirm, setConfirm] = useState("");
 
   const change = trpc.users.changePassword.useMutation({
+    meta: { errorTitle: "Couldn't change the password" },
     onSuccess: () => void utils.auth.me.invalidate(),
   });
 

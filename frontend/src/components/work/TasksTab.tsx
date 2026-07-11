@@ -65,7 +65,8 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
 
   const catFilter = WORK_CATEGORY_FILTER[filterCategory];
 
-  const listQ     = trpc.tasks.list.useQuery({
+  // One input object shared by the query AND the optimistic cache writes below.
+  const listInput = {
     openOnly: (openOnly || urlOpenOnly) && !catFilter.status,
     myTasks,
     projectId: targetProjectId,
@@ -74,13 +75,35 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
     priority: filterPriority ? (filterPriority as (typeof TaskPriority.options)[number]) : undefined,
     workType: catFilter.workType as (typeof TaskWorkType.options)[number] | undefined,
     classification: catFilter.classification as (typeof TaskClassification.options)[number] | undefined,
-  });
+  };
+  const listQ     = trpc.tasks.list.useQuery(listInput);
   const settingsQ = trpc.settings.get.useQuery();
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
   const projectsQ = trpc.projectOffice.list.useQuery({ limit: 200, offset: 0 });
   const invalidate = () => utils.tasks.list.invalidate();
-  const update = trpc.tasks.update.useMutation({ onSuccess: invalidate });
-  const remove = trpc.tasks.remove.useMutation({ onSuccess: invalidate });
+  // Optimistic task update (Doherty): status/priority flips render instantly,
+  // roll back on error, reconcile on settle.
+  const update = trpc.tasks.update.useMutation({
+    meta: { errorTitle: "Couldn't update the task" },
+    onMutate: async (vars) => {
+      await utils.tasks.list.cancel(listInput);
+      const prev = utils.tasks.list.getData(listInput);
+      utils.tasks.list.setData(listInput, (old) =>
+        // Optimistic approximation: merge the mutation input over the row;
+        // onSettled's invalidate reconciles any server-derived fields.
+        old?.map((t) => (t.id === vars.id ? ({ ...t, ...vars } as typeof t) : t)),
+      );
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) utils.tasks.list.setData(listInput, ctx.prev);
+    },
+    onSettled: invalidate,
+  });
+  const remove = trpc.tasks.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the task" },
+    onSuccess: invalidate,
+  });
 
   const [open,         setOpen]         = useState(false);
   const [confirmId,    setConfirmId]    = useState<string | null>(null);

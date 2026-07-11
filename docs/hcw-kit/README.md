@@ -13,15 +13,15 @@ files are not duplicated).
 | **02** | **Tokens** | `packages/hcw-ui-kit/src/tokens.ts` (executable) · [02-TOKEN-GOVERNANCE.md](02-TOKEN-GOVERNANCE.md) |
 | **03** | **Components** | `packages/hcw-ui-kit/src/` + [CHANGELOG](../../packages/hcw-ui-kit/CHANGELOG.md) · [03-COMPONENT-QUALITY-CHECKLIST.md](03-COMPONENT-QUALITY-CHECKLIST.md) |
 | **04** | **Patterns** | [HCW-UI-KIT.md](../esti/HCW-UI-KIT.md) §ActionDock/§Rail · [HCW-UI-UX-PRINCIPLES.md](../esti/HCW-UI-UX-PRINCIPLES.md) §6–7 |
-| **05** | **Templates** | *(gap — dashboard/admin/report/detail templates; see Roadmaps)* |
+| **05** | **Templates** | [05-TEMPLATES.md](05-TEMPLATES.md) — 8 canonical page anatomies (dashboard · list · detail · settings · auth · portal · marketing · report), each naming its shipped reference screen |
 | **06** | **Portal layouts** | [MONOREPO-AND-SURFACES.md](../esti/MONOREPO-AND-SURFACES.md) · [NAVIGATION.md](../esti/NAVIGATION.md) · [AORMS-SURFACE-URLS.md](../esti/AORMS-SURFACE-URLS.md) |
 | **07** | **UX rules** | [HCW-UI-UX-PRINCIPLES.md](../esti/HCW-UI-UX-PRINCIPLES.md) (laws) · [07-UX-REVIEW-CHECKLISTS.md](07-UX-REVIEW-CHECKLISTS.md) (measurable) |
 | **08** | **Accessibility** | [HCW-UI-UX-PRINCIPLES.md](../esti/HCW-UI-UX-PRINCIPLES.md) §8 · rule R6 in the [AI knowledge base](../esti/HCW-KIT-AI-KNOWLEDGE-BASE.md) |
 | **09** | **DesignOps** | [GOVERNANCE.md](../../packages/hcw-ui-kit/GOVERNANCE.md) (contribution · semver · deprecation) |
 | **10** | **MUI integration** | [10-MUI-MAPPING.md](10-MUI-MAPPING.md) — every MUI component → HCW treatment |
-| **11** | **Audits** | [MATURITY-2026-07-11.md](11-audits/MATURITY-2026-07-11.md) · [COMPLIANCE-2026-07-11.md](11-audits/COMPLIANCE-2026-07-11.md) · **living:** [DESIGN-DEBT-REGISTER.md](11-audits/DESIGN-DEBT-REGISTER.md) |
+| **11** | **Audits** | [11-audits/README.md](11-audits/README.md) (index + kit snapshots) · **living:** [DESIGN-DEBT-REGISTER.md](11-audits/DESIGN-DEBT-REGISTER.md) · surfaces: [Studio](../../esti/AORMS-STUDIO-INTERFACE-AUDIT-2026-07-11.md) · [Public](../../marketing/PUBLIC-PAGES-AUDIT-2026-07-11.md) · [Security](../../esti/SECURITY-AUDIT-2026-07-11.md) |
 | **12** | **AI agent rules** | [12-AI-AGENT-RULEBOOK.md](12-AI-AGENT-RULEBOOK.md) (permanent behaviour) · [HCW-KIT-AI-KNOWLEDGE-BASE.md](../esti/HCW-KIT-AI-KNOWLEDGE-BASE.md) (contract + recipes) · skill: `.claude/skills/hcw-design-audit` |
-| **13** | **Roadmaps** | [AORMS-UI-AUTOPILOT-ROADMAP.md](../esti/AORMS-UI-AUTOPILOT-ROADMAP.md) · program tracker artifact (URL in KB §6) |
+| **13** | **Roadmaps** | [AORMS-UI-AUTOPILOT-ROADMAP.md](../esti/AORMS-UI-AUTOPILOT-ROADMAP.md) · [AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](../esti/AORMS-PRODUCT-AUTOPILOT-ROADMAP.md) |
 
 ## Reading order for a new agent (human or AI)
 

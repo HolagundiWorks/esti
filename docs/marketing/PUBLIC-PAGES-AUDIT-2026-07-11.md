@@ -64,5 +64,6 @@ After `pnpm build` in `frontend/`:
 
 ## Related
 
+- [`11-audits/README.md`](../hcw-kit/11-audits/README.md) — full audit index
 - [`LANDING-REDESIGN-CONTEXT.md`](LANDING-REDESIGN-CONTEXT.md)
 - [`docs/esti/AORMS-PLATFORM-NOMENCLATURE.md`](../esti/AORMS-PLATFORM-NOMENCLATURE.md)

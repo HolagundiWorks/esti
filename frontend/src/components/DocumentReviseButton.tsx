@@ -18,6 +18,7 @@ export function DocumentReviseButton({
   const [revisionNote, setRevisionNote] = useState("");
   const [impactNote, setImpactNote] = useState("");
   const revise = trpc.documents.revise.useMutation({
+    meta: { errorTitle: "Couldn't revise the document" },
     onSuccess: () => {
       setOpen(false);
       setRevisionNote("");

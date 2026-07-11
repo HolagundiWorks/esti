@@ -60,10 +60,10 @@ export function Contractors() {
   const [rating, setRating] = useState<{ id: string; name: string; quality: string; timeliness: string; safety: string; notes: string } | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
-  const create = trpc.contractors.create.useMutation({ onSuccess: () => { invalidate(); setForm(null); } });
-  const update = trpc.contractors.update.useMutation({ onSuccess: () => { invalidate(); setForm(null); } });
-  const setRatingM = trpc.contractors.setRating.useMutation({ onSuccess: () => { invalidate(); setRating(null); } });
-  const remove = trpc.contractors.remove.useMutation({ onSuccess: invalidate });
+  const create = trpc.contractors.create.useMutation({ meta: { errorTitle: "Couldn't create the contractor" }, onSuccess: () => { invalidate(); setForm(null); } });
+  const update = trpc.contractors.update.useMutation({ meta: { errorTitle: "Couldn't update the contractor" }, onSuccess: () => { invalidate(); setForm(null); } });
+  const setRatingM = trpc.contractors.setRating.useMutation({ meta: { errorTitle: "Couldn't save the rating" }, onSuccess: () => { invalidate(); setRating(null); } });
+  const remove = trpc.contractors.remove.useMutation({ meta: { errorTitle: "Couldn't delete the contractor" }, onSuccess: invalidate });
 
   const saving = create.isPending || update.isPending;
   const err = create.error || update.error;

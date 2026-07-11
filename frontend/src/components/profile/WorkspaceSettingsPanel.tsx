@@ -5,6 +5,8 @@ import {
   CircularProgress,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
@@ -12,6 +14,8 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import SaveIcon from "@mui/icons-material/Save";
 import { QRCodeSVG } from "qrcode.react";
 import { type ChangeEvent, useEffect, useState } from "react";
+import type { SchemeName } from "@hcw/ui-kit";
+import { setScheme, useScheme } from "../../lib/scheme.js";
 import { useAuth } from "../../lib/auth.js";
 import { StatusDot } from "../StatusTag.js";
 import { useUploadAuth } from "../../lib/uploadAuth.js";
@@ -22,6 +26,7 @@ const HiddenFileInput = styled("input")({ display: "none" });
 /** Workspace login preferences — photo, name, password, studio 2FA (personal account portal). */
 export function WorkspaceSettingsPanel() {
   const { user } = useAuth();
+  const scheme = useScheme();
   const { authorizedFetch } = useUploadAuth();
   const utils = trpc.useUtils();
   const [name, setName] = useState("");
@@ -44,6 +49,7 @@ export function WorkspaceSettingsPanel() {
   }, [profileQ.data]);
 
   const updateProfile = trpc.users.updateProfile.useMutation({
+    meta: { errorTitle: "Couldn't update the profile" },
     onSuccess: () => {
       utils.auth.me.invalidate();
       utils.users.myProfile.invalidate();
@@ -53,6 +59,7 @@ export function WorkspaceSettingsPanel() {
 
   const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
   const changePassword = trpc.users.changePassword.useMutation({
+    meta: { errorTitle: "Couldn't change the password" },
     onSuccess: () => {
       setPw({ current: "", next: "", confirm: "" });
       setMsg("Password changed");
@@ -64,12 +71,14 @@ export function WorkspaceSettingsPanel() {
   const [totpCode, setTotpCode] = useState("");
   const [totpDisabling, setTotpDisabling] = useState(false);
   const beginTotp = trpc.users.totpSetup.useMutation({
+    meta: { errorTitle: "Couldn't start the two-factor setup" },
     onSuccess: (d) => {
       setTotpSetup(d);
       setTotpCode("");
     },
   });
   const enableTotp = trpc.users.totpEnable.useMutation({
+    meta: { errorTitle: "Couldn't enable the two-factor authentication" },
     onSuccess: async () => {
       setTotpSetup(null);
       setTotpCode("");
@@ -78,6 +87,7 @@ export function WorkspaceSettingsPanel() {
     },
   });
   const disableTotp = trpc.users.totpDisable.useMutation({
+    meta: { errorTitle: "Couldn't disable the two-factor authentication" },
     onSuccess: async () => {
       setTotpDisabling(false);
       setTotpCode("");
@@ -119,6 +129,29 @@ export function WorkspaceSettingsPanel() {
             {msg}
           </Alert>
         )}
+
+        <Box className="esti-form-panel" sx={{ p: 2 }}>
+          <Stack spacing={2}>
+            <Typography variant="subtitle1" component="h3">
+              Appearance
+            </Typography>
+            <ToggleButtonGroup
+              exclusive
+              size="small"
+              value={scheme}
+              onChange={(_e, v: SchemeName | null) => v && setScheme(v)}
+              aria-label="Colour scheme"
+            >
+              <ToggleButton value="light">Light</ToggleButton>
+              <ToggleButton value="dark">Dark (preview)</ToggleButton>
+              <ToggleButton value="highContrast">High contrast (preview)</ToggleButton>
+            </ToggleButtonGroup>
+            <Typography variant="caption" color="text.secondary" className="esti-label esti-label--helper">
+              Dark and high-contrast are preview-grade: components follow the scheme; some page
+              chrome stays light until the schemes are signed off. Stored on this browser.
+            </Typography>
+          </Stack>
+        </Box>
 
         <Box className="esti-form-panel" sx={{ p: 2 }}>
           <Stack spacing={2}>

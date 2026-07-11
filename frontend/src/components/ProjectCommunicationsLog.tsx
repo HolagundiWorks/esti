@@ -60,7 +60,10 @@ function ClientLogPanel({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
   const logQ  = trpc.clientLog.listByProject.useQuery({ projectId });
   const invalidate = () => utils.clientLog.listByProject.invalidate({ projectId });
-  const remove = trpc.clientLog.remove.useMutation({ onSuccess: invalidate });
+  const remove = trpc.clientLog.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the log entry" },
+    onSuccess: invalidate,
+  });
 
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<ClientLogKindCode>("MEETING");
@@ -72,6 +75,7 @@ function ClientLogPanel({ projectId }: { projectId: string }) {
   const [budgetObjections, setBudgetObjections] = useState("");
 
   const create = trpc.clientLog.create.useMutation({
+    meta: { errorTitle: "Couldn't create the log entry" },
     onSuccess: () => {
       invalidate();
       setOpen(false);
@@ -186,6 +190,7 @@ function CriticalPanel({ projectId }: { projectId: string }) {
   const [body, setBody] = useState("");
 
   const create = trpc.criticalNotes.create.useMutation({
+    meta: { errorTitle: "Couldn't create the critical note" },
     onSuccess: () => {
       invalidate();
       setOpen(false);
@@ -271,6 +276,7 @@ function SiteChangesPanel({ projectId }: { projectId: string }) {
   const [issuedAt, setIssuedAt] = useState(today());
 
   const create = trpc.siteInstructions.create.useMutation({
+    meta: { errorTitle: "Couldn't create the site instruction" },
     onSuccess: () => {
       invalidate();
       setOpen(false);
@@ -359,6 +365,7 @@ function RevisionPanel({ projectId }: { projectId: string }) {
   const [revisionSource, setRevisionSource] = useState("CLIENT_DRIVEN");
 
   const create = trpc.decisions.create.useMutation({
+    meta: { errorTitle: "Couldn't record the decision" },
     onSuccess: () => {
       invalidate();
       setOpen(false);

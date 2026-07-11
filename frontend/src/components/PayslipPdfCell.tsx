@@ -23,6 +23,7 @@ export function PayslipPdfCell({
   );
 
   const generate = trpc.payroll.generatePdf.useMutation({
+    meta: { errorTitle: "Couldn't generate the payslip PDF" },
     onSuccess: () => {
       setActive(true);
       utils.payroll.byId.invalidate({ id: payslipId });

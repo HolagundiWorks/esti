@@ -48,6 +48,7 @@ export function CollaboratorPortal() {
   const openId = projectId ?? null;
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({
+    meta: { errorTitle: "Couldn't sign out" },
     onSuccess: () => utils.auth.me.invalidate(),
   });
   const brandingQ = trpc.collab.branding.useQuery();
@@ -69,6 +70,7 @@ export function CollaboratorPortal() {
     { enabled: !!openId },
   );
   const completeTask = trpc.collab.completeTask.useMutation({
+    meta: { errorTitle: "Couldn't complete the task" },
     onSuccess: () => {
       utils.collab.assignedTasks.invalidate();
       utils.collab.activityFeed.invalidate();
@@ -85,6 +87,7 @@ export function CollaboratorPortal() {
   // ── write state ──────────────────────────────────────────────────────────
   const [form, setForm] = useState<{ kind: ConsultantOriginKindT; subject: string; body: string } | null>(null);
   const submit = trpc.collab.submit.useMutation({
+    meta: { errorTitle: "Couldn't send the submission" },
     onSuccess: () => {
       utils.collab.mySubmissions.invalidate();
       utils.collab.activityFeed.invalidate();
@@ -99,6 +102,7 @@ export function CollaboratorPortal() {
     { enabled: !!threadFor },
   );
   const reply = trpc.collab.replySubmission.useMutation({
+    meta: { errorTitle: "Couldn't send the reply" },
     onSuccess: () => utils.collab.submissionThread.invalidate(),
   });
 

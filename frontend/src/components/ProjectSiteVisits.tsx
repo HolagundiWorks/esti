@@ -31,10 +31,11 @@ export function ProjectSiteVisits({ projectId }: { projectId: string }) {
   const invalidate = () => utils.siteVisits.list.invalidate({ projectId });
 
   const create = trpc.siteVisits.create.useMutation({
+    meta: { errorTitle: "Couldn't create the site visit" },
     onSuccess: () => { invalidate(); setCreateOpen(false); resetForm(); },
   });
-  const confirm = trpc.siteVisits.confirm.useMutation({ onSuccess: invalidate });
-  const cancel = trpc.siteVisits.cancel.useMutation({ onSuccess: invalidate });
+  const confirm = trpc.siteVisits.confirm.useMutation({ meta: { errorTitle: "Couldn't confirm the site visit" }, onSuccess: invalidate });
+  const cancel = trpc.siteVisits.cancel.useMutation({ meta: { errorTitle: "Couldn't cancel the site visit" }, onSuccess: invalidate });
 
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState({ plannedDate: "", notes: "", autoCancelAfter: "" });

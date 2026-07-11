@@ -4,6 +4,17 @@ All notable changes to the HCW Design System package. Versioning follows semver;
 the package is workspace-consumed (source-only), so versions mark **design-contract**
 changes, not npm releases.
 
+## 0.5.0 — 2026-07-11
+
+### Added
+- **`MuiRoot({ scheme })`** — the provider accepts a colour scheme and resolves
+  the theme via `createAormsTheme` (memoised; explicit `theme` prop still wins).
+  Consumed by the app's Settings → Appearance switcher (light default; dark/HC
+  preview-labelled).
+- **Pagination · Stepper · PickerDay themed** — governed ahead of first heavy
+  use: BUTTON_RADIUS geometry, accent-active with onAccent ink, FOCUS_RING,
+  success-green completed steps, accent-outlined "today".
+
 ## 0.4.1 — 2026-07-11
 
 ### Added

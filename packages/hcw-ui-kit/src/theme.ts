@@ -14,8 +14,10 @@
  *     glass slab, and priority alerts (error/warning) read as tinted glass.
  */
 import { createTheme, type Theme } from "@mui/material/styles";
-// Theme augmentation so `components.MuiDataGrid` (MUI X) is type-known here.
+// Theme augmentation so `components.MuiDataGrid` / `MuiPickersDay` (MUI X) are
+// type-known here.
 import type {} from "@mui/x-data-grid/themeAugmentation";
+import type {} from "@mui/x-date-pickers/themeAugmentation";
 import {
   SCHEMES,
   type SchemeName,
@@ -406,6 +408,49 @@ export function createAormsTheme(options?: { scheme?: SchemeName }): Theme {
         styleOverrides: {
           badge: { fontWeight: 600 },
           colorPrimary: { backgroundColor: CDS.accent, color: CDS.onAccent },
+        },
+      },
+      // Governed ahead of first heavy use (MUI mapping 🟨 → 🟩): pagination,
+      // steppers, and picker days follow the button language — BUTTON_RADIUS,
+      // accent-active with onAccent ink, focus ring.
+      MuiPaginationItem: {
+        styleOverrides: {
+          root: {
+            borderRadius: BTN_RADIUS,
+            "&.Mui-selected": {
+              backgroundColor: CDS.accent,
+              color: CDS.onAccent,
+              "&:hover": { backgroundColor: CDS.accentDark },
+            },
+            "&.Mui-focusVisible": FOCUS_RING,
+          },
+        },
+      },
+      MuiStepIcon: {
+        styleOverrides: {
+          root: {
+            color: CDS.layer02,
+            "&.Mui-active": { color: CDS.accent },
+            "&.Mui-completed": { color: CDS.supportSuccess },
+          },
+          text: { fill: CDS.textPrimary, fontWeight: 600 },
+        },
+      },
+      MuiStepConnector: {
+        styleOverrides: { line: { borderColor: CDS.borderSubtle } },
+      },
+      MuiPickerDay: {
+        styleOverrides: {
+          root: {
+            borderRadius: BTN_RADIUS,
+            "&.Mui-selected": {
+              backgroundColor: CDS.accent,
+              color: CDS.onAccent,
+              "&:hover, &:focus": { backgroundColor: CDS.accentDark },
+            },
+            "&.Mui-focusVisible": FOCUS_RING,
+          },
+          today: { border: `1px solid ${CDS.accent}` },
         },
       },
       MuiTableCell: {

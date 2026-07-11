@@ -46,6 +46,7 @@ export function ProjectPermits({ projectId }: { projectId: string }) {
     { enabled: !!projectId },
   );
   const update = trpc.permits.update.useMutation({
+    meta: { errorTitle: "Couldn't update the permit" },
     onSuccess: () => utils.permits.listByProject.invalidate({ projectId }),
   });
 
@@ -58,6 +59,7 @@ export function ProjectPermits({ projectId }: { projectId: string }) {
   const [dueDate, setDueDate] = useState("");
 
   const create = trpc.permits.create.useMutation({
+    meta: { errorTitle: "Couldn't create the permit" },
     onSuccess: () => {
       utils.permits.listByProject.invalidate({ projectId });
       setOpen(false);

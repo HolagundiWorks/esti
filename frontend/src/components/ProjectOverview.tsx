@@ -127,6 +127,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
   });
 
   const noteCreate = trpc.criticalNotes.create.useMutation({
+    meta: { errorTitle: "Couldn't create the critical note" },
     onSuccess: async () => {
       setNoteOpen(false);
       setNote({
@@ -143,6 +144,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
     },
   });
   const decisionCreate = trpc.decisions.create.useMutation({
+    meta: { errorTitle: "Couldn't create the decision" },
     onSuccess: async () => {
       setDecisionOpen(false);
       setDecision({
@@ -163,6 +165,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
     },
   });
   const decisionTransition = trpc.decisions.transition.useMutation({
+    meta: { errorTitle: "Couldn't update the decision" },
     onSuccess: async () => {
       setTransitionId(null);
       await utils.decisions.listByProject.invalidate({ projectId });

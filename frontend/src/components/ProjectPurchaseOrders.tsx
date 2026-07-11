@@ -60,9 +60,11 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
   const invalidate = () =>
     utils.purchaseOrders.listByProject.invalidate({ projectId });
   const updateStatus = trpc.purchaseOrders.updateStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the purchase order" },
     onSuccess: invalidate,
   });
   const remove = trpc.purchaseOrders.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the purchase order" },
     onSuccess: invalidate,
   });
 
@@ -73,6 +75,7 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const create = trpc.purchaseOrders.create.useMutation({
+    meta: { errorTitle: "Couldn't create the purchase order" },
     onSuccess: () => {
       invalidate();
       setOpen(false);

@@ -42,7 +42,10 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
   );
   const invalidate = () =>
     utils.clientLog.listByProject.invalidate({ projectId });
-  const remove = trpc.clientLog.remove.useMutation({ onSuccess: invalidate });
+  const remove = trpc.clientLog.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the log entry" },
+    onSuccess: invalidate,
+  });
 
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<ClientLogKindCode>("MEETING");
@@ -54,6 +57,7 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
   const [budgetObjections, setBudgetObjections] = useState("");
 
   const create = trpc.clientLog.create.useMutation({
+    meta: { errorTitle: "Couldn't create the log entry" },
     onSuccess: () => {
       invalidate();
       setOpen(false);

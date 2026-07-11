@@ -64,12 +64,15 @@ export function DocumentsRegister() {
   const templatesQ = trpc.documents.listTemplates.useQuery();
   const utils = trpc.useUtils();
   const setPatterns = trpc.documents.setNumberingPatterns.useMutation({
+    meta: { errorTitle: "Couldn't save the numbering pattern" },
     onSuccess: () => utils.documents.numberingPatterns.invalidate(),
   });
   const createTemplate = trpc.documents.createTemplate.useMutation({
+    meta: { errorTitle: "Couldn't create the template" },
     onSuccess: () => utils.documents.listTemplates.invalidate(),
   });
   const removeTemplate = trpc.documents.removeTemplate.useMutation({
+    meta: { errorTitle: "Couldn't delete the template" },
     onSuccess: () => utils.documents.listTemplates.invalidate(),
   });
 

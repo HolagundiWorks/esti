@@ -42,6 +42,7 @@ export function ProjectStructuralDefaultsPanel({ projectId }: { projectId: strin
   );
   const [syncedRows, setSyncedRows] = useState(0);
   const save = trpc.measurement.upsertStructuralDefaults.useMutation({
+    meta: { errorTitle: "Couldn't save the structural defaults" },
     onSuccess: (res) => {
       utils.measurement.getStructuralDefaults.invalidate({ projectId });
       utils.measurement.getBook.invalidate({ projectId });

@@ -31,6 +31,7 @@ export function Payroll() {
   const team = teamQ.data ?? [];
 
   const markPaid = trpc.payroll.markPaid.useMutation({
+    meta: { errorTitle: "Couldn't mark the payslip as paid" },
     onSuccess: () => utils.payroll.list.invalidate(),
   });
 
@@ -55,6 +56,7 @@ export function Payroll() {
 
   const [py, setPy] = useState({ teamMemberId: "", month: "", gross: "", deductions: "" });
   const generate = trpc.payroll.generate.useMutation({
+    meta: { errorTitle: "Couldn't generate the payslip" },
     onSuccess: () => {
       utils.payroll.list.invalidate();
       setOpen(false);

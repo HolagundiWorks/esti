@@ -29,6 +29,7 @@ export function EscalationSettingsPanel() {
   }, [settingsQ.data]);
 
   const save = trpc.settings.setEscalationSettings.useMutation({
+    meta: { errorTitle: "Couldn't save the escalation rules" },
     onSuccess: () => {
       utils.settings.get.invalidate();
       setMsg("Alert escalation rules saved");

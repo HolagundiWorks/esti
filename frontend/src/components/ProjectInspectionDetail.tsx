@@ -35,12 +35,15 @@ export function ProjectInspectionDetail({
   const { authorizedFetch } = useUploadAuth();
   const q = trpc.inspections.byId.useQuery({ id: inspectionId! }, { enabled: !!inspectionId && open });
   const addAction = trpc.inspections.addAction.useMutation({
+    meta: { errorTitle: "Couldn't add the action item" },
     onSuccess: () => inspectionId && utils.inspections.byId.invalidate({ id: inspectionId }),
   });
   const convert = trpc.inspections.convertActionToTask.useMutation({
+    meta: { errorTitle: "Couldn't convert the action to a task" },
     onSuccess: () => inspectionId && utils.inspections.byId.invalidate({ id: inspectionId }),
   });
   const revise = trpc.documents.revise.useMutation({
+    meta: { errorTitle: "Couldn't revise the inspection" },
     onSuccess: () => {
       onClose();
       void utils.inspections.listByProject.invalidate();
@@ -49,9 +52,11 @@ export function ProjectInspectionDetail({
 
   const { user } = useAuth();
   const approve = trpc.inspections.approve.useMutation({
+    meta: { errorTitle: "Couldn't approve the inspection" },
     onSuccess: () => inspectionId && utils.inspections.byId.invalidate({ id: inspectionId }),
   });
   const reject = trpc.inspections.reject.useMutation({
+    meta: { errorTitle: "Couldn't reject the inspection" },
     onSuccess: () => { if (inspectionId) utils.inspections.byId.invalidate({ id: inspectionId }); setRejectOpen(false); setRejectNote(""); },
   });
 

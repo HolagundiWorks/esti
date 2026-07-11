@@ -32,6 +32,7 @@ function LetterPdf({ id, initial }: { id: string; initial: string }) {
     },
   );
   const gen = trpc.letters.generatePdf.useMutation({
+    meta: { errorTitle: "Couldn't generate the letter PDF" },
     onSuccess: () => utils.letters.byId.invalidate({ id }),
   });
   return (
@@ -81,6 +82,7 @@ export function Letters() {
     setF((x) => ({ ...x, [k]: e.target.value }));
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const create = trpc.letters.create.useMutation({
+    meta: { errorTitle: "Couldn't create the letter" },
     onSuccess: () => {
       inv();
       setOpen(false);
@@ -93,7 +95,7 @@ export function Letters() {
       });
     },
   });
-  const remove = trpc.letters.remove.useMutation({ onSuccess: inv });
+  const remove = trpc.letters.remove.useMutation({ meta: { errorTitle: "Couldn't delete the letter" }, onSuccess: inv });
 
   const rows = listQ.data ?? [];
 

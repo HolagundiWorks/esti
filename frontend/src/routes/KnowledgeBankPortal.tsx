@@ -64,12 +64,12 @@ export function KnowledgeBankPortal() {
   const listQ = trpc.knowledgeBankPortal.list.useQuery();
   const inv = () => utils.knowledgeBankPortal.list.invalidate();
 
-  const create = trpc.knowledgeBankPortal.create.useMutation({ onSuccess: inv });
-  const remove = trpc.knowledgeBankPortal.remove.useMutation({ onSuccess: inv });
-  const processEmoi = trpc.knowledgeBankPortal.processWithEmoi.useMutation({ onSuccess: inv });
-  const publish = trpc.knowledgeBankPortal.publish.useMutation({ onSuccess: inv });
-  const unpublish = trpc.knowledgeBankPortal.unpublish.useMutation({ onSuccess: inv });
-  const update = trpc.knowledgeBankPortal.update.useMutation({ onSuccess: inv });
+  const create = trpc.knowledgeBankPortal.create.useMutation({ meta: { errorTitle: "Couldn't create the document" }, onSuccess: inv });
+  const remove = trpc.knowledgeBankPortal.remove.useMutation({ meta: { errorTitle: "Couldn't delete the document" }, onSuccess: inv });
+  const processEmoi = trpc.knowledgeBankPortal.processWithEmoi.useMutation({ meta: { errorTitle: "Couldn't process the document with EmOI" }, onSuccess: inv });
+  const publish = trpc.knowledgeBankPortal.publish.useMutation({ meta: { errorTitle: "Couldn't publish the document" }, onSuccess: inv });
+  const unpublish = trpc.knowledgeBankPortal.unpublish.useMutation({ meta: { errorTitle: "Couldn't unpublish the document" }, onSuccess: inv });
+  const update = trpc.knowledgeBankPortal.update.useMutation({ meta: { errorTitle: "Couldn't update the document" }, onSuccess: inv });
 
   const { authorizedFetch } = useUploadAuth();
 

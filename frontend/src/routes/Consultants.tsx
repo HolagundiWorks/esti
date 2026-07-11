@@ -40,6 +40,7 @@ export function Consultants() {
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const create = trpc.consultants.create.useMutation({
+    meta: { errorTitle: "Couldn't create the consultant" },
     onSuccess: () => {
       utils.consultants.list.invalidate();
       setOpen(false);
@@ -57,6 +58,7 @@ export function Consultants() {
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loginMsg, setLoginMsg] = useState<string | null>(null);
   const createLogin = trpc.consultants.createLogin.useMutation({
+    meta: { errorTitle: "Couldn't create the collaborator login" },
     onSuccess: (u) => {
       setLoginMsg(`Collaborator login created for ${u.email}`);
       setLogin(null);

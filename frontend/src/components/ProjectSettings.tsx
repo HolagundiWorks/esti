@@ -74,6 +74,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
     { enabled: !!projectId },
   );
   const setRevisionBudget = trpc.phases.setRevisionBudget.useMutation({
+    meta: { errorTitle: "Couldn't save the revision budget" },
     onSuccess: () => utils.phases.listByProject.invalidate({ projectId }),
   });
   const [revBudgetDraft, setRevBudgetDraft] = useState<Record<string, string>>({});
@@ -87,6 +88,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   }, [projectQ.data]);
 
   const update = trpc.projectOffice.update.useMutation({
+    meta: { errorTitle: "Couldn't update the project" },
     onSuccess: () => {
       utils.projectOffice.byId.invalidate({ id: projectId });
       utils.projectOffice.list.invalidate();
@@ -97,6 +99,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
 
   const [statusDraft, setStatusDraft] = useState<ProjectStatus | "">("");
   const updateStatus = trpc.projectOffice.updateStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the project status" },
     onSuccess: () => {
       utils.projectOffice.byId.invalidate({ id: projectId });
       utils.projectOffice.list.invalidate();
@@ -109,6 +112,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
 
   const [note, setNote] = useState("");
   const addLog = trpc.projectOffice.addLog.useMutation({
+    meta: { errorTitle: "Couldn't add the log entry" },
     onSuccess: () => {
       utils.projectOffice.logs.invalidate({ projectId });
       setNote("");
@@ -118,6 +122,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [adminPwd, setAdminPwd] = useState("");
   const remove = trpc.projectOffice.remove.useMutation({
+    meta: { errorTitle: "Couldn't archive the project" },
     onSuccess: () => {
       utils.projectOffice.list.invalidate();
       pushToast({ kind: "success", title: "Project archived" });

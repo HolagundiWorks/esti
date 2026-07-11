@@ -93,6 +93,7 @@ export function ProjectFloorsPanel({ projectId }: { projectId: string }) {
   );
   const [syncedRows, setSyncedRows] = useState(0);
   const configure = trpc.measurement.configureFloors.useMutation({
+    meta: { errorTitle: "Couldn't save the floor configuration" },
     onSuccess: (res) => {
       utils.measurement.listLevels.invalidate({ projectId });
       utils.measurement.getBook.invalidate({ projectId });

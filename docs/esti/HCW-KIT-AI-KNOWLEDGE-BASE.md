@@ -26,7 +26,7 @@ Companion docs — read together, in this order:
 | [HCW-UI-UX-PRINCIPLES.md](HCW-UI-UX-PRINCIPLES.md) | *Why (UX)* — laws, spatial roles, a11y | 
 | **This document** | *Agent contract* — skills, rulesets, enforcement, audit recipes |
 | [NAVIGATION.md](NAVIGATION.md) | *Where* — canonical IA |
-| [Design Debt Register](../hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md) | **The living debt queue** — supersedes this file's §6 as the itemised ledger |
+| [Design Debt Register](../hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md) | **The living debt queue** — itemised ledger (see also [audit index](../hcw-kit/11-audits/README.md)) |
 
 ---
 
@@ -182,36 +182,14 @@ without instruction.
 
 ---
 
-## 6. Current known state (updated 2026-07-11 — keep fresh)
+## 6. Current known state
 
-- Maturity **67/100 "Defined"**; compliance ≈ **72/100**.
-- **Strong:** visual language, consistency enforcement via theme, focus-visible parity,
-  dock contract, shells adoption (RailLayout 48 files), DataState 41 files.
-- **Implemented this cycle:** scale tokens (`SPACING/BREAKPOINTS/Z_INDEX/OPACITY/
-  MOTION/ELEVATION`); themed Checkbox/Radio/Switch/Slider/Progress/Skeleton/Badge;
-  theme wired to spacing/breakpoints/zIndex tokens; **semantic scheme layer**
-  (`SCHEMES` light/dark/highContrast + `createAormsTheme({ scheme })`, light default);
-  theme transitions consume `MOTION` tokens (R7); **`StatusDot` promoted into the kit**
-  (+ `STATUS_COLORS` canonical hues superseding `--cds-tag-*` for new code);
-  **`DataState` + `ConfirmModal` promoted into the kit** (app files are compat
-  re-exports; 40+ consumers inherit); app `StatusTag`/`StatusDot` now delegate to the
-  kit; `TYPE_SCALE` token added and consumed by StudioAbstract micro-typography;
-  kit versioned **0.1.0** with CHANGELOG + `sideEffects` field.
-- **Open debt (ranked):** ① Storybook / visual-regression (unit tests EXIST as of
-  0.3.0 — 15 vitest tests; component-render tests + a gallery remain); ② Charts —
-  the last app-level canonical outside the package; ③ dark/high-contrast recipes
-  implemented (0.2.0) but preview-grade — need visual sign-off + a scheme switcher
-  UI (Settings); ④ no RTL/i18n; ⑤ no Figma library; ⑥ zero optimistic UI (Doherty);
-  ⑦ visual QA of restyled controls on AUTHENTICATED screens (public
-  `/design-system` verified 2026-07-11; /demo blocked by headless renderer hangs).
-  *Resolved 0.3.0:* Toast store + ToastHost and Avatar promoted (injection pattern —
-  app keeps `resolveColor` domain logic); first kit test suite (vitest, 15 tests).
-  *Resolved 2026-07-11:* governance (GOVERNANCE.md + CHANGELOG + semver 0.1.0);
-  HCW-UI-KIT.md listing sync; `KnowledgeBankPortal` repaired (dock API, RailLayout,
-  MUI-X v8 selection, StatusDot, duplicate-CTA removal) — tree fully green;
-  **`PageBreadcrumb` promoted** (router-agnostic `linkComponent` injection — the
-  react-router dep question is settled by injection, not a peer dep); last real-text
-  inline `fontSize` cleared (RecoverWithBackupCode → theme body1).
+**Do not duplicate facts here.** The living ledger is
+[Design Debt Register](../hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md). Audit index
+(including kit maturity/compliance snapshots): [11-audits/README.md](../hcw-kit/11-audits/README.md).
+
+After an audit or implementation pass, update the debt register and the relevant
+surface audit file in the same change.
 
 ---
 

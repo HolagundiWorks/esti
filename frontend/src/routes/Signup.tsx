@@ -21,6 +21,7 @@ export function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const bootstrap = trpc.auth.bootstrap.useMutation({
+    meta: { errorTitle: "Couldn't create the account" },
     onSuccess: async (data) => {
       setDesktopToken((data as { token?: string }).token);
       await utils.auth.me.invalidate();

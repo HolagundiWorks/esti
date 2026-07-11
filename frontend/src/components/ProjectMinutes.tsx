@@ -55,10 +55,10 @@ export function ProjectMinutes({ projectId }: { projectId: string }) {
     setEditingId(null);
     setForm(EMPTY_FORM);
   };
-  const create = trpc.moms.create.useMutation({ onSuccess: () => { void invalidate(); closeForm(); } });
-  const update = trpc.moms.update.useMutation({ onSuccess: () => { void invalidate(); closeForm(); } });
-  const issue = trpc.moms.issue.useMutation({ onSuccess: () => void invalidate() });
-  const remove = trpc.moms.remove.useMutation({ onSuccess: () => void invalidate() });
+  const create = trpc.moms.create.useMutation({ meta: { errorTitle: "Couldn't create the minutes" }, onSuccess: () => { void invalidate(); closeForm(); } });
+  const update = trpc.moms.update.useMutation({ meta: { errorTitle: "Couldn't update the minutes" }, onSuccess: () => { void invalidate(); closeForm(); } });
+  const issue = trpc.moms.issue.useMutation({ meta: { errorTitle: "Couldn't issue the minutes" }, onSuccess: () => void invalidate() });
+  const remove = trpc.moms.remove.useMutation({ meta: { errorTitle: "Couldn't delete the minutes" }, onSuccess: () => void invalidate() });
 
   const canWrite = can(user?.role, "write");
   const rows = listQ.data ?? [];

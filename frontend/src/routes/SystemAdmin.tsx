@@ -79,9 +79,9 @@ export function SystemAdmin() {
     utils.settings.get.invalidate();
   };
 
-  const setHr = trpc.settings.setHrEnabled.useMutation({ onSuccess: invalidate });
-  const setPmc = trpc.settings.setPmcEnabled.useMutation({ onSuccess: invalidate });
-  const setModule = trpc.settings.setModuleEnabled.useMutation({ onSuccess: invalidate });
+  const setHr = trpc.settings.setHrEnabled.useMutation({ meta: { errorTitle: "Couldn't update the HR setting" }, onSuccess: invalidate });
+  const setPmc = trpc.settings.setPmcEnabled.useMutation({ meta: { errorTitle: "Couldn't update the PMC setting" }, onSuccess: invalidate });
+  const setModule = trpc.settings.setModuleEnabled.useMutation({ meta: { errorTitle: "Couldn't update the module setting" }, onSuccess: invalidate });
 
   if (settingsQ.isLoading) {
     return (

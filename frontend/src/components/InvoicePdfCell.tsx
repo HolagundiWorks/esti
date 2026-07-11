@@ -26,6 +26,7 @@ export function InvoicePdfCell({
   );
 
   const generate = trpc.invoices.generatePdf.useMutation({
+    meta: { errorTitle: "Couldn't generate the invoice PDF" },
     onSuccess: () => {
       setActive(true);
       utils.invoices.byId.invalidate({ id: invoiceId });

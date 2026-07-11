@@ -54,6 +54,7 @@ export function PulseStandupModal({
   );
 
   const run = trpc.pulse.standup.run.useMutation({
+    meta: { errorTitle: "Couldn't start the standup" },
     onSuccess: (r) => {
       setSelectedSessionId(r.session.id);
       void utils.pulse.standup.list.invalidate({ projectId });
@@ -61,6 +62,7 @@ export function PulseStandupModal({
     },
   });
   const answer = trpc.pulse.standup.answer.useMutation({
+    meta: { errorTitle: "Couldn't save the answer" },
     onSuccess: () => {
       if (activeSessionId) void utils.pulse.standup.questions.invalidate({ standupSessionId: activeSessionId });
       void utils.tasks.list.invalidate();
@@ -76,9 +78,11 @@ export function PulseStandupModal({
 
   const actionsQ = trpc.pulse.actions.list.useQuery({ projectId, status: "PROPOSED" }, { enabled: open && !!projectId });
   const proposeActions = trpc.pulse.actions.propose.useMutation({
+    meta: { errorTitle: "Couldn't propose the actions" },
     onSuccess: () => void utils.pulse.actions.list.invalidate({ projectId, status: "PROPOSED" }),
   });
   const decideAction = trpc.pulse.actions.decide.useMutation({
+    meta: { errorTitle: "Couldn't update the action" },
     onSuccess: () => {
       void utils.pulse.actions.list.invalidate({ projectId, status: "PROPOSED" });
       void utils.tasks.list.invalidate();

@@ -26,6 +26,7 @@ export function MasterPlanLibrary() {
   const utils = trpc.useUtils();
   const listQ = trpc.masterPlans.list.useQuery();
   const remove = trpc.masterPlans.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the master plan" },
     onSuccess: () => utils.masterPlans.list.invalidate(),
   });
   const { authorizedFetch } = useUploadAuth();

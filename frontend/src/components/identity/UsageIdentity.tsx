@@ -29,11 +29,13 @@ export function UsageIdentity() {
   const statusQ = trpc.usage.status.useQuery(undefined, {
     refetchInterval: USAGE_PING_INTERVAL_MS,
   });
-  const ping = trpc.usage.ping.useMutation();
+  const ping = trpc.usage.ping.useMutation({ meta: { errorTitle: "Couldn't record the usage ping" } });
   const dismiss = trpc.usage.dismissIdPrompt.useMutation({
+    meta: { errorTitle: "Couldn't dismiss the prompt" },
     onSuccess: () => utils.usage.status.invalidate(),
   });
   const generate = trpc.usage.generateAormsId.useMutation({
+    meta: { errorTitle: "Couldn't generate the AORMS ID" },
     onSuccess: () => {
       void utils.usage.status.invalidate();
       void utils.users.myProfile.invalidate();

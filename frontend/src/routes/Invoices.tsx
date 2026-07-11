@@ -56,6 +56,7 @@ export function Invoices() {
   const [sac, setSac] = useState<string>(SAC_CODES[0]?.code ?? "998321");
 
   const create = trpc.invoices.create.useMutation({
+    meta: { errorTitle: "Couldn't create the invoice" },
     onSuccess: () => {
       utils.invoices.listAll.invalidate();
       utils.dashboard.home.invalidate();
@@ -66,6 +67,7 @@ export function Invoices() {
     },
   });
   const updateStatus = trpc.invoices.updateStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the invoice status" },
     onSuccess: () => {
       utils.invoices.listAll.invalidate();
       utils.dashboard.home.invalidate();

@@ -66,8 +66,12 @@ function FileArchiveModal({
   const p = previewQ.data;
   const today = new Date().toISOString().slice(0, 10);
 
-  const archive = trpc.projectArchive.archive.useMutation();
-  const restore = trpc.projectArchive.restore.useMutation();
+  const archive = trpc.projectArchive.archive.useMutation({
+    meta: { errorTitle: "Couldn't archive the project files" },
+  });
+  const restore = trpc.projectArchive.restore.useMutation({
+    meta: { errorTitle: "Couldn't restore the project files" },
+  });
 
   async function archiveAndDownload() {
     setBusy(true);
@@ -181,6 +185,7 @@ export function ArchivedProjects() {
   const [fileTarget, setFileTarget] = useState<{ id: string; ref: string; title: string } | null>(null);
 
   const restore = trpc.projectOffice.restore.useMutation({
+    meta: { errorTitle: "Couldn't restore the project" },
     onSuccess: (project) => {
       setMessage(`${project.title} restored to active projects`);
       utils.projectOffice.listArchived.invalidate();
@@ -190,6 +195,7 @@ export function ArchivedProjects() {
 
 
   const purge = trpc.projectOffice.purge.useMutation({
+    meta: { errorTitle: "Couldn't purge the project" },
     onSuccess: () => {
       setMessage(`${purgeTarget?.title ?? "Project"} marked for purge`);
       setPurgeTarget(null);

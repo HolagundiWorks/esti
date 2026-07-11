@@ -92,6 +92,7 @@ export function Login() {
   }
 
   const login = trpc.auth.login.useMutation({
+    meta: { errorTitle: "Couldn't sign in" },
     onSuccess: afterLogin,
     onError: (err) => {
       // Password accepted — now collect the authenticator code.
@@ -102,6 +103,7 @@ export function Login() {
   // Returning from Google (?google=1): exchange the platform session that the
   // OAuth callback just created for a workspace session.
   const fromGoogle = trpc.auth.sessionFromPlatform.useMutation({
+    meta: { errorTitle: "Couldn't sign in with Google" },
     onSuccess: afterLogin,
     onError: () => setGoogleError("Google sign-in could not open the workspace — try email and password."),
   });

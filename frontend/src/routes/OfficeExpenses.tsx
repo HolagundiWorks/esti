@@ -72,6 +72,7 @@ function ExpenseFormModal({
 }) {
   const utils = trpc.useUtils();
   const create = trpc.expenses.create.useMutation({
+    meta: { errorTitle: "Couldn't save the expense" },
     onSuccess: () => {
       void utils.expenses.list.invalidate();
       void utils.accounts.list.invalidate();
@@ -193,15 +194,18 @@ function ExpenseTable({
 }) {
   const utils = trpc.useUtils();
   const submit = trpc.expenses.submit.useMutation({
+    meta: { errorTitle: "Couldn't submit the expense" },
     onSuccess: () => void utils.expenses.list.invalidate(),
   });
   const audit = trpc.expenses.audit.useMutation({
+    meta: { errorTitle: "Couldn't audit the expense" },
     onSuccess: () => {
       void utils.expenses.list.invalidate();
       void utils.accounts.list.invalidate();
     },
   });
   const close = trpc.expenses.close.useMutation({
+    meta: { errorTitle: "Couldn't close the expense" },
     onSuccess: () => {
       void utils.expenses.list.invalidate();
       void utils.accounts.list.invalidate();

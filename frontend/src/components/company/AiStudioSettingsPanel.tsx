@@ -41,6 +41,7 @@ export function AiStudioSettingsPanel({ isEnterprise: _isEnterprise = false }: {
   }, [settingsQ.data]);
 
   const save = trpc.ai.setSettings.useMutation({
+    meta: { errorTitle: "Couldn't save the AI Studio settings" },
     onSuccess: () => {
       utils.ai.settings.invalidate();
       setMsg("AI Studio settings saved");

@@ -46,5 +46,5 @@ migrated → removed, 2026-07).
 - [ ] Layer chosen by role; glass stays scarce
 - [ ] Hover/active/`:focus-visible`/disabled + `REDUCE_MOTION` states covered
 - [ ] Works in every consuming shell (workspace, portals, console, marketing)
-- [ ] CHANGELOG + HCW-UI-KIT.md updated; KB §6 ledger refreshed if facts changed
+- [ ] CHANGELOG + HCW-UI-KIT.md updated; [Design Debt Register](../../docs/hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md) refreshed if facts changed
 - [ ] Kit + frontend typecheck clean

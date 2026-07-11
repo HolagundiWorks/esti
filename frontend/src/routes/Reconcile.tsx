@@ -59,6 +59,7 @@ export function Reconcile() {
   });
   const [settleMsg, setSettleMsg] = useState<string | null>(null);
   const settle = trpc.reconcile.settle.useMutation({
+    meta: { errorTitle: "Couldn't settle the matched invoices" },
     onSuccess: (res) => {
       setSettleMsg(
         `Settled ${res.settled} invoice(s) as PAID · ${res.skipped} skipped`,
@@ -68,6 +69,7 @@ export function Reconcile() {
     },
   });
   const remap = trpc.reconcile.setColumnMapping.useMutation({
+    meta: { errorTitle: "Couldn't save the column mapping" },
     onSuccess: () => {
       utils.reconcile.list.invalidate();
       if (openId) utils.reconcile.byId.invalidate({ id: openId });

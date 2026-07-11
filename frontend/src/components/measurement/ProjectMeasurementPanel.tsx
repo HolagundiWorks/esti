@@ -81,12 +81,15 @@ export function ProjectMeasurementPanel({ projectId }: { projectId: string }) {
   const catalogQ = trpc.itemLibrary.activeCatalog.useQuery();
 
   const upsertRow = trpc.measurement.upsertRow.useMutation({
+    meta: { errorTitle: "Couldn't save the measurement row" },
     onSuccess: () => utils.measurement.getBook.invalidate({ projectId }),
   });
   const addFromLibrary = trpc.measurement.addFromLibrary.useMutation({
+    meta: { errorTitle: "Couldn't add the library item" },
     onSuccess: () => utils.measurement.getBook.invalidate({ projectId }),
   });
   const removeRow = trpc.measurement.removeRow.useMutation({
+    meta: { errorTitle: "Couldn't delete the measurement row" },
     onSuccess: () => utils.measurement.getBook.invalidate({ projectId }),
   });
   const [rowOpen, setRowOpen] = useState(false);
@@ -99,6 +102,7 @@ export function ProjectMeasurementPanel({ projectId }: { projectId: string }) {
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
 
   const syncHeights = trpc.measurement.syncHeightsFromLevels.useMutation({
+    meta: { errorTitle: "Couldn't sync the heights" },
     onSuccess: (res) => {
       utils.measurement.getBook.invalidate({ projectId });
       setSyncMsg(

@@ -258,13 +258,13 @@ Before shipping UI:
 
 UX quality is reviewed against this document and:
 
-- Code + [NAVIGATION.md](NAVIGATION.md) vs shipped chrome (heuristic audit)
+- Code + [NAVIGATION.md](NAVIGATION.md) vs shipped chrome
+- [07-UX-REVIEW-CHECKLISTS.md](../hcw-kit/07-UX-REVIEW-CHECKLISTS.md) (measurable pass/fail)
+- [11-audits/README.md](../hcw-kit/11-audits/README.md) — surface audit index
 - Token contrast in `packages/hcw-ui-kit/src/tokens.ts`
 - Manual keyboard pass on new chrome
-- Optional: live user testing (not a substitute for the above)
 
-Historical audit artifacts may live in Cursor canvases; **this file** remains the
-normative spec when canvas and code diverge — **code + this doc** win.
+When audit findings and code diverge, **code + this doc + the debt register** win.
 
 ---
 

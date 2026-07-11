@@ -152,8 +152,8 @@ function FarPanel({ openSignal }: { openSignal?: number }) {
   const u = trpc.useUtils();
   const q = trpc.compliance.far.list.useQuery();
   const inv = () => u.compliance.far.list.invalidate();
-  const create = trpc.compliance.far.create.useMutation({ onSuccess: inv });
-  const remove = trpc.compliance.far.remove.useMutation({ onSuccess: inv });
+  const create = trpc.compliance.far.create.useMutation({ meta: { errorTitle: "Couldn't create the FAR rule" }, onSuccess: inv });
+  const remove = trpc.compliance.far.remove.useMutation({ meta: { errorTitle: "Couldn't delete the FAR rule" }, onSuccess: inv });
   return (
     <CrudPanel
       fields={[
@@ -181,8 +181,8 @@ function SetbackPanel({ openSignal }: { openSignal?: number }) {
   const u = trpc.useUtils();
   const q = trpc.compliance.setback.list.useQuery();
   const inv = () => u.compliance.setback.list.invalidate();
-  const create = trpc.compliance.setback.create.useMutation({ onSuccess: inv });
-  const remove = trpc.compliance.setback.remove.useMutation({ onSuccess: inv });
+  const create = trpc.compliance.setback.create.useMutation({ meta: { errorTitle: "Couldn't create the setback rule" }, onSuccess: inv });
+  const remove = trpc.compliance.setback.remove.useMutation({ meta: { errorTitle: "Couldn't delete the setback rule" }, onSuccess: inv });
   return (
     <CrudPanel
       fields={[
@@ -211,8 +211,8 @@ function NbcPanel({ openSignal }: { openSignal?: number }) {
   const u = trpc.useUtils();
   const q = trpc.compliance.nbc.list.useQuery();
   const inv = () => u.compliance.nbc.list.invalidate();
-  const create = trpc.compliance.nbc.create.useMutation({ onSuccess: inv });
-  const remove = trpc.compliance.nbc.remove.useMutation({ onSuccess: inv });
+  const create = trpc.compliance.nbc.create.useMutation({ meta: { errorTitle: "Couldn't create the NBC clause" }, onSuccess: inv });
+  const remove = trpc.compliance.nbc.remove.useMutation({ meta: { errorTitle: "Couldn't delete the NBC clause" }, onSuccess: inv });
   return (
     <CrudPanel
       fields={[
@@ -237,8 +237,8 @@ function FirePanel({ openSignal }: { openSignal?: number }) {
   const u = trpc.useUtils();
   const q = trpc.compliance.fire.list.useQuery();
   const inv = () => u.compliance.fire.list.invalidate();
-  const create = trpc.compliance.fire.create.useMutation({ onSuccess: inv });
-  const remove = trpc.compliance.fire.remove.useMutation({ onSuccess: inv });
+  const create = trpc.compliance.fire.create.useMutation({ meta: { errorTitle: "Couldn't create the fire safety rule" }, onSuccess: inv });
+  const remove = trpc.compliance.fire.remove.useMutation({ meta: { errorTitle: "Couldn't delete the fire safety rule" }, onSuccess: inv });
   return (
     <CrudPanel
       fields={[
@@ -264,8 +264,8 @@ function RegulationPanel({ openSignal }: { openSignal?: number }) {
   const u = trpc.useUtils();
   const q = trpc.compliance.regulation.list.useQuery();
   const inv = () => u.compliance.regulation.list.invalidate();
-  const create = trpc.compliance.regulation.create.useMutation({ onSuccess: inv });
-  const remove = trpc.compliance.regulation.remove.useMutation({ onSuccess: inv });
+  const create = trpc.compliance.regulation.create.useMutation({ meta: { errorTitle: "Couldn't create the regulation" }, onSuccess: inv });
+  const remove = trpc.compliance.regulation.remove.useMutation({ meta: { errorTitle: "Couldn't delete the regulation" }, onSuccess: inv });
   return (
     <CrudPanel
       fields={[
@@ -293,6 +293,7 @@ function DocumentsTab({ openSignal }: { openSignal?: number }) {
   const utils = trpc.useUtils();
   const q = trpc.compliance.listDocuments.useQuery();
   const remove = trpc.compliance.removeDocument.useMutation({
+    meta: { errorTitle: "Couldn't delete the document" },
     onSuccess: () => utils.compliance.listDocuments.invalidate(),
   });
   const { authorizedFetch } = useUploadAuth();

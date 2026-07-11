@@ -296,6 +296,7 @@ export function StudioAbstract() {
     { staleTime: Infinity, retry: false },
   );
   const refreshEstiPriorities = trpc.pulse.refreshTopTasks.useMutation({
+    meta: { errorTitle: "Couldn't refresh the rankings" },
     onSuccess: (data) => {
       utils.pulse.topTasks.setData({ limit: 3 }, data);
     },
@@ -347,6 +348,7 @@ export function StudioAbstract() {
   // Module toggles (moved off the dock) — admin-only, shown in the page header.
   const isAdmin = can(user?.role, "firm:admin");
   const setModule = trpc.settings.setModuleEnabled.useMutation({
+    meta: { errorTitle: "Couldn't update the module setting" },
     onSuccess: () => settingsQ.refetch(),
   });
   const financialEnabled = settingsQ.data?.financialEnabled ?? true;

@@ -8,6 +8,7 @@ import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 export function ContractorPortalStub() {
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({
+    meta: { errorTitle: "Couldn't sign out" },
     onSuccess: () => {
       setDesktopToken(null);
       return utils.auth.me.invalidate();

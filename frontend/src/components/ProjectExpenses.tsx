@@ -62,6 +62,7 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
   const [invoiceRef, setInvoiceRef] = useState("");
 
   const create = trpc.expenses.create.useMutation({
+    meta: { errorTitle: "Couldn't create the expense" },
     onSuccess: () => {
       void utils.expenses.list.invalidate();
       void utils.expenses.summaryByProject.invalidate({ projectId });
@@ -69,21 +70,25 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
     },
   });
   const submit = trpc.expenses.submit.useMutation({
+    meta: { errorTitle: "Couldn't submit the expense" },
     onSuccess: () => void utils.expenses.list.invalidate(),
   });
   const audit = trpc.expenses.audit.useMutation({
+    meta: { errorTitle: "Couldn't audit the expense" },
     onSuccess: () => {
       void utils.expenses.list.invalidate();
       void utils.expenses.summaryByProject.invalidate({ projectId });
     },
   });
   const close = trpc.expenses.close.useMutation({
+    meta: { errorTitle: "Couldn't close the expense" },
     onSuccess: () => {
       void utils.expenses.list.invalidate();
       void utils.expenses.summaryByProject.invalidate({ projectId });
     },
   });
   const markRecovered = trpc.expenses.markRecovered.useMutation({
+    meta: { errorTitle: "Couldn't mark the expense as recovered" },
     onSuccess: () => {
       void utils.expenses.list.invalidate();
       void utils.expenses.summaryByProject.invalidate({ projectId });

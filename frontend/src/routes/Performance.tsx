@@ -207,6 +207,7 @@ export function Performance() {
   const [tab, setTab] = useState(0);
 
   const setWellbeing = trpc.aspRf.setWellbeingOptIn.useMutation({
+    meta: { errorTitle: "Couldn't update the wellbeing opt-in" },
     onSuccess: () => {
       utils.aspRf.teamScores.invalidate();
       utils.aspRf.myScore.invalidate();
@@ -221,6 +222,7 @@ export function Performance() {
     awardType: "",
   });
   const grant = trpc.rewards.grant.useMutation({
+    meta: { errorTitle: "Couldn't grant the reward" },
     onSuccess: () => {
       utils.aspRf.teamScores.invalidate();
       setGrantTarget(null);

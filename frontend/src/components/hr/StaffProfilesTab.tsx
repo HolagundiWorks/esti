@@ -43,6 +43,7 @@ export function StaffProfilesTab() {
   const teamQ = trpc.team.list.useQuery();
   const utils = trpc.useUtils();
   const updateLevel = trpc.hrProfile.updateLevel.useMutation({
+    meta: { errorTitle: "Couldn't update the staff level" },
     onSuccess: () => utils.team.list.invalidate(),
   });
 
@@ -64,9 +65,11 @@ export function StaffProfilesTab() {
     { enabled: !!selectedId },
   );
   const verifyDoc = trpc.hrProfile.verifyDocument.useMutation({
+    meta: { errorTitle: "Couldn't verify the document" },
     onSuccess: () => utils.hrProfile.getProfile.invalidate({ memberId: selectedId! }),
   });
   const deleteDoc = trpc.hrProfile.deleteDocument.useMutation({
+    meta: { errorTitle: "Couldn't delete the document" },
     onSuccess: () => utils.hrProfile.getProfile.invalidate({ memberId: selectedId! }),
   });
 

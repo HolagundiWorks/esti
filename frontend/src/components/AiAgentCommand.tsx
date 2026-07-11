@@ -44,6 +44,7 @@ export function AiAgentCommand() {
   const endRef = useRef<HTMLDivElement>(null);
 
   const generate = trpc.ai.generate.useMutation({
+    meta: { errorTitle: "Couldn't generate the AI response" },
     onSuccess: (res) => {
       setTurns((t) => [...t, { role: "assistant", text: res.output }]);
     },

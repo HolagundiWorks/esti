@@ -73,6 +73,7 @@ export function Portal() {
   const openId = projectId ?? null;
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({
+    meta: { errorTitle: "Couldn't sign out" },
     onSuccess: () => utils.auth.me.invalidate(),
   });
   const brandingQ = trpc.portal.branding.useQuery();
@@ -146,10 +147,12 @@ export function Portal() {
     utils.portal.revisionStats.invalidate();
   };
   const respond = trpc.portal.respondApproval.useMutation({
+    meta: { errorTitle: "Couldn't submit the approval decision" },
     onSuccess: () => { refresh(); setDecision(null); },
   });
-  const acknowledge = trpc.portal.acknowledge.useMutation({ onSuccess: refresh });
+  const acknowledge = trpc.portal.acknowledge.useMutation({ meta: { errorTitle: "Couldn't acknowledge the receipt" }, onSuccess: refresh });
   const changeRequest = trpc.portal.submitChangeRequest.useMutation({
+    meta: { errorTitle: "Couldn't submit the change request" },
     onSuccess: () => {
       refresh();
       setRequestOpen(false);
@@ -157,14 +160,17 @@ export function Portal() {
     },
   });
   const submitFeedback = trpc.portal.submitFeedback.useMutation({
+    meta: { errorTitle: "Couldn't submit the feedback" },
     onSuccess: () => { refresh(); setFeedbackOpen(false); setFeedback({ subject: "", body: "", rating: "" }); },
   });
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [meeting, setMeeting] = useState({ preferredDate: "", mode: "IN_PERSON" as "IN_PERSON" | "VIDEO_CALL" | "PHONE", agenda: "" });
   const requestMeeting = trpc.portal.requestMeeting.useMutation({
+    meta: { errorTitle: "Couldn't request the meeting" },
     onSuccess: () => { refresh(); setMeetingOpen(false); setMeeting({ preferredDate: "", mode: "IN_PERSON", agenda: "" }); },
   });
   const respondImpact = trpc.portal.respondToImpact.useMutation({
+    meta: { errorTitle: "Couldn't submit the impact response" },
     onSuccess: () => { refresh(); setImpactResponse(null); },
   });
 
@@ -175,6 +181,7 @@ export function Portal() {
     { enabled: !!threadFor },
   );
   const reply = trpc.portal.replySubmission.useMutation({
+    meta: { errorTitle: "Couldn't send the reply" },
     onSuccess: () => utils.portal.submissionThread.invalidate(),
   });
 

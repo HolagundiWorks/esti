@@ -15,13 +15,28 @@
 import { StyledEngineProvider, ThemeProvider, type Theme } from "@mui/material/styles";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import type { ReactNode } from "react";
-import { aormsTheme } from "./theme.js";
+import { useMemo, type ReactNode } from "react";
+import { aormsTheme, createAormsTheme } from "./theme.js";
+import type { SchemeName } from "./tokens.js";
 
-export function MuiRoot({ children, theme = aormsTheme }: { children: ReactNode; theme?: Theme }) {
+export function MuiRoot({
+  children,
+  theme,
+  scheme,
+}: {
+  children: ReactNode;
+  /** Full theme override — wins over `scheme`. */
+  theme?: Theme;
+  /** Colour scheme (light default; dark/highContrast are preview-grade). */
+  scheme?: SchemeName;
+}) {
+  const resolved = useMemo(
+    () => theme ?? (scheme && scheme !== "light" ? createAormsTheme({ scheme }) : aormsTheme),
+    [theme, scheme],
+  );
   return (
     <StyledEngineProvider injectFirst>
-      <ThemeProvider theme={theme}>
+      <ThemeProvider theme={resolved}>
         <LocalizationProvider dateAdapter={AdapterDayjs}>{children}</LocalizationProvider>
       </ThemeProvider>
     </StyledEngineProvider>

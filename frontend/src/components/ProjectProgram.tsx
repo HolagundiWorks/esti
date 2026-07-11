@@ -49,15 +49,16 @@ export function ProjectProgram({ projectId }: { projectId: string }) {
   const data = q.data;
 
   const inv = () => utils.program.summary.invalidate({ projectId });
-  const getOrCreate = trpc.program.getOrCreate.useMutation({ onSuccess: inv });
-  const freeze = trpc.program.freeze.useMutation({ onSuccess: inv });
-  const newVersion = trpc.program.newVersion.useMutation({ onSuccess: inv });
-  const removeSpace = trpc.program.removeSpace.useMutation({ onSuccess: inv });
+  const getOrCreate = trpc.program.getOrCreate.useMutation({ meta: { errorTitle: "Couldn't create the program" }, onSuccess: inv });
+  const freeze = trpc.program.freeze.useMutation({ meta: { errorTitle: "Couldn't freeze the program" }, onSuccess: inv });
+  const newVersion = trpc.program.newVersion.useMutation({ meta: { errorTitle: "Couldn't create the program version" }, onSuccess: inv });
+  const removeSpace = trpc.program.removeSpace.useMutation({ meta: { errorTitle: "Couldn't remove the space" }, onSuccess: inv });
 
   const [open, setOpen] = useState(false);
   const blank = { name: "", category: "BEDROOM", floorLevel: "0", unitAreaSqm: "", count: "1", notes: "" };
   const [form, setForm] = useState(blank);
   const addSpace = trpc.program.addSpace.useMutation({
+    meta: { errorTitle: "Couldn't add the space" },
     onSuccess: () => { inv(); setOpen(false); setForm(blank); },
   });
 

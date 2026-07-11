@@ -53,7 +53,10 @@ export function ProjectApprovals({
   );
   const invalidate = () =>
     utils.approvals.listByProject.invalidate({ projectId });
-  const update = trpc.approvals.update.useMutation({ onSuccess: invalidate });
+  const update = trpc.approvals.update.useMutation({
+    meta: { errorTitle: "Couldn't update the approval" },
+    onSuccess: invalidate,
+  });
 
   const [open, setOpen] = useState(false);
   const [entityType, setEntityType] =
@@ -64,6 +67,7 @@ export function ProjectApprovals({
   const [sentDate, setSentDate] = useState("");
 
   const create = trpc.approvals.create.useMutation({
+    meta: { errorTitle: "Couldn't create the approval" },
     onSuccess: () => {
       invalidate();
       setOpen(false);

@@ -74,19 +74,20 @@ export function Vendors() {
   const [priceForm, setPriceForm] = useState<typeof EMPTY_PRICE | null>(null);
   const [confirmPriceId, setConfirmPriceId] = useState<string | null>(null);
 
-  const create = trpc.vendors.create.useMutation({ onSuccess: () => { invalidate(); setForm(null); } });
-  const update = trpc.vendors.update.useMutation({ onSuccess: () => { invalidate(); setForm(null); } });
-  const setRatingM = trpc.vendors.setRating.useMutation({ onSuccess: () => { invalidate(); setRating(null); } });
-  const remove = trpc.vendors.remove.useMutation({ onSuccess: () => { invalidate(); setSelectedId(null); } });
+  const create = trpc.vendors.create.useMutation({ meta: { errorTitle: "Couldn't create the vendor" }, onSuccess: () => { invalidate(); setForm(null); } });
+  const update = trpc.vendors.update.useMutation({ meta: { errorTitle: "Couldn't update the vendor" }, onSuccess: () => { invalidate(); setForm(null); } });
+  const setRatingM = trpc.vendors.setRating.useMutation({ meta: { errorTitle: "Couldn't save the vendor rating" }, onSuccess: () => { invalidate(); setRating(null); } });
+  const remove = trpc.vendors.remove.useMutation({ meta: { errorTitle: "Couldn't delete the vendor" }, onSuccess: () => { invalidate(); setSelectedId(null); } });
 
   const pricesQ = trpc.vendors.pricesByVendor.useQuery(
     { vendorId: selectedId! },
     { enabled: !!selectedId },
   );
   const addPrice = trpc.vendors.addPrice.useMutation({
+    meta: { errorTitle: "Couldn't add the vendor price" },
     onSuccess: () => { void pricesQ.refetch(); setPriceForm(null); },
   });
-  const removePrice = trpc.vendors.removePrice.useMutation({ onSuccess: () => void pricesQ.refetch() });
+  const removePrice = trpc.vendors.removePrice.useMutation({ meta: { errorTitle: "Couldn't delete the vendor price" }, onSuccess: () => void pricesQ.refetch() });
 
   const saving = create.isPending || update.isPending;
   const err = create.error || update.error;

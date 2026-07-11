@@ -58,6 +58,7 @@ export function VendorQuotes({ vendorId }: { vendorId: string }) {
     void utils.vendors.pricesByVendor.invalidate({ vendorId });
   };
   const createM = trpc.vendors.quotes.create.useMutation({
+    meta: { errorTitle: "Couldn't create the quote" },
     onSuccess: () => {
       invalidate();
       setAddOpen(false);
@@ -66,9 +67,10 @@ export function VendorQuotes({ vendorId }: { vendorId: string }) {
       setLines(null);
     },
   });
-  const acceptM = trpc.vendors.quotes.accept.useMutation({ onSuccess: invalidate });
-  const rejectM = trpc.vendors.quotes.reject.useMutation({ onSuccess: invalidate });
+  const acceptM = trpc.vendors.quotes.accept.useMutation({ meta: { errorTitle: "Couldn't accept the quote" }, onSuccess: invalidate });
+  const rejectM = trpc.vendors.quotes.reject.useMutation({ meta: { errorTitle: "Couldn't reject the quote" }, onSuccess: invalidate });
   const removeM = trpc.vendors.quotes.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the quote" },
     onSuccess: () => { setOpenId(null); invalidate(); },
   });
 

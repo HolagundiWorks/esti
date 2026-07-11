@@ -18,6 +18,7 @@ export function RecoverWithBackupCode() {
   const [newCode, setNewCode] = useState<string | null>(null);
 
   const recover = trpc.auth.recoverWithBackupCode.useMutation({
+    meta: { errorTitle: "Couldn't recover the account" },
     onSuccess: (r) => setNewCode(r.backupCode),
   });
 

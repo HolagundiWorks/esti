@@ -17,6 +17,7 @@ export function ConnectedDevicesPanel() {
   const utils = trpc.useUtils();
   const devicesQ = trpc.companion.listDevices.useQuery();
   const revoke = trpc.companion.revokeDevice.useMutation({
+    meta: { errorTitle: "Couldn't revoke the device" },
     onSuccess: () => utils.companion.listDevices.invalidate(),
   });
 

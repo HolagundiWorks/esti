@@ -43,6 +43,7 @@ export function DashboardQuickActions() {
   const clientsQ = trpc.clients.list.useQuery({ limit: 200, offset: 0 }, { enabled: projOpen });
 
   const createProject = trpc.projectOffice.create.useMutation({
+    meta: { errorTitle: "Couldn't create the project" },
     onSuccess: (row) => {
       void utils.projectOffice.list.invalidate();
       setProjOpen(false);
@@ -61,6 +62,7 @@ export function DashboardQuickActions() {
   const [lSource, setLSource] = useState<string>("WALK_IN");
 
   const createLead = trpc.leads.create.useMutation({
+    meta: { errorTitle: "Couldn't create the lead" },
     onSuccess: () => {
       setLeadOpen(false);
       setLName("");

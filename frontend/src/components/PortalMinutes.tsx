@@ -46,8 +46,12 @@ export function PortalMinutes({
   const [sendingKey, setSendingKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const suggest = trpc.portal.suggestMomRevisions.useMutation();
-  const send = trpc.portal.submitChangeRequest.useMutation();
+  const suggest = trpc.portal.suggestMomRevisions.useMutation({
+    meta: { errorTitle: "Couldn't suggest revisions to the minutes" },
+  });
+  const send = trpc.portal.submitChangeRequest.useMutation({
+    meta: { errorTitle: "Couldn't send the change request" },
+  });
 
   async function runSuggest(momId: string) {
     setError(null);

@@ -19,6 +19,7 @@ export function DataTools() {
   const [purgeOpen, setPurgeOpen] = useState(false);
   const [pwd, setPwd] = useState("");
   const purge = trpc.admin.purge.useMutation({
+    meta: { errorTitle: "Couldn't reset the data" },
     onSuccess: (r) => {
       utils.invalidate();
       setPurgeOpen(false);

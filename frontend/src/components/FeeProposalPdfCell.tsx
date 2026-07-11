@@ -23,6 +23,7 @@ export function FeeProposalPdfCell({
   );
 
   const generate = trpc.proposals.generatePdf.useMutation({
+    meta: { errorTitle: "Couldn't generate the proposal PDF" },
     onSuccess: () => {
       setActive(true);
       utils.proposals.byId.invalidate({ id: feeId });

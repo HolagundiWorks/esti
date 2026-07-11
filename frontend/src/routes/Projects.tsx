@@ -60,6 +60,7 @@ export function Projects() {
   });
 
   const create = trpc.projectOffice.create.useMutation({
+    meta: { errorTitle: "Couldn't create the project" },
     onSuccess: () => {
       utils.projectOffice.list.invalidate();
       setOpen(false);

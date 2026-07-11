@@ -50,6 +50,7 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
   const [sources, setSources] = useState<{ label: string; entityType: string }[]>([]);
 
   const generate = trpc.ai.generate.useMutation({
+    meta: { errorTitle: "Couldn't generate the AI draft" },
     onSuccess: (res) => {
       setOutput(res.output);
       setRunId(res.runId);
@@ -58,6 +59,7 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
     },
   });
   const updateRun = trpc.ai.updateRun.useMutation({
+    meta: { errorTitle: "Couldn't update the AI run" },
     onSuccess: () => utils.ai.listRuns.invalidate(),
   });
 

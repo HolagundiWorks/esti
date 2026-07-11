@@ -62,8 +62,10 @@ Frozen host map: [`docs/esti/AORMS-SURFACE-URLS.md`](docs/esti/AORMS-SURFACE-URL
 
 **Operator:** **Human Centric Works (HCW)** — design studio behind `@hcw/ui-kit` and AORMS.
 - [`docs/marketing/LANDING-REDESIGN-CONTEXT.md`](docs/marketing/LANDING-REDESIGN-CONTEXT.md) — landing/marketing brief.
+- [`docs/hcw-kit/11-audits/README.md`](docs/hcw-kit/11-audits/README.md) — audit index (kit + surfaces).
 - [`docs/marketing/PUBLIC-PAGES-AUDIT-2026-07-11.md`](docs/marketing/PUBLIC-PAGES-AUDIT-2026-07-11.md) — public URL audit & tracked issues.
 - [`docs/esti/SECURITY-AUDIT-2026-07-11.md`](docs/esti/SECURITY-AUDIT-2026-07-11.md) — application security audit (2026-07-11).
+- [`docs/esti/AORMS-STUDIO-INTERFACE-AUDIT-2026-07-11.md`](docs/esti/AORMS-STUDIO-INTERFACE-AUDIT-2026-07-11.md) — authenticated workspace UI audit (2026-07-11).
 
 When editing wiki markdown under `frontend/src/content/wiki/`, rebuild the AI wiki
 index if Ask ESTI should see changes: regenerate `backend/src/lib/ai/wiki-knowledge.generated.ts`

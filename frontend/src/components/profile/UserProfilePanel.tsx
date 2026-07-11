@@ -80,6 +80,7 @@ export function UserProfilePanel() {
   const utils = trpc.useUtils();
   const usageQ = trpc.usage.status.useQuery(undefined, { enabled: !!user && !aormsId });
   const generateId = trpc.usage.generateAormsId.useMutation({
+    meta: { errorTitle: "Couldn't generate the AORMS ID" },
     onSuccess: () => {
       void utils.usage.status.invalidate();
       void utils.users.myProfile.invalidate();

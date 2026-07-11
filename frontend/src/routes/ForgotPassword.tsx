@@ -9,7 +9,9 @@ import { trpc } from "../lib/trpc.js";
 /** Request a workspace password-reset link (esti_user). Material UI. */
 export function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const request = trpc.auth.requestPasswordReset.useMutation();
+  const request = trpc.auth.requestPasswordReset.useMutation({
+    meta: { errorTitle: "Couldn't send the reset email" },
+  });
 
   return (
     <AuthRailLayout

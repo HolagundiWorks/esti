@@ -31,7 +31,7 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
   const teamQ = trpc.team.list.useQuery();
   const invalidate = () =>
     utils.assignments.listByProject.invalidate({ projectId });
-  const remove = trpc.assignments.remove.useMutation({ onSuccess: invalidate });
+  const remove = trpc.assignments.remove.useMutation({ meta: { errorTitle: "Couldn't remove the assignment" }, onSuccess: invalidate });
 
   const teamsQ = trpc.teams.list.useQuery();
 
@@ -44,6 +44,7 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
   const [teamRole, setTeamRole] = useState<AssignmentRoleCode>("SUPPORT");
 
   const create = trpc.assignments.create.useMutation({
+    meta: { errorTitle: "Couldn't create the assignment" },
     onSuccess: () => {
       invalidate();
       setOpen(false);
@@ -52,6 +53,7 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
   });
 
   const assignTeam = trpc.assignments.assignTeam.useMutation({
+    meta: { errorTitle: "Couldn't assign the team" },
     onSuccess: () => {
       invalidate();
       setTeamOpen(false);

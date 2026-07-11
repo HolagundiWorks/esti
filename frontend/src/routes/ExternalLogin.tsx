@@ -24,6 +24,7 @@ export function ExternalLogin() {
   const [needCode, setNeedCode] = useState(false);
 
   const login = trpc.auth.login.useMutation({
+    meta: { errorTitle: "Couldn't sign in" },
     onSuccess: async (data) => {
       setDesktopToken((data as { token?: string }).token);
       await utils.auth.me.invalidate();

@@ -51,5 +51,12 @@ export default defineConfig({
       testMatch: /accessibility\.spec\.ts$/,
       use: { ...devices["Desktop Chrome"] },
     },
+    // Visual regression over the public design-system gallery (no auth).
+    // First run: pnpm exec playwright test visual-regression --update-snapshots
+    {
+      name: "visual",
+      testMatch: /visual-regression\.spec\.ts$/,
+      use: { ...devices["Desktop Chrome"] },
+    },
   ],
 });

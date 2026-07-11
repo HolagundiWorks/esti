@@ -37,9 +37,9 @@ export function TeamsPanel() {
   const staff = (staffQ.data ?? []).filter((m) => m.active);
 
   const invalidate = () => utils.teams.list.invalidate();
-  const create = trpc.teams.create.useMutation({ onSuccess: () => { invalidate(); closeCreate(); } });
-  const update = trpc.teams.update.useMutation({ onSuccess: () => { invalidate(); setEditId(null); } });
-  const remove = trpc.teams.remove.useMutation({ onSuccess: invalidate });
+  const create = trpc.teams.create.useMutation({ meta: { errorTitle: "Couldn't create the team" }, onSuccess: () => { invalidate(); closeCreate(); } });
+  const update = trpc.teams.update.useMutation({ meta: { errorTitle: "Couldn't update the team" }, onSuccess: () => { invalidate(); setEditId(null); } });
+  const remove = trpc.teams.remove.useMutation({ meta: { errorTitle: "Couldn't delete the team" }, onSuccess: invalidate });
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");

@@ -64,8 +64,15 @@ export function setDesktopToken(token: string | null | undefined): void {
       token ? invoke("store_session_token", { token }) : invoke("clear_session_token"),
     )
     .catch(() => {
-      if (token) localStorage.setItem(TOKEN_KEY, token);
-      else localStorage.removeItem(TOKEN_KEY);
+      // Fail CLOSED (security audit S13 follow-up): if secure storage is
+      // unavailable the token lives in memory only — the session lasts until
+      // the app closes, and we never re-persist a plaintext token to
+      // localStorage. Best-effort cleanup of any legacy copy.
+      try {
+        localStorage.removeItem(TOKEN_KEY);
+      } catch {
+        /* storage unavailable — nothing to clean */
+      }
     });
 }
 

@@ -74,6 +74,7 @@ export function Proposals() {
   const [override, setOverride] = useState("");
 
   const create = trpc.proposals.create.useMutation({
+    meta: { errorTitle: "Couldn't create the proposal" },
     onSuccess: () => {
       utils.proposals.listAll.invalidate();
       setOpen(false);

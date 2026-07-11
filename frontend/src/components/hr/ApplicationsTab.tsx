@@ -34,12 +34,15 @@ export function ApplicationsTab() {
   const teamQ = trpc.team.list.useQuery();
 
   const createApp = trpc.hrProfile.createApplication.useMutation({
+    meta: { errorTitle: "Couldn't create the application" },
     onSuccess: () => { utils.hrProfile.listApplications.invalidate(); setCreateOpen(false); resetForm(); },
   });
   const updateStatus = trpc.hrProfile.updateApplicationStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the application status" },
     onSuccess: () => utils.hrProfile.listApplications.invalidate(),
   });
   const onboard = trpc.hrProfile.onboardApplication.useMutation({
+    meta: { errorTitle: "Couldn't onboard the applicant" },
     onSuccess: () => {
       utils.hrProfile.listApplications.invalidate();
       utils.team.list.invalidate();

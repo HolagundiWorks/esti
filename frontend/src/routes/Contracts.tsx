@@ -43,9 +43,10 @@ export function Contracts() {
   const templatesQ = trpc.documents.listTemplates.useQuery({ kind: "CONTRACT" });
   const inv = () => utils.contracts.list.invalidate();
   const updateStatus = trpc.contracts.updateStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the contract status" },
     onSuccess: inv,
   });
-  const remove = trpc.contracts.remove.useMutation({ onSuccess: inv });
+  const remove = trpc.contracts.remove.useMutation({ meta: { errorTitle: "Couldn't delete the contract" }, onSuccess: inv });
 
   const [open, setOpen] = useState(false);
 
@@ -79,6 +80,7 @@ export function Contracts() {
     setF((x) => ({ ...x, [k]: e.target.value }));
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const create = trpc.contracts.create.useMutation({
+    meta: { errorTitle: "Couldn't create the contract" },
     onSuccess: () => {
       inv();
       setOpen(false);

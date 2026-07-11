@@ -9,6 +9,7 @@ export function DemoAdminUnlock() {
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState("");
   const unlock = trpc.auth.unlockDemoAdmin.useMutation({
+    meta: { errorTitle: "Couldn't unlock the admin actions" },
     onSuccess: () => {
       setOpen(false);
       setPassword("");
