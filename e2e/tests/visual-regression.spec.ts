@@ -5,8 +5,17 @@ import { expect, test } from "@playwright/test";
  * (debt D2c). Public pages only (no auth): the /design-system specimens in all
  * three colour schemes, plus the marketing hero.
  *
- * Baselines: first run generates them (`pnpm exec playwright test
- * visual-regression --update-snapshots`); commit the `*-snapshots/` dir.
+ * Baselines are committed per-platform (`*-visual-{win32,linux}.png`). CI runs
+ * the `visual` project inside the pinned Playwright image
+ * (`mcr.microsoft.com/playwright:v1.49.0-jammy`, see `.github/workflows/ci.yml`)
+ * so it matches the committed `-linux` baselines exactly. Regenerate after any
+ * intended visual change:
+ *   local:  pnpm exec playwright test visual-regression --update-snapshots
+ *   linux:  docker run --rm --add-host=host.docker.internal:host-gateway \
+ *             -v "$PWD/e2e:/work" -w /work mcr.microsoft.com/playwright:v1.49.0-jammy \
+ *             bash -lc 'npm ci && AORMS_BASE_URL=http://host.docker.internal:5173 \
+ *               npx playwright test visual-regression --update-snapshots'
+ *   (bump the image tag AND regenerate together.)
  * Deterministic rendering: CSS animations disabled per-assertion and
  * reduced-motion emulated (kills the contour drift + reveal transitions).
  */
