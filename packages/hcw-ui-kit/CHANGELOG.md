@@ -4,6 +4,16 @@ All notable changes to the HCW Design System package. Versioning follows semver;
 the package is workspace-consumed (source-only), so versions mark **design-contract**
 changes, not npm releases.
 
+## 0.5.2 — 2026-07-12
+
+### Added
+- **Render tests for the marketing/chrome primitives** (`primitives.test.tsx`):
+  `SectionDock` (labelled `nav`, one chip anchor per section in order, active chip
+  gets `aria-current="location"`, empty links → null; `IntersectionObserver`
+  stubbed for jsdom) and `TaskbarFooter`/`TaskbarButton` (`contentinfo` landmark
+  with left/center/right clusters; `TaskbarButton` exposes its `label` as the
+  accessible name and fires `onClick`). Suite: **49 tests** (was 44).
+
 ## 0.5.1 — 2026-07-11
 
 ### Added

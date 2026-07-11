@@ -4,7 +4,7 @@
  * (Component Quality Checklist — behaviour/contract tests). Complements
  * components.test.tsx (the promoted primitives). jsdom only.
  */
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { Surface } from "./Surface.js";
 import { BrandMark } from "./BrandMark.js";
@@ -15,6 +15,23 @@ import {
   useScreenActions,
   type DockAction,
 } from "./ActionDock.js";
+import { SectionDock } from "./SectionDock.js";
+import { TaskbarButton, TaskbarFooter } from "./TaskbarFooter.js";
+
+// jsdom has no IntersectionObserver (SectionDock's scroll-spy uses one).
+beforeAll(() => {
+  vi.stubGlobal(
+    "IntersectionObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+      takeRecords() {
+        return [];
+      }
+    },
+  );
+});
 
 afterEach(cleanup);
 
@@ -146,5 +163,57 @@ describe("ActionDock + useScreenActions (the interaction contract)", () => {
     expect(screen.getByRole("toolbar")).toBeTruthy();
     unmount();
     expect(screen.queryByRole("toolbar")).toBeNull();
+  });
+});
+
+describe("SectionDock", () => {
+  const LINKS = [
+    { href: "/p#a", label: "First" },
+    { href: "/p#b", label: "Second" },
+  ] as const;
+
+  it("renders a labelled nav with one chip anchor per section", () => {
+    const { container } = render(<SectionDock links={LINKS} pathname="/p" hash="#a" />);
+    expect(screen.getByRole("navigation", { name: "Page sections" })).toBeTruthy();
+    const chips = Array.from(container.querySelectorAll("a.hcw-section-dock-chip"));
+    expect(chips.map((c) => c.getAttribute("href"))).toEqual(["/p#a", "/p#b"]);
+    expect(chips.map((c) => c.textContent)).toEqual(["First", "Second"]);
+  });
+
+  it("marks the location-matching chip aria-current, others not", () => {
+    render(<SectionDock links={LINKS} pathname="/p" hash="#b" />);
+    const second = screen.getAllByText("Second").find((n) => n.getAttribute("href") === "/p#b")!;
+    const first = screen.getAllByText("First").find((n) => n.getAttribute("href") === "/p#a")!;
+    expect(second.getAttribute("aria-current")).toBe("location");
+    expect(first.getAttribute("aria-current")).toBeNull();
+  });
+
+  it("renders nothing for an empty link set", () => {
+    const { container } = render(<SectionDock links={[]} pathname="/p" />);
+    expect(container.firstChild).toBeNull();
+  });
+});
+
+describe("TaskbarFooter", () => {
+  it("lays out left / center / right clusters in a contentinfo landmark", () => {
+    render(
+      <TaskbarFooter
+        showClock={false}
+        left={<span data-testid="l">L</span>}
+        center={<span data-testid="c">C</span>}
+        right={<span data-testid="r">R</span>}
+      />,
+    );
+    expect(screen.getByRole("contentinfo")).toBeTruthy();
+    expect(screen.getByTestId("l")).toBeTruthy();
+    expect(screen.getByTestId("c")).toBeTruthy();
+    expect(screen.getByTestId("r")).toBeTruthy();
+  });
+
+  it("TaskbarButton exposes its label and fires onClick", () => {
+    const onClick = vi.fn();
+    render(<TaskbarButton icon={<span>◦</span>} label="Calculator" onClick={onClick} />);
+    fireEvent.click(screen.getByRole("button", { name: "Calculator" }));
+    expect(onClick).toHaveBeenCalledTimes(1);
   });
 });
