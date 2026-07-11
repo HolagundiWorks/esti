@@ -12,7 +12,9 @@ changes, not npm releases.
   gets `aria-current="location"`, empty links → null; `IntersectionObserver`
   stubbed for jsdom) and `TaskbarFooter`/`TaskbarButton` (`contentinfo` landmark
   with left/center/right clusters; `TaskbarButton` exposes its `label` as the
-  accessible name and fires `onClick`). Suite: **49 tests** (was 44).
+  accessible name and fires `onClick`), plus `GlassRail` (splits into a
+  `complementary` rail landmark + a focusable `main` skip-link target; custom
+  `railAriaLabel`/`mainId` honoured). Suite: **51 tests** (was 44).
 
 ## 0.5.1 — 2026-07-11
 

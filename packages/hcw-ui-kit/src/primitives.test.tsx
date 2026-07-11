@@ -17,6 +17,7 @@ import {
 } from "./ActionDock.js";
 import { SectionDock } from "./SectionDock.js";
 import { TaskbarButton, TaskbarFooter } from "./TaskbarFooter.js";
+import { GlassRail } from "./GlassRail.js";
 
 // jsdom has no IntersectionObserver (SectionDock's scroll-spy uses one).
 beforeAll(() => {
@@ -215,5 +216,31 @@ describe("TaskbarFooter", () => {
     render(<TaskbarButton icon={<span>◦</span>} label="Calculator" onClick={onClick} />);
     fireEvent.click(screen.getByRole("button", { name: "Calculator" }));
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("GlassRail", () => {
+  it("splits into a complementary rail and a focusable main landmark", () => {
+    render(
+      <GlassRail rail={<span data-testid="rail">nav</span>}>
+        <span data-testid="stage">content</span>
+      </GlassRail>,
+    );
+    const aside = screen.getByRole("complementary", { name: "Navigation" });
+    expect(within(aside).getByTestId("rail")).toBeTruthy();
+    const main = screen.getByRole("main");
+    expect(main.id).toBe("esti-main");
+    expect(main.getAttribute("tabindex")).toBe("-1"); // skip-link target
+    expect(within(main).getByTestId("stage")).toBeTruthy();
+  });
+
+  it("honours a custom rail label and main id (skip-link wiring)", () => {
+    render(
+      <GlassRail rail={<span>nav</span>} railAriaLabel="Account menu" mainId="account-main">
+        <span>content</span>
+      </GlassRail>,
+    );
+    expect(screen.getByRole("complementary", { name: "Account menu" })).toBeTruthy();
+    expect(screen.getByRole("main").id).toBe("account-main");
   });
 });
