@@ -1,11 +1,10 @@
 # AORMS platform nomenclature
 
-**Status:** Canonical · **Owner:** Human Centric Works (HCW) · **Updated:** 2026-07-10
+**Status:** Canonical · **Owner:** Human Centric Works (HCW) · **Updated:** 2026-07-11
 
-This document is the **single source of truth for product naming** after the 2026
-platform rebrand. Where an older doc still says *Architecture Office Resource
-Management System*, **AORMS-Architecture**, or **HiveD**, treat those as **superseded**
-unless the doc is explicitly marked historical.
+This document is the **single source of truth for product naming**. Where an older doc still says
+*Architecture Office Resource Management System*, **AORMS-Architecture**, or **HiveD**,
+treat those as **superseded** unless the doc is explicitly marked historical.
 
 Executable constants: `frontend/src/lib/product-nomenclature.ts`.
 
@@ -15,47 +14,42 @@ Executable constants: `frontend/src/lib/product-nomenclature.ts`.
 
 | Name | Expansion / role | Audience |
 | --- | --- | --- |
-| **AORMS** | **Accelerated Operational Resources Management System** — the **platform** | **Consulting offices** that advise in risk, education, auditing, and AEC — not solution delivery or client PM |
-| **AORMS-Studio** | First **vertical workspace** on the platform — Indian architecture & interior practices (slug `aorms-studio`) | Architects, studios, site-supervision consultancies |
-| **AORMS-Compliance** | Risk-management vertical workspace (roadmap) | Enterprise risk & governance advisory consultancies |
-| **AORMS-Advisory** | Education vertical workspace (roadmap) | Institutional accreditation & curriculum advisory consultancies |
-| **AORMS-Audit** | Auditing vertical workspace (roadmap) | Assurance & compliance advisory consultancies |
-| **EmOI** | **Embedded Operational Intelligence** — AI/agent layer on the **AORMS platform** | Platform-wide: dual-tier AI, RAG, workflow intelligence |
-| **ESTI** | **Embedded Studio Intelligence** — AI/agent layer in **AORMS-Studio only** | AORMS-Studio users (Ask ESTI, Studio Intelligence, ESTI Pulse) |
+| **AORMS** | **Accelerated Operational Resources Management System** — the **platform** | **AEC consulting firms** — architecture and engineering practices that advise clients; not solution delivery or construction PM |
+| **AORMS-Studio** | **Architecture app** — shipped workspace (slug `aorms-studio`) | Indian architecture & interior design consultancies |
+| **AORMS-Consultancy** | **Engineering app** — roadmap workspace (slug `aorms-consultancy`) | Structural, MEP, civil, and multidisciplinary engineering consultancies |
+| **EmOI** | **External AI agent** — *Embedded Operational Intelligence* | Validates, enriches, and gates content from **outside sources** before it enters the firm knowledge base |
+| **ESTI** | **Internal AI agent** — *Embedded Studio Intelligence* | Answers only from **validated firm repositories** — Ask ESTI, Studio Intelligence, ESTI Pulse (live in **AORMS-Studio**) |
 | **`esti` (codename)** | Repo name, `@esti/*` packages, `esti_*` DB tables | Engineering only — do not expose in marketing |
 
 **HCW** (Human Centric Works) is the design-system and product studio behind AORMS.
 
 ---
 
-## Vertical workspace naming pattern
+## Two apps on one platform
 
-Each advisory domain ships as **`AORMS-{Name}`**:
+AORMS targets **AEC consulting firms only**. There are exactly **two apps**:
 
-| Industry domain | Workspace name | Slug | Status |
+| Discipline | App name | Slug | Status |
 | --- | --- | --- | --- |
-| Risk management | **AORMS-Compliance** | `aorms-compliance` | Roadmap |
-| Education | **AORMS-Advisory** | `aorms-advisory` | Roadmap |
-| Auditing | **AORMS-Audit** | `aorms-audit` | Roadmap |
-| AEC (architecture) | **AORMS-Studio** | `aorms-studio` | **Shipping** (this repo) |
+| Architecture | **AORMS-Studio** | `aorms-studio` | **Shipping** (this repo) |
+| Engineering | **AORMS-Consultancy** | `aorms-consultancy` | Roadmap |
 
 Legacy slugs for **AORMS-Studio** redirect to canonical URLs: `hived`, `aorms-architecture`.
 
 ---
 
-## Platform vs vertical
+## Platform vs apps
 
 ### AORMS (platform)
 
-Mission: give **consulting offices that advise clients** (risk management,
-education, auditing, AEC) an **operational framework** and a **design framework**
-on one spine — how the practice runs and how engagements are structured.
+Mission: give **AEC consulting firms** — architecture and engineering practices that
+**advise clients** — an **operational framework** and a **design framework** on one spine.
 
-**AORMS is not** a solution-delivery platform or a client project-management
-tool. It consolidates scattered office tools (messaging, advisory workflows,
-documentation, email, sheets, file sharing) into one AI-enhanced system.
+**AORMS is not** a solution-delivery platform, a contractor tool, or client construction
+project management. It consolidates scattered office tools into one AI-enhanced system
+for consultancies.
 
-North-star capabilities (pre-release specification):
+North-star capabilities:
 
 - **Operational framework** — intake, process standards, rollout, adoption
 - **Design framework** — engagement methodologies, deliverable models, templates
@@ -68,74 +62,86 @@ North-star capabilities (pre-release specification):
 **Canonical pre-release architecture:** [AORMS-DEVELOPMENT-SPEC.md](AORMS-DEVELOPMENT-SPEC.md)
 (rendered on the public landing at `/`).
 
-### AORMS-Studio (vertical workspace — this repo)
+### AORMS-Studio (architecture app — this repo)
 
-The **shipped monorepo in this repository** is the **AEC / architecture vertical** —
-what users previously called “AORMS portal”, **AORMS-Architecture**, **HiveD**, or the
-architecture workspace. It remains the primary implementation surface while the
-platform vision broadens.
+The **shipped monorepo** is the **architecture consultancy app** — what users previously
+called “AORMS portal”, **AORMS-Architecture**, or **HiveD**.
 
-| Aspect | AORMS-Studio (this repo) |
+| Aspect | AORMS-Studio |
 | --- | --- |
-| **Product name** | **AORMS-Studio** (slug / URL: `aorms-studio`) |
+| **Product name** | **AORMS-Studio** (slug: `aorms-studio`) |
 | **Scope** | Indian architecture office: projects, fees, GST invoicing, drawings, site supervision, HR, client & consultant portals |
-| **System state** | [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § System state |
-| **Navigation** | [NAVIGATION.md](NAVIGATION.md) — Canonical V3 IA |
-| **Typical URL** | `app.aorms.in` (AORMS-Studio workspace SPA) |
-| **Public wiki** | [aorms.in/wiki](https://aorms.in/wiki) — central wiki: HCW-UI, AORMS-Studio, AI core, Management |
+| **Typical URL** | `studio.aorms.in` (legacy `app.aorms.in` → 301) |
+| **Public wiki** | [wiki.aorms.in](https://wiki.aorms.in) · [aorms.in/wiki](https://aorms.in/wiki) |
 
-Future verticals share the **same platform primitives** (tenant, permissions, workflow engine, AI firewall model)
-but ship as separate workspace profiles — not as forks of the architecture UI.
+### AORMS-Consultancy (engineering app — roadmap)
 
----
-
-## EmOI (platform)
-
-**EmOI** — *Embedded Operational Intelligence* — is the intelligence layer on the
-**AORMS platform**:
-
-- Dual-tier AI (external validation gate + internal RAG firewall)
-- Workflow and operational intelligence across vertical workspaces
-- Governed answers from validated repositories — platform north-star in
-  [AORMS-DEVELOPMENT-SPEC.md](AORMS-DEVELOPMENT-SPEC.md) § AI/RAG
-
-The **shipped** stack today in **AORMS-Studio** still routes much AI through
-`@hcw/aorms-ai-kit` and Ollama; EmOI is the platform product name as verticals
-broaden beyond the architecture workspace.
+The **engineering consultancy app** — structural, MEP, civil, and multidisciplinary firms
+advising on built-environment projects. Shares the same AORMS platform primitives (tenant,
+permissions, workflow engine, EmOI) but ships as a separate workspace profile.
 
 ---
 
-## ESTI (AORMS-Studio only)
+## Portals and surfaces
 
-**ESTI** — *Embedded Studio Intelligence* — is **not** the platform-wide layer.
-It is the intelligence layer **embedded in AORMS-Studio only**:
+Executable labels: `AORMS_PORTALS` in `frontend/src/lib/product-nomenclature.ts`.
+
+| Surface | Display name | URL / route | Notes |
+| --- | --- | --- | --- |
+| **Staff workspace** | **AORMS-Studio** | `studio.aorms.in` · `/login` | Architecture app today; **AORMS-Consultancy** when engineering app ships |
+| **Knowledge Bank portal** | Knowledge Bank portal | `kbank.aorms.in` · `/libraries/knowledge-bank-portal` | EmOI textbook intake → ESTI RAG |
+| **Wiki** | AORMS Wiki | `wiki.aorms.in` · `/wiki/*` | Public documentation |
+| **External portals** | External portals | `external.aorms.in` · `/access` | Client, consultant, contractor, site sign-in |
+| **Client portal** | Client portal | external session | Scoped to client projects |
+| **Consultant portal** | Consultant portal | external session | Alias *collaborator portal* in internal copy |
+| **Contractor portal** | Contractor portal | external session | Rebuild in progress (stub) |
+| **Site portal** | Site portal | site supervisor session | Mobile-first site inspections |
+| **Personal account** | AORMS account | `account.aorms.in` · `/account` | Portable identity + licence hub |
+| **Company account** | Company account | `account.aorms.in` · `/company-account` | Firm owners: GST, members, admin |
+| **Licensing console** | Licensing console | `admin.aorms.in` · `/platform-admin` | Platform operators only |
+| **Consultancy marketing** | **AORMS-Consultancy** | `consultancy.aorms.in` · `/aorms-consultancy` | Engineering app (roadmap) |
+
+Frozen host map: [AORMS-SURFACE-URLS.md](AORMS-SURFACE-URLS.md).
+
+---
+
+## EmOI — external AI agent
+
+**EmOI** — *Embedded Operational Intelligence* — is the **external AI agent** on the
+AORMS platform:
+
+- Fetches and validates content from **outside sources**
+- Enriches and gates inbound material before it enters the firm knowledge base
+- Quality layer on outbound model calls — no unvalidated external content stored as truth
+
+Every AORMS app uses **EmOI** for external intelligence intake.
+
+---
+
+## ESTI — internal AI agent
+
+**ESTI** — *Embedded Studio Intelligence* — is the **internal AI agent**. It answers
+only from **validated firm repositories** inside the tenant boundary:
 
 - Ask ESTI / ESTI AI / AI Studio
 - Cognition engine & Studio Intelligence home
 - ESTI Pulse
-- `@hcw/aorms-ai-kit` (prompts + Ollama SDK in backend — shared engineering kit)
 
-Risk, Education, Auditing, and future verticals use **EmOI**, not ESTI, in product copy.
-Do not describe ESTI as spanning every AORMS workspace in platform marketing.
+**AORMS-Studio** ships ESTI today. **AORMS-Consultancy** will ship its own internal-agent
+profile when the engineering app launches — do not describe ESTI as spanning both apps
+in marketing copy until that ships.
 
----
+### Agent split (governing rule)
 
-## Legacy note (superseded)
+> **EmOI** handles the outside world. **ESTI** handles what the firm already knows.
 
-Earlier docs described ESTI as inside “every workspace.” That is **superseded**
-by the EmOI / ESTI split above (2026-07-10).
+No unvalidated content enters the knowledge base. Every internal answer cites approved sources.
 
----
+### Knowledge Bank portal
 
-## Documentation map
-
-| Question | Read |
-| --- | --- |
-| What is the **platform** vision? | [AORMS-DEVELOPMENT-SPEC.md](AORMS-DEVELOPMENT-SPEC.md) |
-| What is **live in code** today? | [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § System state |
-| Landing page redesign brief | [../marketing/LANDING-REDESIGN-CONTEXT.md](../marketing/LANDING-REDESIGN-CONTEXT.md) |
-| Brand / UI tokens | [AORMS-BRANDING-KIT.md](AORMS-BRANDING-KIT.md), [HCW-UI-KIT.md](HCW-UI-KIT.md) |
-| Agent entry | [CLAUDE.md](../../CLAUDE.md) |
+Staff route **`/libraries/knowledge-bank-portal`** — PDFs convert to Markdown (HCW Markdown Tool
+pipeline); **EmOI** rephrases and summarises; **publish** promotes sections into the validated
+library **ESTI** uses. See [KNOWLEDGE-BANK-PORTAL.md](KNOWLEDGE-BANK-PORTAL.md).
 
 ---
 
@@ -143,26 +149,21 @@ by the EmOI / ESTI split above (2026-07-10).
 
 | Legacy | Use instead | Notes |
 | --- | --- | --- |
-| *Architecture Office Resource Management System* | **AORMS** (platform) or **AORMS-Studio** (workspace) | Retire in new copy |
-| **AORMS portal** / **AORMS-Architecture** (staff workspace) | **AORMS-Studio** | The advisory workspace SPA at `app.aorms.in` — not client/consultant portals |
-| **HiveD** | **AORMS-Studio** | Retired display name (2026-07-10) |
-| **`hived`** / **`aorms-architecture`** (slug) | **`aorms-studio`** | Legacy slugs redirect; do not use as display name |
+| *Architecture Office Resource Management System* | **AORMS** (platform) or **AORMS-Studio** (app) | Retire in new copy |
+| **AORMS portal** / **AORMS-Architecture** | **AORMS-Studio** | Staff workspace SPA |
+| **HiveD** | **AORMS-Studio** | Retired display name |
+| Risk / education / auditing as platform scope | **AEC only** — Architecture + Engineering | Retired (2026-07-11) |
 
 ---
 
 ## Migration notes for authors
 
-1. **Expand AORMS** as *Accelerated Operational Resources Management System* in
-   new copy; retire *Architecture Office Resource Management System*, **AORMS-Architecture**, and **HiveD** except in
-   historical blog posts (add a one-line supersession note when editing).
-2. When describing **shipping code**, say **AORMS-Studio** (slug `aorms-studio`) so platform docs stay honest.
-3. Use **`AORMS-{Name}`** for vertical workspaces: Compliance, Advisory, Audit, Studio.
-4. Do **not** rename the repo, packages, or tables to `aorms_*` — the `esti`
-   codename is intentional and stable.
-5. Do **not** call the staff workspace the “AORMS portal” — that term is retired;
-   **client**, **consultant**, and **contractor** portals keep the word *portal*.
-6. The **landing page** is platform marketing; the architecture-practice story
-   lives on `/login`, wiki, and blog — see marketing brief.
+1. **Expand AORMS** as *Accelerated Operational Resources Management System* — platform for **AEC consulting firms only**.
+2. Two apps: **AORMS-Studio** (architecture, shipping) and **AORMS-Consultancy** (engineering, roadmap).
+3. Import **`AORMS_APPS`**, **`AORMS_STUDIO`**, **`AORMS_CONSULTANCY`**, **`PLATFORM_APPS`** from `product-nomenclature.ts`.
+4. Do **not** rename the repo, packages, or tables to `aorms_*` — the `esti` codename is stable.
+5. Staff workspace today = **AORMS-Studio** at `studio.aorms.in`; never “AORMS portal”.
+6. External **client / consultant / contractor / site** portals keep the word *portal*.
 
 ---
 
@@ -170,6 +171,6 @@ by the EmOI / ESTI split above (2026-07-10).
 
 When nomenclature conflicts:
 
-1. This file — naming and platform vs vertical
+1. This file — naming and platform vs apps
 2. [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § System state — what exists in **AORMS-Studio**
 3. [AORMS-DEVELOPMENT-SPEC.md](AORMS-DEVELOPMENT-SPEC.md) — platform north-star (may ahead of code)

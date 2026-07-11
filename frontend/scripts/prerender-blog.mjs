@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url";
 import { marked } from "marked";
 
 const SITE = "https://aorms.in";
-const WIKI_BASE = `${SITE}/wiki`;
+const WIKI_BASE = "https://wiki.aorms.in";
 const SITE_NAME = "AORMS";
 const HOME_SEO = {
   title: "AORMS | Accelerated Operational Resources Management System",
@@ -268,7 +268,7 @@ const homeArticleGroups = [
 const homeArticleHtml = homeArticleGroups.length
   ? `<section><h2>Practice notes</h2><p>Read after the product has introduced itself: articles grouped by how an architecture office thinks about practice, revisions, approvals and Indian operating context.</p>${homeArticleGroups.map((group) => `<article><h3>${esc(group.heading)}</h3><ul>${group.posts.map((p) => `<li><a href="/blog/${p.slug}">${esc(p.title)}</a></li>`).join("")}</ul></article>`).join("")}</section>`
   : "";
-const homeBody = `<header><nav aria-label="Primary"><a href="/">AORMS</a> <a href="/login">Architecture workspace</a> <a href="/wiki">Wiki</a> <a href="/blog">Blog</a> <a href="/demo">Demo</a></nav></header><main><section><h1>AORMS — Several operational tools. One operational spine.</h1><p>Accelerated Operational Resources Management System — operational and design frameworks for consulting offices advising in risk management, education, auditing, and AEC. Not solution delivery. Not project management.</p><p>The shipped <strong>AORMS-Studio</strong> workspace for Indian architecture consultancies: <a href="/login">explore the architecture workspace</a> · <a href="https://app.aorms.in">app.aorms.in</a> · <a href="/wiki">user guide</a>.</p><p><a href="/demo">Open the working demo</a> <a href="/login">Sign in</a></p></section>${homeArticleHtml}</main><footer><p>AORMS platform by Human Centric Works, Hospet, Karnataka. Designed and developed by Human Centric Works.</p><p><a href="mailto:hi@aorms.in">hi@aorms.in</a></p></footer>`;
+const homeBody = `<header><nav aria-label="Primary"><a href="/">AORMS</a> <a href="/login">Architecture workspace</a> <a href="${WIKI_BASE}">Wiki</a> <a href="/blog">Blog</a></nav></header><main><section><h1>AORMS — Several operational tools. One operational spine.</h1><p>Accelerated Operational Resources Management System — operational and design frameworks for AEC consulting offices. Not solution delivery. Not project management.</p><p>The shipped <strong>AORMS-Studio</strong> workspace for Indian architecture consultancies: <a href="/login">explore the architecture workspace</a> · <a href="https://studio.aorms.in">studio.aorms.in</a> · <a href="${WIKI_BASE}">user guide</a>.</p><p><a href="/login">Sign in to AORMS-Studio</a></p></section>${homeArticleHtml}</main><footer><p>AORMS platform by Human Centric Works, Hospet, Karnataka. Designed and developed by Human Centric Works.</p><p><a href="mailto:hi@aorms.in">hi@aorms.in</a></p></footer>`;
 writeFileSync(
   join(distDir, "index.html"),
   renderPage({
@@ -299,6 +299,61 @@ writePage(
     canonical: `${SITE}/blog`,
     jsonLd: null,
     bodyHtml: listBody,
+  }),
+);
+
+// AORMS-Studio marketing + sign-in → dist/login/index.html
+const LOGIN_CANONICAL = `${SITE}/login`;
+const STUDIO_TITLE = "AORMS-Studio";
+const LOGIN_SEO = {
+  title: `${STUDIO_TITLE} | Advisory workspace for Indian architecture consultancies`,
+  description:
+    `${STUDIO_TITLE} — fee recovery, MoM-led client revisions, GST billing, drawings, studio load and portals for Indian architecture consultancies. Unlimited users. 5 GB included.`,
+};
+const LOGIN_FAQS = [
+  {
+    q: `Who is ${STUDIO_TITLE} for?`,
+    a: "Registered architects, interior designers and architectural consultancy practices in India — unlimited users on every account.",
+  },
+  {
+    q: "How much does it cost?",
+    a: "Every account includes 5 GB storage and the full workspace. Pay for additional storage and hosted AI, or bring your own API key.",
+  },
+  {
+    q: "Where is the documentation?",
+    a: `Official docs at ${WIKI_BASE} — getting started, workflows, finance and account setup.`,
+  },
+];
+const loginBody = `<header><nav aria-label="Primary"><a href="/">AORMS</a> <a href="/login">${STUDIO_TITLE}</a> <a href="${WIKI_BASE}">Wiki</a> <a href="/blog">Blog</a></nav></header><main><section><h1>From chaos to clarity. One living record for the practice.</h1><p>${esc(LOGIN_SEO.description)}</p><p>Sign in at <a href="/login">${LOGIN_CANONICAL}</a> · Cloud workspace at <a href="https://studio.aorms.in">studio.aorms.in</a>.</p></section><section id="pricing"><h2>Pricing</h2><p>One standard licence — unlimited users, 5 GB included storage, usage-based extra storage and hosted AI.</p></section><section><h2>Frequently asked questions</h2>${LOGIN_FAQS.map((f) => `<article><h3>${esc(f.q)}</h3><p>${esc(f.a)}</p></article>`).join("")}</section></main>`;
+writePage(
+  "login",
+  renderPage({
+    title: LOGIN_SEO.title,
+    description: LOGIN_SEO.description,
+    canonical: LOGIN_CANONICAL,
+    exactTitle: true,
+    bodyHtml: loginBody,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": `${LOGIN_CANONICAL}#webpage`,
+          url: LOGIN_CANONICAL,
+          name: LOGIN_SEO.title,
+          description: LOGIN_SEO.description,
+          inLanguage: "en-IN",
+        },
+        {
+          "@type": "FAQPage",
+          mainEntity: LOGIN_FAQS.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        },
+      ],
+    },
   }),
 );
 
@@ -446,6 +501,7 @@ const urls = [
   })),
   ...landing.map((p) => ({ loc: `${SITE}/${p.slug}`, lastmod: p.updated || today, changefreq: "monthly", priority: "0.8" })),
   { loc: `${SITE}/about`, lastmod: today, changefreq: "monthly", priority: "0.6" },
+  { loc: `${SITE}/aorms-consultancy`, lastmod: today, changefreq: "monthly", priority: "0.85" },
   { loc: `${SITE}/legal`, lastmod: today, changefreq: "yearly", priority: "0.3" },
   ...posts.map((p) => ({ loc: `${SITE}/blog/${p.slug}`, lastmod: p.date || today, changefreq: "monthly", priority: "0.7" })),
 ];
@@ -460,6 +516,35 @@ ${urls
 </urlset>
 `;
 writeFileSync(join(distDir, "sitemap.xml"), sitemap, "utf8");
+
+// Keep public/sitemap.xml in sync with build output (H3 — avoid stale committed copy).
+const publicDir = join(root, "public");
+writeFileSync(join(publicDir, "sitemap.xml"), sitemap, "utf8");
+
+// Blog RSS feed → dist/blog/feed.xml (+ public copy for dev)
+const rssItems = posts
+  .slice(0, 50)
+  .map(
+    (p) =>
+      `    <item><title>${esc(p.title)}</title><link>${SITE}/blog/${p.slug}</link><guid isPermaLink="true">${SITE}/blog/${p.slug}</guid><pubDate>${p.date ? new Date(p.date).toUTCString() : new Date().toUTCString()}</pubDate><description>${esc(p.excerpt)}</description></item>`,
+  )
+  .join("\n");
+const rss = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>AORMS Blog</title>
+    <link>${SITE}/blog</link>
+    <description>Platform notes and AORMS-Studio practice operations for Indian architecture consultancies.</description>
+    <language>en-in</language>
+    <atom:link href="${SITE}/blog/feed.xml" rel="self" type="application/rss+xml"/>
+${rssItems}
+  </channel>
+</rss>
+`;
+mkdirSync(join(distDir, "blog"), { recursive: true });
+writeFileSync(join(distDir, "blog", "feed.xml"), rss, "utf8");
+mkdirSync(join(publicDir, "blog"), { recursive: true });
+writeFileSync(join(publicDir, "blog", "feed.xml"), rss, "utf8");
 
 // ── llms.txt (AI / LLM crawler index) ─────────────────────────────────────────
 const llms = `# AORMS
@@ -478,7 +563,7 @@ AORMS-Studio capabilities:
 - COA fee proposals and GST invoicing with reconciliation
 - Studio Intelligence dashboard and Ask ESTI (BYO API key supported)
 - Official user documentation at aorms.in/wiki
-- Cloud browser workspace at app.aorms.in — one standard licence, unlimited users, 5 GB included storage
+- Cloud browser workspace at studio.aorms.in — one standard licence, unlimited users, 5 GB included storage
 
 Website:
 ${SITE}
@@ -488,7 +573,7 @@ ${SITE}
 - [AORMS Wiki (AORMS-Studio)](${WIKI_BASE})
 - [Design system](${SITE}/design-system)
 - [Blog](${SITE}/blog)
-- [Live demo](${SITE}/demo)
+- [Sign in to AORMS-Studio](${SITE}/login)
 
 ## Solutions
 ${landing.map((p) => `- [${p.title}](${SITE}/${p.slug}): ${p.metaDescription}`).join("\n")}
@@ -504,4 +589,4 @@ ${posts.map((p) => `- [${p.title}](${SITE}/blog/${p.slug}): ${p.excerpt}`).join(
 `;
 writeFileSync(join(distDir, "llms.txt"), llms, "utf8");
 
-console.log(`[prerender] ${posts.length} post(s) + ${wikiPages.length} wiki page(s) + blog index + sitemap.xml (${urls.length} urls) + llms.txt written to dist/`);
+console.log(`[prerender] ${posts.length} post(s) + ${wikiPages.length} wiki page(s) + login + blog index + sitemap.xml (${urls.length} urls) + feed.xml + llms.txt written to dist/`);

@@ -10,9 +10,10 @@
 
 **Status:** Approved implementation baseline · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-07-10
 
-> **Nomenclature (2026-07-10):** **AORMS** = **Accelerated Operational Resources
-> Management System** (platform). Requirements below describe **AORMS-Studio**
-> (slug `aorms-studio`) unless noted. [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md).
+> **Nomenclature (2026-07-11):** **AORMS** = **Accelerated Operational Resources
+> Management System** (platform for **AEC consulting firms**). Requirements below describe **AORMS-Studio**
+> (architecture app, slug `aorms-studio`) unless noted. **AORMS-Consultancy** (engineering app) is roadmap.
+> [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md).
 
 This PRD aligns the supplied ESI-AORMS requirements with AORMS's agreed product
 boundary. It distinguishes existing capabilities from work still required. The
@@ -186,7 +187,7 @@ accounting systems.
   cloud-only takeoff (world-coordinate measurements, server-published catalog,
   no local measurement storage) and proxied Ollama AI for the full CAD use-case
   set. Requires a paying firm account and staff write access; offline drafting
-  without takeoff is supported. See [ESTICAD-COMPANION](../archive/esti/ESTICAD-COMPANION.md) (archived — in-browser estimation supersedes desktop companion)..
+  without takeoff is supported. Companion integration: `companion` tRPC namespace and `esticad://` deep links (see [ARCHITECTURE](ARCHITECTURE.md)).
 - ~~Visual estimation connector in the web app~~ — **superseded** by the ESTICAD
   companion (Phase 13). Do not add a second quantity pipeline in AORMS web.
 

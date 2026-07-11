@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { ReactNode } from "react";
+import { AORMS_PORTALS } from "../../lib/product-nomenclature.js";
 
 export type AdminSectionKey =
   | "requests"
@@ -53,7 +54,7 @@ export function AdminConsoleShell({
       >
         <Box>
           <Typography variant="h4" component="h1">
-            Licensing console
+            {AORMS_PORTALS.account.licensing}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Manage accounts, organizations, licences, and API keys for AORMS Standard.

@@ -1,14 +1,14 @@
-ï»¿---
-title: Management â€” operational framework
+---
+title: Management — operational framework
 slug: management
-excerpt: How an architecture consultancy runs on AORMS â€” finance, billing, HR, licensing, team performance, and the operational spine.
+excerpt: How an architecture consultancy runs on AORMS — finance, billing, HR, licensing, team performance, and the operational spine.
 order: 1
 section: Overview
 domain: management
 updated: 2026-07-10
 ---
 
-**Management** in AORMS means how the **consultancy office runs** â€” not client construction delivery. The platform provides an **operational framework** (process, audit trails, review chains) and a **design framework** (engagement models, deliverable templates) on one spine.
+**Management** in AORMS means how the **consultancy office runs** — not client construction delivery. The platform provides an **operational framework** (process, audit trails, review chains) and a **design framework** (engagement models, deliverable templates) on one spine.
 
 For AORMS-Studio, management modules include:
 
@@ -42,40 +42,40 @@ See [Finance and billing](finance-and-billing) for step-by-step guides.
 | Topic | Guide |
 | --- | --- |
 | Licence & storage metering | [Account and licence](account-and-licence) |
-| Users & roles | Firm admin â†’ Users (`firm:admin`) |
-| Audit log | Admin â†’ Audit (`reports:view`) |
-| Company profile | Firm â†’ Company |
+| Users & roles | Firm admin ? Users (`firm:admin`) |
+| Audit log | Admin ? Audit (`reports:view`) |
+| Company profile | Firm ? Company |
 
 ## Third parties
 
-- **Clients** â€” CRM and client log (`/clients`)
-- **Consultants** â€” engagements and collaborator portal
-- **Vendors** â€” placeholder directory
+- **Clients** — CRM and client log (`/clients`)
+- **Consultants** — engagements and consultant portal
+- **Vendors** — placeholder directory
 
 ## Operational principles
 
-1. **Money in paise** â€” all amounts integer; display with `formatINR`
-2. **Immutable audit** â€” activity and audit namespaces for traceability
-3. **Capabilities** â€” `can(role, capability)` gates procedures; not ad-hoc UI hides
-4. **India profile** â€” Aprilâ€“March FY, GST rates, SAC codes from public `profile` namespace
+1. **Money in paise** — all amounts integer; display with `formatINR`
+2. **Immutable audit** — activity and audit namespaces for traceability
+3. **Capabilities** — `can(role, capability)` gates procedures; not ad-hoc UI hides
+4. **India profile** — April–March FY, GST rates, SAC codes from public `profile` namespace
 
 ## Platform vs workspace
 
 | Layer | Management scope |
 | --- | --- |
-| **AORMS platform** | Frameworks, EmOI governance, multi-vertical roadmap |
+| **AORMS platform** | Frameworks, EmOI + ESTI agents, **AORMS-Consultancy** engineering app (roadmap) |
 | **AORMS-Studio** | Indian consultancy finance, HR, team, and office modules listed above |
 
 ## Frequently asked questions
 
 ### Is there a Lite or Pro tier?
 
-No. One **AORMS Standard** licence â€” full workspace, unlimited users, 5 GB included storage. Legacy tier names are retired.
+No. One **AORMS Standard** licence — full workspace, unlimited users, 5 GB included storage. Legacy tier names are retired.
 
 ### Where is project management?
 
-Engagement delivery lives on the **project record** (phases, drawings, revisions) â€” see [AORMS-Studio](aorms-studio). AORMS is not a construction PM tool.
+Engagement delivery lives on the **project record** (phases, drawings, revisions) — see [AORMS-Studio](aorms-studio). AORMS is not a construction PM tool.
 
 ### Who can see financial reports?
 
-Capability-gated â€” typically principals and finance roles. See `packages/contracts/src/permissions.ts` for the canonical matrix.
+Capability-gated — typically principals and finance roles. See `packages/contracts/src/permissions.ts` for the canonical matrix.

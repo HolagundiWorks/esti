@@ -1,15 +1,16 @@
 # AORMS (`esti`) — agent instructions
 
 **AORMS** (**Accelerated Operational Resources Management System**) is the
-**platform** — consulting-firm operational consolidation with dual-tier AI.
-The **shipped workspace** in this monorepo is **AORMS-Studio** (slug `aorms-studio`, legacy
-slugs `hived` and `aorms-architecture`, Indian architecture practices). Nomenclature:
+**platform** — operational consolidation for **AEC consulting firms** with dual-tier AI.
+The **shipped app** in this monorepo is **AORMS-Studio** (slug `aorms-studio`, legacy
+slugs `hived` and `aorms-architecture`, Indian architecture practices). **AORMS-Consultancy**
+(slug `aorms-consultancy`) is the engineering consultancy app on the roadmap. Nomenclature:
 [`docs/esti/AORMS-PLATFORM-NOMENCLATURE.md`](docs/esti/AORMS-PLATFORM-NOMENCLATURE.md).
 
-**ESTI** (Embedded Studio Intelligence) is the intelligence/agent layer in the
-**AORMS-Studio** workspace: ESTI AI, Ask ESTI, the cognition engine, ESTI Pulse.
-**EmOI** (Embedded Operational Intelligence) is the platform-wide intelligence layer
-for AORMS across other verticals.
+**ESTI** (Embedded Studio Intelligence) is the **internal AI agent** in
+**AORMS-Studio**: Ask ESTI, the cognition engine, Studio Intelligence, ESTI Pulse.
+**EmOI** (Embedded Operational Intelligence) is the **external AI agent** on the
+AORMS platform — validates and gates content from outside sources.
 Code identifiers (`@esti/*` packages, `esti_*` tables, repo name) keep the
 `esti` codename.
 
@@ -17,41 +18,52 @@ Monorepo (pnpm workspaces): `packages/contracts`, `backend` (Fastify + tRPC +
 Drizzle), `frontend` (React + Vite), plus a Python `worker`. Services run via
 Docker Compose (`compose.yaml`).
 
-## Product naming (agent memory — 2026-07-10)
+## Product naming (agent memory — 2026-07-11)
 
 **Canonical doc:** [`docs/esti/AORMS-PLATFORM-NOMENCLATURE.md`](docs/esti/AORMS-PLATFORM-NOMENCLATURE.md).
 **Executable constants:** `frontend/src/lib/product-nomenclature.ts` — import
-`AORMS_PLATFORM`, `AORMS_STUDIO`, `AORMS_VERTICALS`, `EMOI`, `ESTI` for user-facing copy; do
+`AORMS_PLATFORM`, `AORMS_APPS`, `AORMS_STUDIO`, `AORMS_CONSULTANCY`, `AORMS_PORTALS`, `PLATFORM_APPS`, `EMOI`, `ESTI` for user-facing copy; do
 not hard-code product strings in UI/SEO.
 
 | Name | Role |
 | --- | --- |
-| **AORMS** | Platform — *Accelerated Operational Resources Management System*; advisory consulting offices (risk, education, auditing, AEC); **not** solution delivery or client PM |
-| **AORMS-Studio** | Shipped AEC workspace from this repo — Indian architecture consultancies; SPA at **`app.aorms.in`** |
-| **AORMS-Compliance** | Risk-management vertical workspace (roadmap) |
-| **AORMS-Advisory** | Education vertical workspace (roadmap) |
-| **AORMS-Audit** | Auditing vertical workspace (roadmap) |
-| **EmOI** | Platform intelligence — dual-tier AI / RAG firewall |
-| **ESTI** | Workspace intelligence in **AORMS-Studio only** — Ask ESTI, Studio Intelligence, ESTI Pulse |
+| **AORMS** | Platform — *Accelerated Operational Resources Management System*; **AEC consulting firms only** (architecture + engineering); **not** solution delivery or construction PM |
+| **AORMS-Studio** | Shipped **architecture** app from this repo — Indian architecture consultancies; SPA at **`studio.aorms.in`** |
+| **AORMS-Consultancy** | **Engineering** consultancy app (roadmap) — structural, MEP, civil, multidisciplinary firms |
+| **EmOI** | **External AI agent** — dual-tier quality gate on outside sources |
+| **ESTI** | **Internal AI agent** in **AORMS-Studio** — Ask ESTI, Studio Intelligence, ESTI Pulse |
+| **`AORMS_PORTALS`** | Portal/surface UI labels — staff workspace, external portals, account hub |
 | **`aorms-studio`** | URL/wiki **slug** — legacy slugs `hived`, `aorms-architecture` redirect |
+| **`aorms-consultancy`** | Engineering app **slug** (roadmap) |
 | **`esti`** | Repo codename — `@esti/*`, `esti_*` tables; never in marketing |
 
 **Retired terms (do not use in new copy):**
 
-- *Architecture Office Resource Management System* → **AORMS** (platform) or **AORMS-Studio** (workspace)
+- *Architecture Office Resource Management System* → **AORMS** (platform) or **AORMS-Studio** (app)
 - **AORMS portal** / **AORMS-Architecture** / **HiveD** (staff workspace) → **AORMS-Studio** — client/consultant/**contractor** *portals* keep the word *portal*
+- Pre-2026-07 multi-industry platform scope (risk, education, auditing) → **AEC only**
 
 **Public marketing surfaces:**
 
-| Path | Role |
+| Path / host | Role |
 | --- | --- |
-| `/` | Platform landing — operational + design frameworks, EmOI; hero in `product-nomenclature.ts` |
-| `/login`, `/demo` | Workspace entry → **AORMS-Studio** (legacy `/hived`, `/aorms-architecture` redirect) |
+| `/` · **aorms.in** | Platform landing — operational + design frameworks, EmOI |
+| **studio.aorms.in** · `/login`, `/demo` | **AORMS-Studio** workspace entry (legacy `app.aorms.in` → 301) |
+| **consultancy.aorms.in** · `/aorms-consultancy` | **AORMS-Consultancy** engineering app marketing (roadmap) |
+| **wiki.aorms.in** · `/wiki` | Four-pillar wiki: HCW-UI · AORMS-Studio · AI core · Management |
+| **kbank.aorms.in** | Knowledge Bank portal (EmOI textbook library) |
+| **external.aorms.in** · `/access` | Client, consultant, contractor, site portal sign-in |
+| **account.aorms.in** · `/account` | AORMS account & licensing hub |
+| **admin.aorms.in** | Licensing console (operators) |
 | `/development` | Full platform technical spec (markdown) |
-| `/wiki` | Four-pillar wiki: HCW-UI · AORMS-Studio · AI core · Management |
+
+Frozen host map: [`docs/esti/AORMS-SURFACE-URLS.md`](docs/esti/AORMS-SURFACE-URLS.md) ·
+`frontend/src/lib/aorms-surface-urls.ts`.
 
 **Operator:** **Human Centric Works (HCW)** — design studio behind `@hcw/ui-kit` and AORMS.
-Landing/marketing brief: [`docs/marketing/LANDING-REDESIGN-CONTEXT.md`](docs/marketing/LANDING-REDESIGN-CONTEXT.md).
+- [`docs/marketing/LANDING-REDESIGN-CONTEXT.md`](docs/marketing/LANDING-REDESIGN-CONTEXT.md) — landing/marketing brief.
+- [`docs/marketing/PUBLIC-PAGES-AUDIT-2026-07-11.md`](docs/marketing/PUBLIC-PAGES-AUDIT-2026-07-11.md) — public URL audit & tracked issues.
+- [`docs/esti/SECURITY-AUDIT-2026-07-11.md`](docs/esti/SECURITY-AUDIT-2026-07-11.md) — application security audit (2026-07-11).
 
 When editing wiki markdown under `frontend/src/content/wiki/`, rebuild the AI wiki
 index if Ask ESTI should see changes: regenerate `backend/src/lib/ai/wiki-knowledge.generated.ts`
@@ -196,11 +208,12 @@ The worker is a **Redis Streams consumer** that handles CPU/IO-heavy jobs
 off-loaded by the TypeScript backend. It consumes `esti:jobs`, retries up to
 3 times, and routes poison jobs to `esti:jobs:dead`.
 
-Three job handlers (`worker/esti_worker/jobs/`):
+Four job handlers (`worker/esti_worker/jobs/`):
 
 | Type | Handler | Purpose |
 |---|---|---|
 | `dxf_to_svg` | `dxf.py` | Converts DXF takeoff to SVG via `ezdxf` |
+| `pdf_to_markdown` | `pdf_to_markdown.py` | Knowledge Bank portal: PDF → Markdown via `pymupdf4llm` (HCW Markdown Tool pipeline) |
 | `render_pdf` | `pdf.py` | HTML → PDF via WeasyPrint; targets include `invoice`, `estimate`, `bbs`, `running_bill`, `feeproposal`, `proposal`, `inspection`, `progress_report`, `drawing` (full set: `_RENDERERS` in `pdf.py`) |
 | `reconcile_import` | `reconcile.py` | Parses bank/26AS/AIS/GSTR imports and matches entries via `pandas` |
 

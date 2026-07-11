@@ -4,6 +4,8 @@ Consumes the Redis Streams job bus (`esti:jobs`) published by the TypeScript
 backend and runs the document/data-heavy jobs where Python is strongest:
 
 - **`dxf_to_svg`** — DXF takeoff conversion with [`ezdxf`](https://ezdxf.dev).
+- **`pdf_to_markdown`** — Knowledge Bank portal: PDF → Markdown via
+  [`pymupdf4llm`](https://github.com/HolagundiWorks/hcw-markdown-tool) (HCW Markdown Tool pipeline).
 - **`render_pdf`** — GST tax-invoice / bill-of-supply / drawing-set PDFs with
   WeasyPrint.
 - **`reconcile_import`** — bank / 26AS / AIS / GSTR imports + matching with pandas.

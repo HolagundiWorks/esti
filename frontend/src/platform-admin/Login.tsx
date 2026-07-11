@@ -23,6 +23,7 @@ import { AuthBrandBlock } from "../components/AormsLogo.js";
 import { AuthRailLayout } from "../components/AuthRailLayout.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { GoogleIconCircle } from "../components/GoogleIconCircle.js";
+import { AORMS_PORTALS, AORMS_STUDIO } from "../lib/product-nomenclature.js";
 import { AccountSignupFields, EMPTY_PROFILE, type ProfileDraft } from "./AccountSignupFields.js";
 import { AccountSignupProfile } from "@esti/contracts";
 
@@ -215,14 +216,14 @@ export default function Login({
                 ? `Create your account to activate ${product}.`
                 : mode === "register"
                   ? portal
-                    ? "Create your AORMS account and request a workspace."
+                    ? `Create your ${AORMS_PORTALS.account.name} and request ${AORMS_STUDIO.title}.`
                     : "Create the platform admin account."
                   : portal
                     ? showCompanyStep
                       ? "Sign in — start with your company."
                       : resolved
                         ? `Signing in to ${companyLabel(resolved)}.`
-                        : "Sign in to your AORMS account."
+                        : `Sign in to your ${AORMS_PORTALS.account.name}.`
                     : "Sign in to manage licences."}
             </Typography>
           </Stack>
@@ -374,7 +375,7 @@ export default function Login({
 
           {companyPortal && (
             <Button component={RouterLink} to="/account" variant="text" size="small">
-              Personal AORMS account instead
+              Personal {AORMS_PORTALS.account.name} instead
             </Button>
           )}
 

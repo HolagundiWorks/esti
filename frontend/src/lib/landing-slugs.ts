@@ -7,6 +7,8 @@
  * Every slug here MUST have a matching `src/content/landing/<slug>.md`, and every
  * such file's slug MUST appear here. The build verifies this in prerender-blog.mjs.
  */
+import { AORMS_PORTALS } from "./product-nomenclature.js";
+
 export const LANDING_SLUGS = [
   // Phase 3 — primary product-category keywords.
   "architecture-office-management-software",
@@ -84,7 +86,7 @@ export const LANDING_NAV: LandingNavGroup[] = [
       { slug: "architecture-revision-tracking", label: "Revision tracking" },
       { slug: "architecture-change-management-software", label: "Change management" },
       { slug: "architecture-approval-workflow-software", label: "Approval workflows" },
-      { slug: "architecture-client-portal-software", label: "Client portal" },
+      { slug: "architecture-client-portal-software", label: AORMS_PORTALS.client.label },
     ],
   },
   {

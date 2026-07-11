@@ -9,6 +9,7 @@ import {
   createSession,
   hashPassword,
   revokeSessionByToken,
+  revokeAllSessionsForUser,
   verifyPassword,
 } from "../../auth/session.js";
 import { firm, orgSettings, users } from "../../db/schema.js";
@@ -64,6 +65,12 @@ export const authRouter = router({
    * Runs only when the install has no users yet — afterwards it 409s.
    */
   bootstrap: publicProcedure.input(BootstrapInput).mutation(async ({ ctx, input }) => {
+    if (env.NODE_ENV === "production" && !env.DESKTOP) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Bootstrap is disabled in production — use the install seed.",
+      });
+    }
     await enforceRateLimit("bootstrap-ip", ctx.ip, 5, 300);
     const email = normalizeEmail(input.email);
     const owner = await ctx.db.transaction(async (tx) => {
@@ -132,6 +139,15 @@ export const authRouter = router({
         message: "Managing users and credentials is disabled on the demo account.",
       });
     }
+    if (env.NODE_ENV === "production" && !env.DESKTOP) {
+      const rows = await ctx.db.select({ n: count() }).from(users);
+      if (Number(rows[0]?.n ?? 0) === 0) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Self-registration is disabled in production — use the install seed.",
+        });
+      }
+    }
     return ctx.db.transaction(async (tx) => {
       await tx.execute(sql`SELECT pg_advisory_xact_lock(8347291)`);
       const rows = await tx.select({ n: count() }).from(users);
@@ -171,20 +187,16 @@ export const authRouter = router({
     .input(z.object({ email: z.string().email() }))
     .query(async ({ ctx, input }) => {
       await enforceRateLimit("resolve-email-ip", ctx.ip, 30, 60);
-      const email = normalizeEmail(input.email);
-      const [user] = await ctx.db
-        .select({ id: users.id, disabled: users.disabled })
-        .from(users)
-        .where(emailMatches(users.email, email))
-        .limit(1);
+      await enforceRateLimit("resolve-email-addr", normalizeEmail(input.email), 30, 300);
       const [f] = await ctx.db.select({ companyName: firm.companyName }).from(firm).limit(1);
       const firmName = f?.companyName ?? "Workspace";
-      // Return the workspace option only when a non-disabled user exists here.
-      const workspaces =
-        user && !user.disabled
-          ? [{ id: "local", name: firmName }]
-          : [];
-      return { workspaces };
+      const rows = await ctx.db.select({ n: count() }).from(users);
+      const hasUsers = Number(rows[0]?.n ?? 0) > 0;
+      // Never reveal whether the email is registered — offer the local workspace
+      // whenever this install is set up (single-tenant).
+      return {
+        workspaces: hasUsers ? [{ id: "local", name: firmName }] : [],
+      };
     }),
 
   login: publicProcedure.input(Credentials).mutation(async ({ ctx, input }) => {
@@ -274,6 +286,7 @@ export const authRouter = router({
       throw new TRPCError({ code: "FORBIDDEN", message: "Portals are not available in this edition." });
     }
 
+    await revokeAllSessionsForUser(ctx.db, u.id);
     const token = await createSession(u.id);
     ctx.setCookie(SESSION_COOKIE, token);
     // Successful login clears the per-email counter so it can't lock out a
@@ -403,6 +416,7 @@ export const authRouter = router({
         )
         .returning({ id: users.id });
       if (!u) throw new TRPCError({ code: "BAD_REQUEST", message: "This reset link is invalid or has expired." });
+      await revokeAllSessionsForUser(ctx.db, u.id);
       await writeAudit(ctx.db, {
         entity: "user",
         entityId: u.id,

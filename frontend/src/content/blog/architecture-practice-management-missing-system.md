@@ -1,15 +1,15 @@
-ï»¿---
-title: Architecture practice management â€” the missing system
+---
+title: Architecture practice management — the missing system
 date: 2026-07-09
-excerpt: Practices run sophisticated project work on a fragmented office record â€” fees, drawings, revisions, and site held in separate tools. The missing spine is the one that connects commercial, delivery, and fee recovery for each project.
+excerpt: Practices run sophisticated project work on a fragmented office record — fees, drawings, revisions, and site held in separate tools. The missing spine is the one that connects commercial, delivery, and fee recovery for each project.
 tags: Operations, Practice, Product
 author: Human Centric Works
 ---
 
 Indian architecture practices run sophisticated design work on a **fragmented office
 record**. CAD holds geometry. Tally holds vouchers. Email holds approvals. WhatsApp
-holds site photos. The **practice narrative** â€” who approved what, when a stage
-completed, what fee was due and whether it was raised â€” lives nowhere durable.
+holds site photos. The **practice narrative** — who approved what, when a stage
+completed, what fee was due and whether it was raised — lives nowhere durable.
 
 That missing system is **practice management** in the architecture sense: not generic
 ERP, not project Gantt alone, but the **spine** that connects commercial, delivery,
@@ -34,22 +34,22 @@ permission-aware workspace shaped for Indian consultancy (GST, COA fees, portals
 
 Without a practice spine:
 
-- **Fee leakage** â€” stages complete without invoices.
-- **Revision disputes** â€” no locked approval trail.
-- **Drawing confusion** â€” multiple "current" PDFs in circulation.
-- **Partner blind spots** â€” risk visible only in one person's inbox.
-- **Onboarding friction** â€” new staff cannot see project history.
+- **Fee leakage** — stages complete without invoices.
+- **Revision disputes** — no locked approval trail.
+- **Drawing confusion** — multiple "current" PDFs in circulation.
+- **Partner blind spots** — risk visible only in one person's inbox.
+- **Onboarding friction** — new staff cannot see project history.
 
-The firm compensates with senior time â€” principals become human databases.
+The firm compensates with senior time — principals become human databases.
 
 ## What to look for in architecture practice software
 
-1. **Project-native everything** â€” not folders per app.
-2. **Role-based access** â€” finance, HR, and project roles see different slices.
-3. **India context** â€” INR paise, GST SAC, FY reporting, COA proposal structure.
-4. **Client portal** â€” scoped external view, not email attachments.
-5. **In-browser estimation** â€” BOQ on the project, not a disconnected spreadsheet.
-6. **Cloud workspace** â€” one sign-in for the whole office; no per-seat edition games.
+1. **Project-native everything** — not folders per app.
+2. **Role-based access** — finance, HR, and project roles see different slices.
+3. **India context** — INR paise, GST SAC, FY reporting, COA proposal structure.
+4. **Client portal** — scoped external view, not email attachments.
+5. **In-browser estimation** — BOQ on the project, not a disconnected spreadsheet.
+6. **Cloud workspace** — one sign-in for the whole office; no per-seat edition games.
 
 AORMS is built as that spine: **one standard licence**, unlimited users, full workspace
 at [aorms.in](https://aorms.in). Official workflows are documented at
@@ -57,21 +57,21 @@ at [aorms.in](https://aorms.in). Official workflows are documented at
 
 ## Implementing without a big-bang migration
 
-1. **Live projects only** â€” do not backfill ten years of archives on day one.
-2. **Drawings + transmittals first** â€” highest dispute value.
-3. **Proposals + invoices next** â€” cash flow impact.
-4. **Revisions + portal** â€” client-facing discipline.
-5. **Estimation + library** â€” reuse across projects.
+1. **Live projects only** — do not backfill ten years of archives on day one.
+2. **Drawings + transmittals first** — highest dispute value.
+3. **Proposals + invoices next** — cash flow impact.
+4. **Revisions + portal** — client-facing discipline.
+5. **Estimation + library** — reuse across projects.
 
 ## Frequently asked questions
 
 ### Is practice management only for large firms?
 
-No. Solo and small studios benefit most â€” there is no back office to absorb fragmentation.
+No. Solo and small studios benefit most — there is no back office to absorb fragmentation.
 
 ### How is this different from ERP?
 
-ERP optimises vouchers and inventory. Practice management optimises **commissions** â€”
+ERP optimises vouchers and inventory. Practice management optimises **commissions** —
 the arc from enquiry to final account for professional services.
 
 ### Do we still need an accountant?
@@ -87,4 +87,4 @@ returns.
 
 ---
 
-*Human Centric Works â€” AORMS cloud workspace for Indian architects.*
+*Human Centric Works — AORMS cloud workspace for Indian architects.*

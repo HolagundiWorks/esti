@@ -5,6 +5,7 @@ import AdminApp from "./admin/AdminApp";
 import { PortalShell } from "../components/portal/PortalShell.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { fetchMe, logout, type Me } from "./lib/auth";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 const Companies = lazy(() => import("./Companies"));
 const Credentials = lazy(() => import("./Credentials"));
@@ -74,7 +75,7 @@ export default function Panel() {
         >
           <Box>
             <Typography variant="h4" component="h1">
-              My AORMS account
+              {AORMS_PORTALS.account.myAccount}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Plan, companies, security, and API credentials for your portable identity.
@@ -82,7 +83,7 @@ export default function Panel() {
           </Box>
           {isAdmin && (
             <Button variant="outlined" size="small" onClick={() => setShowAccount(false)}>
-              Back to licensing console
+              Back to {AORMS_PORTALS.account.licensing.toLowerCase()}
             </Button>
           )}
         </Stack>

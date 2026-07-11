@@ -17,6 +17,8 @@ import {
   getObjectStream,
   storageHealthy,
 } from "./lib/storage.js";
+import { canAccessStorageKey, isSafeStorageKey } from "./lib/storageAccess.js";
+import { readyzAllowed } from "./lib/internalProbe.js";
 import { StorageQuotaExceededError } from "./lib/storageQuota.js";
 import { isSmtpConfigured } from "./lib/mail/transport.js";
 import { buildReleaseInfo, releaseSummary } from "./lib/releaseInfo.js";
@@ -27,6 +29,7 @@ import { registerInspectionPhotoUpload } from "./modules/inspection/upload.js";
 import { registerComplianceDocUpload } from "./modules/compliance/upload.js";
 import { registerMasterPlanUpload } from "./modules/masterplan/upload.js";
 import { registerStandardFileUpload } from "./modules/standards/upload.js";
+import { registerRepoTextbookUpload } from "./modules/repository/upload.js";
 import { registerProfilePhotoUpload } from "./modules/users/photoUpload.js";
 import { registerHrDocUpload } from "./modules/team/hrDocUpload.js";
 import { registerOnboardingDocUpload } from "./modules/projectos/upload.js";
@@ -281,6 +284,7 @@ registerInspectionPhotoUpload(app);
 registerComplianceDocUpload(app);
 registerMasterPlanUpload(app);
 registerStandardFileUpload(app);
+registerRepoTextbookUpload(app);
 registerProfilePhotoUpload(app);
 registerHrDocUpload(app);
 registerOnboardingDocUpload(app);
@@ -300,8 +304,8 @@ await registerLicensingPlatform(app);
 
 // Serve filesystem-stored objects on desktop (STORAGE_DRIVER=fs). On S3 the SPA
 // fetches presigned URLs directly from MinIO, so this route is only meaningful on
-// desktop, but it's harmless to register either way. Auth: any signed-in user
-// (matches presigned-URL semantics — anyone with the link can fetch).
+// desktop, but it's harmless to register either way. Auth: signed-in user with
+// firm- or portal-scoped key ownership (see storageAccess.ts).
 const FILE_MIME: Record<string, string> = {
   ".pdf": "application/pdf",
   ".svg": "image/svg+xml",
@@ -317,7 +321,10 @@ app.get("/files/*", async (req, reply) => {
   const user = await userFromToken(cookieToken);
   if (!user) return reply.code(401).send({ error: "Unauthorized" });
   const key = (req.params as Record<string, string>)["*"];
-  if (!key) return reply.code(400).send({ error: "missing key" });
+  if (!key || !isSafeStorageKey(key)) return reply.code(400).send({ error: "missing key" });
+  if (!(await canAccessStorageKey(db, user, key))) {
+    return reply.code(403).send({ error: "Forbidden" });
+  }
   const ext = key.slice(key.lastIndexOf(".")).toLowerCase();
   try {
     const stream = await getObjectStream(key);
@@ -336,7 +343,10 @@ app.get("/health", async () => {
 // Liveness probe — checks only the backing services this deployment actually uses:
 // DB always; Redis only when a real worker queue is wired (not desktop inproc);
 // object storage via the active driver (S3 bucket or local fs root).
-app.get("/readyz", async (_req, reply) => {
+app.get("/readyz", async (req, reply) => {
+  if (!readyzAllowed(req)) {
+    return reply.code(403).send({ error: "forbidden" });
+  }
   const checks = { db: false, redis: true, storage: false };
   try { await db.execute(sql`SELECT 1`); checks.db = true; } catch { /* intentional */ }
   if (!INPROC_WORKER) {

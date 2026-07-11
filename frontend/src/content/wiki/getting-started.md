@@ -1,4 +1,4 @@
-ï»¿---
+---
 title: Getting started
 slug: getting-started
 excerpt: Create your account, complete your workspace profile, and orient yourself in the AORMS shell.
@@ -14,14 +14,14 @@ updated: 2026-07-09
 2. Enter your work email and password. Complete the profile fields (name, firm, COA registration where applicable).
 3. Confirm your email if prompted. Every new account receives the **full AORMS workspace** and **5 GB** of included cloud storage.
 
-There is **one standard licence** â€” you do not pick Lite, Pro, or Enterprise. Unlimited staff, clients, and projects are included from day one.
+There is **one standard licence** — you do not pick Lite, Pro, or Enterprise. Unlimited staff, clients, and projects are included from day one.
 
 ## 2. First sign-in
 
 After sign-in you may be asked to:
 
 - **Set a new password** (if an admin pre-provisioned your account).
-- **Complete your workspace profile** â€” firm name, address, GSTIN, and practice details used on proposals and invoices.
+- **Complete your workspace profile** — firm name, address, GSTIN, and practice details used on proposals and invoices.
 
 These gates appear once and unblock the full workspace.
 
@@ -31,8 +31,8 @@ AORMS uses a fixed **glass rail** (left), a scrolling **stage** (centre), a **ta
 
 | Area | What it does |
 |------|----------------|
-| **Rail** | Module navigation â€” Studio Intelligence, Projects, Tasks, Library, Finance, and more |
-| **Stage** | The active screen â€” tables, forms, and project detail |
+| **Rail** | Module navigation — Studio Intelligence, Projects, Tasks, Library, Finance, and more |
+| **Stage** | The active screen — tables, forms, and project detail |
 | **ActionDock** | Create, save, and destroy actions for the current screen (replaces scattered page buttons) |
 | **Footer** | Calculator, app launcher, notifications tray |
 
@@ -40,11 +40,11 @@ AORMS uses a fixed **glass rail** (left), a scrolling **stage** (centre), a **ta
 
 Recommended order for a new principal or office manager:
 
-1. **Studio Intelligence** (`/`) â€” read the overview KPIs and Action Centre.
-2. **Company** â€” upload your firm logo, confirm GST and address, review storage usage.
-3. **Third Parties â†’ Clients** â€” add one real client and one active project.
-4. **Projects â†’ open the project** â€” create phases, add a drawing register entry, assign one task.
-5. **Tasks** (`/tasks`) â€” log attendance-linked work for today.
+1. **Studio Intelligence** (`/`) — read the overview KPIs and Action Centre.
+2. **Company** — upload your firm logo, confirm GST and address, review storage usage.
+3. **Third Parties ? Clients** — add one real client and one active project.
+4. **Projects ? open the project** — create phases, add a drawing register entry, assign one task.
+5. **Tasks** (`/tasks`) — log attendance-linked work for today.
 
 ## 5. Invite your team
 
@@ -54,10 +54,9 @@ Recommended order for a new principal or office manager:
 
 ## 6. Where to go next
 
-- **[How to use AORMS](how-to-use-aorms)** â€” full workflow guide from enquiry to final account.
-- **[Estimation and BOQ](estimation-and-boq)** â€” in-browser measurement and cost management.
-- **[Finance and billing](finance-and-billing)** â€” proposals, GST invoices, reconciliation.
-- **[Account and licence](account-and-licence)** â€” storage, AI usage, and company settings.
+- **[How to use AORMS](how-to-use-aorms)** — full workflow guide from enquiry to final account.
+- **[Finance and billing](finance-and-billing)** — proposals, GST invoices, reconciliation.
+- **[Account and licence](account-and-licence)** — storage, AI usage, and company settings.
 
 ## Frequently asked questions
 

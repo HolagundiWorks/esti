@@ -4,6 +4,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 import { AORMS_STUDIO, isAormsStudioLegacySlug } from "../lib/product-nomenclature.js";
 import { applyWikiPageSeo } from "../lib/wiki-seo.js";
+import { sanitizeMarkdownHtml } from "../lib/sanitize-html.js";
 import { getWikiPage, listWikiPages } from "../lib/wiki.js";
 import { WIKI_HUBS } from "../lib/wiki-hub.js";
 import { wikiAppPath } from "../lib/wiki-url.js";
@@ -26,10 +27,11 @@ export function WikiPage() {
   const html = useMemo(() => {
     if (!page) return "";
     const raw = marked.parse(page.markdown, { async: false }) as string;
-    return raw.replace(/href="([^"]+)"/g, (match, href) => {
+    const linked = raw.replace(/href="([^"]+)"/g, (match, href) => {
       if (/^(https?:|mailto:|#|\/)/.test(href)) return match;
       return `href="${wikiAppPath(href)}"`;
     });
+    return sanitizeMarkdownHtml(linked);
   }, [page]);
 
   useEffect(() => {

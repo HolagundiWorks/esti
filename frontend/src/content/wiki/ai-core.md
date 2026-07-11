@@ -1,75 +1,77 @@
-﻿---
-title: AI core — EmOI and ESTI
+---
+title: AI core ? EmOI and ESTI
 slug: ai-core
-excerpt: Platform EmOI (Embedded Operational Intelligence) and architecture-workspace ESTI — dual-tier AI firewall, cognition engine, Ask ESTI, and deterministic scoring.
+excerpt: EmOI (external AI agent) and ESTI (internal AI agent) ? outside validation, inside answers, deterministic scoring.
 order: 1
 section: Overview
 domain: ai-core
-updated: 2026-07-10
+updated: 2026-07-11
 ---
 
-AORMS intelligence is split into two layers. **Do not conflate them in copy or configuration.**
+AORMS intelligence is split into **two agents**. **Do not conflate them in copy or configuration.**
 
-| Layer | Name | Scope |
+| Agent | Name | Role |
 | --- | --- | --- |
-| **Platform** | **EmOI** — Embedded Operational Intelligence | All AORMS verticals — dual-tier AI, RAG firewall, workflow intelligence |
-| **Architecture workspace** | **ESTI** — Embedded Studio Intelligence | AORMS-Studio only — Ask ESTI, Studio Intelligence, ESTI Pulse, MoM extraction |
+| **External** | **EmOI** ? Embedded Operational Intelligence | Validates, enriches, and gates content from **outside sources** |
+| **Internal** | **ESTI** ? Embedded Studio Intelligence | Answers only from **validated firm repositories** (live in **AORMS-Studio**) |
 
 ## Governing rule
 
-> Deterministic systems create business truth. LLMs explain business truth.
+> **EmOI** handles the outside world. **ESTI** handles what the firm already knows.
 
-LLMs must **not** invent scores, predict delays directly, calculate financial state, or create unsupported recommendations. The backend computes; the model explains.
+Deterministic systems create business truth. LLMs explain business truth ? they must not invent scores, predict delays directly, calculate financial state, or create unsupported recommendations.
 
-## EmOI (platform)
+## EmOI ? external AI agent
 
-North-star capabilities on the AORMS platform:
+North-star capabilities:
 
-- **External validation gate** — outbound model calls pass a quality/safety gate
-- **Internal RAG firewall** — firm knowledge stays inside the tenant boundary
-- **Workflow intelligence** — operational signals across advisory engagements
-- **Semantic search** — governed knowledge base retrieval
+- **External validation gate** ? outbound model calls and inbound external content pass a quality/safety gate
+- **Enrichment & storage** ? validated external material enters the firm knowledge base (see **Knowledge Bank portal** at `/libraries/knowledge-bank-portal`)
+- **Workflow intelligence** ? operational signals from governed external intake
 
-EmOI ships progressively as vertical workspaces adopt the platform spine. Marketing and `/development` document the north-star; the monorepo implements ESTI-first for AORMS-Studio.
+EmOI is platform-wide ? every AORMS app uses the external agent for outside intelligence.
 
-## ESTI (AORMS-Studio)
+## ESTI ? internal AI agent
 
-Live workspace intelligence:
+Live in **AORMS-Studio** today:
 
 | Surface | Purpose |
 | --- | --- |
 | **Studio Intelligence** (`/`) | Office health, zone KPIs, ranked priorities, cognition brief |
-| **Ask ESTI** | Taskbar AI — contextual Q&A (BYO API key supported) |
-| **ESTI Pulse** | Attention signals — fee risk, revision pressure, load |
+| **Ask ESTI** | Taskbar AI ? contextual Q&A from validated firm data + published repo library (BYO API key supported) |
+| **ESTI Pulse** | Attention signals ? fee risk, revision pressure, load |
 | **MoM extraction** | Draft revision requests from meeting minutes |
 
 ### Cognition pipeline
 
 ```text
-Operational records → deterministic scoring → pattern recognition
-  → causal reasoning → prediction → intervention recommendation
-  → LLM explanation → dashboard office state
+Operational records ? deterministic scoring ? pattern recognition
+  ? causal reasoning ? prediction ? intervention recommendation
+  ? LLM explanation ? dashboard office state
 ```
 
 Key tables: `esti_cognition_event`, `esti_cognition_behavior_profile`, `esti_cognition_priority_item`. Exposed via `dashboard.home` and related tRPC namespaces.
 
 ## Configuration
 
-- Firm AI settings — model provider, API keys, feature toggles (owner/admin)
-- Ask ESTI — user-level key optional for BYO inference
+- Firm AI settings ? model provider, API keys, feature toggles (owner/admin)
+- Ask ESTI ? user-level key optional for BYO inference
 - Wiki content syncs to ESTI product knowledge on build (`sync-wiki-knowledge.mjs`)
+- **Knowledge Bank portal** ? EmOI-processed textbooks publish into ESTI agent context (`knowledgeBankPortal` tRPC)
 
 ## Where to go next
 
-- [How to use AORMS — Studio Intelligence](how-to-use-aorms#studio-intelligence--your-morning-surface)
-- [AORMS-Studio workspace overview](aorms-studio)
+- [Knowledge Bank portal](knowledge-bank-portal) ? textbook intake and library publish
+
+- [How to use AORMS ? Studio Intelligence](how-to-use-aorms#studio-intelligence--your-morning-surface)
+- [AORMS-Studio overview](aorms-studio)
 - Engineering: `docs/esti/COGNITION-ENGINE.md`, `docs/esti/ESTI-PULSE.md`
 
 ## Frequently asked questions
 
-### Can ESTI run on the platform home?
+### Can ESTI fetch from the open web?
 
-No. ESTI is architecture-workspace scoped. The platform layer is **EmOI**.
+No. **EmOI** handles external sources. **ESTI** answers from validated firm repositories only.
 
 ### Does the AI write invoices or change drawings?
 

@@ -41,7 +41,7 @@ export function Wiki() {
               </h1>
               <p className="lp2-hero__sub">
                 {home?.excerpt ??
-                  `HCW-UI · ${AORMS_STUDIO.title} · AI core · Management — official guides for the platform and architecture workspace.`}
+                  `HCW-UI · ${AORMS_STUDIO.title} · AI core · Management — official guides for the platform and ${AORMS_STUDIO.title}.`}
               </p>
               <p className="lp2-wiki-hero__hint">
                 <RocketLaunchOutlinedIcon sx={{ fontSize: 16, verticalAlign: "text-bottom" }} aria-hidden />

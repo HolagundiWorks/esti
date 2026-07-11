@@ -7,7 +7,7 @@ export const PLATFORM_LANDING_SECTIONS = [
   { href: "/#frameworks", label: "Frameworks" },
   { href: "/#ai-firewall", label: "EmOI" },
   { href: "/#modules", label: "Modules" },
-  { href: "/#industries", label: "Industries" },
+  { href: "/#apps", label: "Apps" },
   { href: "/#faq", label: "FAQ" },
 ] as const;
 

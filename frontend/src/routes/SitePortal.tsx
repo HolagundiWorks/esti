@@ -19,6 +19,7 @@ import { ExternalPortalShell } from "../components/portal/ExternalPortalShell.js
 import { ProjectSiteReference } from "../components/ProjectSiteReference.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red" | "teal"> = {
   DRAFT: "gray",
@@ -69,7 +70,7 @@ export function SitePortal() {
 
   const shellProps = {
     companyName: user?.fullName ?? "Site Supervisor",
-    portalLabel: "Site portal" as const,
+    portalLabel: AORMS_PORTALS.site.label,
   };
 
   if (!projectId) {
@@ -77,7 +78,7 @@ export function SitePortal() {
       <ExternalPortalShell {...shellProps}>
         <Stack spacing={3} sx={{ maxWidth: 640 }}>
           <Stack spacing={1}>
-            <Typography variant="h5" component="h2">Site Portal</Typography>
+            <Typography variant="h5" component="h2">{AORMS_PORTALS.site.label}</Typography>
             <Typography variant="body2" color="text.secondary">
               Field view — pick a project
             </Typography>

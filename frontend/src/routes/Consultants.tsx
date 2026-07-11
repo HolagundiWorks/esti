@@ -22,6 +22,7 @@ import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 export function Consultants() {
   const utils = trpc.useUtils();
@@ -253,8 +254,8 @@ export function Consultants() {
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <p>
-              Gives this consultant a project-scoped portal login (their engaged
-              projects only).
+              Gives this consultant a project-scoped {AORMS_PORTALS.consultant.label.toLowerCase()}{" "}
+              login (their engaged projects only).
             </p>
             <TextField
               id="cl-email"

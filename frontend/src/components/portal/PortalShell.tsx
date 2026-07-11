@@ -12,14 +12,15 @@ import {
 import type { ReactNode } from "react";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import { AormsLogo } from "../AormsLogo.js";
+import { AORMS_PORTALS } from "../../lib/product-nomenclature.js";
 
 export type PortalNavKey = "account" | "company" | "licensing" | "workspace";
 
 const NAV: { key: PortalNavKey; label: string; href: string; external?: boolean }[] = [
-  { key: "account", label: "Personal account", href: "/account" },
-  { key: "company", label: "Company account", href: "/company-account" },
-  { key: "licensing", label: "Licensing console", href: "/platform-admin" },
-  { key: "workspace", label: "Studio workspace", href: "/login" },
+  { key: "account", label: AORMS_PORTALS.account.personal, href: "/account" },
+  { key: "company", label: AORMS_PORTALS.account.company, href: "/company-account" },
+  { key: "licensing", label: AORMS_PORTALS.account.licensing, href: "/platform-admin" },
+  { key: "workspace", label: AORMS_PORTALS.studio.navLabel, href: `${AORMS_PORTALS.studio.url}/login`, external: true },
 ];
 
 export function PortalShell({
@@ -61,7 +62,7 @@ export function PortalShell({
               <AormsLogo variant="rail" />
             </Button>
             <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
-              Account &amp; licensing
+              {AORMS_PORTALS.account.hubCaption}
             </Typography>
           </Box>
           <Divider />
@@ -73,8 +74,8 @@ export function PortalShell({
               return (
                 <ListItemButton
                   key={item.key}
-                  component={RouterLink}
-                  to={href}
+                  component={item.external ? "a" : RouterLink}
+                  {...(item.external ? { href } : { to: href })}
                   selected={selected}
                   sx={{ mx: 0.5 }}
                 >

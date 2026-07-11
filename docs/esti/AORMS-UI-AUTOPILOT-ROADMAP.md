@@ -194,7 +194,7 @@ Roll in pillar order (each batch = one PR / agent run):
 ## U4 — Stage-head & health orbs
 
 **Goal:** Screens that surface zone/office health use the same stage-head row and glass
-orbs as Studio Intelligence. Cross-ref: archived [ESTIMATE-AUTOPILOT-ROADMAP.md](../archive/esti/ESTIMATE-AUTOPILOT-ROADMAP.md#e8--glass-health-orbs-workspace-ui).
+orbs as Studio Intelligence. See [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md) U0–U6.
 
 | # | Task | Status |
 |---|------|--------|
@@ -212,7 +212,7 @@ orbs as Studio Intelligence. Cross-ref: archived [ESTIMATE-AUTOPILOT-ROADMAP.md]
 |---|---------|--------|-------|
 | U5.1 | Client portal `Portal.tsx` | ✅ | `ExternalPortalShell` → kit `GlassRail` |
 | U5.2 | Consultant portal `CollaboratorPortal.tsx` | ✅ | Same shell |
-| U5.3 | Estimate app `estimate/` | ✅ N/A | No `estimate/` tree in monorepo; archived [ESTIMATE-AUTOPILOT-ROADMAP.md](../archive/esti/ESTIMATE-AUTOPILOT-ROADMAP.md). Site portal also on `ExternalPortalShell`. |
+| U5.3 | Estimate app `estimate/` | ✅ N/A | No `estimate/` tree in monorepo. Site portal also on `ExternalPortalShell`. |
 
 **CMS / Estimation orphan:** `/estimation*` redirects to projects/measurement. `components/cms/` is not wired as project tabs — see [NAVIGATION.md](NAVIGATION.md).
 
@@ -260,7 +260,7 @@ U0 ✅ ──► U1 shell primitives ──gate──► U2 login rail
 | Health glyph | `frontend/src/components/shell/OfficeHealthGlyph.tsx` |
 | Login (to migrate) | `frontend/src/routes/Login.tsx` · `styles.scss` `.esti-login-*` |
 | Design spec | [HCW-UI-KIT.md](HCW-UI-KIT.md) |
-| Estimate UI queue | [../archive/esti/ESTIMATE-AUTOPILOT-ROADMAP.md](../archive/esti/ESTIMATE-AUTOPILOT-ROADMAP.md) (archived) |
+| Estimate UI queue | N/A — no standalone Estimate app in monorepo; see [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) |
 
 ---
 

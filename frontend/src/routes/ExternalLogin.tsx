@@ -2,6 +2,7 @@ import ArrowBack from "@mui/icons-material/ArrowBack";
 import { Alert, AlertTitle, Button, Link, Stack, TextField } from "@mui/material";
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 import { AuthBrandBlock } from "../components/AormsLogo.js";
 import { AuthRailLayout } from "../components/AuthRailLayout.js";
 import { setDesktopToken } from "../lib/api-base.js";
@@ -45,12 +46,12 @@ export function ExternalLogin() {
       rail={
         <Stack spacing={2}>
           <Stack spacing={1}>
-            <AuthBrandBlock tagline="Client, contractor & collaborator portals" />
+            <AuthBrandBlock tagline={AORMS_PORTALS.external.authTagline} />
             <p>
-              Sign in to your client, contractor, or collaborator portal.
+              {AORMS_PORTALS.external.signInIntro}
               If you are an office team member, use{" "}
               <Link component={RouterLink} to="/login">
-                workspace login
+                {AORMS_PORTALS.studio.signInTitle}
               </Link>
               .
             </p>

@@ -1,7 +1,7 @@
-ï»¿---
+---
 title: The real cost of poor project visibility in architecture studios
 date: 2026-07-09
-excerpt: Poor visibility is not missing dashboards â€” it is not knowing fee exposure, approval blockers, and workload until they hurt. The cost is margin, trust, and principal burnout.
+excerpt: Poor visibility is not missing dashboards — it is not knowing fee exposure, approval blockers, and workload until they hurt. The cost is margin, trust, and principal burnout.
 tags: Operations, Finance, Practice
 author: Human Centric Works
 ---
@@ -22,7 +22,7 @@ every week.
 
 ### Margin
 
-Unbilled stages, unlogged variations, and delayed invoices are visibility failures â€”
+Unbilled stages, unlogged variations, and delayed invoices are visibility failures —
 not sales failures. The work happened; the office did not **see** it was billable in time.
 
 ### Trust
@@ -33,8 +33,8 @@ preventing the confusion.
 
 ### Principal burnout
 
-When the partner is the integration layer â€” walking corridors to build a mental picture
-â€” strategic work shrinks. Burnout is a visibility failure at org design level.
+When the partner is the integration layer — walking corridors to build a mental picture
+— strategic work shrinks. Burnout is a visibility failure at org design level.
 
 ## Why visibility is hard without a practice spine
 
@@ -56,15 +56,15 @@ Dashboards that only chart tasks repeat the fragmentation with prettier charts.
 | Workload by person | Reassign before quality drops |
 | Open site items | Site visit agenda |
 
-Studio Intelligence in AORMS groups these as **zones** with action-ranked tables â€”
+Studio Intelligence in AORMS groups these as **zones** with action-ranked tables —
 designed for a five-minute principal review, not a quarterly report.
 
 ## Improving visibility without a big-bang
 
-1. **One source per signal** â€” pick the system of record for fees, drawings, revisions.
-2. **Close the loop weekly** â€” billing-ready must map to invoices or explicit deferral.
-3. **Portal discipline** â€” client approvals visible in the same record as drawings.
-4. **Train deputies** â€” document the morning review on the
+1. **One source per signal** — pick the system of record for fees, drawings, revisions.
+2. **Close the loop weekly** — billing-ready must map to invoices or explicit deferral.
+3. **Portal discipline** — client approvals visible in the same record as drawings.
+4. **Train deputies** — document the morning review on the
    [wiki](https://aorms.in/wiki/how-to-use-aorms).
 
 ## Frequently asked questions
@@ -79,7 +79,7 @@ Intuition is valuable; it should not be the **only** integration layer.
 
 ### How does cloud help?
 
-One signed-in workspace means deputies and principals see the same filtered truth â€”
+One signed-in workspace means deputies and principals see the same filtered truth —
 see [account and licence](https://aorms.in/wiki/account-and-licence).
 
 ## Related reading
@@ -90,4 +90,4 @@ see [account and licence](https://aorms.in/wiki/account-and-licence).
 
 ---
 
-*Human Centric Works â€” AORMS-Studio workspace for Indian consultancies.*
+*Human Centric Works — AORMS-Studio for Indian consultancies.*

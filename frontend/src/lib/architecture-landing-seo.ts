@@ -1,4 +1,4 @@
-/** SEO for /login — AORMS-Studio marketing + sign-in (canonical architecture workspace page). */
+/** SEO for /login — AORMS-Studio marketing + sign-in (canonical vertical entry page). */
 import { AORMS_STUDIO, AORMS_PLATFORM, EMOI, ESTI } from "./product-nomenclature.js";
 
 const BASE = "https://aorms.in/login";
@@ -20,7 +20,7 @@ export const ARCHITECTURE_LANDING_SEO = {
   footerBlurb: `${AORMS_STUDIO.title} on ${AORMS_PLATFORM.name}.`,
   canonical: `${BASE}`,
   siteName: AORMS_PLATFORM.name,
-  wikiUrl: "https://aorms.in/wiki",
+  wikiUrl: "https://wiki.aorms.in",
 } as const;
 
 export const ARCHITECTURE_LANDING_FAQ = [
@@ -47,7 +47,7 @@ export const ARCHITECTURE_LANDING_FAQ = [
   {
     question: "Where is the documentation?",
     answer:
-      "The official AORMS Wiki at aorms.in/wiki covers getting started, workflows, finance and account setup.",
+      "The official AORMS Wiki at wiki.aorms.in covers getting started, workflows, finance and account setup.",
   },
   {
     question: "How does client revision management work?",
@@ -62,7 +62,7 @@ export const ARCHITECTURE_LANDING_FAQ = [
   {
     question: "What is the relationship to AORMS platform?",
     answer:
-      `AORMS (${AORMS_PLATFORM.expansion}) is the platform — governed by ${EMOI.name} (${EMOI.expansion}). ${AORMS_STUDIO.title} is the first vertical workspace, shipping today with ${ESTI.name} (${ESTI.expansion}) for Indian architecture practices.`,
+      `AORMS (${AORMS_PLATFORM.expansion}) is the platform for AEC consulting firms — ${EMOI.name} (${EMOI.role.toLowerCase()}) and ${ESTI.name} (${ESTI.role.toLowerCase()} in ${AORMS_STUDIO.title}). ${AORMS_STUDIO.title} is the shipping architecture app for Indian architecture practices.`,
   },
 ] as const;
 

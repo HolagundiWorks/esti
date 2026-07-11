@@ -7,7 +7,7 @@ deeper references:
 - Deployment step-by-step → [`VPS-INSTALL.md`](VPS-INSTALL.md)
 - Scripts quick-reference → [`../../deploy/README.md`](../../deploy/README.md)
 - Identity model in full → [`AORMS-IDENTITY.md`](AORMS-IDENTITY.md)
-- HTTPS + Google sign-in → Google OAuth env vars in §5 (legacy Lite installer guide archived under `docs/archive/esti/`)
+- HTTPS + Google sign-in → Google OAuth env vars in §5
 - Ops runbook → [`PRODUCTION-OPS.md`](PRODUCTION-OPS.md)
 - Access / roles → [`ACCESS-HIERARCHY.md`](ACCESS-HIERARCHY.md)
 
@@ -42,8 +42,9 @@ All on your one domain (`https://<domain>`), TLS-terminated by nginx.
 | URL | What it is | Auth |
 |---|---|---|
 | `/` | **AORMS-Studio** home (**Studio Intelligence**) — or the public Landing if `VITE_PUBLIC_SITE=true` | firm session |
-| `/login` | **Firm workspace login** — create account on public-site builds; one **standard AORMS licence** (no Lite/Core/Enterprise picker) | firm session |
-| `/account`, `/company-account` | Personal and company account portals | platform session |
+| `/login` | **AORMS-Studio** sign-in — staff workspace; create account on public-site builds; one **standard AORMS licence** | firm session |
+| `/access` | **External portals** — client, consultant, contractor, and site portal sign-in | portal session |
+| `/account`, `/company-account` | **AORMS account** (personal) and **Company account** (firm owners) | platform session |
 | `/wiki` | Official documentation (canonical) | public |
 | `/demo` | One-click auto-login into the seeded demo (profile 2 only) | baked demo creds |
 | `/platform-admin` | **Licensing console** — Holagundi platform admins **only**; simple email + password, no company step | platform session (admin) |
@@ -204,8 +205,8 @@ retired 2026-07. The product is **cloud-only** at aorms.in. Legacy scripts
 (`deploy/fetch-installers.sh`, `.github/workflows/desktop.yml`) remain for
 operators migrating old VPS layouts but are not required for new installs.
 
-The separate **AORMS Estimate** desktop app is **not in this monorepo** (historical
-spec: [../archive/esti/ESTIMATE-AUTOPILOT-ROADMAP.md](../archive/esti/ESTIMATE-AUTOPILOT-ROADMAP.md)).
+The separate **AORMS Estimate** desktop app is **not in this monorepo** — see
+[COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) for the active cost rebuild.
 
 ---
 

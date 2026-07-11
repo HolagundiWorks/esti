@@ -24,6 +24,11 @@ export async function ensureCriticalSchema(db: DB): Promise<void> {
   `);
 
   await db.execute(sql`
+    ALTER TABLE esti_user
+      ADD COLUMN IF NOT EXISTS calendar_feed_token_at timestamptz
+  `);
+
+  await db.execute(sql`
     ALTER TABLE hlp_account
       ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'ACTIVE',
       ADD COLUMN IF NOT EXISTS profile jsonb NOT NULL DEFAULT '{}'::jsonb,

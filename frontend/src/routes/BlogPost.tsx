@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 import { formatPostDate, getAdjacentPosts, getPost } from "../lib/blog.js";
 import { applyBlogPostSeo } from "../lib/blog-seo.js";
+import { sanitizeMarkdownHtml } from "../lib/sanitize-html.js";
 import { relatedLandingForTags } from "../lib/blog-related.js";
 
 export function BlogPost() {
@@ -16,7 +17,10 @@ export function BlogPost() {
   );
 
   const html = useMemo(
-    () => (post ? (marked.parse(post.markdown, { async: false }) as string) : ""),
+    () =>
+      post
+        ? sanitizeMarkdownHtml(marked.parse(post.markdown, { async: false }) as string)
+        : "",
     [post],
   );
 

@@ -49,7 +49,7 @@ See [`docs/esti/SELF-HOST-INSTALL.md`](../docs/esti/SELF-HOST-INSTALL.md).
 | `deploy/lib.sh` | Shared helpers + `write_env` + `install_core` (the one install flow) |
 | `deploy/update.sh` | In-place update (reads the profile from `.env`) |
 | `deploy/cleanup-vps.sh` | **VPS hygiene** — remove retired `/downloads` installers, `dist.old`, temp Docker containers; optional image/build-cache prune |
-| `deploy/fetch-installers.sh` | **Retired** — legacy Lite/Pro desktop installers (see archive docs) |
+| `deploy/fetch-installers.sh` | **Retired** — legacy Lite/Pro desktop installers |
 | `deploy/backup.sh` / `restore.sh` | Postgres + MinIO backup / restore |
 | `deploy/nginx-proxy.conf` | nginx vhost template |
 
@@ -60,9 +60,9 @@ cloud-only at aorms.in; `/download` redirects to the wiki. The script
 `fetch-installers.sh` and workflow `desktop.yml` remain for legacy VPS layouts
 only.
 
-The separate **AORMS Estimate** app is **not in this monorepo** (archived spec under
-`docs/archive/esti/`). The **ESE subdomain service** installer is also archived —
-see `docs/archive/deploy/install-ese.sh` (no `ese/` package in repo).
+The separate **AORMS Estimate** app is **not in this monorepo**. The **ESE**
+subdomain service is also **retired** (no `ese/` package in repo). Active cost work:
+[docs/esti/COST-MANAGEMENT-SYSTEM.md](../docs/esti/COST-MANAGEMENT-SYSTEM.md).
 
 ## Before a first install
 
@@ -152,7 +152,7 @@ GOOGLE_REDIRECT_URI=https://<domain>/platform/auth/google/callback
 PLATFORM_ADMIN_EMAILS=you@firm.in
 ```
 
-then `bash deploy/update.sh`. Google OAuth: set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in `.env` (legacy Lite guide: `docs/archive/esti/AORMS-LITE-AND-GOOGLE-AUTH.md`).
+then `bash deploy/update.sh`. Google OAuth: set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in `.env` (see [ADMIN-GUIDE.md](../docs/esti/ADMIN-GUIDE.md) §5).
 
 ## Switching profiles on an existing box
 

@@ -36,7 +36,7 @@ def test_backend_from_settings_s3() -> None:
 
 
 def test_handlers_registered() -> None:
-    assert set(HANDLERS) == {"dxf_to_svg", "render_pdf", "reconcile_import"}
+    assert set(HANDLERS) == {"dxf_to_svg", "render_pdf", "pdf_to_markdown", "reconcile_import"}
 
 
 def test_inr_indian_grouping() -> None:

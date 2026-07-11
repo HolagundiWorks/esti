@@ -47,6 +47,7 @@ import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot, StatusTag } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 const INV_TAG: Record<string, "blue" | "green"> = {
   ISSUED: "blue",
@@ -434,7 +435,7 @@ export function Portal() {
   return (
     <ExternalPortalShell
       companyName={brandingQ.data?.companyName}
-      portalLabel="Client portal"
+      portalLabel={AORMS_PORTALS.client.label}
       onSignOut={() => logout.mutate()}
       signingOut={logout.isPending}
     >

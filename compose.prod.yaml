@@ -166,7 +166,7 @@ services:
     profiles:
       - build-only
 
-  # ── Python worker (ezdxf / WeasyPrint / pandas) ───────────────────────────────
+  # ── Python worker (ezdxf / WeasyPrint / pymupdf4llm / pandas) ─────────────────
   worker:
     build:
       context: .

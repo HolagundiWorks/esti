@@ -79,6 +79,6 @@ Tier enums in code are **deprecated shims** only.
 ## Related docs
 
 - [AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md)
-- [docs/archive/esti/COMMUNITY-EDITION.md](../archive/esti/COMMUNITY-EDITION.md) — archived (retired 2026-07-09)
+- Community edition — **retired** (2026-07-09); one **AORMS Standard** licence only
 - [MONOREPO-AND-SURFACES.md](MONOREPO-AND-SURFACES.md)
-- [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) — active cost rebuild (archived: [ESTIMATION-ARCHITECTURE.md](../archive/esti/ESTIMATION-ARCHITECTURE.md))
+- [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) — active cost rebuild (supersedes retired Estimation OS / standalone Estimate app)

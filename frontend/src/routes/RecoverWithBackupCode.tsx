@@ -49,7 +49,7 @@ export function RecoverWithBackupCode() {
                     component="code"
                     sx={{
                       fontFamily: "monospace",
-                      fontSize: "1rem",
+                      fontSize: (t) => t.typography.body1.fontSize,
                       letterSpacing: "0.08em",
                       px: 1.5,
                       py: 1,

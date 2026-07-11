@@ -43,7 +43,7 @@ import { ZonalComplianceCalculator } from "../components/compliance/ZonalComplia
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { useNavigate } from "react-router-dom";
-import { useScreenActions } from "@hcw/ui-kit";
+import { TYPE_SCALE, useScreenActions } from "@hcw/ui-kit";
 
 // ── Zone state ────────────────────────────────────────────────────────────────
 
@@ -450,7 +450,7 @@ export function StudioAbstract() {
     homeLoading
       ? Array.from({ length: 4 }, (_, i) => ({
           label: "Loading",
-          value: <Skeleton variant="text" width={72} sx={{ fontSize: "1.1rem" }} />,
+          value: <Skeleton variant="text" width={72} sx={{ fontSize: TYPE_SCALE.kpi }} />,
           sub: i === 0 ? "Office metrics" : undefined,
         }))
       : heroKpis.slice(0, 4).map((k) => ({ label: k.label, value: k.value, sub: k.sub }));
@@ -599,7 +599,7 @@ export function StudioAbstract() {
           {zones.map((z) => (
             <Box key={z.label} className="esti-zone-health__item" title={z.signal} sx={{ px: 1 }}>
               <OfficeHealthGlyph state={z.state} variant="glass" title={z.signal} />
-              <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "0.65rem", maxWidth: 1 }}>
+              <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: TYPE_SCALE.micro, maxWidth: 1 }}>
                 {z.label}
               </Typography>
             </Box>
@@ -637,9 +637,9 @@ export function StudioAbstract() {
                 }}
               >
                 <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2 }} noWrap>{c.label}</Typography>
-                <Typography sx={{ fontWeight: 300, fontSize: "1.1rem", lineHeight: 1.05 }} noWrap>{c.value}</Typography>
+                <Typography sx={{ fontWeight: 300, fontSize: TYPE_SCALE.kpi, lineHeight: 1.05 }} noWrap>{c.value}</Typography>
                 {c.sub != null && (
-                  <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.65rem" }} noWrap>
+                  <Typography variant="caption" sx={{ color: "text.secondary", fontSize: TYPE_SCALE.micro }} noWrap>
                     {c.sub}
                   </Typography>
                 )}
@@ -753,9 +753,9 @@ export function StudioAbstract() {
             <Box sx={{ mt: 0.5, display: "grid", gridTemplateColumns: `repeat(${filingDue.length}, 1fr)` }}>
               {filingDue.map((f, i) => (
                 <Box key={f.name} sx={{ minWidth: 0, p: 0.5, borderLeft: i > 0 ? 1 : 0, borderColor: "divider" }}>
-                  <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "0.62rem", display: "block" }}>{f.name}</Typography>
-                  <Typography sx={{ fontWeight: 300, fontSize: "0.9rem", lineHeight: 1.1 }} noWrap>{f.date}</Typography>
-                  <Typography variant="caption" noWrap sx={{ fontSize: "0.62rem", color: f.days <= 3 ? "error.main" : f.days <= 7 ? "warning.main" : "text.secondary" }}>{f.days}d</Typography>
+                  <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: TYPE_SCALE.micro, display: "block" }}>{f.name}</Typography>
+                  <Typography sx={{ fontWeight: 300, fontSize: TYPE_SCALE.body2, lineHeight: 1.1 }} noWrap>{f.date}</Typography>
+                  <Typography variant="caption" noWrap sx={{ fontSize: TYPE_SCALE.micro, color: f.days <= 3 ? "error.main" : f.days <= 7 ? "warning.main" : "text.secondary" }}>{f.days}d</Typography>
                 </Box>
               ))}
             </Box>

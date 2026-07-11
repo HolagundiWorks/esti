@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { AORMS_STUDIO, AORMS_PLATFORM, EMOI } from "../lib/product-nomenclature.js";
+import { AORMS_CONSULTANCY, AORMS_STUDIO, AORMS_PLATFORM, EMOI } from "../lib/product-nomenclature.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 
 const CONTACT_EMAIL = "hi@aorms.in";
@@ -15,7 +15,7 @@ export function About() {
   useEffect(() => {
     const title = `About ${AORMS_PLATFORM.name} — platform and ${AORMS_STUDIO.title}`;
     const description =
-      `${AORMS_PLATFORM.name} (${AORMS_PLATFORM.expansion}) — operational and design frameworks for advisory consulting offices. ${AORMS_STUDIO.title} is the shipping architecture workspace for Indian consultancies. Built by Human Centric Works.`;
+      `${AORMS_PLATFORM.name} (${AORMS_PLATFORM.expansion}) — operational and design frameworks for AEC consulting firms. ${AORMS_STUDIO.title} is the shipping architecture app for Indian consultancies; ${AORMS_CONSULTANCY.title} for engineering consultancies is on the roadmap. Built by Human Centric Works.`;
     document.title = `${title} — ${AORMS_PLATFORM.name}`;
     const set = (sel: string, attr: "content" | "href", val: string) =>
       document.querySelector(sel)?.setAttribute(attr, val);
@@ -181,7 +181,7 @@ export function About() {
                 <a href="/blog">writing on architecture practice operations</a>.
               </p>
 
-              <h2>Talk to us</h2>
+              <h2 id="contact">Talk to us</h2>
               <p>
                 We would rather have a real conversation than a sales funnel. Write to{" "}
                 <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> or{" "}

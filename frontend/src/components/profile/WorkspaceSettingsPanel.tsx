@@ -14,7 +14,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { type ChangeEvent, useEffect, useState } from "react";
 import { useAuth } from "../../lib/auth.js";
 import { StatusDot } from "../StatusTag.js";
-import { apiUrl, authHeaders } from "../../lib/api-base.js";
+import { useUploadAuth } from "../../lib/uploadAuth.js";
 import { trpc } from "../../lib/trpc.js";
 
 const HiddenFileInput = styled("input")({ display: "none" });
@@ -22,6 +22,7 @@ const HiddenFileInput = styled("input")({ display: "none" });
 /** Workspace login preferences — photo, name, password, studio 2FA (personal account portal). */
 export function WorkspaceSettingsPanel() {
   const { user } = useAuth();
+  const { authorizedFetch } = useUploadAuth();
   const utils = trpc.useUtils();
   const [name, setName] = useState("");
   const [designation, setDesignation] = useState("");
@@ -88,13 +89,8 @@ export function WorkspaceSettingsPanel() {
   async function uploadPhoto(file: File) {
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("photo", file);
-      const res = await fetch(apiUrl("/upload/profile-photo"), {
-        method: "POST",
-        body: fd,
-        credentials: "include",
-        headers: authHeaders(),
+      const res = await authorizedFetch("/upload/profile-photo", (fd) => {
+        fd.append("photo", file);
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Upload failed" }));

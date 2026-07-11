@@ -12,7 +12,7 @@
 
 | Layer | Document / code | Notes |
 | --- | --- | --- |
-| **Platform north-star** | This spec (sections below) | Target architecture for multi-vertical AORMS |
+| **Platform north-star** | This spec (sections below) | Target architecture for AEC consulting firms — two apps on one spine |
 | **Public landing copy** | [`frontend/src/content/aorms-development-spec.md`](../../frontend/src/content/aorms-development-spec.md) | **Edit here for rendered `/` page** — keep in sync with this doc |
 | **Live system state** | [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) | What **AORMS-Studio** actually ships (Fastify + tRPC + Drizzle, not GraphQL) |
 | **Stack reality** | [ARCHITECTURE.md](ARCHITECTURE.md) | Postgres, Redis, S3, Python worker, Ollama via `@hcw/aorms-ai-kit` |
@@ -35,14 +35,15 @@ accelerates optimization, and enables knowledge-driven decision-making.
 ### Key differentiators
 
 - **Custom framework deployment** — analyse office workflows → tailored process frameworks in days
-- **Dual-tier AI architecture** — external validation layer + internal RAG firewall
-- **Cross-domain applicability** — architecture-agnostic; accounting, law, strategy, engineering, management consulting
+- **Two AEC apps** — **AORMS-Studio** (architecture) and **AORMS-Consultancy** (engineering) on one platform spine
+- **Two AI agents** — **EmOI** (external) validates outside sources; **ESTI** (internal) answers from firm repositories
 - **Unified collaboration surface** — communication, revision, review, audit logs in one system
 
 ### Target user
 
-Consulting firms (5–500 person teams) seeking operational consolidation and
-workflow optimization without a full ERP overhaul.
+AEC consulting firms (5–500 person teams) — architecture and engineering
+practices seeking operational consolidation and workflow optimization without a
+full ERP overhaul.
 
 ---
 
@@ -115,7 +116,7 @@ When the north-star and shipped stack differ, **ARCHITECTURE.md** and
 | **1 — MVP** | Multi-tenant foundation; project/task; documents; basic approval; AI foundation; audit log |
 | **2** | Collaboration (messaging, co-editing); audit reports; analytics |
 | **3** | Enterprise workflows, SSO, advanced RBAC, integrations |
-| **4** | Vertical templates (accounting, law, …); marketplace |
+| **4** | **AORMS-Consultancy** engineering app; AEC framework marketplace |
 
 Checklist detail: [full content file](../../frontend/src/content/aorms-development-spec.md) § Development Roadmap.
 
@@ -135,4 +136,5 @@ Checklist detail: [full content file](../../frontend/src/content/aorms-developme
 | --- | --- | --- |
 | 1.0 | 2026 | Initial platform architecture & technical specification |
 | 1.0.1 | 2026-07-10 | Nomenclature rebrand; platform vs vertical split; repo reality table |
-| 1.0.2 | 2026-07-10 | **AORMS-Studio** workspace naming; vertical pattern (Compliance, Advisory, Audit, Studio) |
+| 1.0.3 | 2026-07-11 | Platform scope **AEC only** — two apps: **AORMS-Studio** (architecture) + **AORMS-Consultancy** (engineering) |
+| 1.0.2 | 2026-07-10 | **AORMS-Studio** workspace naming; vertical pattern (superseded by 1.0.3) |

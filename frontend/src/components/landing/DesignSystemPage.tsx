@@ -31,6 +31,7 @@ import {
 } from "@hcw/ui-kit";
 import type { CSSProperties, ReactNode } from "react";
 import { useState } from "react";
+import { AORMS_PORTALS, AORMS_STUDIO } from "../../lib/product-nomenclature.js";
 const DS_NAV = [
   { href: "/design-system#top", label: "Overview" },
   { href: "/design-system#thesis", label: "Thesis" },
@@ -636,7 +637,7 @@ useScreenActions([
             id="adopt"
             tag="Adopt"
             title="Mount the kit once. Ship calm interfaces forever."
-            body="Workspace, client portal, consultant portal, and marketing all share this system. Change a token here — every surface moves."
+            body={`${AORMS_STUDIO.title}, ${AORMS_PORTALS.client.label.toLowerCase()}, ${AORMS_PORTALS.consultant.label.toLowerCase()}, ${AORMS_PORTALS.account.licensing.toLowerCase()}, and marketing all share this system. Change a token here — every surface moves.`}
           />
           <div className="lp2-ds-adopt">
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>

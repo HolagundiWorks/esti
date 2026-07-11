@@ -1,12 +1,12 @@
-ï»¿---
-title: Why we built AORMS â€” the story behind the practice management system
+---
+title: Why we built AORMS — the story behind the practice management system
 date: 2026-07-10
-excerpt: Brilliant design work held together by spreadsheets, messaging threads, and one senior person's memory â€” and fees leaking away before invoices were raised. The AORMS-Studio workspace was built to close that gap on the AORMS platform.
+excerpt: Brilliant design work held together by spreadsheets, messaging threads, and one senior person's memory — and fees leaking away before invoices were raised. The AORMS-Studio was built to close that gap on the AORMS platform.
 tags: Vision, Story
 author: Human Centric Works
 ---
 
-**AORMS** today is a platform for **consulting offices that advise** â€” an operational
+**AORMS** today is a platform for **consulting offices that advise** — an operational
 framework and a design framework on one spine (see the [platform overview](/blog/aorms-platform-operational-design-frameworks)).
 **AORMS-Studio** is the first workspace we shipped: Indian architecture
 consultancies. This is the story of why that workspace exists.
@@ -16,7 +16,7 @@ design work held together by spreadsheets, WhatsApp groups, and the memory of
 one or two senior people. The drawings are excellent. The *operations* are
 improvised.
 
-That gap is where practices quietly lose money and momentum â€” a fee stage
+That gap is where practices quietly lose money and momentum — a fee stage
 completed but never invoiced, a client-driven change absorbed without a record,
 an approval that sat two weeks too long and delayed the cash tied to it. None of
 it is a design failure. All of it is a **coordination failure**, and the largest
@@ -26,7 +26,7 @@ billing.
 
 ## The insight
 
-An architecture office is not a folder of projects. It is a **living system** â€”
+An architecture office is not a folder of projects. It is a **living system** —
 clients, drawings, approvals, billing, revisions, site work, and people, all
 pulling on each other. Treat each as a separate app and you get exactly what most
 firms have: ten tools and no picture.
@@ -36,13 +36,13 @@ system, and software should do the *watching* so the principal does not have to.
 
 ## What we built
 
-**AORMS-Studio** â€” the architecture workspace on the AORMS platform â€” observes the whole
+**AORMS-Studio** — **AORMS-Studio** on the **AORMS** platform — observes the whole
 office continuously, reasons across its parts, predicts where pressure is
 building, and recommends the one action that matters most today. It speaks the
 language of an Indian practice natively: GST, SAC codes, FY dates, COA fee logic,
 client approvals, and site records.
 
 It is not another dashboard to monitor. It is a quieter office that tells you
-when â€” and only when â€” it needs you.
+when — and only when — it needs you.
 
 That is the whole idea. Everything else is detail.

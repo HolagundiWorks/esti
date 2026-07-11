@@ -11,6 +11,7 @@ export * from "./delivery.js";
 export * from "./compliance.js";
 export * from "./master-plan.js";
 export * from "./standards.js";
+export * from "./repo-portal.js";
 export * from "./spec-catalog.js";
 export * from "./item-library.js";
 export * from "./measurement-plan.js";

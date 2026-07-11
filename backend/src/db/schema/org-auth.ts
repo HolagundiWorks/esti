@@ -196,6 +196,8 @@ export const users = pgTable("esti_user", {
   isDemo: boolean("is_demo").notNull().default(false),
   /** Secret token for iCal/Google Calendar workload subscription (rotate to revoke). */
   calendarFeedToken: text("calendar_feed_token"),
+  /** When the calendar feed token was issued — feeds expire after 90 days. */
+  calendarFeedTokenAt: timestamp("calendar_feed_token_at", { withTimezone: true }),
   /** Optional personal cloud API key for AI Studio (OpenAI-compatible). Never expose in list APIs. */
   aiApiKey: text("ai_api_key"),
   /** When true and aiApiKey is set, generation uses the user's cloud key instead of firm Ollama. */

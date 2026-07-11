@@ -1,22 +1,20 @@
 /**
  * Product naming — keep in sync with docs/esti/AORMS-PLATFORM-NOMENCLATURE.md.
- * Platform: AORMS. Shipped workspace from this repo: AORMS-Studio (slug: aorms-studio).
+ * Platform: AORMS (AEC consulting firms only). Apps: AORMS-Studio + AORMS-Consultancy.
  */
 export const AORMS_PLATFORM = {
   name: "AORMS",
   expansion: "Accelerated Operational Resources Management System",
+  /** Platform scope — AEC consulting only (2026-07). */
+  tagline: "The operating system for AEC consulting firms",
+  audience:
+    "AEC consulting firms — architecture and engineering practices that advise clients, not solution delivery or construction PM",
   /** Platform home hero — no third-party product names. */
   heroHeadline: [
     "From disconnected tools to one operating system:",
-    "Bring research, analysis, collaboration, and delivery into a single workflow.",
+    "Built for architecture and engineering consultancies.",
   ] as const,
-  /** Consulting offices that advise clients — not solution delivery or PM vendors. */
-  advisoryDomains: [
-    "Risk management",
-    "Education",
-    "Auditing",
-    "AEC",
-  ] as const,
+  aecDisciplines: ["Architecture", "Engineering"] as const,
   fragmentedTools: [
     "Messaging",
     "Team communication",
@@ -42,43 +40,41 @@ export const PLATFORM_FRAMEWORKS = {
   },
 } as const;
 
-/** Vertical workspace naming — `AORMS-{Name}` per advisory domain. */
-export const AORMS_VERTICALS = {
+/** The two AORMS apps — `AORMS-{Name}` for architecture and engineering consultancies. */
+export const AORMS_APPS = {
   studio: {
     slug: "aorms-studio",
     legacySlugs: ["hived", "aorms-architecture"] as const,
     title: "AORMS-Studio",
-    tagline: "Architecture workspace for Indian studios",
-    audience: "Indian architecture and interior design practices",
-    appUrl: "https://app.aorms.in",
+    discipline: "Architecture",
+    tagline: "Architecture consultancy workspace for Indian practices",
+    audience: "Indian architecture and interior design consultancies",
+    appUrl: "https://studio.aorms.in",
+    /** @deprecated Use studio.aorms.in — app.aorms.in redirects at nginx. */
+    legacyAppUrl: "https://app.aorms.in",
+    marketingPath: "/login",
+    wikiPath: "/wiki/aorms-studio",
     wikiName: "AORMS-Studio docs",
-    industryId: "aec" as const,
+    status: "live" as const,
   },
-  compliance: {
-    slug: "aorms-compliance",
-    title: "AORMS-Compliance",
-    industryId: "risk" as const,
-  },
-  advisory: {
-    slug: "aorms-advisory",
-    title: "AORMS-Advisory",
-    industryId: "education" as const,
-  },
-  audit: {
-    slug: "aorms-audit",
-    title: "AORMS-Audit",
-    industryId: "auditing" as const,
+  consultancy: {
+    slug: "aorms-consultancy",
+    title: "AORMS-Consultancy",
+    discipline: "Engineering",
+    tagline: "Engineering consultancy workspace",
+    audience:
+      "Structural, MEP, civil, and multidisciplinary engineering consultancies advising on built-environment projects",
+    marketingPath: "/aorms-consultancy",
+    wikiPath: "/wiki/aorms-consultancy",
+    status: "roadmap" as const,
   },
 } as const;
 
-/** Shipped AEC workspace — Indian architecture consultancies (this monorepo). */
-export const AORMS_STUDIO = AORMS_VERTICALS.studio;
+/** Shipped architecture app — this monorepo (Indian architecture consultancies). */
+export const AORMS_STUDIO = AORMS_APPS.studio;
 
-/** @deprecated Use {@link AORMS_STUDIO}. */
-export const HIVED = AORMS_STUDIO;
-
-/** @deprecated Use {@link AORMS_STUDIO}. */
-export const AORMS_ARCHITECTURE = AORMS_STUDIO;
+/** Engineering consultancy app — roadmap. */
+export const AORMS_CONSULTANCY = AORMS_APPS.consultancy;
 
 /** Legacy single slug — prefer {@link AORMS_STUDIO.legacySlugs}. */
 export const AORMS_STUDIO_LEGACY_SLUG = AORMS_STUDIO.legacySlugs[1];
@@ -87,67 +83,110 @@ export function isAormsStudioLegacySlug(slug: string): boolean {
   return (AORMS_STUDIO.legacySlugs as readonly string[]).includes(slug);
 }
 
-/** Industries — consulting offices that advise in each domain (not solution delivery). */
-export const PLATFORM_INDUSTRIES = [
+/** Platform landing — the two AEC apps on one spine. */
+export const PLATFORM_APPS = [
   {
-    id: "risk",
-    status: "roadmap" as const,
-    title: "Risk management",
-    workspace: AORMS_VERTICALS.compliance.title,
-    subtitle: "Advisory consulting offices",
-    body:
-      "Firms that consult on enterprise risk, compliance, and governance — operational and design frameworks for assessments, review chains, and board-ready reporting without running client operations.",
-    bullets: [
-      "Risk registers & assessment workflows",
-      "Serial review & sign-off chains",
-      "EmOI · governed frameworks & citations",
-    ],
-  },
-  {
-    id: "education",
-    status: "roadmap" as const,
-    title: "Education",
-    workspace: AORMS_VERTICALS.advisory.title,
-    subtitle: "Advisory consulting offices",
-    body:
-      "Consultancies advising schools, colleges, and training bodies on accreditation, curriculum, and governance — not classroom delivery or student project management.",
-    bullets: [
-      "Accreditation & audit readiness models",
-      "Governed resource libraries",
-      "EmOI · semantic search on approved content",
-    ],
-  },
-  {
-    id: "auditing",
-    status: "roadmap" as const,
-    title: "Auditing",
-    workspace: AORMS_VERTICALS.audit.title,
-    subtitle: "Assurance consulting offices",
-    body:
-      "Chartered accountants and assurance consultancies — engagement frameworks, working-paper models, review chains, and compliance reporting with immutable audit trails.",
-    bullets: [
-      "Engagement & working-paper templates",
-      "Automated compliance & risk reporting",
-      "EmOI · dual-tier operational intelligence",
-    ],
-  },
-  {
-    id: "aec",
-    status: "live" as const,
-    title: "AEC",
+    id: "architecture",
+    status: AORMS_STUDIO.status,
+    title: AORMS_STUDIO.discipline,
     workspace: AORMS_STUDIO.title,
-    subtitle: "Architecture, Engineering & Construction advisory",
+    subtitle: "Architecture consultancies",
     body:
-      "Architecture and design consultancies advising Indian clients — operational and design frameworks for fees, revisions, compliance, and studio intelligence. Not construction project management.",
+      "Indian architecture and design consultancies — operational and design frameworks for fees, revisions, statutory compliance, drawings, and studio intelligence. Not construction project management.",
     bullets: [
       "COA fee proposals & GST invoicing",
       "Drawing register & transmittals",
-      "ESTI · Studio Intelligence · Ask ESTI",
+      "ESTI · internal AI agent · Ask ESTI",
     ],
     workspaceSlug: AORMS_STUDIO.slug,
+    href: AORMS_STUDIO.marketingPath,
     cta: `Explore ${AORMS_STUDIO.title}`,
   },
+  {
+    id: "engineering",
+    status: AORMS_CONSULTANCY.status,
+    title: AORMS_CONSULTANCY.discipline,
+    workspace: AORMS_CONSULTANCY.title,
+    subtitle: "Engineering consultancies",
+    body:
+      "Structural, MEP, civil, and multidisciplinary engineering consultancies — engagement frameworks, review chains, deliverable models, and governed knowledge for advisory work on built-environment projects.",
+    bullets: [
+      "Engagement & deliverable frameworks",
+      "Serial review & sign-off chains",
+      "EmOI · external AI agent · governed intake",
+    ],
+    workspaceSlug: AORMS_CONSULTANCY.slug,
+    href: AORMS_CONSULTANCY.marketingPath,
+    cta: `Learn about ${AORMS_CONSULTANCY.title}`,
+  },
 ] as const;
+
+/**
+ * Portal and surface labels — staff workspace, external portals, account hub.
+ * Staff workspace is **AORMS-Studio** (never "AORMS portal"). External portals
+ * keep the word *portal*; they are scoped to AORMS-Studio today.
+ */
+export const AORMS_PORTALS = {
+  studio: {
+    title: AORMS_STUDIO.title,
+    navLabel: AORMS_STUDIO.title,
+    signInTitle: `${AORMS_STUDIO.title} sign-in`,
+    signInLink: `Sign in to ${AORMS_STUDIO.title}`,
+    sessionLabel: `${AORMS_STUDIO.title} session`,
+    railFallback: AORMS_STUDIO.title,
+    url: AORMS_STUDIO.appUrl,
+  },
+  client: { label: "Client portal" as const },
+  consultant: {
+    label: "Consultant portal" as const,
+    alias: "Collaborator portal" as const,
+  },
+  contractor: { label: "Contractor portal" as const },
+  site: { label: "Site portal" as const },
+  external: {
+    authTagline: `Client, consultant, contractor & site portals · ${AORMS_STUDIO.title}`,
+    signInIntro:
+      "Sign in to your client, consultant, contractor, or site portal.",
+    staffHint: `Office team members use ${AORMS_STUDIO.title} sign-in`,
+    loginPageLink: "Client, consultant, contractor & site portals",
+    marketingList: "Client, consultant, contractor, and site portals",
+    stageHeadline: "External portal access",
+    url: "https://external.aorms.in",
+  },
+  account: {
+    name: "AORMS account",
+    hubCaption: "Account & licensing",
+    personal: "Personal account",
+    company: "Company account",
+    licensing: "Licensing console",
+    manageLicence: "Manage your AORMS account & licence",
+    create: "Create AORMS account",
+    myAccount: "My AORMS account",
+    stageHeadline: "AORMS account",
+    stageSubline: "Identity, companies, and licence — managed in one place.",
+    url: "https://account.aorms.in",
+  },
+  auth: {
+    licensingHeadline: "Licensing console",
+    licensingSubline: "Platform administration for Human Centric Works.",
+  },
+} as const;
+
+/** External portal labels — lists, SEO, marketing tiles. */
+export const EXTERNAL_PORTAL_LABELS = [
+  AORMS_PORTALS.client.label,
+  AORMS_PORTALS.consultant.label,
+  AORMS_PORTALS.contractor.label,
+  AORMS_PORTALS.site.label,
+] as const;
+
+/** Comma-separated external portal list for prose. */
+export function externalPortalsPhrase(finalConjunction: "and" | "or" = "and"): string {
+  const items = [...EXTERNAL_PORTAL_LABELS];
+  if (items.length <= 1) return items[0] ?? "";
+  const last = items.pop()!;
+  return `${items.join(", ")}, ${finalConjunction} ${last.toLowerCase()}`;
+}
 
 /** Human Centric Works — operator / design studio behind AORMS. */
 export const HUMAN_CENTRIC_WORKS = {
@@ -160,18 +199,34 @@ export const HUMAN_CENTRIC_WORKS = {
   logoOnLight: "/hcw-black.png",
 } as const;
 
-/** @deprecated Use {@link HUMAN_CENTRIC_WORKS}. */
-export const HOLAGUNDI_CONSULTING_WORKS = HUMAN_CENTRIC_WORKS;
-
 export const ESTI = {
   name: "ESTI",
   expansion: "Embedded Studio Intelligence",
-  /** AORMS-Studio only — not the platform-wide intelligence layer. */
+  /** Internal AI agent — firm-bound RAG, cognition, and workspace intelligence. */
+  role: "Internal AI agent",
+  summary:
+    "Internal AI agent — answers only from validated firm repositories; cognition engine, Ask ESTI, Studio Intelligence, and ESTI Pulse.",
   workspace: AORMS_STUDIO.slug,
 } as const;
 
-/** Platform intelligence layer — all AORMS verticals except AORMS-Studio ESTI. */
+/** Knowledge Bank portal — EmOI textbook intake → validated firm library → ESTI RAG. */
+export const KNOWLEDGE_BANK_PORTAL = {
+  title: "Knowledge Bank portal",
+  route: "/libraries/knowledge-bank-portal",
+  /** Frozen staff surface host. */
+  host: "https://kbank.aorms.in",
+  summary:
+    "Governed reference library: HCW Markdown Tool converts PDFs to markdown; EmOI rephrases and summarises; published sections are available to ESTI (Ask ESTI).",
+} as const;
+
+/** @deprecated Use KNOWLEDGE_BANK_PORTAL — kept for transitional imports. */
+export const REPO_PORTAL = KNOWLEDGE_BANK_PORTAL;
+
+/** External AI agent — validates and gates outbound / external-source intelligence. */
 export const EMOI = {
   name: "EmOI",
   expansion: "Embedded Operational Intelligence",
+  role: "External AI agent",
+  summary:
+    "External AI agent — fetches, validates, enriches, and gates content from outside sources before it enters the firm knowledge base.",
 } as const;

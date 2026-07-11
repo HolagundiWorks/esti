@@ -321,17 +321,28 @@ brand font once (`@fontsource/urbanist` weights 400/500/600/700).
 
 ```
 packages/hcw-ui-kit/src/
-├─ tokens.ts          colour, radius, type + LAYER recipes
-│                     (flat · soft · glass · clearGlass · headingGlass)
-├─ theme.ts           shared MUI theme from tokens
+├─ tokens.ts          colour SCHEMES (light · dark/HC scaffolds), radius,
+│                     TYPE_SCALE, LAYER recipes + scale tokens: SPACING ·
+│                     BREAKPOINTS · Z_INDEX · OPACITY · MOTION · ELEVATION ·
+│                     STATUS_COLORS
+├─ theme.ts           shared MUI theme — createAormsTheme({ scheme? })
+├─ chrome-sx.ts       shared sx helpers (actionDockButtonSx, sectionDockChipSx…)
+├─ portal-chrome.scss portal-wide class enforcement (imported once in main.tsx)
 ├─ MuiRoot.tsx        provider (theme + dayjs)
 ├─ Surface.tsx        <Surface layer="…">
 ├─ GlassRail.tsx      rail · stage (`glass="frost|clear"`)
 ├─ HealthGlassOrb.tsx zone / office-health (flat | glass)
 ├─ ActionDock.tsx     provider · useScreenActions · <ActionDock/>
+├─ SectionDock.tsx    marketing scroll-spy section carousel
 ├─ TaskbarFooter.tsx  left · center · right + TaskbarButton
+├─ StatusDot.tsx      canonical status indicator (dot + ink label)
+├─ DataState.tsx      loading-skeleton / empty-state grammar
+├─ ConfirmModal.tsx   the one destroy-confirm dialog
 └─ BrandMark.tsx      asset-free wordmark
 ```
+
+Versioned from **0.1.0** — [`CHANGELOG.md`](../../packages/hcw-ui-kit/CHANGELOG.md).
+AI audit contract: [HCW-KIT-AI-KNOWLEDGE-BASE.md](HCW-KIT-AI-KNOWLEDGE-BASE.md).
 
 Source-only (like `@esti/contracts`); the consuming portal's bundler compiles it.
 Colour + shape live ONLY here (and, for the landing page's editorial type scale /
@@ -358,7 +369,7 @@ Package README: [`packages/hcw-ui-kit/README.md`](../../packages/hcw-ui-kit/READ
 - Layer 3 via theme: button hover glass; error/warning alerts tinted glass.
 
 **Remaining (incremental):**
-1. Estimate app E1 UI pivot — **archived** ([ESTIMATE-AUTOPILOT-ROADMAP.md](../archive/esti/ESTIMATE-AUTOPILOT-ROADMAP.md)); active cost UI follows CMS rebuild.
+1. Estimate app E1 UI pivot — **N/A** (no `estimate/` tree); active cost UI follows [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) rebuild.
 2. Optional: marketing SCSS rail/heads import kit clear-glass tokens instead of
    duplicated rgba recipes.
 3. Optional further shrink of `glass.scss` once orb class aliases fully migrate

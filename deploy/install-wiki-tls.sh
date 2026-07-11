@@ -50,7 +50,7 @@ if certbot --nginx -d "$WIKI_DOMAIN" \
      --non-interactive --agree-tos -m "$ADMIN_EMAIL" --redirect; then
   nginx -t && systemctl reload nginx
   info "Wiki live at https://${WIKI_DOMAIN}/"
-  info "Wiki canonical URL: https://${DOMAIN}/wiki (wiki.${DOMAIN} redirects here)."
+  info "Wiki canonical host: https://${WIKI_DOMAIN}/ (aorms.in/wiki remains a path alias)."
 else
   error "certbot failed for ${WIKI_DOMAIN}. Check DNS, port 80 reachability, and certbot logs."
 fi

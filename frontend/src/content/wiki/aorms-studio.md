@@ -1,21 +1,21 @@
 ---
-title: AORMS-Studio workspace
+title: AORMS-Studio
 slug: aorms-studio
-excerpt: The shipped AORMS architecture workspace for Indian consultancies — fee recovery, revisions, drawings, site supervision, portals, and Studio Intelligence.
+excerpt: The shipped architecture app on AORMS for Indian consultancies — fee recovery, revisions, drawings, site supervision, client/consultant/contractor/site portals, and Studio Intelligence.
 order: 1
 section: Overview
 domain: aorms-studio
 updated: 2026-07-10
 ---
 
-**AORMS-Studio** is the first live **vertical workspace** on the AORMS platform — built for Indian architecture and interior design **consultancies** that advise clients. It is **not** construction project management or contractor coordination software.
+**AORMS-Studio** is the **architecture app** on the AORMS platform — built for Indian architecture and interior design **consultancies** that advise clients. It is **not** construction project management or contractor coordination software.
 
 | Aspect | Detail |
 | --- | --- |
-| **App URL** | [app.aorms.in](https://app.aorms.in) |
+| **App URL** | [studio.aorms.in](https://studio.aorms.in) |
 | **Audience** | Registered architects, interior designers, solo practitioners, mid-sized firms |
 | **Licence** | One standard licence — unlimited users, clients, projects; 5 GB included storage |
-| **Intelligence** | **ESTI** (Embedded Studio Intelligence) — workspace-only; not the platform EmOI layer |
+| **Intelligence** | **ESTI** (internal AI agent) · **EmOI** (external AI agent) on the platform |
 
 ## What the workspace covers
 
@@ -44,17 +44,16 @@ updated: 2026-07-10
 
 ## Platform context
 
-AORMS (**Accelerated Operational Resources Management System**) is the wider platform — operational and design frameworks for advisory consultancies in risk, education, auditing, and AEC. Future verticals ship as separate workspace profiles:
+AORMS (**Accelerated Operational Resources Management System**) is the wider platform — operational and design frameworks for **AEC consulting firms**. Two apps share one spine:
 
-| Industry | Workspace |
+| Discipline | App |
 | --- | --- |
-| Risk management | **AORMS-Compliance** |
-| Education | **AORMS-Advisory** |
-| Auditing | **AORMS-Audit** |
-| AEC (architecture) | **AORMS-Studio** (this workspace) |
+| Architecture | **AORMS-Studio** (this app — shipping) |
+| Engineering | **AORMS-Consultancy** (roadmap) |
 
 - [AORMS platform home](/)
 - [AORMS-Studio marketing + sign in](/login)
+- [AORMS-Consultancy (roadmap)](/aorms-consultancy)
 - [Wiki documentation](/wiki/aorms-studio)
 
 ## Frequently asked questions

@@ -1,4 +1,4 @@
-﻿---
+---
 title: Finance and billing
 slug: finance-and-billing
 excerpt: COA fee proposals, GST invoices, reconciliation, filing abstracts, and project expenses.
@@ -8,13 +8,13 @@ domain: management
 updated: 2026-07-09
 ---
 
-AORMS finance modules follow **Indian consultancy practice** — COA fee scales, GST, TDS reconciliation, and April–March reporting context.
+AORMS finance modules follow **Indian consultancy practice** � COA fee scales, GST, TDS reconciliation, and April�March reporting context.
 
 ---
 
 ## Fee proposals
 
-**Route:** Office → Proposals (`/office/proposals`)
+**Route:** Office ? Proposals (`/office/proposals`)
 
 1. Create a **fee proposal** or **scope agreement** on the unified proposal model.
 2. Enter stage-wise fees, percentages, or lump sums per COA convention.
@@ -25,9 +25,9 @@ AORMS finance modules follow **Indian consultancy practice** — COA fee scales,
 
 ## GST invoicing
 
-**Route:** Finance → Invoices (`/finance/invoices`)
+**Route:** Finance ? Invoices (`/finance/invoices`)
 
-1. **Create invoice** — select client, project, and tax profile.
+1. **Create invoice** � select client, project, and tax profile.
 2. Line items use consultancy **SAC codes**; CGST/SGST or IGST from place of supply.
 3. Amounts are stored in **paise** internally; the UI formats INR.
 4. Issue PDF; track payment status and credit notes as your policy requires.
@@ -36,7 +36,7 @@ AORMS finance modules follow **Indian consultancy practice** — COA fee scales,
 
 ## Reconciliation
 
-**Route:** Finance → Reconcile (`/finance/reconcile`)
+**Route:** Finance ? Reconcile (`/finance/reconcile`)
 
 1. Import **bank statements**, **26AS**, **AIS**, or **GSTR** files (formats supported by the worker).
 2. Review suggested matches; confirm or override.
@@ -46,17 +46,17 @@ AORMS finance modules follow **Indian consultancy practice** — COA fee scales,
 
 ## Filing abstracts
 
-**Route:** Finance → Filing (`/finance/filing`)
+**Route:** Finance ? Filing (`/finance/filing`)
 
 - Generate **GST** and **TDS** filing abstracts for the compliance period.
-- Export for your CA or internal review — tied to reconciled data where possible.
+- Export for your CA or internal review � tied to reconciled data where possible.
 
 ---
 
 ## Office cash book and project expenses
 
-- **Cash book** — office-level receipts and payments.
-- **Project expenses** — attribute costs to projects for internal job costing.
+- **Cash book** � office-level receipts and payments.
+- **Project expenses** � attribute costs to projects for internal job costing.
 
 ---
 
@@ -64,7 +64,7 @@ AORMS finance modules follow **Indian consultancy practice** — COA fee scales,
 
 When HR is enabled for your firm:
 
-- **Finance → Payroll** — payslips from attendance and salary structure.
+- **Finance ? Payroll** � payslips from attendance and salary structure.
 - Requires `hr:manage` capability.
 
 ---
@@ -72,7 +72,7 @@ When HR is enabled for your firm:
 ## Workflow: bill a design stage
 
 1. Confirm the **stage is complete** on the project (tasks/decisions closed).
-2. Open **Proposals** — verify the milestone amount for that stage.
+2. Open **Proposals** � verify the milestone amount for that stage.
 3. **Create invoice** for the milestone; attach reference to the proposal line.
 4. Send PDF to client; record receipt in reconcile when paid.
 5. Studio Intelligence **Financial** zone should return to green for that project.
@@ -83,7 +83,7 @@ When HR is enabled for your firm:
 
 ### Does AORMS file GST returns directly?
 
-AORMS prepares **abstracts and reconciled data** — your CA files through the government portal. Integration depth may expand; check release notes.
+AORMS prepares **abstracts and reconciled data** � your CA files through the government portal. Integration depth may expand; check release notes.
 
 ### Are fees in rupees or paise?
 
@@ -91,4 +91,4 @@ Display is rupees; storage is integer **paise** for precision.
 
 ### Can clients see invoices in the portal?
 
-Expose as your office policy dictates — fee **status** is visible in the client portal; invoice PDFs per your sharing practice.
+Expose as your office policy dictates � fee **status** is visible in the client portal; invoice PDFs per your sharing practice.

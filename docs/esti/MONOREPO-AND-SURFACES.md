@@ -25,7 +25,6 @@ esti/                     pnpm workspace root
 ├─ vendor/hcw-aorms-ai-kit/  AI prompts + Ollama SDK
 ├─ desktop/               Tauri shell (legacy Manager packaging scripts)
 ├─ docs/reference/        Zonal-regulation reference data (municipal bylaws)
-└─ docs/archive/          Retired specs (Estimate app, Carbon audits, …)
 ```
 
 **Invariant:** any shape crossing two surfaces (rates, `.aormsest`, permissions,
@@ -42,11 +41,11 @@ Any "yes" that matters → a **subdomain** (or a binary).
 
 | Surface | Users | Cadence | Isolation need | → Access |
 |---|---|---|---|---|
-| AORMS-Studio | firm staff | continuous | — | `app.aorms.in` (root) |
+| AORMS-Studio | firm staff | continuous | — | `studio.aorms.in` (root) |
 | **Estimation** | **same staff** | **same** | **none** | **Project › Cost Management — nested** |
 | **ESE** (pack publisher) | **`kbteam`** | **yearly SR** | **yes** | **`ese.aorms.in` — subdomain** |
 | **Estimate app** | estimators, **offline** | independent | native/offline | **desktop binary** |
-| Client / consultant portals | external | — | session-scoped | `/portal`, `/collab` extensions |
+| Client / consultant / contractor / site portals | external parties | continuous | session-scoped | `external.aorms.in` · `/access` |
 
 ### Estimation → nested inside a project (Cost Management)
 It is a module *of* the workspace: same session cookie, same HCW shell, same
@@ -63,14 +62,13 @@ Different users (`kbteam`, admin seeded from deploy env), a different job
 clock (once a year). It publishes *into* the system across a versioned seam; it is
 not in the request path of daily work. That earns a subdomain.
 
-### Estimate app → archived (not in this monorepo)
-Historical spec: standalone C++ desktop + `.aormsest` interchange — see
-[../archive/esti/ESTIMATION-ARCHITECTURE.md](../archive/esti/ESTIMATION-ARCHITECTURE.md).
-Active cost work: [COST-MANAGEMENT-SYSTEM.md](./COST-MANAGEMENT-SYSTEM.md).
+### Estimate app → not in this monorepo
+Standalone C++ desktop + `.aormsest` interchange was retired. Active cost work:
+[COST-MANAGEMENT-SYSTEM.md](./COST-MANAGEMENT-SYSTEM.md).
 
 ```
         ┌──────────────────────── one monorepo ─────────────────────────┐
- kbteam │   ese.aorms.in            app.aorms.in                         │
+ kbteam │   ese.aorms.in            studio.aorms.in                      │
    ────►│  ┌───────────┐  Rate    ┌───────────────────────────────────┐ │
         │  │  ESE      │  Library │  AORMS-Studio (frontend+backend)│ │
         │  │ (Fastify) │  Pack    │   /  /projects  /tasks             │ │
@@ -125,9 +123,7 @@ state DSRs.
 
 - **AORMS** (backend + worker + frontend) → `deploy/update.sh`
   (podman compose); one deploy, no separate estimation release.
-- **ESE** — **retired** (no `ese/` package in this monorepo). Historical installer:
-  [../archive/deploy/install-ese.sh](../archive/deploy/install-ese.sh).
-- **Estimate app** — desktop release tag; cloud-only at aorms.in (see archive docs).
+- **ESE** — **retired** (no `ese/` package in this monorepo).
+- **Estimate app** — not in this monorepo; cloud-only at aorms.in.
 
 See [COST-MANAGEMENT-SYSTEM.md](./COST-MANAGEMENT-SYSTEM.md) for the active CMS rebuild.
-Historical Estimate/ESE architecture: [../archive/esti/ESTIMATION-ARCHITECTURE.md](../archive/esti/ESTIMATION-ARCHITECTURE.md).

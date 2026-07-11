@@ -1,6 +1,7 @@
 import { Alert, AlertTitle, Paper, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { type PlanRequest, fetchMyRequest } from "./lib/auth";
+import { AORMS_PORTALS, AORMS_STUDIO } from "../lib/product-nomenclature.js";
 
 /** Licence status for the linked platform account — one standard product. */
 export default function RequestPlan() {
@@ -33,7 +34,7 @@ export default function RequestPlan() {
           </Alert>
         ) : (
           <Typography variant="body2" color="text.secondary">
-            Every AORMS account uses the same standard licence — full workspace, 5 GB
+            Every {AORMS_PORTALS.account.name} uses the same standard licence — {AORMS_STUDIO.title}, 5 GB
             included, unlimited users. Create a firm at{" "}
             <a href="/account?mode=create">/account?mode=create</a> or write to{" "}
             <a href="mailto:hi@aorms.in">hi@aorms.in</a> for billing questions.

@@ -17,7 +17,9 @@ import { createTheme, type Theme } from "@mui/material/styles";
 // Theme augmentation so `components.MuiDataGrid` (MUI X) is type-known here.
 import type {} from "@mui/x-data-grid/themeAugmentation";
 import {
-  colors as CDS,
+  SCHEMES,
+  type SchemeName,
+  MOTION,
   RADIUS as GLASS_RADIUS,
   BUTTON_RADIUS as BTN_RADIUS,
   FONT_FAMILY,
@@ -41,15 +43,37 @@ import {
   REDUCE_MOTION,
   FOCUS_RING,
   TAB_ALERT_WIDTH,
+  SPACING_UNIT,
+  BREAKPOINTS,
+  Z_INDEX,
+  OPACITY,
 } from "./tokens.js";
 
 /** Build the AORMS MUI theme. Exposed as a factory so a portal can layer small
- *  overrides on top if it must, while sharing 100% of the brand defaults. */
-export function createAormsTheme(): Theme {
+ *  overrides on top if it must, while sharing 100% of the brand defaults.
+ *
+ *  `scheme` selects the semantic colour scheme (default `"light"` — the shipped
+ *  brand). `"dark"` / `"highContrast"` are palette-complete SCAFFOLDS: the
+ *  neumorphic/glass recipes remain light-tuned until they gain scheme variants,
+ *  so treat non-light schemes as preview-grade (see tokens.ts § Colour schemes). */
+export function createAormsTheme(options?: { scheme?: SchemeName }): Theme {
+  const CDS = SCHEMES[options?.scheme ?? "light"];
   return createTheme({
     shape: { borderRadius: GLASS_RADIUS },
+    // Scale tokens drive the theme (parity with MUI defaults → no layout shift):
+    // 8px spacing grid, the shared breakpoint ladder, and one z-index stack so
+    // themed MUI overlays and HCW chrome never fight.
+    spacing: SPACING_UNIT,
+    breakpoints: { values: BREAKPOINTS },
+    zIndex: {
+      appBar: Z_INDEX.appBar,
+      drawer: Z_INDEX.drawer,
+      modal: Z_INDEX.dialog,
+      snackbar: Z_INDEX.toast,
+      tooltip: Z_INDEX.tooltip,
+    },
     palette: {
-      mode: "light",
+      mode: options?.scheme === "dark" ? "dark" : "light",
       primary: { main: CDS.accent, dark: CDS.accentDark, contrastText: CDS.onAccent },
       secondary: { main: CDS.accentDark, contrastText: CDS.onAccent },
       error: { main: CDS.supportError },
@@ -145,8 +169,8 @@ export function createAormsTheme(): Theme {
               background: "transparent",
               border: "none",
               boxShadow: "none",
-              transition:
-                "transform 130ms ease, box-shadow 130ms ease, color 130ms ease, background 130ms ease",
+              // R7 — motion from tokens, never literals.
+              transition: `transform ${MOTION.duration.fast}ms ${MOTION.easing.standard}, box-shadow ${MOTION.duration.fast}ms ${MOTION.easing.standard}, color ${MOTION.duration.fast}ms ${MOTION.easing.standard}, background ${MOTION.duration.fast}ms ${MOTION.easing.standard}`,
               // HOVER = Layer 3 GLASS: the label lifts onto a frosted glass slab
               // (actionability itself glows), keeping the bottom accent line.
               "&:hover": {
@@ -254,7 +278,7 @@ export function createAormsTheme(): Theme {
             backgroundColor: "transparent",
             opacity: 1,
             boxShadow: `inset 0 ${TAB_ALERT_WIDTH}px 0 0 transparent`,
-            transition: "color 130ms ease, box-shadow 130ms ease",
+            transition: `color ${MOTION.duration.fast}ms ${MOTION.easing.standard}, box-shadow ${MOTION.duration.fast}ms ${MOTION.easing.standard}`,
             "&:hover": {
               backgroundColor: "transparent",
               color: CDS.textPrimary,
@@ -328,6 +352,66 @@ export function createAormsTheme(): Theme {
               "&:hover": { backgroundColor: GLASS_ORANGE_30 },
             },
           },
+        },
+      },
+      // Form controls + feedback — previously un-themed (raw MUI defaults, off
+      // the square/neu/accent language). Now token-driven: accent when active,
+      // neutral track/rail, focus-ring parity, square where the language demands.
+      MuiCheckbox: {
+        styleOverrides: {
+          root: {
+            color: CDS.textSecondary,
+            "&.Mui-checked": { color: CDS.accent },
+            "&.Mui-focusVisible": FOCUS_RING,
+          },
+        },
+      },
+      MuiRadio: {
+        styleOverrides: {
+          root: {
+            color: CDS.textSecondary,
+            "&.Mui-checked": { color: CDS.accent },
+            "&.Mui-focusVisible": FOCUS_RING,
+          },
+        },
+      },
+      MuiSwitch: {
+        styleOverrides: {
+          switchBase: {
+            "&.Mui-checked": { color: CDS.onAccent },
+            "&.Mui-checked + .MuiSwitch-track": { backgroundColor: CDS.accent, opacity: 1 },
+            "&.Mui-focusVisible": FOCUS_RING,
+          },
+          track: { backgroundColor: CDS.textSecondary, opacity: OPACITY.muted },
+        },
+      },
+      MuiSlider: {
+        styleOverrides: {
+          root: { color: CDS.accent },
+          rail: { backgroundColor: CDS.borderStrong, opacity: 1 },
+          thumb: {
+            "&:hover, &.Mui-focusVisible": { boxShadow: `0 0 0 6px ${CDS.accentSoft}` },
+          },
+        },
+      },
+      MuiLinearProgress: {
+        styleOverrides: {
+          root: { borderRadius: 0, backgroundColor: CDS.layer02 },
+          bar: { backgroundColor: CDS.accent },
+        },
+      },
+      MuiCircularProgress: {
+        styleOverrides: { root: { color: CDS.accent } },
+      },
+      MuiSkeleton: {
+        styleOverrides: {
+          root: { borderRadius: 0, backgroundColor: "rgba(20, 21, 23, 0.06)" },
+        },
+      },
+      MuiBadge: {
+        styleOverrides: {
+          badge: { fontWeight: 600 },
+          colorPrimary: { backgroundColor: CDS.accent, color: CDS.onAccent },
         },
       },
       MuiTableCell: {

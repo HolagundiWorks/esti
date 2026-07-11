@@ -1,18 +1,24 @@
 /** Landing-page SEO — platform home `/`. Keep in sync with index.html meta tags. */
-import { AORMS_STUDIO, AORMS_PLATFORM, EMOI, ESTI } from "./product-nomenclature.js";
+import {
+  AORMS_CONSULTANCY,
+  AORMS_PLATFORM,
+  AORMS_STUDIO,
+  EMOI,
+  ESTI,
+} from "./product-nomenclature.js";
 
 export const LANDING_SEO = {
   title: `AORMS | ${AORMS_PLATFORM.expansion}`,
   description:
-    "Operational and design frameworks for consulting offices advising in risk, education, auditing, and AEC — one spine with EmOI intelligence. Not solution delivery. Not project management.",
+    "Operational and design frameworks for AEC consulting firms — architecture and engineering consultancies on one spine with EmOI intelligence. Not solution delivery. Not construction project management.",
   keywords:
-    "AORMS, EmOI, consulting frameworks, operational framework, design framework, advisory consulting, risk management consulting, audit consulting, AEC consulting, workflow consolidation",
+    "AORMS, EmOI, AEC consulting, architecture consultancy software, engineering consultancy software, operational framework, design framework, AORMS-Studio, AORMS-Consultancy, workflow consolidation",
   ogTitle: `AORMS — ${AORMS_PLATFORM.heroHeadline[0]} ${AORMS_PLATFORM.heroHeadline[1]}`,
   ogDescription:
-    "Accelerated Operational Resources Management System: operational and design frameworks for advisory consulting offices — risk, education, auditing, and AEC. One spine. Not solution delivery or project management.",
-  twitterTitle: "AORMS — frameworks for advisory consultancies",
+    "Accelerated Operational Resources Management System: operational and design frameworks for AEC consulting firms. Two apps — AORMS-Studio (architecture) and AORMS-Consultancy (engineering). One spine.",
+  twitterTitle: "AORMS — frameworks for AEC consultancies",
   twitterDescription:
-    `Operational + design frameworks for consulting offices. EmOI dual-tier intelligence. ${AORMS_STUDIO.title} shipping for Indian architecture consultancies.`,
+    `Operational + design frameworks for architecture and engineering consultancies. EmOI dual-tier intelligence. ${AORMS_STUDIO.title} shipping for Indian architecture practices; ${AORMS_CONSULTANCY.title} on the roadmap.`,
   headline: `${AORMS_PLATFORM.heroHeadline[0]} ${AORMS_PLATFORM.heroHeadline[1]}`,
   footerBlurb: `${AORMS_PLATFORM.name} (${AORMS_PLATFORM.expansion}).`,
   canonical: "https://aorms.in/",
@@ -24,42 +30,47 @@ export const LANDING_FAQ = [
   {
     question: "What is AORMS?",
     answer:
-      `AORMS (Accelerated Operational Resources Management System) is a pre-release platform for consulting offices that advise clients — an operational framework and a design framework on one spine, with EmOI dual-tier intelligence. We are not in solution delivery or project management. ${AORMS_STUDIO.title} ships today for Indian architecture consultancies, with ESTI as its studio intelligence layer.`,
+      `AORMS (Accelerated Operational Resources Management System) is a pre-release platform for AEC consulting firms — architecture and engineering practices that advise clients. It combines an operational framework and a design framework on one spine, with ${EMOI.name} as the ${EMOI.role.toLowerCase()} and ${ESTI.name} as the ${ESTI.role.toLowerCase()} in ${AORMS_STUDIO.title}. We are not in solution delivery or construction project management.`,
   },
   {
     question: "Who is the platform for?",
     answer:
-      "Consulting offices that advise in risk management, education, auditing, and AEC — firms of 5–500 people replacing scattered messaging, advisory workflows, documentation, email, sheets, and file sharing. AEC ships today; risk, education, and auditing workspaces are on the roadmap.",
+      "AEC consulting firms — architecture and engineering practices of 5–500 people replacing scattered messaging, advisory workflows, documentation, email, sheets, and file sharing. AORMS-Studio ships for architecture consultancies; AORMS-Consultancy for engineering consultancies is on the roadmap.",
+  },
+  {
+    question: "What are AORMS-Studio and AORMS-Consultancy?",
+    answer:
+      `${AORMS_STUDIO.title} is the architecture consultancy app — Indian architecture and design practices (live at ${AORMS_STUDIO.appUrl.replace(/^https:\/\//, "")}). ${AORMS_CONSULTANCY.title} is the engineering consultancy app — structural, MEP, civil, and multidisciplinary firms (roadmap). Both share the same AORMS platform spine, ${EMOI.name} (${EMOI.role.toLowerCase()}), and an internal-agent profile per app.`,
   },
   {
     question: "What are the operational and design frameworks?",
     answer:
-      "The operational framework is how the consulting office runs — intake, process standards, review, audit, and governed knowledge. The design framework is how engagements are structured — methodologies, deliverable models, and versioned advisory templates. AORMS is built for consultancies that advise, not firms that deliver solutions or run client project management.",
+      "The operational framework is how the consulting office runs — intake, process standards, review, audit, and governed knowledge. The design framework is how engagements are structured — methodologies, deliverable models, and versioned advisory templates. AORMS is built for AEC consultancies that advise, not firms that deliver solutions or run construction project management.",
   },
   {
     question: "What is the dual-tier AI architecture?",
     answer:
-      "An external AI module validates and gates content from outside sources; an internal RAG module answers only from validated repositories — reducing hallucination and compliance drift. See the Core Architecture section on this page.",
+      `Two agents: ${EMOI.name} (${EMOI.expansion}) is the ${EMOI.role.toLowerCase()} — it validates content from outside sources before it enters the firm. ${ESTI.name} (${ESTI.expansion}) is the ${ESTI.role.toLowerCase()} — it answers only from validated firm repositories. See the ${EMOI.name} + ${ESTI.name} section on this page.`,
   },
   {
-    question: "Where is the architecture workspace documentation?",
+    question: `Where is the ${AORMS_STUDIO.title} documentation?`,
     answer:
       `The ${AORMS_STUDIO.title} user guide lives at aorms.in/wiki — getting started, finance, workflows, and account setup for Indian architecture practices.`,
   },
   {
     question: "What is EmOI?",
     answer:
-      `${EMOI.name} (${EMOI.expansion}) is the intelligence layer on the AORMS platform — dual-tier AI governance, workflow intelligence, internal RAG, and governed answers across operational verticals.`,
+      `${EMOI.name} (${EMOI.expansion}) is the ${EMOI.role.toLowerCase()} on the AORMS platform — ${EMOI.summary}`,
   },
   {
     question: "What is ESTI?",
     answer:
-      `${ESTI.name} (${ESTI.expansion}) is the architecture-only intelligence layer inside ${AORMS_STUDIO.title} — Ask ESTI, AI Studio, Studio Intelligence, and ESTI Pulse. It does not replace EmOI on the wider platform.`,
+      `${ESTI.name} (${ESTI.expansion}) is the ${ESTI.role.toLowerCase()} — ${ESTI.summary} Live today in ${AORMS_STUDIO.title}; ${AORMS_CONSULTANCY.title} will ship its own internal-agent profile on the roadmap.`,
   },
   {
     question: "Is this documentation the shipped product?",
     answer:
-      `This page is the platform north-star (v1.0 pre-release). The live browser workspace at app.aorms.in implements ${AORMS_STUDIO.title}; stack details differ in places (Fastify + tRPC today vs REST/GraphQL in the north-star spec).`,
+      `This page is the platform north-star (v1.0 pre-release). The live browser workspace at ${AORMS_STUDIO.appUrl.replace(/^https:\/\//, "")} implements ${AORMS_STUDIO.title}; stack details differ in places (Fastify + tRPC today vs REST/GraphQL in the north-star spec).`,
   },
 ] as const;
 
@@ -126,6 +137,7 @@ export function injectLandingJsonLd(): void {
         alternateName: [
           AORMS_PLATFORM.expansion,
           AORMS_STUDIO.title,
+          AORMS_CONSULTANCY.title,
           EMOI.name,
           EMOI.expansion,
           ESTI.name,
@@ -136,16 +148,16 @@ export function injectLandingJsonLd(): void {
         url: "https://aorms.in/",
         description: LANDING_SEO.description,
         featureList:
-          "operational framework, design framework, collaboration, review and approval, audit and compliance, knowledge base, analytics dashboards, EmOI dual-tier AI",
+          "operational framework, design framework, collaboration, review and approval, audit and compliance, knowledge base, analytics dashboards, EmOI external AI agent, ESTI internal AI agent",
         audience: {
           "@type": "Audience",
           audienceType:
-            "Consulting offices advising in risk management, education, auditing, and AEC (5–500 people)",
+            "AEC consulting firms — architecture and engineering consultancies (5–500 people)",
         },
         offers: {
           "@type": "Offer",
           name: `${AORMS_PLATFORM.name} platform`,
-          description: `Pre-release platform. ${AORMS_STUDIO.title} vertical workspace available with standard licence.`,
+          description: `Pre-release platform. ${AORMS_STUDIO.title} app available with standard licence; ${AORMS_CONSULTANCY.title} on roadmap.`,
           url: `https://aorms.in/login`,
         },
         publisher: { "@id": "https://aorms.in/#organization" },

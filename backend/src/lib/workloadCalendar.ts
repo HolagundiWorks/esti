@@ -11,22 +11,39 @@ import { projectOffices, tasks, teamMembers, users } from "../db/schema.js";
 
 const OFFICE_SCOPE_ROLES = new Set(["OWNER", "PARTNER", "SENIOR"]);
 
+/** Calendar ICS feed tokens expire after this many days unless rotated. */
+export const CALENDAR_FEED_TOKEN_TTL_DAYS = 90;
+
 export async function ensureCalendarFeedToken(db: DB, userId: string): Promise<string> {
   const [row] = await db
-    .select({ token: users.calendarFeedToken })
+    .select({ token: users.calendarFeedToken, issuedAt: users.calendarFeedTokenAt })
     .from(users)
     .where(eq(users.id, userId));
-  if (row?.token) return row.token;
+  if (row?.token && isCalendarTokenLive(row.issuedAt)) return row.token;
 
   const token = randomBytes(24).toString("hex");
-  await db.update(users).set({ calendarFeedToken: token }).where(eq(users.id, userId));
+  const issuedAt = new Date();
+  await db
+    .update(users)
+    .set({ calendarFeedToken: token, calendarFeedTokenAt: issuedAt })
+    .where(eq(users.id, userId));
   return token;
 }
 
 export async function rotateCalendarFeedToken(db: DB, userId: string): Promise<string> {
   const token = randomBytes(24).toString("hex");
-  await db.update(users).set({ calendarFeedToken: token }).where(eq(users.id, userId));
+  const issuedAt = new Date();
+  await db
+    .update(users)
+    .set({ calendarFeedToken: token, calendarFeedTokenAt: issuedAt })
+    .where(eq(users.id, userId));
   return token;
+}
+
+function isCalendarTokenLive(issuedAt: Date | null | undefined): boolean {
+  if (!issuedAt) return false;
+  const ageMs = Date.now() - issuedAt.getTime();
+  return ageMs <= CALENDAR_FEED_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000;
 }
 
 export function parseCalendarScope(raw: string | undefined): WorkloadCalendarScope {
@@ -40,10 +57,11 @@ export async function userForCalendarToken(db: DB, token: string) {
       role: users.role,
       fullName: users.fullName,
       disabled: users.disabled,
+      issuedAt: users.calendarFeedTokenAt,
     })
     .from(users)
     .where(eq(users.calendarFeedToken, token));
-  if (!user || user.disabled) return null;
+  if (!user || user.disabled || !isCalendarTokenLive(user.issuedAt)) return null;
   if (user.role === "CLIENT" || user.role === "CONSULTANT") return null;
   return user;
 }

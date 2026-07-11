@@ -2,7 +2,7 @@
  * Central wiki hubs — four documentation domains on aorms.in/wiki.
  * Keep aligned with docs/esti/AORMS-PLATFORM-NOMENCLATURE.md.
  */
-import { AORMS_STUDIO, isAormsStudioLegacySlug } from "./product-nomenclature.js";
+import { AORMS_STUDIO, AORMS_PORTALS, isAormsStudioLegacySlug } from "./product-nomenclature.js";
 
 export type WikiHubId = "hcw-ui" | "aorms-studio" | "ai-core" | "management";
 
@@ -31,18 +31,18 @@ export const WIKI_HUBS: readonly WikiHub[] = [
     id: "aorms-studio",
     hubSlug: AORMS_STUDIO.slug,
     title: AORMS_STUDIO.title,
-    tagline: "Architecture advisory workspace",
+    tagline: AORMS_STUDIO.tagline,
     description:
-      "The shipped workspace for Indian architecture consultancies — projects, fees, revisions, drawings, site supervision, portals, and Studio Intelligence.",
+      `The shipped ${AORMS_STUDIO.title} architecture app — projects, fees, revisions, drawings, site supervision, ${AORMS_PORTALS.external.marketingList.toLowerCase()}, and Studio Intelligence.`,
     order: 2,
   },
   {
     id: "ai-core",
     hubSlug: "ai-core",
     title: "AI core",
-    tagline: "EmOI + ESTI intelligence",
+    tagline: "EmOI + ESTI agents",
     description:
-      "Platform-wide EmOI (dual-tier AI firewall) and AORMS-Studio ESTI (Ask ESTI, cognition engine, ESTI Pulse) — deterministic truth, LLM explanation.",
+      "EmOI — external AI agent (outside validation). ESTI — internal AI agent (firm RAG, Ask ESTI, cognition engine, ESTI Pulse).",
     order: 3,
   },
   {

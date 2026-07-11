@@ -1,6 +1,6 @@
 # Landing page redesign — agent context
 
-**Status:** Canonical brief · **Updated:** 2026-07-10 · **Owner:** HCW
+**Status:** Canonical brief · **Updated:** 2026-07-11 · **Owner:** HCW
 
 Another agent or designer may own visual/layout work on the public landing. This
 file captures **product and documentation context** so copy, IA, and SEO stay
@@ -14,7 +14,7 @@ aligned with the platform rebrand.
 | --- | --- |
 | AORMS = *Architecture Office Resource Management System* | AORMS = **Accelerated Operational Resources Management System** (platform) |
 | Landing = architecture-practice marketing | Landing = **pre-release platform development documentation** |
-| Single product story | Platform story + **`AORMS-{Name}`** vertical workspaces (**AORMS-Studio** shipping; Compliance, Advisory, Audit on roadmap) |
+| Single product story | Platform story + **two AEC apps**: **AORMS-Studio** (architecture, shipping) and **AORMS-Consultancy** (engineering, roadmap) |
 
 Full naming rules: [AORMS-PLATFORM-NOMENCLATURE.md](../esti/AORMS-PLATFORM-NOMENCLATURE.md).
 
@@ -26,9 +26,9 @@ The home route (`/`) presents **AORMS Development Documentation** — Version 1.
 pre-release architecture and technical specification:
 
 - Mission: consolidate consulting workflows (5–7 tools → one AI-enhanced platform)
-- Dual-tier AI (external validation + internal RAG firewall)
+- **EmOI** (external AI agent) + **ESTI** (internal AI agent)
 - Feature modules, stack, roadmap
-- Target: consulting firms 5–500 people, **domain-agnostic** positioning
+- Target: **AEC consulting firms** 5–500 people — architecture and engineering practices
 
 **Source markdown (bundled at build):**
 `frontend/src/content/aorms-development-spec.md`
@@ -56,6 +56,7 @@ These belong to **AORMS-Studio** (vertical), not the platform doc landing:
 
 | Concern | Canonical reference |
 | --- | --- |
+| UX audit checklist | [HCW-UI-UX-PRINCIPLES.md](../esti/HCW-UI-UX-PRINCIPLES.md) — laws, cognitive load, marketing review |
 | Spatial model | Rail · Stage · Dock — [HCW-UI-KIT.md](../esti/HCW-UI-KIT.md) |
 | Design system page | `/design-system` — `DesignSystemPage.tsx` |
 | Tokens / layers | `@hcw/ui-kit` — flat · soft · glass |
@@ -72,11 +73,27 @@ These belong to **AORMS-Studio** (vertical), not the platform doc landing:
 | Path | Role |
 | --- | --- |
 | `/` | **Platform marketing landing** (implemented) |
-| `/login`, `/demo` | **AORMS-Studio** workspace entry (marketing + sign-in; legacy `/aorms-studio`, `/hived`, `/aorms-architecture` redirect here) |
+| `/login`, `/demo` | **AORMS-Studio** staff sign-in (marketing + workspace entry; legacy slugs redirect here) |
+| `/aorms-consultancy` | **AORMS-Consultancy** engineering app marketing (roadmap) |
+| `/access` | **External portals** — client, consultant, contractor, site (`AORMS_PORTALS.external`) |
+| `/account`, `/company-account` | **AORMS account** + **Company account** |
+| `/platform-admin` | **Licensing console** (operators) |
 | `/development` | Full technical specification (markdown) |
 | `/design-system` | HCW-UI-Kit public specimen |
-| `/blog`, `/wiki` | Editorial + user docs (AORMS-Studio still prominent) |
-| `app.aorms.in` | **AORMS-Studio** workspace SPA |
+| `/blog`, `/wiki` | Editorial + user docs (path aliases; canonical wiki: `wiki.aorms.in`) |
+
+**Frozen surface hosts** — see [AORMS-SURFACE-URLS.md](../esti/AORMS-SURFACE-URLS.md):
+
+| Host | Surface |
+| --- | --- |
+| `aorms.in` | Platform marketing |
+| `studio.aorms.in` | **AORMS-Studio** workspace SPA |
+| `consultancy.aorms.in` | **AORMS-Consultancy** marketing |
+| `wiki.aorms.in` | Wiki |
+| `kbank.aorms.in` | Knowledge Bank portal |
+| `external.aorms.in` | External portals sign-in |
+| `account.aorms.in` | AORMS account hub |
+| `admin.aorms.in` | Licensing console |
 
 ---
 

@@ -30,6 +30,7 @@ import {
   type Me,
   type MyLicense,
 } from "../platform-admin/lib/auth.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 const Companies = lazy(() => import("../platform-admin/Companies.js"));
 const PlatformLogin = lazy(() => import("../platform-admin/Login.js"));
@@ -184,10 +185,10 @@ export function CompanyAccountPortal() {
           </Typography>
           <Alert severity="info">
             <AlertTitle>No company to manage</AlertTitle>
-            You are not an owner of any company yet. Create one from your personal AORMS account, or ask an owner to invite you.
+            You are not an owner of any company yet. Create one from your personal {AORMS_PORTALS.account.name}, or ask an owner to invite you.
           </Alert>
           <Button component={RouterLink} to="/account" variant="outlined">
-            Personal AORMS account
+            Personal {AORMS_PORTALS.account.name}
           </Button>
         </Stack>
       </PortalShell>

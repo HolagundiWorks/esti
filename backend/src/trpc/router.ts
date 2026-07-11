@@ -16,6 +16,7 @@ import { vendorRouter } from "../modules/vendor/router.js";
 import { complianceRouter } from "../modules/compliance/router.js";
 import { masterPlanRouter } from "../modules/masterplan/router.js";
 import { standardsRouter } from "../modules/standards/router.js";
+import { knowledgeBankPortalRouter } from "../modules/repository/router.js";
 import { profileRouter } from "../modules/profile/router.js";
 import { usageRouter } from "../modules/usage/router.js";
 import { clientLogRouter } from "../modules/clientlog/log.js";
@@ -133,6 +134,7 @@ export const appRouter = router({
   compliance: complianceRouter,
   masterPlans: masterPlanRouter,
   standards: standardsRouter,
+  knowledgeBankPortal: knowledgeBankPortalRouter,
   userProfile: profileRouter,
   usage: usageRouter,
   engagements: engagementRouter,

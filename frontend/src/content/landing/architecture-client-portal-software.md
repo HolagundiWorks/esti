@@ -1,11 +1,11 @@
-ï»¿---
+---
 title: Architecture Client Portal Software
-metaTitle: Architecture Client Portal â€” Approvals, MoM, Revision Requests & ESTI
-metaDescription: Architecture client portal for Indian firms â€” clients read issued MoM, submit ESTI-drafted revision requests, approve the architect's criticality assessment, and confirm drawings. Nothing reaches the site without a portal approval.
+metaTitle: Architecture Client Portal — Approvals, MoM, Revision Requests & ESTI
+metaDescription: Architecture client portal for Indian firms — clients read issued MoM, submit ESTI-drafted revision requests, approve the architect's criticality assessment, and confirm drawings. Nothing reaches the site without a portal approval.
 keyword: architecture client portal software
 category: moat
 updated: 2026-07-10
-intro: The client portal is where minutes land, ESTI-drafted revision requests are reviewed and sent, and architect assessments are approved â€” so the client's yes is always on the record before site work proceeds.
+intro: The client portal is where minutes land, ESTI-drafted revision requests are reviewed and sent, and architect assessments are approved — so the client's yes is always on the record before site work proceeds.
 ---
 
 Architecture client portal software should reduce confusion, not create another
@@ -34,12 +34,12 @@ The portal is where the MoM-to-revision flow comes alive. Once meeting minutes a
 issued, they appear in the portal for the client to read. From there:
 
 1. The client asks ESTI to draft revision requests from those minutes.
-2. ESTI returns each change as an editable request â€” the client reviews, edits and
+2. ESTI returns each change as an editable request — the client reviews, edits and
    submits only the real ones.
 3. The office receives formal, categorised requests. The architect marks criticality
    and implications.
 4. The client receives a notification in the portal and **approves the architect's
-   assessment** â€” creating a timestamped record.
+   assessment** — creating a timestamped record.
 5. Only after that approval do site or drawing changes proceed.
 
 ## Why email and chat fail

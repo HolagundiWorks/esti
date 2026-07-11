@@ -1,49 +1,33 @@
-ï»¿---
-title: Try AORMS â€” the live demo and how to explore it
+---
+title: Try AORMS — the live demo and how to explore it
 date: 2026-05-18
-excerpt: A fully seeded AORMS-Studio practice you can open in one click â€” projects, billing, a team, client portals â€” no signup, no password.
+excerpt: A fully seeded AORMS-Studio practice on the public demo site — projects, billing, a team, client portals — sign in with the demo principal account.
 tags: Demo, Getting started, AORMS-Studio
 author: Human Centric Works
 ---
 
-The fastest way to understand **AORMS-Studio** (the architecture workspace on
-AORMS) is to walk through a real office. The demo is exactly that â€” a complete,
-seeded architecture **consultancy**, not an empty shell.
+The fastest way to understand **AORMS-Studio** is to walk through a real office. The public demo site ships a complete, seeded architecture **consultancy**, not an empty shell.
 
-## One-click access
+## Sign in to the demo workspace
 
-There is nothing to sign up for and no password to remember. Open the demo and
-you are dropped straight into a live workspace as the principal architect:
+Open **[AORMS-Studio sign-in](/login)** and use the demo principal credentials shown on the login page for the hosted demo environment.
 
-**â†’ [Open the live demo](/demo)**
-
-(You can also launch it from the **Demo** section on the home page.)
+You land in a live workspace as the principal architect — no separate signup flow.
 
 ## What to look at
 
-- **The dashboard** â€” the calm office picture: office state, Today's Focus, and
-  the flow sections. This is where the cognition and reasoning engines surface.
-- **Projects** â€” phases, tasks, drawings, decisions, and revisions on a live set
-  of fourteen projects.
-- **The client portal** â€” switch into the client view to see issued drawings,
-  transmittals, invoices and approvals from the client's side.
-- **The contractor portal** â€” open the contractor link to see issued drawings,
-  transmittals, and the "raise a query" flow.
-- **Knowledge bank** â€” specification catalogues, materials and labour libraries,
-  and project standards.
+- **Studio Intelligence** — the calm office picture: zone KPIs, Today's Focus, and Action Centre.
+- **Projects** — phases, tasks, drawings, decisions, and revisions on a live project set.
+- **The client portal** — switch into the client view to see issued drawings, transmittals, invoices and approvals from the client's side.
+- **The contractor portal** — open the contractor link to see issued drawings, transmittals, and the "raise a query" flow.
+- **Library** — specification catalogues, standard items, compliance reference, and master plans.
 
-A demo switcher in the corner lets you hop between roles â€” principal, project
-lead, site coordinator, junior, intern, and client â€” so you can see exactly how
-the hierarchy and scoped portals behave, without juggling logins.
+A demo switcher in the corner lets you hop between roles — principal, project lead, site coordinator, junior, intern, and client — so you can see exactly how the hierarchy and scoped portals behave.
 
 ## Resetting
 
-Explored enough to want a clean slate? The demo can be **reset** from system
-admin â€” it wipes the workspace and reseeds the canonical practice, so you always
-start from the same known state.
+Explored enough to want a clean slate? The demo can be **reset** from system admin — it wipes the workspace and reseeds the canonical practice, so you always start from the same known state.
 
-Nothing here is a mock-up. Every number on the dashboard is computed from the
-seeded records â€” which is the point: it behaves like the real thing because it
-*is* the real thing, just pre-filled.
+Nothing here is a mock-up. Every number on the dashboard is computed from the seeded records — which is the point: it behaves like the real thing because it *is* the real thing, just pre-filled.
 
-For step-by-step onboarding after the demo, see the **[AORMS Wiki](https://aorms.in/wiki/getting-started)**.
+For step-by-step onboarding after the demo, see the **[AORMS Wiki](https://wiki.aorms.in/getting-started)**.

@@ -1,7 +1,7 @@
 {
-  "name": "AORMS-Studio — architecture workspace on AORMS",
+  "name": "AORMS-Studio — architecture app on AORMS",
   "short_name": "AORMS-Studio",
-  "description": "AORMS-Studio — architecture workspace for Indian practices on the AORMS platform — COA fees, GST, drawings, revisions, and studio operations.",
+  "description": "AORMS-Studio — Indian architecture consultancy app on the AORMS platform — COA fees, GST, drawings, revisions, client/consultant/contractor/site portals, and studio operations.",
   "icons": [
     { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }

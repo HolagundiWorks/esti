@@ -42,7 +42,7 @@ export function writeSession(reply: FastifyReply, accountId: string, orgId?: str
   reply.setCookie(SESSION_COOKIE, value, {
     signed: true,
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     path: "/",
     secure: isProd,
   });

@@ -20,6 +20,7 @@ const base: Env = {
   SMTP_SECURE: false,
   SMTP_FROM: "AORMS <hi@aorms.in>",
   BETA_REQUEST_NOTIFY_TO: "hi@aorms.in",
+  DEMO_MASTER_PASSWORD: "prod-demo-master-not-default",
 };
 
 describe("assertProductionSecrets", () => {
@@ -41,6 +42,12 @@ describe("assertProductionSecrets", () => {
 
   it("requires secure cookies in production", () => {
     expect(() => assertProductionSecrets({ ...base, COOKIE_SECURE: false })).toThrow(/COOKIE_SECURE/);
+  });
+
+  it("rejects the default demo master password", () => {
+    expect(() =>
+      assertProductionSecrets({ ...base, DEMO_MASTER_PASSWORD: "aorms-demo-admin" }),
+    ).toThrow(/DEMO_MASTER_PASSWORD/);
   });
 
   it("skips checks in development", () => {

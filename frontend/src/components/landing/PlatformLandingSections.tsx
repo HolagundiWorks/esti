@@ -6,8 +6,9 @@ import {
   Tile,
   revealStyle,
 } from "./LandingSections.js";
+import { Link } from "react-router-dom";
 import { LANDING_FAQ } from "../../lib/landing-seo.js";
-import { AORMS_PLATFORM, PLATFORM_FRAMEWORKS, PLATFORM_INDUSTRIES } from "../../lib/product-nomenclature.js";
+import { AORMS_PLATFORM, EMOI, ESTI, PLATFORM_APPS, PLATFORM_FRAMEWORKS } from "../../lib/product-nomenclature.js";
 
 const MODULES = [
   {
@@ -61,8 +62,8 @@ const MODULES = [
 ] as const;
 
 const FIREWALL_STEPS = [
-  { gate: "Quality gate", layer: "External AI", detail: "Fetch · validate · enrich · store" },
-  { gate: "Safety gate", layer: "Internal RAG", detail: "Retrieve · cite · generate · audit" },
+  { gate: "Quality gate", layer: EMOI.name, detail: `${EMOI.role} · fetch · validate · enrich · store` },
+  { gate: "Safety gate", layer: ESTI.name, detail: `${ESTI.role} · retrieve · cite · generate · audit` },
 ] as const;
 
 export function PlatformTrustStrip() {
@@ -83,7 +84,7 @@ export function PlatformTrustStrip() {
         ↓
       </p>
       <p className="lp2-plat-trust__spine">
-        <strong>{AORMS_PLATFORM.name}</strong> — one spine for advisory consulting offices
+        <strong>{AORMS_PLATFORM.name}</strong> — one spine for AEC consulting firms
       </p>
     </section>
   );
@@ -95,8 +96,8 @@ export function FrameworksSection() {
       <SectionHead
         id="fw-head"
         tag="Two frameworks"
-        problem="Advisory consultancies need both office operations and engagement design — rarely in one system."
-        solution={`${PLATFORM_FRAMEWORKS.operational.title} standardises how the practice runs. ${PLATFORM_FRAMEWORKS.design.title} models how client engagements are structured. AORMS ships both — not solution delivery, not project management.`}
+        problem="AEC consultancies need both office operations and engagement design — rarely in one system."
+        solution={`${PLATFORM_FRAMEWORKS.operational.title} standardises how the practice runs. ${PLATFORM_FRAMEWORKS.design.title} models how client engagements are structured. AORMS ships both for architecture and engineering firms — not solution delivery, not construction PM.`}
       />
       <div className="lp2-plat-frameworks lp2-reveal" style={revealStyle(50)}>
         {(Object.keys(PLATFORM_FRAMEWORKS) as Array<keyof typeof PLATFORM_FRAMEWORKS>).map(
@@ -124,24 +125,24 @@ export function DualTierAISection() {
     <Section id="ai-firewall" labelledBy="ai-head">
       <SectionHead
         id="ai-head"
-        tag="EmOI · Dual-tier AI"
+        tag={`${EMOI.name} + ${ESTI.name}`}
         problem="Generic AI on raw documents hallucinates — and compliance drifts."
-        solution="EmOI (Embedded Operational Intelligence) gates external AI as the quality layer and internal RAG as the safety layer. No unvalidated content enters the knowledge base. Every answer cites approved sources."
+        solution={`${EMOI.name} (${EMOI.expansion}) is the ${EMOI.role.toLowerCase()} — it validates content from outside sources before it enters the firm. ${ESTI.name} (${ESTI.expansion}) is the ${ESTI.role.toLowerCase()} — it answers only from validated repositories. No unvalidated content becomes firm truth.`}
       />
       <div className="lp2-plat-firewall lp2-reveal" style={revealStyle(50)}>
-        <div className="lp2-plat-firewall__flow" role="img" aria-label="External source to validated repository to internal RAG output">
+        <div className="lp2-plat-firewall__flow" role="img" aria-label={`External sources through ${EMOI.name} to validated repository through ${ESTI.name} to output`}>
           <span className="lp2-plat-firewall__node">External sources</span>
           <span className="lp2-plat-firewall__arrow" aria-hidden />
           <span className="lp2-plat-firewall__node lp2-plat-firewall__node--gate">
-            External AI
-            <small>Quality gate</small>
+            {EMOI.name}
+            <small>{EMOI.role}</small>
           </span>
           <span className="lp2-plat-firewall__arrow" aria-hidden />
           <span className="lp2-plat-firewall__node">Validated repository</span>
           <span className="lp2-plat-firewall__arrow" aria-hidden />
           <span className="lp2-plat-firewall__node lp2-plat-firewall__node--gate">
-            Internal RAG
-            <small>Safety gate</small>
+            {ESTI.name}
+            <small>{ESTI.role}</small>
           </span>
           <span className="lp2-plat-firewall__arrow" aria-hidden />
           <span className="lp2-plat-firewall__node lp2-plat-firewall__node--out">Reports · audits · recommendations</span>
@@ -166,8 +167,8 @@ export function PlatformModulesSection() {
       <SectionHead
         id="mod-head"
         tag="Platform modules"
-        problem="Advisory consulting ops sprawl across tools that never share context."
-        solution="Seven modules on one data model — operational and design frameworks first, then collaboration, review, audit, knowledge, and analytics. Built for consultancies, not solution delivery."
+        problem="AEC consulting ops sprawl across tools that never share context."
+        solution="Seven modules on one data model — operational and design frameworks first, then collaboration, review, audit, knowledge, and analytics. Built for AEC consultancies that advise, not solution delivery."
       />
       <div className="lp2-grid lp2-grid--3 lp2-plat-modules">
         {MODULES.map((m, i) => (
@@ -178,7 +179,7 @@ export function PlatformModulesSection() {
         label="Platform thesis"
         marks={[
           { pain: "Disconnected tools", solution: "One spine" },
-          { pain: "Raw AI risk", solution: "EmOI firewall" },
+          { pain: "Raw AI risk", solution: `${EMOI.name} external gate` },
           { pain: "Ad hoc engagements", solution: "Design framework" },
           { pain: "Slow rollout", solution: "Operational framework" },
         ]}
@@ -187,21 +188,21 @@ export function PlatformModulesSection() {
   );
 }
 
-export function IndustriesSection() {
+export function AppsSection() {
   return (
-    <Section id="industries" labelledBy="ind-head">
+    <Section id="apps" labelledBy="apps-head">
       <SectionHead
-        id="ind-head"
-        tag="Industries we care about"
-        problem="Consulting offices advising in regulated domains need both frameworks — how the practice runs and how engagements are modelled."
-        solution="Risk, education, auditing, and AEC consultancies share the same AORMS spine. AEC ships today. We advise clients — we do not deliver solutions or run project management."
+        id="apps-head"
+        tag="Two apps"
+        problem="Architecture and engineering consultancies run on the same advisory spine — but need discipline-specific workspaces."
+        solution="AORMS ships as two apps on one platform: AORMS-Studio for architecture consultancies (live) and AORMS-Consultancy for engineering consultancies (roadmap). We advise clients — we do not deliver solutions or run construction project management."
       />
       <div className="lp2-plat-verticals lp2-reveal" style={revealStyle(50)}>
-        {PLATFORM_INDUSTRIES.map((industry, i) => {
-          const live = industry.status === "live";
+        {PLATFORM_APPS.map((app, i) => {
+          const live = app.status === "live";
           return (
             <article
-              key={industry.id}
+              key={app.id}
               className={`lp2-plat-vertical${live ? " lp2-plat-vertical--live" : ""}`}
               style={revealStyle(70 + i * 50)}
             >
@@ -211,18 +212,21 @@ export function IndustriesSection() {
                   {live ? "Shipping now" : "Roadmap"}
                 </span>
               </div>
-              <h3 className="lp2-plat-vertical__title">{industry.title}</h3>
+              <h3 className="lp2-plat-vertical__title">{app.title}</h3>
               <p className="lp2-plat-vertical__subtitle">
-                {industry.workspace}
+                {app.workspace}
                 {" · "}
-                {industry.subtitle}
+                {app.subtitle}
               </p>
-              <p className="lp2-plat-vertical__body">{industry.body}</p>
+              <p className="lp2-plat-vertical__body">{app.body}</p>
               <ul className="lp2-plat-vertical__list">
-                {industry.bullets.map((item) => (
+                {app.bullets.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
+              <Link className="lp2-plat-vertical__cta" to={app.href}>
+                {app.cta} →
+              </Link>
             </article>
           );
         })}
@@ -231,8 +235,11 @@ export function IndustriesSection() {
   );
 }
 
-/** @deprecated Use IndustriesSection — kept for import stability. */
-export const VerticalsSection = IndustriesSection;
+/** @deprecated Use AppsSection — kept for import stability. */
+export const IndustriesSection = AppsSection;
+
+/** @deprecated Use AppsSection. */
+export const VerticalsSection = AppsSection;
 
 export function PlatformFaqSection() {
   return (

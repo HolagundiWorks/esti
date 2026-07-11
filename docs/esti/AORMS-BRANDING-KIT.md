@@ -11,10 +11,9 @@
 > **0 on surfaces** with **`BUTTON_RADIUS` (4px) on buttons only** (§3 below).
 >
 > **Product:** **AORMS** (**Accelerated Operational Resources Management System**) —
-> the platform. **AORMS-Studio** — the workspace vertical shipped from this
-> repo (slug `aorms-studio`). **ESTI** (Embedded Studio Intelligence) — the AI/agent layer inside the
-> architecture workspace. Code identifiers keep the `esti` codename; the platform mark is
-> **AORMS**; the shipped workspace product is **AORMS-Studio**.
+> the platform for AEC consulting firms. **AORMS-Studio** — architecture app (`aorms-studio`).
+> **EmOI** — external AI agent; **ESTI** — internal AI agent (live in **AORMS-Studio**).
+> Code identifiers keep the `esti` codename; the platform mark is **AORMS**.
 
 ---
 

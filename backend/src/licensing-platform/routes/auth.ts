@@ -20,6 +20,7 @@ import {
 import { env as workspaceEnv } from "../../env.js";
 import { SESSION_COOKIE as WORKSPACE_SESSION_COOKIE, userFromToken } from "../../auth/session.js";
 import { sendMail } from "../../lib/mail/transport.js";
+import { isRateLimited } from "../../lib/ratelimit.js";
 import {
   type OrgHandle,
   membership,
@@ -730,6 +731,14 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     if (!emailValid(email) || !password) {
       reply.code(400);
       return { error: "invalid_credentials" };
+    }
+    if (await isRateLimited("platform-login-ip", req.ip, 10, 60)) {
+      reply.code(429);
+      return { error: "too_many_requests" };
+    }
+    if (await isRateLimited("platform-login-email", email, 10, 300)) {
+      reply.code(429);
+      return { error: "too_many_requests" };
     }
     const blocked = await accountLoginBlock(email);
     if (blocked) {

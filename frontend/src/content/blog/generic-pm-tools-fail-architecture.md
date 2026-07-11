@@ -1,28 +1,28 @@
-ï»¿---
+---
 title: Why generic project management tools fail architecture firms
 date: 2026-06-10
-excerpt: Generic task boards and trackers were not built for drawings, revisions, COA fees, GST, approvals, or site records. Why generic tools never fit an architecture consultancy â€” and what does.
+excerpt: Generic task boards and trackers were not built for drawings, revisions, COA fees, GST, approvals, or site records. Why generic tools never fit an architecture consultancy — and what does.
 tags: Operations, Workflow
 author: Human Centric Works
 ---
 
 Almost every growing architecture practice goes through the same cycle. Frustrated
 with spreadsheets and email, someone signs the firm up for a popular project
-management tool â€” a board of cards, a list of tasks, a clean interface. For a week or
+management tool — a board of cards, a list of tasks, a clean interface. For a week or
 two, it feels like progress. Then, slowly, it gets abandoned. The cards go stale, the
 team drifts back to email, and the tool becomes one more place no one updates.
 
 This is not a discipline problem, and it is not the tool's fault. Generic project
 management tools fail architecture firms for a structural reason: **architecture is
 not a generic workflow.** A practice does not run on tasks and lists alone. It runs on
-drawings, revisions, approvals, fees, site records, and clients â€” concepts that generic
+drawings, revisions, approvals, fees, site records, and clients — concepts that generic
 tools simply do not have. This article examines exactly where the mismatch lies and
 what a fit-for-purpose system looks like instead.
 
 ## The promise and the disappointment
 
-Generic project tools â€” task boards, generic trackers, all-in-one workspace builders,
-and their many cousins â€” are genuinely good at what they were built for: tracking
+Generic project tools — task boards, generic trackers, all-in-one workspace builders,
+and their many cousins — are genuinely good at what they were built for: tracking
 tasks, assigning owners, and visualising progress across a team. For a software team,
 a marketing department, or a general consultancy, they fit well.
 
@@ -38,22 +38,22 @@ abandonment.
 
 ### Drawings and revisions are not cards
 
-The central artefact of an architecture project is the drawing â€” and not a single
+The central artefact of an architecture project is the drawing — and not a single
 drawing, but a drawing with a *revision history*, a current version, an approval
 state, and a transmittal record of every time it was issued. A card on a board cannot
 be any of this. You can create a card called "Ground floor plan," but it cannot hold
 revision C, know that revision B was superseded, record that the client approved it on
 a certain date, or track that it was transmitted to the contractor.
 
-So the actual deliverable â€” the thing the entire project exists to produce â€” lives
+So the actual deliverable — the thing the entire project exists to produce — lives
 *outside* the tool, in a folder somewhere. And once the most important object is
 outside the system, the system is just a to-do list bolted on the side.
 
 ### Fees and billing have no home
 
 Architecture billing is not generic invoicing. It involves COA-style fee proposals
-tied to a scale of charges, billing milestones linked to project phases, and â€” in
-India â€” GST-correct tax invoices with the right SAC code, the correct intra-state
+tied to a scale of charges, billing milestones linked to project phases, and — in
+India — GST-correct tax invoices with the right SAC code, the correct intra-state
 (CGST + SGST) or inter-state (IGST) split, TDS handling, and composition-scheme rules
 where they apply. A generic project tool has none of this. It might let you attach a
 PDF invoice you made elsewhere, but it cannot *generate* a compliant one or connect
@@ -64,8 +64,8 @@ accounting package, disconnected from the work.
 
 In a real project, a client approval is a first-class event: a drawing issued to a
 specific recipient, ageing while it waits, decided on the record, and visible to the
-client through a portal. Generic tools reduce this to a checkbox â€” "client approved:
-yes/no" â€” with no recipient, no age, no client-facing surface, and no way to see across
+client through a portal. Generic tools reduce this to a checkbox — "client approved:
+yes/no" — with no recipient, no age, no client-facing surface, and no way to see across
 projects which approvals are stuck. Since approval time is one of the biggest delays in
 delivery, a tool that cannot manage approvals is missing the thing that most needs
 managing.
@@ -81,7 +81,7 @@ it is part of the core workflow that the tool is blind to.
 ## Why the workarounds fail
 
 Faced with these gaps, firms improvise. They keep drawings in folders, fees in
-spreadsheets, approvals in email, and site standards in someone's head â€” and use the
+spreadsheets, approvals in email, and site standards in someone's head — and use the
 generic tool for "tasks." But this is exactly the fragmentation the firm adopted a tool
 to escape. Now there are *more* places to update, not fewer, and the generic tool holds
 the least important slice of the work.
@@ -89,7 +89,7 @@ the least important slice of the work.
 Workarounds also do not scale. A manual bridge between a generic tool and five other
 systems is held together by human effort, and that effort grows with every project and
 every new hire. Eventually the bridge collapses, the tool is abandoned, and the firm
-concludes â€” wrongly â€” that "software doesn't work for us." The problem was never
+concludes — wrongly — that "software doesn't work for us." The problem was never
 software in general. It was *generic* software specifically.
 
 ## What actually fits an architecture practice
@@ -97,7 +97,7 @@ software in general. It was *generic* software specifically.
 A system that fits does not ask the practice to flatten its work. It models the work
 directly. In a fit-for-purpose system:
 
-- A **drawing** is a drawing â€” with revisions, a current version, approvals, and
+- A **drawing** is a drawing — with revisions, a current version, approvals, and
   transmittals.
 - A **revision** carries its source (client-driven, internal error, technical query,
   scope change) and its fee impact.
@@ -105,7 +105,7 @@ directly. In a fit-for-purpose system:
   construction.
 - A **client approval** has a recipient, an age, a recorded decision, and a client
   portal.
-- **Project standards** â€” specifications, drawing standards and site notes â€” stay
+- **Project standards** — specifications, drawing standards and site notes — stay
   attached to the record.
 
 The difference is philosophical. A generic tool gives you an empty container and asks
@@ -115,23 +115,23 @@ distortion.
 
 ## "But we'll just customise a flexible tool"
 
-The most common objection at this point is that modern tools are flexible â€” configurable
-workspaces, databases, and heavily customised boards â€” and a determined firm can *build*
+The most common objection at this point is that modern tools are flexible — configurable
+workspaces, databases, and heavily customised boards — and a determined firm can *build*
 the missing structure itself. This is true in the narrow sense and a trap in the broad one.
 
 You can, with enough effort, create a database of drawings with revision fields, a table
 of fees, and a board of approvals inside a flexible tool. But three problems follow.
-First, you have just taken on a **software project** â€” design, build, and maintenance â€”
+First, you have just taken on a **software project** — design, build, and maintenance —
 inside a firm whose business is architecture, not software. Someone has to own it,
 forever. Second, the pieces stay **disconnected**: even a clever custom workspace build rarely
 links a revision to its drawing to its approval to its invoice to a site record in a
 way that holds up, because those relationships are genuinely hard to model. Third, none
 of it understands the **domain**: your custom build has no idea what a GST split is, what
-a COA fee curve looks like, or how a site instruction affects billing â€” so the hard,
+a COA fee curve looks like, or how a site instruction affects billing — so the hard,
 practice-specific logic still lives in someone's head.
 
 What firms discover is that "just customise it" recreates, slowly and at their own
-expense, a worse version of purpose-built software â€” and then has to maintain it. The
+expense, a worse version of purpose-built software — and then has to maintain it. The
 flexibility that looked like an asset becomes an obligation.
 
 ### The integration tax
@@ -143,25 +143,25 @@ drifts from the real status in the folder; the fee in the spreadsheet drifts fro
 invoice in the accounting package. Reconciling them is invisible work that produces
 nothing, scales with the firm, and quietly consumes the time the tool was supposed to
 save. A system that models the practice natively does not levy this tax, because there is
-nothing to reconcile â€” the parts are already one record.
+nothing to reconcile — the parts are already one record.
 
 ## How AORMS is built for the practice
 
 AORMS encodes the architecture office natively. Projects, phases, drawings, revisions,
 COA fee proposals, GST invoicing, client and contractor portals, and site records
-are first-class concepts â€” not cards to relabel or fields to improvise. Because the
+are first-class concepts — not cards to relabel or fields to improvise. Because the
 domain is *in* the system rather than bolted on around it, the practice's real work
 lives in one place, and the tool is something the team actually keeps, because it
 finally reflects what they do.
 
 Generic project tools are not bad software. They are simply the wrong shape for an
-architecture practice â€” and no amount of discipline makes the wrong shape fit.
+architecture practice — and no amount of discipline makes the wrong shape fit.
 
 ## Related reading
 
-- **Why architecture firms lose projects due to poor client communication** â€” one of
+- **Why architecture firms lose projects due to poor client communication** — one of
   the specific workflows generic tools cannot handle.
-- **How to build an efficient drawing approval workflow for architecture projects** â€”
+- **How to build an efficient drawing approval workflow for architecture projects** —
   the approval process generic tools reduce to a checkbox.
 - [Why managing architecture projects on Excel breaks down](/blog/why-managing-architecture-projects-on-excel-breaks-down)
 
@@ -169,5 +169,5 @@ architecture practice â€” and no amount of discipline makes the wrong shape fit.
 
 A generic key does not open a specific lock, no matter how well made it is. The
 question for a growing practice is not "which project tool is best," but "which system
-is shaped like an architecture office" â€” because that is the only kind that will still
+is shaped like an architecture office" — because that is the only kind that will still
 be in use a year from now.

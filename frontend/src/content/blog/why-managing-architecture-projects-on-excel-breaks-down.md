@@ -1,12 +1,12 @@
-ï»¿---
+---
 title: Why managing architecture projects on Excel eventually breaks down
 date: 2026-07-09
-excerpt: Spreadsheets work until they don't â€” when drawings, fees, revisions, and site data outgrow rows and tabs. Here is where Excel fails architecture offices and what replaces it.
+excerpt: Spreadsheets work until they don't — when drawings, fees, revisions, and site data outgrow rows and tabs. Here is where Excel fails architecture offices and what replaces it.
 tags: Operations, Practice, Workflow
 author: Human Centric Works
 ---
 
-Excel is where many Indian architecture firms **start** â€” fee schedules, task lists,
+Excel is where many Indian architecture firms **start** — fee schedules, task lists,
 drawing logs, cash books. It is flexible, familiar, and cheap. It is also where
 **practice records go to die** once projects multiply and staff turnover begins.
 
@@ -23,30 +23,30 @@ decide when to move the spine to purpose-built practice software.
 Excel as **analyst scratchpad** is fine. Excel as **system of record** for live
 commissions is where breakdown begins.
 
-## Failure mode 1 â€” version fork
+## Failure mode 1 — version fork
 
 `FeeTracker_v3_FINAL_revised.xlsx` on one laptop; `FeeTracker_v3_FINAL.xlsx` on
 another. Nobody knows which tab has the latest invoice status. Drawing logs suffer
-the same fork â€” especially when emailed between site and studio.
+the same fork — especially when emailed between site and studio.
 
 **Symptom:** two principals give clients conflicting answers.
 
-## Failure mode 2 â€” no permission model
+## Failure mode 2 — no permission model
 
 Everyone can edit everything. A junior accidentally sorts the drawing register and
-breaks row keys. Finance columns sit beside delivery columns â€” one wrong paste
+breaks row keys. Finance columns sit beside delivery columns — one wrong paste
 corrupts GST totals.
 
 **Symptom:** silent data corruption discovered at billing time.
 
-## Failure mode 3 â€” weak links to evidence
+## Failure mode 3 — weak links to evidence
 
 A cell says "Client approved GF plan 12 Mar." Where is the PDF? Which revision
 number? Who witnessed it? Cells carry **conclusions** without **evidence**.
 
 **Symptom:** revision disputes you cannot defend.
 
-## Failure mode 4 â€” scale cliffs
+## Failure mode 4 — scale cliffs
 
 At three projects, one sheet per project works. At thirty, navigation and consolidation
 consume senior time. Dashboards become pivot tables nobody trusts because source tabs
@@ -63,7 +63,7 @@ A **project-native cloud workspace** where:
 - Transmittals and portals attach evidence to rows automatically.
 - Studio Intelligence surfaces billing-ready and approval-blocked work.
 
-AORMS offers that model in the browser â€” one standard licence, unlimited users.
+AORMS offers that model in the browser — one standard licence, unlimited users.
 Migration path: [getting started on the wiki](https://aorms.in/wiki/getting-started).
 
 ## A pragmatic migration path
@@ -77,7 +77,7 @@ Migration path: [getting started on the wiki](https://aorms.in/wiki/getting-star
 
 ### Our CA wants Excel exports
 
-Good â€” export abstracts for the accountant; keep the live record in software.
+Good — export abstracts for the accountant; keep the live record in software.
 
 ### Is Google Sheets better?
 
@@ -90,9 +90,9 @@ Compare senior hours lost to reconciliation vs cloud workspace usage (storage + 
 ## Related reading
 
 - [Generic PM tools fail architecture](/blog/generic-pm-tools-fail-architecture)
-- [Architecture practice management â€” the missing system](/blog/architecture-practice-management-missing-system)
+- [Architecture practice management — the missing system](/blog/architecture-practice-management-missing-system)
 - [Architecture office workflow management](/architecture-office-workflow-management)
 
 ---
 
-*AORMS â€” [aorms.in/wiki](https://aorms.in/wiki) for workflows Â· [aorms.in](https://aorms.in) to sign up.*
+*AORMS — [aorms.in/wiki](https://aorms.in/wiki) for workflows · [aorms.in](https://aorms.in) to sign up.*

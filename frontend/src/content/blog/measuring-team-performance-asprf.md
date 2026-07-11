@@ -1,7 +1,7 @@
-ï»¿---
-title: Measuring team performance fairly â€” the ASPRF score
+---
+title: Measuring team performance fairly — the ASPRF score
 date: 2026-06-02
-excerpt: Counting finished tasks rewards the wrong behaviour. ASPRF weighs reliability, quality, impact, collaboration, learning, and wellbeing â€” with anti-gaming built in.
+excerpt: Counting finished tasks rewards the wrong behaviour. ASPRF weighs reliability, quality, impact, collaboration, learning, and wellbeing — with anti-gaming built in.
 tags: Team, Product
 author: Human Centric Works
 ---
@@ -24,7 +24,7 @@ Learning       10%
 Wellbeing       5%   (opt-in only)
 ```
 
-Reliability â€” delivering what you said, when you said â€” carries the most weight,
+Reliability — delivering what you said, when you said — carries the most weight,
 because trust is the currency of a studio. Quality and client impact follow.
 Collaboration and learning keep it from rewarding lone-wolf heroics. **Wellbeing
 is opt-in and lightly weighted** by design: it is a signal, never a surveillance
@@ -32,7 +32,7 @@ tool.
 
 ## Anti-gaming
 
-Every task carries a **difficulty coefficient** (1â€“5) and a **work type** â€”
+Every task carries a **difficulty coefficient** (1–5) and a **work type** —
 design communication, design development, technical production, or construction
 support. So a hard GFC detail and a one-line status update are never scored as
 the same contribution, and you cannot inflate a score by farming trivial tasks.
@@ -41,6 +41,6 @@ the same contribution, and you cannot inflate a score by farming trivial tasks.
 
 ASPRF is not a leaderboard to shame people with. It is a way to see who is
 genuinely carrying load, who is quietly overextended, and where the next
-reassignment should go â€” the same data the dashboard uses to suggest moving work
+reassignment should go — the same data the dashboard uses to suggest moving work
 *before* someone breaks. Measured fairly, performance data protects the team
 instead of policing it.

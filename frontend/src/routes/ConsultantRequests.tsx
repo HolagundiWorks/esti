@@ -30,6 +30,7 @@ import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusTag } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 type SubmissionStatus = keyof typeof CONSULTANT_SUBMISSION_STATUS_LABEL;
 
@@ -235,7 +236,7 @@ export function ConsultantRequests({ embedded = false }: { embedded?: boolean })
         loading={listQ.isLoading}
         isEmpty={rows.length === 0}
         columnCount={6}
-        empty={{ title: "No consultant requests", description: "Items raised from the collaborator portal appear here." }}
+        empty={{ title: "No consultant requests", description: `Items raised from the ${AORMS_PORTALS.consultant.alias.toLowerCase()} appear here.` }}
       >
         <DataGrid
           rows={rows}

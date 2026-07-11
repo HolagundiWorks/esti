@@ -15,7 +15,7 @@ import { IS_DESKTOP, setDesktopToken } from "../lib/api-base.js";
 import { login as platformLogin } from "../platform-admin/lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { AuthBrandBlock } from "../components/AormsLogo.js";
-import { AORMS_STUDIO } from "../lib/product-nomenclature.js";
+import { AORMS_STUDIO, AORMS_PORTALS } from "../lib/product-nomenclature.js";
 import { AuthRailLayout } from "../components/AuthRailLayout.js";
 import { ArchitectureLoginStage } from "../components/landing/ArchitectureLoginStage.js";
 import { MarketingSectionDock } from "../components/landing/MarketingSectionDock.js";
@@ -232,7 +232,7 @@ export function Login() {
                       {companyBusy ? "Opening…" : "Open workspace"}
                     </Button>
                     <Button component={RouterLink} to="/account" variant="outlined" disabled={companyBusy}>
-                      My AORMS account
+                      {AORMS_PORTALS.account.myAccount}
                     </Button>
                     {owned.length > 0 && (
                       <Button
@@ -365,7 +365,7 @@ export function Login() {
                   </Button>
                   {PUBLIC_SITE ? (
                     <Button component={RouterLink} to="/account?mode=create" variant="text" size="small">
-                      Create AORMS account
+                      {AORMS_PORTALS.account.create}
                     </Button>
                   ) : (
                     <Button component={RouterLink} to="/signup" variant="text" size="small">
@@ -381,7 +381,7 @@ export function Login() {
             <Stack spacing={1} sx={{ pt: 1, borderTop: 1, borderColor: "divider" }}>
               {PUBLIC_SITE && (
                 <Button component={RouterLink} to="/account" variant="text" size="small">
-                  Manage your AORMS account &amp; licence →
+                  Manage your {AORMS_PORTALS.account.name} &amp; licence →
                 </Button>
               )}
               {PUBLIC_SITE && (
@@ -395,7 +395,7 @@ export function Login() {
                 </Button>
               )}
               <Button component={RouterLink} to="/access" variant="text" size="small">
-                Client / consultant / contractor portal
+                {AORMS_PORTALS.external.loginPageLink}
               </Button>
               <Button
                 component={RouterLink}

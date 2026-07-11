@@ -1,4 +1,4 @@
-ï»¿---
+---
 title: Account and licence
 slug: account-and-licence
 excerpt: One standard AORMS licence, storage metering, AI usage, company members, and account portals.
@@ -16,7 +16,7 @@ AORMS has **no product tiers**. Every active account receives:
 - **Unlimited users**, clients, contractors, consultants, and projects
 - **5 GB** included cloud storage
 
-Legacy names (Lite, Pro, Core, Enterprise) are retired â€” licensing console and account screens show **AORMS Standard** only.
+Legacy names (Lite, Pro, Core, Enterprise) are retired — licensing console and account screens show **AORMS Standard** only.
 
 ---
 
@@ -26,9 +26,9 @@ Legacy names (Lite, Pro, Core, Enterprise) are retired â€” licensing console and
 |-------|----------|---------|
 | **Storage** | 5 GB | Per GB-month beyond included |
 | **Hosted AI** | Usage-based | Per token/request when not using BYO key |
-| **BYO AI key** | â€” | Your provider cost; AORMS does not meter hosted AI while BYO is active |
+| **BYO AI key** | — | Your provider cost; AORMS does not meter hosted AI while BYO is active |
 
-View usage in **Company â†’ settings** (storage bar and AI studio settings).
+View usage in **Company ? settings** (storage bar and AI studio settings).
 
 ---
 
@@ -67,7 +67,7 @@ Existing users may be prompted once to complete **firm profile** fields (GSTIN, 
 
 ## AI configuration
 
-1. **Company â†’ AI Studio settings** (firm admin).
+1. **Company ? AI Studio settings** (firm admin).
 2. Set **OpenAI-compatible** base URL and API key for BYO.
 3. Ask ESTI and AI Studio prefer BYO when configured; fall back to hosted model if unreachable.
 
@@ -85,12 +85,12 @@ Existing users may be prompted once to complete **firm profile** fields (GSTIN, 
 
 ### Do I need a licence key for cloud SaaS?
 
-Cloud accounts at aorms.in are **activated on sign-up**. Self-hosted or node installs may still display a key field â€” ignore for standard cloud unless support instructs otherwise.
+Cloud accounts at aorms.in are **activated on sign-up**. Self-hosted or node installs may still display a key field — ignore for standard cloud unless support instructs otherwise.
 
 ### Can I add accountants without extra seats?
 
-Yes. **Unlimited users** â€” add finance roles without per-seat fees.
+Yes. **Unlimited users** — add finance roles without per-seat fees.
 
 ### Where is the pricing page?
 
-[aorms.in/#pricing](https://aorms.in/#pricing) â€” usage-based storage and AI on top of the included allowance.
+[aorms.in/#pricing](https://aorms.in/#pricing) — usage-based storage and AI on top of the included allowance.

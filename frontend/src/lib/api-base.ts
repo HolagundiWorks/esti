@@ -10,6 +10,7 @@
  * the webview origin (`tauri://localhost`) is cross-origin to the backend,
  * SameSite cookies aren't sent — so the desktop build authenticates with the
  * session token returned by login, attached as an `Authorization: Bearer` header.
+ * The token is stored in the Tauri secrets dir (not localStorage).
  */
 declare global {
   interface Window {
@@ -28,16 +29,44 @@ export function apiUrl(path: string): string {
 }
 
 const TOKEN_KEY = "esti.desktop.token";
+let desktopTokenCache: string | null = null;
+let desktopTokenReady = !IS_DESKTOP;
+
+/** Load the desktop bearer token from secure storage (call once before auth fetch). */
+export async function initDesktopAuth(): Promise<void> {
+  if (!IS_DESKTOP || desktopTokenReady || typeof window === "undefined") return;
+  desktopTokenReady = true;
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    const stored = (await invoke("load_session_token")) as string | null;
+    desktopTokenCache = stored ?? null;
+    const legacy = localStorage.getItem(TOKEN_KEY);
+    if (!desktopTokenCache && legacy) {
+      desktopTokenCache = legacy;
+      await invoke("store_session_token", { token: legacy });
+      localStorage.removeItem(TOKEN_KEY);
+    }
+  } catch {
+    desktopTokenCache = localStorage.getItem(TOKEN_KEY);
+  }
+}
 
 export function getDesktopToken(): string | null {
-  if (!IS_DESKTOP || typeof localStorage === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
+  if (!IS_DESKTOP) return null;
+  return desktopTokenCache;
 }
 
 export function setDesktopToken(token: string | null | undefined): void {
-  if (!IS_DESKTOP || typeof localStorage === "undefined") return;
-  if (token) localStorage.setItem(TOKEN_KEY, token);
-  else localStorage.removeItem(TOKEN_KEY);
+  if (!IS_DESKTOP || typeof window === "undefined") return;
+  desktopTokenCache = token ?? null;
+  void import("@tauri-apps/api/core")
+    .then(({ invoke }) =>
+      token ? invoke("store_session_token", { token }) : invoke("clear_session_token"),
+    )
+    .catch(() => {
+      if (token) localStorage.setItem(TOKEN_KEY, token);
+      else localStorage.removeItem(TOKEN_KEY);
+    });
 }
 
 /** Authorization header for desktop bearer auth; empty on web. */

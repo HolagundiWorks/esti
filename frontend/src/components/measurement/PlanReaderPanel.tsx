@@ -17,6 +17,7 @@ import {
 } from "@esti/contracts";
 import { useScreenActions } from "@hcw/ui-kit";
 import { trpc } from "../../lib/trpc.js";
+import { sanitizeSvgMarkup } from "../../lib/sanitize-svg.js";
 import { PlanPdfCanvas } from "./PlanPdfCanvas.js";
 
 type Tool =
@@ -249,7 +250,7 @@ export function PlanReaderPanel({ projectId }: { projectId: string }) {
     host.innerHTML = "";
     if (isPdf || !svgQ.data?.svg) return;
     const wrap = document.createElement("div");
-    wrap.innerHTML = svgQ.data.svg;
+    wrap.innerHTML = sanitizeSvgMarkup(svgQ.data.svg);
     const svg = wrap.querySelector("svg");
     if (!svg) return;
     svg.setAttribute("width", "100%");

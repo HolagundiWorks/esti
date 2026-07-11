@@ -1,14 +1,14 @@
-ï»¿---
+---
 title: How to use AORMS
 slug: how-to-use-aorms
-excerpt: End-to-end workflows â€” enquiry, design, approvals, site, finance, and close-out â€” with step-by-step instructions for every major module.
+excerpt: End-to-end workflows — enquiry, design, approvals, site, finance, and close-out — with step-by-step instructions for every major module.
 order: 2
 section: Start here
 domain: aorms-studio
 updated: 2026-07-09
 ---
 
-This guide walks through **how an Indian architecture consultancy runs on AORMS** â€” from the first client enquiry to final billing. All steps happen in the **cloud workspace**; there is no separate desktop product to install.
+This guide walks through **how an Indian architecture consultancy runs on AORMS** — from the first client enquiry to final billing. All steps happen in the **cloud workspace**; there is no separate desktop product to install.
 
 ---
 
@@ -18,16 +18,16 @@ Every commission follows the same spine in AORMS:
 
 | Stage | What happens | Primary modules |
 |-------|----------------|-----------------|
-| **01 â€” Enquiry & proposal** | Lead captured, scope defined, COA fee proposal issued | Leads, Office â†’ Proposals |
-| **02 â€” Design & drawings** | Phases, tasks, drawing register, transmittals | Projects, Tasks, Drawings |
-| **03 â€” Approvals & revisions** | Client decisions, revision intelligence, portal trace | Client portal, Decisions, Critical notes |
-| **04 â€” Bill & close** | GST invoices, reconciliation, filing abstracts | Finance â†’ Invoices, Filing |
+| **01 — Enquiry & proposal** | Lead captured, scope defined, COA fee proposal issued | Leads, Office ? Proposals |
+| **02 — Design & drawings** | Phases, tasks, drawing register, transmittals | Projects, Tasks, Drawings |
+| **03 — Approvals & revisions** | Client decisions, revision intelligence, portal trace | Client portal, Decisions, Critical notes |
+| **04 — Bill & close** | GST invoices, reconciliation, filing abstracts | Finance ? Invoices, Filing |
 
 The sections below expand each stage with **click-level instructions**.
 
 ---
 
-## Studio Intelligence â€” your morning surface
+## Studio Intelligence — your morning surface
 
 **Route:** `/` (home)
 
@@ -35,69 +35,69 @@ Studio Intelligence is the principal's **action-oriented dashboard**, not a deco
 
 ### What you see
 
-- **Overview tab** â€” merged studio health: leads, projects, fees at risk, team load.
-- **Zone tabs** â€” Lead Â· Project Â· Financial Â· Team Â· Work Â· Approval â€” each with four KPI tiles and a scrolling data table inside the tile.
-- **Sidebar** â€” AI recommendation over the last ten office-log entries.
+- **Overview tab** — merged studio health: leads, projects, fees at risk, team load.
+- **Zone tabs** — Lead · Project · Financial · Team · Work · Approval — each with four KPI tiles and a scrolling data table inside the tile.
+- **Sidebar** — AI recommendation over the last ten office-log entries.
 
 ### Daily routine (5 minutes)
 
 1. Open AORMS and land on **Studio Intelligence**.
 2. Scan **Approval** and **Financial** zones for red or yellow states.
-3. Open the ranked **Action Centre** items â€” overdue client approvals, unbilled completed work, blocked tasks.
+3. Open the ranked **Action Centre** items — overdue client approvals, unbilled completed work, blocked tasks.
 4. Use **Ask ESTI** (header or AI panel) to explain a specific risk: *"Why is Project X flagged for fee risk?"*
 
 ### Tips
 
-- The page **does not scroll** as a whole â€” each zone's table scrolls inside its tile. Use the rail to jump modules.
-- KPI colours map to zone state (healthy, attention, critical) â€” treat orange as "needs a principal decision today."
+- The page **does not scroll** as a whole — each zone's table scrolls inside its tile. Use the rail to jump modules.
+- KPI colours map to zone state (healthy, attention, critical) — treat orange as "needs a principal decision today."
 
 ---
 
-## Stage 01 â€” Enquiry and fee proposal
+## Stage 01 — Enquiry and fee proposal
 
 ### Capture the lead
 
-1. **Studio Intelligence â†’ Lead** or **Office â†’ Leads** â€” create a new lead with client name, site location, and enquiry source.
+1. **Studio Intelligence ? Lead** or **Office ? Leads** — create a new lead with client name, site location, and enquiry source.
 2. Link the lead to an existing **Client** (Third Parties) or create the client record first.
-3. When qualified, **convert to project** â€” the project inherits client and brief context.
+3. When qualified, **convert to project** — the project inherits client and brief context.
 
 ### Issue a COA fee proposal
 
-1. Go to **Office â†’ Proposals** (`/office/proposals`).
-2. **Create proposal** â€” choose type (fee proposal / scope agreement as applicable).
+1. Go to **Office ? Proposals** (`/office/proposals`).
+2. **Create proposal** — choose type (fee proposal / scope agreement as applicable).
 3. Enter stage-wise fees on the **COA scale**, SAC code, and payment milestones.
 4. Route through internal review if your office uses approval workflows.
-5. **Send to client** via the client portal or export PDF for email â€” the proposal stays on the project record.
+5. **Send to client** via the client portal or export PDF for email — the proposal stays on the project record.
 
 ### Client approval gate
 
 When the client accepts:
 
 1. Open the proposal and set **client approval** status.
-2. The project **fee baseline** is locked for billing â€” later revisions can carry fee impact separately.
+2. The project **fee baseline** is locked for billing — later revisions can carry fee impact separately.
 
 ---
 
-## Stage 02 â€” Design, drawings, and delivery
+## Stage 02 — Design, drawings, and delivery
 
 ### Set up the project
 
-1. **Projects** (`/projects`) â€” open the project.
-2. **Phases** â€” mirror your design stages (Concept, SD, DD, CD, etc.).
-3. **Project Info / Brief** â€” complete the questionnaire sections so the team shares one brief.
-4. **Assignments** â€” attach staff from **Studio â†’ Team** to the project.
+1. **Projects** (`/projects`) — open the project.
+2. **Phases** — mirror your design stages (Concept, SD, DD, CD, etc.).
+3. **Project Info / Brief** — complete the questionnaire sections so the team shares one brief.
+4. **Assignments** — attach staff from **Studio ? Team** to the project.
 
 ### Tasks and time
 
-1. **Tasks** (`/tasks`) â€” create tasks per phase with classification (billable / non-billable) and work type (design development, technical production, etc.).
+1. **Tasks** (`/tasks`) — create tasks per phase with classification (billable / non-billable) and work type (design development, technical production, etc.).
 2. Set **estimated hours** and **difficulty** for ASPRF scoring.
-3. Staff log **attendance** and attribute time to tasks â€” workload views show overload before deadlines slip.
+3. Staff log **attendance** and attribute time to tasks — workload views show overload before deadlines slip.
 
 ### Drawing register
 
 1. In the project, open **Drawings**.
 2. Register each sheet: number, title, discipline, revision.
-3. Issue **transmittals** â€” numbered, dated, tied to the project (not a loose email attachment).
+3. Issue **transmittals** — numbered, dated, tied to the project (not a loose email attachment).
 4. Upload DXF/PDF as your office policy requires; revisions increment on the same register row.
 
 ### Site supervision (consultancy)
@@ -105,17 +105,17 @@ When the client accepts:
 For site-led commissions:
 
 1. **Site visits**, **inspections**, **progress reports**, **snags**, and **site instructions** live under the project's site modules.
-2. Generate PDF reports from recorded visits â€” status tracks PENDING â†’ READY on the worker.
+2. Generate PDF reports from recorded visits — status tracks PENDING ? READY on the worker.
 
 ---
 
-## Stage 03 â€” Approvals, revisions, and client portal
+## Stage 03 — Approvals, revisions, and client portal
 
 ### Client portal
 
-1. Enable portal access for the client contact (Third Parties â†’ Client â†’ portal invite).
-2. The client sees **only their projects** â€” drawings for approval, fee status, revision requests.
-3. Decisions are **dated and attributed** â€” not screenshots in WhatsApp.
+1. Enable portal access for the client contact (Third Parties ? Client ? portal invite).
+2. The client sees **only their projects** — drawings for approval, fee status, revision requests.
+3. Decisions are **dated and attributed** — not screenshots in WhatsApp.
 
 ### Revision intelligence
 
@@ -123,38 +123,38 @@ When the client requests a change:
 
 1. Record a **decision** or **revision request** with category (minor / major / critical) and source (client-driven, internal error, technical query, scope change).
 2. Attach **fee and time impact** before work proceeds.
-3. **Meeting minutes** can feed revision requests â€” ESTI can draft formal revision text from MOM for client approval.
+3. **Meeting minutes** can feed revision requests — ESTI can draft formal revision text from MOM for client approval.
 
 ### Consultant and contractor portals
 
-- **Consultants** â€” scoped to their engagement; RFIs and issued drawings only.
-- **Contractors** â€” site instructions and drawings for their package; no office-wide access.
+- **Consultants** — scoped to their engagement; RFIs and issued drawings only.
+- **Contractors** — site instructions and drawings for their package; no office-wide access.
 
 ---
 
-## Stage 04 â€” Finance and close-out
+## Stage 04 — Finance and close-out
 
 ### Invoicing
 
-1. **Finance â†’ Invoices** â€” create GST invoice from completed stages or running account.
+1. **Finance ? Invoices** — create GST invoice from completed stages or running account.
 2. Line items use your firm SAC; CGST/SGST or IGST per place of supply.
 3. Link invoice to proposal milestones where applicable.
 
 ### Reconciliation and filing
 
-1. **Finance â†’ Reconcile** â€” import bank, 26AS, AIS, GSTR files; match entries.
-2. **Finance â†’ Filing** â€” GST/TDS filing abstracts for the accountant.
+1. **Finance ? Reconcile** — import bank, 26AS, AIS, GSTR files; match entries.
+2. **Finance ? Filing** — GST/TDS filing abstracts for the accountant.
 
 ### Expenses and payroll
 
 - **Office cash book** and **project expenses** for internal costing.
-- **Payroll** (if HR enabled) â€” payslips tied to attendance.
+- **Payroll** (if HR enabled) — payslips tied to attendance.
 
 See **[Finance and billing](finance-and-billing)** for detail.
 
 ---
 
-## Library â€” knowledge your office reuses
+## Library — knowledge your office reuses
 
 **Route:** `/knowledge-bank` and `/libraries/*`
 
@@ -165,7 +165,7 @@ See **[Finance and billing](finance-and-billing)** for detail.
 | **Master plans** | PDF/DWG reference uploads |
 | **Standards** | Discipline standards with attached files |
 
-Use the library when writing specs, estimates, and compliance checks â€” one catalogue for the whole firm.
+Use the library when writing specs, estimates, and compliance checks — one catalogue for the whole firm.
 
 ---
 
@@ -173,9 +173,9 @@ Use the library when writing specs, estimates, and compliance checks â€” one cat
 
 ### Ask ESTI
 
-- Available from the header AI entry â€” asks over **your project and office record**.
+- Available from the header AI entry — asks over **your project and office record**.
 - Explains risk across fees, revisions, and site progress.
-- Configure **BYO API key** in Company â†’ AI for your own OpenAI-compatible endpoint.
+- Configure **BYO API key** in Company ? AI for your own OpenAI-compatible endpoint.
 
 ### AI Studio
 
@@ -186,16 +186,9 @@ Use the library when writing specs, estimates, and compliance checks â€” one cat
 
 ---
 
-## Estimation and BOQ (in-browser)
+## Project measurement (roadmap)
 
-BOQ and measurement run **inside AORMS** on the project â€” not a separate Windows app.
-
-1. Open a project â†’ **Estimation** (or Cost / BOQ module as labelled in your build).
-2. Build or import a **structure model**, take off quantities, link **rate books** (e.g. CPWD pack).
-3. Materials, items, and **bar bending schedules** derive from the same model.
-4. Export BOQ/PDF through the worker when ready.
-
-See **[Estimation and BOQ](estimation-and-boq)**.
+The in-browser **Estimation OS** (BOQ, rate books, parametric takeoff) was retired in 2026-06 and is being rebuilt. Today, open a project and use the **Measurement** tab for quantity records tied to the project file. Watch the wiki and release notes for the next cost-management wave.
 
 ---
 
@@ -204,10 +197,10 @@ See **[Estimation and BOQ](estimation-and-boq)**.
 | Task | Where |
 |------|--------|
 | Firm profile, logo, GST | **Company** (`/company`) |
-| Users and roles | **Admin â†’ Users** (firm admin) |
-| Storage usage | **Company â†’ settings** |
-| Audit trail | **Admin â†’ Audit log** |
-| Preferences, password | **Profile â†’ Settings** |
+| Users and roles | **Admin ? Users** (firm admin) |
+| Storage usage | **Company ? settings** |
+| Audit trail | **Admin ? Audit log** |
+| Preferences, password | **Profile ? Settings** |
 
 Account-level licence and members: **[Company account](/company-account)** portal.
 
@@ -219,21 +212,21 @@ Account-level licence and members: **[Company account](/company-account)** porta
 |------|----------------|
 | **Owner / Principal** | Full studio, financials, approvals |
 | **Project architect** | Assigned projects, tasks, drawings |
-| **Finance** | Invoices, reconcile, filing â€” not HR unless granted |
-| **HR** | Team, payroll, attendance â€” when `hrEnabled` |
-| **Client** | Portal only â€” their projects |
+| **Finance** | Invoices, reconcile, filing — not HR unless granted |
+| **HR** | Team, payroll, attendance — when `hrEnabled` |
+| **Client** | Portal only — their projects |
 | **Consultant / Contractor** | Scoped portal |
 
-Capabilities are enforced server-side via `can(role, capability)` â€” the UI hides what the role cannot do.
+Capabilities are enforced server-side via `can(role, capability)` — the UI hides what the role cannot do.
 
 ---
 
 ## Keyboard and productivity
 
-- **Global search** â€” header search across projects, clients, documents.
-- **Calculator** â€” footer left; persists as a float.
-- **Pomodoro** â€” footer tray for focus sessions.
-- **ActionDock** â€” centre bottom; primary save/create for the active screen.
+- **Global search** — header search across projects, clients, documents.
+- **Calculator** — footer left; persists as a float.
+- **Pomodoro** — footer tray for focus sessions.
+- **ActionDock** — centre bottom; primary save/create for the active screen.
 
 ---
 
@@ -241,7 +234,7 @@ Capabilities are enforced server-side via `can(role, capability)` â€” the UI hid
 
 - **Email:** [hi@aorms.in](mailto:hi@aorms.in)
 - **Wiki:** [aorms.in/wiki](https://aorms.in/wiki)
-- **Blog:** [aorms.in/blog](https://aorms.in/blog) â€” practice notes and release context
+- **Blog:** [aorms.in/blog](https://aorms.in/blog) — practice notes and release context
 
 ---
 

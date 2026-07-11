@@ -2,6 +2,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { Box, Button, Stack, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { GlassRail } from "@hcw/ui-kit";
+import { AORMS_PORTALS } from "../../lib/product-nomenclature.js";
 
 /**
  * Client / consultant / site external portals — glass rail · stage
@@ -34,7 +35,7 @@ export function ExternalPortalShell({
               {portalLabel}
             </Typography>
             <Typography variant="h6" component="p" sx={{ m: 0, fontWeight: 700 }}>
-              {companyName ?? "AORMS"}
+              {companyName ?? AORMS_PORTALS.studio.railFallback}
             </Typography>
           </Stack>
           <Box sx={{ flex: 1 }} />

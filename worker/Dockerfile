@@ -1,4 +1,4 @@
-# ESTI AORMS Python worker (ezdxf / WeasyPrint / pandas)
+# ESTI AORMS Python worker (ezdxf / WeasyPrint / pymupdf4llm / pandas)
 FROM python:3.12-slim
 
 # WeasyPrint system deps (pango/cairo/gdk-pixbuf)

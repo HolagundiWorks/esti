@@ -60,7 +60,7 @@ import {
 } from "@esti/contracts";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../lib/auth.js";
-import { apiUrl, authHeaders } from "../lib/api-base.js";
+import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 import { StatusDot } from "./StatusTag.js";
 
@@ -550,6 +550,7 @@ function NegotiationSection({ projectId, canWrite }: { projectId: string; canWri
 
 // ── Onboarding (Slice J) ──────────────────────────────────────────────────────
 function OnboardingSection({ projectId, canWrite }: { projectId: string; canWrite: boolean }) {
+  const { authorizedFetch } = useUploadAuth();
   const utils = trpc.useUtils();
   const q = trpc.onboarding.byProject.useQuery({ projectId });
   const o = q.data;
@@ -575,11 +576,11 @@ function OnboardingSection({ projectId, canWrite }: { projectId: string; canWrit
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
 
   async function upload(slot: "agreement" | "id", file: File) {
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("projectId", projectId);
-    fd.append("slot", slot);
-    const res = await fetch(apiUrl("/upload/onboarding-document"), { method: "POST", body: fd, credentials: "include", headers: authHeaders() });
+    const res = await authorizedFetch("/upload/onboarding-document", (fd) => {
+      fd.append("file", file);
+      fd.append("projectId", projectId);
+      fd.append("slot", slot);
+    });
     if (res.ok) { setUploadMsg(`${slot === "agreement" ? "Agreement" : "ID"} uploaded`); inv(); }
     else { const e = await res.json().catch(() => ({ error: "Upload failed" })); setUploadMsg(e.error ?? "Upload failed"); }
   }

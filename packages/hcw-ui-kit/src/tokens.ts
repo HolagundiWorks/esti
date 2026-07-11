@@ -37,6 +37,83 @@ export const colors = {
   supportInfo: "#3B5568", // slate — links + info
 } as const;
 
+// ── Colour schemes (semantic tier — designtokens.org global→semantic layering) ──
+/** A scheme carries every semantic colour role. `colors` above IS the light scheme
+ *  (kept as the default export shape for full backward compatibility). */
+export type ColorScheme = Record<keyof typeof colors, string>;
+export type SchemeName = "light" | "dark" | "highContrast";
+
+/** Dark scheme — brand-consistent inversion (Coal canvas, lifted accent for AA on
+ *  dark). **Scaffold status:** palette-complete; the neumorphic/glass RECIPES below
+ *  remain light-tuned, so dark is preview-grade until recipes gain dark variants. */
+export const DARK_SCHEME: ColorScheme = {
+  background: "#101215",
+  layer01: "#191C21",
+  layer02: "#232830",
+  borderSubtle: "rgba(255, 255, 255, 0.10)",
+  borderStrong: "rgba(255, 255, 255, 0.20)",
+  textPrimary: "#EDEFF3",
+  textSecondary: "#9AA2AE",
+  textHelper: "#98A1AD",
+  textOnColor: "#FFFFFF",
+  ink: "#EDEFF3",
+  onAccent: "#FFFFFF",
+  accent: "#FF5C28",
+  accentSoft: "rgba(255, 92, 40, 0.20)",
+  accentDark: "#FF7A4D", // hover lifts LIGHTER on dark canvases
+  hoverSoft: "rgba(255, 255, 255, 0.06)",
+  supportSuccess: "#4CC29A",
+  supportWarning: "#FFB25C",
+  supportError: "#F07862",
+  supportInfo: "#8FB4CE",
+} as const;
+
+/** High-contrast scheme (light HC) — pure grounds, full-strength borders, darkened
+ *  accent so white-on-accent text holds ≥4.5:1. Scaffold status as above. */
+export const HIGH_CONTRAST_SCHEME: ColorScheme = {
+  background: "#FFFFFF",
+  layer01: "#FFFFFF",
+  layer02: "#E5E5E5",
+  borderSubtle: "#141517",
+  borderStrong: "#000000",
+  textPrimary: "#000000",
+  textSecondary: "#141517",
+  textHelper: "#333A44",
+  textOnColor: "#FFFFFF",
+  ink: "#000000",
+  onAccent: "#FFFFFF",
+  accent: "#C93A00",
+  accentSoft: "rgba(201, 58, 0, 0.18)",
+  accentDark: "#A32F00",
+  hoverSoft: "rgba(0, 0, 0, 0.08)",
+  supportSuccess: "#0E5A3C",
+  supportWarning: "#8A4B00",
+  supportError: "#A31226",
+  supportInfo: "#1F4258",
+} as const;
+
+/** All schemes by name — the theme factory resolves from here. */
+export const SCHEMES: Record<SchemeName, ColorScheme> = {
+  light: colors,
+  dark: DARK_SCHEME,
+  highContrast: HIGH_CONTRAST_SCHEME,
+};
+
+/** Status hues for StatusDot/StatusTag — canonical kit-owned values (supersede the
+ *  frozen `--cds-tag-*` compat layer for new code). */
+export const STATUS_COLORS: Record<string, string> = {
+  red: "#a2191f",
+  magenta: "#9f1853",
+  purple: "#6929c4",
+  blue: "#0043ce",
+  cyan: "#00539a",
+  teal: "#005d5d",
+  green: "#0e6027",
+  gray: "#161616",
+  "cool-gray": "#121619",
+  "warm-gray": "#171414",
+};
+
 /** Surface / panel / input corner radius — square everywhere (0). */
 export const RADIUS = 0;
 /** Buttons (MuiButton) — rounded workspace controls. */
@@ -49,6 +126,54 @@ export const DIALOG_RADIUS = 8;
 export const MARKETING_DOCK_RADIUS = 12;
 /** Selected tab accent — inset top rule (alert line), not a background fill. */
 export const TAB_ALERT_WIDTH = 3;
+
+// ── Scale tokens (the numeric ladders the theme + components build on) ─────────
+
+/** Spacing base — 8px, matching MUI's default grid so existing layouts are
+ *  unaffected. `theme.spacing(1)` = 8px. Use `SPACING.*` instead of magic px. */
+export const SPACING_UNIT = 8;
+export const SPACING = {
+  none: 0, xxs: 2, xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48, xxxl: 64,
+} as const;
+
+/** Responsive breakpoints (px). Mirror MUI defaults; `md: 900` is the rail
+ *  stack/unstack line used across the workspace + marketing shells. */
+export const BREAKPOINTS = { xs: 0, sm: 600, md: 900, lg: 1200, xl: 1536 } as const;
+
+/** Z-index ladder — one stack order for every floating surface, mirroring MUI's
+ *  ladder so themed MUI overlays and HCW chrome (rail · dock · footer) never fight. */
+export const Z_INDEX = {
+  base: 0, rail: 5, stickyHeader: 10, fab: 1050, appBar: 1100, drawer: 1200,
+  actionDock: 1250, dialog: 1300, toast: 1400, tooltip: 1500,
+} as const;
+
+/** Opacity scale — the only sanctioned alpha steps for UI state. */
+export const OPACITY = {
+  disabled: 0.45, muted: 0.6, hoverWash: 0.04, selectedWash: 0.14,
+} as const;
+
+/** Type scale — the sanctioned font sizes BELOW/BESIDE the MUI variants, for the
+ *  dense-telemetry cases (rail micro-labels, KPI values) that variants don't cover.
+ *  Icon sizing via `fontSize` on icon components is geometry, not typography — it
+ *  is exempt from this scale (see HCW-KIT-AI-KNOWLEDGE-BASE.md R1). */
+export const TYPE_SCALE = {
+  micro: "0.65rem", // rail telemetry micro-labels (below caption)
+  caption: "0.75rem", // = MUI caption; here for completeness of the ladder
+  body2: "0.875rem",
+  body: "1rem",
+  kpi: "1.1rem", // stage-head / rail KPI values (light weight)
+} as const;
+
+/** Motion tokens — durations (ms) + easings. `fast`/`base` match the 130–200ms
+ *  used across the theme. Always gate transforms behind {@link REDUCE_MOTION}. */
+export const MOTION = {
+  duration: { instant: 80, fast: 130, base: 200, slow: 320 },
+  easing: {
+    standard: "cubic-bezier(0.2, 0, 0, 1)",
+    emphasized: "cubic-bezier(0.3, 0, 0, 1)",
+    exit: "cubic-bezier(0.4, 0, 1, 1)",
+  },
+} as const;
 
 /** Brand font — Urbanist (OFL, self-hosted via @fontsource; works offline).
  *  Consumers import the weights they need (see README) and this stack is applied
@@ -262,6 +387,16 @@ export const LAYERS: Record<SurfaceLayer, Record<string, unknown>> = {
   headingGlass: HEADING_GLASS_SURFACE,
 };
 
+/** Elevation ladder — depth-encodes-importance as numeric levels: 0 = flat
+ *  (Layer 1) · 1–2 = neumorphic (Layer 2) · 3 = glass (Layer 3). Values are the
+ *  box-shadow strings the recipes already use, exposed as one ordered scale. */
+export const ELEVATION = {
+  0: "none",
+  1: NEU_RAISED.boxShadow,
+  2: NEU_POP.boxShadow,
+  3: GLASS_SURFACE.boxShadow,
+} as const;
+
 /** The token bundle, handy for a one-shot import. */
 export const tokens = {
   colors,
@@ -270,4 +405,11 @@ export const tokens = {
   DOCK_PILL_RADIUS,
   DIALOG_RADIUS,
   FONT_FAMILY,
+  SPACING,
+  SPACING_UNIT,
+  BREAKPOINTS,
+  Z_INDEX,
+  OPACITY,
+  MOTION,
+  ELEVATION,
 } as const;

@@ -1,4 +1,4 @@
-﻿# AORMS Development Documentation
+# AORMS Development Documentation
 ## Accelerated Operational Resources Management System
 
 **Version:** 1.0  
@@ -7,7 +7,7 @@
 
 > **Platform vs shipped code:** This document describes the **AORMS platform**
 > north-star. The monorepo in `holagundiworks/esti` implements the
-> **AORMS-Studio** vertical workspace (Indian architecture practices).
+> **AORMS-Studio** architecture app (Indian architecture practices) and **AORMS-Consultancy** engineering app (roadmap).
 > Canonical naming: [`docs/esti/AORMS-PLATFORM-NOMENCLATURE.md`](../../../docs/esti/AORMS-PLATFORM-NOMENCLATURE.md).
 > Live system state: [`docs/esti/UNIFIED-ARCHITECTURE-V4.md`](../../../docs/esti/UNIFIED-ARCHITECTURE-V4.md).
 
@@ -34,13 +34,13 @@
 AORMS consolidates fragmented consulting workflows into a single, AI-enhanced platform. It replaces 5-7 disconnected tools (Slack, Asana, Google Docs, Notion, email, etc.) with an integrated system that standardizes processes, accelerates optimization, and enables knowledge-driven decision-making.
 
 ### Key Differentiators
-- **Custom Framework Deployment** – Analysis of existing office workflows → tailored process frameworks in days
-- **Dual-Tier AI Architecture** – External validation layer + internal RAG firewall prevents hallucination & compliance drift
-- **Cross-Domain Applicability** – Architecture-agnostic design enables deployment across accounting, law, strategy, management consulting, engineering practices
-- **Unified Collaboration Surface** – Communication, revision, review, audit logs in one system
+- **Custom Framework Deployment** � Analysis of existing office workflows ? tailored process frameworks in days
+- **Two AI agents** � **EmOI** (external AI agent) validates outside sources; **ESTI** (internal AI agent) answers from firm repositories � prevents hallucination and compliance drift
+- **Two AEC apps** � **AORMS-Studio** (architecture, shipping) and **AORMS-Consultancy** (engineering, roadmap) on one platform spine
+- **Unified Collaboration Surface** � Communication, revision, review, audit logs in one system
 
 ### Target User
-Consulting firms (5-500 person teams) seeking operational consolidation + workflow optimization without full ERP overhaul.
+AEC consulting firms (5�500 person teams) � architecture and engineering practices seeking operational consolidation without a full ERP overhaul.
 
 ---
 
@@ -49,66 +49,66 @@ Consulting firms (5-500 person teams) seeking operational consolidation + workfl
 ### System Components
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    AORMS Frontend (React)                       │
-│                                                                 │
-│  Dashboard │ Projects │ Workflows │ Collaboration │ Analytics  │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                    ┌────────┴────────┐
-                    │                 │
-         ┌──────────▼──────────┐  ┌──▼────────────────┐
-         │  Core API Layer     │  │ Real-time Layer   │
-         │  (REST + GraphQL)   │  │ (WebSocket)       │
-         └──────────┬──────────┘  └──┬────────────────┘
-                    │                │
-         ┌──────────┴────────────────┴──────────┐
-         │                                      │
-    ┌────▼─────────────────────┐    ┌─────────▼────────────────┐
-    │  Core Services Layer      │    │  AI Orchestration Layer  │
-    │                           │    │                          │
-    │ • Project Management      │    │ ┌──────────────────────┐ │
-    │ • Workflow Engine         │    │ │ External AI Module   │ │
-    │ • Collaboration Service   │    │ │ (Content Audit)      │ │
-    │ • Document Management     │    │ │                      │ │
-    │ • Reporting & Analytics   │    │ │ ✓ Fetch external     │ │
-    │ • User & Permissions      │    │ │   content            │ │
-    │                           │    │ ✓ Validate against    │ │
-    │                           │    │   audit rules          │ │
-    │                           │    │ ✓ Prepare repos &     │ │
-    │                           │    │   guidelines           │ │
-    │                           │    └───────────┬────────────┘ │
-    │                           │                │              │
-    │                           │    ┌───────────▼────────────┐ │
-    │                           │    │ Internal AI Module     │ │
-    │                           │    │ (RAG + Firewall)       │ │
-    │                           │    │                        │ │
-    │                           │    │ ✓ Fetch validated      │ │
-    │                           │    │   content              │ │
-    │                           │    │ ✓ Resolve queries      │ │
-    │                           │    │ ✓ Generate reports     │ │
-    │                           │    │ ✓ Audit & compliance   │ │
-    │                           │    │ ✓ Prevent hallucin.    │ │
-    │                           │    └────────────────────────┘ │
-    └────┬─────────────────────┘    └─────────────────────────┘
-         │
-    ┌────┴──────────────────────────────────────────────────────┐
-    │              Data & Persistence Layer                      │
-    │                                                            │
-    │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
-    │  │ PostgreSQL   │  │ Vector DB    │  │ Redis        │    │
-    │  │ (Relational) │  │ (Embeddings) │  │ (Cache/      │    │
-    │  │              │  │              │  │ Real-time)   │    │
-    │  └──────────────┘  └──────────────┘  └──────────────┘    │
-    │                                                            │
-    │  ┌──────────────────────────────────────────────────────┐ │
-    │  │ Object Storage (S3/Compatible)                       │ │
-    │  │ • Document versions                                  │ │
-    │  │ • Audit trails                                       │ │
-    │  │ • Framework templates                                │ │
-    │  │ • Generated reports                                  │ │
-    │  └──────────────────────────────────────────────────────┘ │
-    └────────────────────────────────────────────────────────────┘
++-----------------------------------------------------------------+
+�                    AORMS Frontend (React)                       �
+�                                                                 �
+�  Dashboard � Projects � Workflows � Collaboration � Analytics  �
++-----------------------------------------------------------------+
+                             �
+                    +-----------------+
+                    �                 �
+         +----------?----------+  +--?----------------+
+         �  Core API Layer     �  � Real-time Layer   �
+         �  (REST + GraphQL)   �  � (WebSocket)       �
+         +---------------------+  +-------------------+
+                    �                �
+         +--------------------------------------+
+         �                                      �
+    +----?---------------------+    +---------?----------------+
+    �  Core Services Layer      �    �  AI Orchestration Layer  �
+    �                           �    �                          �
+    � � Project Management      �    � +----------------------+ �
+    � � Workflow Engine         �    � � External AI Module   � �
+    � � Collaboration Service   �    � � (Content Audit)      � �
+    � � Document Management     �    � �                      � �
+    � � Reporting & Analytics   �    � � ? Fetch external     � �
+    � � User & Permissions      �    � �   content            � �
+    �                           �    � ? Validate against    � �
+    �                           �    �   audit rules          � �
+    �                           �    � ? Prepare repos &     � �
+    �                           �    �   guidelines           � �
+    �                           �    +------------------------+ �
+    �                           �                �              �
+    �                           �    +-----------?------------+ �
+    �                           �    � Internal AI Module     � �
+    �                           �    � (RAG + Firewall)       � �
+    �                           �    �                        � �
+    �                           �    � ? Fetch validated      � �
+    �                           �    �   content              � �
+    �                           �    � ? Resolve queries      � �
+    �                           �    � ? Generate reports     � �
+    �                           �    � ? Audit & compliance   � �
+    �                           �    � ? Prevent hallucin.    � �
+    �                           �    +------------------------+ �
+    +--------------------------+    +-------------------------+
+         �
+    +-----------------------------------------------------------+
+    �              Data & Persistence Layer                      �
+    �                                                            �
+    �  +--------------+  +--------------+  +--------------+    �
+    �  � PostgreSQL   �  � Vector DB    �  � Redis        �    �
+    �  � (Relational) �  � (Embeddings) �  � (Cache/      �    �
+    �  �              �  �              �  � Real-time)   �    �
+    �  +--------------+  +--------------+  +--------------+    �
+    �                                                            �
+    �  +------------------------------------------------------+ �
+    �  � Object Storage (S3/Compatible)                       � �
+    �  � � Document versions                                  � �
+    �  � � Audit trails                                       � �
+    �  � � Framework templates                                � �
+    �  � � Generated reports                                  � �
+    �  +------------------------------------------------------+ �
+    +------------------------------------------------------------+
 ```
 
 ### Two-Tier AI Architecture (Firewall Model)
@@ -117,18 +117,18 @@ Consulting firms (5-500 person teams) seeking operational consolidation + workfl
 - Fetches content from external sources (client documents, industry guidelines, regulatory databases)
 - Validates against configurable audit rules & compliance requirements
 - Prepares standardized repositories with enriched metadata
-- Acts as **content gatekeeper** – no raw external content enters system
+- Acts as **content gatekeeper** � no raw external content enters system
 
 **Internal AI Module** (RAG + Safety)
 - Receives only validated, structured data from External module
 - Uses Retrieval-Augmented Generation (RAG) trained on internal knowledge bases
 - Generates reports, audit outputs, recommendations
-- Acts as **knowledge firewall** – prevents drift, hallucination, and corruption
+- Acts as **knowledge firewall** � prevents drift, hallucination, and corruption
 - Maintains audit trail of all AI-assisted decisions
 
 **Data Flow:**
 ```
-External Source → External AI (Validate) → Repo Store → Internal AI (RAG) → Output
+External Source ? External AI (Validate) ? Repo Store ? Internal AI (RAG) ? Output
                   [Quality Gate]                        [Safety Gate]
 ```
 
@@ -161,7 +161,7 @@ External Source → External AI (Validate) → Repo Store → Internal AI (RAG) 
 
 **Capabilities:**
 - Project creation with custom templates (by consulting domain)
-- Task hierarchies (Epic → Story → Subtask)
+- Task hierarchies (Epic ? Story ? Subtask)
 - Resource allocation & capacity planning
 - Dependency tracking & critical path
 - Timeline & milestone management
@@ -181,7 +181,7 @@ External Source → External AI (Validate) → Repo Store → Internal AI (RAG) 
 
 ### 3. Collaborative Workspace
 
-**Purpose:** Replace Slack, Asana comments, Google Docs – all collaboration in one place.
+**Purpose:** Replace Slack, Asana comments, Google Docs � all collaboration in one place.
 
 **Capabilities:**
 - Real-time document editing (multi-cursor, change tracking)
@@ -275,7 +275,7 @@ External Source → External AI (Validate) → Repo Store → Internal AI (RAG) 
 
 ### 7. Analytics & Dashboards
 
-**Purpose:** Operational visibility – where are bottlenecks, inefficiencies, opportunities?
+**Purpose:** Operational visibility � where are bottlenecks, inefficiencies, opportunities?
 
 **Capabilities:**
 - Executive dashboard (KPIs, health metrics, trends)
@@ -654,7 +654,7 @@ CREATE TABLE audit_logs_202406 PARTITION OF audit_logs
 
 **Authentication:**
 ```
-POST   /api/auth/login              # Credentials → JWT
+POST   /api/auth/login              # Credentials ? JWT
 POST   /api/auth/sso                # SSO provider integration
 POST   /api/auth/logout
 GET    /api/auth/me                 # Current user profile
@@ -856,13 +856,13 @@ type Subscription {
 3. **Repository Structure**
    ```
    repos/
-   ├── compliance/
-   │   ├── gdpr.json (validated)
-   │   ├── gdpr_audit_trail.json
-   ├── industry_standards/
-   │   ├── soc2.json (validated)
-   ├── client_guidelines/
-   ├── regulatory/
+   +-- compliance/
+   �   +-- gdpr.json (validated)
+   �   +-- gdpr_audit_trail.json
+   +-- industry_standards/
+   �   +-- soc2.json (validated)
+   +-- client_guidelines/
+   +-- regulatory/
    ```
 
 ### Internal AI Module (RAG + Generation)
@@ -872,61 +872,61 @@ type Subscription {
 **Architecture:**
 
 ```
-┌─────────────────────────────────────────────┐
-│   User Query / Report Request               │
-└────────────────┬────────────────────────────┘
-                 │
-        ┌────────▼────────┐
-        │ Query Intent    │
-        │ Classification  │
-        └────────┬────────┘
-                 │
-    ┌────────────┼────────────┐
-    │            │            │
-    ▼            ▼            ▼
++---------------------------------------------+
+�   User Query / Report Request               �
++---------------------------------------------+
+                 �
+        +--------?--------+
+        � Query Intent    �
+        � Classification  �
+        +-----------------+
+                 �
+    +------------+------------+
+    �            �            �
+    ?            ?            ?
 [Audit] [Report]         [Recommendation]
-    │            │            │
-    └────────────┼────────────┘
-                 │
-        ┌────────▼──────────────┐
-        │ Retrieve from Vector  │
-        │ DB (Embeddings)       │
-        │ - Validated resources │
-        │ - Internal docs       │
-        │ - Audit rules         │
-        └────────┬──────────────┘
-                 │
-        ┌────────▼──────────────┐
-        │ Rank & Filter Results │
-        │ (Relevance, recency)  │
-        └────────┬──────────────┘
-                 │
-        ┌────────▼──────────────┐
-        │ Augment LLM Prompt    │
-        │ with Retrieved Data   │
-        └────────┬──────────────┘
-                 │
-        ┌────────▼──────────────┐
-        │ Call LLM (Claude)     │
-        │ with Guardrails:      │
-        │ • No hallucination    │
-        │ • Format enforcement  │
-        │ • Cite sources        │
-        └────────┬──────────────┘
-                 │
-        ┌────────▼──────────────┐
-        │ Format Output         │
-        │ (JSON / PDF / HTML)   │
-        └────────┬──────────────┘
-                 │
-        ┌────────▼──────────────┐
-        │ Store in Audit Trail  │
-        │ (immutable log)       │
-        └────────┬──────────────┘
-                 │
-        ┌────────▼──────────────┐
-        │ Return to User        │
-        └────────┴──────────────┘
+    �            �            �
+    +------------+------------+
+                 �
+        +--------?--------------+
+        � Retrieve from Vector  �
+        � DB (Embeddings)       �
+        � - Validated resources �
+        � - Internal docs       �
+        � - Audit rules         �
+        +-----------------------+
+                 �
+        +--------?--------------+
+        � Rank & Filter Results �
+        � (Relevance, recency)  �
+        +-----------------------+
+                 �
+        +--------?--------------+
+        � Augment LLM Prompt    �
+        � with Retrieved Data   �
+        +-----------------------+
+                 �
+        +--------?--------------+
+        � Call LLM (Claude)     �
+        � with Guardrails:      �
+        � � No hallucination    �
+        � � Format enforcement  �
+        � � Cite sources        �
+        +-----------------------+
+                 �
+        +--------?--------------+
+        � Format Output         �
+        � (JSON / PDF / HTML)   �
+        +-----------------------+
+                 �
+        +--------?--------------+
+        � Store in Audit Trail  �
+        � (immutable log)       �
+        +-----------------------+
+                 �
+        +--------?--------------+
+        � Return to User        �
+        +-----------------------+
 ```
 
 **Implementation (Python with LangChain):**
@@ -1498,23 +1498,17 @@ jobs:
 - [ ] Desktop app (Electron/Tauri)
 - [ ] Advanced reporting UI
 
-### Phase 4: Verticalization & Growth (Year 2)
+### Phase 4: AEC apps & growth (Year 2)
 
-**Domain-Specific Solutions**
-- [ ] Accounting firm templates (AR, revenue recognition)
-- [ ] Law firm templates (matter management, billing)
-- [ ] Management consulting templates (engagement lifecycle)
-- [ ] Engineering firm templates (project delivery)
+**AORMS-Consultancy (engineering app)**
+- [ ] Structural, MEP, civil, and multidisciplinary engagement templates
+- [ ] Serial peer review and checker sign-off chains
+- [ ] Deliverable register (calculations, reports, technical submissions)
 
-**AI Specialization**
-- [ ] Legal document analysis (contract review)
-- [ ] Financial audit automation (SOX, IFRS)
-- [ ] Regulatory intelligence (auto-updates on compliance)
-
-**Marketplace**
-- [ ] Framework marketplace (community-built templates)
+**Platform growth**
+- [ ] Framework marketplace (community-built AEC templates)
 - [ ] Integration apps (AppStore-style)
-- [ ] Custom LLM models (fine-tuned per vertical)
+- [ ] Custom LLM models (fine-tuned per discipline)
 
 ---
 
@@ -1570,14 +1564,14 @@ jobs:
 
 ## Conclusion
 
-AORMS is positioned as the **operational spine for consulting firms** — consolidating fragmentation, accelerating optimization, and ensuring compliance through a dual-tier AI architecture that prioritizes safety and accuracy over raw performance.
+AORMS is positioned as the **operational spine for AEC consulting firms** � consolidating fragmentation, accelerating optimization, and ensuring compliance through **EmOI** (external AI agent) and **ESTI** (internal AI agent).
 
 **Key Architectural Principles:**
-1. **Multi-tenant by default** – Isolation, customization, scalability
-2. **AI as infrastructure** – Not a feature, but a system component
-3. **Audit-first design** – Immutable logs, compliance at center
-4. **Consolidation, not replacement** – Integrates with existing tools gradually
-5. **Domain-agnostic** – Template system enables cross-vertical expansion
+1. **Multi-tenant by default** � Isolation, customization, scalability
+2. **AI as infrastructure** � Not a feature, but a system component
+3. **Audit-first design** � Immutable logs, compliance at center
+4. **Consolidation, not replacement** � Integrates with existing tools gradually
+5. **Two AEC apps** � Architecture (**AORMS-Studio**) and engineering (**AORMS-Consultancy**) on one spine
 
 **Next Steps:**
 1. Refine scope with early customer (pilot firm)
@@ -1589,5 +1583,5 @@ AORMS is positioned as the **operational spine for consulting firms** — consol
 ---
 
 **Document Version History:**
-- v1.0 – 2026, Initial architecture & technical specification
+- v1.0 � 2026, Initial architecture & technical specification
 

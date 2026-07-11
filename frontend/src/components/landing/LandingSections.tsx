@@ -1,5 +1,6 @@
 import CheckIcon from "@mui/icons-material/Check";
 import type { CSSProperties, ReactNode } from "react";
+import { AORMS_PORTALS } from "../../lib/product-nomenclature.js";
 
 // ─── Primitives ────────────────────────────────────────────────────────────────
 
@@ -549,7 +550,7 @@ export function PortalsSection() {
       <div className="lp2-grid lp2-grid--3">
         <Tile
           dot="green"
-          tag="Client portal"
+          tag={AORMS_PORTALS.client.label}
           title="Revisions, approvals and fee status — not screenshots"
           bullets={[
             "Submit revisions raised from minutes of meeting",
@@ -559,14 +560,14 @@ export function PortalsSection() {
         />
         <Tile
           dot="green"
-          tag="Consultant portal"
+          tag={AORMS_PORTALS.consultant.label}
           title="RFIs and issued drawings against the office record"
           bullets={["Scoped to assigned engagements only"]}
           delay={110}
         />
         <Tile
           dot="white"
-          tag="Contractor portal"
+          tag={AORMS_PORTALS.contractor.label}
           title="Site instructions without office-wide access"
           bullets={["Changes reach site only after the client approval trail"]}
           delay={180}
@@ -586,7 +587,7 @@ const INCLUDED: string[] = [
   "Projects · drawings · transmittals · approvals",
   "GST invoicing · reconciliation · filing abstracts",
   "HR, payroll and ASPRF performance",
-  "Client, consultant and contractor portals",
+  AORMS_PORTALS.external.marketingList,
   "Ask ESTI and AI Studio · 5 GB cloud storage",
 ];
 

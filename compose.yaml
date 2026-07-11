@@ -117,6 +117,9 @@ services:
     environment:
       REDIS_URL: redis://redis:6379
       DATABASE_URL: ${DATABASE_URL:-postgres://esti:esti@db:5432/esti}
+      WORKER_JOB_STREAM: ${WORKER_JOB_STREAM:-esti:jobs}
+      WORKER_GROUP: ${WORKER_GROUP:-esti-workers}
+      WORKER_DEAD_LETTER_STREAM: ${WORKER_DEAD_LETTER_STREAM:-esti:jobs:dead}
       MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI:-sqlite:////app/mlruns/mlflow.db}
       GIT_PYTHON_REFRESH: ${GIT_PYTHON_REFRESH:-quiet}
       EVIDENTLY_DISABLE_TELEMETRY: ${EVIDENTLY_DISABLE_TELEMETRY:-1}
@@ -126,7 +129,15 @@ services:
       S3_SECRET_KEY: ${S3_SECRET_KEY:-esti-secret}
     volumes:
       - esti-mlruns:/app/mlruns
-    depends_on: [redis, minio]
+      # Dev hot-reload: job handlers (incl. pdf_to_markdown for Knowledge Bank portal).
+      - ./worker/esti_worker:/app/esti_worker
+    depends_on:
+      db:
+        condition: service_started
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
 
   frontend:
     image: localhost/esti-frontend:dev

@@ -1,7 +1,7 @@
-﻿---
+---
 title: Contractor Billing Software for Architects
 metaTitle: Contractor Billing Software for Architects
-metaDescription: Contractor billing software for architects — track measurements, bills, approvals, reconciliation and project evidence between site, office and contractor.
+metaDescription: Contractor billing software for architects � track measurements, bills, approvals, reconciliation and project evidence between site, office and contractor.
 keyword: contractor billing software for architects
 category: solution
 updated: 2026-06-25

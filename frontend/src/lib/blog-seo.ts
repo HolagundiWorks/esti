@@ -22,6 +22,21 @@ function setJsonLd(data: object | null): void {
   document.head.appendChild(script);
 }
 
+function setLinkRel(rel: string, href: string, extra?: { type?: string; title?: string }): void {
+  const sel = extra?.type
+    ? `link[rel="${rel}"][type="${extra.type}"]`
+    : `link[rel="${rel}"]`;
+  let el = document.querySelector(sel) as HTMLLinkElement | null;
+  if (!el) {
+    el = document.createElement("link");
+    el.rel = rel;
+    if (extra?.type) el.type = extra.type;
+    if (extra?.title) el.title = extra.title;
+    document.head.appendChild(el);
+  }
+  el.href = href;
+}
+
 export function applyBlogListSeo(): void {
   const title = `Blog — ${SITE_NAME}`;
   const description =
@@ -33,6 +48,10 @@ export function applyBlogListSeo(): void {
   setMeta('meta[name="twitter:title"]', "content", title);
   setMeta('meta[name="twitter:description"]', "content", description);
   setMeta('link[rel="canonical"]', "href", `${SITE}/blog`);
+  setLinkRel("alternate", `${SITE}/blog/feed.xml`, {
+    type: "application/rss+xml",
+    title: "AORMS Blog",
+  });
   setJsonLd(null);
 }
 

@@ -2,6 +2,7 @@ import { Button, Stack, Typography } from "@mui/material";
 import { ExternalPortalShell } from "../components/portal/ExternalPortalShell.js";
 import { setDesktopToken } from "../lib/api-base.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 /** Placeholder until the contractor coordination portal is rebuilt (consultancy-only teardown). */
 export function ContractorPortalStub() {
@@ -15,7 +16,7 @@ export function ContractorPortalStub() {
 
   return (
     <ExternalPortalShell
-      portalLabel="Contractor portal"
+      portalLabel={AORMS_PORTALS.contractor.label}
       onSignOut={() => logout.mutate()}
       signingOut={logout.isPending}
     >

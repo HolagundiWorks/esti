@@ -38,6 +38,7 @@ import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 type SubmissionStatus = keyof typeof CONSULTANT_SUBMISSION_STATUS_LABEL;
 
@@ -236,7 +237,7 @@ export function CollaboratorPortal() {
   return (
     <ExternalPortalShell
       companyName={brandingQ.data?.companyName}
-      portalLabel="Consultant portal"
+      portalLabel={AORMS_PORTALS.consultant.label}
       onSignOut={() => logout.mutate()}
       signingOut={logout.isPending}
     >

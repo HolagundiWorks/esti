@@ -329,3 +329,15 @@ def fetch_open_invoices() -> list[dict[str, Any]]:
             for r in cur.fetchall()
         ]
 
+
+def update_repo_source(source_id: str, **fields: Any) -> None:
+    """Patch esti_repo_source after PDF→Markdown conversion."""
+    col_map = {
+        "markdown_text": "markdown_text",
+        "raw_text": "raw_text",
+        "convert_status": "convert_status",
+        "convert_error": "convert_error",
+    }
+    mapped = {col_map.get(k, k): v for k, v in fields.items()}
+    _patch("esti_repo_source", source_id, set(), mapped)
+

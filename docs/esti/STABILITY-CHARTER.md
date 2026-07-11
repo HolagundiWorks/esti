@@ -7,7 +7,7 @@ and rendering tools as their **primary** workspace. AORMS is the **secondary**
 office record — projects, fees, CRIF, documents, coordination, and traceability.
 
 See also [PRODUCT-VISION](PRODUCT-VISION.md), [ROADMAP](ROADMAP.md), and
-[ESTICAD-COMPANION](../archive/esti/ESTICAD-COMPANION.md) (archived)..
+[ARCHITECTURE](ARCHITECTURE.md) (ESTICAD companion — optional desktop CAD client).
 
 ---
 

@@ -32,6 +32,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::manager_status,
             commands::submit_license,
+            commands::store_session_token,
+            commands::load_session_token,
+            commands::clear_session_token,
         ])
         .setup(|app| {
             let handle = app.handle().clone();

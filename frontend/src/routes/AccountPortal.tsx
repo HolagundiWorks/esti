@@ -7,6 +7,7 @@ import { PortalPageHeader, PortalTabPanel, PortalTabs } from "../components/port
 import { PortalShell } from "../components/portal/PortalShell.js";import { StatusDot } from "../components/StatusTag.js";
 import { useAuth } from "../lib/auth.js";
 import { fetchMe, fetchMyLicense, logout, type Me, type MyLicense } from "../platform-admin/lib/auth.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 const Credentials = lazy(() => import("../platform-admin/Credentials.js"));
 const PlatformLogin = lazy(() => import("../platform-admin/Login.js"));
@@ -153,7 +154,7 @@ export function AccountPortal() {
       <Stack spacing={3}>
         <PortalPageHeader
           title="Personal account"
-          subtitle="Your portable identity, companies, and security — separate from the studio workspace."
+          subtitle={`Your portable identity, companies, and security — separate from ${AORMS_PORTALS.studio.title}.`}
           meta={
             <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
               <Typography variant="body2">{account.email}</Typography>
@@ -216,8 +217,8 @@ export function AccountPortal() {
               {!user ? (
                 <Alert severity="warning">
                   <AlertTitle>Workspace sign-in required</AlertTitle>
-                  Work profile and workspace settings need an active studio session.{" "}
-                  <RouterLink to="/login">Sign in to your studio</RouterLink> first, then return here.
+                  Work profile and workspace settings need an active {AORMS_PORTALS.studio.sessionLabel}.{" "}
+                  <RouterLink to="/login">{AORMS_PORTALS.studio.signInLink}</RouterLink> first, then return here.
                 </Alert>
               ) : (
                 <>

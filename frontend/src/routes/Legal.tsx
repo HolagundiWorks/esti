@@ -106,7 +106,15 @@ export function Legal() {
                 your subscription agreement states otherwise.
               </p>
 
-              <h2>10. Contact</h2>
+              <h2 id="accessibility">10. Accessibility</h2>
+              <p>
+                AORMS marketing pages and the workspace target WCAG 2.1 Level AA where practical:
+                semantic headings, keyboard navigation, focus indicators, and sufficient colour
+                contrast via the HCW-UI-Kit token system. Report barriers at{" "}
+                <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+              </p>
+
+              <h2>11. Contact</h2>
               <p>
                 Human Centric Works · Hospet, Karnataka, India<br />
                 <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> · +91 89510 89191

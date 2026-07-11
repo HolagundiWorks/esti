@@ -33,6 +33,7 @@ import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 const ROLE_LABEL: Record<string, string> = {
   ...STAFF_ROLE_LABEL,
@@ -192,9 +193,9 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
         const isSelf = u.id === user?.id;
         const scope =
           u.role === "CLIENT"
-            ? " (client portal)"
+            ? ` (${AORMS_PORTALS.client.label.toLowerCase()})`
             : u.consultantId
-              ? " (consultant portal)"
+              ? ` (${AORMS_PORTALS.consultant.label.toLowerCase()})`
               : "";
         if (!isSelf && u.role !== "OWNER" && !u.clientId && !u.consultantId) {
           return (
@@ -347,7 +348,8 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
               </Button>
             </Stack>
             <Typography variant="body2" color="text.secondary">
-              Owner / staff / portal logins. Client and consultant portal logins are created from their records.
+              Owner / staff / portal logins. {AORMS_PORTALS.client.label} and{" "}
+              {AORMS_PORTALS.consultant.label.toLowerCase()} logins are created from their records.
             </Typography>
             {body}
           </Stack>
@@ -355,7 +357,7 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
       ) : (
         <RailLayout
           title="Users & access"
-          description="Owner / staff / portal logins. Client and consultant portal logins are created from their records (Clients / Consultants)."
+          description={`Owner / staff / portal logins. ${AORMS_PORTALS.client.label} and ${AORMS_PORTALS.consultant.label.toLowerCase()} logins are created from their records (Clients / Consultants).`}
         >
           {body}
         </RailLayout>

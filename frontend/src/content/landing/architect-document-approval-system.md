@@ -1,4 +1,4 @@
-Ôªø---
+---
 title: Architect Document Approval System
 metaTitle: Architect Document Approval System for Projects and Clients
 metaDescription: Architect document approval system for drawings, submissions, client decisions, consultant comments and approval evidence in one project record.
@@ -8,8 +8,8 @@ updated: 2026-06-25
 intro: Keep drawing and document approvals traceable so decisions do not disappear into email, chat or folder names.
 ---
 
-An architect document approval system is the difference between ‚ÄúI think they
-approved it‚Äù and a project record that shows what was issued, who saw it, what was
+An architect document approval system is the difference between ìI think they
+approved itî and a project record that shows what was issued, who saw it, what was
 approved and what changed after approval. For architecture firms, this matters
 because drawings and documents are not passive files. They carry decisions.
 

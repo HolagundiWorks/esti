@@ -1,4 +1,4 @@
-ï»¿---
+---
 title: Managing multiple client feedback loops efficiently
 date: 2026-07-09
 excerpt: When every client channels feedback through a different medium, architects become human routers. One project record and scoped portals collapse the loops without killing responsiveness.
@@ -8,7 +8,7 @@ author: Human Centric Works
 
 A mid-size studio with twelve active projects might run twelve parallel feedback loops:
 WhatsApp for one client, email for another, marked-up PDFs for a third, site calls for
-a fourth. The architect becomes a **router** â€” copying, reconciling, and apologising
+a fourth. The architect becomes a **router** — copying, reconciling, and apologising
 for version confusion.
 
 Efficiency is not about saying no faster. It is about **one authoritative loop per
@@ -18,21 +18,21 @@ project** that clients and consultants can learn once.
 
 Each channel has different failure modes:
 
-- **WhatsApp** â€” fast, but revisions are not tied to drawing numbers; context disappears in scrollback.
-- **Email** â€” attachments duplicate; "Re: Re: Fwd:" threads hide the latest approved set.
-- **Verbal site meetings** â€” decisions without minutes evaporate.
-- **Portal-less PDF mark-up** â€” redlines on files that are not the issued revision.
+- **WhatsApp** — fast, but revisions are not tied to drawing numbers; context disappears in scrollback.
+- **Email** — attachments duplicate; "Re: Re: Fwd:" threads hide the latest approved set.
+- **Verbal site meetings** — decisions without minutes evaporate.
+- **Portal-less PDF mark-up** — redlines on files that are not the issued revision.
 
 Staff spend hours reconciling "what the client actually meant" across channels before
 they draw.
 
 ## The efficient model: one front door per project
 
-1. **Issued drawings** go through **transmittals** â€” numbered, dated, attributed.
+1. **Issued drawings** go through **transmittals** — numbered, dated, attributed.
 2. **Change requests** log on the **project decision register** with category and fee impact.
-3. **Clients** use a **scoped portal** for approvals and status â€” not mixed personal chat.
-4. **Consultants** see only their engagement â€” RFIs and issued sets, not the whole office.
-5. **Internal coordination** stays in **tasks** linked to phases â€” not side threads.
+3. **Clients** use a **scoped portal** for approvals and status — not mixed personal chat.
+4. **Consultants** see only their engagement — RFIs and issued sets, not the whole office.
+5. **Internal coordination** stays in **tasks** linked to phases — not side threads.
 
 External channels still exist for relationship warmth. The **record** lives in one place.
 
@@ -40,10 +40,10 @@ External channels still exist for relationship warmth. The **record** lives in o
 
 | Incoming feedback | Route to |
 |-------------------|----------|
-| Client design change | Decision register â†’ approval â†’ drawing revision |
-| Consultant RFI | Project consultant engagement â†’ task or decision |
-| Site instruction | Site module â†’ linked drawing sheet if applicable |
-| Fee / payment query | Finance thread on client record â€” not project chat |
+| Client design change | Decision register ? approval ? drawing revision |
+| Consultant RFI | Project consultant engagement ? task or decision |
+| Site instruction | Site module ? linked drawing sheet if applicable |
+| Fee / payment query | Finance thread on client record — not project chat |
 
 Publish these rules in your client onboarding pack. Reference the
 [AORMS wiki](https://aorms.in/wiki/how-to-use-aorms) for client portal setup.
@@ -52,16 +52,16 @@ Publish these rules in your client onboarding pack. Reference the
 
 Software enables the model; **office discipline** makes it stick:
 
-- Principals model the behaviour â€” no "just WhatsApp me the PDF."
-- Project architects close loops â€” every open client comment maps to a decision state.
-- Weekly sweep â€” zero high-impact decisions in "draft" near issue dates.
+- Principals model the behaviour — no "just WhatsApp me the PDF."
+- Project architects close loops — every open client comment maps to a decision state.
+- Weekly sweep — zero high-impact decisions in "draft" near issue dates.
 
 AORMS connects portals, decisions, drawings, and tasks on one cloud workspace so the
 sweep is a filtered view, not a meeting.
 
 ## Frequently asked questions
 
-### Clients insist on WhatsApp â€” what then?
+### Clients insist on WhatsApp — what then?
 
 Acknowledge on WhatsApp; **log in the system** within the same day. ESTI can help
 draft formal revision requests from meeting minutes.
@@ -73,7 +73,7 @@ which revision.
 
 ### Consultants on WeTransfer?
 
-Same rule â€” receipt is logged; files attach to the drawing register row.
+Same rule — receipt is logged; files attach to the drawing register row.
 
 ## Related reading
 
@@ -83,4 +83,4 @@ Same rule â€” receipt is logged; files attach to the drawing register row.
 
 ---
 
-*Practice OS for Indian architects â€” [aorms.in](https://aorms.in) Â· [aorms.in/wiki](https://aorms.in/wiki)*
+*Practice OS for Indian architects — [aorms.in](https://aorms.in) · [aorms.in/wiki](https://aorms.in/wiki)*

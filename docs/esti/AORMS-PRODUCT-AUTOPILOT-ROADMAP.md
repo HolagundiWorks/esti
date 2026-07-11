@@ -52,7 +52,7 @@
 |---|------|--------|-------|
 | P0.1 | Rewrite [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) | ✅ | Single product · storage + AI |
 | P0.2 | This roadmap | ✅ | |
-| P0.3 | Retire Community edition docs | ✅ | Archived to `docs/archive/esti/COMMUNITY-EDITION.md` |
+| P0.3 | Retire Community edition docs | ✅ | Removed — one AORMS Standard licence only |
 | P0.4 | Landing hero + pricing (rail/stage) | ✅ | `MarketingShell` + `LandingSections.tsx` |
 | P0.5 | FAQ + capability copy | ✅ | `LandingSections.tsx` (FaqSection, CapabilitiesSection) |
 | P0.6 | Remove Community/Pro from trial form | ✅ | `LandingTrialForm.tsx` removed |
@@ -136,7 +136,7 @@
 
 **Verify:** Cold launch Estimate → login → pick project → export → import in AORMS project.
 
-Cross-ref: archived [ESTIMATE-AUTOPILOT-ROADMAP.md](../archive/esti/ESTIMATE-AUTOPILOT-ROADMAP.md) E5.
+Cross-ref: glass health orbs shipped on Studio Intelligence (U0–U6 complete).
 
 ---
 

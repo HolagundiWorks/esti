@@ -95,7 +95,7 @@ out of scope.
 - Drawings, specifications, site reports, transmittals, approvals
 - Client revision intelligence and studio performance analytics, delivered in a
   transparent and non-surveillant way
-- Consultants and project-scoped collaborator portal
+- Consultants and project-scoped **Consultant portal** (alias *collaborator portal* in internal copy)
 - Contractor register and architect-side site coordination
 - Fee proposals, contracts, invoices, GST/TDS, reconciliation, and filing
 - BOQ, takeoff, and estimation with simple purchase orders (rebuilding as the CMS)
@@ -123,11 +123,11 @@ signals must not become covert surveillance or punitive monitoring.
 
 ## Naming
 
-- Product name: **AORMS** (**Accelerated Operational Resources Management System**, platform).
-- Shipped vertical: **AORMS-Studio** (slug `aorms-studio`, AEC / Indian architecture consultancies).
-- Roadmap verticals: **AORMS-Compliance** (risk), **AORMS-Advisory** (education), **AORMS-Audit** (auditing).
-- **EmOI** (Embedded Operational Intelligence) — platform intelligence layer.
-- **ESTI** (Embedded Studio Intelligence) — intelligence layer in **AORMS-Studio only**.
+- Product name: **AORMS** (**Accelerated Operational Resources Management System**, platform for AEC consulting firms).
+- Shipped app: **AORMS-Studio** (slug `aorms-studio`, architecture / Indian architecture consultancies).
+- Roadmap app: **AORMS-Consultancy** (slug `aorms-consultancy`, engineering consultancies).
+- **EmOI** (Embedded Operational Intelligence) — **external AI agent**.
+- **ESTI** (Embedded Studio Intelligence) — **internal AI agent** (live in **AORMS-Studio**).
 - Company: **Holagundi Consulting Works (HCW)**.
 - The supplied ESI-AORMS document is treated as product input; repository and
   code naming keeps the `esti` codename.

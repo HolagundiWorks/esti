@@ -15,6 +15,7 @@ import { can, type TagColor } from "@esti/contracts";
 import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 import { StatusTag } from "./StatusTag.js";
 
 // Minutes of meeting (MoM). Draft minutes are office-internal; ISSUING locks
@@ -104,7 +105,7 @@ export function ProjectMinutes({ projectId }: { projectId: string }) {
         )}
       </Stack>
       <p className="esti-label esti-label--secondary">
-        Issued minutes appear in the client portal, where ESTI reads them and drafts the
+        Issued minutes appear in the {AORMS_PORTALS.client.label.toLowerCase()}, where ESTI reads them and drafts the
         client&rsquo;s revision requests — those arrive under Tasks &rsaquo; Client requests.
       </p>
 

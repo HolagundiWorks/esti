@@ -4,7 +4,7 @@ import { AORMS_PLATFORM, PLATFORM_FRAMEWORKS } from "../../lib/product-nomenclat
 
 /** Platform home hero — logo + headline + one supporting line (HCW-UI-KIT § Hero composition). */
 export function PlatformHero() {
-  const subline = `${AORMS_PLATFORM.name} gives advisory consulting offices an ${PLATFORM_FRAMEWORKS.operational.title.toLowerCase()} and a ${PLATFORM_FRAMEWORKS.design.title.toLowerCase()} on one spine — not solution delivery, not project management.`;
+  const subline = `${AORMS_PLATFORM.name} gives AEC consulting firms — architecture and engineering practices — an ${PLATFORM_FRAMEWORKS.operational.title.toLowerCase()} and a ${PLATFORM_FRAMEWORKS.design.title.toLowerCase()} on one spine. Not solution delivery. Not construction project management.`;
 
   return (
     <section className="lp2-hero-wrap lp2-hero-wrap--platform" id="top" aria-labelledby="lp2-h1">

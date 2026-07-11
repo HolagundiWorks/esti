@@ -25,6 +25,7 @@ import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { pushToast } from "../lib/toast.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 const PAGE_SIZES = [10, 25, 50];
 
@@ -214,7 +215,7 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
       empty={{
         title: "No clients yet",
         description:
-          "Add a client or lead to attach projects, invoices and a portal login.",
+          `Add a client or lead to attach projects, invoices and a ${AORMS_PORTALS.client.label.toLowerCase()} login.`,
         ...(embedded
           ? {
               action: (
@@ -340,7 +341,7 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
       </Dialog>
 
       <Dialog open={portalOpen} onClose={() => setPortalOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Create client portal login</DialogTitle>
+        <DialogTitle>Create {AORMS_PORTALS.client.label.toLowerCase()} login</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -424,7 +425,7 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
     <>
       <RailLayout
         title="Clients"
-        description="Clients and leads — attach projects, invoices and portal logins."
+        description={`Clients and leads — attach projects, invoices and ${AORMS_PORTALS.client.label.toLowerCase()} logins.`}
         aside={
           <Stack spacing={1.5}>
             {searchField}

@@ -8,6 +8,7 @@ import {
   landingCategoryLabel,
   listLandingPages,
 } from "../lib/landing-pages.js";
+import { sanitizeMarkdownHtml } from "../lib/sanitize-html.js";
 import { applyLandingPageSeo } from "../lib/landing-page-seo.js";
 
 /** Renders a single keyword landing page (`/architecture-office-management-software`,
@@ -16,7 +17,10 @@ export function SeoLanding({ slug }: { slug: string }) {
   const page = getLandingPage(slug);
 
   const html = useMemo(
-    () => (page ? (marked.parse(page.markdown, { async: false }) as string) : ""),
+    () =>
+      page
+        ? sanitizeMarkdownHtml(marked.parse(page.markdown, { async: false }) as string)
+        : "",
     [page],
   );
 
@@ -63,7 +67,7 @@ export function SeoLanding({ slug }: { slug: string }) {
               <p className="lp2-seo-cta__body">
                 <strong>{AORMS_STUDIO.title}</strong> is the live workspace — use{" "}
                 <strong>Create account</strong> or <strong>Sign in</strong> in the dock below, or{" "}
-                <Link to="/demo">open the demo</Link>. Platform north-star:{" "}
+                <Link to="/login">sign in to explore</Link>. Platform north-star:{" "}
                 <Link to="/">platform home</Link> · <Link to="/wiki">user guide</Link>.
               </p>
             </section>

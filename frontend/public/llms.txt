@@ -1,13 +1,15 @@
 ﻿# AORMS
 
-AORMS stands for Accelerated Operational Resources Management System — a platform for consulting offices that advise in risk management, education, auditing, and AEC.
+AORMS stands for Accelerated Operational Resources Management System — a platform for AEC consulting firms (architecture and engineering practices that advise clients).
 
-AORMS is NOT solution delivery software and NOT client project management. It provides an operational framework (how the office runs) and a design framework (how engagements are structured) on one spine, with EmOI (Embedded Operational Intelligence) governing dual-tier AI.
+AORMS is NOT solution delivery software and NOT construction project management. It provides an operational framework (how the office runs) and a design framework (how engagements are structured) on one spine, with two AI agents: **EmOI** (external) and **ESTI** (internal).
 
-The shipped workspace from holagundiworks/esti is AORMS-Studio: the architecture advisory workspace for Indian architecture and design consultancies.
+Two apps on one platform:
+- **AORMS-Studio** — architecture consultancy app for Indian architecture and design consultancies (shipping)
+- **AORMS-Consultancy** — engineering consultancy app for structural, MEP, civil, and multidisciplinary firms (roadmap)
 
 Platform home: https://aorms.in/
-Architecture workspace (sign in): https://aorms.in/login
+Architecture app (sign in): https://aorms.in/login
 Central wiki: https://aorms.in/wiki
 
 AORMS-Studio capabilities:
@@ -17,35 +19,15 @@ AORMS-Studio capabilities:
 - Drawing register, transmittals and client approval workflows
 - COA fee proposals and GST invoicing with reconciliation
 - Studio Intelligence dashboard and Ask ESTI (BYO API key supported)
-- ESTI is architecture-workspace intelligence only; EmOI is the platform layer
+- **EmOI** — external AI agent (validates outside sources); **ESTI** — internal AI agent (answers from firm repositories)
 - Official user documentation at aorms.in/wiki
-- Cloud browser workspace at app.aorms.in — one standard licence, unlimited users, 5 GB included storage
+- Cloud browser workspace at studio.aorms.in — one standard licence, unlimited users, 5 GB included storage
 
 Website:
 https://aorms.in
 
 ## Public Pages
 - [AORMS platform home](https://aorms.in/)
-- [Architecture workspace — sign in](https://aorms.in/login)
+- [AORMS-Studio — sign in](https://aorms.in/login)
+- [AORMS-Consultancy — roadmap](https://aorms.in/aorms-consultancy)
 - [AORMS Wiki — central documentation](https://aorms.in/wiki/)
-- [Design system](https://aorms.in/design-system)
-- [Blog](https://aorms.in/blog)
-- [Live demo](https://aorms.in/demo)
-
-## Wiki — four domains
-- [HCW-UI design system](https://aorms.in/wiki/hcw-ui-kit)
-- [AORMS-Studio workspace](https://aorms.in/wiki/aorms-studio)
-- [AI core — EmOI + ESTI](https://aorms.in/wiki/ai-core)
-- [Management — operational framework](https://aorms.in/wiki/management)
-- [Getting started](https://aorms.in/wiki/getting-started)
-- [How to use AORMS](https://aorms.in/wiki/how-to-use-aorms)
-- [Finance and billing](https://aorms.in/wiki/finance-and-billing)
-- [Account and licence](https://aorms.in/wiki/account-and-licence)
-
-## Canonical docs (repository)
-- Nomenclature: docs/esti/AORMS-PLATFORM-NOMENCLATURE.md
-- Platform spec: docs/esti/AORMS-DEVELOPMENT-SPEC.md
-- Live system state: docs/esti/UNIFIED-ARCHITECTURE-V4.md
-
-## Note
-Solution and article listings below are regenerated on build from markdown frontmatter (see `frontend/scripts/prerender-blog.mjs`). Source of truth for page blurbs is each landing/blog `.md` file.

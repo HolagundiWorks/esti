@@ -7,8 +7,8 @@ import { applyBlogListSeo } from "../lib/blog-seo.js";
 
 // Roadmap of articles in the pipeline — shown as titles, not thin placeholder pages.
 const COMING_NEXT = [
-  "EmOI dual-tier AI — quality gate and safety gate for advisory consultancies",
-  "Operational vs design framework — what consulting offices actually need",
+  "EmOI dual-tier AI — EmOI external agent, ESTI internal agent",
+  "Operational vs design framework — what AEC consulting offices need",
   "COA stage-wise fee structures — a billing guide for Indian architects",
   "Transmittal anatomy — what every drawing issue record should contain",
 ];

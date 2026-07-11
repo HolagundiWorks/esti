@@ -3,6 +3,7 @@ import RadioButtonUnchecked from "@mui/icons-material/RadioButtonUnchecked";
 import { Alert, AlertTitle, Button, Paper, Stack, Typography } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import type { Me } from "./lib/auth.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 function Step({
   done,
@@ -51,7 +52,7 @@ export function AccountHub({ me }: { me: Me }) {
         <Stack spacing={1.5}>
           <Step
             done
-            label="AORMS account"
+            label={AORMS_PORTALS.account.name}
             detail={`Signed in as ${me.account?.email ?? "—"}`}
           />
           <Step

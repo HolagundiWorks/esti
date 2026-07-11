@@ -1,7 +1,7 @@
-ï»¿---
+---
 title: Why architecture teams miss early project warning signs
 date: 2026-07-09
-excerpt: Late surprises are usually visible weeks earlier â€” in tasks, revisions, fees, and site notes. Studios miss them because signals live in different inboxes.
+excerpt: Late surprises are usually visible weeks earlier — in tasks, revisions, fees, and site notes. Studios miss them because signals live in different inboxes.
 tags: Operations, Practice, Team
 author: Human Centric Works
 ---
@@ -9,7 +9,7 @@ author: Human Centric Works
 The site call that blows up the programme. The invoice that should have gone out last
 month. The drawing set issued with a revision someone thought was "just internal."
 Principals often describe these as surprises. In hindsight, the signals were usually
-there â€” scattered across WhatsApp, email, and one architect's notebook.
+there — scattered across WhatsApp, email, and one architect's notebook.
 
 This article explains **why** teams miss early warnings, and what an office record
 needs to surface them while there is still time to act.
@@ -27,7 +27,7 @@ Warning signs in architecture are rarely one alarm. They are **weak correlations
 | Site snag unresolved | Site engineer's phone gallery |
 
 No single person sees all five. The principal sees fee anxiety; the project
-architect sees redlines; HR sees attendance â€” but nobody sees the **composite risk**
+architect sees redlines; HR sees attendance — but nobody sees the **composite risk**
 until something breaks.
 
 ## The four early warnings principals should not miss
@@ -57,19 +57,19 @@ transmittals.
 
 Tools built for generic task lists do not understand **COA stages**, **transmittals**,
 **GST invoices**, or **client portals**. Teams bolt on spreadsheets for fees and
-WhatsApp for approvals â€” recreating fragmentation inside another app.
+WhatsApp for approvals — recreating fragmentation inside another app.
 
 Architecture-specific practice software connects **delivery, commercial, and
 approval** signals on one project spine. That is what Studio Intelligence in AORMS
-is designed to summarise â€” not decorative KPIs, but **action-ranked** items.
+is designed to summarise — not decorative KPIs, but **action-ranked** items.
 
 ## Building a morning review habit
 
 Five minutes on Studio Intelligence:
 
-1. Scan **Financial** zone â€” overdue invoices, billing-ready phases.
-2. Scan **Approval** zone â€” client decisions blocking issue.
-3. Scan **Work** zone â€” overloaded staff, blocked tasks.
+1. Scan **Financial** zone — overdue invoices, billing-ready phases.
+2. Scan **Approval** zone — client decisions blocking issue.
+3. Scan **Work** zone — overloaded staff, blocked tasks.
 4. Ask ESTI: *"Which project has the highest fee risk this week?"* (when AI is enabled).
 
 Document the routine in your office wiki so deputies can run it when the principal
@@ -79,7 +79,7 @@ travels.
 
 ### Do small studios need a dashboard?
 
-Yes â€” especially small studios, where one person plays principal, PM, and biller.
+Yes — especially small studios, where one person plays principal, PM, and biller.
 Automation replaces the "principal's head" as the integration layer.
 
 ### What if we already use a scheduling tool or generic task tracker?
@@ -101,4 +101,4 @@ invoices. Studio Intelligence ranks what needs attention today. See
 
 ---
 
-*AORMS-Studio â€” advisory workspace for Indian consultancies. [aorms.in/wiki](https://aorms.in/wiki)*
+*AORMS-Studio — advisory workspace for Indian consultancies. [aorms.in/wiki](https://aorms.in/wiki)*

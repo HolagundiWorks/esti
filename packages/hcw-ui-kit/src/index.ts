@@ -45,6 +45,11 @@ export {
   useDockActions,
 } from "./ActionDock.js";
 export type { DockAction, DockZone, DockTone } from "./ActionDock.js";
+export { StatusDot } from "./StatusDot.js";
+export { DataState } from "./DataState.js";
+export { ConfirmModal } from "./ConfirmModal.js";
+export { PageBreadcrumb } from "./PageBreadcrumb.js";
+export type { Crumb } from "./PageBreadcrumb.js";
 export { SectionDock } from "./SectionDock.js";
 export type { SectionDockLink } from "./SectionDock.js";
 export { TaskbarFooter, TaskbarButton, TASKBAR_HEIGHT } from "./TaskbarFooter.js";

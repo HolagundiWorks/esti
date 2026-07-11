@@ -15,3 +15,5 @@ networkx>=3.3
 durable-rules>=2.0
 mlflow>=2.14
 evidently>=0.4.35
+pymupdf>=1.24
+pymupdf4llm>=0.0.17

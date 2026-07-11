@@ -1,35 +1,37 @@
-/** Canonical wiki paths — documentation lives at aorms.in/wiki (not a subdomain). */
+/** Wiki path helpers — canonical host: wiki.aorms.in (see aorms-surface-urls.ts). */
 
-export const WIKI_PATH = "/wiki";
+import { AORMS_SURFACES, isWikiHost, surfaceAbsoluteUrl } from "./aorms-surface-urls.js";
 
-const WIKI_HOST_RE = /^wiki\./;
-const SITE_ORIGIN = "https://aorms.in";
+export const WIKI_PATH = AORMS_SURFACES.wiki.apexPath;
 
-export function isWikiHost(hostname = window.location.hostname): boolean {
-  return WIKI_HOST_RE.test(hostname);
-}
+export { isWikiHost };
 
 /** In-app path for wiki routes (React Router + rail links). */
 export function wikiAppPath(slug?: string): string {
+  if (typeof window !== "undefined" && isWikiHost()) {
+    if (!slug || slug === "index") return "/";
+    return `/${slug}`;
+  }
   if (!slug || slug === "index") return WIKI_PATH;
   return `${WIKI_PATH}/${slug}`;
 }
 
 /** Absolute canonical wiki URL (SEO, share links, prerender). */
 export function wikiPageUrl(slug?: string): string {
-  const origin =
-    typeof window !== "undefined" && !isWikiHost() ? window.location.origin : SITE_ORIGIN;
-  if (!slug || slug === "index") return `${origin}${WIKI_PATH}`;
-  return `${origin}${WIKI_PATH}/${slug}`;
+  if (!slug || slug === "index") return AORMS_SURFACES.wiki.host;
+  return surfaceAbsoluteUrl("wiki", `/${slug}`);
 }
 
-/** Redirect wiki.* host paths to /wiki on the primary domain. */
+/** Strip legacy /wiki prefix when serving docs on wiki.* host. */
 export function wikiSubdomainRedirectTarget(
   pathname: string,
   search = "",
   hash = "",
 ): string {
-  if (pathname === "/" || pathname === "") return `${WIKI_PATH}${search}${hash}`;
-  if (pathname.startsWith("/wiki")) return `${pathname}${search}${hash}`;
-  return `${WIKI_PATH}${pathname}${search}${hash}`;
+  if (pathname === "/" || pathname === "") return `/${search}${hash}`;
+  if (pathname.startsWith(WIKI_PATH)) {
+    const rest = pathname.slice(WIKI_PATH.length) || "/";
+    return `${rest}${search}${hash}`;
+  }
+  return `${pathname}${search}${hash}`;
 }

@@ -2,8 +2,10 @@ import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import ArchitectureOutlinedIcon from "@mui/icons-material/ArchitectureOutlined";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import EngineeringOutlinedIcon from "@mui/icons-material/EngineeringOutlined";
 import GavelOutlinedIcon from "@mui/icons-material/GavelOutlined";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
 import PaletteOutlinedIcon from "@mui/icons-material/PaletteOutlined";
 import { AormsLogo, AormsMark } from "../AormsLogo.js";
@@ -16,8 +18,10 @@ import {
 const RAIL_ICONS: Record<MarketingRailIcon, typeof HomeOutlinedIcon> = {
   platform: HomeOutlinedIcon,
   architecture: ArchitectureOutlinedIcon,
+  consultancy: EngineeringOutlinedIcon,
   wiki: MenuBookOutlinedIcon,
   blog: ArticleOutlinedIcon,
+  about: InfoOutlinedIcon,
   legal: GavelOutlinedIcon,
   "design-system": PaletteOutlinedIcon,
 };

@@ -1,20 +1,20 @@
 ﻿---
 title: Choosing The Right System
 metaTitle: Software for Architecture Firms: Buyer's Guide
-metaDescription: A practical buyer's guide to software for architecture firms — the must-have checklist and why purpose-built beats generic tools plus spreadsheets in India.
+metaDescription: A practical buyer's guide to software for architecture firms � the must-have checklist and why purpose-built beats generic tools plus spreadsheets in India.
 keyword: software for architecture firms
 category: solution
 updated: 2026-06-24
-intro: A clear-eyed checklist for choosing software for your firm — what actually matters, and why a purpose-built system beats a stack of generic tools and spreadsheets.
+intro: A clear-eyed checklist for choosing software for your firm � what actually matters, and why a purpose-built system beats a stack of generic tools and spreadsheets.
 ---
 
-Most firms do not choose software so much as accumulate it. A drawing folder here, a billing spreadsheet there, an accounting package, a chat group for approvals, and email for everything else. Each was a reasonable choice at the time. Together they leave gaps that cost real money. If you are deliberately evaluating **software for architecture firms** rather than letting the stack grow by accident, this guide lays out what to look for — and how to tell a purpose-built system from a generic one dressed up.
+Most firms do not choose software so much as accumulate it. A drawing folder here, a billing spreadsheet there, an accounting package, a chat group for approvals, and email for everything else. Each was a reasonable choice at the time. Together they leave gaps that cost real money. If you are deliberately evaluating **software for architecture firms** rather than letting the stack grow by accident, this guide lays out what to look for � and how to tell a purpose-built system from a generic one dressed up.
 
 ## Why generic tools plus spreadsheets fall short
 
 A project management app, an accounting tool and a shared drive can each do their narrow job. The problem is the seams between them. No tool knows that this invoice belongs to that phase, that this revision was client-driven, or that this designer is already on three jobs. So those facts live in people's heads, and the firm pays for it in missed billing, untracked scope creep and capacity surprises.
 
-Generic tools also assume a generic business. Architecture in India is not generic: it runs on the COA Scale of Charges, GST with SAC codes, TDS under section 194J, the April–March financial year, tenders, site records and authority-driven approvals. A tool that does not know any of this leaves you doing the hard parts by hand.
+Generic tools also assume a generic business. Architecture in India is not generic: it runs on the COA Scale of Charges, GST with SAC codes, TDS under section 194J, the April�March financial year, tenders, site records and authority-driven approvals. A tool that does not know any of this leaves you doing the hard parts by hand.
 
 ## The must-have checklist
 
@@ -22,7 +22,7 @@ When you evaluate software for architecture firms, test each candidate against t
 
 ### 1. Projects, drawings and revisions in one place
 
-The system should hold projects with phases, a drawing register with revisions, current version, approval state and a transmittal log, and measurement sheets. If drawings and project data live in different tools, you have a seam — and seams leak. Ask whether a drawing's approval state is visible from the project, not buried in a folder.
+The system should hold projects with phases, a drawing register with revisions, current version, approval state and a transmittal log, and measurement sheets. If drawings and project data live in different tools, you have a seam � and seams leak. Ask whether a drawing's approval state is visible from the project, not buried in a folder.
 
 ### 2. Revision intelligence, not just version numbers
 
@@ -38,7 +38,7 @@ A firm carries real risk when statutory assumptions, permit notes, site instruct
 
 ### 5. People and capacity
 
-The software should know your team — roster, project assignments, a workload overview, attendance, leave and payroll — so you can see who is overloaded before they tell you. Tasks classified as billable or otherwise, and tagged by work type, turn vague effort into real utilisation. Fair performance scoring such as ASPRF, a multi-dimensional 30-day composite, is a strong sign the tool was designed for a studio rather than a factory.
+The software should know your team � roster, project assignments, a workload overview, attendance, leave and payroll � so you can see who is overloaded before they tell you. Tasks classified as billable or otherwise, and tagged by work type, turn vague effort into real utilisation. Fair performance scoring such as ASPRF, a multi-dimensional 30-day composite, is a strong sign the tool was designed for a studio rather than a factory.
 
 ### 6. Safe sharing with outsiders
 
@@ -54,18 +54,18 @@ For a firm, client drawings and fee data are sensitive. Self-hosting on your own
 
 ## Why purpose-built wins
 
-Hold AORMS against that checklist and the case for purpose-built is clear: it does every item above, and it does them as one connected system rather than seven disconnected ones. A generic stack can be assembled to cover some of the list, but it will never close the seams — the invoice will not know its phase, the revision will not know its source, and someone will still be re-keying data between tools on a Friday evening.
+Hold AORMS against that checklist and the case for purpose-built is clear: it does every item above, and it does them as one connected system rather than seven disconnected ones. A generic stack can be assembled to cover some of the list, but it will never close the seams � the invoice will not know its phase, the revision will not know its source, and someone will still be re-keying data between tools on a Friday evening.
 
-There is also a quieter benefit. A system built for Indian architecture speaks your language by default — COA, GST, SAC, the April–March year, and site coordination — so onboarding is faster and there is less to configure. The knowledge bank with rate books, a specification catalogue and bar bending schedules, plus site supervision tools (snags, site instructions, progress reports) and in-browser estimation for takeoff, round out a system that follows a project from brief to site.
+There is also a quieter benefit. A system built for Indian architecture speaks your language by default � COA, GST, SAC, the April�March year, and site coordination � so onboarding is faster and there is less to configure. The knowledge bank with rate books, a specification catalogue and bar bending schedules, plus site supervision tools (snags, site instructions, progress reports) and in-browser estimation for takeoff, round out a system that follows a project from brief to site.
 
 ## How to run the evaluation
 
 - Bring a real, live project to each demo and see whether the tool fits it.
-- Test the billing path end to end — fee proposal to GST invoice to reconciliation.
+- Test the billing path end to end � fee proposal to GST invoice to reconciliation.
 - Check whether revision risk and team workload are visible to the principal without asking anyone.
 - Confirm where your data lives.
 
-When you are ready, [book a demo](/demo) and bring your hardest project. You can also compare angles in our guides to [firm management](/architecture-firm-management-software) and [practice management](/architecture-practice-management-software).
+When you are ready, [book a demo](/login) and bring your hardest project. You can also compare angles in our guides to [firm management](/architecture-firm-management-software) and [practice management](/architecture-practice-management-software).
 
 ## Frequently asked questions
 
@@ -87,4 +87,4 @@ Yes. AORMS is cloud workspace at aorms.in with role-based access, so client draw
 
 ### How do I evaluate it against my current tools?
 
-Bring a real live project to the demo and walk it end to end — fee proposal to GST invoice to reconciliation, a drawing through its revisions and approval, and a check of whether the principal can see revision risk and team workload without asking anyone. That test usually exposes the seams in a generic stack quickly.
+Bring a real live project to the demo and walk it end to end � fee proposal to GST invoice to reconciliation, a drawing through its revisions and approval, and a check of whether the principal can see revision risk and team workload without asking anyone. That test usually exposes the seams in a generic stack quickly.

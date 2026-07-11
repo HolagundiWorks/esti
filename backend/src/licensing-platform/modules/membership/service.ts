@@ -110,7 +110,7 @@ export async function ensureFirmOrgForOwner(account: AccountView): Promise<void>
   if (owned) return;
 
   const [f] = await workspaceDb.select({ companyName: firm.companyName }).from(firm).limit(1);
-  const name = f?.companyName?.trim() || account.name?.trim() || "Studio workspace";
+  const name = f?.companyName?.trim() || account.name?.trim() || "AORMS-Studio";
   const res = await createCompany(account.id, { name });
   if ("error" in res) return;
   await provisionTrial(account);

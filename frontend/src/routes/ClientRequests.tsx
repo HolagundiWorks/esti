@@ -33,6 +33,7 @@ import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot, StatusTag } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 const KIND_TAG: Record<string, "purple" | "blue" | "teal"> = {
   ACKNOWLEDGEMENT: "teal",
@@ -251,7 +252,7 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
       {!embedded && (
         <PageHeader
           title="Client requests"
-          description="Acknowledgements, change requests and feedback raised from the client portal."
+          description={`Acknowledgements, change requests and feedback raised from the ${AORMS_PORTALS.client.label.toLowerCase()}.`}
         />
       )}
 
@@ -294,7 +295,7 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
         loading={listQ.isLoading}
         isEmpty={rows.length === 0}
         columnCount={7}
-        empty={{ title: "No client requests", description: "Items raised from the client portal appear here." }}
+        empty={{ title: "No client requests", description: `Items raised from the ${AORMS_PORTALS.client.label.toLowerCase()} appear here.` }}
       >
         <DataGrid
           rows={rows}

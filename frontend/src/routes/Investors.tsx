@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { AormsLogo } from "../components/AormsLogo.js";
 import { HcwAttribution } from "../components/brand/HcwAttribution.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
+import { AORMS_STUDIO, externalPortalsPhrase } from "../lib/product-nomenclature.js";
 
 const DECK_URL = "/aorms-investor-deck.pdf";
 const CONTACT_EMAIL = "invest@aorms.in";
@@ -34,8 +35,8 @@ const SLIDES = [
   {
     n: "05",
     kicker: "Product & moat",
-    title: "Deep domain encoding for advisory consultancies",
-    body: "The moat is depth in consulting-office operations: operational and design frameworks per industry; EmOI dual-tier intelligence; revision and approval models for architecture consultancies; governed knowledge and audit trails. One standard cloud licence with unlimited users — usage-based storage and AI.",
+    title: "Deep domain encoding for AEC consultancies",
+    body: "The moat is depth in AEC consulting-office operations: operational and design frameworks for architecture and engineering firms; EmOI dual-tier intelligence; revision and approval models in AORMS-Studio; governed knowledge and audit trails. One standard cloud licence with unlimited users — usage-based storage and AI.",
   },
   {
     n: "06",
@@ -47,7 +48,7 @@ const SLIDES = [
     n: "07",
     kicker: "Traction",
     title: "A working, demoable product — not a deck of mockups",
-    body: "The consultancy workspace is built and demoable: projects, fees, GST invoicing, drawings, revisions, client and consultant portals, Studio Intelligence, and ESTI. A fully seeded demo practice opens in one click; dashboard numbers are computed from real records. Platform frameworks and additional industry workspaces are on the roadmap.",
+    body: `The ${AORMS_STUDIO.title} vertical is built and demoable: projects, fees, GST invoicing, drawings, revisions, ${externalPortalsPhrase()}, Studio Intelligence, and ESTI. A fully seeded demo practice opens in one click; dashboard numbers are computed from real records. Platform frameworks and additional industry workspaces are on the roadmap.`,
   },
 ];
 

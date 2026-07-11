@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import { AORMS_STUDIO } from "../lib/product-nomenclature.js";
+import { AORMS_PORTALS, AORMS_STUDIO } from "../lib/product-nomenclature.js";
 import { AormsLogo } from "./AormsLogo.js";
 import { LandingContours } from "./landing/LandingContours.js";
 
@@ -11,16 +11,16 @@ const COPY: Record<AuthStageVariant, { headline: string; subline: string }> = {
     subline: `${AORMS_STUDIO.tagline} — projects, fees, drawings, and team on one record.`,
   },
   portal: {
-    headline: "AORMS Account",
-    subline: "Identity, companies, and licence — managed in one place.",
+    headline: AORMS_PORTALS.account.stageHeadline,
+    subline: AORMS_PORTALS.account.stageSubline,
   },
   external: {
-    headline: "Collaborator access",
-    subline: "Client, contractor, and consultant portals.",
+    headline: AORMS_PORTALS.external.stageHeadline,
+    subline: AORMS_PORTALS.external.authTagline,
   },
   admin: {
-    headline: "License Cloud",
-    subline: "Platform administration for Human Centric Works.",
+    headline: AORMS_PORTALS.auth.licensingHeadline,
+    subline: AORMS_PORTALS.auth.licensingSubline,
   },
 };
 
@@ -29,14 +29,14 @@ export function AuthStageCanvas({ variant = "workspace" }: { variant?: AuthStage
   const copy = COPY[variant];
 
   return (
-    <Box className="esti-auth-stage">
+    <Box className="esti-auth-stage" aria-hidden>
       <LandingContours />
-      <Box className="esti-auth-stage__copy">
-        <AormsLogo variant="stage" />
-        <Typography variant="h4" component="p" sx={{ fontWeight: 600, mt: 2, mb: 0 }}>
+      <Box className="esti-auth-stage__inner">
+        <AormsLogo variant="hero" />
+        <Typography variant="h4" component="p" className="esti-auth-stage__headline">
           {copy.headline}
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mt: 1, maxWidth: "28rem" }}>
+        <Typography variant="body1" component="p" className="esti-auth-stage__subline">
           {copy.subline}
         </Typography>
       </Box>

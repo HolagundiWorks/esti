@@ -23,7 +23,8 @@ import { ErrorBoundary } from "./components/ErrorBoundary.js";
 import { ToastHost } from "./components/ToastHost.js";
 import { pushToast } from "./lib/toast.js";
 import { newRequestId } from "./lib/request-id.js";
-import { apiUrl, authHeaders } from "./lib/api-base.js";
+import { apiUrl, authHeaders, initDesktopAuth } from "./lib/api-base.js";
+import { initAnalytics } from "./lib/analytics.js";
 import { trpc } from "./lib/trpc.js";
 
 function toErrorToast(error: unknown, meta?: { silent?: boolean }) {
@@ -67,21 +68,25 @@ const trpcClient = trpc.createClient({
   ],
 });
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <ErrorBoundary>
-      <trpc.Provider client={trpcClient} queryClient={queryClient}>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter
-            future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-          >
-            <MuiRoot>
-              <App />
-            </MuiRoot>
-          </BrowserRouter>
-          <ToastHost />
-        </QueryClientProvider>
-      </trpc.Provider>
-    </ErrorBoundary>
-  </React.StrictMode>,
-);
+initAnalytics();
+
+void initDesktopAuth().then(() => {
+  ReactDOM.createRoot(document.getElementById("root")!).render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <trpc.Provider client={trpcClient} queryClient={queryClient}>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter
+              future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+            >
+              <MuiRoot>
+                <App />
+              </MuiRoot>
+            </BrowserRouter>
+            <ToastHost />
+          </QueryClientProvider>
+        </trpc.Provider>
+      </ErrorBoundary>
+    </React.StrictMode>,
+  );
+});

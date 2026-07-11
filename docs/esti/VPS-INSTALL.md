@@ -6,8 +6,6 @@ auto-start. You only provision the box, point DNS, and run the installer.
 
 > Quick reference for the scripts is in [`deploy/README.md`](../../deploy/README.md).
 > Public documentation: [aorms.in/wiki](https://aorms.in/wiki).
-> Legacy Lite installer guide: [`docs/archive/esti/AORMS-LITE-AND-GOOGLE-AUTH.md`](../archive/esti/AORMS-LITE-AND-GOOGLE-AUTH.md).
-
 ---
 
 ## 0. TL;DR

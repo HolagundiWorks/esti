@@ -1,18 +1,18 @@
 # AORMS Documentation
 
-**Status:** Canonical index · **Owner:** Human Centric Works (HCW) · **Reviewed:** 2026-07-10
+**Status:** Canonical index · **Owner:** Human Centric Works (HCW) · **Reviewed:** 2026-07-11
 
-> **Nomenclature (2026-07-10):** **AORMS** = **Accelerated Operational Resources
-> Management System** (platform). **AORMS-Studio** = the shipped AEC workspace
-> in this repo (slug `aorms-studio`, Indian architecture practices). Roadmap verticals:
-> **AORMS-Compliance** (risk), **AORMS-Advisory** (education), **AORMS-Audit** (auditing).
-> **EmOI** = platform intelligence; **ESTI** = AORMS-Studio intelligence only.
+> **Nomenclature (2026-07-11):** **AORMS** = **Accelerated Operational Resources
+> Management System** (platform for **AEC consulting firms**). **AORMS-Studio** = architecture app
+> in this repo (slug `aorms-studio`, Indian architecture practices). **AORMS-Consultancy** =
+> engineering app (slug `aorms-consultancy`, roadmap).
+> **EmOI** = external AI agent; **ESTI** = internal AI agent (live in **AORMS-Studio**).
+> **Portals:** staff workspace = **AORMS-Studio**; external = client / consultant / contractor / site portals; account hub = **AORMS account** + licensing console. Constants: `AORMS_PORTALS` in `frontend/src/lib/product-nomenclature.ts`.
 > Full rules: [AORMS-PLATFORM-NOMENCLATURE](AORMS-PLATFORM-NOMENCLATURE.md).
 
-This directory is the single source of truth for AORMS product and engineering
-direction. **Obsolete specs** live under [`../archive/`](../archive/README.md) with
-a banner explaining what superseded them — do not use archived files for
-implementation.
+This directory is the **single source of truth** for AORMS product and engineering
+direction. Superseded specs are **removed** from the tree — use Git history if you
+need an old version.
 
 **Platform north-star:** [AORMS-DEVELOPMENT-SPEC](AORMS-DEVELOPMENT-SPEC.md) (public
 landing at `/`). **Landing redesign brief:**
@@ -30,9 +30,9 @@ New here? Read in this order:
 1. [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) — north-star **and live system state for AORMS-Studio**
 2. [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) + [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) — the active rebuild (the old Estimation OS + Construction Cost spine + Rate Books were torn down 2026-06-28; the CMS is the unified replacement built on the Knowledge Bank foundation).
 3. [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS](PLANS-AND-TIERS.md) — role capabilities + **one standard licence** (storage, AI usage; no tiers or trials).
-4. [HCW-UI-KIT](HCW-UI-KIT.md) — **the canonical, layered design system** (`@hcw/ui-kit`), used everywhere including the landing page. [AORMS-BRANDING-KIT](AORMS-BRANDING-KIT.md) is brand heritage. [MATERIAL-UI-DIRECTION](MATERIAL-UI-DIRECTION.md) is the historical Carbon→MUI migration playbook. `@carbon/react` was removed (2026-07).
+4. [HCW-UI-KIT](HCW-UI-KIT.md) — **the canonical, layered design system** (`@hcw/ui-kit`), used everywhere including the landing page. [HCW-UI-UX-PRINCIPLES](HCW-UI-UX-PRINCIPLES.md) — UX laws and review checklist. [AORMS-BRANDING-KIT](AORMS-BRANDING-KIT.md) is brand heritage. `@carbon/react` was removed (2026-07).
 5. [NAVIGATION](NAVIGATION.md) — **the canonical navigation IA** (Canonical V3: Studio Intelligence · Projects · Tasks · AI Studio · Library · Studio · Third Parties · Office · Finance · LXOS · Admin).
-6. [INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) + [ROADMAP](ROADMAP.md) + [PRD](PRD.md) — module IA rationale / delivery history / requirements; **defer to [NAVIGATION](NAVIGATION.md) for the sidebar** and to the System state in (1) where they describe removed modules.
+6. [INFORMATION-ARCHITECTURE](INFORMATION-ARCHITECTURE.md) + [ROADMAP](ROADMAP.md) + [PRD](PRD.md) — module IA rationale / delivery pointers / requirements; **defer to [NAVIGATION](NAVIGATION.md) for the sidebar** and to the System state in (1) where they describe removed modules.
 
 Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions).
 
@@ -44,8 +44,10 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | [AORMS-DEVELOPMENT-SPEC](AORMS-DEVELOPMENT-SPEC.md) | **Platform north-star** — pre-release architecture (landing `/`) |
 | [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) | **Read first for code** — AORMS-Studio system state |
 | [NAVIGATION](NAVIGATION.md) | **Canonical navigation IA** — sidebar and module placement |
+| [HCW-UI-UX-PRINCIPLES](HCW-UI-UX-PRINCIPLES.md) | **UX audit checklist** — marketing + product surfaces |
 | [PLANS-AND-TIERS](PLANS-AND-TIERS.md) | **Standard licence** — ACTIVE workspace, 5 GB included, storage + AI usage |
 | [AORMS-PRODUCT-AUTOPILOT-ROADMAP](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md) | Product pivot implementation queue |
+| [AORMS-UI-AUTOPILOT-ROADMAP](AORMS-UI-AUTOPILOT-ROADMAP.md) | Glass-rail + marketing shell rollout |
 | [HCW-UI-KIT](HCW-UI-KIT.md) | **Canonical layered design system** (`@hcw/ui-kit`) |
 | [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) | Construction-intelligence reference layer (rebuild foundation) |
 | [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) | **Active build** — unified CMS |
@@ -54,7 +56,7 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | [STABILITY-CHARTER](STABILITY-CHARTER.md) | Long-term scope discipline |
 | [PRD](PRD.md) | Functional and non-functional requirements |
 | [ARCHITECTURE](ARCHITECTURE.md) | Stack, security model, data ownership |
-| [ROADMAP](ROADMAP.md) | Active delivery pointers; full phase log in [../archive/esti/ROADMAP-HISTORICAL.md](../archive/esti/ROADMAP-HISTORICAL.md) |
+| [ROADMAP](ROADMAP.md) | Active delivery pointers |
 | [VPS-INSTALL](VPS-INSTALL.md) | VPS deployment guide |
 | [ADMIN-GUIDE](ADMIN-GUIDE.md) | Operator guide (deploy, licence, URLs) |
 | [PRODUCTION-OPS](PRODUCTION-OPS.md) | VPS secrets, TLS, backup/restore |
@@ -66,11 +68,7 @@ Build and runtime instructions: [DEVELOPMENT.md](../../DEVELOPMENT.md) · [INSTA
 
 Firm-specific practice guides: [docs/holagundi/](../holagundi/README.md).
 
-## Archived documentation
-
-See [`../archive/`](../archive/README.md). Includes retired tier/desktop
-guides (Lite/Community/ESTICAD), Carbon UI audits, standalone Estimate/ESE specs,
-and historical market research.
+Reference data (zonal compliance sources): [docs/reference/](../reference/README.md).
 
 ## Precedence
 
@@ -85,8 +83,8 @@ When documents appear inconsistent, use this order:
 4. `ARCHITECTURE.md`, `INDIA-PROFILE.md`, and `HCW-UI-KIT.md` for implementation constraints.
 5. `ROADMAP.md` for delivery status and order.
 
-## Change Rule
+## Change rule
 
 Every material feature change updates the PRD/module profile and roadmap in the
-same pull request. Superseded large specs move to `docs/archive/` with a
-supersession banner — do not leave competing instructions in the active tree.
+same pull request. **Delete** superseded specs — do not leave competing instructions
+in the tree. Git history is the archive.
