@@ -80,7 +80,7 @@ export function AdminConsoleShell({
                 key={s.key}
                 selected={section === s.key}
                 onClick={() => onSectionChange(s.key)}
-                sx={{ borderRadius: 1, mx: 0.5, my: 0.25 }}
+                sx={{ mx: 0.5, my: 0.25 }}
               >
                 <ListItemText primary={s.label} slotProps={{ primary: { variant: "body2" } }} />
                 {s.key === "requests" && pendingRequests > 0 && (

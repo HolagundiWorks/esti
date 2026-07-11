@@ -1,4 +1,5 @@
 import type { WikiPage } from "./wiki.js";
+import { AORMS_STUDIO, AORMS_PLATFORM } from "./product-nomenclature.js";
 import { wikiPageUrl } from "./wiki-url.js";
 
 const SITE_NAME = "AORMS Wiki";
@@ -20,9 +21,9 @@ function setJsonLd(data: object | null): void {
 }
 
 export function applyWikiListSeo(): void {
-  const title = `${SITE_NAME} — How to use AORMS`;
+  const title = `${SITE_NAME} — central documentation`;
   const description =
-    "Official AORMS documentation: getting started, daily workflows, projects, finance, estimation, portals, and account setup for Indian architecture practices.";
+    `Central ${AORMS_PLATFORM.name} documentation: HCW-UI design system, ${AORMS_STUDIO.title}, AI core (EmOI + ESTI), and office management for Indian architecture consultancies.`;
   const url = wikiPageUrl();
   document.title = title;
   setMeta('meta[name="description"]', "content", description);
@@ -37,14 +38,14 @@ export function applyWikiListSeo(): void {
     name: SITE_NAME,
     url,
     description,
-    publisher: { "@type": "Organization", name: "Holagundi Consulting Works" },
+    publisher: { "@type": "Organization", name: "Human Centric Works" },
   });
 }
 
 export function applyWikiPageSeo(page: WikiPage): void {
   const title = `${page.title} — ${SITE_NAME}`;
   const url = wikiPageUrl(page.slug === "index" ? undefined : page.slug);
-  const description = page.excerpt || `${page.title} — AORMS documentation.`;
+  const description = page.excerpt || `${page.title} — ${AORMS_STUDIO.title} documentation.`;
   document.title = title;
   setMeta('meta[name="description"]', "content", description);
   setMeta('meta[property="og:title"]', "content", page.title);
@@ -58,7 +59,7 @@ export function applyWikiPageSeo(page: WikiPage): void {
     headline: page.title,
     description,
     dateModified: page.updated || undefined,
-    author: { "@type": "Organization", name: "Holagundi Consulting Works" },
+    author: { "@type": "Organization", name: "Human Centric Works" },
     publisher: { "@type": "Organization", name: "AORMS" },
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
   });

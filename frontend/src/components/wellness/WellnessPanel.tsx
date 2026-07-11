@@ -81,7 +81,7 @@ export function WellnessPanel({ open, onClose, triggerRef, initialSection = "bre
           value={section}
           onChange={(_, v: WellnessSection) => switchSection(v)}
           variant="fullWidth"
-          sx={{ minHeight: 36, "& .MuiTab-root": { minHeight: 36, py: 0.5, fontSize: "0.75rem" } }}
+          sx={{ minHeight: 36, "& .MuiTab-root": { minHeight: 36, py: 0.5, fontSize: (t) => t.typography.caption.fontSize } }}
         >
           <Tab value="breathe" label="Breathe" icon={<Spa sx={{ fontSize: 18 }} />} iconPosition="start" />
           <Tab value="stretch" label="Stretch" icon={<FitnessCenter sx={{ fontSize: 18 }} />} iconPosition="start" />

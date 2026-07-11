@@ -25,7 +25,7 @@ function setJsonLd(data: object | null): void {
 export function applyBlogListSeo(): void {
   const title = `Blog — ${SITE_NAME}`;
   const description =
-    "Notes on office intelligence, revisions, approvals, GST workflows, billing, and delivery for Indian architecture practices. Product docs: aorms.in/wiki.";
+    "Notes on the AORMS platform (operational and design frameworks, EmOI) and AORMS-Studio — revisions, approvals, GST, billing, and advisory practice operations for Indian architecture consultancies. Product docs: aorms.in/wiki.";
   document.title = title;
   setMeta('meta[name="description"]', "content", description);
   setMeta('meta[property="og:title"]', "content", title);

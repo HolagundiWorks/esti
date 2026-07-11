@@ -6,8 +6,10 @@
  * for the rare edge case the theme doesn't cover.
  *
  * Design language: HYPER-MINIMALIST LIGHT with a RADIANT ORANGE accent —
- * Fog-Gray canvas, Pure-White cards, Coal-Black ink, one soft-square radius,
- * flat borderless surfaces (definition from spacing + hairlines, not boxes).
+ * Fog-Gray canvas, Pure-White cards, Coal-Black ink, square surfaces (0 radius),
+ * flat borderless panels (definition from spacing + hairlines, not boxes).
+ * **Rounded corners:** buttons `BUTTON_RADIUS` (4px), ActionDock `DOCK_PILL_RADIUS`
+ * (capsule tray + dock buttons), dialogs `DIALOG_RADIUS` (8px).
  * Full spec: docs/esti/AORMS-BRANDING-KIT.md.
  */
 
@@ -35,11 +37,18 @@ export const colors = {
   supportInfo: "#3B5568", // slate — links + info
 } as const;
 
-/** The one "soft-square" corner radius used EVERYWHERE (popups, panels, buttons,
- *  inputs) so the whole product reads as a single system. */
-export const RADIUS = 8;
-/** Buttons use a slightly tighter radius (they are pure text, so this is subtle). */
+/** Surface / panel / input corner radius — square everywhere (0). */
+export const RADIUS = 0;
+/** Buttons (MuiButton) — rounded workspace controls. */
 export const BUTTON_RADIUS = 4;
+/** ActionDock tray + dock buttons — full capsule pill (not square NEU_RAISED). */
+export const DOCK_PILL_RADIUS = 9999;
+/** Dialogs (MuiDialog paper) — the only rounded surface panel in the workspace. */
+export const DIALOG_RADIUS = 8;
+/** Marketing section carousel — rounded glass tray + chips (public landing only). */
+export const MARKETING_DOCK_RADIUS = 12;
+/** Selected tab accent — inset top rule (alert line), not a background fill. */
+export const TAB_ALERT_WIDTH = 3;
 
 /** Brand font — Urbanist (OFL, self-hosted via @fontsource; works offline).
  *  Consumers import the weights they need (see README) and this stack is applied
@@ -60,7 +69,7 @@ export const NEU_POP = {
   backgroundColor: "#eceef2",
   backgroundImage: "none",
   border: "none",
-  borderRadius: RADIUS,
+  borderRadius: DIALOG_RADIUS,
   boxShadow: "9px 9px 22px rgba(20, 21, 23, 0.18), -9px -9px 22px rgba(255, 255, 255, 0.92)",
 } as const;
 
@@ -69,7 +78,7 @@ export const FLAT_POP = {
   backgroundColor: "#ffffff",
   backgroundImage: "none",
   border: "none",
-  borderRadius: RADIUS,
+  borderRadius: 0,
   boxShadow: "0 8px 24px rgba(20, 21, 23, 0.14)",
 } as const;
 
@@ -101,7 +110,7 @@ export const NEU_INSET_FOCUS =
   "inset 2.5px 2.5px 5.5px rgba(20, 21, 23, 0.20), inset -2.5px -2.5px 5.5px rgba(255, 255, 255, 0.95), inset 0 0 0 1.5px rgba(255, 79, 24, 0.45)";
 export const NEU_INSET_ERROR =
   "inset 2px 2px 4.5px rgba(20, 21, 23, 0.16), inset -2px -2px 4.5px rgba(255, 255, 255, 0.92), inset 0 0 0 1.5px rgba(200, 68, 46, 0.55)";
-export const NEU_INPUT_RADIUS = RADIUS;
+export const NEU_INPUT_RADIUS = 0;
 
 /** Dropdowns (Select) — FLAT at rest, button-like on hover (white box + orange line). */
 export const DD_FLAT = {
@@ -132,20 +141,69 @@ export const NEU_RAISED = {
   backgroundColor: NEU_FILL,
   backgroundImage: "none",
   border: "none",
-  borderRadius: RADIUS,
+  borderRadius: 0,
   boxShadow: "6px 6px 14px rgba(20, 21, 23, 0.16), -6px -6px 14px rgba(255, 255, 255, 0.92)",
+} as const;
+
+/** ActionDock floating tray — neumorphic raised capsule (Layer 2 shell for dock buttons). */
+export const ACTION_DOCK_TRAY = {
+  ...NEU_RAISED,
+  borderRadius: DOCK_PILL_RADIUS,
+} as const;
+
+/** Recessed groove — vertical zone separator inside NEU_RAISED / ActionDock tray. */
+export const NEU_GROOVE_VERTICAL = {
+  width: "2px",
+  alignSelf: "stretch",
+  my: 0.5,
+  flexShrink: 0,
+  borderRadius: "1px",
+  background: "transparent",
+  boxShadow:
+    "inset 1px 0 rgba(20, 21, 23, 0.15), inset -1px 0 rgba(255, 255, 255, 0.82)",
+} as const;
+
+/** Recessed groove — horizontal separator on soft / clear-glass surfaces. */
+export const NEU_GROOVE_HORIZONTAL = {
+  height: "2px",
+  width: "100%",
+  flexShrink: 0,
+  borderRadius: "1px",
+  background: "transparent",
+  boxShadow:
+    "inset 0 1px 0 rgba(20, 21, 23, 0.12), inset 0 -1px 0 rgba(255, 255, 255, 0.72)",
 } as const;
 // Layer 3 GLASS (glassmorphism) — the live, floating layer: hover, CTAs, the
 // action dock, priority alerts, active widgets. Translucent frosted glass that
 // visibly lifts above everything and pulls the eye. Reserved for what's actionable.
 export const GLASS_SURFACE = {
-  background: "rgba(255, 255, 255, 0.62)",
-  backdropFilter: "blur(20px) saturate(1.6)",
-  WebkitBackdropFilter: "blur(20px) saturate(1.6)",
-  border: "1px solid rgba(255, 255, 255, 0.55)",
-  borderRadius: RADIUS,
-  boxShadow: "0 10px 34px rgba(20, 21, 23, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.7)",
+  background: "rgba(255, 255, 255, 0.36)",
+  backdropFilter: "blur(28px) saturate(1.85)",
+  WebkitBackdropFilter: "blur(28px) saturate(1.85)",
+  border: "1px solid rgba(255, 255, 255, 0.48)",
+  borderRadius: 0,
+  boxShadow:
+    "0 14px 42px rgba(20, 21, 23, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.62), inset 0 -1px 0 rgba(255, 255, 255, 0.18)",
 } as const;
+
+/**
+ * Layer 3 variant — **liquid glass** for ActionDock buttons on hover/focus.
+ * Crystal-clear frosted pill: gradient wash, high saturate blur, specular inset edges.
+ * Flat pill at rest; liquid-glass capsule on hover/focus (`DOCK_PILL_RADIUS`).
+ */
+export const LIQUID_GLASS_BUTTON = {
+  background:
+    "linear-gradient(165deg, rgba(255, 255, 255, 0.58) 0%, rgba(255, 255, 255, 0.18) 45%, rgba(255, 255, 255, 0.42) 100%)",
+  backdropFilter: "blur(36px) saturate(2.25) brightness(1.14)",
+  WebkitBackdropFilter: "blur(36px) saturate(2.25) brightness(1.14)",
+  border: "1px solid rgba(255, 255, 255, 0.72)",
+  borderRadius: DOCK_PILL_RADIUS,
+  boxShadow:
+    "0 12px 36px rgba(20, 21, 23, 0.11), 0 2px 10px rgba(255, 79, 24, 0.07), inset 0 1.5px 0 rgba(255, 255, 255, 0.92), inset 0 -1px 0 rgba(255, 255, 255, 0.28)",
+} as const;
+
+/** ActionDock button hover/focus lift. */
+export const DOCK_BUTTON_LIFT = "translateY(-3px)";
 
 /**
  * Layer 3 variant — **clear glass** (marketing rail / section heading bands).
@@ -154,13 +212,27 @@ export const GLASS_SURFACE = {
  */
 export const CLEAR_GLASS_SURFACE = {
   background:
-    "linear-gradient(175deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 45%, rgba(255, 255, 255, 0.14) 100%)",
-  backdropFilter: "blur(18px) saturate(1.35) brightness(1.06)",
-  WebkitBackdropFilter: "blur(18px) saturate(1.35) brightness(1.06)",
-  border: "1px solid rgba(255, 255, 255, 0.45)",
+    "linear-gradient(175deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 48%, rgba(255, 255, 255, 0.09) 100%)",
+  backdropFilter: "blur(26px) saturate(1.7) brightness(1.08)",
+  WebkitBackdropFilter: "blur(26px) saturate(1.7) brightness(1.08)",
+  border: "1px solid rgba(255, 255, 255, 0.38)",
   borderRadius: 0,
   boxShadow:
-    "6px 0 28px rgba(20, 21, 23, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.65), inset 1px 0 0 rgba(255, 255, 255, 0.35)",
+    "6px 0 32px rgba(20, 21, 23, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 1px 0 0 rgba(255, 255, 255, 0.28)",
+} as const;
+
+/**
+ * SectionDock chips — clear liquid glass pills (marketing section carousel).
+ * Translucent gradient + specular inset edges; pair with `MARKETING_DOCK_RADIUS`.
+ */
+export const SECTION_DOCK_CHIP_GLASS = {
+  background:
+    "linear-gradient(175deg, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.07) 48%, rgba(255, 255, 255, 0.18) 100%)",
+  backdropFilter: "blur(28px) saturate(1.85) brightness(1.1)",
+  WebkitBackdropFilter: "blur(28px) saturate(1.85) brightness(1.1)",
+  border: "1px solid rgba(255, 255, 255, 0.58)",
+  boxShadow:
+    "inset 0 1px 0 rgba(255, 255, 255, 0.72), inset 0 -1px 0 rgba(255, 255, 255, 0.24), 0 4px 14px rgba(20, 21, 23, 0.06)",
 } as const;
 
 /**
@@ -169,9 +241,9 @@ export const CLEAR_GLASS_SURFACE = {
  */
 export const HEADING_GLASS_SURFACE = {
   background:
-    "linear-gradient(155deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.10) 55%, rgba(255, 255, 255, 0.16) 100%)",
-  backdropFilter: "blur(16px) saturate(1.3) brightness(1.05)",
-  WebkitBackdropFilter: "blur(16px) saturate(1.3) brightness(1.05)",
+    "linear-gradient(155deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.06) 55%, rgba(255, 255, 255, 0.10) 100%)",
+  backdropFilter: "blur(22px) saturate(1.55) brightness(1.06)",
+  WebkitBackdropFilter: "blur(22px) saturate(1.55) brightness(1.06)",
   borderTop: "1px solid rgba(255, 255, 255, 0.55)",
   borderRight: "1px solid rgba(20, 21, 23, 0.06)",
   borderBottom: "1px solid rgba(20, 21, 23, 0.08)",
@@ -180,10 +252,10 @@ export const HEADING_GLASS_SURFACE = {
   boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(20, 21, 23, 0.04)",
 } as const;
 
-/** The three layers, by name. `flat` is intentionally empty (it IS the canvas). */
+/** The three layers, by name. `flat` is intentionally minimal (square canvas). */
 export type SurfaceLayer = "flat" | "soft" | "glass" | "clearGlass" | "headingGlass";
 export const LAYERS: Record<SurfaceLayer, Record<string, unknown>> = {
-  flat: {},
+  flat: { borderRadius: 0 },
   soft: NEU_RAISED,
   glass: GLASS_SURFACE,
   clearGlass: CLEAR_GLASS_SURFACE,
@@ -191,4 +263,11 @@ export const LAYERS: Record<SurfaceLayer, Record<string, unknown>> = {
 };
 
 /** The token bundle, handy for a one-shot import. */
-export const tokens = { colors, RADIUS, BUTTON_RADIUS, FONT_FAMILY } as const;
+export const tokens = {
+  colors,
+  RADIUS,
+  BUTTON_RADIUS,
+  DOCK_PILL_RADIUS,
+  DIALOG_RADIUS,
+  FONT_FAMILY,
+} as const;

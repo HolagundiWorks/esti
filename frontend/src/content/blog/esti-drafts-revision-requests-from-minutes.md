@@ -1,9 +1,9 @@
----
+﻿---
 title: From meeting minutes to site-safe revisions — ESTI drafts, architects assess, clients approve
 date: 2026-07-10
 excerpt: Meeting happens, minutes are issued, ESTI extracts revision drafts — but before site or drawings move, the architect marks criticality and the client approves the implications. The full gate, not just the draft.
 tags: ESTI, Revisions, Client, AI, Product
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 Every architect knows this meeting. Ninety minutes with the client, four design

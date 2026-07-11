@@ -1,14 +1,24 @@
----
+﻿---
 title: AORMS Wiki
 slug: index
-excerpt: Official documentation for the AORMS cloud workspace — workflows, modules, and day-to-day instructions for Indian architecture practices.
+excerpt: Central documentation for AORMS — HCW-UI design system, AORMS-Studio workspace, AI core (EmOI + ESTI), and office management.
 order: 0
 section: Home
-updated: 2026-07-09
+domain: aorms-studio
+updated: 2026-07-10
 ---
 
-Welcome to the **AORMS Wiki** — the canonical guide for using the Architecture Office Resource Management System.
+Welcome to the **AORMS Wiki** — the canonical documentation hub for Human Centric Works products.
 
-AORMS is a **single cloud workspace** for Indian architects and interior designers. There is **one standard licence** with unlimited users, clients, contractors, and projects. You sign in at [aorms.in](https://aorms.in/login) in your browser — there are **no desktop apps to install** and **no edition tiers** (Lite, Pro, or Enterprise).
+This wiki is organised in **four domains**:
 
-Everything in this wiki assumes you are working in the **browser workspace**. Estimation, BOQ, drawings, finance, and portals all live inside the same account.
+| Domain | What it covers |
+| --- | --- |
+| **[HCW-UI](hcw-ui-kit)** | The layered design system (`@hcw/ui-kit`) — flat, soft, and glass surfaces; Rail · Stage · Dock |
+| **[AORMS-Studio](aorms-studio)** | The shipped architecture advisory workspace — projects, fees, revisions, drawings, portals |
+| **[AI core](ai-core)** | Platform **EmOI** and workspace **ESTI** — dual-tier AI, cognition engine, Ask ESTI |
+| **[Management](management)** | Finance, billing, HR, licensing, team performance, operational framework |
+
+**AORMS** (**Accelerated Operational Resources Management System**) is the platform. The live workspace from this repository is **AORMS-Studio** for Indian architecture and interior design consultancies.
+
+Sign in at [aorms.in/login](https://aorms.in/login). One standard licence — unlimited users, **5 GB** included storage, no desktop installs.

@@ -1,33 +1,26 @@
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import CloseIcon from "@mui/icons-material/Close";
-import LoginIcon from "@mui/icons-material/Login";
-import MenuIcon from "@mui/icons-material/Menu";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import { IconButton, useMediaQuery } from "@mui/material";
-import { ActionDock, ActionDockProvider, useScreenActions } from "@hcw/ui-kit";
+import { ActionDockProvider } from "@hcw/ui-kit";
 import { type ReactNode, useEffect, useState } from "react";
-import { createAccountUrl } from "../../lib/onboarding.js";
-import { wikiAppPath, WIKI_SHELL_NAV } from "../../lib/wiki-url.js";
+import { useLocation } from "react-router-dom";
+import { HcwAttribution } from "../brand/HcwAttribution.js";
+import {
+  MARKETING_RAIL_PAGES,
+  MARKETING_WIKI_RAIL_PAGES,
+} from "../../lib/marketing-page-nav.js";
+import { filterSectionDockLinks } from "../../lib/landing-nav.js";
+import { AORMS_STUDIO, AORMS_PLATFORM } from "../../lib/product-nomenclature.js";
+import { useLpReveal } from "../../lib/use-lp-reveal.js";
 import { LandingContours } from "./LandingContours.js";
-
-const SECTION_LINKS = [
-  { href: "/#fee-recovery", label: "Fee recovery" },
-  { href: "/#revisions", label: "Revisions" },
-  { href: "/#capabilities", label: "Capabilities" },
-  { href: "/#pricing", label: "Pricing" },
-  { href: "/#faq", label: "FAQ" },
-] as const;
+import { MarketingConversionDock } from "./MarketingConversionDock.js";
+import { MarketingFooter } from "./MarketingFooter.js";
+import { MarketingRailHeader, MarketingRailNav } from "./MarketingRailNav.js";
+import { MarketingSectionDock } from "./MarketingSectionDock.js";
 
 export type MarketingNavLink = { href: string; label: string };
 
-const RAIL_COLLAPSED_KEY = "aorms.lp2.railCollapsed";
+const RAIL_COLLAPSED_KEY = "aorms-marketing-rail-collapsed";
 
 /**
- * Marketing shell — glass rail + scrolling stage (2026-07 redesign).
- * Rail collapses on desktop; **page CTAs publish only to the ActionDock**
- * (never duplicated in the rail — Fitts / Hick / dock policy).
- * Provider lives here because public marketing routes sit outside the app shell.
+ * Marketing shell — glass rail + stage + SectionDock (in-page) + ActionDock (conversion).
  */
 export function MarketingShell({
   children,
@@ -35,15 +28,24 @@ export function MarketingShell({
   wiki,
   sectionLinks,
   tagline,
+  vertical = "platform",
+  footerVariant,
+  visitCount,
+  showFooter = true,
+  showConversionDock,
 }: {
   children: ReactNode;
   contours?: boolean;
-  /** Wiki documentation shell — rail nav + sign-in dock only. */
   wiki?: boolean;
-  /** Override default landing section anchors (e.g. design-system page). */
+  /** In-page section anchors for the bottom SectionDock carousel. */
   sectionLinks?: readonly MarketingNavLink[];
-  /** Rail tagline under the brand mark. */
   tagline?: string;
+  /** Default rail tagline when `tagline` is omitted (wiki uses its own default). */
+  vertical?: "platform" | "architecture";
+  footerVariant?: "platform" | "architecture";
+  visitCount?: number | null;
+  showFooter?: boolean;
+  showConversionDock?: boolean;
 }) {
   return (
     <ActionDockProvider>
@@ -52,6 +54,11 @@ export function MarketingShell({
         wiki={wiki}
         sectionLinks={sectionLinks}
         tagline={tagline}
+        vertical={vertical}
+        footerVariant={footerVariant ?? vertical}
+        visitCount={visitCount}
+        showFooter={showFooter}
+        showConversionDock={showConversionDock ?? true}
       >
         {children}
       </MarketingShellInner>
@@ -65,184 +72,166 @@ function MarketingShellInner({
   wiki,
   sectionLinks,
   tagline,
+  vertical,
+  footerVariant,
+  visitCount,
+  showFooter,
+  showConversionDock,
 }: {
   children: ReactNode;
   contours?: boolean;
   wiki?: boolean;
   sectionLinks?: readonly MarketingNavLink[];
   tagline?: string;
+  vertical: "platform" | "architecture";
+  footerVariant: "platform" | "architecture";
+  visitCount?: number | null;
+  showFooter: boolean;
+  showConversionDock: boolean;
 }) {
-  const isMobile = useMediaQuery("(max-width: 900px)");
+  const { pathname } = useLocation();
+  useLpReveal();
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(max-width: 900px)").matches : false,
+  );
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(() => {
-    try {
-      const stored = localStorage.getItem(RAIL_COLLAPSED_KEY);
-      // Default expanded so section links are visible (Hick / discoverability).
-      // Collapse only when the user explicitly chose "1".
-      return stored === "1";
-    } catch {
-      return false;
-    }
+  const [railCollapsed, setRailCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem(RAIL_COLLAPSED_KEY) === "1";
   });
 
-  const onWiki = wiki === true;
-  const primaryHref = onWiki ? "/login" : createAccountUrl();
-  const primaryLabel = onWiki ? "Sign in to AORMS" : "Create account";
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 900px)");
+    const onChange = () => setIsMobile(mq.matches);
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(RAIL_COLLAPSED_KEY, collapsed ? "1" : "0");
-    } catch {
-      /* ignore quota / private mode */
-    }
-  }, [collapsed]);
+    setMobileOpen(false);
+  }, [pathname, isMobile]);
 
-  useScreenActions(
-    [
-      {
-        id: "lp-create",
-        zone: "center",
-        tone: "primary",
-        label: primaryLabel,
-        icon: onWiki ? <LoginIcon /> : <PersonAddIcon />,
-        onClick: () => {
-          window.location.assign(primaryHref);
-        },
-      },
-      ...(!onWiki
-        ? [
-            {
-              id: "lp-signin",
-              zone: "right" as const,
-              tone: "default" as const,
-              label: "Sign in",
-              icon: <LoginIcon />,
-              onClick: () => {
-                window.location.assign("/login");
-              },
-            },
-          ]
-        : []),
-    ],
-    [onWiki, primaryHref, primaryLabel],
-  );
+  useEffect(() => {
+    if (!isMobile || !mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isMobile, mobileOpen]);
 
-  const navLinks = onWiki
-    ? [...(sectionLinks ?? WIKI_SHELL_NAV)]
-    : [
-        ...(sectionLinks ?? SECTION_LINKS),
-        { href: wikiAppPath(), label: "Wiki" },
-        { href: "/blog", label: "Blog" },
-        ...(sectionLinks ? [] : [{ href: "/design-system", label: "Design system" }]),
-      ];
+  useEffect(() => {
+    if (isMobile) return;
+    window.localStorage.setItem(RAIL_COLLAPSED_KEY, railCollapsed ? "1" : "0");
+  }, [railCollapsed, isMobile]);
 
-  const railOpen = isMobile ? mobileOpen : !collapsed;
+  const onWiki = wiki === true;
+  const railPageLinks = onWiki ? [...MARKETING_WIKI_RAIL_PAGES] : [...MARKETING_RAIL_PAGES];
+  const sectionDockLinks = sectionLinks?.length
+    ? filterSectionDockLinks(sectionLinks, pathname)
+    : [];
+  const showSectionDock = sectionDockLinks.length > 0;
+  const showDock = showConversionDock;
+  const desktopCollapsed = !isMobile && railCollapsed;
+  const railExpanded = isMobile ? mobileOpen : true;
+
   const railClass = [
     "lp2-rail",
+    desktopCollapsed ? "lp2-rail--collapsed" : "",
     isMobile && mobileOpen ? "lp2-rail--open" : "",
-    !isMobile && collapsed ? "lp2-rail--collapsed" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
+  const spacerClass = [
+    "lp2-rail-spacer",
+    desktopCollapsed ? "lp2-rail-spacer--collapsed" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const resolvedTagline =
+    tagline ??
+    (onWiki
+      ? AORMS_STUDIO.wikiName
+      : vertical === "architecture"
+        ? AORMS_STUDIO.tagline
+        : AORMS_PLATFORM.expansion);
+
   return (
-    <div className="lp2-shell esti-lp">
+    <div
+      className={[
+        "lp2-shell",
+        "esti-lp",
+        showSectionDock ? "lp2-shell--section-dock" : "",
+        showDock ? "lp2-shell--conversion-dock" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <a href="#lp2-main" className="lp2-skip">
         Skip to content
       </a>
 
-      {contours && <LandingContours />}
+      {isMobile && mobileOpen ? (
+        <button
+          type="button"
+          className="lp2-rail-backdrop"
+          aria-label="Close menu"
+          onClick={() => setMobileOpen(false)}
+        />
+      ) : null}
 
       <aside className={railClass} aria-label="AORMS">
-        <div className="lp2-rail__brand-row">
-          {(isMobile || !collapsed) && (
-            <a
-              href={onWiki ? wikiAppPath() : "/#top"}
-              className="lp2-rail__brand"
-              aria-label="AORMS home"
-            >
-              <span
-                role="img"
-                aria-label="AORMS"
-                className="esti-landing-brand-logo esti-brand esti-brand--aorms"
-              />
-            </a>
-          )}
-          {isMobile ? (
-            <IconButton
-              className="lp2-rail__burger"
-              aria-label={mobileOpen ? "Close menu" : "Open menu"}
-              onClick={() => setMobileOpen((v) => !v)}
-              size="small"
-            >
-              {mobileOpen ? <CloseIcon fontSize="small" /> : <MenuIcon fontSize="small" />}
-            </IconButton>
-          ) : (
-            <IconButton
-              className="lp2-rail__collapse"
-              aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
-              aria-expanded={!collapsed}
-              onClick={() => setCollapsed((v) => !v)}
-              size="small"
-            >
-              {collapsed ? (
-                <ChevronRightIcon fontSize="small" />
-              ) : (
-                <ChevronLeftIcon fontSize="small" />
-              )}
-            </IconButton>
-          )}
-        </div>
+        <MarketingRailHeader
+          collapsed={desktopCollapsed}
+          isMobile={isMobile}
+          mobileOpen={mobileOpen}
+          onToggleCollapse={() => setRailCollapsed((v) => !v)}
+          onToggleMobile={() => setMobileOpen((v) => !v)}
+        />
 
-        {railOpen && (
-          <>
-            <p className="lp2-rail__tagline">
-              {tagline ??
-                (onWiki ? "Documentation" : "Practice OS for Indian studios")}
+        {railExpanded ? (
+          <div className="lp2-rail__body">
+            <p className="lp2-rail__tagline">{resolvedTagline}</p>
+            <MarketingRailNav
+              links={railPageLinks}
+              pathname={pathname}
+              collapsed={desktopCollapsed}
+              onNavigate={() => setMobileOpen(false)}
+            />
+          </div>
+        ) : null}
+
+        <footer className="lp2-rail__foot">
+          {railExpanded && !onWiki ? (
+            <p className="lp2-rail__value-prop">
+              5 GB free · unlimited users · no card needed
             </p>
-
-            <nav className="lp2-rail__nav" aria-label="Sections">
-              {navLinks.map((l) => (
-                <a
-                  key={l.href}
-                  href={l.href}
-                  className="lp2-rail__link"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {l.label}
-                </a>
-              ))}
-            </nav>
-
-            <div className="lp2-rail__spacer" aria-hidden />
-
-            {!onWiki && (
-              <p className="lp2-rail__value-prop">
-                5 GB free&nbsp;·&nbsp;unlimited users&nbsp;·&nbsp;no card needed
-              </p>
-            )}
-
-            <div className="lp2-rail__foot">
-              <img
-                src="/hcw-black.png"
-                alt="Holagundi Consulting Works"
-                className="lp2-rail__hcw"
-              />
-            </div>
-          </>
-        )}
+          ) : null}
+          <HcwAttribution variant="rail" showNote={railExpanded && !desktopCollapsed} compact />
+        </footer>
       </aside>
 
-      <div
-        className={`lp2-rail-spacer${!isMobile && collapsed ? " lp2-rail-spacer--collapsed" : ""}`}
-        aria-hidden
-      />
+      <div className={spacerClass} aria-hidden />
 
       <main id="lp2-main" className="lp2-stage">
-        <div className="lp2-content">{children}</div>
+        {contours && (
+          <div className="lp2-stage__contours" aria-hidden>
+            <LandingContours />
+          </div>
+        )}
+        <div className="lp2-content">
+          {children}
+          {showFooter ? (
+            <MarketingFooter visitCount={visitCount} variant={footerVariant} />
+          ) : null}
+        </div>
       </main>
 
-      <ActionDock />
+      {showSectionDock ? <MarketingSectionDock links={sectionDockLinks} /> : null}
+      {showDock ? <MarketingConversionDock /> : null}
     </div>
   );
 }

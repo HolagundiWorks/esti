@@ -15,8 +15,13 @@ import { IS_DESKTOP, setDesktopToken } from "../lib/api-base.js";
 import { login as platformLogin } from "../platform-admin/lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { AuthBrandBlock } from "../components/AormsLogo.js";
+import { AORMS_STUDIO } from "../lib/product-nomenclature.js";
 import { AuthRailLayout } from "../components/AuthRailLayout.js";
+import { ArchitectureLoginStage } from "../components/landing/ArchitectureLoginStage.js";
+import { MarketingSectionDock } from "../components/landing/MarketingSectionDock.js";
 import { GoogleIconCircle } from "../components/GoogleIconCircle.js";
+import { ARCHITECTURE_LANDING_SECTIONS } from "../lib/landing-nav.js";
+import { useLandingVisitCounter } from "../lib/landing-visit.js";
 
 // The firm WORKSPACE sign-in (esti_user). On unified installs one identity
 // spans several company workspaces (architects freelance alongside firm work),
@@ -54,6 +59,7 @@ function companyItem(c: CompanyOption): TenantItem {
 
 export function Login() {
   const navigate = useNavigate();
+  const visitCount = useLandingVisitCounter();
   const utils = trpc.useUtils();
   const [params, setParams] = useSearchParams();
 
@@ -160,14 +166,18 @@ export function Login() {
   const showError = Boolean(login.error) && login.error?.message !== "totp_required";
 
   return (
-    <AuthRailLayout
-      variant="workspace"
-      rail={
+    <div className="esti-auth-page">
+      <AuthRailLayout
+        variant="workspace"
+        stage={PUBLIC_SITE ? <ArchitectureLoginStage /> : undefined}
+        visitCount={PUBLIC_SITE ? visitCount : undefined}
+        footerVariant="architecture"
+        rail={
         <Stack spacing={2}>
           <Stack spacing={3}>
             <Stack spacing={1}>
-              <AuthBrandBlock tagline="Architecture Office OS" />
-              <h2>{companies ? "Choose where to go" : "Welcome back"}</h2>
+              <AuthBrandBlock tagline={AORMS_STUDIO.tagline} />
+              <h2>{companies ? "Choose where to go" : "Sign in"}</h2>
               {companies ? (
                 <p className="esti-label esti-label--secondary">
                   Open your workspace, manage your account, or review your company.
@@ -175,8 +185,10 @@ export function Login() {
               ) : (
                 <p className="esti-label esti-label--secondary">
                   {IS_DESKTOP
-                    ? "AORMS Estimate · sign in with your studio account."
-                    : "Sign in, then choose your workspace, account, or company."}
+                    ? `${AORMS_STUDIO.title} · sign in with your studio account.`
+                    : PUBLIC_SITE
+                      ? `${AORMS_STUDIO.title} — scroll the workspace story, then sign in here.`
+                      : "Sign in, then choose your workspace, account, or company."}
                 </p>
               )}
             </Stack>
@@ -398,6 +410,8 @@ export function Login() {
           )}
         </Stack>
       }
-    />
+      />
+      {PUBLIC_SITE ? <MarketingSectionDock links={ARCHITECTURE_LANDING_SECTIONS} /> : null}
+    </div>
   );
 }

@@ -60,7 +60,9 @@ cloud-only at aorms.in; `/download` redirects to the wiki. The script
 `fetch-installers.sh` and workflow `desktop.yml` remain for legacy VPS layouts
 only.
 
-The separate **AORMS Estimate** app (`estimate/`) uses `.github/workflows/estimate.yml`.
+The separate **AORMS Estimate** app is **not in this monorepo** (archived spec under
+`docs/archive/esti/`). The **ESE subdomain service** installer is also archived —
+see `docs/archive/deploy/install-ese.sh` (no `ese/` package in repo).
 
 ## Before a first install
 

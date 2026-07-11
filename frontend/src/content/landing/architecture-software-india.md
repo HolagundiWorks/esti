@@ -1,4 +1,4 @@
----
+﻿---
 title: Architecture Software Built for India
 metaTitle: Architecture Software India — India-Native Billing, Fee Recovery & Revision Control
 metaDescription: Architecture software India that is India-native by default — GST, TDS, SAC codes, April–March FY, COA stages, fee recovery signals and MoM-to-approval revision tracking, not bolted on.
@@ -12,7 +12,7 @@ intro: Most architecture software is built for somewhere else, then patched for 
 
 Most tools an Indian practice ends up using were never built for India. The accounting package assumes a January–December year. The billing tool has no idea what a SAC code is. The project tool has no place for client approvals, revision tracking or authority movement. So the office stitches together spreadsheets, a foreign project tool, a desi accountant's Tally file and WhatsApp, and the gaps between them are where things break. **Architecture software India** practices can actually rely on has to speak the language of Indian practice — GST, TDS, the April–March financial year, COA service stages, and a revision-tracking sequence that protects fee and scope.
 
-AORMS, the Architecture Office Resource Management System powered by ESTI (Embedded Studio Intelligence), is built that way from the first screen. India is not a settings toggle. It is the default.
+**AORMS-Studio** — the architecture workspace on the **AORMS** platform, powered by ESTI (Embedded Studio Intelligence) — is built that way from the first screen. India is not a settings toggle. It is the default.
 
 ## Why India-native beats generic
 
@@ -55,7 +55,7 @@ India-native does not mean narrow. AORMS runs the rest of the practice too:
 - Read-only client and consultant portals so outsiders see exactly what they should and nothing more.
 - A dashboard of KPIs with an Action Center, an immutable audit log, and an activity timeline for accountability.
 
-You can compare the broader capabilities on the [practice management](/architecture-practice-management-software) and [project management](/architecture-project-management-software) pages, and see the India-operations view on [architecture office management India](/architecture-office-management-india).
+You can compare the broader capabilities on the [practice operations](/architecture-practice-management-software) and [project record](/architecture-project-management-software) pages, and see the India-operations view on [architecture office management India](/architecture-office-management-india).
 
 ## Cloud-hosted, on your terms
 
@@ -77,7 +77,7 @@ The easiest way to see the India-native approach is to enter the demo office and
 
 The best fit is whichever tool understands Indian billing, the revision-to-approval sequence, client portals and the financial year without workarounds. AORMS is purpose-built for Indian practices — GST and TDS invoicing, COA fee proposals, revision tracking with the MoM-to-approval chain, and project documentation in one cloud-hosted system — rather than a foreign product adapted at the edges.
 
-### Does it handle GST and TDS, or only project management?
+### Does it handle GST and TDS, or only the project record?
 
 Both. AORMS produces GST-correct invoices with the right CGST/SGST or IGST split and SAC code, accounts for TDS under section 194J, numbers invoices gap-free and FY-sequential, and generates GSTR-1, GSTR-3B and TDS filing abstracts you can reconcile against bank, 26AS, AIS and GSTR data.
 

@@ -77,6 +77,11 @@ export function Invoices() {
   const tdsPaise = firmTdsDefault ? computeTds194j(taxablePaise) : 0;
   const net = breakup.grandTotal - tdsPaise;
   const showSac = firmGst === GstSystem.REGULAR;
+  const createBlockedReason = !projectId
+    ? "Choose a project."
+    : !taxableR || taxablePaise <= 0
+      ? "Enter a taxable value greater than zero."
+      : null;
 
   useScreenActions(
     open || !canInvoice
@@ -230,6 +235,7 @@ export function Invoices() {
               label="Project"
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
+              helperText={!projectId ? "Required — pick the project to invoice." : undefined}
             >
               <MenuItem value="">Select a project…</MenuItem>
               {(projectsQ.data ?? []).map((p) => (
@@ -245,6 +251,12 @@ export function Invoices() {
               type="number"
               value={taxableR}
               onChange={(e) => setTaxableR(e.target.value)}
+              helperText={
+                taxableR && taxablePaise <= 0
+                  ? "Enter an amount greater than zero."
+                  : "Excludes GST — calculated from your firm GST settings."
+              }
+              error={Boolean(taxableR) && taxablePaise <= 0}
             />
             {showSac && (
               <TextField
@@ -296,13 +308,18 @@ export function Invoices() {
                 <strong>Could not create</strong> — {create.error.message}
               </Alert>
             )}
+            {createBlockedReason && !create.isPending && (
+              <Typography variant="caption" color="text.secondary">
+                {createBlockedReason}
+              </Typography>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button variant="text" onClick={() => setOpen(false)}>Cancel</Button>
           <Button
             variant="contained"
-            disabled={!projectId || !taxableR || create.isPending}
+            disabled={Boolean(createBlockedReason) || create.isPending}
             onClick={() =>
               create.mutate({
                 projectId,

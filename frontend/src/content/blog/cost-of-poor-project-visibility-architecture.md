@@ -1,9 +1,9 @@
----
+﻿---
 title: The real cost of poor project visibility in architecture studios
 date: 2026-07-09
 excerpt: Poor visibility is not missing dashboards — it is not knowing fee exposure, approval blockers, and workload until they hurt. The cost is margin, trust, and principal burnout.
 tags: Operations, Finance, Practice
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 "Visibility" became a software buzzword. For architecture studios, poor visibility is
@@ -90,4 +90,4 @@ see [account and licence](https://aorms.in/wiki/account-and-licence).
 
 ---
 
-*Holagundi Consulting Works — AORMS cloud practice OS.*
+*Human Centric Works — AORMS-Studio workspace for Indian consultancies.*

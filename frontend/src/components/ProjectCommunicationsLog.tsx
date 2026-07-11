@@ -3,7 +3,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -11,6 +10,8 @@ import {
   DialogTitle,
   MenuItem,
   Stack,
+  Tab,
+  Tabs,
   TextField,
 } from "@mui/material";
 import {
@@ -443,22 +444,18 @@ export function ProjectCommunicationsLog({ projectId }: { projectId: string }) {
 
   return (
     <Box sx={{ mt: 3 }}>
-      <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 3 }}>
-        {(Object.entries(CAT) as [Category, (typeof CAT)[Category]][]).map(([key, cfg]) => {
-          const color = active === key ? cfg.tagType : "gray";
-          return (
-            <Chip
-              key={key}
-              label={cfg.label}
-              onClick={() => setActive(key)}
-              sx={{
-                backgroundColor: `var(--cds-tag-background-${color})`,
-                color: `var(--cds-tag-color-${color})`,
-              }}
-            />
-          );
-        })}
-      </Box>
+      <Tabs
+        value={active}
+        onChange={(_, v: Category) => setActive(v)}
+        variant="scrollable"
+        scrollButtons="auto"
+        aria-label="Communication category"
+        sx={{ mb: 3 }}
+      >
+        {(Object.entries(CAT) as [Category, (typeof CAT)[Category]][]).map(([key, cfg]) => (
+          <Tab key={key} value={key} label={cfg.label} />
+        ))}
+      </Tabs>
 
       {active === "clientlog" && <ClientLogPanel projectId={projectId} />}
       {active === "internal" && (

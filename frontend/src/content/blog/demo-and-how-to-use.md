@@ -1,13 +1,14 @@
----
+﻿---
 title: Try AORMS — the live demo and how to explore it
 date: 2026-05-18
-excerpt: A fully seeded practice you can open in one click — projects, billing, a team, client and contractor portals — no signup, no password.
-tags: Demo, Getting started
-author: Holagundi Consulting Works
+excerpt: A fully seeded AORMS-Studio practice you can open in one click — projects, billing, a team, client portals — no signup, no password.
+tags: Demo, Getting started, AORMS-Studio
+author: Human Centric Works
 ---
 
-The fastest way to understand AORMS is to walk through a real office. The demo is
-exactly that — a complete, seeded architecture practice, not an empty shell.
+The fastest way to understand **AORMS-Studio** (the architecture workspace on
+AORMS) is to walk through a real office. The demo is exactly that — a complete,
+seeded architecture **consultancy**, not an empty shell.
 
 ## One-click access
 

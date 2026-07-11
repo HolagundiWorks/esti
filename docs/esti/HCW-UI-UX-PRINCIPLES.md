@@ -243,6 +243,7 @@ Before shipping UI:
 |--------------|-----|
 | Centred login card on stage | Breaks rail-first model; duplicates auth spatial grammar |
 | Inline Save + dock Save | Duplicate affordance; Fitts waste |
+| Rounded corners on panels/cards/chips | Surfaces are square (`RADIUS: 0`); `MuiButton` uses `BUTTON_RADIUS` (4px); **ActionDock** tray + buttons use `DOCK_PILL_RADIUS` (capsule) |
 | Glass on every card | Flattens hierarchy; hides marketing atmosphere |
 | Hover-only ribbon nav | Blocks keyboard users |
 | `primaryTypographyProps` on MUI v6+ | Use `slotProps` — typing and a11y consistency |

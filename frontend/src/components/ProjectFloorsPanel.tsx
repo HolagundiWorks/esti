@@ -245,7 +245,7 @@ export function ProjectFloorsPanel({ projectId }: { projectId: string }) {
               <TextField
                 label="Level"
                 value={buildingLevelCode(row.levelIndex)}
-                InputProps={{ readOnly: true }}
+                slotProps={{ input: { readOnly: true } }}
                 sx={{ width: 100 }}
                 size="small"
                 helperText={spanLabel}
@@ -298,7 +298,7 @@ export function ProjectFloorsPanel({ projectId }: { projectId: string }) {
               <TextField
                 label="FFL elev."
                 value={mmToMetres(elevMm)}
-                InputProps={{ readOnly: true }}
+                slotProps={{ input: { readOnly: true } }}
                 size="small"
                 sx={{ width: 100 }}
                 helperText={row.levelIndex === 0 ? "Datum" : "From LVL 0"}

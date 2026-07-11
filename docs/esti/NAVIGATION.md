@@ -33,7 +33,7 @@ Four sections (capability-gated):
 | **Projects** | link | `/projects` |
 | **Clients** | link | `/clients` (write capability) |
 | **Teams** | menu | Teams · Performance · HR |
-| **Office** | menu | Proposals · Contracts · Letters · Invoices · Cashbook · Expenses · Payroll · Financial Reports |
+| **Office** | menu | Leads · Proposals · Documents · Contracts · Letters · Invoices · Reconcile · Cashbook · Expenses · Payroll · Financial Reports |
 
 ### Admin hamburger (ribbon) — `adminGroups`
 | Group | Destinations |
@@ -65,14 +65,14 @@ stage tabs). Alert glyphs: ● circle (stable) · ▲ triangle (watch) · ■ sq
 ## 2. Projects ✅
 Active Projects ✅ (`/projects`) → Project Details ✅ (`/projects/:id`).
 
-**Two-level tabs (Setup · Project workspace)** — collapsed IA (2026-07-10):
+**Two-level tabs (Setup · Project workspace)** — section nav lives in the **glass rail** (2026-07-10); stage shows one panel at a time (no double horizontal tab bars):
 
 | Group | Primary tabs | Nested (in-panel) |
 |---|---|---|
 | Setup | Overview · Brief · Settings | Brief → Project Info \| Pipeline \| Program \| CPI |
-| Project workspace | Measurement · Drawings & approvals · Documents · Team · Delivery · Lessons | Drawings → Drawings \| Transmittals \| Approvals; Documents → Documents \| Specs; Delivery → Site \| Comms \| Minutes |
+| Project workspace | Measurement · Drawings & approvals · Documents · Invoices · Team · Delivery · Lessons | Drawings → Drawings \| Transmittals \| Approvals; Documents → Documents \| Specs; Delivery → Site \| Comms \| Minutes |
 
-Legacy `?tab=` deep links (`info`, `pipeline`, `site-visits`, …) redirect to the new parent slug.
+Legacy `?tab=` deep links (`info`, `pipeline`, `site-visits`, `approvals`, `invoices`, …) redirect to the new parent slug while preserving `approvalId` / `invoiceId` when present.
 
 **Cost Management / Estimation:** `/estimation` → `/projects`; `/estimation/:id` → `/projects/:id?tab=measurement`. CMS modules in `components/cms/` are not project tabs. Measurement is the live quantity surface.
 

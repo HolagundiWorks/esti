@@ -200,7 +200,7 @@ export function ApplicationsTab() {
                 <MenuItem key={k} value={k}>{TEAM_ROLES[k]}</MenuItem>
               ))}
             </TextField>
-            <TextField id="app-email" label="Email" type="email" value={form.email} onChange={set("email")} fullWidth />
+            <TextField id="app-email" label="Email" type="email" autoComplete="email" value={form.email} onChange={set("email")} fullWidth />
             <TextField id="app-phone" label="Phone" value={form.phone} onChange={set("phone")} fullWidth />
             <TextField id="app-notes" label="Notes" value={form.notes} onChange={set("notes")} fullWidth />
             {createApp.error && (

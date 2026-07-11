@@ -1,4 +1,4 @@
----
+﻿---
 title: Architecture ERP India
 metaTitle: Architecture ERP India — Fee Recovery, Revision Control & Project Record
 metaDescription: Architecture ERP India — projects, phases, approvals, COA fee recovery, GST billing, client revision tracking with approval trail and AI-assisted office signals in one platform.
@@ -13,7 +13,7 @@ not need a heavy manufacturing-style ERP. They need one reliable office record:
 projects, phases, drawings, approvals, fees, bills, clients, contractors and team
 responsibilities connected in a way the practice can actually use.
 
-AORMS stands for Architecture Office Resource Management System. It gives Indian
+**AORMS-Studio** is the architecture workspace on the AORMS platform. It gives Indian
 architecture firms an ERP-like backbone without asking the team to abandon the way
 architectural work moves.
 
@@ -52,7 +52,7 @@ field evidence. AORMS is designed around these patterns instead of treating them
 as custom fields.
 
 For detailed product pages, see [architecture office management software](/architecture-office-management-software),
-[architecture project management software](/architecture-project-management-software)
+[architecture project record software](/architecture-project-management-software)
 and [architect fee proposal software](/architect-fee-proposal-software).
 
 ## Cognitive layer

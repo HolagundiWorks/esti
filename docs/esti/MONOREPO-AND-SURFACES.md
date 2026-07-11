@@ -17,15 +17,15 @@ dependency graph, one CI. A "surface" is a **build target**, not a repo.
 ```
 esti/                     pnpm workspace root
 ├─ packages/contracts/    @esti/contracts — shared zod schemas + PURE engines
-│                         (money, .aormsest EstimateFile + re-cost engine, BBS,
-│                         permissions). Browser-safe: no node/DB imports. THE seam.
+│                         (money, permissions, India profile). Browser-safe.
+├─ packages/hcw-ui-kit/   @hcw/ui-kit — layered design system
 ├─ backend/               Fastify + tRPC + Drizzle (Postgres) — AORMS API
-├─ frontend/              React + Vite + MUI / @hcw/ui-kit — AORMS workspace SPA
+├─ frontend/              React + Vite + MUI / @hcw/ui-kit — AORMS SPA + marketing
 ├─ worker/                Python Redis-Streams consumer (PDF/DXF/reconcile)
-├─ ese/                   @esti/ese — Estimation Specification Engine (own Fastify app)
-├─ desktop/               Tauri shell (AORMS Estimate desktop host)
-└─ estimate/              Estimate app — SPA + desktop-cpp/ (native C++ webview
-                          host + vendored SQLite; no Rust, no server)
+├─ vendor/hcw-aorms-ai-kit/  AI prompts + Ollama SDK
+├─ desktop/               Tauri shell (legacy Manager packaging scripts)
+├─ docs/reference/        Zonal-regulation reference data (municipal bylaws)
+└─ docs/archive/          Retired specs (Estimate app, Carbon audits, …)
 ```
 
 **Invariant:** any shape crossing two surfaces (rates, `.aormsest`, permissions,
@@ -42,7 +42,7 @@ Any "yes" that matters → a **subdomain** (or a binary).
 
 | Surface | Users | Cadence | Isolation need | → Access |
 |---|---|---|---|---|
-| AORMS workspace | firm staff | continuous | — | `app.aorms.in` (root) |
+| AORMS-Studio | firm staff | continuous | — | `app.aorms.in` (root) |
 | **Estimation** | **same staff** | **same** | **none** | **Project › Cost Management — nested** |
 | **ESE** (pack publisher) | **`kbteam`** | **yearly SR** | **yes** | **`ese.aorms.in` — subdomain** |
 | **Estimate app** | estimators, **offline** | independent | native/offline | **desktop binary** |
@@ -63,18 +63,16 @@ Different users (`kbteam`, admin seeded from deploy env), a different job
 clock (once a year). It publishes *into* the system across a versioned seam; it is
 not in the request path of daily work. That earns a subdomain.
 
-### Estimate app → a binary, not a web surface
-Offline measurement is the entire point. It talks to nobody live — no server,
-no network: a native C++ webview host (`estimate/desktop-cpp/`) running the
-estimating engine + SQLite in-process, persisting estimates locally and
-exporting a sealed `.aormsest` file. Built and published on its own CI workflow
-(`.github/workflows/estimate.yml`), independent of the AORMS desktop builds.
+### Estimate app → archived (not in this monorepo)
+Historical spec: standalone C++ desktop + `.aormsest` interchange — see
+[../archive/esti/ESTIMATION-ARCHITECTURE.md](../archive/esti/ESTIMATION-ARCHITECTURE.md).
+Active cost work: [COST-MANAGEMENT-SYSTEM.md](./COST-MANAGEMENT-SYSTEM.md).
 
 ```
         ┌──────────────────────── one monorepo ─────────────────────────┐
  kbteam │   ese.aorms.in            app.aorms.in                         │
    ────►│  ┌───────────┐  Rate    ┌───────────────────────────────────┐ │
-        │  │  ESE      │  Library │  AORMS workspace (frontend+backend)│ │
+        │  │  ESE      │  Library │  AORMS-Studio (frontend+backend)│ │
         │  │ (Fastify) │  Pack    │   /  /projects  /tasks             │ │
         │  │ CPWD SR → │ ───────► │   /projects/:id › Cost Management  │ │
         │  │  packs    │ (→ rate  │      Abstract·BOQ·Materials·Steel  │ │
@@ -125,16 +123,11 @@ state DSRs.
 
 ## 5. Deploy
 
-- **AORMS** (backend + worker + frontend, incl. estimation) → `deploy/update.sh`
+- **AORMS** (backend + worker + frontend) → `deploy/update.sh`
   (podman compose); one deploy, no separate estimation release.
-- **ESE** → its own `esti-ese` container (in `compose.prod.yaml`) behind
-  `ese.aorms.in`, sharing the AORMS Postgres (self-provisions its `ese_*` tables
-  on boot). One-time: `sudo bash deploy/install-ese.sh` (builds+starts the
-  container, installs the nginx vhost `deploy/nginx-ese.conf`, issues TLS), then
-  set `ESE_ENABLED=true` + `ESE_ADMIN_PASSWORD` in `.env` so `update.sh` keeps it
-  rebuilt. `kbteam` admin seeded from env, forced to rotate on first login.
-- **Estimate app** → desktop release tag; installers hosted like the AORMS builds
-  (`.github/workflows/desktop.yml`, `windows-latest`).
+- **ESE** — **retired** (no `ese/` package in this monorepo). Historical installer:
+  [../archive/deploy/install-ese.sh](../archive/deploy/install-ese.sh).
+- **Estimate app** — desktop release tag; cloud-only at aorms.in (see archive docs).
 
-See [ESTIMATION-ARCHITECTURE.md](./ESTIMATION-ARCHITECTURE.md) for the internals of
-the three-app estimation model and the `.aormsest` schema.
+See [COST-MANAGEMENT-SYSTEM.md](./COST-MANAGEMENT-SYSTEM.md) for the active CMS rebuild.
+Historical Estimate/ESE architecture: [../archive/esti/ESTIMATION-ARCHITECTURE.md](../archive/esti/ESTIMATION-ARCHITECTURE.md).

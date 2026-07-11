@@ -1,9 +1,10 @@
----
+﻿---
 title: Account and licence
 slug: account-and-licence
 excerpt: One standard AORMS licence, storage metering, AI usage, company members, and account portals.
 order: 5
 section: Administration
+domain: management
 updated: 2026-07-09
 ---
 

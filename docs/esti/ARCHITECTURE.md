@@ -1,10 +1,14 @@
 # AORMS System Architecture
 
-**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-17
+**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-07-10
+
+> **Scope:** This describes **AORMS-Studio** — the workspace shipped from this
+> monorepo. Platform north-star: [AORMS-DEVELOPMENT-SPEC.md](AORMS-DEVELOPMENT-SPEC.md).
+> Naming: [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md).
 
 ## System Shape
 
-AORMS is a single-firm, India-first application:
+**AORMS-Studio** is a single-firm, India-first application:
 
 ```text
 Carbon React SPA

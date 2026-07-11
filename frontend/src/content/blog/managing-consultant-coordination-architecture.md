@@ -1,9 +1,9 @@
----
+﻿---
 title: Managing consultant coordination on architecture projects
 date: 2026-07-04
 excerpt: A practical guide to coordinating structural, MEP and PHE consultants — RFIs, transmittals and version control that keep one coordinated set the site can build from.
 tags: Operations, Workflow
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 On any project larger than a modest residence, the architect is rarely working alone. A

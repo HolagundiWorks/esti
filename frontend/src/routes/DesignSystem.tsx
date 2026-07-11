@@ -1,11 +1,8 @@
 import { useEffect } from "react";
 import { DESIGN_SYSTEM_NAV, DesignSystemPage } from "../components/landing/DesignSystemPage.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
-import { useLpReveal } from "../lib/use-lp-reveal.js";
 
 export function DesignSystem() {
-  useLpReveal();
-
   useEffect(() => {
     const title = "HCW-UI-Kit — Human Centric Works design system";
     const description =
@@ -32,7 +29,12 @@ export function DesignSystem() {
   }, []);
 
   return (
-    <MarketingShell contours sectionLinks={DESIGN_SYSTEM_NAV} tagline="HCW-UI-Kit · design system">
+    <MarketingShell
+      contours
+      sectionLinks={DESIGN_SYSTEM_NAV}
+      tagline="HCW-UI-Kit · design system"
+      showConversionDock={false}
+    >
       <DesignSystemPage />
     </MarketingShell>
   );

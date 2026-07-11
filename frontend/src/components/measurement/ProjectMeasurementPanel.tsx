@@ -470,7 +470,7 @@ export function ProjectMeasurementPanel({ projectId }: { projectId: string }) {
                 value={rowForm.heightM}
                 onChange={(e) => setRowForm((f) => ({ ...f, heightM: e.target.value }))}
                 fullWidth
-                InputProps={{ readOnly: !!rowForm.levelId }}
+                slotProps={{ input: { readOnly: !!rowForm.levelId } }}
                 helperText={
                   rowForm.levelId
                     ? "Linked — from level + beam/lintel"

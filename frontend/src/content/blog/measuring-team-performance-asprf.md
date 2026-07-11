@@ -1,9 +1,9 @@
----
+﻿---
 title: Measuring team performance fairly — the ASPRF score
 date: 2026-06-02
 excerpt: Counting finished tasks rewards the wrong behaviour. ASPRF weighs reliability, quality, impact, collaboration, learning, and wellbeing — with anti-gaming built in.
 tags: Team, Product
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 The crude way to measure an architect is to count tasks closed. It is also the

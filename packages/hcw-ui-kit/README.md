@@ -14,13 +14,16 @@ UX principles (laws, a11y, checklist):
 
 | Export | Role |
 |--------|------|
-| `colors`, `RADIUS`, `FONT_FAMILY`, `tokens`, `LAYERS`, `NEU_*`, `GLASS_SURFACE`, `CLEAR_GLASS_SURFACE`, `HEADING_GLASS_SURFACE`, … | Design tokens (`tokens.ts`) |
+| `colors`, `RADIUS` (0), `BUTTON_RADIUS` (4), `DOCK_PILL_RADIUS` (capsule), `ACTION_DOCK_TRAY`, `DIALOG_RADIUS` (8), `FONT_FAMILY`, `tokens`, `LAYERS`, … | Design tokens |
+| `actionDockButtonSx`, `sectionDockChipSx`, `liquidGlassSpecimenSx` | Shared chrome `sx` — import instead of copying CSS |
+| `@hcw/ui-kit/portal-chrome.scss` | Portal-wide ActionDock capsule + dialog classes — import once in app entry |
 | `aormsTheme`, `createAormsTheme()` | Shared MUI theme |
 | `MuiRoot` | Theme + dayjs provider |
 | `Surface` | `layer="flat\|soft\|glass\|clearGlass\|headingGlass"` |
 | `GlassRail` | Rail · stage shell (`glass="frost\|clear"`) |
 | `HealthGlassOrb` | Zone / office-health indicator |
 | `ActionDock`, `ActionDockProvider`, `useScreenActions` | Global 3-zone CTAs |
+| `SectionDock` | Marketing section carousel dock |
 | `TaskbarFooter`, `TaskbarButton`, `TASKBAR_HEIGHT` | Footer shell (`left` · `center` · `right`) |
 | `BrandMark` | Asset-free wordmark |
 
@@ -59,7 +62,14 @@ import "@fontsource/urbanist/400.css";
 import "@fontsource/urbanist/500.css";
 import "@fontsource/urbanist/600.css";
 import "@fontsource/urbanist/700.css";
+import "@hcw/ui-kit/portal-chrome.scss";
 ```
+
+## Redesign rule
+
+Change shared chrome in **this package** (`tokens.ts` → `chrome-sx.ts` →
+component → `portal-chrome.scss`). App screens import kit primitives; they do
+not own glass/radius recipes. See `docs/esti/HCW-UI-KIT.md` § Redesign workflow.
 
 ## Layer pick (quick)
 

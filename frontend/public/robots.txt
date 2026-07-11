@@ -1,4 +1,4 @@
-# ESTI AORMS — robots.txt
+﻿# ESTI AORMS — robots.txt
 # https://aorms.in
 # All crawlers, including AI/LLM crawlers, are welcome on public pages.
 # (Search/answer engines: GPTBot, ClaudeBot, PerplexityBot, Google-Extended, etc.)

@@ -92,7 +92,7 @@ export const LANDING_NAV: LandingNavGroup[] = [
     links: [
       { slug: "architecture-office-management-software", label: "Office management software" },
       { slug: "architecture-practice-management-software", label: "Practice management software" },
-      { slug: "architecture-project-management-software", label: "Project management software" },
+      { slug: "architecture-project-management-software", label: "Project record software" },
       { slug: "software-for-architecture-firms", label: "Software for architecture firms" },
       { slug: "architecture-consultancy-management-software", label: "Consultancy management software" },
       { slug: "architecture-erp-india", label: "Architecture ERP India" },

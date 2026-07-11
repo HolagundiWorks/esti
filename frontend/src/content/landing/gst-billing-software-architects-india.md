@@ -1,4 +1,4 @@
----
+﻿---
 title: GST Billing for Architecture Firms
 metaTitle: GST Billing Software for Architects India
 metaDescription: GST billing software for architects India — correct CGST/SGST or IGST split, TDS u/s 194J, SAC codes, gap-free FY-sequential invoices and GSTR reconciliation.

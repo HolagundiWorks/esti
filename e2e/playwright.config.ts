@@ -46,5 +46,10 @@ export default defineConfig({
       dependencies: ["setup"],
       use: { ...devices["Desktop Chrome"], storageState: ".auth/principal.json" },
     },
+    {
+      name: "accessibility",
+      testMatch: /accessibility\.spec\.ts$/,
+      use: { ...devices["Desktop Chrome"] },
+    },
   ],
 });

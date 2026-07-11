@@ -8,7 +8,11 @@
 > rebuild is [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
 > [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
 
-**Status:** Approved implementation baseline · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-19
+**Status:** Approved implementation baseline · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-07-10
+
+> **Nomenclature (2026-07-10):** **AORMS** = **Accelerated Operational Resources
+> Management System** (platform). Requirements below describe **AORMS-Studio**
+> (slug `aorms-studio`) unless noted. [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md).
 
 This PRD aligns the supplied ESI-AORMS requirements with AORMS's agreed product
 boundary. It distinguishes existing capabilities from work still required. The

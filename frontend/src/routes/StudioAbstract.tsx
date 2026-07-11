@@ -13,6 +13,7 @@ import {
   Box,
   Button,
   LinearProgress,
+  Skeleton,
   Stack,
   Switch,
   Tab,
@@ -307,6 +308,7 @@ export function StudioAbstract() {
   const glanceQ   = trpc.dashboard.todayGlance.useQuery(undefined, { staleTime: 60_000 });
 
   const home = homeQ.data;
+  const homeLoading = homeQ.isLoading && home == null;
   const ac   = home?.actionCenter;
   const fh   = home?.financialHealth ?? null;
   const ph   = home?.projectHealth   ?? [];
@@ -422,7 +424,14 @@ export function StudioAbstract() {
   const filingDue = filingDueDates();
 
   const heroKpis: { label: string; value: string; sub: string; danger: string | null }[] =
-    canInvoice && fh
+    homeLoading
+      ? [
+          { label: "—", value: "—", sub: "Loading", danger: null },
+          { label: "—", value: "—", sub: "Loading", danger: null },
+          { label: "—", value: "—", sub: "Loading", danger: null },
+          { label: "—", value: "—", sub: "Loading", danger: null },
+        ]
+      : canInvoice && fh
       ? [
           { label: "Pipeline", value: formatINRShort(fh.pipelinePaise), sub: `Active ${formatINRShort(fh.activePipelinePaise)}`, danger: null },
           { label: "Outstanding", value: formatINRShort(fh.outstandingPaise), sub: "Receivable", danger: fh.overdue30dPaise > 0 ? `${formatINRShort(fh.overdue30dPaise)} overdue` : null },
@@ -438,7 +447,13 @@ export function StudioAbstract() {
 
   // Stage header KPIs — Pipeline · Outstanding · Collected · Ready to bill (or ops fallback).
   const kpiTiles: { label: string; value: ReactNode; sub?: ReactNode }[] =
-    heroKpis.slice(0, 4).map((k) => ({ label: k.label, value: k.value, sub: k.sub }));
+    homeLoading
+      ? Array.from({ length: 4 }, (_, i) => ({
+          label: "Loading",
+          value: <Skeleton variant="text" width={72} sx={{ fontSize: "1.1rem" }} />,
+          sub: i === 0 ? "Office metrics" : undefined,
+        }))
+      : heroKpis.slice(0, 4).map((k) => ({ label: k.label, value: k.value, sub: k.sub }));
 
   // Top risks
   const clientRisks = (home?.clientIntelligence ?? []).filter((c: any) => c.risk === "HIGH");
@@ -804,11 +819,11 @@ export function StudioAbstract() {
             onChange={(_, v) => setTab(v)}
             variant="scrollable"
             scrollButtons="auto"
+            aria-label="Studio Intelligence sections"
             sx={{
               flexShrink: 0,
               borderBottom: 1,
               borderColor: "divider",
-              "& .MuiTab-root.Mui-selected": { fontWeight: 600 },
             }}
           >
             <Tab value="priorities" label="ESTI" />
@@ -884,7 +899,22 @@ export function StudioAbstract() {
                     {topRisks.length === 0 ? emptyText("No elevated risks right now.") : (
                       <Stack spacing={1}>
                         {topRisks.map((r) => (
-                          <Stack key={r.key} direction="row" spacing={1} sx={{ alignItems: "center", cursor: "pointer" }} onClick={() => navigate(r.href)}>
+                          <Stack
+                            key={r.key}
+                            direction="row"
+                            spacing={1}
+                            role="link"
+                            tabIndex={0}
+                            aria-label={`${r.label} — ${r.detail}`}
+                            sx={{ alignItems: "center", cursor: "pointer" }}
+                            onClick={() => navigate(r.href)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                navigate(r.href);
+                              }
+                            }}
+                          >
                             <OfficeHealthGlyph state={r.state} size={12} variant="glass" />
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                               <Typography variant="body2">{r.label}</Typography>

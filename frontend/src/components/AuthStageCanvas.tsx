@@ -1,4 +1,5 @@
 import { Box, Typography } from "@mui/material";
+import { AORMS_STUDIO } from "../lib/product-nomenclature.js";
 import { AormsLogo } from "./AormsLogo.js";
 import { LandingContours } from "./landing/LandingContours.js";
 
@@ -6,8 +7,8 @@ export type AuthStageVariant = "workspace" | "portal" | "external" | "admin";
 
 const COPY: Record<AuthStageVariant, { headline: string; subline: string }> = {
   workspace: {
-    headline: "Architecture Office OS",
-    subline: "Your studio, projects, and team — one workspace.",
+    headline: AORMS_STUDIO.title,
+    subline: `${AORMS_STUDIO.tagline} — projects, fees, drawings, and team on one record.`,
   },
   portal: {
     headline: "AORMS Account",
@@ -19,7 +20,7 @@ const COPY: Record<AuthStageVariant, { headline: string; subline: string }> = {
   },
   admin: {
     headline: "License Cloud",
-    subline: "Platform administration for Holagundi Consulting Works.",
+    subline: "Platform administration for Human Centric Works.",
   },
 };
 

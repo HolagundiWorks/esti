@@ -1,4 +1,4 @@
-import { Box, Divider, Link, Stack, Typography } from "@mui/material";
+import { Box, Divider, Link, Skeleton, Stack, Typography } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { Link as RouterLink } from "react-router-dom";
 import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
@@ -123,6 +123,21 @@ export function Alerts() {
   });
   const alerts = alertsQ.data ?? [];
   const digest = digestQ.data;
+
+  if (alertsQ.isLoading && alertsQ.data == null) {
+    return (
+      <RailLayout
+        title="Alerts"
+        description="Immediate items needing action, plus a daily digest of lower-priority follow-ups."
+      >
+        <PageBreadcrumb items={[{ label: "Alerts" }]} />
+        <Stack spacing={1.5} aria-busy="true" aria-label="Loading alerts">
+          <Skeleton variant="text" width={180} height={28} />
+          <Skeleton variant="rectangular" height={220} />
+        </Stack>
+      </RailLayout>
+    );
+  }
 
   return (
     <RailLayout

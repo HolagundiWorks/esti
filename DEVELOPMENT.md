@@ -1,8 +1,10 @@
 # AORMS — Development
 
-Greenfield monorepo for AORMS, the **Architecture Office Resource Management
-System** by Holagundi Consulting Works. See
-[docs/esti/ARCHITECTURE.md](docs/esti/ARCHITECTURE.md).
+Greenfield monorepo for **AORMS-Studio** (`aorms-studio`) — the AEC vertical workspace on the AORMS platform
+(**Accelerated Operational Resources Management System** platform) by Holagundi
+Consulting Works. Nomenclature:
+[docs/esti/AORMS-PLATFORM-NOMENCLATURE.md](docs/esti/AORMS-PLATFORM-NOMENCLATURE.md).
+See [docs/esti/ARCHITECTURE.md](docs/esti/ARCHITECTURE.md).
 
 ## Layout
 

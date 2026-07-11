@@ -1,9 +1,9 @@
----
+﻿---
 title: The architecture practice KPIs that actually matter
 date: 2026-07-04
 excerpt: Six numbers a small or mid-size Indian architecture practice should track — fee realisation, revision mix, WIP, utilisation, approval turnaround and a fair team score.
 tags: Operations, Practice
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 Most architecture practices watch the loud numbers — revenue this month, cash in the

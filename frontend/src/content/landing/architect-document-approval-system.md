@@ -1,4 +1,4 @@
----
+﻿---
 title: Architect Document Approval System
 metaTitle: Architect Document Approval System for Projects and Clients
 metaDescription: Architect document approval system for drawings, submissions, client decisions, consultant comments and approval evidence in one project record.

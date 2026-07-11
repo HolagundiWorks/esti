@@ -8,7 +8,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -18,6 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import { StatusDot } from "../../components/StatusTag.js";
 import { trpc } from "../lib/trpc";
 
 type AccountRow = {
@@ -33,10 +33,6 @@ type AccountRow = {
 };
 
 const fmt = (d: Date | string) => new Date(d).toLocaleDateString();
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 const statusColor: Record<AccountStatus, string> = {
   ACTIVE: "green",
@@ -175,11 +171,7 @@ export default function AccountsTab() {
       flex: 0.8,
       minWidth: 110,
       renderCell: (p) => (
-        <Chip
-          size="small"
-          label={ACCOUNT_STATUS_LABEL[p.row.status]}
-          sx={chipSx(statusColor[p.row.status])}
-        />
+        <StatusDot color={statusColor[p.row.status]} label={ACCOUNT_STATUS_LABEL[p.row.status]} />
       ),
     },
     {
@@ -190,7 +182,7 @@ export default function AccountsTab() {
       sortable: false,
       renderCell: (p) =>
         p.row.isPlatformAdmin ? (
-          <Chip size="small" label="Platform admin" sx={chipSx("purple")} />
+          <StatusDot color="purple" label="Platform admin" />
         ) : null,
     },
     {

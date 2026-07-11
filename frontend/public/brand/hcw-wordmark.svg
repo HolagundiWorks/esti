@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 64" fill="#000000" role="img" aria-label="Human Centric Works">
+  <title>Human Centric Works</title>
+  <!-- Top and bottom share textLength so total line width aligns -->
+  <text
+    x="200"
+    y="22"
+    text-anchor="middle"
+    font-family="'Urbanist', system-ui, -apple-system, sans-serif"
+    font-size="18"
+    font-weight="600"
+    textLength="368"
+    lengthAdjust="spacingAndGlyphs"
+  >Human Centric</text>
+  <text
+    x="200"
+    y="54"
+    text-anchor="middle"
+    font-family="'Urbanist', system-ui, -apple-system, sans-serif"
+    font-size="28"
+    font-weight="700"
+    letter-spacing="0.06em"
+    textLength="368"
+    lengthAdjust="spacingAndGlyphs"
+  >Works</text>
+</svg>

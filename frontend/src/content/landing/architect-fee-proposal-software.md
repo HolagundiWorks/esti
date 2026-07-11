@@ -1,4 +1,4 @@
----
+﻿---
 title: Architect Fee Proposal Software
 metaTitle: Fee Recovery & Proposal Software for Architects India
 metaDescription: Architect fee proposal software that shows what needs invoicing, the next billing stage due, incoming receipts and GST reminders — so fee recovery is a weekly discipline, not a month-end scramble.

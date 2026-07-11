@@ -1,4 +1,4 @@
----
+﻿---
 title: COA-Compliant Billing for Architects
 metaTitle: COA Compliant Architecture Billing System
 metaDescription: A COA compliant architecture billing system that structures fees by COA Scale of Charges service stages and bills against phase milestones — with GST and TDS built in.

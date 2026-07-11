@@ -1,25 +1,33 @@
 # AORMS Documentation
 
-**Status:** Canonical index · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-07-09
+**Status:** Canonical index · **Owner:** Human Centric Works (HCW) · **Reviewed:** 2026-07-10
 
-> **Nomenclature:** **AORMS** (Architecture Office Resource Management System) is
-> the **workspace** — the product. **ESTI** (Embedded Studio Intelligence) is the
-> **intelligence/agent layer** embedded in it (ESTI AI, Ask ESTI, cognition
-> engine, ESTI Pulse). Code identifiers keep the `esti` codename.
+> **Nomenclature (2026-07-10):** **AORMS** = **Accelerated Operational Resources
+> Management System** (platform). **AORMS-Studio** = the shipped AEC workspace
+> in this repo (slug `aorms-studio`, Indian architecture practices). Roadmap verticals:
+> **AORMS-Compliance** (risk), **AORMS-Advisory** (education), **AORMS-Audit** (auditing).
+> **EmOI** = platform intelligence; **ESTI** = AORMS-Studio intelligence only.
+> Full rules: [AORMS-PLATFORM-NOMENCLATURE](AORMS-PLATFORM-NOMENCLATURE.md).
 
 This directory is the single source of truth for AORMS product and engineering
 direction. **Obsolete specs** live under [`../archive/`](../archive/README.md) with
 a banner explaining what superseded them — do not use archived files for
 implementation.
 
-**Public user documentation:** [aorms.in/wiki](https://aorms.in/wiki) (getting
-started, workflows, estimation, finance, account setup).
+**Platform north-star:** [AORMS-DEVELOPMENT-SPEC](AORMS-DEVELOPMENT-SPEC.md) (public
+landing at `/`). **Landing redesign brief:**
+[../marketing/LANDING-REDESIGN-CONTEXT.md](../marketing/LANDING-REDESIGN-CONTEXT.md).
+
+**Public user documentation:** [aorms.in/wiki](https://aorms.in/wiki) — central wiki
+in four domains: **HCW-UI**, **AORMS-Studio**, **AI core** (EmOI + ESTI), and
+**Management**.
 
 ## Read first
 
 New here? Read in this order:
 
-1. [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) — the north-star **and the single source of truth for current system state** (its "System state" section lists what's live / removed / rebuilding). Where any other doc disagrees about what exists, this one wins.
+0. [AORMS-PLATFORM-NOMENCLATURE](AORMS-PLATFORM-NOMENCLATURE.md) — platform vs **AORMS-Studio** naming
+1. [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) — north-star **and live system state for AORMS-Studio**
 2. [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) + [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) — the active rebuild (the old Estimation OS + Construction Cost spine + Rate Books were torn down 2026-06-28; the CMS is the unified replacement built on the Knowledge Bank foundation).
 3. [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS](PLANS-AND-TIERS.md) — role capabilities + **one standard licence** (storage, AI usage; no tiers or trials).
 4. [HCW-UI-KIT](HCW-UI-KIT.md) — **the canonical, layered design system** (`@hcw/ui-kit`), used everywhere including the landing page. [AORMS-BRANDING-KIT](AORMS-BRANDING-KIT.md) is brand heritage. [MATERIAL-UI-DIRECTION](MATERIAL-UI-DIRECTION.md) is the historical Carbon→MUI migration playbook. `@carbon/react` was removed (2026-07).
@@ -32,7 +40,9 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 
 | Document | Authority |
 | --- | --- |
-| [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) | **Read first** — north-star product architecture |
+| [AORMS-PLATFORM-NOMENCLATURE](AORMS-PLATFORM-NOMENCLATURE.md) | **Naming** — platform vs AORMS-Studio vs EmOI vs ESTI |
+| [AORMS-DEVELOPMENT-SPEC](AORMS-DEVELOPMENT-SPEC.md) | **Platform north-star** — pre-release architecture (landing `/`) |
+| [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) | **Read first for code** — AORMS-Studio system state |
 | [NAVIGATION](NAVIGATION.md) | **Canonical navigation IA** — sidebar and module placement |
 | [PLANS-AND-TIERS](PLANS-AND-TIERS.md) | **Standard licence** — ACTIVE workspace, 5 GB included, storage + AI usage |
 | [AORMS-PRODUCT-AUTOPILOT-ROADMAP](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md) | Product pivot implementation queue |
@@ -44,7 +54,7 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | [STABILITY-CHARTER](STABILITY-CHARTER.md) | Long-term scope discipline |
 | [PRD](PRD.md) | Functional and non-functional requirements |
 | [ARCHITECTURE](ARCHITECTURE.md) | Stack, security model, data ownership |
-| [ROADMAP](ROADMAP.md) | Delivery status, gaps, and acceptance gates |
+| [ROADMAP](ROADMAP.md) | Active delivery pointers; full phase log in [../archive/esti/ROADMAP-HISTORICAL.md](../archive/esti/ROADMAP-HISTORICAL.md) |
 | [VPS-INSTALL](VPS-INSTALL.md) | VPS deployment guide |
 | [ADMIN-GUIDE](ADMIN-GUIDE.md) | Operator guide (deploy, licence, URLs) |
 | [PRODUCTION-OPS](PRODUCTION-OPS.md) | VPS secrets, TLS, backup/restore |
@@ -58,14 +68,16 @@ Firm-specific practice guides: [docs/holagundi/](../holagundi/README.md).
 
 ## Archived documentation
 
-See [`../archive/README.md`](../archive/README.md). Includes retired tier/desktop
-guides (Lite/Community/ESTICAD), Carbon UI audits, and historical market research.
+See [`../archive/`](../archive/README.md). Includes retired tier/desktop
+guides (Lite/Community/ESTICAD), Carbon UI audits, standalone Estimate/ESE specs,
+and historical market research.
 
 ## Precedence
 
 When documents appear inconsistent, use this order:
 
-0. **`UNIFIED-ARCHITECTURE-V4.md` § "System state"** for **what currently exists**
+0. **`AORMS-PLATFORM-NOMENCLATURE.md`** for naming (platform vs AORMS-Studio)
+0b. **`UNIFIED-ARCHITECTURE-V4.md` § "System state"** for **what currently exists in code**
 0b. **`NAVIGATION.md`** for the **sidebar and module placement**
 1. `PRODUCT-VISION.md` for product boundary.
 2. `STABILITY-CHARTER.md` for long-term scope and IA discipline.

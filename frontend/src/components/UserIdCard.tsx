@@ -41,10 +41,10 @@ export function UserIdCard() {
     <>
       <Tooltip title="My profile">
         <IconButton
-          size="small"
           aria-label="My profile"
           color={open ? "primary" : "default"}
           onClick={(e) => setAnchor(e.currentTarget)}
+          sx={{ width: 44, height: 44 }}
         >
           <AccountCircleOutlined />
         </IconButton>

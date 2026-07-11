@@ -1,9 +1,9 @@
----
+﻿---
 title: Revision intelligence — turning client-driven changes into billable data
 date: 2026-06-10
 excerpt: Not all revisions are equal. AORMS classifies every change by category and source, so client scope creep, fee implications, and internal errors stop hiding in the same number.
 tags: Product, Finance
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 Every practice knows the weight of revisions, but almost none can answer the

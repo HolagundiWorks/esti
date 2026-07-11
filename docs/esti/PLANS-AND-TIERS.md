@@ -11,7 +11,7 @@
 
 | What you get | Detail |
 |--------------|--------|
-| **Licence** | `ACTIVE` — full AORMS workspace |
+| **Licence** | `ACTIVE` — full **AORMS-Studio** workspace |
 | **Users** | Unlimited staff logins |
 | **Clients / contractors / consultants / projects** | Unlimited |
 | **Storage** | **5 GB** included; overage billed per GB-month |
@@ -81,4 +81,4 @@ Tier enums in code are **deprecated shims** only.
 - [AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md)
 - [docs/archive/esti/COMMUNITY-EDITION.md](../archive/esti/COMMUNITY-EDITION.md) — archived (retired 2026-07-09)
 - [MONOREPO-AND-SURFACES.md](MONOREPO-AND-SURFACES.md)
-- [ESTIMATION-ARCHITECTURE.md](ESTIMATION-ARCHITECTURE.md)
+- [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) — active cost rebuild (archived: [ESTIMATION-ARCHITECTURE.md](../archive/esti/ESTIMATION-ARCHITECTURE.md))

@@ -4,6 +4,7 @@ import "@fontsource/urbanist/500.css";
 import "@fontsource/urbanist/600.css";
 import "@fontsource/urbanist/700.css";
 import "./styles.scss";
+import "@hcw/ui-kit/portal-chrome.scss";
 import "./landing.scss";
 import "./glass.scss";
 import {

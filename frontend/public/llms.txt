@@ -1,33 +1,51 @@
-# AORMS
+﻿# AORMS
 
-AORMS stands for Architecture Office Resource Management System.
+AORMS stands for Accelerated Operational Resources Management System — a platform for consulting offices that advise in risk management, education, auditing, and AEC.
 
-AORMS is architecture office management software for Indian architecture firms, solo architects, and small practices.
+AORMS is NOT solution delivery software and NOT client project management. It provides an operational framework (how the office runs) and a design framework (how engagements are structured) on one spine, with EmOI (Embedded Operational Intelligence) governing dual-tier AI.
 
-Core capabilities:
+The shipped workspace from holagundiworks/esti is AORMS-Studio: the architecture advisory workspace for Indian architecture and design consultancies.
+
+Platform home: https://aorms.in/
+Architecture workspace (sign in): https://aorms.in/login
+Central wiki: https://aorms.in/wiki
+
+AORMS-Studio capabilities:
 - Fee recovery — what needs invoicing, next payment stage, incoming receipts, due dates, GST reminders
 - Client revision management — MoM → ESTI extracts → client request → architect marks criticality → client approves → then site
 - Meeting minutes on the project record with ESTI-drafted revision requests
 - Drawing register, transmittals and client approval workflows
 - COA fee proposals and GST invoicing with reconciliation
 - Studio Intelligence dashboard and Ask ESTI (BYO API key supported)
-- Official documentation at aorms.in/wiki
-- Cloud browser workspace at aorms.in — one standard licence, unlimited users, 5 GB included storage
+- ESTI is architecture-workspace intelligence only; EmOI is the platform layer
+- Official user documentation at aorms.in/wiki
+- Cloud browser workspace at app.aorms.in — one standard licence, unlimited users, 5 GB included storage
 
 Website:
 https://aorms.in
 
 ## Public Pages
-- [AORMS home](https://aorms.in/)
-- [AORMS Wiki](https://aorms.in/wiki/)
+- [AORMS platform home](https://aorms.in/)
+- [Architecture workspace — sign in](https://aorms.in/login)
+- [AORMS Wiki — central documentation](https://aorms.in/wiki/)
+- [Design system](https://aorms.in/design-system)
 - [Blog](https://aorms.in/blog)
 - [Live demo](https://aorms.in/demo)
 
-## Wiki
+## Wiki — four domains
+- [HCW-UI design system](https://aorms.in/wiki/hcw-ui-kit)
+- [AORMS-Studio workspace](https://aorms.in/wiki/aorms-studio)
+- [AI core — EmOI + ESTI](https://aorms.in/wiki/ai-core)
+- [Management — operational framework](https://aorms.in/wiki/management)
 - [Getting started](https://aorms.in/wiki/getting-started)
 - [How to use AORMS](https://aorms.in/wiki/how-to-use-aorms)
 - [Finance and billing](https://aorms.in/wiki/finance-and-billing)
 - [Account and licence](https://aorms.in/wiki/account-and-licence)
+
+## Canonical docs (repository)
+- Nomenclature: docs/esti/AORMS-PLATFORM-NOMENCLATURE.md
+- Platform spec: docs/esti/AORMS-DEVELOPMENT-SPEC.md
+- Live system state: docs/esti/UNIFIED-ARCHITECTURE-V4.md
 
 ## Note
 Solution and article listings below are regenerated on build from markdown frontmatter (see `frontend/scripts/prerender-blog.mjs`). Source of truth for page blurbs is each landing/blog `.md` file.

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Build-time blog prerender + SEO assets.
  *
  * Runs after `vite build`. Reads the compiled dist/index.html (the SPA shell with
@@ -19,9 +19,9 @@ const SITE = "https://aorms.in";
 const WIKI_BASE = `${SITE}/wiki`;
 const SITE_NAME = "AORMS";
 const HOME_SEO = {
-  title: "AORMS | Practice management software for architects & designers in India",
+  title: "AORMS | Accelerated Operational Resources Management System",
   description:
-    "AORMS is the cloud practice OS for Indian architects and interior designers — fee recovery (what to invoice, next payment stage, incoming, due dates), MoM-led client revisions, GST billing, drawings, studio load and portals. One licence, 5 GB included, unlimited users. Docs: aorms.in/wiki.",
+    "Consolidate consulting workflows into one AI-governed platform — dual-tier AI firewall, custom frameworks, collaboration, audit and compliance. AORMS-Studio workspace shipping for Indian studios.",
   canonical: `${SITE}/`,
 };
 
@@ -268,7 +268,7 @@ const homeArticleGroups = [
 const homeArticleHtml = homeArticleGroups.length
   ? `<section><h2>Practice notes</h2><p>Read after the product has introduced itself: articles grouped by how an architecture office thinks about practice, revisions, approvals and Indian operating context.</p>${homeArticleGroups.map((group) => `<article><h3>${esc(group.heading)}</h3><ul>${group.posts.map((p) => `<li><a href="/blog/${p.slug}">${esc(p.title)}</a></li>`).join("")}</ul></article>`).join("")}</section>`
   : "";
-const homeBody = `<header><nav aria-label="Primary"><a href="/">AORMS</a> <a href="/blog">Blog</a> <a href="/demo">Demo</a> <a href="/#trial">Request workspace</a> <a href="/sitemap.xml">Sitemap</a> <a href="/llms.txt">llms.txt</a></nav></header><main><section><h1>AORMS — Architecture Office Resource Management System</h1><p>AORMS is architecture office management software built for Indian architects, solo practices, and small to mid-sized architecture firms.</p><p>Architecture firms do not fail because they cannot design. They lose time, money and peace because office memory is scattered across WhatsApp messages, spreadsheets, verbal approvals, fee trackers and repeated follow-ups.</p><p>AORMS helps the office remember, track, warn, record and move work forward before chaos becomes cost.</p><p><a href="/demo">Open the working demo</a> <a href="/#trial">Request workspace</a></p></section><section><h2>Morning view</h2><p>When a principal opens AORMS in the morning, the office is already assembled: what moved, what is blocked, what needs approval, what is billable, and who owns the next action.</p></section><section><h2>Work in motion</h2><p>Every enquiry, drawing, revision, approval, site note, bill and client decision stays attached to the project record. Architecture work does not need to break into disconnected fragments.</p></section><section><h2>Core capabilities</h2>${homeFeatureLinks.map(([title, href, text]) => `<article><h3><a href="${href}">${title}</a></h3><p>${text}</p></article>`).join("")}</section><section><h2>Revision intelligence</h2><p>Client-driven changes, internal corrections, technical queries and scope changes can carry fee and time impact. AORMS keeps the reason, approval record and follow-up action visible.</p><p>Meeting minutes feed the same record: architects issue minutes of meeting to the client portal, and ESTI reads them to draft the client's formal revision requests — categorised, editable, and sent only when the client approves. Clients stop avoiding change requests; offices stop absorbing undocumented revisions.</p></section><section><h2>Stakeholder access</h2><p>The owner sees the office. Finance sees billing and GST. The team sees assigned work. Clients see project approvals. Contractors see only tender or bid scope. Visibility is controlled without splitting the record.</p></section>${homeArticleHtml}</main><footer><p>AORMS is built by Holagundi Consulting Works in Hospet, Karnataka, for architecture practices that want their office to run with the same discipline as their drawings.</p><p><a href="mailto:hi@aorms.in">hi@aorms.in</a></p></footer>`;
+const homeBody = `<header><nav aria-label="Primary"><a href="/">AORMS</a> <a href="/login">Architecture workspace</a> <a href="/wiki">Wiki</a> <a href="/blog">Blog</a> <a href="/demo">Demo</a></nav></header><main><section><h1>AORMS — Several operational tools. One operational spine.</h1><p>Accelerated Operational Resources Management System — operational and design frameworks for consulting offices advising in risk management, education, auditing, and AEC. Not solution delivery. Not project management.</p><p>The shipped <strong>AORMS-Studio</strong> workspace for Indian architecture consultancies: <a href="/login">explore the architecture workspace</a> · <a href="https://app.aorms.in">app.aorms.in</a> · <a href="/wiki">user guide</a>.</p><p><a href="/demo">Open the working demo</a> <a href="/login">Sign in</a></p></section>${homeArticleHtml}</main><footer><p>AORMS platform by Human Centric Works, Hospet, Karnataka. Designed and developed by Human Centric Works.</p><p><a href="mailto:hi@aorms.in">hi@aorms.in</a></p></footer>`;
 writeFileSync(
   join(distDir, "index.html"),
   renderPage({
@@ -295,7 +295,7 @@ writePage(
   "blog",
   renderPage({
     title: "Blog",
-    description: "Office intelligence, revisions, approvals, billing, and delivery notes for Indian architecture practices.",
+    description: "Platform notes (frameworks, EmOI) and AORMS-Studio practice operations for Indian architecture consultancies.",
     canonical: `${SITE}/blog`,
     jsonLd: null,
     bodyHtml: listBody,
@@ -434,6 +434,8 @@ for (const p of landing) {
 const today = new Date().toISOString().slice(0, 10);
 const urls = [
   { loc: `${SITE}/`, lastmod: today, changefreq: "weekly", priority: "1.0" },
+  { loc: `${SITE}/login`, lastmod: today, changefreq: "weekly", priority: "0.95" },
+  { loc: `${SITE}/design-system`, lastmod: today, changefreq: "monthly", priority: "0.75" },
   { loc: `${SITE}/blog`, lastmod: posts[0]?.date || today, changefreq: "weekly", priority: "0.8" },
   { loc: `${WIKI_BASE}`, lastmod: today, changefreq: "weekly", priority: "0.9" },
   ...wikiPages.map((p) => ({
@@ -462,33 +464,36 @@ writeFileSync(join(distDir, "sitemap.xml"), sitemap, "utf8");
 // ── llms.txt (AI / LLM crawler index) ─────────────────────────────────────────
 const llms = `# AORMS
 
-AORMS stands for Architecture Office Resource Management System.
+AORMS stands for Accelerated Operational Resources Management System — a platform for consulting-firm operational consolidation with dual-tier AI (external validation + internal RAG firewall).
 
-AORMS is architecture office management software for Indian architecture firms, solo architects, and small practices.
+The shipped workspace from holagundiworks/esti is AORMS-Studio: the architecture advisory workspace for Indian architecture and design consultancies.
 
-Core capabilities:
+Platform development documentation (pre-release architecture v1.0) is published at https://aorms.in/
+
+AORMS-Studio capabilities:
 - Fee recovery — what needs invoicing, next payment stage, incoming receipts, due dates, GST reminders
 - Client revision management — MoM → ESTI extracts → client request → architect marks criticality → client approves → then site
 - Meeting minutes on the project record with ESTI-drafted revision requests
 - Drawing register, transmittals and client approval workflows
 - COA fee proposals and GST invoicing with reconciliation
 - Studio Intelligence dashboard and Ask ESTI (BYO API key supported)
-- Official documentation at aorms.in/wiki
-- Cloud browser workspace at aorms.in — one standard licence, unlimited users, 5 GB included storage
+- Official user documentation at aorms.in/wiki
+- Cloud browser workspace at app.aorms.in — one standard licence, unlimited users, 5 GB included storage
 
 Website:
 ${SITE}
 
 ## Public Pages
-- [AORMS home](${SITE}/)
-- [AORMS Wiki](${WIKI_BASE})
+- [AORMS platform documentation](${SITE}/)
+- [AORMS Wiki (AORMS-Studio)](${WIKI_BASE})
+- [Design system](${SITE}/design-system)
 - [Blog](${SITE}/blog)
 - [Live demo](${SITE}/demo)
 
 ## Solutions
 ${landing.map((p) => `- [${p.title}](${SITE}/${p.slug}): ${p.metaDescription}`).join("\n")}
 
-## Wiki (official product documentation)
+## Wiki (AORMS-Studio user guide)
 ${wikiPages.map((p) => `- [${p.title}](${WIKI_BASE}/${p.slug}): ${p.excerpt}`).join("\n")}
 
 ## Articles

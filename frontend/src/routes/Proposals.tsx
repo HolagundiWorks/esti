@@ -102,6 +102,17 @@ export function Proposals() {
       : 0;
   const below =
     feePaise > 0 && coaMin > 0 && isBelowCoaMinimum(feePaise, coaMin);
+  const createBlockedReason = !projectId
+    ? "Choose a project."
+    : feeBasis === "COA_PERCENT" && !cost
+      ? "Enter cost of works for COA percentage basis."
+      : feeBasis === "PER_SQM" && !(areaNum > 0 && ratePaise > 0)
+        ? "Enter built-up area and rate per sq.m."
+        : feePaise <= 0
+          ? "Enter a fee amount."
+          : below && !override
+            ? "Add an override reason when quoting below the COA minimum."
+            : null;
 
   const columns: GridColDef[] = [
     { field: "ref", headerName: "Ref", flex: 0.8, minWidth: 120 },
@@ -217,6 +228,7 @@ export function Proposals() {
               label="Project"
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
+              helperText={!projectId ? "Required — proposals are always tied to a project." : undefined}
             >
               <MenuItem value="">Select a project…</MenuItem>
               {(projectsQ.data ?? []).map((p) => (
@@ -349,19 +361,18 @@ export function Proposals() {
                 <strong>Could not create</strong> — {create.error.message}
               </Alert>
             )}
+            {createBlockedReason && !create.isPending && (
+              <Typography variant="caption" color="text.secondary">
+                {createBlockedReason}
+              </Typography>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button variant="text" onClick={() => setOpen(false)}>Cancel</Button>
           <Button
             variant="contained"
-            disabled={
-              !projectId ||
-              (feeBasis === "COA_PERCENT" && !cost) ||
-              (feeBasis === "PER_SQM" ? !(areaNum > 0 && ratePaise > 0) : feePaise <= 0) ||
-              (below && !override) ||
-              create.isPending
-            }
+            disabled={Boolean(createBlockedReason) || create.isPending}
             onClick={() =>
               create.mutate({
                 projectId,

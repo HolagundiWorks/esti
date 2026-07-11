@@ -1,9 +1,10 @@
----
+﻿---
 title: Finance and billing
 slug: finance-and-billing
 excerpt: COA fee proposals, GST invoices, reconciliation, filing abstracts, and project expenses.
 order: 4
 section: Modules
+domain: management
 updated: 2026-07-09
 ---
 

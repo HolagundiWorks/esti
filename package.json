@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "AORMS — Architecture Office Resource Management System, with ESTI (Embedded Studio Intelligence), by Holagundi Consulting Works",
+  "description": "AORMS — Accelerated Operational Resources Management System (aorms-architecture workspace), with ESTI (Embedded Studio Intelligence), by Holagundi Consulting Works",
   "packageManager": "pnpm@9.7.0",
   "engines": {
     "node": ">=20"

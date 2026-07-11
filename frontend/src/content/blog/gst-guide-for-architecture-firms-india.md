@@ -1,9 +1,9 @@
----
+﻿---
 title: GST for architecture firms in India: a practical guide
 date: 2026-07-04
 excerpt: SAC codes, 18% rate, place of supply, TDS net receivable, ITC, and how clean invoicing at every COA stage supports fee recovery — a plain-English guide for Indian practices.
 tags: Finance, Compliance, India
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 Most architects did not train to be tax accountants, yet GST touches almost every

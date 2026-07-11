@@ -3,7 +3,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -19,6 +18,7 @@ import {
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import MoreVert from "@mui/icons-material/MoreVert";
 import { licensingPlanLabel } from "@esti/contracts";
+import { StatusDot } from "../../components/StatusTag.js";
 import { trpc } from "../lib/trpc";
 
 type Licenses = Awaited<ReturnType<typeof trpc.admin.licenses.list.query>>;
@@ -33,10 +33,6 @@ const STATUS_TAG: Record<string, string> = {
   REVOKED: "red",
   EXPIRED: "gray",
 };
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 const fmtDate = (d: Date | string | null) => (d ? new Date(d).toLocaleDateString() : "—");
 const toIso = (yyyymmdd: string) =>
   yyyymmdd ? new Date(`${yyyymmdd}T00:00:00.000Z`).toISOString() : null;
@@ -150,7 +146,7 @@ export default function LicensesTab() {
       flex: 0.8,
       minWidth: 110,
       renderCell: (p) => (
-        <Chip size="small" label={p.row.status} sx={chipSx(STATUS_TAG[p.row.status] ?? "gray")} />
+        <StatusDot color={STATUS_TAG[p.row.status] ?? "gray"} label={p.row.status} />
       ),
     },
     {
@@ -188,7 +184,7 @@ export default function LicensesTab() {
       flex: 0.8,
       minWidth: 110,
       renderCell: (p) => (
-        <Chip size="small" label={p.row.status} sx={chipSx(p.row.status === "ACTIVE" ? "green" : "red")} />
+        <StatusDot color={p.row.status === "ACTIVE" ? "green" : "red"} label={p.row.status} />
       ),
     },
     {

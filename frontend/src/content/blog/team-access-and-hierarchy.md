@@ -1,9 +1,9 @@
----
+﻿---
 title: Smart access — team hierarchy and who can see what
 date: 2026-05-28
 excerpt: Roles, capabilities, staff levels, teams, and scoped portals. Everyone sees exactly what their work needs — and nothing it doesn't.
 tags: Team, Security
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 A practice is not flat. A principal, a project lead, a junior architect, an

@@ -1,5 +1,5 @@
 import ArrowForward from "@mui/icons-material/ArrowForward";
-import { Alert, AlertTitle, Button, Chip, Stack, TextField } from "@mui/material";
+import { Alert, AlertTitle, Box, Button, Stack, TextField } from "@mui/material";
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { AuthBrandBlock } from "../components/AormsLogo.js";
@@ -45,14 +45,22 @@ export function RecoverWithBackupCode() {
               <Stack spacing={0.5}>
                 <span className="esti-label esti-label--secondary">New backup code</span>
                 <Stack direction="row">
-                  <Chip
-                    label={newCode}
-                    size="medium"
+                  <Box
+                    component="code"
                     sx={{
-                      backgroundColor: "var(--cds-tag-background-cool-gray)",
-                      color: "var(--cds-tag-color-cool-gray)",
+                      fontFamily: "monospace",
+                      fontSize: "1rem",
+                      letterSpacing: "0.08em",
+                      px: 1.5,
+                      py: 1,
+                      border: 1,
+                      borderColor: "divider",
+                      bgcolor: "background.default",
+                      color: "text.primary",
                     }}
-                  />
+                  >
+                    {newCode}
+                  </Box>
                 </Stack>
               </Stack>
               <Button

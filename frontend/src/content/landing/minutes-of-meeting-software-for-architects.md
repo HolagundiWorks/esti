@@ -1,4 +1,4 @@
----
+﻿---
 title: Minutes of Meeting, on the Project Record
 metaTitle: MoM to Revision — Minutes, ESTI Extraction & Approval Trail for Architects
 metaDescription: Minutes of meeting software for architects: record and issue MoM on the project, ESTI extracts revision requests, the client submits them, the architect marks criticality and implications, the client approves — then site changes proceed.

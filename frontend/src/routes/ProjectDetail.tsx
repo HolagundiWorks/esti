@@ -1,4 +1,4 @@
-import { Box, Skeleton, Stack, Tab, Tabs, Typography } from "@mui/material";
+import { Box, Skeleton, Stack, Typography } from "@mui/material";
 import {
   PROJECT_STATUS_LABEL,
   PROJECT_STATUS_TAG,
@@ -9,12 +9,14 @@ import {
 import { RailLayout } from "../components/RailLayout.js";
 import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { type ReactNode, useEffect, useMemo } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ProjectMeasurementPanel } from "../components/measurement/ProjectMeasurementPanel.js";
 import { DrawingsApprovalsPanel } from "../components/project/DrawingsApprovalsPanel.js";
 import { DocumentsSpecsPanel } from "../components/project/DocumentsSpecsPanel.js";
 import { ProjectBriefPanel } from "../components/project/ProjectBriefPanel.js";
 import { ProjectDeliveryPanel } from "../components/project/ProjectDeliveryPanel.js";
+import { ProjectInvoicesPanel } from "../components/project/ProjectInvoicesPanel.js";
+import { ProjectRailNav } from "../components/project/ProjectRailNav.js";
 import { ProjectSettings } from "../components/ProjectSettings.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
 import { ProjectLessons } from "../components/ProjectLessons.js";
@@ -39,12 +41,14 @@ const LEGACY_TAB: Record<string, string> = {
   "site-visits": "delivery",
   communications: "delivery",
   minutes: "delivery",
+  approvals: "drawings",
 };
 
 export function ProjectDetail() {
   const { id = "" } = useParams();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { canHr } = useCapabilities();
+  const { canHr, canInvoice } = useCapabilities();
   const project = trpc.projectOffice.byId.useQuery({ id }, { enabled: !!id });
   const settingsQ = trpc.settings.get.useQuery();
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
@@ -53,8 +57,13 @@ export function ProjectDetail() {
     { enabled: !!id },
   );
 
+  const rawTab = searchParams.get("tab") ?? "overview";
+  const approvalId = searchParams.get("approvalId");
+  const invoiceId = searchParams.get("invoiceId");
   const showTeam = hrEnabled && canHr;
   const isResidential = /residential/i.test(project.data?.projectType ?? "");
+  const drawingsInitialSub =
+    rawTab === "approvals" || approvalId ? ("approvals" as const) : ("drawings" as const);
 
   const projectGroups = useMemo((): ProjectGroup[] => {
     // Setup — Overview · Brief (nested) · Settings. Hick/Miller: fewer primaries.
@@ -78,7 +87,13 @@ export function ProjectDetail() {
       {
         slug: "drawings",
         label: "Drawings & approvals",
-        panel: <DrawingsApprovalsPanel projectId={id} />,
+        panel: (
+          <DrawingsApprovalsPanel
+            projectId={id}
+            initialSubTab={drawingsInitialSub}
+            focusApprovalId={approvalId}
+          />
+        ),
       },
       {
         slug: "documents",
@@ -86,6 +101,19 @@ export function ProjectDetail() {
         panel: <DocumentsSpecsPanel projectId={id} />,
       },
     ];
+    if (canInvoice) {
+      consultancyTabs.push({
+        slug: "invoices",
+        label: "Invoices",
+        panel: (
+          <ProjectInvoicesPanel
+            projectId={id}
+            highlightInvoiceId={invoiceId}
+            canManage={canInvoice}
+          />
+        ),
+      });
+    }
     if (showTeam) {
       consultancyTabs.push({ slug: "team", label: "Team", panel: <ProjectTeam projectId={id} /> });
     }
@@ -102,30 +130,51 @@ export function ProjectDetail() {
       { slug: "setup", label: "Setup", tabs: setupTabs },
       { slug: "consultancy", label: "Project workspace", tabs: consultancyTabs },
     ];
-  }, [id, showTeam, isResidential]);
+  }, [id, showTeam, isResidential, canInvoice, approvalId, invoiceId, drawingsInitialSub]);
 
   const projectTabs = projectGroups.flatMap((g) => g.tabs);
 
-  const rawTab = searchParams.get("tab") ?? "overview";
   const tabSlug = LEGACY_TAB[rawTab] ?? rawTab;
   const tabIndex = Math.max(
     0,
     projectTabs.findIndex((t) => t.slug === tabSlug),
   );
   const activeTab = projectTabs[tabIndex]?.slug ?? "overview";
-  const groupIndex = Math.max(
-    0,
-    projectGroups.findIndex((g) => g.tabs.some((t) => t.slug === activeTab)),
-  );
-  const activeGroup = projectGroups[groupIndex] ?? projectGroups[0]!;
-  const innerIndex = Math.max(0, activeGroup.tabs.findIndex((t) => t.slug === activeTab));
+  const activeGroup =
+    projectGroups.find((g) => g.tabs.some((t) => t.slug === activeTab)) ?? projectGroups[0]!;
   const activeLabel = projectTabs.find((t) => t.slug === activeTab)?.label ?? activeTab;
+  const activePanel = projectTabs.find((t) => t.slug === activeTab)?.panel ?? null;
+
+  const selectTab = (slug: string) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("tab", slug);
+        return next;
+      },
+      { replace: true },
+    );
+  };
 
   useEffect(() => {
-    if (tabSlug !== activeTab || rawTab !== activeTab) {
-      setSearchParams({ tab: activeTab }, { replace: true });
+    if (rawTab === "tasks" && id) {
+      navigate(`/tasks?projectId=${id}`, { replace: true });
+      return;
     }
-  }, [tabSlug, activeTab, rawTab, setSearchParams]);
+    const shouldNormalizeTab =
+      tabSlug !== activeTab ||
+      (rawTab !== activeTab && rawTab !== "approvals" && rawTab !== "invoices");
+    if (shouldNormalizeTab) {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set("tab", activeTab);
+          return next;
+        },
+        { replace: true },
+      );
+    }
+  }, [tabSlug, activeTab, rawTab, setSearchParams, id, navigate]);
 
   if (project.isLoading) {
     return (
@@ -169,6 +218,17 @@ export function ProjectDetail() {
     <RailLayout
       title={`${p.ref} — ${p.title}`}
       description={`${workTypeLabel} · ${p.projectType} · ${p.jurisdiction}`}
+      tabs={
+        <ProjectRailNav
+          groups={projectGroups.map((g) => ({
+            slug: g.slug,
+            label: g.label,
+            tabs: g.tabs.map((t) => ({ slug: t.slug, label: t.label })),
+          }))}
+          activeSlug={activeTab}
+          onSelect={selectTab}
+        />
+      }
       aside={
         <Stack spacing={1.5}>
           <StatusTag
@@ -224,53 +284,7 @@ export function ProjectDetail() {
         ]}
       />
 
-      <Tabs
-        value={groupIndex}
-        onChange={(_e, selectedIndex: number) =>
-          setSearchParams(
-            { tab: projectGroups[selectedIndex]?.tabs[0]?.slug ?? "overview" },
-            { replace: true },
-          )
-        }
-        variant="scrollable"
-        scrollButtons="auto"
-        aria-label="Project sections"
-      >
-        {projectGroups.map((group) => (
-          <Tab key={group.slug} label={group.label} />
-        ))}
-      </Tabs>
-      {projectGroups.map(
-        (group, gi) =>
-          gi === groupIndex && (
-            <Box key={group.slug}>
-              <Tabs
-                value={innerIndex}
-                onChange={(_e, selectedIndex: number) =>
-                  setSearchParams(
-                    { tab: group.tabs[selectedIndex]?.slug ?? group.tabs[0]?.slug ?? "overview" },
-                    { replace: true },
-                  )
-                }
-                variant="scrollable"
-                scrollButtons="auto"
-                aria-label={`${group.label} project sections`}
-              >
-                {group.tabs.map((t) => (
-                  <Tab key={t.slug} label={t.label} />
-                ))}
-              </Tabs>
-              {group.tabs.map(
-                (t, ti) =>
-                  ti === innerIndex && (
-                    <Box key={t.slug} sx={{ pt: 2 }}>
-                      {t.panel}
-                    </Box>
-                  ),
-              )}
-            </Box>
-          ),
-      )}
+      <Box sx={{ pt: 0.5 }}>{activePanel}</Box>
     </RailLayout>
   );
 }

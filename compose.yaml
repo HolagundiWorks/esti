@@ -144,6 +144,8 @@ services:
       - ./frontend/src:/app/esti/frontend/src
       - ./frontend/public:/app/esti/frontend/public
       - ./packages/contracts/src:/app/esti/packages/contracts/src
+      - ./packages/hcw-ui-kit/package.json:/app/esti/packages/hcw-ui-kit/package.json
+      - ./packages/hcw-ui-kit/src:/app/esti/packages/hcw-ui-kit/src
       - ./backend/src:/app/esti/backend/src # type-only: SPA imports AppRouter
       - ./vendor:/app/esti/vendor
     ports: ["5173:5173"]

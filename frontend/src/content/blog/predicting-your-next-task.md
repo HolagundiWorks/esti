@@ -1,9 +1,9 @@
----
+﻿---
 title: Predicting your next task — the priority and reasoning engine
 date: 2026-06-16
 excerpt: How AORMS ranks every open task into one recommended action, and how it still reasons usefully when the dependency data is incomplete.
 tags: AI, Product
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 "What should I do next?" is the most expensive question an owner asks all day —

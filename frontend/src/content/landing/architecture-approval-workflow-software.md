@@ -1,4 +1,4 @@
----
+﻿---
 title: Approvals That Never Get Stuck
 metaTitle: Architecture Approval Workflow Software — Internal Sign-offs & Portal Approvals
 metaDescription: Architecture approval workflow software — internal sign-offs, client portal decisions, and the revision-approval chain where clients approve the architect's criticality assessment before site changes proceed.

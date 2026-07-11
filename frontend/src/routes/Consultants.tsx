@@ -136,6 +136,7 @@ export function Consultants() {
             <TextField
               size="small"
               placeholder="Search consultants…"
+              slotProps={{ htmlInput: { "aria-label": "Search consultants" } }}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               fullWidth
@@ -268,6 +269,7 @@ export function Consultants() {
               id="cl-password"
               label="Temporary password (min 8 chars)"
               type="password"
+              autoComplete="new-password"
               value={loginForm.password}
               onChange={(e) =>
                 setLoginForm((f) => ({ ...f, password: e.target.value }))

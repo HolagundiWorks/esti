@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
-import { Chip, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
+import { Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
+import { StatusDot } from "../../components/StatusTag.js";
 import { trpc } from "../lib/trpc";
 
 type Products = Awaited<ReturnType<typeof trpc.admin.products.list.query>>;
 
 const fmt = (n: number | null) => (n === null ? "∞" : String(n));
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 export default function ProductsTab() {
   const [products, setProducts] = useState<Products>([]);
@@ -23,7 +20,7 @@ export default function ProductsTab() {
         <Stack key={p.id} spacing={1}>
           <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
             <Typography variant="h6" sx={{ flex: 1 }}>{p.name}</Typography>
-            <Chip size="small" label={p.kind} sx={chipSx(p.kind === "API" ? "purple" : "blue")} />
+            <StatusDot color={p.kind === "API" ? "purple" : "blue"} label={p.kind} />
           </Stack>
           <Table size="small">
             <TableHead>

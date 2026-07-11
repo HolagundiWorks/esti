@@ -48,6 +48,10 @@ export function PortalShell({
   });
 
   return (
+    <>
+    <a href="#esti-main" className="esti-skip-link">
+      Skip to main content
+    </a>
     <GlassRail
       railAriaLabel="Account navigation"
       rail={
@@ -72,7 +76,7 @@ export function PortalShell({
                   component={RouterLink}
                   to={href}
                   selected={selected}
-                  sx={{ borderRadius: 1, mx: 0.5 }}
+                  sx={{ mx: 0.5 }}
                 >
                   <ListItemText
                     primary={item.label}
@@ -93,5 +97,6 @@ export function PortalShell({
     >
       {children}
     </GlassRail>
+    </>
   );
 }

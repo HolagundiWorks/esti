@@ -1,9 +1,9 @@
----
+﻿---
 title: Fee recovery for architecture practices: five places your billing goes missing
 date: 2026-07-04
 excerpt: Earned fees slip away before an invoice is raised — staged billing gaps, unlogged client changes, approval delays, and more. Five leakage points in a design practice, and how a live record closes each.
 tags: Finance, Practice
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 Fee recovery is the discipline of turning delivered work into a raised invoice — and for most

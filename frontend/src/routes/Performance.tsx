@@ -228,6 +228,13 @@ export function Performance() {
     },
   });
 
+  const grantBlockedReason =
+    !grantForm.reason.trim()
+      ? "Enter a reason for the reward."
+      : !grantForm.points || Number.parseInt(grantForm.points, 10) <= 0
+        ? "Enter a positive point value."
+        : null;
+
   const teamSize = scores.length;
   const avgScore =
     teamSize > 0
@@ -373,14 +380,20 @@ export function Performance() {
               rows={3}
               value={grantForm.reason}
               onChange={(e) => setGrantForm((f) => ({ ...f, reason: e.target.value }))}
+              helperText={!grantForm.reason.trim() ? "Required — visible in the reward audit log." : undefined}
             />
+            {grantBlockedReason && !grant.isPending && (
+              <Typography variant="caption" color="text.secondary">
+                {grantBlockedReason}
+              </Typography>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button variant="text" onClick={() => setGrantTarget(null)}>Cancel</Button>
           <Button
             variant="contained"
-            disabled={!grantForm.reason || !grantForm.points || grant.isPending}
+            disabled={Boolean(grantBlockedReason) || grant.isPending}
             onClick={() => {
               if (!grantTarget) return;
               grant.mutate({

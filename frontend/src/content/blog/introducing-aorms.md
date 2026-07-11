@@ -1,11 +1,17 @@
----
+﻿---
 title: Introducing AORMS — fee recovery and revision control for the Indian architecture practice
 date: 2026-07-10
-excerpt: AORMS connects what a practice has delivered with what it has billed, and gives every client-driven revision a dated, approved record before site or drawings move.
+excerpt: AORMS-Studio connects what a practice has delivered with what it has billed, and gives every client-driven revision a dated, approved record before site or drawings move — the first workspace on the AORMS platform.
 tags: Product, Vision
-author: Holagundi Consulting Works
+author: Human Centric Works
 coverImage: /esti-logo.png
 ---
+
+**AORMS** is the platform — operational and design frameworks for consulting offices
+that advise in risk, education, auditing, and AEC, governed by **EmOI** (Embedded
+Operational Intelligence). **AORMS-Studio** is the first live workspace: built
+for Indian architecture **consultancies** (not construction project management). This
+post is about what that workspace does best.
 
 Most architecture practices do not fail on design. They fail on the quiet
 operational drift between projects — a fee stage completed but never invoiced, a

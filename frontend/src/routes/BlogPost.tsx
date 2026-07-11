@@ -1,8 +1,6 @@
-import { Chip } from "@mui/material";
 import { marked } from "marked";
 import { useEffect, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
-import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 import { formatPostDate, getAdjacentPosts, getPost } from "../lib/blog.js";
 import { applyBlogPostSeo } from "../lib/blog-seo.js";
@@ -27,48 +25,49 @@ export function BlogPost() {
   }, [post]);
 
   return (
-      <MarketingShell>
-      <div className="esti-blog">
-        <Link to="/blog" className="esti-blog__back">← All posts</Link>
+    <MarketingShell contours>
+      <div className="lp2-ds">
+        <p className="lp2-blog-back lp2-reveal">
+          <Link to="/blog">← All posts</Link>
+        </p>
 
         {!post ? (
-          <div className="esti-blog__empty">
-            <h1>Post not found</h1>
-            <p>
+          <header className="lp2-section-head lp2-reveal">
+            <h1 className="lp2-section-head__title">Post not found</h1>
+            <p className="lp2-section-head__body">
               This article may have moved. <Link to="/blog">Browse all posts</Link>.
             </p>
-          </div>
+          </header>
         ) : (
-          <article className="esti-blog-article">
-            <div className="esti-blog-card__meta">
-              <span>{formatPostDate(post.date)}</span>
-              <span aria-hidden>·</span>
-              <span>{post.readingMinutes} min read</span>
-            </div>
-            <h1>{post.title}</h1>
-            {post.author && <p className="esti-blog-article__byline">{post.author}</p>}
-            {post.tags.length > 0 && (
-              <div className="esti-blog-card__tags">
-                {post.tags.map((t) => (
-                  <Chip
-                    key={t}
-                    size="small"
-                    label={t}
-                    sx={{
-                      backgroundColor: "var(--cds-tag-background-cool-gray)",
-                      color: "var(--cds-tag-color-cool-gray)",
-                    }}
-                  />
-                ))}
+          <>
+            <header className="lp2-section-head lp2-reveal" id="top">
+              <div className="lp2-blog-row__meta">
+                <span>{formatPostDate(post.date)}</span>
+                <span aria-hidden>·</span>
+                <span>{post.readingMinutes} min read</span>
               </div>
-            )}
-            {/* Content is authored by the team in-repo (trusted), not user input. */}
-            <div className="esti-blog-article__body" dangerouslySetInnerHTML={{ __html: html }} />
+              <h1 className="lp2-section-head__title">{post.title}</h1>
+              {post.author ? <p className="lp2-section-head__body">{post.author}</p> : null}
+              {post.tags.length > 0 && (
+                <ul className="lp2-blog-row__tags" aria-label="Tags">
+                  {post.tags.map((t) => (
+                    <li key={t}>{t}</li>
+                  ))}
+                </ul>
+              )}
+            </header>
+
+            <article className="lp2-seo-article lp2-reveal">
+              <div
+                className="lp2-seo-article__body lp2-prose"
+                dangerouslySetInnerHTML={{ __html: html }}
+              />
+            </article>
 
             {relatedSolutions.length > 0 && (
-              <nav className="esti-blog-roadmap" aria-label="Related solutions">
-                <h2>Related solutions</h2>
-                <ul>
+              <nav className="lp2-ds-section lp2-seo-related lp2-reveal" aria-label="Related solutions">
+                <h2 className="lp2-seo-related__title">Related solutions</h2>
+                <ul className="lp2-seo-related__list">
                   {relatedSolutions.map((s) => (
                     <li key={s.slug}>
                       <Link to={`/${s.slug}`}>
@@ -81,25 +80,28 @@ export function BlogPost() {
             )}
 
             {(older || newer) && (
-              <nav className="esti-blog-pager" aria-label="More posts">
+              <nav className="lp2-blog-pager lp2-reveal" aria-label="More posts">
                 {older ? (
-                  <Link to={`/blog/${older.slug}`} className="esti-blog-pager__link esti-blog-pager__link--prev">
-                    <span className="esti-blog-pager__dir">← Previous</span>
-                    <span className="esti-blog-pager__title">{older.title}</span>
+                  <Link to={`/blog/${older.slug}`} className="lp2-blog-pager__link">
+                    <span className="lp2-blog-pager__dir">← Previous</span>
+                    <span className="lp2-blog-pager__title">{older.title}</span>
                   </Link>
-                ) : <span />}
+                ) : (
+                  <span />
+                )}
                 {newer ? (
-                  <Link to={`/blog/${newer.slug}`} className="esti-blog-pager__link esti-blog-pager__link--next">
-                    <span className="esti-blog-pager__dir">Next →</span>
-                    <span className="esti-blog-pager__title">{newer.title}</span>
+                  <Link to={`/blog/${newer.slug}`} className="lp2-blog-pager__link lp2-blog-pager__link--next">
+                    <span className="lp2-blog-pager__dir">Next →</span>
+                    <span className="lp2-blog-pager__title">{newer.title}</span>
                   </Link>
-                ) : <span />}
+                ) : (
+                  <span />
+                )}
               </nav>
             )}
-          </article>
+          </>
         )}
       </div>
-      <MarketingFooter />
-      </MarketingShell>
+    </MarketingShell>
   );
 }

@@ -19,8 +19,11 @@ import {
 } from "@mui/material";
 import { AI_DRAFT_KIND_LABEL, AiDraftKind, can } from "@esti/contracts";
 import { useState } from "react";
+import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
+import { useScreenActions, type DockAction } from "@hcw/ui-kit";
 import { EstiAiExplainLabel } from "./AiCarbon.js";
-import { PageHeader } from "./PageHeader.js";
+import { PageBreadcrumb } from "./PageBreadcrumb.js";
+import { RailLayout } from "./RailLayout.js";
 import { trpc } from "../lib/trpc.js";
 import { useAuth } from "../lib/auth.js";
 
@@ -57,6 +60,41 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
   const updateRun = trpc.ai.updateRun.useMutation({
     onSuccess: () => utils.ai.listRuns.invalidate(),
   });
+
+  useScreenActions(
+    compact || !draftsEnabled
+      ? []
+      : ([
+          {
+            id: "ai-generate-draft",
+            zone: "right",
+            tone: "primary",
+            label: generate.isPending ? "Generating…" : "Generate draft",
+            icon: <AutoAwesomeOutlined />,
+            disabled: generate.isPending,
+            onClick: () =>
+              generate.mutate({
+                kind,
+                projectId,
+                prompt: prompt || undefined,
+              }),
+          },
+          ...(output && runId
+            ? ([
+                {
+                  id: "ai-save-draft",
+                  zone: "right",
+                  label: updateRun.isPending ? "Saving…" : "Save edits",
+                  disabled: updateRun.isPending,
+                  onClick: () => {
+                    if (runId) updateRun.mutate({ id: runId, output });
+                  },
+                },
+              ] satisfies DockAction[])
+            : []),
+        ] satisfies DockAction[]),
+    [compact, draftsEnabled, generate.isPending, kind, projectId, prompt, output, runId, updateRun.isPending],
+  );
 
   if (!canWrite) return null;
   if (user?.isDemo) {
@@ -216,25 +254,33 @@ export function AiStudioPage() {
 
   if (user?.isDemo) {
     return (
-      <>
-        <PageHeader title="AI Studio" description="Permission-filtered drafts with source tracking and human approval" />
+      <RailLayout
+        title="AI Studio"
+        description="Permission-filtered drafts with source tracking and human approval"
+      >
+        <PageBreadcrumb items={[{ label: "Office" }, { label: "AI Studio" }]} />
         <Alert severity="info">
           <AlertTitle>Document drafts unavailable on demo</AlertTitle>
           Press Alt+A anywhere in AORMS to open ESTI — it reads live data and suggests next steps (no uploads or auto-actions).
         </Alert>
-      </>
+      </RailLayout>
     );
   }
 
   return (
-    <>
-      <PageHeader title="AI Studio" description="Permission-filtered drafts with source tracking and human approval" />
-      {!settingsQ.data?.enabled && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          <AlertTitle>AI Studio is off</AlertTitle>
-          Enable under Company settings. Uses Ollama on your server — no API keys.
-        </Alert>
-      )}
+    <RailLayout
+      title="AI Studio"
+      description="Permission-filtered drafts with source tracking and human approval"
+      aside={
+        !settingsQ.data?.enabled ? (
+          <Alert severity="warning">
+            <AlertTitle>AI Studio is off</AlertTitle>
+            Enable under Company settings. Uses Ollama on your server — no API keys.
+          </Alert>
+        ) : undefined
+      }
+    >
+      <PageBreadcrumb items={[{ label: "Office" }, { label: "AI Studio" }]} />
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, lg: 6 }}>
           <AiDraftPanel defaultKind="SUMMARY" />
@@ -242,7 +288,7 @@ export function AiStudioPage() {
         <Grid size={{ xs: 12, lg: 6 }}>
           <TableContainer sx={{ p: 2 }}>
             <Stack spacing={0.5} sx={{ mb: 1 }}>
-              <Typography variant="h6" component="h4">Recent AI runs</Typography>
+              <Typography variant="h6" component="h2">Recent AI runs</Typography>
               <Typography variant="body2">Provenance: user, model, approval state</Typography>
             </Stack>
             <Table size="small">
@@ -270,6 +316,6 @@ export function AiStudioPage() {
           </TableContainer>
         </Grid>
       </Grid>
-    </>
+    </RailLayout>
   );
 }

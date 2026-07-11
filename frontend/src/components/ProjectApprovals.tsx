@@ -23,7 +23,7 @@ import {
   type ApprovalEntityTypeCode,
   ApprovalStatus,
 } from "@esti/contracts";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { StatusDot } from "./StatusTag.js";
 
@@ -39,7 +39,13 @@ const STATUS_TAG: Record<
   SUPERSEDED: "cool-gray",
 };
 
-export function ProjectApprovals({ projectId }: { projectId: string }) {
+export function ProjectApprovals({
+  projectId,
+  focusApprovalId,
+}: {
+  projectId: string;
+  focusApprovalId?: string | null;
+}) {
   const utils = trpc.useUtils();
   const listQ = trpc.approvals.listByProject.useQuery(
     { projectId },
@@ -66,6 +72,12 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
       setSentDate("");
     },
   });
+
+  useEffect(() => {
+    if (!focusApprovalId) return;
+    const row = document.getElementById(`approval-row-${focusApprovalId}`);
+    row?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [focusApprovalId, listQ.data]);
 
   return (
     <>
@@ -106,7 +118,11 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
             </TableHead>
             <TableBody>
               {(listQ.data?.rows ?? []).map((a) => (
-                <TableRow key={a.id}>
+                <TableRow
+                  key={a.id}
+                  id={`approval-row-${a.id}`}
+                  className={a.id === focusApprovalId ? "esti-row-highlight" : undefined}
+                >
                   <TableCell>{a.title}</TableCell>
                   <TableCell>
                     {APPROVAL_ENTITY_TYPES[

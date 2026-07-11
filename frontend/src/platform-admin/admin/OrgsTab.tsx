@@ -3,7 +3,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -14,6 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import { StatusDot } from "../../components/StatusTag.js";
 import { trpc } from "../lib/trpc";
 
 type Orgs = Awaited<ReturnType<typeof trpc.admin.orgs.list.query>>;
@@ -24,10 +24,6 @@ const STATUS_TAG: Record<string, string> = {
   INVITED: "teal",
   LEFT: "gray",
 };
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 export default function OrgsTab() {
   const [orgs, setOrgs] = useState<Orgs>([]);
@@ -223,7 +219,7 @@ export default function OrgsTab() {
       flex: 0.8,
       minWidth: 110,
       renderCell: (p) => (
-        <Chip size="small" label={p.row.status} sx={chipSx(STATUS_TAG[p.row.status] ?? "gray")} />
+        <StatusDot color={STATUS_TAG[p.row.status] ?? "gray"} label={p.row.status} />
       ),
     },
     {

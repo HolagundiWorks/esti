@@ -56,7 +56,6 @@ export function GlassRail({
           p: 2,
           borderRight: { md: `1px solid ${colors.borderSubtle}` },
           borderBottom: { xs: `1px solid ${colors.borderSubtle}`, md: "none" },
-          ...(glass === "clear" ? { borderRadius: 0 } : null),
         }}
       >
         {rail}

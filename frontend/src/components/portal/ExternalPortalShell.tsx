@@ -21,7 +21,11 @@ export function ExternalPortalShell({
   children: ReactNode;
 }) {
   return (
-    <GlassRail
+    <>
+      <a href="#esti-main" className="esti-skip-link">
+        Skip to main content
+      </a>
+      <GlassRail
       railAriaLabel={`${portalLabel} navigation`}
       rail={
         <Stack spacing={2} sx={{ height: "100%", minHeight: "12rem" }}>
@@ -53,5 +57,6 @@ export function ExternalPortalShell({
     >
       {children}
     </GlassRail>
+    </>
   );
 }

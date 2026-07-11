@@ -143,7 +143,7 @@ const setbackCols: GridColDef[] = [
 ];
 
 /**
- * Municipal zonal-regulations calculator — ported from `zonal compliance/`
+ * Municipal zonal-regulations calculator — ported from `docs/reference/zonal-compliance/`
  * (Hosapete live; other Karnataka / Pune authorities catalogued for reference).
  */
 export function ZonalComplianceCalculator() {
@@ -213,7 +213,7 @@ export function ZonalComplianceCalculator() {
               <Alert severity={cityMeta.calculatorReady ? "info" : "warning"}>
                 <strong>{cityMeta.source}</strong>
                 {!cityMeta.calculatorReady && (
-                  <> — reference data in <code>zonal compliance/Cities/{cityMeta.referenceFile}</code></>
+                  <> — reference data in <code>docs/reference/zonal-compliance/Cities/{cityMeta.referenceFile}</code></>
                 )}
               </Alert>
             )}

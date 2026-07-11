@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ASK_ESTI_EVENT } from "../AiAgentCommand.js";
 import { AlertsBell } from "../AlertsBell.js";
 import { FloatingCalculator } from "../FloatingCalculator.js";
@@ -69,6 +69,7 @@ export function AppFooterBar({
   onSignOut: () => void;
 }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [showCalc, setShowCalc] = useState(false);
   const [showWellness, setShowWellness] = useState(false);
   const [wellnessSection, setWellnessSection] = useState<WellnessSection>("breathe");
@@ -186,17 +187,35 @@ export function AppFooterBar({
         sx={{ alignItems: "center" }}
       >
         <Tooltip title="Studio Intelligence">
-          <IconButton onClick={() => navigate("/")} aria-label="Studio Intelligence" color="primary" sx={chromeIconSx}>
+          <IconButton
+            onClick={() => navigate("/")}
+            aria-label="Studio Intelligence"
+            aria-current={pathname === "/" ? "page" : undefined}
+            color={pathname === "/" ? "primary" : "default"}
+            sx={chromeIconSx}
+          >
             <AutoAwesome />
           </IconButton>
         </Tooltip>
         <Tooltip title="Tasks">
-          <IconButton onClick={() => navigate("/tasks")} aria-label="Tasks" sx={chromeIconSx}>
+          <IconButton
+            onClick={() => navigate("/tasks")}
+            aria-label="Tasks"
+            aria-current={pathname.startsWith("/tasks") ? "page" : undefined}
+            color={pathname.startsWith("/tasks") ? "primary" : "default"}
+            sx={chromeIconSx}
+          >
             <TaskAltOutlined />
           </IconButton>
         </Tooltip>
         <Tooltip title="Search (Ctrl+K)">
-          <IconButton onClick={() => navigate("/search")} aria-label="Search" sx={chromeIconSx}>
+          <IconButton
+            onClick={() => navigate("/search")}
+            aria-label="Search"
+            aria-current={pathname.startsWith("/search") ? "page" : undefined}
+            color={pathname.startsWith("/search") ? "primary" : "default"}
+            sx={chromeIconSx}
+          >
             <SearchOutlined />
           </IconButton>
         </Tooltip>

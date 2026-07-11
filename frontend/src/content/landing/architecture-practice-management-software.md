@@ -1,7 +1,7 @@
----
+﻿---
 title: Keep The Practice Coherent
-metaTitle: Architecture Practice Management Software
-metaDescription: Architecture practice management software that holds standards, knowledge, people and clients together as a practice grows. India-native, cloud-hosted.
+metaTitle: Architecture Practice Operations Software — Consultancy Record India
+metaDescription: Architecture practice operations software that holds standards, knowledge, people and clients together as a consultancy grows. India-native advisory workspace — not generic project management.
 keyword: architecture practice management software
 category: solution
 updated: 2026-06-24

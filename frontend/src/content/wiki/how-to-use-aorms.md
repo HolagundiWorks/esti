@@ -1,9 +1,10 @@
----
+﻿---
 title: How to use AORMS
 slug: how-to-use-aorms
 excerpt: End-to-end workflows — enquiry, design, approvals, site, finance, and close-out — with step-by-step instructions for every major module.
 order: 2
 section: Start here
+domain: aorms-studio
 updated: 2026-07-09
 ---
 
@@ -248,7 +249,7 @@ Capabilities are enforced server-side via `can(role, capability)` — the UI hid
 
 ### Can we run AORMS on our own server?
 
-AORMS is offered as **cloud SaaS** at aorms.in. Contact Holagundi Consulting Works for dedicated deployment discussions.
+AORMS is offered as **cloud SaaS** at aorms.in. Contact Human Centric Works for dedicated deployment discussions.
 
 ### Are there different product editions?
 

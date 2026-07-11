@@ -354,6 +354,7 @@ export function ArchivedProjects() {
               id="purge-password"
               label="Admin password (confirm identity)"
               type="password"
+              autoComplete="new-password"
               value={purgePassword}
               onChange={(e) => setPurgePassword(e.target.value)}
             />

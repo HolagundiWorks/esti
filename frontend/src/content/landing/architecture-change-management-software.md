@@ -1,4 +1,4 @@
----
+﻿---
 title: Change Without Losing Margin
 metaTitle: Architecture Change Management Software — Contract Events, Not Favours
 metaDescription: Architecture change management software that treats scope change as a contract event — MoM to ESTI extract to client request to architect assessment to client approval to site — so every change is categorised, agreed and billable.

@@ -1,15 +1,12 @@
 import { useEffect, useState } from "react";
-import { Chip, Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
+import { Paper, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
+import { StatusDot } from "../components/StatusTag.js";
 import { type Credentials as Creds, fetchCredentials } from "./lib/auth";
 
 function fmt(d: string | null): string {
   if (!d) return "—";
   return new Date(d).toLocaleDateString();
 }
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 /** The signed-in person's portable credentials — certifications + growth timeline. */
 export default function Credentials() {
@@ -44,7 +41,7 @@ export default function Credentials() {
                   <TableCell>{c.issuer ?? "—"}</TableCell>
                   <TableCell>{fmt(c.issuedAt)}</TableCell>
                   <TableCell>
-                    <Chip size="small" label={c.status} sx={chipSx(c.status === "ACTIVE" ? "green" : "gray")} />
+                    <StatusDot color={c.status === "ACTIVE" ? "green" : "gray"} label={c.status} />
                   </TableCell>
                 </TableRow>
               ))}
@@ -57,7 +54,7 @@ export default function Credentials() {
         {creds.growth.length > 0 && (
           <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
             {creds.growth.slice(0, 12).map((g) => (
-              <Chip key={g.id} size="small" label={`${g.kind} · ${fmt(g.at)}`} sx={chipSx("cool-gray")} />
+              <StatusDot key={g.id} color="cool-gray" label={`${g.kind} · ${fmt(g.at)}`} />
             ))}
           </Stack>
         )}

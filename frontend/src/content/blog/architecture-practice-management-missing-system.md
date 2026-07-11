@@ -1,9 +1,9 @@
----
+﻿---
 title: Architecture practice management — the missing system
 date: 2026-07-09
 excerpt: Practices run sophisticated project work on a fragmented office record — fees, drawings, revisions, and site held in separate tools. The missing spine is the one that connects commercial, delivery, and fee recovery for each project.
 tags: Operations, Practice, Product
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 Indian architecture practices run sophisticated design work on a **fragmented office
@@ -87,4 +87,4 @@ returns.
 
 ---
 
-*Holagundi Consulting Works — AORMS cloud workspace for Indian architects.*
+*Human Centric Works — AORMS cloud workspace for Indian architects.*

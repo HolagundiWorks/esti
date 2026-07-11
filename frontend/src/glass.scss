@@ -27,14 +27,14 @@
 // ── NEUMORPHIC (soft UI) — ESTI · Pomodoro · Calculator · Wellness ───────────
 // The floating dock + its widgets are the ONE surface that stays neumorphic:
 // panels extrude softly from the Fog-Gray canvas (same-colour fill, dark shadow
-// bottom-right + light highlight top-left), buttons press in on click. Soft
-// rounded corners are intrinsic to the look. Exempt file → box-shadow/rgba OK.
+// bottom-right + light highlight top-left), buttons press in on click. Panels stay
+// square (0 radius); only button controls use $neu-btn-radius. Exempt file → box-shadow/rgba OK.
 $neu-bg: #eceef2;
 $neu-dark: rgba(20, 21, 23, 0.16);
 $neu-light: rgba(255, 255, 255, 0.92);
-$neu-radius: 18px; // soft rounded corners for neu panels
-$neu-btn-radius: 14px;
-$glass-radius: 8px; // (kept for a couple of legacy references below)
+$neu-radius: 0; // panels — square (HCW: radius on buttons only)
+$neu-btn-radius: 4px; // matches @hcw/ui-kit BUTTON_RADIUS
+$glass-radius: 0;
 $glass-orange-30: rgba(255, 79, 24, 0.3);
 
 .esti-neu.MuiPaper-root,
@@ -78,9 +78,10 @@ $glass-orange-30: rgba(255, 79, 24, 0.3);
 // ── Recessed neu input (soft UI) — for RAW (non-MUI) text/search fields ───────
 // The MUI theme styles every TextField/Select as a recessed well; this class is
 // the same look for any bare <input>/search box. Text is carved into the surface:
-// no border, same-colour fill, dark inset top-left + light inset bottom-right,
-// soft rounded corners. Wrap an icon + input in .esti-neu-input for a search bar.
-$neu-input-radius: 8px; // shared soft-square radius
+// no border, same-colour fill, dark inset top-left + light inset bottom-right.
+// Square corners (0 radius) — buttons alone are rounded. Wrap an icon + input in
+// .esti-neu-input for a search bar.
+$neu-input-radius: 0;
 .esti-neu-input {
   display: flex;
   align-items: center;
@@ -132,7 +133,7 @@ $neu-input-radius: 8px; // shared soft-square radius
   scrollbar-width: none;
   &::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
-  // Rail section tabs (Tasks/Board/Calendar/…) read LEFT-aligned, not centred.
+  // Rail section tabs — left-aligned (geometry; colour/fill from kit theme).
   .MuiTab-root {
     align-items: flex-start;
     justify-content: flex-start;
@@ -595,7 +596,7 @@ $neu-input-radius: 8px; // shared soft-square radius
   min-width: 0;
   box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 14px;
+  border-radius: 0;
   background:
     linear-gradient(
       145deg,
@@ -739,6 +740,8 @@ $neu-input-radius: 8px; // shared soft-square radius
   // Dock sits at bottom: 72px; ~52px tall → top ≈ 124px; stack above footer ≈ 68px.
   --esti-dock-stack: 68px;
 }
+
+// ActionDock + dialog chrome → @hcw/ui-kit/portal-chrome.scss (imported in main.tsx).
 
 // Studio Intelligence — rail + stage flush to the top (no ribbon header).
 .esti-app-content2--flush-top {
@@ -1145,6 +1148,53 @@ $neu-input-radius: 8px; // shared soft-square radius
   align-items: center;
   padding: clamp(1.5rem, 4vw, 3rem);
   overflow: hidden;
+
+  &--marketing {
+    align-items: flex-start;
+    padding: 0;
+    overflow: visible;
+    width: 100%;
+    background: #fff;
+  }
+}
+
+.esti-auth-stage__contours {
+  position: fixed;
+  inset: 0;
+  left: 20%;
+  pointer-events: none;
+  z-index: 0;
+
+  @media (max-width: 900px) {
+    left: 0;
+  }
+}
+
+.lp2-auth-architecture {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  box-sizing: border-box;
+  padding-bottom: 4.5rem;
+}
+
+.esti-auth-page {
+  --hcw-section-dock-bottom: 24px;
+  --esti-section-dock-height: 3.25rem;
+  min-height: 100vh;
+
+  .lp2-auth-architecture {
+    padding-bottom: calc(var(--hcw-section-dock-bottom) + var(--esti-section-dock-height) + 1rem);
+  }
+
+  .esti-auth-stage-wrap .lp2-footer {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    margin-top: 0;
+    padding: 2rem clamp(1rem, 3vw, 2rem) 3rem;
+    box-sizing: border-box;
+  }
 }
 
 .esti-auth-stage__copy {

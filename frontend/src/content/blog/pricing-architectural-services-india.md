@@ -1,9 +1,9 @@
----
+﻿---
 title: How to structure and recover fees for architectural services in India
 date: 2026-07-04
 excerpt: COA stage fees, percentage vs lump-sum vs area-based pricing, stage-wise invoicing, and protecting fee recovery when clients drive revisions — a working guide for Indian practices.
 tags: Finance, Practice, India
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 Pricing is the part of practice most architects were never taught. You can design a

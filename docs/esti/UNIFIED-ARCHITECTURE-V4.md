@@ -1,7 +1,13 @@
 # AORMS — Unified Architecture v4.1 (north-star)
 
-> **Status:** North-star + **single source of truth for current system state** ·
-> **Authored:** 2026-06-25 · **Reconciled:** 2026-06-28 · Owner: Holagundi Consulting Works
+> **Status:** North-star + **single source of truth for AORMS-Studio system state** ·
+> **Authored:** 2026-06-25 · **Reconciled:** 2026-06-28 · **Nomenclature:** 2026-07-10 · Owner: HCW
+>
+> **AORMS** = **Accelerated Operational Resources Management System** (platform).
+> This document's **System state** section describes **AORMS-Studio**
+> workspace shipped from this monorepo. Platform north-star:
+> [AORMS-DEVELOPMENT-SPEC.md](AORMS-DEVELOPMENT-SPEC.md).
+> Naming: [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md).
 >
 > Future agents read this **first**. The "System state" section below is the
 > **authoritative record of what exists today** — where any other doc (ROADMAP, PRD,
@@ -71,11 +77,17 @@ stack on a cleaner model):
 
 ## What AORMS is
 
-**AORMS = Architecture Office Resource Management System** — the **workspace**:
-one operating system for an Indian architecture practice, from first client
-conversation to final account on site. **ESTI = Embedded Studio Intelligence** —
-the intelligence/agent layer embedded in the workspace (ESTI AI, Ask ESTI, the
-cognition engine, ESTI Pulse). It is delivered as a single codebase (pnpm monorepo:
+**AORMS = Accelerated Operational Resources Management System** — the **platform**
+for consulting-firm operational consolidation. **AORMS-Studio** is the
+first vertical workspace (this monorepo): one operating system for an Indian
+architecture practice, from first client conversation to final account on site.
+Roadmap verticals use the same **`AORMS-{Name}`** pattern — **AORMS-Compliance** (risk),
+**AORMS-Advisory** (education), **AORMS-Audit** (auditing).
+
+**ESTI = Embedded Studio Intelligence** —
+the intelligence/agent layer scoped to **AORMS-Studio only** (ESTI AI, Ask ESTI, the
+cognition engine, ESTI Pulse). **EmOI** is the platform-wide intelligence layer for
+other vertical workspaces. The codebase is delivered as a single monorepo (pnpm:
 `packages/contracts`, `backend`, `frontend`, Python `worker`) gated two ways that
 are orthogonal: **`can(role, capability)`** by *person*
 ([ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md)) and **`planAllows(plan, feature)`**

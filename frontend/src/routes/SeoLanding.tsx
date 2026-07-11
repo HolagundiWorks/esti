@@ -1,10 +1,8 @@
-import { Button, Chip } from "@mui/material";
-import ArrowForward from "@mui/icons-material/ArrowForward";
 import { marked } from "marked";
 import { useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
+import { AORMS_STUDIO } from "../lib/product-nomenclature.js";
 import {
   getLandingPage,
   landingCategoryLabel,
@@ -22,7 +20,6 @@ export function SeoLanding({ slug }: { slug: string }) {
     [page],
   );
 
-  // Up to three sibling pages from other categories, for internal linking.
   const related = useMemo(() => {
     if (!page) return [];
     const others = listLandingPages().filter((p) => p.slug !== page.slug);
@@ -36,74 +33,63 @@ export function SeoLanding({ slug }: { slug: string }) {
   }, [page]);
 
   return (
-      <MarketingShell>
-        <div className="esti-blog">
-          <Link to="/" className="esti-blog__back">← AORMS home</Link>
+    <MarketingShell contours vertical="architecture" footerVariant="architecture">
+      <div className="lp2-ds">
+        {!page ? (
+          <header className="lp2-section-head lp2-reveal">
+            <h1 className="lp2-section-head__title">Page not found</h1>
+            <p className="lp2-section-head__body">
+              This page may have moved. <Link to="/">Back to AORMS</Link> or{" "}
+              <Link to="/blog">browse the blog</Link>.
+            </p>
+          </header>
+        ) : (
+          <>
+            <header className="lp2-section-head lp2-reveal" id="top">
+              <p className="lp2-section-head__tag">{landingCategoryLabel(page.category)}</p>
+              <h1 className="lp2-section-head__title">{page.title}</h1>
+              {page.intro ? <p className="lp2-section-head__body">{page.intro}</p> : null}
+            </header>
 
-          {!page ? (
-            <div className="esti-blog__empty">
-              <h1>Page not found</h1>
-              <p>
-                This page may have moved. <Link to="/">Back to AORMS</Link> or{" "}
-                <Link to="/blog">browse the blog</Link>.
-              </p>
-            </div>
-          ) : (
-            <article className="esti-blog-article">
-              <Chip
-                size="small"
-                label={landingCategoryLabel(page.category)}
-                sx={{
-                  backgroundColor: "var(--cds-tag-background-cool-gray)",
-                  color: "var(--cds-tag-color-cool-gray)",
-                }}
-              />
-              <h1>{page.title}</h1>
-              {page.intro && <p className="esti-blog-article__byline">{page.intro}</p>}
-
-              {/* Content is authored by the team in-repo (trusted), not user input. */}
+            <article className="lp2-seo-article lp2-reveal">
               <div
-                className="esti-blog-article__body"
+                className="lp2-seo-article__body lp2-prose"
                 dangerouslySetInnerHTML={{ __html: html }}
               />
-
-              <section className="esti-blog-roadmap" aria-label="Get started">
-                <h2>See AORMS on your own office</h2>
-                <p>
-                  Open the live demo workspace — no signup — or create your account for
-                  your practice.
-                </p>
-                <div className="esti-blog-card__tags">
-                  <Button href="/demo" endIcon={<ArrowForward />}>
-                    Open the live demo
-                  </Button>
-                  <Button href="/account?mode=create" variant="outlined">
-                    Create account
-                  </Button>
-                </div>
-              </section>
-
-              {related.length > 0 && (
-                <nav className="esti-blog-roadmap" aria-label="Related pages">
-                  <h2>Related</h2>
-                  <ul>
-                    {related.map((p) => (
-                      <li key={p.slug}>
-                        <Link to={`/${p.slug}`}>
-                          <span aria-hidden>→</span> {p.title}
-                        </Link>
-                      </li>
-                    ))}
-                    <li>
-                      <Link to="/blog"><span aria-hidden>→</span> AORMS blog</Link>
-                    </li>
-                  </ul>
-                </nav>
-              )}
             </article>
-          )}
-        </div>
-        <MarketingFooter />
-      </MarketingShell>
+
+            <section className="lp2-ds-section lp2-seo-cta lp2-reveal" aria-label="Get started">
+              <h2 className="lp2-seo-cta__title">See AORMS on your own office</h2>
+              <p className="lp2-seo-cta__body">
+                <strong>{AORMS_STUDIO.title}</strong> is the live workspace — use{" "}
+                <strong>Create account</strong> or <strong>Sign in</strong> in the dock below, or{" "}
+                <Link to="/demo">open the demo</Link>. Platform north-star:{" "}
+                <Link to="/">platform home</Link> · <Link to="/wiki">user guide</Link>.
+              </p>
+            </section>
+
+            {related.length > 0 && (
+              <nav className="lp2-ds-section lp2-seo-related lp2-reveal" aria-label="Related pages">
+                <h2 className="lp2-seo-related__title">Related</h2>
+                <ul className="lp2-seo-related__list">
+                  {related.map((p) => (
+                    <li key={p.slug}>
+                      <Link to={`/${p.slug}`}>
+                        <span aria-hidden>→</span> {p.title}
+                      </Link>
+                    </li>
+                  ))}
+                  <li>
+                    <Link to="/blog">
+                      <span aria-hidden>→</span> AORMS blog
+                    </Link>
+                  </li>
+                </ul>
+              </nav>
+            )}
+          </>
+        )}
+      </div>
+    </MarketingShell>
   );
 }

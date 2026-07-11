@@ -1,9 +1,10 @@
----
+﻿---
 title: Getting started
 slug: getting-started
 excerpt: Create your account, complete your workspace profile, and orient yourself in the AORMS shell.
 order: 1
 section: Start here
+domain: aorms-studio
 updated: 2026-07-09
 ---
 

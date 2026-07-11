@@ -4,7 +4,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   Stack,
   TextField,
   Typography,
@@ -22,6 +21,7 @@ import {
 import { Link as RouterLink } from "react-router-dom";
 import { AuthBrandBlock } from "../components/AormsLogo.js";
 import { AuthRailLayout } from "../components/AuthRailLayout.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { GoogleIconCircle } from "../components/GoogleIconCircle.js";
 import { AccountSignupFields, EMPTY_PROFILE, type ProfileDraft } from "./AccountSignupFields.js";
 import { AccountSignupProfile } from "@esti/contracts";
@@ -40,19 +40,6 @@ const ERRORS: Record<string, string> = {
   account_suspended: "This account has been suspended. Contact support to reactivate.",
   request_failed: "Something went wrong. Please try again.",
 };
-
-function TagChip({ color, label }: { color: string; label: string }) {
-  return (
-    <Chip
-      label={label}
-      size="small"
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 /** A product "Create account" redirect adds ?onboard=<PRODUCT> to the panel URL. */
 function onboardProduct(): string | null {
@@ -295,7 +282,7 @@ export default function Login({
                 </Stack>
                 {mode === "signin" && !product && resolved && (
                   <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                    <TagChip color="cool-gray" label={companyLabel(resolved)} />
+                    <StatusDot color="cool-gray" label={companyLabel(resolved)} />
                     <Button
                       type="button"
                       variant="text"

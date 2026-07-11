@@ -386,8 +386,13 @@ function DocumentsTab({ openSignal }: { openSignal?: number }) {
                     label={c}
                     size="small"
                     onClick={() => setUploadCategory(c)}
+                    aria-pressed={uploadCategory === c}
                     sx={{
                       cursor: "pointer",
+                      fontWeight: uploadCategory === c ? 600 : 400,
+                      border: uploadCategory === c
+                        ? "1px solid var(--cds-text-primary)"
+                        : "1px solid transparent",
                       backgroundColor: `var(--cds-tag-background-${uploadCategory === c ? "blue" : "gray"})`,
                       color: `var(--cds-tag-color-${uploadCategory === c ? "blue" : "gray"})`,
                     }}

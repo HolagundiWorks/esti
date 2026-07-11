@@ -1,4 +1,4 @@
----
+﻿---
 title: Keep Every Client On The Record
 metaTitle: Architect Client Management Software — Proposals, Approvals & Revision Trail
 metaDescription: Architect client management software for Indian practices — CRM, client log, COA proposals, GST invoices, and a portal where revision requests, approvals and decisions go on the permanent record.
@@ -49,7 +49,7 @@ Threaded comments and critical notes sit alongside, so internal discussion about
 
 AORMS is India-native: paise-based money, the April–March financial year, COA-based fee proposals, and GST/TDS-correct invoicing. It is cloud SaaS with role-based access, so your client list, your fee data and your clients' decisions stay on infrastructure your practice controls — not a vendor's cloud.
 
-If you want the relationship in the context of the whole office, see [architecture office management software](/architecture-office-management-software). To put a single project in front of a client, the [architecture project management software](/architecture-project-management-software) page covers the delivery side. To see the client portal yourself, [book a demo](/demo).
+If you want the relationship in the context of the whole office, see [architecture office management software](/architecture-office-management-software). To put a single engagement in front of a client, the [architecture project record software](/architecture-project-management-software) page covers the delivery side. To see the client portal yourself, [book a demo](/demo).
 
 ## Frequently asked questions
 

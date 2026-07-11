@@ -296,7 +296,7 @@ export function StudioTeamPanel({
         </Stack>
       ) : (
         <Stack spacing={2}>
-          <Box sx={{ p: 1.5, border: 1, borderColor: "divider", borderRadius: 1 }}>
+          <Box sx={{ p: 1.5, border: 1, borderColor: "divider" }}>
             <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 1.5 }}>
               <IconButton size="small" aria-label="Previous month" onClick={() => shiftMonth(-1)}>
                 <ChevronLeft />
@@ -347,7 +347,7 @@ export function StudioTeamPanel({
             </Typography>
           </Box>
 
-          <Box sx={{ p: 1.5, border: 1, borderColor: "divider", borderRadius: 1 }}>
+          <Box sx={{ p: 1.5, border: 1, borderColor: "divider" }}>
             <Stack spacing={1}>
               <Typography variant="subtitle2">Office — {selectedLabel}</Typography>
               <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", flexWrap: "wrap" }}>

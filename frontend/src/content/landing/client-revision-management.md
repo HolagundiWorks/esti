@@ -1,4 +1,4 @@
----
+﻿---
 title: Client Revision Management for Architects
 metaTitle: Client Revision Management — MoM, ESTI & Approval Trail for Architects
 metaDescription: Client revision management for architects: MoM issued to portal, ESTI extracts changes as requests, client submits, architect marks criticality and implications, client approves — then and only then do site changes proceed.

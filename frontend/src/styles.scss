@@ -28,7 +28,7 @@
   --cds-spacing-13: 10rem;     // 160px
   --cds-grid-margin: 1rem;     // Carbon 2x Grid default margin
   --cds-grid-gutter: 2rem;
-  --cds-border-radius-lg: 8px; // matches the HCW-UI-Kit soft-square radius
+  --cds-border-radius-lg: 0; // HCW-UI-Kit: square surfaces; BUTTON_RADIUS for buttons only
 
   // Theme colours — extracted verbatim from @carbon/react's compiled `.cds--white`
   // theme block (the only theme this app ever mounted).
@@ -149,6 +149,16 @@ body,
   outline-offset: 2px;
 }
 
+/* Deep-link row highlight (Studio Intelligence → project detail). */
+.esti-row-highlight {
+  background: color-mix(in srgb, var(--cds-support-warning, #f1c21b) 18%, transparent);
+}
+
+/* HCW-UI-Kit Surface — square panels; BUTTON_RADIUS for buttons only. */
+.hcw-surface {
+  border-radius: 0 !important;
+}
+
 // Horizontal tile headers (title + tag/arrow) — layout only; spacing-05 (16px).
 .esti-row {
   display: flex;
@@ -244,6 +254,12 @@ html:has(.esti-landing-shell) body {
   align-items: flex-start;
   gap: 0.35rem;
 }
+.esti-login-brand__link {
+  display: block;
+  width: fit-content;
+  color: inherit;
+  text-decoration: none;
+}
 .esti-aorms-logo--sm { height: 1.25rem; }
 .esti-aorms-logo--md { height: 1.5rem; }
 .esti-aorms-logo--rail { display: block; height: 1.5rem; }
@@ -258,6 +274,15 @@ html:has(.esti-landing-shell) body {
   max-width: min(90vw, 22rem);
 }
 .esti-aorms-logo--watermark { height: 24px; }
+
+.esti-aorms-mark--sm { width: 1rem; height: 1rem; }
+.esti-aorms-mark--md { width: 1.125rem; height: 1.125rem; }
+.esti-aorms-mark--lg { width: 1.375rem; height: 1.375rem; }
+.esti-aorms-mark--rail { display: block; width: 1.125rem; height: 1.125rem; }
+.esti-aorms-mark--stage { width: 2rem; height: 2rem; }
+.esti-aorms-mark--hero { width: 1.5rem; height: 1.5rem; }
+.esti-aorms-mark--watermark { width: 24px; height: 24px; }
+
 .esti-login-mark {
   display: inline-flex;
   padding: 0;
@@ -751,6 +776,8 @@ html:has(.esti-landing-shell) body {
 }
 @media (prefers-reduced-motion: reduce) {
   .esti-pom-ring--run { animation: none; }
+  // Zone-health attention indicator — hold still for vestibular safety (WCAG 2.3.3).
+  .esti-cockpit__shape--pulse { animation: none; }
 }
 
 // Footer: structural padding + top rule using Carbon's border-subtle token.
@@ -3243,6 +3270,11 @@ html:has(.esti-studio-abstract-page) body { min-height: 100dvh; }
   aspect-ratio: 816 / 216;
   -webkit-mask-image: url("/aorms-logo.png");
   mask-image: url("/aorms-logo.png");
+}
+.esti-brand--aorms-mark {
+  aspect-ratio: 1 / 1;
+  -webkit-mask-image: url("/aorms-mark.png");
+  mask-image: url("/aorms-mark.png");
 }
 // ESTI mark inside the Ask-ESTI command bar / dock button (fixed sizing helper).
 .esti-ai-bar__mark {

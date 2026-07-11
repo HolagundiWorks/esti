@@ -41,7 +41,7 @@ All on your one domain (`https://<domain>`), TLS-terminated by nginx.
 
 | URL | What it is | Auth |
 |---|---|---|
-| `/` | Firm app home (**Studio Intelligence**) — or the public Landing if `VITE_PUBLIC_SITE=true` | firm session |
+| `/` | **AORMS-Studio** home (**Studio Intelligence**) — or the public Landing if `VITE_PUBLIC_SITE=true` | firm session |
 | `/login` | **Firm workspace login** — create account on public-site builds; one **standard AORMS licence** (no Lite/Core/Enterprise picker) | firm session |
 | `/account`, `/company-account` | Personal and company account portals | platform session |
 | `/wiki` | Official documentation (canonical) | public |
@@ -204,8 +204,8 @@ retired 2026-07. The product is **cloud-only** at aorms.in. Legacy scripts
 (`deploy/fetch-installers.sh`, `.github/workflows/desktop.yml`) remain for
 operators migrating old VPS layouts but are not required for new installs.
 
-The separate **AORMS Estimate** app (`estimate/`) has its own release workflow
-(`.github/workflows/estimate.yml`) if you distribute it outside the main SPA.
+The separate **AORMS Estimate** desktop app is **not in this monorepo** (historical
+spec: [../archive/esti/ESTIMATE-AUTOPILOT-ROADMAP.md](../archive/esti/ESTIMATE-AUTOPILOT-ROADMAP.md)).
 
 ---
 

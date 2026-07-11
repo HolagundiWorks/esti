@@ -1,9 +1,9 @@
----
+﻿---
 title: Why our dashboard is calm — and not a military or Bloomberg terminal
 date: 2026-06-18
 excerpt: Most dashboards optimise for density. Ours optimises for attention. Here is the cognitive science behind a deliberately quiet screen.
 tags: Design, Cognition
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 A principal architect does not sit and stare at a screen all day. They glance.

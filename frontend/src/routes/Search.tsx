@@ -17,7 +17,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { Link, useSearchParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
-import { PageHeader } from "../components/PageHeader.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
+import { RailLayout } from "../components/RailLayout.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -95,37 +96,11 @@ export function SearchPage() {
   );
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
-        title="Search"
-        description="Permission-aware search across projects, documents, knowledge catalogues, and lessons."
-      />
-
-      <Stack spacing={2}>
-        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "flex-end" }}>
-          <TextField
-            id="global-search"
-            label="Search"
-            placeholder="Search projects, templates, rate books, lessons…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") runSearch();
-            }}
-            sx={{ flex: "1 1 280px", maxWidth: 480 }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-        </Box>
-
-        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+    <RailLayout
+      title="Search"
+      description="Permission-aware search across projects, documents, knowledge catalogues, and lessons."
+      aside={
+        <Stack spacing={2}>
           <TextField
             id="search-types"
             select
@@ -135,12 +110,12 @@ export function SearchPage() {
               const value = e.target.value as unknown as SearchEntityTypeT[] | string;
               setTypeFilter(typeof value === "string" ? (value ? (value.split(",") as SearchEntityTypeT[]) : []) : value);
             }}
-            sx={{ minWidth: 280, flex: 1 }}
+            fullWidth
             slotProps={{
               select: {
                 multiple: true,
                 renderValue: (selected) =>
-                  (selected as SearchEntityTypeT[]).map((t) => SEARCH_ENTITY_LABEL[t]).join(", ") || "Filter by type",
+                  (selected as SearchEntityTypeT[]).map((t) => SEARCH_ENTITY_LABEL[t]).join(", ") || "All types",
               },
             }}
           >
@@ -153,83 +128,115 @@ export function SearchPage() {
           <TextField
             id="search-project"
             select
-            label="Limit to project (optional)"
+            label="Limit to project"
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
-            sx={{ minWidth: 240 }}
+            fullWidth
           >
             <MenuItem value="">All projects</MenuItem>
             {(projectsQ.data ?? []).map((p) => (
               <MenuItem key={p.id} value={p.id}>{`${p.ref} — ${p.title}`}</MenuItem>
             ))}
           </TextField>
-        </Box>
+          {appliedQ.length >= 2 && Object.keys(typeCounts).length > 0 && (
+            <Stack spacing={0.75}>
+              <Typography variant="overline" color="text.secondary">
+                Result mix
+              </Typography>
+              <Stack direction="row" spacing={0.75} sx={{ flexWrap: "wrap" }}>
+                {Object.entries(typeCounts).map(([t, n]) => (
+                  <StatusDot
+                    key={t}
+                    color="blue"
+                    label={`${SEARCH_ENTITY_LABEL[t as SearchEntityTypeT] ?? t} (${n})`}
+                  />
+                ))}
+              </Stack>
+            </Stack>
+          )}
+        </Stack>
+      }
+    >
+      <PageBreadcrumb items={[{ label: "Search" }]} />
 
-        {appliedQ.length >= 2 && Object.keys(typeCounts).length > 0 && (
-          <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
-            {Object.entries(typeCounts).map(([t, n]) => (
-              <StatusDot
-                key={t}
-                color="blue"
-                label={`${SEARCH_ENTITY_LABEL[t as SearchEntityTypeT] ?? t} (${n})`}
-              />
-            ))}
-          </Stack>
+      <Stack spacing={2}>
+        <TextField
+          id="global-search"
+          label="Search"
+          placeholder="Search projects, templates, rate books, lessons…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") runSearch();
+          }}
+          fullWidth
+          helperText="Enter at least 2 characters, then use the dock Search action or press Enter."
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
+
+        {appliedQ.length < 2 ? (
+          <Typography variant="body2" color="text.secondary">
+            Enter at least 2 characters to search.
+          </Typography>
+        ) : (
+          <DataState
+            loading={searchQ.isLoading}
+            isEmpty={hits.length === 0}
+            columnCount={4}
+            empty={{
+              title: "No results",
+              description: `Nothing matched “${appliedQ}” with your filters.`,
+            }}
+          >
+            <Stack spacing={2}>
+              <Typography variant="subtitle1" component="h2">{`Results for “${appliedQ}”`}</Typography>
+              <Stack spacing={1}>
+                {hits.map((h) => (
+                  <Box
+                    key={`${h.entityType}-${h.entityId}`}
+                    sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}
+                  >
+                    <Stack spacing={1}>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        sx={{ alignItems: "center", justifyContent: "space-between" }}
+                      >
+                        <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
+                          <StatusDot color="gray" label={SEARCH_ENTITY_LABEL[h.entityType]} />
+                          <Typography variant="subtitle2" noWrap>{h.title}</Typography>
+                        </Stack>
+                        <Button component={Link} to={h.href} variant="text" size="small">
+                          Open
+                        </Button>
+                      </Stack>
+                      {h.snippet && (
+                        <Typography variant="body2" color="text.secondary">{h.snippet}</Typography>
+                      )}
+                      <Typography variant="caption" color="text.secondary">
+                        Project:{" "}
+                        {h.projectRef && h.projectId ? (
+                          <Link to={`/projects/${h.projectId}`}>{h.projectRef}</Link>
+                        ) : (
+                          h.projectRef ?? "—"
+                        )}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                ))}
+              </Stack>
+            </Stack>
+          </DataState>
         )}
       </Stack>
-
-      {appliedQ.length < 2 ? (
-        <Typography variant="body2">Enter at least 2 characters to search.</Typography>
-      ) : (
-        <DataState
-          loading={searchQ.isLoading}
-          isEmpty={hits.length === 0}
-          columnCount={4}
-          empty={{
-            title: "No results",
-            description: `Nothing matched “${appliedQ}” with your filters.`,
-          }}
-        >
-          <Stack spacing={2}>
-            <Typography variant="subtitle1" component="h3">{`Results for “${appliedQ}”`}</Typography>
-            <Stack spacing={1}>
-              {hits.map((h) => (
-                <Box
-                  key={`${h.entityType}-${h.entityId}`}
-                  sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}
-                >
-                  <Stack spacing={1}>
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      sx={{ alignItems: "center", justifyContent: "space-between" }}
-                    >
-                      <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
-                        <StatusDot color="gray" label={SEARCH_ENTITY_LABEL[h.entityType]} />
-                        <Typography variant="subtitle2" noWrap>{h.title}</Typography>
-                      </Stack>
-                      <Button component={Link} to={h.href} variant="text" size="small">
-                        Open
-                      </Button>
-                    </Stack>
-                    {h.snippet && (
-                      <Typography variant="body2" color="text.secondary">{h.snippet}</Typography>
-                    )}
-                    <Typography variant="caption" color="text.secondary">
-                      Project:{" "}
-                      {h.projectRef && h.projectId ? (
-                        <Link to={`/projects/${h.projectId}`}>{h.projectRef}</Link>
-                      ) : (
-                        h.projectRef ?? "—"
-                      )}
-                    </Typography>
-                  </Stack>
-                </Box>
-              ))}
-            </Stack>
-          </Stack>
-        </DataState>
-      )}
-    </Stack>
+    </RailLayout>
   );
 }

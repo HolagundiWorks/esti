@@ -346,7 +346,7 @@ export function ItemLibraryManager({ embedded = false }: { embedded?: boolean })
             <TextField
               id="ili-markers"
               select
-              SelectProps={{ multiple: true }}
+              slotProps={{ select: { multiple: true } }}
               label="Plan marker kinds (Phase 2)"
               value={iForm.markerKinds}
               onChange={(e) => {

@@ -1,9 +1,9 @@
----
+﻿---
 title: How better revision tracking prevents scope creep in architecture projects
 date: 2026-07-09
 excerpt: Scope creep is cumulative — individually reasonable requests that are never logged. Revision tracking makes the total visible while there is still fee to recover and a conversation worth having.
 tags: Revisions, Practice, Workflow
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 Scope creep rarely arrives as one dramatic demand. It arrives as a dozen small,
@@ -99,5 +99,5 @@ project-native register (like AORMS) keeps revisions beside the sheets they affe
 
 ---
 
-*Holagundi Consulting Works builds AORMS — the cloud practice OS for Indian architects.
+*Human Centric Works builds AORMS — the AORMS-Studio advisory workspace for Indian consultancies.
 Documentation: [aorms.in/wiki](https://aorms.in/wiki).*

@@ -222,7 +222,7 @@ export function CompanyAdminPanel() {
             variant="determinate"
             value={pct}
             color={pct > 90 ? "error" : pct > 70 ? "warning" : "primary"}
-            sx={{ height: 6, borderRadius: 3 }}
+            sx={{ height: 6 }}
           />
           {pct > 85 && (
             <Typography variant="caption" color="error" sx={{ mt: 0.5, display: "block" }}>

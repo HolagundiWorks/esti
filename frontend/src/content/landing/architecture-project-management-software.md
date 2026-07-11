@@ -1,7 +1,7 @@
----
+﻿---
 title: Run Every Project On One Record
-metaTitle: Architecture Project Management Software India
-metaDescription: Architecture project management software for Indian practices — phases, drawing registers, revision tracking, fee milestones, approvals and client portal in one auditable project record.
+metaTitle: Architecture Project Record Software India — Consultancy Delivery
+metaDescription: Architecture project record software for Indian consultancies — phases, drawing registers, revision tracking, fee milestones, approvals and client portal on one auditable record. Not generic construction project management.
 keyword: architecture project management software
 category: solution
 updated: 2026-07-10
@@ -12,7 +12,7 @@ intro: From the project brief through phases, drawings, revisions and delivery, 
 
 A building project does not live in one place. The brief sits in an email, the drawing set lives in a shared folder, revisions are tracked in someone's memory, and the client's latest instruction arrived over WhatsApp. By the time a project reaches site, nobody can answer the simple question: where are we, and what changed since last week?
 
-**Architecture project management software** built for the way Indian practices actually deliver buildings replaces that scatter with a single project record — one that follows the work from brief to phases to drawings to delivery.
+**Architecture project record software** (often searched as project management software) built for the way Indian consultancies actually deliver buildings replaces that scatter with a single project record — one that follows the work from brief to phases to drawings to delivery. AORMS is not construction project management or contractor coordination.
 
 ## The project lifecycle, start to finish
 
@@ -61,9 +61,9 @@ If you are evaluating AORMS for the wider practice, the [architecture practice m
 
 ## Frequently asked questions
 
-### What is architecture project management software?
+### What is architecture project record software?
 
-It is software that manages an architecture project across its full lifecycle — brief, phases, drawings, revisions and delivery — on one connected record. Unlike a generic task tracker, AORMS understands phases, drawing revisions, fee milestones and the revision-to-approval sequence as first-class parts of a building project.
+It is software that holds an architecture engagement across its full lifecycle — brief, phases, drawings, revisions and delivery — on one connected record. Searchers often use “project management software”; AORMS is purpose-built for consultancy delivery, not generic task boards or construction PM.
 
 ### How does AORMS track drawing revisions on a project?
 

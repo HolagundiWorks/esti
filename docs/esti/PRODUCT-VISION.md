@@ -8,9 +8,14 @@
 > [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
 > [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
 
-**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-23
+**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-07-10
 
-**AORMS** (Architecture Office Resource Management System) is the workspace for
+> **Nomenclature (2026-07-10):** **AORMS** = **Accelerated Operational Resources
+> Management System** (platform). This document describes **AORMS-Studio**
+> — the workspace shipped from this repo (slug `aorms-studio`). See
+> [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md).
+
+**AORMS-Studio** is the operational system for
 Indian freelance architects and small architecture practices: the single
 operational record for projects, communication, tasks, decisions, drawings,
 documents, statutory work, fees, invoices, consultants, contractors, and office
@@ -118,8 +123,11 @@ signals must not become covert surveillance or punitive monitoring.
 
 ## Naming
 
-- Product name: **AORMS** (Architecture Office Resource Management System); **ESTI**
-  (Embedded Studio Intelligence) is the embedded intelligence layer.
+- Product name: **AORMS** (**Accelerated Operational Resources Management System**, platform).
+- Shipped vertical: **AORMS-Studio** (slug `aorms-studio`, AEC / Indian architecture consultancies).
+- Roadmap verticals: **AORMS-Compliance** (risk), **AORMS-Advisory** (education), **AORMS-Audit** (auditing).
+- **EmOI** (Embedded Operational Intelligence) — platform intelligence layer.
+- **ESTI** (Embedded Studio Intelligence) — intelligence layer in **AORMS-Studio only**.
 - Company: **Holagundi Consulting Works (HCW)**.
 - The supplied ESI-AORMS document is treated as product input; repository and
   code naming keeps the `esti` codename.

@@ -1,4 +1,4 @@
----
+﻿---
 title: Architecture Revision Tracking
 metaTitle: Architecture Revision Tracking — Category, Source & Approval Trail
 metaDescription: Architecture revision tracking that records every change with its category, source and client-approved implications — MoM to ESTI extract to architect assessment to client approval before site work proceeds.

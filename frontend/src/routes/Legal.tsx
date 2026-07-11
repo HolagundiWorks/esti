@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { MarketingFooter } from "../components/landing/MarketingFooter.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 
 const CONTACT_EMAIL = "hi@aorms.in";
@@ -8,7 +7,7 @@ export function Legal() {
   useEffect(() => {
     const title = "Legal — AORMS";
     const description =
-      "Terms of service, privacy policy, acceptable use, and licensing for AORMS by Holagundi Consulting Works.";
+      "Terms of service, privacy policy, acceptable use, and licensing for AORMS by Human Centric Works.";
     document.title = title;
     const set = (sel: string, attr: "content" | "href", val: string) =>
       document.querySelector(sel)?.setAttribute(attr, val);
@@ -19,18 +18,19 @@ export function Legal() {
   }, []);
 
   return (
-      <MarketingShell>
-        <main id="main-content" className="esti-blog">
-          <header className="esti-blog__head">
-            <h1>Legal</h1>
-            <p>
-              Terms of service, privacy, acceptable use, and licensing for AORMS, operated by
-              Holagundi Consulting Works.
-            </p>
-          </header>
+    <MarketingShell contours tagline="Legal">
+      <div className="lp2-ds">
+        <header className="lp2-section-head lp2-reveal" id="top">
+          <p className="lp2-section-head__tag">Legal</p>
+          <h1 className="lp2-section-head__title">Legal</h1>
+          <p className="lp2-section-head__body">
+            Terms of service, privacy, acceptable use, and licensing for AORMS, operated by
+            Human Centric Works.
+          </p>
+        </header>
 
-          <article className="esti-blog-article">
-            <div className="esti-blog-article__body">
+        <article className="lp2-seo-article lp2-reveal">
+          <div className="lp2-seo-article__body lp2-prose">
               <p>
                 <em>Last updated: 2026. This is a plain-language summary; the binding terms are
                 those in your signed subscription agreement. For a tailored agreement, contact
@@ -40,7 +40,7 @@ export function Legal() {
               <h2>1. Service</h2>
               <p>
                 AORMS (the "Service") is a hosted software-as-a-service product provided by
-                Holagundi Consulting Works ("we", "us") to architecture practices and their
+                Human Centric Works ("we", "us") to architecture practices and their
                 authorised users, under a commercial subscription.
               </p>
 
@@ -94,7 +94,7 @@ export function Legal() {
 
               <h2>8. Intellectual property and licensing</h2>
               <p>
-                AORMS and its source code are proprietary to Holagundi Consulting Works. The Service
+                AORMS and its source code are proprietary to Human Centric Works. The Service
                 incorporates third-party open-source components under their respective licenses; see
                 our third-party notices. Use of the Service grants no rights to our code beyond your
                 subscription.
@@ -108,13 +108,12 @@ export function Legal() {
 
               <h2>10. Contact</h2>
               <p>
-                Holagundi Consulting Works · Hospet, Karnataka, India<br />
+                Human Centric Works · Hospet, Karnataka, India<br />
                 <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> · +91 89510 89191
               </p>
             </div>
           </article>
-        </main>
-        <MarketingFooter />
-      </MarketingShell>
+      </div>
+    </MarketingShell>
   );
 }

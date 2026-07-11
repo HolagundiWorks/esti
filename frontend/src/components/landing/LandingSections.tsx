@@ -11,12 +11,16 @@ function Orb({ color }: { color: Dot }) {
   return <span className={`lp2-dot lp2-dot--${color}`} aria-hidden />;
 }
 
+export { Orb };
+
 function revealStyle(delay = 0): CSSProperties {
   return { "--lp-reveal-delay": `${delay}ms` } as CSSProperties;
 }
 
+export { revealStyle };
+
 /** Section opener: problem as the headline, solution as the supporting line. */
-function SectionHead({
+export function SectionHead({
   tag,
   problem,
   solution,
@@ -28,16 +32,16 @@ function SectionHead({
   id?: string;
 }) {
   return (
-    <div className="lp2-section-head lp2-reveal" id={id} style={revealStyle(0)}>
+    <header className="lp2-section-head lp2-reveal" id={id} style={revealStyle(0)}>
       <p className="lp2-section-head__tag">{tag}</p>
       <h2 className="lp2-section-head__title">{problem}</h2>
       <p className="lp2-section-head__body">{solution}</p>
-    </div>
+    </header>
   );
 }
 
 /** Pain → solution chips that glance the feature set. */
-function KeywordStrip({
+export function KeywordStrip({
   label,
   marks,
 }: {
@@ -69,7 +73,7 @@ function KeywordStrip({
   );
 }
 
-function Tile({
+export function Tile({
   dot,
   tag,
   title,
@@ -105,7 +109,7 @@ function Tile({
   );
 }
 
-function StepTile({
+export function StepTile({
   n,
   title,
   detail,
@@ -129,7 +133,7 @@ function StepTile({
   );
 }
 
-function Section({
+export function Section({
   id,
   labelledBy,
   children,
@@ -139,7 +143,7 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="lp2-section" id={id} aria-labelledby={labelledBy}>
+    <section className="lp2-ds-section" id={id} aria-labelledby={labelledBy}>
       {children}
     </section>
   );
@@ -157,7 +161,7 @@ const PLATFORM_MARKS: readonly Keyword[] = [
 export function TrustStrip() {
   return (
     <section
-      className="lp2-trust lp2-reveal"
+      className="lp2-ds-section lp2-trust lp2-reveal"
       id="platform"
       aria-label="Practice pains, tackled"
       style={revealStyle(40)}
@@ -721,10 +725,10 @@ export function FaqSection() {
       />
       <div className="lp2-faq lp2-reveal" style={revealStyle(40)}>
         {FAQS.map((f) => (
-          <article key={f.q} className="lp2-faq__item">
-            <h3 className="lp2-faq__q">{f.q}</h3>
+          <details key={f.q} className="lp2-faq__item">
+            <summary className="lp2-faq__q">{f.q}</summary>
             <p className="lp2-faq__a">{f.a}</p>
-          </article>
+          </details>
         ))}
       </div>
       <KeywordStrip label="At a glance" marks={FAQ_KEYWORDS} />

@@ -23,11 +23,37 @@ export function AormsLogo({
   );
 }
 
+/** Isolated lowercase **a** from the AORMS typography logo — square mark for favicon, rail collapse, BrandMark accent. */
+export function AormsMark({
+  size = "md",
+  className,
+}: {
+  size?: "sm" | "md" | "lg" | "rail" | "stage" | "hero" | "watermark";
+  className?: string;
+}) {
+  return (
+    <span
+      role="img"
+      aria-label="AORMS"
+      className={[
+        "esti-brand",
+        "esti-brand--aorms-mark",
+        `esti-aorms-mark--${size}`,
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    />
+  );
+}
+
 /** Logo + optional tagline for auth rail headers. */
 export function AuthBrandBlock({ tagline }: { tagline?: string }) {
   return (
     <div className="esti-login-brand esti-login-brand--stacked">
-      <AormsLogo variant="rail" />
+      <a href="/#top" className="esti-login-brand__link" aria-label="AORMS home">
+        <AormsLogo variant="rail" />
+      </a>
       {tagline ? (
         <p className="esti-label esti-label--secondary">{tagline}</p>
       ) : null}

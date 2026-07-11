@@ -1,9 +1,12 @@
 import { Alert, AlertTitle, Box, CircularProgress } from "@mui/material";
+import { AORMS_STUDIO, isAormsStudioLegacySlug } from "./lib/product-nomenclature.js";
 import {
   Analytics,
   Archive,
   Book,
   Business as Building,
+  CompareArrows,
+  ContactPage,
   Description as Document,
   Email,
   Apartment as Enterprise,
@@ -40,6 +43,7 @@ import { isWikiHost, wikiSubdomainRedirectTarget } from "./lib/wiki-url.js";
 import { useAuth } from "./lib/auth.js";
 import { setDesktopToken } from "./lib/api-base.js";
 import { trpc } from "./lib/trpc.js";
+import { LegacyModuleRedirect } from "./components/LegacyModuleRedirect.js";
 import { AiAgentCommand } from "./components/AiAgentCommand.js";
 import { ActionDock, ActionDockProvider } from "@hcw/ui-kit";
 import { AppRibbon } from "./components/shell/AppRibbon.js";
@@ -132,6 +136,10 @@ const Performance = lazyRoute(() => import("./routes/Performance.js"), "Performa
 const Clients = lazyRoute(() => import("./routes/Clients.js"), "Clients");
 const Consultants = lazyRoute(() => import("./routes/Consultants.js"), "Consultants");
 const Contractors = lazyRoute(() => import("./routes/Contractors.js"), "Contractors");
+const ContractorPortalStub = lazyRoute(
+  () => import("./routes/ContractorPortalStub.js"),
+  "ContractorPortalStub",
+);
 const Lxos = lazyRoute(() => import("./routes/Lxos.js"), "Lxos");
 const SystemAdmin = lazyRoute(() => import("./routes/SystemAdmin.js"), "SystemAdmin");
 
@@ -159,7 +167,7 @@ export function App() {
       <UploadAuthProvider>
         {/* One boundary covers the lazy routes rendered in every AppShell branch
             (public paths, portals, and the authenticated workspace). */}
-        <Suspense fallback={<Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}><CircularProgress aria-label="Loading AORMS" /></Box>}>
+        <Suspense fallback={<Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}><CircularProgress aria-label={`Loading ${AORMS_STUDIO.title}`} /></Box>}>
           <AppShell />
         </Suspense>
       </UploadAuthProvider>
@@ -236,6 +244,16 @@ function AppShell() {
   if (PUBLIC_SITE && pathname === "/design-system")
     return <DesignSystem />;
 
+  // AORMS-Studio — canonical URL is /login (marketing + sign-in).
+  if (PUBLIC_SITE) {
+    const pathSlug = pathname.replace(/^\/+/, "").replace(/\/+$/, "");
+    if (pathSlug === AORMS_STUDIO.slug || isAormsStudioLegacySlug(pathSlug))
+      return <Navigate to="/login" replace />;
+  }
+
+  if (PUBLIC_SITE && pathname === "/development")
+    return <Navigate to={`/wiki/${AORMS_STUDIO.slug}`} replace />;
+
   // Investor brief — standalone public page, not linked from the marketing nav.
   if (PUBLIC_SITE && pathname === "/investors")
     return <Investors />;
@@ -260,7 +278,7 @@ function AppShell() {
   if (pathname === "/company-account")
     return <CompanyAccountPortal />;
 
-  if (isLoading) return <Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}><CircularProgress aria-label="Loading AORMS" /></Box>;
+  if (isLoading) return <Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}><CircularProgress aria-label={`Loading ${AORMS_STUDIO.title}`} /></Box>;
   if (!user)
     return (
       <Routes>
@@ -306,7 +324,7 @@ function AppShell() {
     return (
       <div>
         <Routes>
-          <Route path="/" element={<p>Contractor access is being rebuilt.</p>} />
+          <Route path="/" element={<ContractorPortalStub />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
@@ -369,9 +387,13 @@ function AppShell() {
       label: "Office",
       icon: Enterprise,
       items: [
+        ...(can(user.role, "write")
+          ? [{ label: "Leads", to: "/leads", icon: ContactPage }]
+          : []),
         ...(can(user.role, "fees:manage") ? [{ label: "Proposals", to: "/office/proposals", icon: Document }] : []),
         ...(can(user.role, "write")
           ? [
+              { label: "Documents", to: "/office/documents", icon: Document },
               { label: "Contracts", to: "/office/contracts", icon: License },
               { label: "Letters", to: "/office/letters", icon: Email },
             ]
@@ -380,6 +402,7 @@ function AppShell() {
         ...(can(user.role, "invoice:manage")
           ? [
               { label: "Consultancy Invoices", to: "/invoices", icon: Receipt },
+              { label: "Reconcile", to: "/reconcile", icon: CompareArrows },
               { label: "Cashbook", to: "/accounting/cash-book", icon: Wallet },
               { label: "Office Expenses", to: "/accounting/office-expenses", icon: Purchase },
             ]
@@ -461,12 +484,30 @@ function AppShell() {
                 <Route path="/libraries/spec-catalog" element={<SpecCatalogLibrary />} />
                 <Route path="/libraries/items" element={<ItemLibraryLibrary />} />
                 <Route path="/knowledge-bank" element={<Navigate to="/libraries/spec-catalog" replace />} />
-                <Route path="/estimation" element={<Navigate to="/projects" replace />} />
+                <Route
+                  path="/estimation"
+                  element={
+                    <LegacyModuleRedirect
+                      to="/projects"
+                      title="Estimation workspace moved"
+                      subtitle="Open a project and use the Measurement tab."
+                    />
+                  }
+                />
                 <Route
                   path="/estimation/:projectId"
                   element={<EstimationToMeasurementRedirect />}
                 />
-                <Route path="/libraries/estimates" element={<Navigate to="/projects" replace />} />
+                <Route
+                  path="/libraries/estimates"
+                  element={
+                    <LegacyModuleRedirect
+                      to="/projects"
+                      title="Rate books removed"
+                      subtitle="Estimation modules were retired — opening Projects."
+                    />
+                  }
+                />
                 <Route path="/libraries/compliance" element={<ComplianceLibrary />} />
                 <Route path="/libraries/master-plans" element={<MasterPlanLibrary />} />
                 <Route path="/libraries/standards" element={<StandardsLibrary />} />
@@ -509,9 +550,36 @@ function AppShell() {
                 <Route path="/tasks" element={<Work />} />
                 <Route path="/work" element={<Navigate to="/tasks" replace />} />
                 {/* Consultancy-only: PMC / Construction / Programme removed. */}
-                <Route path="/pmc" element={<Navigate to="/projects" replace />} />
-                <Route path="/programme" element={<Navigate to="/projects" replace />} />
-                <Route path="/office/construction" element={<Navigate to="/projects" replace />} />
+                <Route
+                  path="/pmc"
+                  element={
+                    <LegacyModuleRedirect
+                      to="/projects"
+                      title="PMC module removed"
+                      subtitle="Portfolio management was retired — opening Projects."
+                    />
+                  }
+                />
+                <Route
+                  path="/programme"
+                  element={
+                    <LegacyModuleRedirect
+                      to="/projects"
+                      title="Programme module removed"
+                      subtitle="Delivery scheduling lives under each project's Delivery tab."
+                    />
+                  }
+                />
+                <Route
+                  path="/office/construction"
+                  element={
+                    <LegacyModuleRedirect
+                      to="/projects"
+                      title="Construction module removed"
+                      subtitle="Site supervision is under Project → Delivery."
+                    />
+                  }
+                />
                 <Route
                   path="/workload"
                   element={<Navigate to="/tasks?tab=workload" replace />}
@@ -542,6 +610,9 @@ function AppShell() {
                 />
                 {can(user.role, "invoice:manage") && (
                   <Route path="/reconcile" element={<Reconcile />} />
+                )}
+                {can(user.role, "invoice:manage") && (
+                  <Route path="/finance/reconcile" element={<Navigate to="/reconcile" replace />} />
                 )}
                 {/* OFFICE › Internal Operations — individual module pages (V2). */}
                 {hrEnabled && <Route path="/team" element={<Team />} />}

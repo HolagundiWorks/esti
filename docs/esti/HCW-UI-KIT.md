@@ -5,10 +5,29 @@ spatial roles, dock contract, a11y, and screen review checklist. **This document
 tokens, layers, components, and SCSS. **Live showcase:** `/design-system` on the public site.
 
 **HCW-UI-Kit** (*Human Centric Works UI Kit*, package `@hcw/ui-kit`) is the single,
-centralised design system deployed against **every** AORMS portal — the workspace
-app, the client & consultant portals, the licensing console, ESE, the Estimate
+centralised design system deployed against **every** AORMS surface — **AORMS-Studio**
+(the advisory workspace), client & consultant portals, the licensing console, ESE, the Estimate
 app, and any future deployable. Change a token or a primitive here and every
-portal that mounts the kit moves together.
+surface that mounts the kit moves together.
+
+## Redesign workflow — kit first
+
+When you change how a **shared** element looks (ActionDock button, SectionDock
+chip, dialog shell, layer recipe), update it **once** in `@hcw/ui-kit` and let
+every portal inherit the change. Do **not** fork rgba/blur/radius recipes in
+`frontend/src/glass.scss`, `landing.scss`, or page SCSS.
+
+| Step | Where | What |
+|------|--------|------|
+| 1 | `packages/hcw-ui-kit/src/tokens.ts` | Colours, radii (`BUTTON_RADIUS`, `DOCK_PILL_RADIUS`, `DIALOG_RADIUS`), layer recipes (`ACTION_DOCK_TRAY`, `LIQUID_GLASS_BUTTON`, `SECTION_DOCK_CHIP_GLASS`, …) |
+| 2 | `packages/hcw-ui-kit/src/chrome-sx.ts` | Shared MUI `sx` helpers (`actionDockButtonSx`, `sectionDockChipSx`, …) |
+| 3 | Kit component | `ActionDock.tsx`, `SectionDock.tsx`, `theme.ts` (`MuiDialog`, `MuiButton`, …) |
+| 4 | `packages/hcw-ui-kit/src/portal-chrome.scss` | Portal-wide class enforcement (imported once in `frontend/src/main.tsx`) |
+| 5 | `/design-system` | Specimens must use **real kit components** or import `*Sx` helpers — not hand-rolled CSS |
+| 6 | `landing.scss` | **Layout/editorial only** (contours, marketing atmosphere, hero grid). No duplicate glass recipes |
+
+After editing the kit in Docker dev, sync or restart `esti-frontend` so the bind
+mount picks up `packages/hcw-ui-kit/src` (Windows mounts can lag).
 
 ## Thesis — *depth encodes importance*
 
@@ -27,10 +46,20 @@ Mnemonic: **Flat = info at rest · Soft = objects you handle · Glass = actions 
 alerts that rise to the top.** The single Radiant-Orange accent concentrates in
 Layer 3, so *actionability itself* is what glows.
 
+**Shape:** `RADIUS` is **0** on every surface (panels, inputs, rails, menus,
+chips). **`BUTTON_RADIUS` (4px)** on generic `MuiButton`. **`DOCK_PILL_RADIUS`
+(capsule / 9999px)** on the **ActionDock tray** (`ACTION_DOCK_TRAY`) and dock
+buttons (flat pill at rest → liquid-glass capsule on hover). **`DIALOG_RADIUS`
+(8px)** on `MuiDialog` paper.
+
+**Tabs:** rectangular, **transparent** (no selected fill). The active tab shows a
+**top alert line** (`TAB_ALERT_WIDTH` inset rule in Radiant Orange) — not a
+bottom slider or background wash.
+
 In code the layer recipes are tokens (`LAYERS.flat|soft|glass|clearGlass|headingGlass`,
-`NEU_RAISED`, `GLASS_SURFACE`, `CLEAR_GLASS_SURFACE`, `HEADING_GLASS_SURFACE`, the
-recessed `NEU_INSET` for inputs, `NEU_POP` for dialogs), and the
-`<Surface layer="…">` primitive applies them:
+`NEU_RAISED`, `ACTION_DOCK_TRAY`, `GLASS_SURFACE`, `CLEAR_GLASS_SURFACE`,
+`HEADING_GLASS_SURFACE`, the recessed `NEU_INSET` for inputs, `NEU_POP` for
+dialogs), and the `<Surface layer="…">` primitive applies them:
 
 ```tsx
 <Surface layer="soft" sx={{ p: 2 }}>…a summary card…</Surface>        // Layer 2
@@ -62,7 +91,7 @@ glows, nothing does (Von Restorff / depth-encodes-importance).
 │  │ identity · telemetry       │  stage head (zone health, KPIs)           │
 │  │ section tabs · filters     │  tables (L1) · panels (L2) · dialogs     │
 │  │ module toggles (bottom)    │                                          │
-│  │                            │        ╭── ActionDock (L2→L3) ──╮        │
+│  │                            │        ╭─ ActionDock capsule (L2→L3) ─╮       │
 │  │  ← fixed full viewport     │        │ ⌫ │ ＋ new │ 💾 save │          │
 │  └────────────────────────────┘                                          │
 ├──────────────────────────────────────────────────────────────────────────┤
@@ -75,7 +104,7 @@ glows, nothing does (Von Restorff / depth-encodes-importance).
 | **Rail** | 20% | **Glass (L3)** — frosted panel, full viewport height on desktop | Fixed **instruments**: identity/greeting, telemetry, health summaries, vertical section tabs, filters, module toggles (`mt: auto` at bottom). Scrolls internally (hidden scrollbar). **Auth panels (login, signup, recovery) live here — never on the stage.** |
 | **Stage** | 80% | Flat (L1) + soft cards (L2) | **Working surface**: stage-head metrics (e.g. zone health row), DataGrids, editors, tab bodies. **Scrolls independently** on desktop; the page shell does not scroll. |
 | **TaskbarFooter** | full width | Glass (L3) | **Calculator LEFT**; launcher cluster **CENTRE** (Studio Intelligence · Tasks · Ask ESTI · Wellbeing · Pomodoro); **system tray RIGHT** (due count · alerts · ID card · office health when not stable · clock · sign out). Admin menu lives in the **header ribbon**, not the footer. |
-| **ActionDock** | floats bottom-centre | Soft → glass on hover | The one **global, context-aware** action bar. **All page-level CTAs live here, not inline.** |
+| **ActionDock** | floats bottom-centre | Soft capsule tray → glass pill buttons on hover | The one **global, context-aware** action bar. **All page-level CTAs live here, not inline.** Tray uses `ACTION_DOCK_TRAY`; buttons are capsule pills. |
 
 **Rollout queue:** [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md) — clone the
 Studio Intelligence rail to every `RailLayout` screen and move login into the rail.
@@ -86,15 +115,31 @@ Studio Intelligence rail to every `RailLayout` screen and move login into the ra
 landings, Investors) via `frontend/src/components/landing/MarketingShell.tsx` +
 `frontend/src/landing.scss`.
 
-Marketing reuses the same **Rail · Stage · ActionDock** spatial model as the
-workspace, with these deliberate differences:
+Marketing reuses the same **Rail · Stage** spatial model as the workspace, with
+**SectionDock** instead of ActionDock:
 
 | Region | Marketing rule |
 |--------|----------------|
-| **Rail** | Glass nav only — brand logo, section links, value-prop line, HCW mark. **No Create / Sign-in buttons** (those are dock-only). Default **expanded** on desktop; user may collapse. |
+| **Rail** | Clear glass **floating card** · **open** (240px, icon + label nav) or **collapsed** (56px icon strip + pill tooltips on hover). Chevron toggle in header; state persists in `localStorage`. Brand, tagline, **Pages** nav, HCW mark. |
 | **Stage** | Scrolls the long-form page; single `#lp2-main` landmark (do not nest `<main>`). |
-| **TaskbarFooter** | **Absent** on marketing — dock sits closer to the viewport bottom (`--esti-dock-bottom: 24px`). |
-| **ActionDock** | **Sole** locus for Create account (CENTER) and Sign in (RIGHT). Mount `ActionDockProvider` inside `MarketingShell` because public routes sit outside the app shell. |
+| **TaskbarFooter** | **Absent** on marketing. |
+| **SectionDock** | **Replaces ActionDock** — rounded glass carousel (`SectionDock` in kit) with scroll-spy active section, prev/next chips. In-page anchors only (`sectionLinks` prop). |
+
+
+#### Marketing rail — open / collapsed (reference pattern)
+
+Desktop marketing uses a **floating clear-glass card** (`$lp2-rail-radius: 20px`, inset
+`$lp2-rail-gutter: 12px` from the viewport) — not an edge-to-edge strip:
+
+| State | Width | Chrome |
+|-------|-------|--------|
+| **Open** | 240px | Logo + wordmark · chevron collapse · section label · icon + label nav rows · footer |
+| **Collapsed** | 56px | Brand mark only · icon-only nav · **pill tooltip** on hover/focus (Radiant Orange, `DOCK_PILL_RADIUS`) |
+
+Toggle persists in `localStorage` (`aorms-marketing-rail-collapsed`). Implementation:
+`MarketingShell.tsx`, `MarketingRailNav.tsx`, `landing.scss` (`.lp2-rail--collapsed`).
+
+Mobile (≤900px) keeps the full-width overlay drawer — no collapsed strip.
 
 #### Hero composition (brand test)
 
@@ -103,7 +148,7 @@ First viewport must read as **one composition**:
 1. **AORMS logo** (`<AormsLogo variant="hero" />` — CSS-mask `/aorms-logo.png`, Radiant Orange) — **not** plain text “AORMS”
 2. One headline (`h1`)
 3. One short supporting sentence
-4. **No** signal chips, stats, or CTAs in the hero — CTAs are in the ActionDock
+4. **No** signal chips, stats, or CTAs in the hero — section nav is in SectionDock; sign-in on `/login`
 
 #### Contour atmosphere (Layer 0)
 
@@ -174,7 +219,7 @@ Documented exception in `glass.scss` (blur/rgba). **U6 (2026-07):** layout
 primitives live in `@hcw/ui-kit` (`GlassRail`, `HealthGlassOrb`, `Surface`).
 `glass.scss` retains Studio pulse, orb CSS, and frosted panel recipes only:
 
-- `border: 1px solid rgba(255,255,255,0.5)` · `border-radius: 14px`
+- `border: 1px solid rgba(255,255,255,0.5)` · `border-radius: 0` (square — rounded corners are **buttons only**, `BUTTON_RADIUS`)
 - Background: `linear-gradient(145deg, rgba(255,255,255,0.44), rgba(255,255,255,0.2))`
 - `backdrop-filter: blur(12px) saturate(1.2)` + soft outer shadow + inset highlight
 - `padding: 12px` · `gap: 12px` column flex
@@ -186,7 +231,8 @@ primitives live in `@hcw/ui-kit` (`GlassRail`, `HealthGlassOrb`, `Surface`).
 2. **Attention** — one-line `body2` secondary issue/action
 3. **Telemetry sections** — `overline` label + content; use hairline `borderTop` /
    `borderBottom` between bands (Today grid, office health, due dates)
-4. **Section tabs** — vertical MUI tabs, left-aligned (`.MuiTab-root` in rail SCSS)
+4. **Section tabs** — vertical MUI tabs, left-aligned, **rectangular · no fill · inset
+   top alert line** on selected (theme `MuiTab`; rail SCSS left-align only)
 5. **Module toggles** — icon · label · `Switch` per row; `mt: "auto"` pins to bottom
 
 **Office health** (single glass orb + state word) belongs in the **rail**.
@@ -232,9 +278,10 @@ which lays them out in three fixed zones so the geography is identical everywher
 | **RIGHT** | commit | Save · Edit · Save-changes · Confirm | `primary` (orange) |
 
 Create in the middle, commit on the right, destroy on the left — muscle memory
-across the whole product (and Fitts's-law-friendly big targets). Dock buttons are
-neumorphic at rest and **lift to glass on hover**. The dock hides itself when no
-screen has published actions.
+across the whole product (and Fitts's-law-friendly big targets). The dock tray is
+a **neumorphic capsule** (`ACTION_DOCK_TRAY`); dock buttons are **flat pills at
+rest** and **lift to liquid-glass capsules** on hover/focus. The dock hides itself
+when no screen has published actions.
 
 ```tsx
 // In a screen — declare actions; they appear in the dock, clear on unmount.
@@ -252,7 +299,7 @@ useScreenActions(
 
 ```tsx
 import {
-  MuiRoot, ActionDockProvider, ActionDock, TaskbarFooter, TaskbarButton,
+  MuiRoot, ActionDockProvider, ActionDock, SectionDock, TaskbarFooter, TaskbarButton,
   GlassRail, Surface, useScreenActions, HealthGlassOrb,
 } from "@hcw/ui-kit";
 
@@ -311,7 +358,7 @@ Package README: [`packages/hcw-ui-kit/README.md`](../../packages/hcw-ui-kit/READ
 - Layer 3 via theme: button hover glass; error/warning alerts tinted glass.
 
 **Remaining (incremental):**
-1. Estimate app E1 UI pivot when `estimate/` lands — same kit mount pattern.
+1. Estimate app E1 UI pivot — **archived** ([ESTIMATE-AUTOPILOT-ROADMAP.md](../archive/esti/ESTIMATE-AUTOPILOT-ROADMAP.md)); active cost UI follows CMS rebuild.
 2. Optional: marketing SCSS rail/heads import kit clear-glass tokens instead of
    duplicated rgba recipes.
 3. Optional further shrink of `glass.scss` once orb class aliases fully migrate

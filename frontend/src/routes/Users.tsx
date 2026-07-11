@@ -128,7 +128,7 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
   });
 
   useScreenActions(
-    embedded
+    embedded || addOpen || reset !== null || link !== null
       ? []
       : [
           {
@@ -148,8 +148,17 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
             onClick: () => resync.mutate(),
           },
         ],
-    [embedded, resync.isPending],
+    [embedded, addOpen, reset, link, resync.isPending],
   );
+
+  const createBlockedReason =
+    !form.email.trim()
+      ? "Enter a login email."
+      : form.fullName.trim().length < 2
+        ? "Full name must be at least 2 characters."
+        : form.password.length < 8
+          ? "Temporary password must be at least 8 characters."
+          : null;
 
   const columns: GridColDef[] = [
     { field: "email", headerName: "Email", flex: 1.4, minWidth: 200 },
@@ -360,15 +369,24 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
             <TextField
               id="u-name"
               label="Full name"
+              autoComplete="name"
               value={form.fullName}
               onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
+              helperText={
+                form.fullName.length > 0 && form.fullName.trim().length < 2
+                  ? "At least 2 characters."
+                  : "Shown on ID cards and assignments."
+              }
+              error={form.fullName.length > 0 && form.fullName.trim().length < 2}
             />
             <TextField
               id="u-email"
               label="Login email"
               type="email"
+              autoComplete="email"
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              helperText={!form.email.trim() ? "Required for sign-in." : undefined}
             />
             <TextField
               id="u-role"
@@ -390,9 +408,21 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
               id="u-pw"
               label="Temporary password (min 8 chars)"
               type="password"
+              autoComplete="new-password"
               value={form.password}
               onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+              helperText={
+                form.password.length > 0 && form.password.length < 8
+                  ? "Use at least 8 characters."
+                  : "They can change this after first login."
+              }
+              error={form.password.length > 0 && form.password.length < 8}
             />
+            {createBlockedReason && !createStaff.isPending && (
+              <Typography variant="caption" color="text.secondary">
+                {createBlockedReason}
+              </Typography>
+            )}
             {createStaff.error && (
               <Alert severity="error">{createStaff.error.message}</Alert>
             )}

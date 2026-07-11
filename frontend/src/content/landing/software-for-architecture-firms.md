@@ -1,4 +1,4 @@
----
+﻿---
 title: Choosing The Right System
 metaTitle: Software for Architecture Firms: Buyer's Guide
 metaDescription: A practical buyer's guide to software for architecture firms — the must-have checklist and why purpose-built beats generic tools plus spreadsheets in India.

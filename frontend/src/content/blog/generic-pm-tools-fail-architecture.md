@@ -1,9 +1,9 @@
----
+﻿---
 title: Why generic project management tools fail architecture firms
 date: 2026-06-10
-excerpt: Trello, Asana, Monday and the rest weren't built for drawings, revisions, COA fees, GST, approvals, or site delivery. A detailed look at why generic project tools never fit an architecture practice — and what does.
+excerpt: Generic task boards and trackers were not built for drawings, revisions, COA fees, GST, approvals, or site records. Why generic tools never fit an architecture consultancy — and what does.
 tags: Operations, Workflow
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 Almost every growing architecture practice goes through the same cycle. Frustrated
@@ -21,10 +21,10 @@ what a fit-for-purpose system looks like instead.
 
 ## The promise and the disappointment
 
-Generic project tools — Trello, Asana, Monday, ClickUp, Notion, and their many
-cousins — are genuinely good at what they were built for: tracking tasks, assigning
-owners, and visualising progress across a team. For a software team, a marketing
-department, or a general consultancy, they fit well.
+Generic project tools — task boards, generic trackers, all-in-one workspace builders,
+and their many cousins — are genuinely good at what they were built for: tracking
+tasks, assigning owners, and visualising progress across a team. For a software team,
+a marketing department, or a general consultancy, they fit well.
 
 The disappointment in an architecture practice comes from a specific place. The *real*
 units of an architecture project are not tasks. They are drawings with revision
@@ -115,15 +115,15 @@ distortion.
 
 ## "But we'll just customise a flexible tool"
 
-The most common objection at this point is that modern tools are flexible — Notion,
-Airtable, a heavily customised board — and a determined firm can *build* the missing
-structure itself. This is true in the narrow sense and a trap in the broad one.
+The most common objection at this point is that modern tools are flexible — configurable
+workspaces, databases, and heavily customised boards — and a determined firm can *build*
+the missing structure itself. This is true in the narrow sense and a trap in the broad one.
 
 You can, with enough effort, create a database of drawings with revision fields, a table
 of fees, and a board of approvals inside a flexible tool. But three problems follow.
 First, you have just taken on a **software project** — design, build, and maintenance —
 inside a firm whose business is architecture, not software. Someone has to own it,
-forever. Second, the pieces stay **disconnected**: even a clever Notion build rarely
+forever. Second, the pieces stay **disconnected**: even a clever custom workspace build rarely
 links a revision to its drawing to its approval to its invoice to a site record in a
 way that holds up, because those relationships are genuinely hard to model. Third, none
 of it understands the **domain**: your custom build has no idea what a GST split is, what

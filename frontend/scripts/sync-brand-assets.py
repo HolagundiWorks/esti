@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Copy ESTI/AORMS logos and favicons from logo resources/ into frontend/public/."""
+"""Copy ESTI/AORMS logo masters from docs/esti/assets/brand/ into frontend/public/."""
 
 from __future__ import annotations
 
@@ -11,10 +11,12 @@ import numpy as np
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
-LR = ROOT / "logo resources"
+LR = ROOT / "docs" / "esti" / "assets" / "brand"
 PUB = ROOT / "frontend" / "public"
 ESTI_BLUE = (15, 98, 254, 255)
+AORMS_ORANGE = (255, 79, 24, 255)
 WHITE = (255, 255, 255, 255)
+AORMS_MARK = "aorms-mark.png"
 
 
 def trim_alpha(im: Image.Image, pad: int = 4) -> Image.Image:
@@ -89,8 +91,69 @@ def aorms_white_wordmark(src: Path, dest: Path) -> None:
     trim_alpha(Image.fromarray(arr), pad=8).save(dest)
 
 
+def _wordmark_glyph_groups(wordmark: Image.Image) -> list[tuple[int, int]]:
+    """Column runs of opaque pixels in a trimmed AORMS wordmark (a · o · r · m · s)."""
+    arr = np.array(wordmark.convert("RGBA"))
+    mask = arr[:, :, 3] > 10
+    counts = mask.sum(axis=0)
+    groups: list[tuple[int, int]] = []
+    in_letter = False
+    start = 0
+    for x, count in enumerate(counts):
+        if count > 3:
+            if not in_letter:
+                start = x
+                in_letter = True
+        elif in_letter:
+            groups.append((start, x))
+            in_letter = False
+    if in_letter:
+        groups.append((start, wordmark.width))
+    return groups
+
+
+def aorms_mark_silhouette(im: Image.Image) -> Image.Image:
+    """Black silhouette on transparent — CSS mask source (same law as esti-mark-black)."""
+    arr = np.array(im.convert("RGBA"))
+    logo = arr[:, :, 3] > 10
+    arr[:, :, 0] = 0
+    arr[:, :, 1] = 0
+    arr[:, :, 2] = 0
+    arr[:, :, 3] = np.where(logo, 255, 0)
+    return trim_alpha(Image.fromarray(arr), pad=4)
+
+
+def extract_aorms_mark(wordmark: Image.Image) -> Image.Image:
+    """Isolate the first letter ('a') from the AORMS typography wordmark."""
+    groups = _wordmark_glyph_groups(wordmark)
+    if not groups:
+        raise ValueError("No glyphs found in AORMS wordmark")
+    x0, x1 = groups[0]
+    pad = 4
+    crop = wordmark.crop(
+        (max(0, x0 - pad), 0, min(wordmark.width, x1 + pad), wordmark.height)
+    )
+    return aorms_mark_silhouette(crop)
+
+
+def make_aorms_badge(size: int, bg: tuple[int, int, int, int], fg: tuple[int, int, int, int]) -> Image.Image:
+    mark = Image.open(PUB / AORMS_MARK).convert("RGBA")
+    mark_arr = np.array(mark)
+    glyph = mark_arr[:, :, 3] > 10
+    mark_arr[glyph, 0] = fg[0]
+    mark_arr[glyph, 1] = fg[1]
+    mark_arr[glyph, 2] = fg[2]
+    mark_arr[glyph, 3] = 255
+    mark = Image.fromarray(mark_arr)
+    canvas = Image.new("RGBA", (size, size), bg)
+    target = int(size * 0.72)
+    mark.thumbnail((target, target), Image.Resampling.LANCZOS)
+    canvas.alpha_composite(mark, ((size - mark.width) // 2, (size - mark.height) // 2))
+    return canvas
+
+
 def favicon_sizes() -> None:
-    frame = make_esti_badge(512, ESTI_BLUE, WHITE)
+    frame = make_aorms_badge(512, AORMS_ORANGE, WHITE)
     for size, name in [
         (16, "favicon-16x16.png"),
         (32, "favicon-32x32.png"),
@@ -124,6 +187,11 @@ def make_esti_badge(size: int, bg: tuple[int, int, int, int], fg: tuple[int, int
 
 
 def main() -> None:
+    if not LR.is_dir():
+        raise SystemExit(
+            f"Brand source folder missing: {LR}\n"
+            "Place logo masters there (see docs/esti/assets/brand/README.md)."
+        )
     PUB.mkdir(parents=True, exist_ok=True)
     make_esti_badge(512, ESTI_BLUE, WHITE).save(PUB / "esti-logo.png")
     make_esti_badge(512, WHITE, ESTI_BLUE).save(PUB / "esti-logo-inverted.png")
@@ -133,7 +201,11 @@ def main() -> None:
     trim_alpha(drop_near_white(Image.open(LR / "etsi wb.png"))).save(
         PUB / "esti-mark-black.png"
     )
-    aorms_light_wordmark(LR / "aorms black.png", PUB / "aorms-logo.png")
+    aorms_wordmark = trim_alpha(
+        flood_remove_black_background(Image.open(LR / "aorms black.png")), pad=8
+    )
+    aorms_wordmark.save(PUB / "aorms-logo.png")
+    extract_aorms_mark(aorms_wordmark).save(PUB / AORMS_MARK)
     aorms_white_wordmark(LR / "aorms white.png", PUB / "aorms-logo-white.png")
     trim_alpha(Image.open(LR / "esticad logo.png")).save(PUB / "esticad-logo.png")
     shutil.copy2(LR / "hcw black.png", PUB / "hcw-black.png")

@@ -1,9 +1,9 @@
----
+﻿---
 title: Why architecture firms lose projects due to poor client communication
 date: 2026-06-23
 excerpt: Most lost architecture projects aren't lost on design — they're lost in slow, scattered, undocumented client communication. A deep look at where it breaks, what it costs, and how to fix it for good.
 tags: Client, Operations
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 Ask a principal architect why a project went badly and you will rarely hear "the

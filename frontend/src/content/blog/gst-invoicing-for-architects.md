@@ -1,9 +1,9 @@
----
+﻿---
 title: GST invoicing for Indian architecture practices, done right
 date: 2026-06-12
 excerpt: SAC codes, CGST/SGST vs IGST, TDS net receivable, and composition levy — the details that keep fee recovery on track and your filing clean at every stage.
 tags: Finance, Compliance, India
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 Architectural services in India are billed under **SAC 998322**. Getting the

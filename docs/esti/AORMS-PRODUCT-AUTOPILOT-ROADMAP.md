@@ -136,7 +136,7 @@
 
 **Verify:** Cold launch Estimate → login → pick project → export → import in AORMS project.
 
-Cross-ref: [ESTIMATE-AUTOPILOT-ROADMAP.md](ESTIMATE-AUTOPILOT-ROADMAP.md) E5.
+Cross-ref: archived [ESTIMATE-AUTOPILOT-ROADMAP.md](../archive/esti/ESTIMATE-AUTOPILOT-ROADMAP.md) E5.
 
 ---
 

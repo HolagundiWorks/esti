@@ -1,27 +1,15 @@
 import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
-import { Box, Button, Chip, CircularProgress, Stack, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
 import Login from "./Login";
 import AdminApp from "./admin/AdminApp";
 import { PortalShell } from "../components/portal/PortalShell.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { fetchMe, logout, type Me } from "./lib/auth";
 
 const Companies = lazy(() => import("./Companies"));
 const Credentials = lazy(() => import("./Credentials"));
 const RequestPlan = lazy(() => import("./RequestPlan"));
 const Security = lazy(() => import("./Security"));
-
-function TagChip({ color, label }: { color: string; label: string }) {
-  return (
-    <Chip
-      label={label}
-      size="small"
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 const Loading = () => (
   <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
@@ -102,7 +90,7 @@ export default function Panel() {
           <Stack spacing={2}>
             {me.activeOrg && (
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                <TagChip color="blue" label={`Working in: ${me.activeOrg.name}`} />
+                <StatusDot color="blue" label={`Working in: ${me.activeOrg.name}`} />
               </Stack>
             )}
             <RequestPlan />

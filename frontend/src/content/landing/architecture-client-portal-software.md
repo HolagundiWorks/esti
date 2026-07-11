@@ -1,4 +1,4 @@
----
+﻿---
 title: Architecture Client Portal Software
 metaTitle: Architecture Client Portal — Approvals, MoM, Revision Requests & ESTI
 metaDescription: Architecture client portal for Indian firms — clients read issued MoM, submit ESTI-drafted revision requests, approve the architect's criticality assessment, and confirm drawings. Nothing reaches the site without a portal approval.

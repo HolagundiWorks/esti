@@ -1,4 +1,4 @@
----
+﻿---
 title: Time and attendance for architecture practices
 metaTitle: Architecture Timesheet & Time Tracking Software
 metaDescription: Architecture timesheet and time tracking software for Indian firms — daily attendance, time attributed to projects and tasks, and fair ASPRF scoring.

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { MarketingFooter } from "../components/landing/MarketingFooter.js";
+import { AORMS_STUDIO, AORMS_PLATFORM, EMOI } from "../lib/product-nomenclature.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 
 const CONTACT_EMAIL = "hi@aorms.in";
@@ -13,10 +13,10 @@ const SITE = "https://aorms.in";
  */
 export function About() {
   useEffect(() => {
-    const title = "About AORMS — built by an architecture practice, for Indian practices";
+    const title = `About ${AORMS_PLATFORM.name} — platform and ${AORMS_STUDIO.title}`;
     const description =
-      "AORMS is built by Holagundi Consulting Works for Indian architecture practices — projects, drawings, revisions, COA fees and GST billing on one honest record. Meet the team and the thinking behind it.";
-    document.title = `${title} — AORMS`;
+      `${AORMS_PLATFORM.name} (${AORMS_PLATFORM.expansion}) — operational and design frameworks for advisory consulting offices. ${AORMS_STUDIO.title} is the shipping architecture workspace for Indian consultancies. Built by Human Centric Works.`;
+    document.title = `${title} — ${AORMS_PLATFORM.name}`;
     const set = (sel: string, attr: "content" | "href", val: string) =>
       document.querySelector(sel)?.setAttribute(attr, val);
     set('meta[name="description"]', "content", description);
@@ -49,8 +49,8 @@ export function About() {
         {
           "@type": "Organization",
           "@id": `${SITE}/#organization`,
-          name: "Holagundi Consulting Works",
-          alternateName: "AORMS",
+          name: "Human Centric Works",
+          alternateName: [AORMS_PLATFORM.name, AORMS_STUDIO.title],
           url: SITE,
           email: CONTACT_EMAIL,
           telephone: "+91-89510-89191",
@@ -62,7 +62,12 @@ export function About() {
           },
           areaServed: "IN",
           knowsAbout: [
-            "Architecture practice management",
+            AORMS_PLATFORM.expansion,
+            EMOI.expansion,
+            "Operational framework",
+            "Design framework",
+            "Advisory consulting",
+            "Architecture consultancy operations",
             "COA fee stages",
             "GST invoicing for architecture services",
             "Design revision tracking",
@@ -82,26 +87,42 @@ export function About() {
   }, []);
 
   return (
-      <MarketingShell>
-        <main id="main-content" className="esti-blog">
-          <header className="esti-blog__head">
-            <h1>About AORMS</h1>
-            <p>
-              Built by an architecture practice's operations discipline, for Indian architecture
-              practices — one honest record for projects, drawings, revisions, fees and billing.
-            </p>
-          </header>
+    <MarketingShell contours tagline="About AORMS">
+      <div className="lp2-ds">
+        <header className="lp2-section-head lp2-reveal" id="top">
+          <p className="lp2-section-head__tag">About</p>
+          <h1 className="lp2-section-head__title">About {AORMS_PLATFORM.name}</h1>
+          <p className="lp2-section-head__body">
+            Operational and design frameworks for consulting offices that advise — with{" "}
+            <strong>{AORMS_STUDIO.title}</strong> as the first live workspace for Indian
+            architecture consultancies.
+          </p>
+        </header>
 
-          <article className="esti-blog-article">
-            <div className="esti-blog-article__body">
-              <h2>Who makes AORMS</h2>
+        <article className="lp2-seo-article lp2-reveal">
+          <div className="lp2-seo-article__body lp2-prose">
+              <h2>The platform</h2>
               <p>
-                AORMS — the Architecture Office Resource Management System — is designed and built by{" "}
-                <strong>Holagundi Consulting Works</strong>, based in Hospet, Karnataka. It is not a
-                generic project tool retro-fitted to architecture. Every screen is shaped around how
-                an Indian consultancy practice actually runs: enquiry to fee proposal, concept to
-                working drawings, statutory approvals, revisions, GST invoicing, and site
-                supervision — on one project record.
+                <strong>{AORMS_PLATFORM.name}</strong> ({AORMS_PLATFORM.expansion}) gives advisory
+                consulting offices an <strong>operational framework</strong> (how the practice runs)
+                and a <strong>design framework</strong> (how engagements are structured) on one spine,
+                governed by <strong>{EMOI.name}</strong> ({EMOI.expansion}). We are not in solution
+                delivery or client project management.
+              </p>
+              <p>
+                <a href="/">Platform home</a> · <a href="/wiki/aorms-studio">Wiki</a> ·{" "}
+                <a href="/blog/aorms-platform-operational-design-frameworks">Platform overview (blog)</a>
+              </p>
+
+              <h2>Who makes {AORMS_STUDIO.title}</h2>
+              <p>
+                <strong>{AORMS_STUDIO.title}</strong> — the architecture vertical on{" "}
+                <strong>{AORMS_PLATFORM.name}</strong> ({AORMS_PLATFORM.expansion}) — is designed
+                and built by <strong>Human Centric Works</strong>, based in Hospet,
+                Karnataka. It is not a generic project tool retro-fitted to architecture. Every
+                screen is shaped around how an Indian consultancy practice actually runs: enquiry to
+                fee proposal, concept to working drawings, statutory approvals, revisions, GST
+                invoicing, and site supervision — on one project record.
               </p>
 
               <h2>Why we built it</h2>
@@ -164,17 +185,15 @@ export function About() {
               <p>
                 We would rather have a real conversation than a sales funnel. Write to{" "}
                 <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> or{" "}
-                <a href="/account?mode=create">create your AORMS account</a> and try it on a
-                real project.
+                <strong>Create account</strong> in the dock below and try it on a real project.
               </p>
               <p>
-                Holagundi Consulting Works · Hospet, Karnataka, India<br />
+                Human Centric Works · Hospet, Karnataka, India<br />
                 <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> · +91 89510 89191
               </p>
             </div>
           </article>
-        </main>
-        <MarketingFooter />
-      </MarketingShell>
+      </div>
+    </MarketingShell>
   );
 }

@@ -4,7 +4,6 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -15,6 +14,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { StatusDot } from "../components/StatusTag.js";
 import {
   type CompanyIdStatus,
   type Me,
@@ -40,18 +40,6 @@ const CREATE_ERRORS: Record<string, string> = {
   domain_unverified: "Verify your email first to claim a login domain.",
 };
 
-function TagChip({ color, label }: { color: string; label: string }) {
-  return (
-    <Chip
-      label={label}
-      size="small"
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 /** Self-serve activation: create a company, join one, invite people, or leave. */
 export default function Companies({
@@ -349,7 +337,7 @@ export default function Companies({
         {me.memberships.length > 0 ? (
           <Stack direction="row" spacing={1}>
             {me.memberships.map((m) => (
-              <TagChip
+              <StatusDot
                 key={m.org.publicId ?? m.org.slug}
                 color={STATUS_TAG[m.role] ?? "cool-gray"}
                 label={`${m.org.name} · ${m.role}`}

@@ -31,8 +31,8 @@ export function ConfirmModal({
   onClose: () => void;
 }) {
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle>{heading}</DialogTitle>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs" aria-labelledby="confirm-modal-title">
+      <DialogTitle id="confirm-modal-title">{heading}</DialogTitle>
       <DialogContent>{typeof body === "string" ? <p>{body}</p> : body}</DialogContent>
       <DialogActions>
         <Button onClick={onClose} variant="text" color="inherit">

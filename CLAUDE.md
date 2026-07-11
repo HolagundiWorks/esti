@@ -1,9 +1,15 @@
 # AORMS (`esti`) — agent instructions
 
-**AORMS** (Architecture Office Resource Management System) is the workspace —
-the product for Indian architecture practices, by Holagundi Consulting Works.
-**ESTI** (Embedded Studio Intelligence) is the intelligence/agent layer embedded
-in the AORMS workspace: ESTI AI, Ask ESTI, the cognition engine, ESTI Pulse.
+**AORMS** (**Accelerated Operational Resources Management System**) is the
+**platform** — consulting-firm operational consolidation with dual-tier AI.
+The **shipped workspace** in this monorepo is **AORMS-Studio** (slug `aorms-studio`, legacy
+slugs `hived` and `aorms-architecture`, Indian architecture practices). Nomenclature:
+[`docs/esti/AORMS-PLATFORM-NOMENCLATURE.md`](docs/esti/AORMS-PLATFORM-NOMENCLATURE.md).
+
+**ESTI** (Embedded Studio Intelligence) is the intelligence/agent layer in the
+**AORMS-Studio** workspace: ESTI AI, Ask ESTI, the cognition engine, ESTI Pulse.
+**EmOI** (Embedded Operational Intelligence) is the platform-wide intelligence layer
+for AORMS across other verticals.
 Code identifiers (`@esti/*` packages, `esti_*` tables, repo name) keep the
 `esti` codename.
 
@@ -11,12 +17,52 @@ Monorepo (pnpm workspaces): `packages/contracts`, `backend` (Fastify + tRPC +
 Drizzle), `frontend` (React + Vite), plus a Python `worker`. Services run via
 Docker Compose (`compose.yaml`).
 
+## Product naming (agent memory — 2026-07-10)
+
+**Canonical doc:** [`docs/esti/AORMS-PLATFORM-NOMENCLATURE.md`](docs/esti/AORMS-PLATFORM-NOMENCLATURE.md).
+**Executable constants:** `frontend/src/lib/product-nomenclature.ts` — import
+`AORMS_PLATFORM`, `AORMS_STUDIO`, `AORMS_VERTICALS`, `EMOI`, `ESTI` for user-facing copy; do
+not hard-code product strings in UI/SEO.
+
+| Name | Role |
+| --- | --- |
+| **AORMS** | Platform — *Accelerated Operational Resources Management System*; advisory consulting offices (risk, education, auditing, AEC); **not** solution delivery or client PM |
+| **AORMS-Studio** | Shipped AEC workspace from this repo — Indian architecture consultancies; SPA at **`app.aorms.in`** |
+| **AORMS-Compliance** | Risk-management vertical workspace (roadmap) |
+| **AORMS-Advisory** | Education vertical workspace (roadmap) |
+| **AORMS-Audit** | Auditing vertical workspace (roadmap) |
+| **EmOI** | Platform intelligence — dual-tier AI / RAG firewall |
+| **ESTI** | Workspace intelligence in **AORMS-Studio only** — Ask ESTI, Studio Intelligence, ESTI Pulse |
+| **`aorms-studio`** | URL/wiki **slug** — legacy slugs `hived`, `aorms-architecture` redirect |
+| **`esti`** | Repo codename — `@esti/*`, `esti_*` tables; never in marketing |
+
+**Retired terms (do not use in new copy):**
+
+- *Architecture Office Resource Management System* → **AORMS** (platform) or **AORMS-Studio** (workspace)
+- **AORMS portal** / **AORMS-Architecture** / **HiveD** (staff workspace) → **AORMS-Studio** — client/consultant/**contractor** *portals* keep the word *portal*
+
+**Public marketing surfaces:**
+
+| Path | Role |
+| --- | --- |
+| `/` | Platform landing — operational + design frameworks, EmOI; hero in `product-nomenclature.ts` |
+| `/login`, `/demo` | Workspace entry → **AORMS-Studio** (legacy `/hived`, `/aorms-architecture` redirect) |
+| `/development` | Full platform technical spec (markdown) |
+| `/wiki` | Four-pillar wiki: HCW-UI · AORMS-Studio · AI core · Management |
+
+**Operator:** **Human Centric Works (HCW)** — design studio behind `@hcw/ui-kit` and AORMS.
+Landing/marketing brief: [`docs/marketing/LANDING-REDESIGN-CONTEXT.md`](docs/marketing/LANDING-REDESIGN-CONTEXT.md).
+
+When editing wiki markdown under `frontend/src/content/wiki/`, rebuild the AI wiki
+index if Ask ESTI should see changes: regenerate `backend/src/lib/ai/wiki-knowledge.generated.ts`
+via the repo’s wiki sync/build step.
+
 ## UI / design system — HCW-UI-KIT
 
 > **⚠️ CANONICAL (2026-07): `@hcw/ui-kit`** (*HCW-UI-Kit — Human Centric Works*,
 > `packages/hcw-ui-kit`) is the centralised, **layered** design system deployed
-> against **every** surface — app, panels, client/consultant portals, licensing
-> console, and the landing page. Full spec: **[`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md)**.
+> against **every** surface — **AORMS-Studio**, client/consultant portals,
+> licensing console, and the landing page. Full spec: **[`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md)**.
 > **`@carbon/react` was removed (2026-07).** The landing page (`Landing.tsx`,
 > `components/landing/**`, `landing.scss`) already used MUI components; the
 > Carbon *Sass* it depended on for theme colours and the type scale is now a

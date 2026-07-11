@@ -6,8 +6,8 @@
  *
  * The HCW-UI-Kit layer rules, encoded here so screens inherit them and never
  * re-specify them inline (full spec: docs/esti/HCW-UI-KIT.md):
- *  1. Layer 1 FLAT (hyperminimalist) — tables, text, surfaces at rest; the Radiant
- *     Orange accent carries white text; links use slate. One soft-square radius.
+ *  1. Layer 1 FLAT (hyperminimalist) — tables, text, surfaces at rest; square
+ *     corners (0 radius). Rounded corners: buttons 4px, dialogs 8px.
  *  2. Layer 2 SOFT (neumorphic) — dialogs and text-entry wells; objects you work
  *     within.
  *  3. Layer 3 GLASS (glassmorphism) — the live layer: BUTTON HOVER takes the
@@ -40,6 +40,7 @@ import {
   DD_FLAT,
   REDUCE_MOTION,
   FOCUS_RING,
+  TAB_ALERT_WIDTH,
 } from "./tokens.js";
 
 /** Build the AORMS MUI theme. Exposed as a factory so a portal can layer small
@@ -82,14 +83,14 @@ export function createAormsTheme(): Theme {
             backdropFilter: GLASS_BLUR,
             WebkitBackdropFilter: GLASS_BLUR,
             border: "none",
-            borderRadius: GLASS_RADIUS,
+            borderRadius: 0,
             boxShadow: GLASS_SHADOW,
           },
         },
       },
       MuiCard: {
         styleOverrides: {
-          root: { backgroundColor: CDS.background, border: "none", boxShadow: "none", borderRadius: GLASS_RADIUS },
+          root: { backgroundColor: CDS.background, border: "none", boxShadow: "none", borderRadius: 0 },
         },
       },
       MuiAccordion: {
@@ -220,14 +221,52 @@ export function createAormsTheme(): Theme {
       },
       MuiChip: {
         styleOverrides: {
-          root: { borderRadius: GLASS_RADIUS },
+          root: { borderRadius: 0 },
           colorPrimary: { backgroundColor: CDS.accent, color: CDS.onAccent },
         },
       },
-      MuiTabs: { styleOverrides: { indicator: { backgroundColor: CDS.accent, height: 3 } } },
+      MuiTabs: {
+        styleOverrides: {
+          root: {
+            minHeight: 40,
+            "&.MuiTabs-vertical .MuiTab-root": {
+              alignItems: "flex-start",
+              justifyContent: "flex-start",
+              textAlign: "left",
+              width: "100%",
+              maxWidth: "100%",
+            },
+          },
+          // Accent is an inset top rule on the tab — not a sliding bottom indicator.
+          indicator: { display: "none" },
+        },
+      },
       MuiTab: {
         styleOverrides: {
-          root: { textTransform: "none", "&.Mui-selected": { color: CDS.accent, fontWeight: 600 } },
+          root: {
+            textTransform: "none",
+            borderRadius: 0,
+            minHeight: 40,
+            minWidth: 0,
+            px: 1.5,
+            py: 1,
+            color: CDS.textSecondary,
+            backgroundColor: "transparent",
+            opacity: 1,
+            boxShadow: `inset 0 ${TAB_ALERT_WIDTH}px 0 0 transparent`,
+            transition: "color 130ms ease, box-shadow 130ms ease",
+            "&:hover": {
+              backgroundColor: "transparent",
+              color: CDS.textPrimary,
+            },
+            "&.Mui-selected": {
+              color: CDS.textPrimary,
+              fontWeight: 600,
+              backgroundColor: "transparent",
+              boxShadow: `inset 0 ${TAB_ALERT_WIDTH}px 0 0 ${CDS.accent}`,
+            },
+            "&.Mui-focusVisible": FOCUS_RING,
+          },
         },
       },
       MuiListItemButton: {
@@ -282,7 +321,7 @@ export function createAormsTheme(): Theme {
       MuiToggleButton: {
         styleOverrides: {
           root: {
-            borderRadius: GLASS_RADIUS,
+            borderRadius: BTN_RADIUS,
             "&.Mui-selected": {
               color: CDS.accent,
               backgroundColor: GLASS_ORANGE_30,
@@ -306,7 +345,7 @@ export function createAormsTheme(): Theme {
       MuiTooltip: {
         styleOverrides: {
           tooltip: {
-            borderRadius: GLASS_RADIUS,
+            borderRadius: 0,
             backgroundColor: "#141517",
             color: "#FFFFFF",
             border: "1px solid rgba(20, 21, 23, 0.20)",

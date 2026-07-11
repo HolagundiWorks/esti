@@ -1,4 +1,4 @@
----
+﻿---
 title: Run The Whole Firm
 metaTitle: Architecture Firm Management Software — Fee Recovery & Revision Control
 metaDescription: Architecture firm management software that ties the fee pipeline, invoice recovery, billing due dates, client revision tracking and team utilisation into one principal's view. Cloud-hosted, India-native.

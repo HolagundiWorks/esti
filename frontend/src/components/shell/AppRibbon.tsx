@@ -432,6 +432,7 @@ export function AppRibbon({
                 to={n.to}
                 variant="text"
                 color="inherit"
+                aria-current={pathActive(pathname, n.to) ? "page" : undefined}
                 onMouseEnter={closeMenus}
                 sx={navSx(pathActive(pathname, n.to))}
               >

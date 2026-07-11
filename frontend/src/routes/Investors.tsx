@@ -1,9 +1,6 @@
-import { Button } from "@mui/material";
-import DescriptionOutlined from "@mui/icons-material/DescriptionOutlined";
-import EmailOutlined from "@mui/icons-material/EmailOutlined";
 import { useEffect } from "react";
 import { AormsLogo } from "../components/AormsLogo.js";
-import { MarketingFooter } from "../components/landing/MarketingFooter.js";
+import { HcwAttribution } from "../components/brand/HcwAttribution.js";
 import { MarketingShell } from "../components/landing/MarketingShell.js";
 
 const DECK_URL = "/aorms-investor-deck.pdf";
@@ -37,8 +34,8 @@ const SLIDES = [
   {
     n: "05",
     kicker: "Product & moat",
-    title: "Deep domain encoding, not another dashboard",
-    body: "The moat is the depth: a cognition and architectural-reasoning engine that ranks tasks and reasons through missing data; a revision-intelligence model that separates billable client scope from internal error; in-browser estimation and BOQ; scoped client, contractor, and consultant portals; and a fair, anti-gaming team performance score. One standard cloud licence with unlimited users — usage-based storage and AI.",
+    title: "Deep domain encoding for advisory consultancies",
+    body: "The moat is depth in consulting-office operations: operational and design frameworks per industry; EmOI dual-tier intelligence; revision and approval models for architecture consultancies; governed knowledge and audit trails. One standard cloud licence with unlimited users — usage-based storage and AI.",
   },
   {
     n: "06",
@@ -50,7 +47,7 @@ const SLIDES = [
     n: "07",
     kicker: "Traction",
     title: "A working, demoable product — not a deck of mockups",
-    body: "The full office is built and live: projects, fees, GST invoicing, drawings, revisions, PMC site delivery, the construction-cost OS, the portals, and the cognition dashboard. A fully seeded demo practice can be opened in one click, and every number on its dashboard is computed from real records. This is shippable software, today.",
+    body: "The consultancy workspace is built and demoable: projects, fees, GST invoicing, drawings, revisions, client and consultant portals, Studio Intelligence, and ESTI. A fully seeded demo practice opens in one click; dashboard numbers are computed from real records. Platform frameworks and additional industry workspaces are on the roadmap.",
   },
 ];
 
@@ -58,7 +55,7 @@ export function Investors() {
   useEffect(() => {
     const title = "AORMS — Investor brief";
     const description =
-      "AORMS is an office intelligence system for Indian architecture practices — observe, reason, predict, recommend. Investor brief and pitch deck from Holagundi Consulting Works.";
+      "AORMS is an office intelligence system for Indian architecture practices — observe, reason, predict, recommend. Investor brief and pitch deck from Human Centric Works.";
     document.title = title;
     const set = (sel: string, attr: "content" | "href", val: string) =>
       document.querySelector(sel)?.setAttribute(attr, val);
@@ -72,52 +69,55 @@ export function Investors() {
   }, []);
 
   return (
-      <MarketingShell>
-      <div className="esti-investor">
-
-        <section className="esti-investor__hero">
-          <div className="esti-investor__brand" aria-label="AORMS">
+    <MarketingShell contours tagline="Investor brief" showConversionDock={false}>
+      <div className="lp2-ds">
+        <header className="lp2-section-head lp2-reveal" id="top">
+          <p className="lp2-section-head__tag">Investor brief</p>
+          <div className="lp2-hero__brand">
             <AormsLogo variant="hero" />
           </div>
-          <p className="esti-investor__eyebrow">Investor brief</p>
-          <h1>The office intelligence system for architecture practices.</h1>
-          <p className="esti-investor__lead">
+          <h1 className="lp2-section-head__title">
+            The office intelligence system for architecture practices.
+          </h1>
+          <p className="lp2-section-head__body">
             A continuous cognition engine that observes an architecture firm, reasons across its
             pressure points, predicts risk, and recommends the one action that matters — built
             India-native, from the ground up.
           </p>
-          <Button endIcon={<DescriptionOutlined />} href={DECK_URL}>
-            Download the pitch deck (PDF)
-          </Button>
-        </section>
+          <p className="lp2-prose lp2-prose--inline">
+            <a href={DECK_URL}>Download the pitch deck (PDF)</a>
+          </p>
+        </header>
 
-        <div className="esti-investor__slides">
+        <div className="lp2-investor-slides">
           {SLIDES.map((s) => (
-            <section key={s.n} className="esti-investor-slide">
-              <span className="esti-investor-slide__n">{s.n}</span>
-              <div className="esti-investor-slide__body">
-                <p className="esti-investor-slide__kicker">{s.kicker}</p>
-                <h2>{s.title}</h2>
-                <p>{s.body}</p>
+            <article key={s.n} className="lp2-tile lp2-investor-slide lp2-reveal">
+              <span className="lp2-investor-slide__n" aria-hidden>
+                {s.n}
+              </span>
+              <div className="lp2-investor-slide__body">
+                <p className="lp2-investor-slide__kicker">{s.kicker}</p>
+                <h2 className="lp2-investor-slide__title">{s.title}</h2>
+                <p className="lp2-investor-slide__text">{s.body}</p>
               </div>
-            </section>
+            </article>
           ))}
         </div>
 
-        <footer className="esti-investor__contact">
-          <p className="esti-investor-slide__kicker">The ask</p>
-          <h2>Let's talk</h2>
-          <p>
+        <footer className="lp2-ds-section lp2-investor-contact lp2-reveal">
+          <p className="lp2-investor-slide__kicker">The ask</p>
+          <h2 className="lp2-investor-contact__title">Let's talk</h2>
+          <p className="lp2-prose">
             We're raising to expand jurisdiction coverage, stand up the hosted offering, and build
             out go-to-market. If that's interesting, the deck is above — and so are we.
           </p>
-          <Button endIcon={<EmailOutlined />} href={`mailto:${CONTACT_EMAIL}`}>
-            {CONTACT_EMAIL}
-          </Button>
-          <p className="esti-investor__fineprint">Holagundi Consulting Works · AORMS</p>
+          <p className="lp2-prose lp2-prose--inline">
+            <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+          </p>
+          <HcwAttribution variant="inline" />
+          <p className="lp2-investor-contact__fine">Human Centric Works · AORMS</p>
         </footer>
       </div>
-      <MarketingFooter />
-      </MarketingShell>
+    </MarketingShell>
   );
 }

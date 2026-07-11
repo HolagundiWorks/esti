@@ -1,4 +1,4 @@
----
+﻿---
 title: Architecture Office Management Software
 metaTitle: Architecture Office Management Software — Fee Recovery, Revision Control & Project Record
 metaDescription: Architecture office management software for Indian practices — projects, drawings, revisions, COA fee recovery, GST billing, client revision approval chain and client portals in one connected record.
@@ -15,7 +15,7 @@ office management software** replaces that scatter with a single record of the
 office: every project, drawing, revision, fee, invoice, approval and client
 portal interaction in one place, connected.
 
-AORMS — the Architecture Office Resource Management System — is that record,
+**AORMS-Studio** — the architecture workspace on the AORMS platform — is that record,
 built specifically for Indian architecture practices rather than adapted from a
 generic project tool.
 
@@ -48,7 +48,7 @@ real work lives inside the system instead of around it.
 
 ## Why generic tools do not fit
 
-Trello, Asana, Monday and the rest were built for generic task tracking. They have
+Generic task boards and generic trackers were built for generic task tracking. They have
 no idea what a drawing revision is, what a COA fee curve looks like, what a GST
 split requires, or how the MoM-to-approval revision sequence should work. So a
 practice either flattens its real work into cards — losing all the meaning — or
@@ -113,7 +113,7 @@ billing, the MoM-to-approval revision chain, and client portals — into one off
 record. AORMS is built for this specifically, rather than adapted from a generic
 project tool.
 
-### How is it different from project management software like Asana or Trello?
+### How is it different from generic project management software?
 
 Generic project tools track tasks on a board. They have no concept of a drawing
 revision, a COA fee proposal, a GST-correct invoice, or the revision approval

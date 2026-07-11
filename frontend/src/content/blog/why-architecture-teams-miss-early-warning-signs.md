@@ -1,9 +1,9 @@
----
+﻿---
 title: Why architecture teams miss early project warning signs
 date: 2026-07-09
 excerpt: Late surprises are usually visible weeks earlier — in tasks, revisions, fees, and site notes. Studios miss them because signals live in different inboxes.
 tags: Operations, Practice, Team
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 The site call that blows up the programme. The invoice that should have gone out last
@@ -82,7 +82,7 @@ travels.
 Yes — especially small studios, where one person plays principal, PM, and biller.
 Automation replaces the "principal's head" as the integration layer.
 
-### What if we already use MS Project or Asana?
+### What if we already use a scheduling tool or generic task tracker?
 
 Keep them for schedules if they work. The gap is usually **commercial and approval**
 data, not Gantt bars. Integrate or replace the record layer, not every tool.
@@ -101,4 +101,4 @@ invoices. Studio Intelligence ranks what needs attention today. See
 
 ---
 
-*AORMS — cloud practice OS for Indian architects. [aorms.in/wiki](https://aorms.in/wiki)*
+*AORMS-Studio — advisory workspace for Indian consultancies. [aorms.in/wiki](https://aorms.in/wiki)*

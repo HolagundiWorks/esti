@@ -1,9 +1,9 @@
----
+﻿---
 title: The architecture project lifecycle, stage by stage
 date: 2026-07-04
 excerpt: A stage-by-stage walk-through of an Indian architecture project — enquiry to handover — mapped to COA stages, with the documents and decisions each stage produces.
 tags: Operations, Workflow, India
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 Every architecture project, from a single-plot residence in Mysuru to a campus in

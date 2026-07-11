@@ -1,9 +1,9 @@
----
+﻿---
 title: Why managing architecture projects on Excel eventually breaks down
 date: 2026-07-09
 excerpt: Spreadsheets work until they don't — when drawings, fees, revisions, and site data outgrow rows and tabs. Here is where Excel fails architecture offices and what replaces it.
 tags: Operations, Practice, Workflow
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 Excel is where many Indian architecture firms **start** — fee schedules, task lists,

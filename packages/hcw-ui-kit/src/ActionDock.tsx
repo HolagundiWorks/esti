@@ -7,9 +7,11 @@
  *   CENTER = generate         (Add · Create · New)             — orange (primary)
  *   RIGHT  = commit           (Save · Edit · Save changes)     — orange (primary)
  *
- * Buttons are neumorphic at rest (Layer 2) and lift to glass on hover (Layer 3) —
- * actionability itself is what glows. The dock floats bottom-centre, above the
- * taskbar footer, and hides when no screen has published actions.
+ * Buttons are flat pill at rest and lift to liquid-glass capsule on hover (Layer 3) — only
+ * text-entry wells use neumorphic inset depth. The dock tray itself is ACTION_DOCK_TRAY
+ * (NEU_RAISED capsule, Layer 2).
+ * The dock floats bottom-centre, above the taskbar footer, and hides when no screen
+ * has published actions.
  *
  * **Modal exception:** while a create/edit `Dialog` is open, publish `[]` so the
  * dock does not compete with `DialogActions` (commit stays in the dialog). Re-publish
@@ -30,7 +32,8 @@ import {
   type ReactNode,
 } from "react";
 import { Box, Button, Tooltip } from "@mui/material";
-import { colors, GLASS_SURFACE, NEU_RAISED, REDUCE_MOTION, FOCUS_RING } from "./tokens.js";
+import { actionDockButtonSx } from "./chrome-sx.js";
+import { ACTION_DOCK_TRAY, NEU_GROOVE_VERTICAL, colors } from "./tokens.js";
 
 export type DockZone = "left" | "center" | "right";
 export type DockTone = "default" | "primary" | "danger";
@@ -102,30 +105,17 @@ function DockButton({
   const ink = toneColor(action.tone);
   const btn = (
     <Button
+      className="hcw-action-dock-btn"
       ref={innerRef}
       tabIndex={tabIndex}
       onClick={action.onClick}
       disabled={action.disabled}
       startIcon={action.iconOnly ? undefined : action.icon}
       aria-label={action.label}
-      sx={{
-        ...NEU_RAISED,
-        color: ink,
-        minWidth: action.iconOnly ? 44 : 64,
-        px: action.iconOnly ? 1.25 : 2,
-        py: 1,
+      sx={actionDockButtonSx(ink, {
+        iconOnly: action.iconOnly,
         fontWeight: action.tone === "primary" ? 700 : 600,
-        transition: "transform 130ms ease, box-shadow 130ms ease, background 130ms ease",
-        "&:hover": { ...GLASS_SURFACE, color: ink, transform: "translateY(-3px)" },
-        // Keyboard parity: focus lifts to the glass slab and shows the accent ring.
-        "&:focus-visible": { ...GLASS_SURFACE, ...FOCUS_RING, color: ink, transform: "translateY(-3px)" },
-        "&.Mui-disabled": { opacity: 0.4 },
-        [REDUCE_MOTION]: {
-          transition: "none",
-          "&:hover": { transform: "none" },
-          "&:focus-visible": { transform: "none" },
-        },
-      }}
+      })}
     >
       {action.iconOnly ? action.icon : action.label}
     </Button>
@@ -140,7 +130,7 @@ function DockButton({
 }
 
 function Divider() {
-  return <Box aria-hidden sx={{ width: "1px", alignSelf: "stretch", my: 0.5, background: colors.borderSubtle }} />;
+  return <Box aria-hidden className="hcw-action-dock-divider" sx={NEU_GROOVE_VERTICAL} />;
 }
 
 export function ActionDock() {
@@ -217,6 +207,7 @@ export function ActionDock() {
 
   return (
     <Box
+      className="hcw-action-dock"
       role="toolbar"
       aria-label="Screen actions"
       aria-orientation="horizontal"
@@ -234,7 +225,7 @@ export function ActionDock() {
         gap: 1.5,
         px: 1.5,
         py: 1,
-        ...NEU_RAISED,
+        ...ACTION_DOCK_TRAY,
       }}
     >
       {zones.map((z, i) => (

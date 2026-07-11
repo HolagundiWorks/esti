@@ -1,9 +1,9 @@
----
+﻿---
 title: How to build an efficient drawing approval workflow for architecture projects
 date: 2026-06-06
 excerpt: Most delivery delays in architecture aren't drawing time — they're approval time. A complete, practical guide to designing a drawing approval workflow that keeps projects moving.
 tags: Workflow, Drawings
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 A drawing that is finished but stuck waiting for sign-off is a stalled project. This

@@ -1,9 +1,9 @@
----
+﻿---
 title: The hidden cost of untracked client revisions in architecture projects
 date: 2026-06-14
 excerpt: Untracked client revisions silently erode fee recovery — each absorbed request blends into the project until there is nothing left to bill. A clear look at the real cost, and how to make it visible.
 tags: Revisions, Finance
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 Rework is the visible cost of untracked client revisions. It is the cost practices talk

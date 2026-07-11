@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Sync frontend wiki markdown → backend ESTI product knowledge.
  * Run: node frontend/scripts/sync-wiki-knowledge.mjs
  * Wire into CI/prebuild when wiki content changes.

@@ -16,6 +16,21 @@
  * Full spec: docs/esti/HCW-UI-KIT.md.
  */
 export * from "./tokens.js";
+export {
+  DIALOG_RADIUS,
+  DOCK_PILL_RADIUS,
+  ACTION_DOCK_TRAY,
+  NEU_GROOVE_VERTICAL,
+  NEU_GROOVE_HORIZONTAL,
+  LIQUID_GLASS_BUTTON,
+  DOCK_BUTTON_LIFT,
+  SECTION_DOCK_CHIP_GLASS,
+} from "./tokens.js";
+export {
+  actionDockButtonSx,
+  sectionDockChipSx,
+  liquidGlassSpecimenSx,
+} from "./chrome-sx.js";
 export { createAormsTheme, aormsTheme } from "./theme.js";
 export { MuiRoot } from "./MuiRoot.js";
 export { BrandMark } from "./BrandMark.js";
@@ -30,4 +45,6 @@ export {
   useDockActions,
 } from "./ActionDock.js";
 export type { DockAction, DockZone, DockTone } from "./ActionDock.js";
+export { SectionDock } from "./SectionDock.js";
+export type { SectionDockLink } from "./SectionDock.js";
 export { TaskbarFooter, TaskbarButton, TASKBAR_HEIGHT } from "./TaskbarFooter.js";

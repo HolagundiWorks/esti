@@ -112,8 +112,17 @@ export function StaffProfilesTab() {
             return (
               <Paper
                 key={m.id}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSelected}
                 className={`esti-profile-member-tile${isSelected ? " esti-profile-member-tile--active" : ""}`}
                 onClick={() => setSelectedId(m.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelectedId(m.id);
+                  }
+                }}
                 sx={{ p: 2, cursor: "pointer" }}
                 style={{ "--esti-staff-color": color } as CSSProperties}
               >

@@ -490,6 +490,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
                 id="ps-admin-pwd"
                 label="Enter your admin password to confirm"
                 type="password"
+                autoComplete="new-password"
                 value={adminPwd}
                 onChange={(e) => setAdminPwd(e.target.value)}
                 fullWidth

@@ -1,4 +1,4 @@
----
+﻿---
 title: Contractor Billing Software for Architects
 metaTitle: Contractor Billing Software for Architects
 metaDescription: Contractor billing software for architects — track measurements, bills, approvals, reconciliation and project evidence between site, office and contractor.
@@ -38,13 +38,13 @@ contractor claims. If measurement and billing records are unclear, the office
 absorbs coordination risk. AORMS helps keep the chain visible: who measured, who
 verified, who approved and what remains pending.
 
-## Connected to project management
+## Connected to the project record
 
 Contractor billing is not only finance. It affects project health, site progress,
 client communication and team workload. AORMS connects contractor workflows to the
 same project record used for phases, documents, approvals and dashboard signals.
 
-For broader workflow context, see [architecture project management software](/architecture-project-management-software)
+For broader workflow context, see [architecture project record software](/architecture-project-management-software)
 and [architecture ERP India](/architecture-erp-india).
 
 ## The office needs a measured trail

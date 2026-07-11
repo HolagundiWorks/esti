@@ -1,38 +1,38 @@
-// ── Marketing landing design system (esti-lp) ───────────────────────────────
+﻿// â”€â”€ Marketing landing design system (esti-lp) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Editorial CSS for the unauthenticated marketing surfaces: Landing, Blog,
-// Investors. Uses IBM Plex + static Carbon-derived tokens (see styles.scss) —
+// Investors. Uses IBM Plex + static Carbon-derived tokens (see styles.scss) â€”
 // no Carbon React components or Sass framework since @carbon/react's removal
 // (2026-07); the type scale below is captured as static values.
 // Imported in main.tsx alongside styles.scss (both load globally).
 
-// ── Marketing landing (esti-lp) ───────────────────────────────────────────────
-// Editorial design system — custom tokens & layout. Carbon is isolated to
+// â”€â”€ Marketing landing (esti-lp) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Editorial design system â€” custom tokens & layout. Carbon is isolated to
 // `.esti-lp-carbon` for dashboard-faithful previews only (documented exception).
 
 .esti-lp {
-  // ── AORMS Branding Kit palette (docs/esti/AORMS-BRANDING-KIT.md): flat, light,
+  // â”€â”€ AORMS Branding Kit palette (docs/esti/AORMS-BRANDING-KIT.md): flat, light,
   // Radiant-Orange accent. Self-contained values so the landing reads identically
   // regardless of which Carbon theme wraps it. FLAT: no glows, no gradients, no
-  // decorative background images — solid surfaces separated by hairlines. Dark
+  // decorative background images â€” solid surfaces separated by hairlines. Dark
   // bands are on-palette Coal Black carrying Pure-White text.
-  --lp-bg: #f2f4f7;            /* Fog Gray — canvas */
-  --lp-bg-soft: #ffffff;       /* Pure White — flat panel */
-  --lp-bg-muted: #e7eaf0;      /* quiet fog — secondary surface */
-  --lp-bg-dark: #141517;       /* Coal Black — dark band */
+  --lp-bg: #f2f4f7;            /* Fog Gray â€” canvas */
+  --lp-bg-soft: #ffffff;       /* Pure White â€” flat panel */
+  --lp-bg-muted: #e7eaf0;      /* quiet fog â€” secondary surface */
+  --lp-bg-dark: #141517;       /* Coal Black â€” dark band */
   --lp-ink: #141517;           /* Coal Black ink */
   --lp-ink-muted: #5b616b;     /* slate-grey */
   --lp-ink-faint: #8a9099;     /* quiet label grey */
   --lp-ink-invert: #ffffff;    /* Pure White text on Coal-Black bands */
-  --lp-accent: #ff4f18;        /* Radiant Orange — primary accent */
+  --lp-accent: #ff4f18;        /* Radiant Orange â€” primary accent */
   --lp-accent-hover: #db3e0f;  /* deeper orange */
-  --lp-accent-glow: transparent; /* flat — no glow */
-  --lp-warm: #ff4f18;          /* Radiant Orange — brand accent highlight */
+  --lp-accent-glow: transparent; /* flat â€” no glow */
+  --lp-warm: #ff4f18;          /* Radiant Orange â€” brand accent highlight */
   --lp-warm-2: #db3e0f;        /* deeper orange */
   --lp-border: rgba(20, 21, 23, 0.12);
   --lp-border-dark: rgba(255, 255, 255, 0.14);
   --lp-max: min(80vw, 100rem);
   --lp-radius: 8px;           /* shared soft-square radius (product-wide) */
-  // Brand font — Urbanist across the whole product, landing included.
+  // Brand font â€” Urbanist across the whole product, landing included.
   --lp-font: "Urbanist", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
   font-family: var(--lp-font);
@@ -58,7 +58,7 @@
   padding-inline: 1.25rem;
 }
 
-// ── Fixed header
+// â”€â”€ Fixed header
 .esti-lp-bar {
   position: fixed;
   inset: 0 0 auto;
@@ -184,12 +184,12 @@
   }
 }
 
-// ── Main offset
+// â”€â”€ Main offset
 .esti-lp main {
   padding-top: 3.5rem;
 }
 
-// ── Scroll reveal
+// â”€â”€ Scroll reveal
 .esti-lp-reveal {
   opacity: 0;
   transform: translateY(1.75rem);
@@ -204,7 +204,7 @@
   transform: translateY(0);
 }
 
-// ── Sections
+// â”€â”€ Sections
 .esti-lp-block {
   padding: 2.5rem 0;
 }
@@ -226,7 +226,7 @@
 .esti-lp-block--hero {
   position: relative;
   padding: 3rem 0 2rem;
-  background: var(--lp-bg); /* flat — no gradient */
+  background: var(--lp-bg); /* flat â€” no gradient */
   overflow: hidden;
 }
 
@@ -247,7 +247,7 @@
   text-align: left;
 }
 
-// ── Typography
+// â”€â”€ Typography
 .esti-lp-kicker {
   margin: 0 0 1rem;
   font-size: 0.6875rem;
@@ -329,7 +329,7 @@
   color: var(--lp-ink-muted);
 }
 
-// ── Hero
+// â”€â”€ Hero
 .esti-lp-hero-split {
   display: grid;
   gap: 2rem;
@@ -367,8 +367,8 @@
   min-width: 0;
 }
 
-// ── Buttons & links
-// Buttons match the app exactly: FLAT TEXT — no fill, no border, no box. CTA is
+// â”€â”€ Buttons & links
+// Buttons match the app exactly: FLAT TEXT â€” no fill, no border, no box. CTA is
 // orange; others are ink. On hover the label lifts + grows a bottom orange line.
 .esti-lp-btn {
   display: inline-flex;
@@ -409,7 +409,7 @@
   }
 }
 
-// Primary CTA — flat ORANGE text (bolder). No fill, no box.
+// Primary CTA â€” flat ORANGE text (bolder). No fill, no box.
 .esti-lp-btn--primary {
   color: var(--lp-accent);
   background: transparent;
@@ -426,7 +426,7 @@
   }
 }
 
-// Ghost — flat ink text (secondary actions).
+// Ghost â€” flat ink text (secondary actions).
 .esti-lp-btn--ghost {
   background: transparent;
   color: var(--lp-ink);
@@ -434,7 +434,7 @@
   box-shadow: none;
 }
 
-// On dark hero bands — flat white text so it reads on Coal Black.
+// On dark hero bands â€” flat white text so it reads on Coal Black.
 .esti-lp-btn--on-dark {
   color: var(--lp-ink-invert);
   background: transparent;
@@ -470,7 +470,7 @@
   color: var(--cds-link-inverse);
 }
 
-// ── Card board (bento layout)
+// â”€â”€ Card board (bento layout)
 .esti-lp-board {
   display: flex;
   flex-direction: column;
@@ -536,7 +536,7 @@
   flex: 1;
 }
 
-// ── Pictograms (shared icon tiles)
+// â”€â”€ Pictograms (shared icon tiles)
 .esti-lp-picto {
   display: inline-flex;
   align-items: center;
@@ -876,7 +876,7 @@
   }
 }
 
-// ── Grids & cards
+// â”€â”€ Grids & cards
 .esti-lp-grid {
   display: grid;
   gap: 1.25rem;
@@ -940,7 +940,7 @@
   color: var(--lp-accent);
 }
 
-// ── Workflow steps
+// â”€â”€ Workflow steps
 .esti-lp-flow {
   list-style: none;
   margin: 0;
@@ -1004,7 +1004,7 @@
   grid-column: 1 / -1;
 }
 
-// ── Check list
+// â”€â”€ Check list
 .esti-lp-list {
   list-style: none;
   margin: 0 auto;
@@ -1032,7 +1032,7 @@
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='black' d='M6.5 12.5L2 8l1.4-1.4 3.1 3.1 6.1-6.1L14 5z'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
-// ── Revision mock (custom product UI)
+// â”€â”€ Revision mock (custom product UI)
 .esti-lp-revision {
   max-width: 28rem;
   margin-inline: auto;
@@ -1147,7 +1147,7 @@
   padding: 0 1.25rem 1.25rem;
 }
 
-// ── ESTICAD companion preview
+// â”€â”€ ESTICAD companion preview
 .esti-lp-esticad {
   pointer-events: none;
 }
@@ -1364,7 +1364,7 @@
   }
 }
 
-// ── FAQ
+// â”€â”€ FAQ
 .esti-lp-faq {
   max-width: 36rem;
   margin-inline: auto;
@@ -1417,7 +1417,7 @@
   }
 }
 
-// ── Footer
+// â”€â”€ Footer
 .esti-lp-footer {
   background: var(--lp-bg-dark);
   color: color-mix(in srgb, var(--lp-ink-invert) 75%, transparent);
@@ -1510,7 +1510,7 @@
   }
 }
 
-// ── Brand assets
+// â”€â”€ Brand assets
 .esti-lp-logo {
   height: 1.25rem;
   width: auto;
@@ -1556,7 +1556,7 @@
   opacity: 0.9;
 }
 
-// ── Carbon dashboard island (real AORMS dashboard components)
+// â”€â”€ Carbon dashboard island (real AORMS dashboard components)
 .esti-lp-carbon {
   background: var(--cds-layer-01);
   border: 1px solid var(--lp-border);
@@ -1670,7 +1670,7 @@
   }
 }
 
-// ── Responsive
+// â”€â”€ Responsive
 @media (min-width: 672px) {
   .esti-lp-wrap {
     padding-inline: 2rem;
@@ -1768,11 +1768,11 @@
 }
 
 // Apply Carbon productive type scale to semantic headings within the app shell.
-// Uses Carbon's type-style() mixin — all values come from @carbon/type tokens.
+// Uses Carbon's type-style() mixin â€” all values come from @carbon/type tokens.
 // Scoped to .cds--content (the app shell). Landing (.esti-lp) uses its own type scale.
 // Hierarchy: h1=page title (28px), h2=section (20px), h3=tile/card (16px semibold),
 // h4=sub-label (14px semibold). p elements inherit body size from Carbon's reset.
-// Scoped to staff app shell — landing uses expressive editorial type (see .esti-landing-content).
+// Scoped to staff app shell â€” landing uses expressive editorial type (see .esti-landing-content).
 .cds--content:not(.esti-landing-content),
 .esti-footer {
   h1 { font-size: 1.75rem; font-weight: 400; line-height: 1.28572; letter-spacing: 0; }
@@ -1792,7 +1792,7 @@
 .esti-label--secondary { color: var(--cds-text-secondary); }
 .esti-label--helper    { color: var(--cds-text-helper); }
 
-// Large KPI number scale — heading-07 type-style (2.625rem/600). Colourless.
+// Large KPI number scale â€” heading-07 type-style (2.625rem/600). Colourless.
 .esti-landing-kpi-number { font-size: 3.375rem; font-weight: 300; line-height: 1.19; letter-spacing: 0; }
 
 .esti-inline-with-tag {
@@ -1901,14 +1901,14 @@
   }
 }
 
-// (Studio Intelligence layout lives in styles.scss — full width, no page scroll.)
+// (Studio Intelligence layout lives in styles.scss â€” full width, no page scroll.)
 
 .esti-task-row--target td {
   background: color-mix(in srgb, var(--cds-support-info) 14%, transparent);
   box-shadow: inset 3px 0 0 var(--cds-support-info);
 }
 
-// Heatmap legend colour swatch — backgroundColor stays dynamic.
+// Heatmap legend colour swatch â€” backgroundColor stays dynamic.
 .esti-heat-swatch {
   flex-shrink: 0;
   width: 24px;
@@ -1917,13 +1917,13 @@
   border: 1px solid var(--cds-border-subtle);
 }
 
-// Landing page — IBM.com editorial layout (Carbon UI Shell + bands).
+// Landing page â€” IBM.com editorial layout (Carbon UI Shell + bands).
 .esti-landing-shell {
   position: relative;
   min-height: 100vh;
   isolation: isolate;
 
-  // Flat: the contour background image + glass overlay are removed — the surface
+  // Flat: the contour background image + glass overlay are removed â€” the surface
   // is the plain Fog-Gray canvas.
   &::before,
   &::after {
@@ -1940,8 +1940,8 @@
   }
 }
 
-// ── Fluid contour background — visual hierarchy (chaos → clarity) ────────────
-// far  = soft atmosphere · mid = readable topo · near = Radiant Orange crest
+// â”€â”€ Fluid contour background â€” visual hierarchy (chaos â†’ clarity) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// far  = soft atmosphere Â· mid = readable topo Â· near = Radiant Orange crest
 // depth=0: near-plan. depth=1: hill elevation with stacked rings.
 .esti-lp-contours {
   position: fixed;
@@ -1954,7 +1954,7 @@
   perspective-origin: 88% 92%;
   --lp-depth: 0.08;
   --lp-flow: 0;
-  // Z-stack steps (2026-07): 3× prior values for stronger hill elevation
+  // Z-stack steps (2026-07): 3Ã— prior values for stronger hill elevation
   --lp-step-far: 42px;
   --lp-step-mid: 66px;
   --lp-step-near: 90px;
@@ -1963,7 +1963,7 @@
   --lp-rise-near: 72px;
 }
 
-// Quiet Fog canvas wash — glow anchored bottom-right with the hill
+// Quiet Fog canvas wash â€” glow anchored bottom-right with the hill
 .esti-lp-contours__wash {
   position: absolute;
   inset: 0;
@@ -2002,7 +2002,7 @@
   transform-style: preserve-3d;
 }
 
-// FAR — soft, wide, low contrast (recedes)
+// FAR â€” soft, wide, low contrast (recedes)
 .esti-lp-contours__band--far {
   opacity: calc(0.28 + var(--lp-depth) * 0.18);
   filter: blur(1.2px);
@@ -2020,7 +2020,7 @@
   }
 }
 
-// MID — readable topographic body
+// MID â€” readable topographic body
 .esti-lp-contours__band--mid {
   opacity: calc(0.55 + var(--lp-depth) * 0.3);
 
@@ -2037,7 +2037,7 @@
   }
 }
 
-// NEAR — strong Radiant Orange crest (focal hierarchy)
+// NEAR â€” strong Radiant Orange crest (focal hierarchy)
 .esti-lp-contours__band--near {
   opacity: calc(0.75 + var(--lp-depth) * 0.25);
 
@@ -2102,7 +2102,7 @@
   .esti-lp-contours__band--far { filter: none; opacity: 0.22; }
 }
 
-// ── RAIL / STAGE landing layout ──────────────────────────────────────────────
+// â”€â”€ RAIL / STAGE landing layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Glass rail (L3) fixed left; stage (L1) scrolls. Mirrors Studio Intelligence.
 .esti-lp-railshell {
   --lp-rail-w: min(20vw, 280px);
@@ -2158,7 +2158,7 @@
   width: 6rem;
   display: block;
 }
-.esti-lp-rail__menu { display: none; } // desktop — nav always visible
+.esti-lp-rail__menu { display: none; } // desktop â€” nav always visible
 .esti-lp-rail__nav {
   display: flex;
   flex-direction: column;
@@ -2184,7 +2184,7 @@
     padding-block: 2px;
   }
 }
-// Rail download — compact link only.
+// Rail download â€” compact link only.
 .esti-lp-rail__downloads {
   display: flex;
   flex-direction: column;
@@ -2227,7 +2227,7 @@
 }
 .esti-lp-dl-btn {
   display: inline-block;
-  // Download CTA — flat ORANGE text (no fill, no box); hover lifts + orange line.
+  // Download CTA â€” flat ORANGE text (no fill, no box); hover lifts + orange line.
   color: var(--lp-accent);
   border: none;
   background: transparent;
@@ -2244,8 +2244,8 @@
     box-shadow: inset 0 -2px 0 0 var(--lp-accent);
   }
 }
-// Brand identity — removed; tagline only.
-// Developed-by — logo only, pinned bottom.
+// Brand identity â€” removed; tagline only.
+// Developed-by â€” logo only, pinned bottom.
 .esti-lp-rail__foot {
   margin-top: 0;
   padding-top: 0.35rem;
@@ -2363,7 +2363,7 @@
   .esti-lp-stage { margin-left: 0; }
 }
 
-// Skip link — visually hidden until focused.
+// Skip link â€” visually hidden until focused.
 .esti-lp-skip {
   position: absolute;
   left: -9999px;
@@ -2378,7 +2378,7 @@
   }
 }
 
-// Editorial header — self-contained (migrated off the Carbon UI Shell).
+// Editorial header â€” self-contained (migrated off the Carbon UI Shell).
 // A near-white frosted bar; deep-teal accents on hover. Brand marks stay visible;
 // nav must not compress logos to zero width.
 .esti-landing-header {
@@ -2386,7 +2386,7 @@
   inset: 0 0 auto;
   z-index: 9000;
   height: 3.5rem;
-  background: var(--lp-bg-soft); /* flat solid — no blur */
+  background: var(--lp-bg-soft); /* flat solid â€” no blur */
   border-bottom: 1px solid var(--lp-border);
 }
 .esti-landing-header__inner {
@@ -2473,7 +2473,7 @@
   background: transparent;
 
   // Fixed layout headings inside the editorial max-width container.
-  // Fluid expressive tokens are for full-bleed pages — not nested in .esti-landing-editorial.
+  // Fluid expressive tokens are for full-bleed pages â€” not nested in .esti-landing-editorial.
   // https://carbondesignsystem.com/elements/typography/type-sets/
   h2.esti-landing-section-title {
     font-size: 2rem;
@@ -2492,8 +2492,8 @@
 
 // heading-06 (42px) is the largest non-fluid productive type in Carbon v11.
 // display-* expressive tokens use fluid-type-scale and generate CSS Sass maps
-// that Vite's Sass pipeline cannot serialize — they are off-limits here.
-// heading-07 = 54px / weight 300 — largest safe non-fluid productive token.
+// that Vite's Sass pipeline cannot serialize â€” they are off-limits here.
+// heading-07 = 54px / weight 300 â€” largest safe non-fluid productive token.
 h1.esti-landing-lead-title {
   font-size: 3.375rem;
   font-weight: 300;
@@ -2502,9 +2502,9 @@ h1.esti-landing-lead-title {
   max-width: min(36rem, 100%);
 }
 
-// ─── Linear-style layout helpers ─────────────────────────────────────────────
+// â”€â”€â”€ Linear-style layout helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// Centered hero text stack — structural only.
+// Centered hero text stack â€” structural only.
 .esti-lp-hero-center {
   display: flex;
   flex-direction: column;
@@ -2522,7 +2522,7 @@ h1.esti-landing-lead-title {
   }
 }
 
-// Centered section head — text-align, margin, align are structural.
+// Centered section head â€” text-align, margin, align are structural.
 .esti-lp-head-centered {
   text-align: left;
 
@@ -2634,7 +2634,7 @@ h1.esti-landing-lead-title {
   row-gap: var(--cds-spacing-07);
 }
 
-// ── Connected tile grids ──────────────────────────────────────────────────────
+// â”€â”€ Connected tile grids â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // gap: 1px on the grid + grid background = border-subtle creates true 1px
 // dividers between tiles with no inter-tile space. --cds-grid-gutter: 0 removes
 // Carbon's column padding-inline so columns sit flush.
@@ -2651,7 +2651,7 @@ h1.esti-landing-lead-title {
   --cds-grid-gutter: 0;
   background: var(--cds-border-subtle);
 
-  // Remove individual tile borders — the 1px grid gap IS the border.
+  // Remove individual tile borders â€” the 1px grid gap IS the border.
   // Apply the 24px internal padding spec uniformly.
   .esti-landing-kpi-tile,
   .esti-landing-bento-tile,
@@ -2677,7 +2677,7 @@ h1.esti-landing-lead-title {
   min-height: 20rem;
 }
 
-// Bullet list inside tiles — reset browser list styles.
+// Bullet list inside tiles â€” reset browser list styles.
 .esti-landing-bento-list {
   list-style: none;
   padding: 0;
@@ -2687,12 +2687,12 @@ h1.esti-landing-lead-title {
   gap: var(--cds-spacing-02); // 8px
 
   li::before {
-    content: "— ";
+    content: "â€” ";
     color: var(--cds-text-helper);
   }
 }
 
-// Carbon 2x Grid + spacing-07 row rhythm (32px — matches default column gutter).
+// Carbon 2x Grid + spacing-07 row rhythm (32px â€” matches default column gutter).
 .esti-landing-grid {
   row-gap: var(--cds-spacing-07);
   padding-inline: 0;
@@ -2703,7 +2703,7 @@ h1.esti-landing-lead-title {
   }
 }
 
-// Icon-prefixed lists (Checkmark + text) — hides the default disc since the
+// Icon-prefixed lists (Checkmark + text) â€” hides the default disc since the
 // icon serves as the bullet. Structural/colourless only.
 .esti-landing-icon-list {
   list-style: none;
@@ -2819,7 +2819,7 @@ h1.esti-landing-lead-title {
   padding-block: var(--cds-spacing-05);
 }
 
-// ── Hero and topo section helpers ────────────────────────────────────────────
+// â”€â”€ Hero and topo section helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 // Full-viewport hero: overrides --lead min-height to 90svh.
 .esti-landing-hero-full.esti-landing-band--lead {
@@ -2827,7 +2827,7 @@ h1.esti-landing-lead-title {
 }
 
 
-// Resolver list inside the topo hero — small checkmark rows.
+// Resolver list inside the topo hero â€” small checkmark rows.
 .esti-lp-hero-resolvers {
   list-style: none;
   padding-inline-start: 0;
@@ -2839,7 +2839,7 @@ h1.esti-landing-lead-title {
   gap: var(--cds-spacing-03);
 }
 
-// ExpandableTile pillar — ensure tiles fill their column height.
+// ExpandableTile pillar â€” ensure tiles fill their column height.
 .esti-landing-pillar-tile {
   height: 100%;
 }
@@ -2853,7 +2853,7 @@ h1.esti-landing-lead-title {
   border-block-start: 1px solid var(--cds-border-subtle-01);
 }
 
-// Bullet points inside expanded pillar tiles — structural indent only.
+// Bullet points inside expanded pillar tiles â€” structural indent only.
 .esti-landing-pillar-points {
   padding-inline-start: var(--cds-spacing-05);
 
@@ -2867,11 +2867,11 @@ h1.esti-landing-lead-title {
   }
 }
 
-// ── End topographic sections ─────────────────────────────────────────────────
+// â”€â”€ End topographic sections â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .esti-landing-footer.esti-landing-band {
   padding-block: var(--cds-spacing-10) var(--cds-spacing-09);
-  background: var(--lp-bg-dark); // Oceanic Noir — dark anchor band (white logos)
+  background: var(--lp-bg-dark); // Oceanic Noir â€” dark anchor band (white logos)
   border-block-start: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--lp-ink-invert);
 
@@ -3027,7 +3027,7 @@ h1.esti-landing-lead-title {
   display: block;
 }
 
-// Rail CTA button ("Request Workspace") — flat ORANGE text, no fill/box.
+// Rail CTA button ("Request Workspace") â€” flat ORANGE text, no fill/box.
 .esti-landing-signin {
   align-self: flex-start;
   color: var(--lp-accent) !important;
@@ -3058,7 +3058,7 @@ h1.esti-landing-lead-title {
   display: block;
 }
 
-// Case study cards — rotating conic border (IBM.com editorial pattern).
+// Case study cards â€” rotating conic border (IBM.com editorial pattern).
 @property --esti-case-study-angle {
   syntax: "<angle>";
   initial-value: 0deg;
@@ -3170,25 +3170,25 @@ h1.esti-landing-lead-title {
 }
 
 // Hero: tall enough to fill the viewport minus the Carbon header (48px).
-// Structural only — colour comes from the g100 Theme wrapper on the band.
+// Structural only â€” colour comes from the g100 Theme wrapper on the band.
 .esti-landing-hero-full {
   min-height: max(90svh, 44rem);
 }
 
-// Demo tile grid inside the hero — equal-height tiles on the right column.
+// Demo tile grid inside the hero â€” equal-height tiles on the right column.
 // Uses block layout so tiles stretch to match each other's height.
 .esti-landing-demo-tile-grid {
   align-items: stretch;
 }
 
-// Hero demo tile — fills the Column height so both cards are equal.
+// Hero demo tile â€” fills the Column height so both cards are equal.
 .esti-landing-hero-demo-tile {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-// Demo band card — flex column so the CTA button stays pinned to the bottom.
+// Demo band card â€” flex column so the CTA button stays pinned to the bottom.
 .esti-landing-demo-card {
   display: flex;
   flex-direction: column;
@@ -3236,7 +3236,7 @@ h1.esti-landing-lead-title {
     height: 3rem;
     padding: 0;
     min-block-size: 0;
-    // The square ESTI mark IS the launcher — no circle, no surrounding chrome.
+    // The square ESTI mark IS the launcher â€” no circle, no surrounding chrome.
     border-radius: 0;
     border: none;
     background: transparent;
@@ -3267,7 +3267,7 @@ h1.esti-landing-lead-title {
 }
 
 .esti-lp-request-modal {
-  // Popup pane — translucent liquid glass (matches the product-wide GLASS_PANE).
+  // Popup pane — translucent liquid glass (DIALOG_RADIUS = 8px).
   .MuiDialog-paper {
     background: rgba(255, 255, 255, 0.74);
     border: 1px solid rgba(255, 255, 255, 0.6);
@@ -3292,11 +3292,11 @@ h1.esti-landing-lead-title {
   }
 }
 
-// ── Operating System Grid — Landing Page ─────────────────────────────────────
+// â”€â”€ Operating System Grid â€” Landing Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // One continuous tile grid that starts immediately after the hero.
 // 4 columns desktop / 2 tablet / 1 mobile. gap: 0 with shared border lines.
 
-// Stage head — zone health row (HCW spatial model)
+// Stage head â€” zone health row (HCW spatial model)
 .esti-lp-stage-head {
   width: 100%;
   padding: 1.25rem 0 0;
@@ -3448,14 +3448,14 @@ h1.esti-landing-lead-title {
   color: var(--cds-text-helper);
 }
 
-// Status dots — semantic only
+// Status dots â€” semantic only
 .esti-lp-dot { font-size: 8px; flex-shrink: 0; line-height: 1; }
 .esti-lp-dot--green  { color: var(--cds-support-success); }
 .esti-lp-dot--yellow { color: var(--cds-support-warning); }
 .esti-lp-dot--red    { color: var(--cds-support-error); }
 .esti-lp-dot--white  { color: var(--cds-text-disabled); }
 
-// Grid container — shared borders create the grid lines (no gap)
+// Grid container â€” shared borders create the grid lines (no gap)
 .esti-lp-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -3551,7 +3551,7 @@ h1.esti-landing-lead-title {
   margin: 0 0 var(--cds-spacing-04);
 }
 
-// Tile — border-right + border-bottom creates the shared grid lines
+// Tile â€” border-right + border-bottom creates the shared grid lines
 .esti-lp-tile {
   border-right: 1px solid var(--cds-border-subtle);
   border-bottom: 1px solid var(--cds-border-subtle);
@@ -3574,7 +3574,7 @@ h1.esti-landing-lead-title {
   }
 }
 
-// Tile header strip — dashboard rhythm with compact, repeatable sizing.
+// Tile header strip â€” dashboard rhythm with compact, repeatable sizing.
 .esti-lp-tile__hdr {
   height: 40px;
   min-height: 40px;
@@ -3782,7 +3782,7 @@ h1.esti-landing-lead-title {
   -webkit-box-orient: vertical;
 }
 
-// Bullet list — em-dash prefix
+// Bullet list â€” em-dash prefix
 .esti-lp-bullets {
   list-style: none;
   padding: 0;
@@ -3802,7 +3802,7 @@ h1.esti-landing-lead-title {
     min-width: 0;
     overflow-wrap: anywhere;
 
-    &::before { content: "—"; color: var(--cds-text-helper); flex-shrink: 0; }
+    &::before { content: "â€”"; color: var(--cds-text-helper); flex-shrink: 0; }
   }
 }
 
@@ -3829,7 +3829,7 @@ h1.esti-landing-lead-title {
 .esti-lp-data-key { color: var(--cds-text-helper); flex-shrink: 0; }
 .esti-lp-data-val { color: var(--cds-text-primary); text-align: right; }
 
-// Project row — for the office overview tile
+// Project row â€” for the office overview tile
 .esti-lp-project-row {
   display: flex;
   align-items: baseline;
@@ -3894,7 +3894,7 @@ h1.esti-landing-lead-title {
 }
 
 .esti-lp-pricing-grid {
-  // Two plans (Community + Pro) → 2 columns so each fills 50% of the content
+  // Two plans (Community + Pro) â†’ 2 columns so each fills 50% of the content
   // width (no blank third column). The intro tile still spans the full width.
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-auto-rows: minmax(296px, auto);
@@ -4015,8 +4015,8 @@ h1.esti-landing-lead-title {
 }
 
 // Fixed bottom status bar
-// Partners / "built for" trust strip — inline, light (wireframe Partners slot).
-// Dark ink marks on the light canvas — deliberately NOT the fixed dark bar below.
+// Partners / "built for" trust strip â€” inline, light (wireframe Partners slot).
+// Dark ink marks on the light canvas â€” deliberately NOT the fixed dark bar below.
 .esti-lp-partners {
   width: 100%;
   max-width: none;
@@ -4089,7 +4089,7 @@ h1.esti-landing-lead-title {
   padding-bottom: 28px !important;
 }
 
-// ── Blog (public marketing surface, inside MarketingShell / g100) ─────────────
+// â”€â”€ Blog (public marketing surface, inside MarketingShell / g100) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // The Theme wrapper only scopes g100 tokens (light text); keep it transparent so
 // the frosted-glass panels read against the shell's gradient backdrop.
 .esti-blog-theme {
@@ -4123,6 +4123,19 @@ h1.esti-landing-lead-title {
     }
   }
 
+  &__head-links {
+    font-size: 0.9375rem;
+
+    a {
+      color: var(--lp-accent, #ff4f18);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
   &__back {
     display: inline-block;
     margin-block-end: var(--cds-spacing-06);
@@ -4141,7 +4154,7 @@ h1.esti-landing-lead-title {
 .esti-blog-card {
   height: 100%;
 
-  // Frosted glass tile — override Carbon's solid layer background.
+  // Frosted glass tile â€” override Carbon's solid layer background.
   background: rgba(255, 255, 255, 0.05) !important;
   border: 1px solid rgba(255, 255, 255, 0.12);
   transition: background 80ms ease, border-color 80ms ease;
@@ -4182,7 +4195,7 @@ h1.esti-landing-lead-title {
   }
 }
 
-// Rendered markdown — readable measure with Carbon/Plex typography.
+// Rendered markdown â€” readable measure with Carbon/Plex typography.
 .esti-blog-article {
   max-width: 44rem;
 
@@ -4314,7 +4327,7 @@ h1.esti-landing-lead-title {
   }
 }
 
-// ── /demo one-click launcher ──────────────────────────────────────────────────
+// â”€â”€ /demo one-click launcher â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 .esti-demo-launch {
   min-height: 100vh;
   display: flex;
@@ -4324,7 +4337,7 @@ h1.esti-landing-lead-title {
   padding: var(--cds-spacing-07);
 }
 
-// ── Investor brief (standalone page) ──────────────────────────────────────────
+// â”€â”€ Investor brief (standalone page) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 .esti-investor {
   min-height: 100vh;
   background: var(--cds-background);
@@ -4441,7 +4454,7 @@ h1.esti-landing-lead-title {
   }
 }
 
-// Blog "Coming next" roadmap (titles only — no thin placeholder pages).
+// Blog "Coming next" roadmap (titles only â€” no thin placeholder pages).
 .esti-blog-roadmap {
   margin-block-start: var(--cds-spacing-09);
   padding-block-start: var(--cds-spacing-07);
@@ -4540,7 +4553,7 @@ h1.esti-landing-lead-title {
   color: var(--cds-text-helper);
 }
 
-// Pricing tiles — colourless layout helpers on Carbon Tile.
+// Pricing tiles â€” colourless layout helpers on Carbon Tile.
 .esti-pricing-tile {
   height: 100%;
   display: flex;
@@ -4557,7 +4570,7 @@ h1.esti-landing-lead-title {
   }
 }
 
-// ── Ambient reel media tiles ──────────────────────────────────────────────
+// â”€â”€ Ambient reel media tiles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // A square marketing reel loops inside the tile (same-origin iframe, no
 // controls). Decorative: the frame takes no pointer or keyboard interaction.
 .esti-lp-tile--media { position: relative; }
@@ -4591,7 +4604,7 @@ h1.esti-landing-lead-title {
   padding: var(--cds-spacing-07);
 }
 
-// ── ID-card mock (Earned Identity section) ────────────────────────────────
+// â”€â”€ ID-card mock (Earned Identity section) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // A CC-proportioned rendering of the printed AORMS ID card.
 .esti-lp-idcard {
   width: min(100%, 26rem);
@@ -4602,7 +4615,7 @@ h1.esti-landing-lead-title {
   display: flex;
   flex-direction: column;
   padding: 5.5% 6%;
-  background: #141517; /* flat Coal Black — no contour */
+  background: #141517; /* flat Coal Black â€” no contour */
   border: 1px solid var(--lp-border-dark);
   box-shadow: none;
   color: #ffffff;
@@ -4663,7 +4676,7 @@ h1.esti-landing-lead-title {
   color: var(--cds-text-secondary);
 }
 
-// ── Footer solutions mesh (sitewide internal links to all landing pages) ──────
+// â”€â”€ Footer solutions mesh (sitewide internal links to all landing pages) â”€â”€â”€â”€â”€â”€
 .esti-landing-footer__solutions {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -4704,7 +4717,7 @@ h1.esti-landing-lead-title {
   }
 }
 
-// ── Auth surfaces (workspace login, portal access, licence/account portal) ────
+// â”€â”€ Auth surfaces (workspace login, portal access, licence/account portal) â”€â”€â”€â”€
 // Every sign-in and the account/licence portal share the landing contour
 // background + deep base so the entry points match the marketing site instead
 // of sitting on blank white space. Layout (centering) stays in styles.scss.
@@ -4714,7 +4727,7 @@ h1.esti-landing-lead-title {
   min-height: 100vh;
   background: #f2f4f7; /* flat Fog Gray canvas */
 }
-// Account / licence portals — light flat canvas (matches workspace + login).
+// Account / licence portals â€” light flat canvas (matches workspace + login).
 .esti-portal-shell {
   min-height: 100vh;
   background: #f2f4f7; /* Fog Gray */
@@ -4807,19 +4820,21 @@ $portal-rail: 240px;
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// AORMS LANDING v2 — fresh design system (2026-07)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// AORMS LANDING v2 â€” fresh design system (2026-07)
 // Namespace: .lp2-*   Shell class: .lp2-shell
-// Rail: 240px glass (L3) fixed · Stage: Fog Gray canvas, scrolls
-// Tokens inherited from .esti-lp: --lp-bg --lp-ink --lp-accent --lp-border …
-// ═══════════════════════════════════════════════════════════════════════════════
+// Rail: 240px glass (L3) fixed Â· Stage: Fog Gray canvas, scrolls
+// Tokens inherited from .esti-lp: --lp-bg --lp-ink --lp-accent --lp-border â€¦
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 $lp2-rail: 240px;
-$lp2-rail-collapsed: 52px;
+$lp2-rail-collapsed: 56px;
+$lp2-rail-gutter: 12px;
+$lp2-rail-radius: 20px;
 $lp2-pad: clamp(1.5rem, 3vw, 2.5rem);
 $lp2-gap: 1px;               // shared border thickness
 
-// ── Shell ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Shell â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell {
   display: flex;
@@ -4828,7 +4843,7 @@ $lp2-gap: 1px;               // shared border thickness
   background: var(--lp-bg);
   position: relative;
   isolation: isolate;
-  // ActionDock: no taskbar on marketing — sit closer to the viewport bottom.
+  // ActionDock: no taskbar on marketing â€” sit closer to the viewport bottom.
   --esti-dock-bottom: 24px;
 }
 
@@ -4848,57 +4863,59 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-// ── Rail ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Rail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-rail-spacer {
-  flex: 0 0 $lp2-rail;
-  width: $lp2-rail;
-  min-width: $lp2-rail;
+  flex: 0 0 calc(#{$lp2-rail} + #{$lp2-rail-gutter} * 2);
+  width: calc(#{$lp2-rail} + #{$lp2-rail-gutter} * 2);
+  min-width: calc(#{$lp2-rail} + #{$lp2-rail-gutter} * 2);
   flex-shrink: 0;
   transition: flex-basis 0.22s ease, width 0.22s ease, min-width 0.22s ease;
 
   &--collapsed {
-    flex-basis: $lp2-rail-collapsed;
-    width: $lp2-rail-collapsed;
-    min-width: $lp2-rail-collapsed;
+    flex-basis: calc(#{$lp2-rail-collapsed} + #{$lp2-rail-gutter} * 2);
+    width: calc(#{$lp2-rail-collapsed} + #{$lp2-rail-gutter} * 2);
+    min-width: calc(#{$lp2-rail-collapsed} + #{$lp2-rail-gutter} * 2);
   }
 }
 
 .lp2-rail {
   position: fixed;
-  top: 0; left: 0;
+  top: $lp2-rail-gutter;
+  left: $lp2-rail-gutter;
+  bottom: $lp2-rail-gutter;
   width: $lp2-rail;
-  height: 100vh;
+  height: auto;
+  max-height: calc(100dvh - #{$lp2-rail-gutter * 2});
   overflow: hidden;
+  overscroll-behavior: none;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 1.375rem 1.25rem;
+  padding: 0;
+  margin: 0;
   z-index: 9000;
-  transition: width 0.22s ease, padding 0.22s ease;
+  border-radius: $lp2-rail-radius;
+  transition: width 0.22s ease, border-radius 0.22s ease;
 
-  // Glass — L3: translucent frosted panel
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px) saturate(1.1);
-  -webkit-backdrop-filter: blur(20px) saturate(1.1);
-  border-right: 1px solid rgba(20, 21, 23, 0.09);
-  box-shadow: 2px 0 20px rgba(20, 21, 23, 0.04);
+  // Glass — L3: translucent frosted panel (floating card)
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow:
+    0 12px 40px rgba(20, 21, 23, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
 
-  // Orange accent sliver on left edge — signals the glass layer
   &::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 3px;
-    height: 100%;
-    background: var(--lp-accent);
-    opacity: 0.7;
+    display: none;
   }
 
   &--collapsed {
     width: $lp2-rail-collapsed;
-    padding: 0.875rem 0.35rem;
-    align-items: center;
+    padding: 0;
+    align-items: stretch;
   }
 }
 
@@ -4908,10 +4925,14 @@ $lp2-gap: 1px;               // shared border thickness
   justify-content: space-between;
   margin-bottom: 0.5rem;
   width: 100%;
+  flex-shrink: 0;
+  padding: 1.25rem 1rem 0.5rem;
+  box-sizing: border-box;
 
   .lp2-rail--collapsed & {
     justify-content: center;
     margin-bottom: 0;
+    padding: 0.875rem 0;
   }
 }
 
@@ -4922,12 +4943,29 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-rail__burger { display: none; }
 
 .lp2-rail__collapse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
   color: var(--lp-ink-muted);
-  width: 44px;
-  height: 44px;
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
 
   &:hover {
     color: var(--lp-accent);
+    background: rgba(255, 255, 255, 0.55);
+    border-color: rgba(255, 255, 255, 0.72);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--lp-accent);
+    outline-offset: 2px;
   }
 }
 
@@ -4937,6 +4975,8 @@ $lp2-gap: 1px;               // shared border thickness
   letter-spacing: 0.03em;
   color: var(--lp-ink-muted);
   margin: 0 0 1.25rem;
+  padding: 0 1rem;
+  box-sizing: border-box;
 }
 
 .lp2-rail__nav {
@@ -4944,29 +4984,131 @@ $lp2-gap: 1px;               // shared border thickness
   flex-direction: column;
   gap: 0.05rem;
   margin-bottom: 1rem;
+  flex: 0 1 auto;
+  min-height: 0;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
 }
 
 .lp2-rail__link {
+  position: relative;
   display: flex;
   align-items: center;
+  gap: 0.65rem;
   min-height: 44px;
-  padding: 0.5rem 0.5rem;
+  padding: 0.45rem 0.75rem;
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--lp-ink);
   text-decoration: none;
-  border-left: 2px solid transparent;
-  margin-left: -0.5rem;
-  transition: color 0.12s, border-color 0.12s;
+  border-radius: 0;
+  transition: color 0.12s, background 0.12s;
 
   &:hover {
     color: var(--lp-accent);
-    border-left-color: var(--lp-accent);
+    background: rgba(255, 255, 255, 0.38);
   }
 
   &:focus-visible {
     outline: 2px solid var(--lp-accent);
     outline-offset: 2px;
+  }
+
+  &--active {
+    color: var(--lp-accent);
+    background: rgba(255, 255, 255, 0.48);
+    font-weight: 700;
+  }
+}
+
+.lp2-rail__link-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.25rem;
+  opacity: 0.72;
+}
+
+.lp2-rail__link--active .lp2-rail__link-icon,
+.lp2-rail__link:hover .lp2-rail__link-icon {
+  opacity: 1;
+}
+
+.lp2-rail__link-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lp2-rail__link-tip {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.35rem 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #fff;
+  white-space: nowrap;
+  background: var(--lp-accent);
+  border-radius: var(--hcw-dock-pill-radius, 9999px);
+  box-shadow: 0 8px 24px rgba(20, 21, 23, 0.14);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 9100;
+  transition: opacity 0.12s ease, visibility 0.12s ease;
+}
+
+.lp2-rail--collapsed {
+  .lp2-rail__tagline,
+  .lp2-rail__nav-label,
+  .lp2-rail__value-prop,
+  .lp2-rail__link-label,
+  .lp2-rail__brand-wordmark {
+    display: none !important;
+  }
+
+  .lp2-rail__header {
+    justify-content: center;
+    padding-inline: 0.5rem;
+  }
+
+  .lp2-rail__brand {
+    flex: 0 0 auto;
+    justify-content: center;
+  }
+
+  .lp2-rail__body {
+    padding-inline: 0.35rem;
+  }
+
+  .lp2-rail__nav {
+    padding-inline: 0;
+    align-items: center;
+  }
+
+  .lp2-rail__link {
+    justify-content: center;
+    width: 44px;
+    min-width: 44px;
+    margin-inline: auto;
+    padding: 0.45rem;
+  }
+
+  .lp2-rail__link:hover .lp2-rail__link-tip,
+  .lp2-rail__link:focus-visible .lp2-rail__link-tip {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .lp2-rail__foot {
+    display: flex;
+    justify-content: center;
+    padding-inline: 0.35rem;
   }
 }
 
@@ -5047,15 +5189,117 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 .lp2-rail__foot {
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--lp-border);
-  margin-top: 0.5rem;
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 0.75rem 1rem 1.25rem;
+  border-top: none;
+  box-sizing: border-box;
 
-  .lp2-rail__hcw {
-    height: 1rem;
-    width: auto;
+  &::before {
+    content: "";
     display: block;
-    opacity: 0.55;
+    height: 2px;
+    margin: 0 0 0.75rem;
+    border-radius: 1px;
+    box-shadow:
+      inset 0 1px 0 rgba(20, 21, 23, 0.12),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.48);
+  }
+
+  .lp2-rail--collapsed & {
+    padding: 0.5rem 0.35rem 0.75rem;
+    align-items: center;
+  }
+}
+
+.hcw-attribution {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  &__link {
+    display: block;
+    width: fit-content;
+    color: inherit;
+    text-decoration: none;
+
+    &:hover .hcw-attribution__mark {
+      opacity: 0.85;
+    }
+  }
+
+  &__mark {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  &__note {
+    margin: 0;
+    font-size: 0.62rem;
+    line-height: 1.45;
+    letter-spacing: 0.02em;
+    color: var(--lp-ink-faint);
+    max-width: 14rem;
+  }
+
+  &--rail {
+    .hcw-attribution__mark {
+      opacity: 0.55;
+      color: var(--lp-ink);
+      max-height: 12px;
+      width: auto;
+    }
+
+    .hcw-attribution__note {
+      color: var(--lp-ink-faint);
+      font-size: 0.55rem;
+      line-height: 1.35;
+      max-width: 10.5rem;
+    }
+  }
+
+  &--footer {
+    margin-top: 0.35rem;
+    padding-top: 0;
+    border-top: none;
+
+    .hcw-attribution__mark {
+      opacity: 0.92;
+      max-height: 30px;
+      width: auto;
+    }
+
+    .hcw-attribution__note {
+      color: rgba(255, 255, 255, 0.72);
+      max-width: 20rem;
+    }
+  }
+
+  &--inline {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--lp-border);
+
+    .hcw-attribution__mark {
+      opacity: 0.85;
+    }
+  }
+
+  &--auth {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+
+    .hcw-attribution__mark {
+      opacity: 0.75;
+    }
+
+    .hcw-attribution__note {
+      color: var(--cds-text-secondary, rgba(20, 21, 23, 0.62));
+    }
   }
 }
 
@@ -5065,17 +5309,51 @@ $lp2-gap: 1px;               // shared border thickness
   flex: 1;
   min-width: 0;
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow: visible;
   position: relative;
   z-index: 2;
-  background: var(--lp-bg);
+  background: #ffffff;
   // Clear the floating ActionDock (Create account / Sign in).
   padding-bottom: 5.5rem;
 }
 
+.lp2-stage .lp2-content {
+  overflow-x: hidden;
+  position: relative;
+  z-index: 2;
+}
+
+// Viewport-pinned contour hill (fixed inside stage — above white fill, below content).
+.lp2-stage__contours {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+
+  .esti-lp-contours {
+    position: fixed;
+    inset: 0;
+  }
+
+  .esti-lp-contours__terrain {
+    position: fixed;
+    left: auto;
+    right: -8vw;
+    bottom: -6vh;
+    top: auto;
+  }
+
+  .esti-lp-contours__wash {
+    background:
+      radial-gradient(ellipse 55% 50% at 92% 88%,
+        rgba(255, 79, 24, 0.1) 0%, transparent 58%);
+  }
+}
+
 // .lp2-content width override lives in the glass layer below.
 
-// ── Stage head ────────────────────────────────────────────────────────────────
+// â”€â”€ Stage head â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-hero-wrap {
   background: transparent;   // shows contour behind
@@ -5117,7 +5395,7 @@ $lp2-gap: 1px;               // shared border thickness
   letter-spacing: 0.01em;
 }
 
-// ── Dot / orb ─────────────────────────────────────────────────────────────────
+// â”€â”€ Dot / orb â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-dot {
   display: inline-block;
@@ -5141,7 +5419,7 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-dot--red,    .lp2-orb--red    { background: #da1e28; }
 .lp2-dot--white,  .lp2-orb--white  { background: rgba(20, 21, 23, 0.18); }
 
-// ── Hero ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-hero {
   padding: 3.5rem $lp2-pad 4.5rem;
@@ -5222,7 +5500,7 @@ $lp2-gap: 1px;               // shared border thickness
   animation: lp2-dot-pulse 2.4s ease-in-out infinite;
 }
 
-// ── Trust strip ───────────────────────────────────────────────────────────────
+// â”€â”€ Trust strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-trust {
   padding: 1.5rem $lp2-pad;
@@ -5278,7 +5556,7 @@ $lp2-gap: 1px;               // shared border thickness
   color: var(--lp-ink);
 }
 
-// Per-section keyword glance (pain → solution)
+// Per-section keyword glance (pain â†’ solution)
 .lp2-keywords {
   padding: 1.25rem $lp2-pad 2rem;
   border-top: 1px solid var(--lp-border);
@@ -5309,14 +5587,14 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-// ── Sections ──────────────────────────────────────────────────────────────────
+// â”€â”€ Sections â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-section {
   padding: 0;
   border-bottom: 1px solid var(--lp-border);
 }
 
-// Section head — column on the left, full width at top
+// Section head â€” column on the left, full width at top
 .lp2-section-head {
   padding: 3rem $lp2-pad 2rem;
   width: 100%;
@@ -5352,7 +5630,7 @@ $lp2-gap: 1px;               // shared border thickness
   margin: 0;
 }
 
-// ── Grid ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-grid {
   display: grid;
@@ -5372,16 +5650,15 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-// ── Tile ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Tile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-tile {
-  background: #ffffff;
+  background: transparent;
   border-right: 1px solid var(--lp-border);
   border-bottom: 1px solid var(--lp-border);
   display: flex;
   flex-direction: column;
   min-height: 0;
-  transition: background 0.15s;
 
   &--wide { grid-column: span 2; }
 
@@ -5451,7 +5728,7 @@ $lp2-gap: 1px;               // shared border thickness
     position: relative;
 
     &::before {
-      content: '–';
+      content: 'â€“';
       position: absolute; left: 0;
       color: var(--lp-accent);
       font-weight: 700;
@@ -5459,7 +5736,7 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-// ── Step tile ─────────────────────────────────────────────────────────────────
+// â”€â”€ Step tile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-step-tile .lp2-tile__hdr { align-items: baseline; }
 
@@ -5472,7 +5749,7 @@ $lp2-gap: 1px;               // shared border thickness
   min-width: 2.5rem;
 }
 
-// ── Pricing ───────────────────────────────────────────────────────────────────
+// â”€â”€ Pricing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-pricing {
   display: grid;
@@ -5565,168 +5842,120 @@ $lp2-gap: 1px;               // shared border thickness
   line-height: 1.5;
 }
 
-// ── Footer ────────────────────────────────────────────────────────────────────
+// ── Footer — flat hairline bar (conversion CTAs in ActionDock) ───────────────
 
 .lp2-footer {
-  background: var(--lp-ink);  // Coal Black
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.lp2-footer__solutions-wrap {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.lp2-footer__solutions-toggle {
+  // Match `.lp2-content` column — do not break out into the rail gutter.
   width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin: 0;
-  padding: 1rem $lp2-pad;
-  border: none;
+  max-width: 100%;
+  margin-inline: 0;
+  padding: 2rem $lp2-pad 3rem;
+  box-sizing: border-box;
   background: transparent;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.72);
-  font: inherit;
-  text-align: left;
-  transition: color 0.12s;
-
-  &:hover {
-    color: #fff;
-  }
-
-  &:focus-visible {
-    outline: 2px solid rgba(255, 255, 255, 0.45);
-    outline-offset: -2px;
-  }
-}
-
-.lp2-footer__solutions-toggle__label {
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 700;
-}
-
-.lp2-footer__solutions-toggle__icon {
-  flex-shrink: 0;
-  opacity: 0.65;
-  transition: transform 0.2s ease;
-}
-
-.lp2-footer__solutions-wrap--open .lp2-footer__solutions-toggle__icon {
-  transform: rotate(180deg);
-}
-
-.lp2-footer__solutions {
-  display: none;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 0;
-  padding: 0 $lp2-pad 2.5rem;
-  gap: 2rem 3rem;
-}
-
-.lp2-footer__solutions-wrap--open .lp2-footer__solutions {
-  display: grid;
-}
-
-.lp2-footer__sol-col {
+  color: var(--lp-ink);
+  border-top: 1px solid var(--lp-border);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.85rem;
 }
 
-.lp2-footer__sol-head {
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.4);
-  margin: 0 0 0.25rem;
-}
-
-.lp2-footer__solutions ul {
-  list-style: none; margin: 0; padding: 0;
-  display: flex; flex-direction: column; gap: 0.4rem;
-
-  a {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.65);
-    text-decoration: none;
-    transition: color 0.12s;
-    &:hover { color: #fff; }
-  }
-}
-
-.lp2-footer__bar {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 3rem;
-  padding: 2.5rem $lp2-pad 3rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-
-  @media (max-width: 820px) { grid-template-columns: 1fr; gap: 2rem; }
+.lp2-footer__card {
+  // Legacy wrapper — kept for any stale markup; flat footer uses .lp2-footer directly.
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  display: contents;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .lp2-footer__brand {
-  .lp2-footer__logo {
-    height: 1.5rem; width: auto; display: block;
-    margin-bottom: 0.875rem;
-    filter: brightness(10);
-    opacity: 0.9;
-  }
-  p {
-    font-size: 0.8125rem;
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.45);
-    max-width: 28rem;
-    margin: 0;
+  display: block;
+  width: fit-content;
+  text-decoration: none;
+
+  &:hover .lp2-footer__logo {
+    opacity: 1;
   }
 }
 
-.lp2-footer__col-head {
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.4);
-  margin: 0 0 0.75rem;
+.lp2-footer__logo {
+  height: 1.35rem;
+  width: auto;
+  display: block;
+  opacity: 0.95;
 }
 
-.lp2-footer__col ul {
-  list-style: none; margin: 0; padding: 0;
-  display: flex; flex-direction: column; gap: 0.5rem;
+.lp2-footer__blurb {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--lp-ink-muted);
+  max-width: 28rem;
+}
+
+.lp2-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
 
   a {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.65);
+    color: var(--lp-ink);
     text-decoration: none;
-    &:hover { color: #fff; }
+
+    &:hover {
+      color: var(--lp-ink-muted);
+      text-decoration: underline;
+    }
   }
 }
 
 .lp2-footer__visits {
-  grid-column: 1 / -1;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.28);
-  margin: 0;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  color: var(--lp-ink-muted);
 }
 
-// ── Mobile ────────────────────────────────────────────────────────────────────
+.hcw-attribution--footer {
+  margin-top: 0.35rem;
+  padding-top: 0;
+  border-top: none;
+
+  .hcw-attribution__mark {
+    opacity: 0.92;
+    max-height: 30px;
+    width: auto;
+  }
+
+  .hcw-attribution__note {
+    color: var(--lp-ink-muted);
+  }
+}
+
+// â”€â”€ Mobile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @media (max-width: 900px) {
   .lp2-rail-spacer { display: none; }
 
   .lp2-rail {
-    position: static;
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    bottom: auto !important;
     width: 100%;
+    max-height: none;
     height: auto;
     overflow: visible;
-    border-right: none;
-    border-bottom: 1px solid var(--lp-border);
+    border-radius: 0 !important;
+    border: none !important;
+    border-bottom: 1px solid var(--lp-border) !important;
+    box-shadow: none !important;
     padding: 0.875rem 1.25rem;
     gap: 0;
   }
@@ -5759,22 +5988,22 @@ $lp2-gap: 1px;               // shared border thickness
 
   .lp2-hero { padding: 2.5rem 1.25rem 3rem; }
   .lp2-head, .lp2-trust, .lp2-section-head, .lp2-tile__hdr, .lp2-tile__body,
-  .lp2-pricing__included, .lp2-pricing__meter, .lp2-footer__solutions-toggle,
-  .lp2-footer__solutions, .lp2-footer__bar, .lp2-keywords {
+  .lp2-pricing__included, .lp2-pricing__meter, .lp2-footer__card, .lp2-keywords {
     padding-inline: 1.25rem;
   }
 
-  .lp2-footer__solutions-wrap--open .lp2-footer__solutions {
-    padding-inline: 1.25rem;
+  .lp2-footer__card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// AORMS LANDING v2 — DEEP GLASSMORPHIC LAYER (2026-07)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// AORMS LANDING v2 â€” DEEP GLASSMORPHIC LAYER (2026-07)
 // Cascades over the base lp2 rules. All overrides scoped to .lp2-shell.
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// ── Dark atmospheric base ─────────────────────────────────────────────────────
+// â”€â”€ Dark atmospheric base â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell {
   // Rewrite all palette tokens for dark glass mode
@@ -5790,7 +6019,7 @@ $lp2-gap: 1px;               // shared border thickness
   --lp2-orange:      #ff4f18;
   --lp2-orange-glow: rgba(255, 79, 24, 0.45);
 
-  // Atmospheric dark canvas — 3 colour light sources
+  // Atmospheric dark canvas â€” 3 colour light sources
   background: var(--lp2-bg);
   &::before {
     content: '';
@@ -5808,14 +6037,14 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-// ── Contour glow on dark ──────────────────────────────────────────────────────
+// â”€â”€ Contour glow on dark â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .esti-lp-contours__ring {
   stroke: rgba(255, 79, 24, calc(0.38 + var(--lp-depth, 0) * 0.42));
   filter: drop-shadow(0 0 5px rgba(255, 79, 24, calc(0.2 + var(--lp-depth, 0) * 0.35)));
 }
 
-// ── Rail — deep glass ─────────────────────────────────────────────────────────
+// â”€â”€ Rail â€” deep glass â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-rail {
   background:
@@ -5881,16 +6110,16 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-rail__dl        { border-top-color: var(--lp2-border); }
 .lp2-shell .lp2-rail__foot      {
   border-top-color: var(--lp2-border);
-  .lp2-rail__hcw { filter: brightness(10) saturate(0); opacity: 0.38; }
+  .lp2-rail__hcw { opacity: 0.55; color: var(--lp-ink); }
 }
 
-// ── Stage ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Stage â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-stage {
-  background: transparent;   // lets the atmospheric shell show through
+  background: #ffffff !important;
 }
 
-// ── Stage head ────────────────────────────────────────────────────────────────
+// â”€â”€ Stage head â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-head {
   background:
@@ -5903,7 +6132,7 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-head__label { color: var(--lp2-ink-faint); }
 .lp2-shell .lp2-head__zone  { color: var(--lp2-ink-muted); }
 
-// ── Hero ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-hero__eyebrow {
   color: var(--lp2-orange);
@@ -5926,7 +6155,7 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-hero__sub     { color: var(--lp2-ink-muted); }
 .lp2-shell .lp2-hero__signals li { color: var(--lp2-ink-muted); }
 
-// ── Trust strip ───────────────────────────────────────────────────────────────
+// â”€â”€ Trust strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-trust {
   background: rgba(255, 255, 255, 0.03);
@@ -5939,7 +6168,7 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-trust__label  { color: var(--lp2-ink-faint); }
 .lp2-shell .lp2-trust__marks li { color: var(--lp2-ink-muted); }
 
-// ── Sections ─────────────────────────────────────────────────────────────────
+// â”€â”€ Sections â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-section  { border-bottom-color: var(--lp2-border); }
 
@@ -5958,7 +6187,7 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-section-head__title { color: var(--lp2-ink); }
 .lp2-shell .lp2-section-head__body  { color: var(--lp2-ink-muted); }
 
-// ── Grid & Tiles ──────────────────────────────────────────────────────────────
+// â”€â”€ Grid & Tiles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-grid { border-top-color: var(--lp2-border); }
 
@@ -6000,7 +6229,7 @@ $lp2-gap: 1px;               // shared border thickness
   text-shadow: 0 0 24px var(--lp2-orange-glow);
 }
 
-// ── Pricing ───────────────────────────────────────────────────────────────────
+// â”€â”€ Pricing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-pricing { border-top-color: var(--lp2-border); }
 
@@ -6051,32 +6280,29 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-pricing__price     { color: var(--lp2-ink); }
 .lp2-shell .lp2-pricing__sub       { color: var(--lp2-ink-muted); }
 
-// ── Footer ────────────────────────────────────────────────────────────────────
+// â”€â”€ Footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-footer {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(6, 7, 12, 0.8) 0%,
-      rgba(6, 7, 12, 0.98) 100%
-    );
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--lp2-border);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  margin-top: 2rem;
 }
 
-// ── Content wrapper ───────────────────────────────────────────────────────────
+// â”€â”€ Content wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-content { width: 90%; margin-inline: auto; }
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// AORMS LANDING v2 — LIGHT GLASS + FLUTED RAIL (2026-07)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// AORMS LANDING v2 â€” LIGHT GLASS + FLUTED RAIL (2026-07)
 // Overrides the dark-glass layer. All scoped to .lp2-shell.
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 .lp2-shell {
-  // ── Light palette tokens ──────────────────────────────────────────────────
+  // â”€â”€ Light palette tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   --lp2-bg:          #f4f5fa;
   --lp2-surface:     rgba(255, 255, 255, 0.72);
   --lp2-surface-hi:  rgba(255, 255, 255, 0.88);
@@ -6089,7 +6315,7 @@ $lp2-gap: 1px;               // shared border thickness
   --lp2-orange:      #ff4f18;
   --lp2-orange-glow: rgba(255, 79, 24, 0.22);
 
-  // ── Atmospheric white-to-cream gradient canvas ────────────────────────────
+  // â”€â”€ Atmospheric white-to-cream gradient canvas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   background: var(--lp2-bg);
 
   &::before {
@@ -6099,10 +6325,10 @@ $lp2-gap: 1px;               // shared border thickness
     z-index: 0;
     pointer-events: none;
     background:
-      // Soft lavender haze — top left
+      // Soft lavender haze â€” top left
       radial-gradient(ellipse 85% 60% at 12% 0%,
         rgba(185, 175, 255, 0.30) 0%, transparent 62%),
-      // Warm peach bloom — bottom right
+      // Warm peach bloom â€” bottom right
       radial-gradient(ellipse 70% 55% at 90% 92%,
         rgba(255, 150, 90, 0.20) 0%, transparent 58%),
       // Central cream fill
@@ -6111,14 +6337,14 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-// ── Contour rings on light canvas ─────────────────────────────────────────────
+// â”€â”€ Contour rings on light canvas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .esti-lp-contours__ring {
   stroke: rgba(255, 79, 24, calc(0.22 + var(--lp-depth, 0) * 0.38));
   filter: none;
 }
 
-// ── Rail — light glass + fluted distortion ────────────────────────────────────
+// â”€â”€ Rail â€” light glass + fluted distortion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-rail {
   position: relative;
@@ -6143,45 +6369,19 @@ $lp2-gap: 1px;               // shared border thickness
     box-shadow: none;
   }
 
-  // ── FLUTED GLASS DISTORTION LAYER ────────────────────────────────────────
+  // â”€â”€ FLUTED GLASS DISTORTION LAYER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Two overlapping repeating gradients that simulate vertical ribbed glass:
   // each "flute" is a thin bright specular highlight on the convex ridge of the
   // rib, a slightly darker channel, then a subtler secondary highlight.
   // The two layers are offset in period so the pattern never feels perfectly
   // mechanical.
   &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 1;          // above the glass, below the content
-    pointer-events: none;
-    border-radius: inherit;
-    background:
-      // Primary flutes — wider channels, stronger specular highlight
-      repeating-linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0.0)   0px,
-        rgba(255, 255, 255, 0.28)  1.5px,
-        rgba(255, 255, 255, 0.07)  4px,
-        rgba(255, 255, 255, 0.0)   7px,
-        rgba(255, 255, 255, 0.16)  8px,
-        rgba(255, 255, 255, 0.03)  11px,
-        rgba(255, 255, 255, 0.0)   16px
-      ),
-      // Secondary flutes — narrower, fainter (offset period adds realism)
-      repeating-linear-gradient(
-        90deg,
-        rgba(20, 21, 23, 0.0)    0px,
-        rgba(20, 21, 23, 0.025)  6px,
-        rgba(20, 21, 23, 0.0)    9px,
-        rgba(20, 21, 23, 0.018)  14px,
-        rgba(20, 21, 23, 0.0)    19px
-      );
-    mix-blend-mode: overlay;
+    display: none !important;
+    content: none !important;
   }
 }
 
-// Ensure rail content sits above the fluted layer
+// Ensure rail content sits above decorative layers
 .lp2-shell .lp2-rail > * { position: relative; z-index: 2; }
 
 .lp2-shell .lp2-rail__brand .esti-brand {
@@ -6200,6 +6400,7 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-rail__foot .lp2-rail__hcw {
   filter: none;
   opacity: 0.55;
+  color: var(--lp2-ink, #141517);
 }
 
 .lp2-shell .lp2-rail__ctas {
@@ -6218,7 +6419,7 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-// ── Stage head ────────────────────────────────────────────────────────────────
+// â”€â”€ Stage head â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-head {
   background: rgba(255, 255, 255, 0.62);
@@ -6230,7 +6431,7 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-head__label { color: var(--lp2-ink-faint); }
 .lp2-shell .lp2-head__zone  { color: var(--lp2-ink-muted); }
 
-// ── Hero ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-hero__brand {
   color: transparent;
@@ -6249,18 +6450,18 @@ $lp2-gap: 1px;               // shared border thickness
 
 .lp2-shell .lp2-hero__h1 {
   // Crisp Coal Black — no gradient text on light bg
-  background: none;
-  -webkit-background-clip: unset;
-  -webkit-text-fill-color: unset;
-  background-clip: unset;
-  color: var(--lp2-ink);
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: currentColor !important;
+  color: var(--lp2-ink, #141517) !important;
 }
 
 .lp2-shell .lp2-hero__sub      { color: var(--lp2-ink-muted); }
 .lp2-shell .lp2-hero__answer   { color: var(--lp2-ink); }
 .lp2-shell .lp2-hero__signals li { color: var(--lp2-ink-muted); }
 
-// ── Trust strip ───────────────────────────────────────────────────────────────
+// â”€â”€ Trust strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-trust {
   background: rgba(255, 255, 255, 0.70);
@@ -6281,7 +6482,7 @@ $lp2-gap: 1px;               // shared border thickness
 }
 .lp2-shell .lp2-keywords__label { color: var(--lp2-ink-faint); }
 
-// ── Sections ─────────────────────────────────────────────────────────────────
+// â”€â”€ Sections â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-section  { border-bottom-color: var(--lp2-border); }
 
@@ -6296,7 +6497,7 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-section-head__title { color: var(--lp2-ink); }
 .lp2-shell .lp2-section-head__body  { color: var(--lp2-ink-muted); }
 
-// ── Tiles — light glass cards ─────────────────────────────────────────────────
+// â”€â”€ Tiles â€” light glass cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-grid { border-top-color: var(--lp2-border); }
 
@@ -6329,7 +6530,7 @@ $lp2-gap: 1px;               // shared border thickness
   text-shadow: none;
 }
 
-// ── Pricing ───────────────────────────────────────────────────────────────────
+// â”€â”€ Pricing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-pricing { border-top-color: var(--lp2-border); }
 
@@ -6366,42 +6567,42 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-pricing__price     { color: var(--lp2-ink); }
 .lp2-shell .lp2-pricing__sub       { color: var(--lp2-ink-muted); }
 
-// ── Footer ────────────────────────────────────────────────────────────────────
+// â”€â”€ Footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-footer {
-  background: var(--lp2-ink);     // Coal Black editorial band
-  backdrop-filter: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  background: transparent !important;
+  border: none !important;
+  backdrop-filter: none !important;
 }
 
-// ── Content wrapper ───────────────────────────────────────────────────────────
+// â”€â”€ Content wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-content { width: 90%; margin-inline: auto; }
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// AORMS LANDING v2 — DEEP GLASS RAIL OVERRIDE (2026-07)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// AORMS LANDING v2 â€” DEEP GLASS RAIL OVERRIDE (2026-07)
 // Problem: 60% opacity + soft bg = plain white panel, not glass.
 // Fix: vivid saturated atmosphere + 38% panel + blur(42px) + layered depth shadow
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// ── 1. Background — vibrant atmosphere so glass has something to refract ────────
+// â”€â”€ 1. Background â€” vibrant atmosphere so glass has something to refract â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell {
   background: #eef0f7;
 
   &::before {
     background:
-      // STRONG indigo/violet bloom — positioned behind the LEFT rail
+      // STRONG indigo/violet bloom â€” positioned behind the LEFT rail
       radial-gradient(ellipse 55% 90% at -4% 30%,
         rgba(120, 80, 255, 0.52) 0%,
         rgba(80, 60, 200, 0.28)  40%,
         transparent 70%),
-      // Warm orange/amber bloom — lower-right of rail
+      // Warm orange/amber bloom â€” lower-right of rail
       radial-gradient(ellipse 50% 60% at 18% 92%,
         rgba(255, 100, 30, 0.38) 0%,
         transparent 60%),
-      // Cyan-teal accent — mid-right (shows through tile area on scroll)
+      // Cyan-teal accent â€” mid-right (shows through tile area on scroll)
       radial-gradient(ellipse 70% 50% at 85% 25%,
         rgba(50, 200, 210, 0.20) 0%,
         transparent 60%),
@@ -6414,13 +6615,13 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-// ── 2. Contour rings — slightly stronger on this background ────────────────────
+// â”€â”€ 2. Contour rings â€” slightly stronger on this background â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .esti-lp-contours__ring {
   stroke: rgba(255, 79, 24, calc(0.28 + var(--lp-depth, 0) * 0.42));
 }
 
-// ── 3. RAIL — genuine deep glass with profundity ───────────────────────────────
+// â”€â”€ 3. RAIL â€” genuine deep glass with profundity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-rail {
   // Transparent enough that the vibrant gradients bleed through
@@ -6432,17 +6633,17 @@ $lp2-gap: 1px;               // shared border thickness
       rgba(255, 255, 255, 0.30) 100%
     );
 
-  // Strong blur — the frosted-glass thickness feel
+  // Strong blur â€” the frosted-glass thickness feel
   backdrop-filter: blur(42px) saturate(2.2) brightness(1.06);
   -webkit-backdrop-filter: blur(42px) saturate(2.2) brightness(1.06);
 
   // Right edge: bright highlight (light hitting the glass face)
   border-right: 1px solid rgba(255, 255, 255, 0.72);
 
-  // Multi-layer depth shadow — physical profundity
+  // Multi-layer depth shadow â€” physical profundity
   box-shadow: none;
 
-  // Orange left edge accent — stronger, with warm glow
+  // Orange left edge accent â€” stronger, with warm glow
   &::before {
     background: linear-gradient(
       to bottom,
@@ -6454,10 +6655,10 @@ $lp2-gap: 1px;               // shared border thickness
     box-shadow: none;
   }
 
-  // FLUTED GLASS — deeper, more visible on transparent surface
+  // FLUTED GLASS â€” deeper, more visible on transparent surface
   &::after {
     background:
-      // Primary flutes — strong specular ridges
+      // Primary flutes â€” strong specular ridges
       repeating-linear-gradient(
         90deg,
         rgba(255, 255, 255, 0.0)   0px,
@@ -6469,7 +6670,7 @@ $lp2-gap: 1px;               // shared border thickness
         rgba(255, 255, 255, 0.10)  10px,
         rgba(255, 255, 255, 0.0)   14px
       ),
-      // Shadow channels — dark trough between ribs
+      // Shadow channels â€” dark trough between ribs
       repeating-linear-gradient(
         90deg,
         rgba(20, 21, 23, 0.0)    0px,
@@ -6485,13 +6686,13 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-// Specular top edge — thin bright line where the glass face catches ambient light
+// Specular top edge â€” thin bright line where the glass face catches ambient light
 .lp2-shell .lp2-rail::before {
   content: '';
   // Keep the orange edge (already defined above via ::before in base rules)
 }
 
-// ── 4. Content legibility — glass is more transparent so text needs contrast ───
+// â”€â”€ 4. Content legibility â€” glass is more transparent so text needs contrast â”€â”€â”€
 
 .lp2-shell .lp2-rail__brand-row,
 .lp2-shell .lp2-rail__tagline,
@@ -6507,7 +6708,7 @@ $lp2-gap: 1px;               // shared border thickness
   color: #1a1c22;
   font-weight: 700;
   letter-spacing: 0.01em;
-  // Pill hover state — glass highlight
+  // Pill hover state â€” glass highlight
   border-radius: 4px;
   padding-left: 0.5rem;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
@@ -6520,17 +6721,17 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-// Divider lines inside the rail — adjust to visible on transparent glass
+// Divider lines inside the rail â€” adjust to visible on transparent glass
 .lp2-shell .lp2-rail__dl   { border-top-color: rgba(20, 21, 23, 0.14); }
 .lp2-shell .lp2-rail__foot { border-top-color: rgba(20, 21, 23, 0.14); }
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// AORMS LANDING v2 — TRUE GLASSMORPHISM RAIL (2026-07)
-// Matches reference: 3-D orange spheres in scene → frosted glass panel on top.
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// AORMS LANDING v2 â€” TRUE GLASSMORPHISM RAIL (2026-07)
+// Matches reference: 3-D orange spheres in scene â†’ frosted glass panel on top.
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// ── Background canvas — warm cream/beige like reference ───────────────────────
+// â”€â”€ Background canvas â€” warm cream/beige like reference â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell {
   background: #ddd5cb;
@@ -6542,9 +6743,9 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-// ── 3-D SPHERE BLOBS ──────────────────────────────────────────────────────────
+// â”€â”€ 3-D SPHERE BLOBS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Fixed layer, behind everything (z-index 0).
-// Spheres use radial-gradient with offset specular highlight → depth illusion.
+// Spheres use radial-gradient with offset specular highlight â†’ depth illusion.
 
 .lp2-blobs {
   position: fixed;
@@ -6557,7 +6758,7 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-blob {
   position: absolute;
   border-radius: 50%;
-  // 3-D sphere gradient — specular at top-left, shadow at bottom-right
+  // 3-D sphere gradient â€” specular at top-left, shadow at bottom-right
   background: radial-gradient(
     circle at 34% 32%,
     rgba(255, 200, 140, 0.98)  0%,
@@ -6570,7 +6771,7 @@ $lp2-gap: 1px;               // shared border thickness
   filter: drop-shadow(0 12px 40px rgba(220, 60, 0, 0.40));
 }
 
-// Blob A — large, centred on the rail, ~55% vh tall
+// Blob A â€” large, centred on the rail, ~55% vh tall
 .lp2-blob--a {
   width:  min(300px, 45vw);
   height: min(300px, 45vw);
@@ -6578,7 +6779,7 @@ $lp2-gap: 1px;               // shared border thickness
   left: -4vw;
 }
 
-// Blob B — medium, top of rail area, partially out of frame
+// Blob B â€” medium, top of rail area, partially out of frame
 .lp2-blob--b {
   width:  min(200px, 28vw);
   height: min(200px, 28vw);
@@ -6594,7 +6795,7 @@ $lp2-gap: 1px;               // shared border thickness
   );
 }
 
-// Blob C — small, lower-left corner
+// Blob C â€” small, lower-left corner
 .lp2-blob--c {
   width:  min(150px, 22vw);
   height: min(150px, 22vw);
@@ -6610,7 +6811,7 @@ $lp2-gap: 1px;               // shared border thickness
   filter: drop-shadow(0 8px 24px rgba(200, 50, 0, 0.35));
 }
 
-// Blob D — ring/torus illusion (hollow circle) — upper right edge of rail
+// Blob D â€” ring/torus illusion (hollow circle) â€” upper right edge of rail
 .lp2-blob--d {
   width:  min(120px, 18vw);
   height: min(120px, 18vw);
@@ -6629,7 +6830,7 @@ $lp2-gap: 1px;               // shared border thickness
   filter: drop-shadow(0 6px 20px rgba(200, 55, 0, 0.42));
 }
 
-// Blob E — tiny ring, lower right of rail
+// Blob E â€” tiny ring, lower right of rail
 .lp2-blob--e {
   width:  min(80px, 12vw);
   height: min(80px, 12vw);
@@ -6646,24 +6847,24 @@ $lp2-gap: 1px;               // shared border thickness
   -webkit-mask: radial-gradient(circle at 50% 50%, transparent 40%, black 42%, black 100%);
 }
 
-// ── RAIL — genuine glass sheet floating in front of blobs ─────────────────────
+// â”€â”€ RAIL â€” genuine glass sheet floating in front of blobs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-rail {
-  // Near-transparent — let the spheres bleed through
+  // Near-transparent â€” let the spheres bleed through
   background: rgba(255, 255, 255, 0.14);
 
-  // Thick frosted-glass blur — the spheres behind are soft but clearly present
+  // Thick frosted-glass blur â€” the spheres behind are soft but clearly present
   backdrop-filter: blur(44px) saturate(1.6) brightness(1.10);
   -webkit-backdrop-filter: blur(44px) saturate(1.6) brightness(1.10);
 
-  // Thin bright border — the glass edge catching ambient light
+  // Thin bright border â€” the glass edge catching ambient light
   border-right: 1px solid rgba(255, 255, 255, 0.55);
   border-top:   1px solid rgba(255, 255, 255, 0.40);
 
-  // Layered shadow — profundity
+  // Layered shadow â€” profundity
   box-shadow: none;
 
-  // Orange left accent — strong warm edge
+  // Orange left accent â€” strong warm edge
   &::before {
     background: linear-gradient(
       to bottom,
@@ -6675,7 +6876,7 @@ $lp2-gap: 1px;               // shared border thickness
     box-shadow: none;
   }
 
-  // FLUTED glass — strong enough on nearly transparent panel
+  // FLUTED glass â€” strong enough on nearly transparent panel
   &::after {
     background:
       repeating-linear-gradient(
@@ -6704,7 +6905,7 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-// ── Rail text — dark ink needs backdrop since rail is nearly transparent ───────
+// â”€â”€ Rail text â€” dark ink needs backdrop since rail is nearly transparent â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-rail__link {
   color: #1a0e08;
@@ -6728,7 +6929,7 @@ $lp2-gap: 1px;               // shared border thickness
   text-shadow: 0 1px 4px rgba(255, 255, 255, 0.65);
 }
 
-// Contour rings — warm tint; hill silhouette strengthens with depth
+// Contour rings â€” warm tint; hill silhouette strengthens with depth
 .lp2-shell .esti-lp-contours__ring {
   stroke: rgba(255, 79, 24, calc(0.28 + var(--lp-depth, 0) * 0.55));
   fill: rgba(255, 79, 24, calc(0.015 + var(--lp-depth, 0) * 0.045));
@@ -6745,7 +6946,7 @@ $lp2-gap: 1px;               // shared border thickness
   opacity: calc(0.75 + var(--lp-depth, 0) * 0.25) !important;
 }
 
-// Stage tiles — clear liquid glass over the contour scene
+// Stage tiles â€” clear liquid glass over the contour scene
 .lp2-shell .lp2-tile {
   background:
     linear-gradient(
@@ -6761,65 +6962,47 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // RAIL FIX: full-height + 2x flutes (2026-07)
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// ── Rail: pin top to bottom without relying on 100vh ──────────────────────────
+// â”€â”€ Rail: pin top to bottom â€” exact viewport height, no internal scroll â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-rail {
   position: fixed !important;
-  top:    0        !important;
-  bottom: 0        !important;
-  left:   0        !important;
-  height: auto     !important;   // let top+bottom dictate height
-  min-height: 100% !important;
+  top: $lp2-rail-gutter !important;
+  left: $lp2-rail-gutter !important;
+  bottom: $lp2-rail-gutter !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: auto !important;
+  max-height: calc(100dvh - #{$lp2-rail-gutter * 2}) !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  border-radius: $lp2-rail-radius !important;
 }
 
-// ── 2x flute scale on the override layer ──────────────────────────────────────
-// All stop positions from the previous block doubled.
+// ── 2x flute scale — retired (plain glass rail) ──
 
 .lp2-shell .lp2-rail::after {
-  background:
-    // Primary specular ridges — period now 28 px (was 14)
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.0)   0px,
-      rgba(255, 255, 255, 0.55)  2px,
-      rgba(255, 255, 255, 0.22)  6px,
-      rgba(255, 255, 255, 0.07)  10px,
-      rgba(255, 255, 255, 0.0)   14px,
-      rgba(255, 255, 255, 0.36)  16px,
-      rgba(255, 255, 255, 0.12)  20px,
-      rgba(255, 255, 255, 0.0)   28px
-    ),
-    // Shadow troughs — period now 38 px (was 19)
-    repeating-linear-gradient(
-      90deg,
-      rgba(20, 21, 23, 0.0)    0px,
-      rgba(20, 21, 23, 0.0)    6px,
-      rgba(20, 21, 23, 0.065)  12px,
-      rgba(20, 21, 23, 0.02)   18px,
-      rgba(20, 21, 23, 0.0)    22px,
-      rgba(20, 21, 23, 0.05)   30px,
-      rgba(20, 21, 23, 0.0)    38px
-    );
-  mix-blend-mode: overlay;
-  opacity: 1;
+  display: none !important;
+  content: none !important;
+  background: none !important;
 }
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// FROSTED CARDS — stage blobs + all card surfaces (2026-07)
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// FROSTED CARDS â€” stage blobs + all card surfaces (2026-07)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// ── Extra blobs in the STAGE area so cards have vivid colour behind them ───────
+// â”€â”€ Extra blobs in the STAGE area so cards have vivid colour behind them â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-blobs::before {
   content: '';
   position: absolute;
   border-radius: 50%;
-  // Large warm-orange sphere — upper-right stage
+  // Large warm-orange sphere â€” upper-right stage
   width:  min(380px, 38vw);
   height: min(380px, 38vw);
   top:    5vh;
@@ -6839,7 +7022,7 @@ $lp2-gap: 1px;               // shared border thickness
   content: '';
   position: absolute;
   border-radius: 50%;
-  // Ring — lower-centre stage
+  // Ring â€” lower-centre stage
   width:  min(260px, 26vw);
   height: min(260px, 26vw);
   bottom: 12vh;
@@ -6856,21 +7039,21 @@ $lp2-gap: 1px;               // shared border thickness
   filter: drop-shadow(0 10px 32px rgba(200, 55, 0, 0.38));
 }
 
-// ── Stage — transparent so blobs show behind all cards ────────────────────────
+// â”€â”€ Stage â€” transparent so blobs show behind all cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-stage {
-  background: transparent !important;
+  background: #ffffff !important;
 }
 
 .lp2-shell .lp2-content {
   background: transparent !important;
 }
 
-// ── Shared frosted glass recipe ───────────────────────────────────────────────
+// â”€â”€ Shared frosted glass recipe â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Applied to every card surface in the stage.
 
 @mixin frost-card {
-  // Clear glass (name kept for call sites) — light refraction, not milky frost
+  // Clear glass (name kept for call sites) â€” light refraction, not milky frost
   background:
     linear-gradient(
       155deg,
@@ -6922,7 +7105,7 @@ $lp2-gap: 1px;               // shared border thickness
   background: transparent !important;
 }
 
-// ── Text legibility on frosted glass tiles ────────────────────────────────────
+// â”€â”€ Text legibility on frosted glass tiles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-tile__title,
 .lp2-shell .lp2-section-head__title,
@@ -6949,27 +7132,27 @@ $lp2-gap: 1px;               // shared border thickness
   color: var(--lp2-orange);
 }
 
-// Footer — clear coal glass (final colour set later; keep blur light here)
+// Footer â€” clear coal glass (final colour set later; keep blur light here)
 .lp2-shell .lp2-footer {
-  background: rgba(20, 21, 23, 0.45) !important;
-  backdrop-filter: blur(14px) saturate(1.2) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(1.2) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
 }
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// BLOB RESTYLE — frosted / diluted (2026-07)
-// Replace vivid orange with pale milky haze — blobs feel like frosted glass orbs
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// BLOB RESTYLE â€” frosted / diluted (2026-07)
+// Replace vivid orange with pale milky haze â€” blobs feel like frosted glass orbs
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// ── Shared frosted-orb gradient ───────────────────────────────────────────────
+// â”€â”€ Shared frosted-orb gradient â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Very low opacity, cool-warm mix, specular highlight kept for the 3-D read
 
 .lp2-blob {
   background: radial-gradient(
     circle at 34% 32%,
-    rgba(255, 255, 248, 0.70)  0%,   // specular — almost white
+    rgba(255, 255, 248, 0.70)  0%,   // specular â€” almost white
     rgba(255, 220, 190, 0.38)  22%,  // warm cream blush
     rgba(220, 180, 155, 0.22)  48%,  // diluted salmon
     rgba(190, 155, 130, 0.10)  72%,  // ghost shadow
@@ -7034,7 +7217,7 @@ $lp2-gap: 1px;               // shared border thickness
   filter: blur(1px) !important;
 }
 
-// Stage pseudo-blobs — also diluted
+// Stage pseudo-blobs â€” also diluted
 .lp2-blobs::before {
   background: radial-gradient(
     circle at 34% 32%,
@@ -7069,18 +7252,18 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// RAIL — remove flutes, deep frost (2026-07) — superseded by lacquered orange below
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// RAIL â€” remove flutes, deep frost (2026-07) â€” superseded by lacquered orange below
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// (Legacy transparent-frost block removed — see HIERARCHY GLASS rail override.)
+// (Legacy transparent-frost block removed â€” see HIERARCHY GLASS rail override.)
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// BACKGROUND RESTYLE — white / grey gradient blobs, no orange (2026-07)
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// BACKGROUND RESTYLE â€” white / grey gradient blobs, no orange (2026-07)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// ── Canvas — clean white-to-cool-grey ─────────────────────────────────────────
+// â”€â”€ Canvas â€” clean white-to-cool-grey â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell {
   background: #f0f1f4 !important;
@@ -7095,7 +7278,7 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-// ── Blobs — white / silver / cool-grey orbs ───────────────────────────────────
+// â”€â”€ Blobs â€” white / silver / cool-grey orbs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-blob--a {
   background: radial-gradient(
@@ -7175,7 +7358,7 @@ $lp2-gap: 1px;               // shared border thickness
   filter: blur(3px) !important;
 }
 
-// ── Rail box-shadow — thick glass edge ────────────────────────────────────────
+// â”€â”€ Rail box-shadow â€” thick glass edge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-rail {
   box-shadow:
@@ -7185,7 +7368,7 @@ $lp2-gap: 1px;               // shared border thickness
     inset 1px 0 0 rgba(255, 255, 255, 0.28) !important;
 }
 
-// ── Card shadows — neutral ─────────────────────────────────────────────────────
+// â”€â”€ Card shadows â€” neutral â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-shell .lp2-tile,
 .lp2-shell .lp2-step-tile,
@@ -7199,11 +7382,11 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// CARDS — flat paper, divider lines only (2026-07)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// CARDS â€” flat paper, divider lines only (2026-07)
 // No backdrop-filter, no box-shadow depth, no 3-D.
 // Side + bottom hairline borders only.
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 .lp2-shell .lp2-tile,
 .lp2-shell .lp2-step-tile,
@@ -7276,19 +7459,17 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 .lp2-shell .lp2-footer {
-  background:      rgba(255, 255, 255, 0.78) !important;
+  background: transparent !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  box-shadow:      none !important;
-  border:          none !important;
-  border-top:      1px solid rgba(20, 21, 23, 0.10) !important;
-  border-radius:   0 !important;
+  box-shadow: none !important;
+  border: none !important;
 }
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// TILES — clear liquid glass (2026-07)
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// TILES â€” clear liquid glass (2026-07)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 .lp2-shell .lp2-tile,
 .lp2-shell .lp2-step-tile,
@@ -7323,11 +7504,12 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 
-// ── Rail hierarchy: spacer + value-prop (2026-07) ─────────────────────────────
+// â”€â”€ Rail hierarchy: spacer + value-prop (2026-07) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-rail__spacer {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 1rem;
+  min-width: 0;
 }
 
 .lp2-rail__value-prop {
@@ -7337,14 +7519,16 @@ $lp2-gap: 1px;               // shared border thickness
   color:          var(--lp2-ink-muted, rgba(30, 15, 5, 0.60));
   text-align:     center;
   margin:         0 0 0.55rem;
+  padding:        0 1rem;
   line-height:    1.5;
   text-shadow:    0 1px 3px rgba(255, 255, 255, 0.55);
+  box-sizing:     border-box;
 }
 
-// Collapsed rail — width must win over later glass-layer overrides
+// Collapsed rail â€” width must win over later glass-layer overrides
 .lp2-rail.lp2-rail--collapsed {
   width: $lp2-rail-collapsed !important;
-  padding: 0.875rem 0.35rem !important;
+  padding: 0 !important;
   align-items: center;
 }
 
@@ -7354,12 +7538,70 @@ $lp2-gap: 1px;               // shared border thickness
   min-width: $lp2-rail-collapsed !important;
 }
 
+.lp2-dev-doc {
+  padding: 0 $lp2-pad 4rem;
+  width: 100%;
+  box-sizing: border-box;
+
+  &__article {
+    max-width: min(52rem, 100%);
+    margin: 0;
+  }
+
+  &__body {
+    h2 {
+      scroll-margin-top: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-block-end: 1.25rem;
+      font-size: 0.875rem;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--lp-border, rgba(20, 21, 23, 0.12));
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.5);
+      font-weight: 600;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--lp-border, rgba(20, 21, 23, 0.12));
+      margin: 2rem 0;
+    }
+  }
+}
+
+.lp2-shell .lp2-dev-doc__body {
+  color: var(--lp2-ink-muted, rgba(20, 21, 23, 0.72));
+
+  h2,
+  h3,
+  strong {
+    color: var(--lp2-ink, #141517);
+  }
+
+  pre {
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+}
+
 // Marketing ActionDock sits above stage content (rail is left-edge only).
 .lp2-shell [role="toolbar"][aria-label="Screen actions"] {
   z-index: 9500;
 }
 
-// FAQ — static cards; 3 per row on desktop
+// FAQ â€” static cards; 3 per row on desktop
 .lp2-faq {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -7386,18 +7628,42 @@ $lp2-gap: 1px;               // shared border thickness
   overflow: hidden;
   min-height: 0;
   align-self: start;
+
+  &[open] .lp2-faq__q {
+    color: var(--lp-ink);
+  }
 }
 
 .lp2-faq__q {
   margin: 0;
-  min-height: 0;
+  min-height: 44px;
   display: flex;
   align-items: center;
-  padding: 0.85rem 1rem 0.35rem;
+  padding: 0.85rem 1rem;
   font-size: 0.95rem;
   font-weight: 650;
   line-height: 1.35;
   color: var(--lp-ink, inherit);
+  cursor: pointer;
+  list-style: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &::after {
+    content: "+";
+    margin-left: auto;
+    padding-left: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--lp-ink-muted);
+    line-height: 1;
+  }
+}
+
+.lp2-faq__item[open] .lp2-faq__q::after {
+  content: "−";
 }
 
 .lp2-faq__a {
@@ -7409,97 +7675,73 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 .lp2-shell .lp2-faq__item {
-  background: rgba(255, 255, 255, 0.055);
-  border-color: var(--lp2-border, rgba(255, 255, 255, 0.1));
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  background: transparent;
+  border-color: var(--lp-border, rgba(20, 21, 23, 0.12));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .lp2-shell .lp2-faq__q { color: var(--lp2-ink, rgba(255, 255, 255, 0.92)); }
 .lp2-shell .lp2-faq__a { color: var(--lp2-ink-muted, rgba(255, 255, 255, 0.58)); }
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// MARKETING FOOTER — clear coal glass mesh + clear orange glass bar
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// MARKETING FOOTER â€” clear coal glass mesh + clear orange glass bar
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 .lp2-shell .lp2-footer {
-  // Clear coal glass over the contour — not solid black
-  background:
-    linear-gradient(
-      180deg,
-      rgba(20, 21, 23, 0.52) 0%,
-      rgba(20, 21, 23, 0.42) 100%
-    ) !important;
-  backdrop-filter: blur(14px) saturate(1.2) brightness(1.02) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(1.2) brightness(1.02) !important;
+  background: transparent !important;
   border: none !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.28) !important;
-  border-radius: 0 !important;
-  box-shadow:
-    inset 0 0 48px rgba(255, 255, 255, 0.14),
-    inset 0 0 18px rgba(255, 255, 255, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.32),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.06) !important;
-  color: rgba(255, 255, 255, 0.78);
+  border-top: 1px solid var(--lp-border) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: var(--lp-ink) !important;
   margin-top: 2rem;
-}
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-inline: 0 !important;
+  padding-inline: $lp2-pad !important;
+  box-sizing: border-box !important;
 
-.lp2-shell .lp2-footer__solutions-wrap {
-  background: transparent !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
-}
+  .lp2-footer__logo {
+    filter: none !important;
+  }
 
-.lp2-shell .lp2-footer__solutions {
-  background: transparent !important;
-}
+  .lp2-footer__blurb,
+  .lp2-footer__visits,
+  .lp2-footer__links a {
+    color: var(--lp-ink-muted) !important;
+  }
 
-.lp2-shell .lp2-footer__bar {
-  // Clear Radiant Orange glass — tinted, not solid fill
-  background:
-    linear-gradient(
-      155deg,
-      rgba(255, 79, 24, 0.55) 0%,
-      rgba(255, 79, 24, 0.38) 48%,
-      rgba(219, 62, 15, 0.48) 100%
-    ) !important;
-  backdrop-filter: blur(12px) saturate(1.35) brightness(1.05) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(1.35) brightness(1.05) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.42) !important;
-  box-shadow:
-    inset 0 0 56px rgba(255, 200, 160, 0.35),
-    inset 0 0 22px rgba(255, 255, 255, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    inset 0 -1px 0 rgba(255, 140, 80, 0.25) !important;
-}
+  .lp2-footer__links a:hover {
+    color: var(--lp-ink) !important;
+  }
 
-.lp2-shell .lp2-footer__bar .lp2-footer__col-head {
-  color: rgba(255, 255, 255, 0.78);
-}
-
-.lp2-shell .lp2-footer__bar .lp2-footer__col ul a {
-  color: rgba(255, 255, 255, 0.92);
-
-  &:hover {
-    color: #fff;
+  .hcw-attribution__note {
+    color: var(--lp-ink-muted) !important;
   }
 }
 
-.lp2-shell .lp2-footer__bar .lp2-footer__brand p {
-  color: rgba(255, 255, 255, 0.88);
+.lp2-shell .lp2-footer__card {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
-.lp2-shell .lp2-footer__bar .lp2-footer__logo {
-  filter: brightness(10);
-  opacity: 0.95;
+.lp2-shell .lp2-footer__solutions-wrap,
+.lp2-shell .lp2-footer__solutions,
+.lp2-shell .lp2-footer__bar {
+  display: none !important;
 }
 
-.lp2-shell .lp2-footer__bar .lp2-footer__visits {
-  color: rgba(255, 255, 255, 0.75);
-  border-top-color: rgba(255, 255, 255, 0.28);
-}
-
-// Wiki — editorial article layout + lp2 marketing home at /wiki.
+// Wiki â€” editorial article layout + lp2 marketing home at /wiki.
 .esti-wiki {
   @extend .esti-blog;
 }
@@ -7550,7 +7792,7 @@ $lp2-gap: 1px;               // shared border thickness
   @extend .esti-blog-article__byline;
 }
 
-// Wiki home — marketing-grade index at /wiki
+// Wiki home â€” marketing-grade index at /wiki
 .lp2-wiki {
   border-bottom: 1px solid var(--lp-border);
 }
@@ -7621,7 +7863,7 @@ $lp2-gap: 1px;               // shared border thickness
   text-decoration: none;
   color: var(--lp-ink);
   border: 1px solid var(--lp-border);
-  border-radius: var(--lp-radius);
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.55);
   transition: background 0.15s, border-color 0.15s;
 
@@ -7644,6 +7886,86 @@ $lp2-gap: 1px;               // shared border thickness
 
 .lp2-wiki-start {
   border-bottom: 1px solid var(--lp-border);
+}
+
+.lp2-wiki-hubs {
+  border-bottom: 1px solid var(--lp-border);
+}
+
+.lp2-wiki-hubs__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  border-top: 1px solid var(--lp-border);
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .lp2-wiki-hub-card {
+    border-right: 1px solid var(--lp-border);
+    border-bottom: 1px solid var(--lp-border);
+
+    @media (min-width: 1024px) {
+      &:nth-child(4n) {
+        border-right: none;
+      }
+    }
+
+    @media (min-width: 640px) and (max-width: 1023px) {
+      &:nth-child(2n) {
+        border-right: none;
+      }
+    }
+
+    @media (max-width: 639px) {
+      border-right: none;
+    }
+  }
+}
+
+.lp2-wiki-hub-card__tag {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--lp-accent);
+}
+
+.lp2-wiki-hub-section__lead {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+
+  a {
+    color: var(--lp-ink-muted);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--lp-accent);
+    }
+  }
+}
+
+.esti-wiki-article__hub {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  color: var(--lp-ink-faint);
+
+  a {
+    color: var(--lp-ink);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--lp-accent);
+    }
+  }
 }
 
 .lp2-wiki-card {
@@ -7718,7 +8040,7 @@ $lp2-gap: 1px;               // shared border thickness
   color: var(--lp-ink-muted);
 }
 
-// ── Mobile performance — drop stacked blur, fixed blobs, and 3-D contours ─────
+// â”€â”€ Mobile performance â€” drop stacked blur, fixed blobs, and 3-D contours â”€â”€â”€â”€â”€
 // Heavy backdrop-filter layers stall weak GPUs and can leave a blank screen.
 @media (max-width: 900px) {
   .lp2-shell::before {
@@ -7733,6 +8055,12 @@ $lp2-gap: 1px;               // shared border thickness
   .lp2-shell .lp2-pricing__meter,
   .lp2-shell .lp2-pricing__card,
   .lp2-shell .lp2-faq__item,
+  .lp2-shell .lp2-footer__card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+  }
+
   .lp2-shell .lp2-footer {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
@@ -7759,17 +8087,15 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// LANDING MOTION — hero entrance + scroll reveal (2026-07)
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// LANDING MOTION â€” hero entrance + scroll reveal (2026-07)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 @keyframes lp2-hero-in {
   from {
-    opacity: 0;
     transform: translateY(1.25rem);
   }
   to {
-    opacity: 1;
     transform: translateY(0);
   }
 }
@@ -7792,23 +8118,20 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 .lp2-hero-anim {
-  opacity: 0;
-  animation: lp2-hero-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: lp2-hero-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: calc(var(--lp-i, 0) * 90ms + 80ms);
 }
 
 .lp2-reveal {
-  opacity: 0;
   transform: translateY(1.5rem);
   transition:
     opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
     transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
   transition-delay: var(--lp-reveal-delay, 0ms);
-  will-change: opacity, transform;
+  will-change: transform;
 }
 
 .lp2-reveal.lp2-reveal--in {
-  opacity: 1;
   transform: translateY(0);
 }
 
@@ -7832,8 +8155,12 @@ $lp2-gap: 1px;               // shared border thickness
   .lp2-blob--h {
     animation: none !important;
     transition: none !important;
-    opacity: 1 !important;
     transform: none !important;
+  }
+
+  .lp2-hero__calc-glass {
+    animation: none !important;
+    transform: translateY(66.667%) !important;
   }
 
   .esti-lp-contours__terrain {
@@ -7851,49 +8178,28 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// CLEAR / LIQUID GLASS — marketing surfaces (2026-07)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// CLEAR / LIQUID GLASS â€” marketing surfaces (2026-07)
 // Regular cards = clear liquid glass (not frosted/matte).
 // Empty / gap fills only = fluted glass.
 // Scoped to .lp2-shell only.
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// Vertical ribbed glass — empty cells only
+// Empty / gap fills — plain glass (fluted rib overlay retired 2026-07).
 @mixin lp2-flute-overlay {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.0)   0px,
-      rgba(255, 255, 255, 0.34)  1px,
-      rgba(255, 255, 255, 0.10)  3px,
-      rgba(255, 255, 255, 0.0)   6px,
-      rgba(255, 255, 255, 0.18)  7px,
-      rgba(255, 255, 255, 0.04)  10px,
-      rgba(255, 255, 255, 0.0)   14px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      rgba(20, 21, 23, 0.0)    0px,
-      rgba(20, 21, 23, 0.03)   5px,
-      rgba(20, 21, 23, 0.0)    8px,
-      rgba(20, 21, 23, 0.02)   12px,
-      rgba(20, 21, 23, 0.0)    16px
-    );
-  mix-blend-mode: overlay;
-  opacity: 0.9;
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  opacity: 0 !important;
+  mix-blend-mode: normal !important;
 }
 
-// Clear liquid glass — transparent pane, light refraction, thick edge
+// Clear liquid glass â€” transparent pane, light refraction, thick edge
 @mixin lp2-clear-glass {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  // Nearly clear — contours read through as soft glow, not milky frost
+  // Nearly clear â€” contours read through as soft glow, not milky frost
   background:
     linear-gradient(
       155deg,
@@ -7962,7 +8268,7 @@ $lp2-gap: 1px;               // shared border thickness
   margin: 0;
 }
 
-// Grid — flush tiles; empty cells show fluted glass underneath
+// Grid â€” flush tiles; empty cells show fluted glass underneath
 .lp2-shell .lp2-grid {
   position: relative;
   isolation: isolate;
@@ -8082,12 +8388,12 @@ $lp2-gap: 1px;               // shared border thickness
   }
 
   &::after {
-    @include lp2-flute-overlay;
-    display: block !important;
+    display: none !important;
+    content: none !important;
   }
 }
 
-// Section head — flat glass + thin orange accent
+// Section head â€” flat glass + thin orange accent
 .lp2-shell .lp2-section-head {
   margin: 0;
   padding: 2.25rem 1.75rem 1.75rem !important;
@@ -8145,7 +8451,7 @@ $lp2-gap: 1px;               // shared border thickness
 
 .lp2-shell .lp2-pricing__included {
   border-radius: 0 !important;
-  // Clear coal glass — not solid black
+  // Clear coal glass â€” not solid black
   background:
     linear-gradient(
       155deg,
@@ -8191,7 +8497,7 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-// Chips — flat mini glass
+// Chips â€” flat mini glass
 .lp2-shell .lp2-trust__marks li,
 .lp2-shell .lp2-keywords__list li {
   padding: 0.35rem 0.7rem 0.35rem 0.5rem;
@@ -8210,7 +8516,7 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-// Ink on transparent glass — soft white halo for legibility
+// Ink on transparent glass â€” soft white halo for legibility
 .lp2-shell .lp2-tile__title,
 .lp2-shell .lp2-section-head__title,
 .lp2-shell .lp2-hero__h1 {
@@ -8228,7 +8534,7 @@ $lp2-gap: 1px;               // shared border thickness
   filter: drop-shadow(0 0 28px rgba(255, 79, 24, 0.35));
 }
 
-// ── Stage-spread spheres (depth of field like the reference) ─────────────────
+// â”€â”€ Stage-spread spheres (depth of field like the reference) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 .lp2-blob--f {
   width:  min(420px, 38vw);
@@ -8273,7 +8579,7 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-blob--g { animation: lp2-blob-drift 16s ease-in-out infinite reverse; animation-delay: -7s; }
 .lp2-blob--h { animation: lp2-blob-drift 20s ease-in-out infinite; animation-delay: -11s; }
 
-// Rail — thick glass pane
+// Rail â€” thick glass pane
 .lp2-shell .lp2-rail {
   background:
     linear-gradient(
@@ -8318,10 +8624,10 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// CANONICAL BG — fluid contours only (2026-07)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// CANONICAL BG â€” fluid contours only (2026-07)
 // Kill blobs + old atmosphere blooms. Contour hierarchy is the sole scene.
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 .lp2-blobs,
 .lp2-blob,
@@ -8349,6 +8655,10 @@ $lp2-gap: 1px;               // shared border thickness
   background: transparent !important;
 }
 
+.lp2-shell .lp2-stage {
+  background: #ffffff !important;
+}
+
 // Contour hierarchy wins over older stroke overrides
 .lp2-shell .esti-lp-contours__band--far .esti-lp-contours__ring {
   stroke: rgba(91, 97, 107, calc(0.14 + var(--lp-depth, 0) * 0.16)) !important;
@@ -8369,9 +8679,11 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 .lp2-shell .esti-lp-contours__terrain {
+  position: fixed !important;
   left: auto !important;
   right: -8vw !important;
   bottom: -6vh !important;
+  top: auto !important;
   width: min(95vw, 920px) !important;
   height: min(85vw, 720px) !important;
   transform-origin: 85% 90% !important;
@@ -8392,11 +8704,18 @@ $lp2-gap: 1px;               // shared border thickness
     linear-gradient(165deg, #f5f6f9 0%, #eef0f4 48%, #e8ebf0 100%) !important;
 }
 
+// Inside the white stage — terrain only; skip the fog-gray shell wash.
+.lp2-shell .lp2-stage__contours .esti-lp-contours__wash {
+  background:
+    radial-gradient(ellipse 55% 50% at 92% 88%,
+      rgba(255, 79, 24, 0.1) 0%, transparent 58%) !important;
+}
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// CLEAR LIQUID GLASS — final override (beats milky frost layers)
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// CLEAR LIQUID GLASS â€” final override (beats milky frost layers)
 // Clear glass + clear coal glass + clear orange glass.
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 .lp2-shell .lp2-tile,
 .lp2-shell .lp2-step-tile,
@@ -8430,7 +8749,7 @@ $lp2-gap: 1px;               // shared border thickness
   -webkit-backdrop-filter: blur(14px) saturate(1.25) brightness(1.04) !important;
 }
 
-// Pricing “included” — clear coal glass + bright inner glow
+// Pricing â€œincludedâ€ â€” clear coal glass + bright inner glow
 .lp2-shell .lp2-pricing__included {
   background:
     linear-gradient(
@@ -8448,43 +8767,7 @@ $lp2-gap: 1px;               // shared border thickness
     inset 1px 0 0 rgba(255, 255, 255, 0.12) !important;
 }
 
-// Footer — clear coal glass mesh + bright inner glow
-.lp2-shell .lp2-footer {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(20, 21, 23, 0.52) 0%,
-      rgba(20, 21, 23, 0.42) 100%
-    ) !important;
-  backdrop-filter: blur(14px) saturate(1.2) brightness(1.02) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(1.2) brightness(1.02) !important;
-  box-shadow:
-    inset 0 0 48px rgba(255, 255, 255, 0.14),
-    inset 0 0 18px rgba(255, 255, 255, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.32),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.06) !important;
-}
-
-// Footer orange bar — clear Radiant Orange glass + warm inner glow
-.lp2-shell .lp2-footer__bar {
-  background:
-    linear-gradient(
-      155deg,
-      rgba(255, 79, 24, 0.55) 0%,
-      rgba(255, 79, 24, 0.38) 48%,
-      rgba(219, 62, 15, 0.48) 100%
-    ) !important;
-  backdrop-filter: blur(12px) saturate(1.35) brightness(1.05) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(1.35) brightness(1.05) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.42) !important;
-  box-shadow:
-    inset 0 0 56px rgba(255, 200, 160, 0.35),
-    inset 0 0 22px rgba(255, 255, 255, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    inset 0 -1px 0 rgba(255, 140, 80, 0.25) !important;
-}
-
-// Accent pricing meter — clear orange glass + warm inner glow
+// Accent pricing meter â€” clear orange glass + warm inner glow
 .lp2-shell .lp2-pricing__meter--accent {
   background:
     linear-gradient(
@@ -8502,7 +8785,7 @@ $lp2-gap: 1px;               // shared border thickness
     inset 3px 0 0 rgba(255, 79, 24, 0.55) !important;
 }
 
-// Stage head — clear glass strip (not heavy frost)
+// Stage head â€” clear glass strip (not heavy frost)
 .lp2-shell .lp2-head {
   background:
     linear-gradient(
@@ -8516,8 +8799,9 @@ $lp2-gap: 1px;               // shared border thickness
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
 }
 
-// Marketing ActionDock — clear glass tray (landing only)
-.lp2-shell [role="toolbar"][aria-label="Screen actions"] {
+// Marketing ActionDock — clear glass capsule tray + compact button type (landing only)
+.lp2-shell .hcw-action-dock[role="toolbar"] {
+  border-radius: var(--hcw-dock-pill-radius) !important;
   background:
     linear-gradient(
       155deg,
@@ -8532,6 +8816,18 @@ $lp2-gap: 1px;               // shared border thickness
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.45),
     0 8px 28px rgba(20, 21, 23, 0.12) !important;
+
+  .MuiButton-root {
+    font-size: 0.8125rem !important;
+    padding-top: 0.6rem !important;
+    padding-bottom: 0.6rem !important;
+  }
+
+  .hcw-action-dock-divider {
+    box-shadow:
+      inset 1px 0 rgba(20, 21, 23, 0.1),
+      inset -1px 0 rgba(255, 255, 255, 0.42) !important;
+  }
 }
 
 // Kill milky text-shadow haze on clear glass (legibility via contrast, not frost)
@@ -8542,81 +8838,46 @@ $lp2-gap: 1px;               // shared border thickness
   text-shadow: none !important;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// HIERARCHY GLASS (2026-07) — final override
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// HIERARCHY GLASS (2026-07) â€” final override
 // Glass ONLY on rail (lacquered orange) + section heading bands. Sub-cards flat.
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// Rail — lacquered orange glass (opaque gloss; contours do not bleed through)
+// Rail — clear glass floating card (open / collapsed icon strip)
 .lp2-shell .lp2-rail {
-  position: relative !important;
+  top: $lp2-rail-gutter !important;
+  left: $lp2-rail-gutter !important;
+  bottom: $lp2-rail-gutter !important;
+  height: auto !important;
+  max-height: calc(100dvh - #{$lp2-rail-gutter * 2}) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: $lp2-rail-radius !important;
   overflow: hidden !important;
   isolation: isolate;
 
   background:
     linear-gradient(
-      168deg,
-      #ff7340 0%,
-      #ff4f18 32%,
-      #f04614 68%,
-      #db3e0f 100%
+      170deg,
+      rgba(255, 255, 255, 0.16) 0%,
+      rgba(255, 255, 255, 0.06) 48%,
+      rgba(255, 255, 255, 0.12) 100%
     ) !important;
-  backdrop-filter: blur(6px) saturate(1.4) brightness(1.02) !important;
-  -webkit-backdrop-filter: blur(6px) saturate(1.4) brightness(1.02) !important;
-  border-right: 1px solid rgba(255, 210, 175, 0.55) !important;
-  border-top: none !important;
+  backdrop-filter: blur(28px) saturate(1.5) brightness(1.06) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.5) brightness(1.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.48),
-    inset 0 0 72px rgba(255, 190, 140, 0.32),
-    inset -14px 0 36px rgba(180, 40, 8, 0.22),
-    6px 0 32px rgba(200, 55, 12, 0.35) !important;
+    0 12px 40px rgba(20, 21, 23, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62) !important;
 
   &::before {
-    display: block !important;
-    content: '' !important;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 2px !important;
-    height: 100%;
-    background: linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0.72) 0%,
-      rgba(255, 255, 255, 0.18) 55%,
-      rgba(255, 255, 255, 0.42) 100%
-    ) !important;
-    opacity: 1 !important;
-    box-shadow: 0 0 10px rgba(255, 220, 180, 0.45) !important;
-    z-index: 1;
+    display: none !important;
+    content: none !important;
   }
 
   &::after {
-    display: block !important;
-    content: '' !important;
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    background:
-      linear-gradient(
-        118deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.0) 38%,
-        rgba(255, 255, 255, 0.28) 48%,
-        rgba(255, 255, 255, 0.08) 52%,
-        rgba(255, 255, 255, 0.0) 62%,
-        transparent 100%
-      ),
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.22) 0%,
-        rgba(255, 255, 255, 0.06) 14%,
-        transparent 42%,
-        transparent 78%,
-        rgba(0, 0, 0, 0.14) 100%
-      ) !important;
-    mix-blend-mode: soft-light !important;
-    opacity: 1 !important;
+    display: none !important;
+    content: none !important;
   }
 
   > * {
@@ -8626,44 +8887,46 @@ $lp2-gap: 1px;               // shared border thickness
 }
 
 .lp2-shell .lp2-rail__brand .esti-brand {
-  filter: brightness(0) invert(1) !important;
-  opacity: 0.96 !important;
+  filter: none !important;
+  opacity: 1 !important;
 }
 
 .lp2-shell .lp2-rail__tagline,
 .lp2-shell .lp2-rail__value-prop {
-  color: rgba(255, 255, 255, 0.88) !important;
-  text-shadow: none !important;
+  color: var(--lp2-ink-muted, rgba(20, 21, 23, 0.68)) !important;
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.55) !important;
 }
 
 .lp2-shell .lp2-rail__link {
-  color: rgba(255, 255, 255, 0.96) !important;
-  text-shadow: none !important;
+  color: #1a1c22 !important;
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.45) !important;
   border-left-color: transparent !important;
 
   &:hover {
-    color: #fff !important;
-    background: rgba(255, 255, 255, 0.14) !important;
-    border-left-color: rgba(255, 255, 255, 0.85) !important;
+    color: var(--lp2-orange, #ff4f18) !important;
+    background: rgba(255, 255, 255, 0.32) !important;
+    border-left-color: var(--lp2-orange, #ff4f18) !important;
+    text-shadow: none !important;
   }
 }
 
 .lp2-shell .lp2-rail__collapse,
 .lp2-shell .lp2-rail__burger {
-  color: rgba(255, 255, 255, 0.92) !important;
+  color: var(--lp2-ink-muted, rgba(20, 21, 23, 0.65)) !important;
 
   &:hover {
-    color: #fff !important;
-    background: rgba(255, 255, 255, 0.12) !important;
+    color: var(--lp2-orange, #ff4f18) !important;
+    background: rgba(255, 255, 255, 0.28) !important;
   }
 }
 
 .lp2-shell .lp2-rail__foot {
-  border-top-color: rgba(255, 255, 255, 0.22) !important;
+  border-top-color: rgba(20, 21, 23, 0.12) !important;
 
   .lp2-rail__hcw {
-    filter: brightness(0) invert(1) !important;
-    opacity: 0.72 !important;
+    filter: none !important;
+    opacity: 0.55 !important;
+    color: var(--lp2-ink, #141517) !important;
   }
 }
 
@@ -8672,10 +8935,40 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-rail__nav,
 .lp2-shell .lp2-rail__value-prop,
 .lp2-shell .lp2-rail__foot {
-  text-shadow: none !important;
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.45) !important;
 }
 
-// Section heading — glass band, full content width (visual hierarchy)
+// Desktop â€” rail fills the viewport edge-to-edge (top Â· left Â· bottom); stage scrolls
+@media (min-width: 901px) {
+  .lp2-rail {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+    border-radius: 0 !important;
+  }
+
+  .lp2-rail__brand-row,
+  .lp2-rail__tagline,
+  .lp2-rail__value-prop,
+  .lp2-rail__foot {
+    flex-shrink: 0;
+  }
+
+  .lp2-rail__nav {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+
+// Section heading â€” glass band, full content width (visual hierarchy)
 .lp2-shell .lp2-section-head {
   width: 100% !important;
   max-width: none !important;
@@ -8707,7 +9000,7 @@ $lp2-gap: 1px;               // shared border thickness
   max-width: 52rem !important;
 }
 
-// Sub-cards — NO glass. Transparent / hairline only so contours stay clear.
+// Sub-cards â€” NO glass. Transparent / hairline only so contours stay clear.
 .lp2-shell .lp2-tile,
 .lp2-shell .lp2-step-tile,
 .lp2-shell .lp2-tile--wide,
@@ -8738,7 +9031,7 @@ $lp2-gap: 1px;               // shared border thickness
 
 .lp2-shell .lp2-tile:hover,
 .lp2-shell .lp2-step-tile:hover {
-  background: rgba(255, 255, 255, 0.06) !important;
+  background: transparent !important;
   transform: none !important;
 }
 
@@ -8780,49 +9073,319 @@ $lp2-gap: 1px;               // shared border thickness
   color: var(--lp2-ink-muted, rgba(20, 21, 23, 0.68)) !important;
 }
 
-// ── HCW-UI-Kit design system page (/design-system) ───────────────────────────
+
+.lp2-shell .lp2-content {
+  width: 97%;
+  max-width: none;
+  margin-inline: auto;
+}
+
+// -- HCW-UI-Kit design system page (/design-system) -- flat, division lines only --
 
 .lp2-ds {
-  --lp-ds-accent-glow: rgba(255, 79, 24, 0.22);
+  background: transparent;
+  color: var(--lp-ink);
 }
 
 .lp2-ds-hero {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr min(22rem, 34vw);
-  gap: 2rem;
-  align-items: center;
-  padding: clamp(2.5rem, 5vw, 4.5rem) clamp(1.25rem, 3vw, 2.5rem) 3rem;
-  min-height: min(72vh, 44rem);
-  overflow: hidden;
+  width: 97%;
+  max-width: none;
+  margin-inline: auto;
+  padding: clamp(2.5rem, 5vw, 4rem) $lp2-pad 2.5rem;
   border-bottom: 1px solid var(--lp-border);
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+.lp2-ds-hero__canvas {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  padding-bottom: 6.25rem;
+  border: 1px solid var(--lp-border);
+  background: transparent;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.lp2-ds-hero__canvas-tag {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45rem 0.65rem;
+  margin: 0;
+  padding: 0.65rem clamp(1rem, 2vw, 1.25rem) 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lp-ink-muted);
+}
+
+.lp2-ds-hero__layout {
+  display: grid;
+  grid-template-columns: minmax(12.5rem, 22%) minmax(0, 1fr);
+  grid-template-areas: "rail stage";
+  align-items: stretch;
+  width: 100%;
+  min-height: 18rem;
 
   @media (max-width: 960px) {
-    grid-template-columns: 1fr;
-    min-height: auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "rail"
+      "stage";
   }
 }
 
-.lp2-ds-hero__glow {
-  position: absolute;
-  inset: -20% 30% auto -10%;
-  height: 70%;
-  background: radial-gradient(ellipse at 30% 40%, var(--lp-ds-accent-glow), transparent 68%);
-  pointer-events: none;
-  z-index: 0;
+.lp2-ds-hero__rail {
+  grid-area: rail;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: clamp(0.85rem, 2vw, 1.15rem);
+  padding-right: calc(clamp(0.85rem, 2vw, 1.15rem) + 0.35rem);
+  border-right: none;
+  box-shadow:
+    inset -1px 0 rgba(20, 21, 23, 0.12),
+    inset 1px 0 rgba(255, 255, 255, 0.55);
+  box-sizing: border-box;
+  overflow: hidden;
+
+  @media (max-width: 960px) {
+    border-right: none;
+    box-shadow: none;
+    border-bottom: none;
+
+    &::after {
+      content: "";
+      display: block;
+      height: 2px;
+      margin: 0.75rem 0 0;
+      border-radius: 1px;
+      box-shadow:
+        inset 0 1px 0 rgba(20, 21, 23, 0.12),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.48);
+    }
+
+    padding-right: clamp(0.85rem, 2vw, 1.15rem);
+  }
+}
+
+.lp2-ds-hero__rail-tag {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45rem 0.65rem;
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lp-ink-muted);
+}
+
+.lp2-ds-hero__stage {
+  grid-area: stage;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  box-sizing: border-box;
+  isolation: isolate;
+}
+
+.lp2-ds-hero__stage-tag {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45rem 0.65rem;
+  margin: 0 0 0.85rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lp-ink-muted);
 }
 
 .lp2-ds-hero__inner {
-  position: relative;
-  z-index: 1;
   max-width: 40rem;
 }
 
-.lp2-ds-hero__eyebrow {
+.lp2-ds-hero-dock-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: 0.85rem;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: auto;
+  max-width: calc(100% - 1.5rem);
+}
+
+.lp2-ds-hero-dock__tag {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.35rem 0.5rem;
+  margin: 0;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lp-ink-faint);
+  text-align: center;
+}
+
+.lp2-ds-hero-dock__tag-sep {
+  opacity: 0.45;
+}
+
+// L3 liquid-glass legend chip — capsule pill (DOCK_PILL_RADIUS via kit).
+
+.lp2-ds-hero-dock__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--lp-ink-faint);
+  text-align: center;
+}
+
+.lp2-ds-hero-tile {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  max-width: 100%;
+  margin: 0.25rem 0 0.5rem;
+  box-sizing: border-box;
+  border-radius: 0 !important;
+
+  &__tag {
+    margin: 0;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--lp-accent);
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.15rem 0.1rem 0.35rem;
+  }
+
+  &__brand-name {
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--lp-ink);
+  }
+
+  &__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--lp-border);
+  }
+
+  // Flat rail links — square NEU_RAISED nav rows (no glass chip radius).
+  &__link {
+    display: block;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--lp-ink);
+    border: none;
+    border-bottom: 1px solid var(--lp-border);
+    border-left: 2px solid transparent;
+    border-radius: 0;
+    cursor: default;
+    text-align: left;
+    transition: color 0.12s ease, border-color 0.12s ease;
+
+    &--active {
+      padding-left: calc(0.75rem - 2px);
+      color: var(--lp-accent);
+      font-weight: 700;
+      border-left-color: var(--lp-accent);
+    }
+  }
+
+  // Recessed text-entry well — the only neumorphic inset in this panel.
+  &__input {
+    display: block;
+    margin-top: auto;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--lp-ink-faint);
+    background-color: #eceef2;
+    border-radius: 0;
+    box-shadow:
+      inset 2px 2px 4.5px rgba(20, 21, 23, 0.16),
+      inset -2px -2px 4.5px rgba(255, 255, 255, 0.92);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--lp-ink);
+  }
+
+  &__body {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--lp-ink-muted);
+  }
+}
+
+// Hero specimens — workspace ActionDock (position only; chrome from @hcw/ui-kit)
+.lp2-shell .lp2-ds .lp2-ds-hero__canvas {
+  .hcw-surface.lp2-ds-hero-tile {
+    backdrop-filter: revert !important;
+    -webkit-backdrop-filter: revert !important;
+    border-radius: 0 !important;
+  }
+
+  .lp2-ds-hero-dock-wrap .hcw-action-dock[role="toolbar"] {
+    position: static !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    z-index: auto !important;
+
+    // Reset marketing clear-glass override — kit ACTION_DOCK_TRAY applies via sx.
+    background: revert !important;
+    background-color: revert !important;
+    backdrop-filter: revert !important;
+    -webkit-backdrop-filter: revert !important;
+    border: revert !important;
+    box-shadow: revert !important;
+
+    .hcw-action-dock-btn.MuiButton-root {
+      font-size: 0.875rem !important;
+      padding-top: 8px !important;
+      padding-bottom: 8px !important;
+    }
+  }
+}
+
+.lp2-ds-hero__eyebrow {
   margin: 0 0 1rem;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -8836,17 +9399,12 @@ $lp2-gap: 1px;               // shared border thickness
   font-weight: 700;
 }
 
-.lp2-ds-hero__sep {
-  opacity: 0.45;
-}
-
 .lp2-ds-hero__title {
   font-size: clamp(2.25rem, 5.5vw, 3.75rem);
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: -0.03em;
   margin: 0 0 1.25rem;
-  color: var(--lp-ink);
 }
 
 .lp2-ds-hero__accent {
@@ -8865,7 +9423,7 @@ $lp2-gap: 1px;               // shared border thickness
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .lp2-ds-hero__marks-sep {
@@ -8874,201 +9432,483 @@ $lp2-gap: 1px;               // shared border thickness
   font-weight: 300;
 }
 
-.lp2-ds-hero__chips {
-  margin-top: 0.25rem;
-}
-
-.lp2-ds-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--lp-ink-muted);
-  border: 1px solid var(--lp-border);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.55);
-}
-
-.lp2-ds-stack {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.75rem;
-  perspective: 900px;
-  padding: 1rem 0;
-
-  @media (max-width: 960px) {
-    max-width: 20rem;
-    margin-inline: auto;
-  }
-}
-
-.lp2-ds-stack__card {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 4.5rem;
+.lp2-ds-hero__meta {
+  margin: 0;
   font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--lp-ink-muted);
+}
+
+.lp2-ds-stage {
+  background: transparent;
+}
+
+.lp2-ds-section {
+  border-bottom: 1px solid var(--lp-border);
+}
+
+.lp2-ds-head {
+  padding: clamp(1.75rem, 3vw, 2.5rem) clamp(1.25rem, 3vw, 2.5rem) 1.5rem;
+  border-top: 1px solid var(--lp-border);
+  background: transparent;
+}
+
+.lp2-ds-head__tag {
+  margin: 0 0 0.5rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
-
-  span {
-    opacity: 0.85;
-  }
-}
-
-.lp2-ds-stack__card--flat {
-  transform: rotateX(4deg) translateZ(0);
-  background: var(--lp-bg-soft) !important;
-  border: 1px solid var(--lp-border) !important;
-}
-
-.lp2-ds-stack__card--soft {
-  transform: rotateX(2deg) translateZ(24px) scale(1.02);
-}
-
-.lp2-ds-stack__card--glass {
-  transform: rotateX(0deg) translateZ(48px) scale(1.04);
   color: var(--lp-accent);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .lp2-ds-stack__card {
-    transform: none !important;
+.lp2-ds-head__title {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.5rem, 2.8vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.lp2-ds-head__body {
+  margin: 0;
+  max-width: 42rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--lp-ink-muted);
+}
+
+.lp2-ds-callout {
+  margin: 0;
+  padding: 1rem clamp(1.25rem, 3vw, 2.5rem);
+  border-bottom: 1px solid var(--lp-border);
+  background: transparent;
+
+  p {
+    margin: 0;
+    max-width: 42rem;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--lp-ink-muted);
+
+    strong {
+      color: var(--lp-ink);
+    }
+
+    a {
+      color: var(--lp-ink);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
   }
 }
 
-.lp2-shell .lp2-ds-head {
-  background: linear-gradient(
-    155deg,
-    rgba(255, 255, 255, 0.28) 0%,
-    rgba(255, 255, 255, 0.1) 55%,
-    rgba(255, 255, 255, 0.16) 100%
-  );
-  backdrop-filter: blur(16px) saturate(1.3);
-  -webkit-backdrop-filter: blur(16px) saturate(1.3);
-  border-top: 1px solid rgba(255, 255, 255, 0.55);
-  border-bottom: 1px solid rgba(20, 21, 23, 0.08);
+.lp2-seo-article {
+  padding: 0 clamp(1.25rem, 3vw, 2.5rem) 1.5rem;
+  border-bottom: 1px solid var(--lp-border);
+  background: transparent;
 }
 
-.lp2-ds-layers {
+.lp2-seo-article__body {
+  max-width: 42rem;
+}
+
+.lp2-seo-cta,
+.lp2-seo-related {
+  padding: 1.5rem clamp(1.25rem, 3vw, 2.5rem);
+  background: transparent;
+}
+
+.lp2-seo-cta__title,
+.lp2-seo-related__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.lp2-seo-cta__body {
+  margin: 0 0 1rem;
+  max-width: 42rem;
+  line-height: 1.6;
+  color: var(--lp-ink-muted);
+}
+
+.lp2-seo-cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.lp2-seo-related__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+
+  a {
+    color: var(--lp-ink);
+    text-decoration: none;
+    font-size: 0.95rem;
+
+    &:hover {
+      color: var(--lp-accent);
+    }
+  }
+}
+
+.lp2-wiki-platform-band {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius, 4px);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--lp-ink-muted);
+  background: transparent;
+
+  a {
+    color: var(--lp-ink);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--lp-accent);
+    }
+  }
+}
+
+.lp2-blog-links {
+  margin: 1rem 0 0;
+  font-size: 0.85rem;
+
+  a {
+    color: var(--lp-ink);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      color: var(--lp-accent);
+    }
+  }
+}
+
+.lp2-blog-empty {
+  margin: 0;
+  padding: 1.5rem clamp(1.25rem, 3vw, 2.5rem);
+  border-bottom: 1px solid var(--lp-border);
+  color: var(--lp-ink-muted);
+}
+
+.lp2-blog-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--lp-border);
+}
+
+.lp2-blog-row {
+  border-bottom: 1px solid var(--lp-border);
+  background: transparent;
+}
+
+.lp2-blog-row__link {
+  display: block;
+  padding: 1.25rem clamp(1.25rem, 3vw, 2.5rem);
+  color: inherit;
+  text-decoration: none;
+
+  &:hover .lp2-blog-row__title {
+    color: var(--lp-accent);
+  }
+}
+
+.lp2-blog-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--lp-ink-faint);
+}
+
+.lp2-blog-row__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.lp2-blog-row__excerpt {
+  margin: 0;
+  max-width: 42rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--lp-ink-muted);
+}
+
+.lp2-blog-row__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.65rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--lp-border);
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--lp-ink-faint);
+  }
+}
+
+.lp2-blog-roadmap {
+  padding: 1.5rem clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.lp2-blog-roadmap__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.lp2-blog-roadmap__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.45rem;
+  color: var(--lp-ink-muted);
+  font-size: 0.92rem;
+}
+
+.lp2-blog-back {
+  margin: 0;
+  padding: 1rem clamp(1.25rem, 3vw, 2.5rem) 0;
+  font-size: 0.85rem;
+
+  a {
+    color: var(--lp-ink-muted);
+    text-decoration: none;
+    font-weight: 600;
+
+    &:hover {
+      color: var(--lp-accent);
+    }
+  }
+}
+
+.lp2-blog-pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 1.25rem clamp(1.25rem, 3vw, 2.5rem);
+  border-top: 1px solid var(--lp-border);
+}
+
+.lp2-blog-pager__link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius, 4px);
+  color: inherit;
+  text-decoration: none;
+
+  &:hover .lp2-blog-pager__title {
+    color: var(--lp-accent);
+  }
+
+  &--next {
+    text-align: right;
+  }
+}
+
+.lp2-blog-pager__dir {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lp-ink-faint);
+}
+
+.lp2-blog-pager__title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.lp2-ds-rows {
+  border-top: 1px solid var(--lp-border);
+}
+
+.lp2-ds-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  padding: 1.25rem clamp(1.25rem, 3vw, 2.5rem);
+  border-bottom: 1px solid var(--lp-border);
+  background: transparent;
+
+  @media (min-width: 720px) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  &__title-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 0.75rem;
+    margin-bottom: 0.35rem;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--lp-ink);
+  }
+
+  &__detail {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: var(--lp-ink-muted);
+  }
+
+  &__demo {
+    min-width: 0;
+  }
+
+  &--dock {
+    grid-template-columns: 6rem 1fr;
+    gap: 1.25rem;
+    align-items: baseline;
+
+    .lp2-ds-row__title {
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .lp2-ds-row__detail {
+      font-size: 0.875rem;
+    }
+  }
+
+  &--dock-left .lp2-ds-row__title { color: #c8442e; }
+  &--dock-center .lp2-ds-row__title,
+  &--dock-right .lp2-ds-row__title { color: var(--lp-accent); }
+}
+
+.lp2-ds-layer-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lp-ink-faint);
+
+  &--soft { color: var(--lp-ink-muted); }
+  &--glass { color: var(--lp-accent); }
+}
+
+.lp2-ds-assignment {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--lp-border);
   border-top: 1px solid var(--lp-border);
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
   }
-}
 
-.lp2-ds-layer-card {
-  background: var(--lp-bg);
-  min-height: 0;
-}
+  &__col {
+    padding: 1.25rem clamp(1rem, 2vw, 1.75rem) 1.5rem;
+    border-right: 1px solid var(--lp-border);
+    background: transparent;
 
-.lp2-ds-layer-card__n {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--lp-accent);
-  margin: 0 0 0.35rem;
-}
+    &:last-child {
+      border-right: none;
+    }
 
-.lp2-ds-layer-card__tag {
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--lp-ink-faint);
-  margin: 0 0 0.5rem;
-}
+    @media (max-width: 900px) {
+      border-right: none;
+      border-bottom: 1px solid var(--lp-border);
 
-.lp2-ds-layer-card__name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0 0 0.25rem;
-  letter-spacing: -0.02em;
-}
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
 
-.lp2-ds-layer-card__pct {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--lp-accent);
-  margin: 0 0 0.75rem;
-}
+  &__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.35rem;
+  }
 
-.lp2-ds-layer-card__role {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem;
-}
+  &__pct {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--lp-ink-faint);
+  }
 
-.lp2-ds-layer-card__uses,
-.lp2-ds-layer-card__feel {
-  font-size: 0.875rem;
-  line-height: 1.55;
-  color: var(--lp-ink-muted);
-  margin: 0;
-}
+  &__role {
+    margin: 0 0 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--lp-ink-muted);
+  }
 
-.lp2-ds-layer-card__feel {
-  margin-top: 0.75rem;
-  font-style: italic;
-}
+  &__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
 
-.lp2-ds-glass-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1px;
-  background: var(--lp-border);
-  border-top: 1px solid var(--lp-border);
-}
+    li {
+      padding: 0.4rem 0;
+      font-size: 0.875rem;
+      line-height: 1.45;
+      color: var(--lp-ink-muted);
+      border-top: 1px solid var(--lp-border);
+    }
+  }
 
-.lp2-ds-mini__tag {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 700;
-  color: var(--lp-accent);
-  margin: 0 0 0.35rem;
-}
-
-.lp2-ds-mini__title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem;
-}
-
-.lp2-ds-mini__body {
-  font-size: 0.9rem;
-  line-height: 1.55;
-  color: var(--lp-ink-muted);
-  margin: 0;
+  &__col--glass &__role {
+    color: var(--lp-accent);
+  }
 }
 
 .lp2-ds-shell {
-  margin: 0;
   border-top: 1px solid var(--lp-border);
   font-size: 0.75rem;
-  background: var(--lp-bg-soft);
+  background: transparent;
 }
 
 .lp2-ds-shell__ribbon,
 .lp2-ds-shell__footer {
-  padding: 0.65rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.65rem clamp(1rem, 2vw, 1.25rem);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  background: rgba(20, 21, 23, 0.04);
-  border-bottom: 1px solid var(--lp-border);
   color: var(--lp-ink-muted);
+  border-bottom: 1px solid var(--lp-border);
+  background: transparent;
 }
 
 .lp2-ds-shell__footer {
@@ -9079,31 +9919,30 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-ds-shell__body {
   display: grid;
   grid-template-columns: minmax(5.5rem, 22%) 1fr;
-  min-height: 14rem;
+  min-height: 12rem;
 }
 
 .lp2-ds-shell__rail {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  padding: 1rem !important;
-  border-radius: 0 !important;
-  min-height: 100%;
+  padding: 1rem;
+  border-right: 1px solid var(--lp-border);
+  background: transparent;
 }
 
 .lp2-ds-shell__stage {
   position: relative;
-  padding: 1rem 1.25rem 3.5rem;
-  background: var(--lp-bg);
+  padding: 1rem 1.25rem 3.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.35rem;
+  background: transparent;
 }
 
 .lp2-ds-shell__label {
   font-weight: 700;
   font-size: 0.8125rem;
-  color: var(--lp-ink);
 }
 
 .lp2-ds-shell__hint {
@@ -9114,9 +9953,11 @@ $lp2-gap: 1px;               // shared border thickness
 
 .lp2-ds-shell__panel {
   margin-top: auto;
-  padding: 0.75rem 1rem !important;
+  max-width: 14rem;
+  padding-top: 0.75rem;
   font-weight: 600;
-  max-width: 12rem;
+  font-size: 0.75rem;
+  border-top: 1px solid var(--lp-border);
 }
 
 .lp2-ds-shell__dock {
@@ -9125,173 +9966,93 @@ $lp2-gap: 1px;               // shared border thickness
   bottom: 0.75rem;
   transform: translateX(-50%);
   display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 0.35rem;
-  padding: 0.35rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 8px 24px rgba(20, 21, 23, 0.12);
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--lp-border);
+  background: transparent;
+}
+
+.lp2-ds-shell__dock-row {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .lp2-ds-shell__dock-z {
-  padding: 0.35rem 0.65rem;
-  border-radius: 999px;
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.lp2-ds-shell__dock-z--left {
-  color: #c8442e;
-  background: rgba(200, 68, 46, 0.1);
-}
-
+.lp2-ds-shell__dock-z--left { color: #c8442e; }
 .lp2-ds-shell__dock-z--center,
-.lp2-ds-shell__dock-z--right {
-  color: var(--lp-accent);
-  background: rgba(255, 79, 24, 0.12);
-}
+.lp2-ds-shell__dock-z--right { color: var(--lp-accent); }
 
-.lp2-ds-dock-legend {
-  border-top: none !important;
-}
-
-.lp2-ds-dock-legend__item {
-  padding: 1.25rem 1.5rem;
-  border-right: 1px solid var(--lp-border);
+.lp2-ds-rows--palette .lp2-ds-palette-row {
+  display: grid;
+  grid-template-columns: 1rem 1fr 6.5rem 5.5rem 1fr;
+  gap: 0.75rem 1rem;
+  align-items: center;
+  padding: 0.65rem clamp(1.25rem, 3vw, 2.5rem);
   border-bottom: 1px solid var(--lp-border);
-}
-
-.lp2-ds-dock-legend__z {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  margin: 0 0 0.25rem;
-}
-
-.lp2-ds-dock-legend__item--left .lp2-ds-dock-legend__z { color: #c8442e; }
-.lp2-ds-dock-legend__item--center .lp2-ds-dock-legend__z,
-.lp2-ds-dock-legend__item--right .lp2-ds-dock-legend__z { color: var(--lp-accent); }
-
-.lp2-ds-dock-legend__tone {
-  font-size: 1rem;
-  font-weight: 700;
-  margin: 0 0 0.35rem;
-}
-
-.lp2-ds-dock-legend__ex {
   font-size: 0.875rem;
-  color: var(--lp-ink-muted);
-  margin: 0;
-}
-
-.lp2-ds-palette {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
-  gap: 1px;
-  background: var(--lp-border);
-  border-top: 1px solid var(--lp-border);
-}
-
-.lp2-ds-swatch {
-  background: var(--lp-bg-soft);
-  padding: 0.75rem;
-}
-
-.lp2-ds-swatch__chip {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  min-height: 4.5rem;
-  padding: 0.5rem;
-  border-radius: var(--lp-radius);
-  font-size: 0.65rem;
-  font-weight: 600;
-  font-family: ui-monospace, monospace;
-  margin-bottom: 0.5rem;
-  border: 1px solid rgba(20, 21, 23, 0.08);
-}
-
-.lp2-ds-swatch__name {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.lp2-ds-swatch__token {
-  font-size: 0.68rem;
-  font-family: ui-monospace, monospace;
-  color: var(--lp-ink-faint);
-  margin: 0.15rem 0 0;
-}
-
-.lp2-ds-swatch__role {
-  font-size: 0.75rem;
-  color: var(--lp-ink-muted);
-  margin: 0.25rem 0 0;
-}
-
-.lp2-ds-meta {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--lp-border);
-  border-top: 1px solid var(--lp-border);
 
   @media (max-width: 720px) {
-    grid-template-columns: 1fr;
-  }
-
-  > div {
-    background: var(--lp-bg);
-    padding: 1.25rem 1.5rem;
+    grid-template-columns: 1rem 1fr 1fr;
+    grid-template-rows: auto auto;
   }
 }
 
-.lp2-ds-meta__label {
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+.lp2-ds-rows--palette .lp2-ds-palette-row__role {
+  @media (max-width: 720px) {
+    grid-column: 2 / -1;
+  }
+}
+
+.lp2-ds-palette-row__dot {
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--lp-border);
+}
+
+.lp2-ds-palette-row__name {
   font-weight: 700;
-  color: var(--lp-accent);
-  margin: 0 0 0.35rem;
 }
 
-.lp2-ds-meta__value {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  margin: 0;
-  line-height: 1.45;
+.lp2-ds-palette-row__token {
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--lp-ink-faint);
 }
 
-.lp2-ds-type {
-  border-top: 1px solid var(--lp-border);
-  padding: 2rem clamp(1.25rem, 3vw, 2.5rem) 2.5rem;
+.lp2-ds-palette-row__hex {
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--lp-ink-muted);
+}
+
+.lp2-ds-palette-row__role {
+  color: var(--lp-ink-muted);
 }
 
 .lp2-ds-type__display {
+  padding: 1.5rem clamp(1.25rem, 3vw, 2.5rem);
+  margin: 0;
   font-size: clamp(2rem, 4vw, 2.75rem);
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.12;
-  margin: 0 0 2rem;
-  max-width: 20ch;
+  border-bottom: 1px solid var(--lp-border);
 }
 
-.lp2-ds-type__scale {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.lp2-ds-type__row {
+.lp2-ds-type-row {
   display: grid;
   grid-template-columns: 7rem 1fr;
   gap: 1rem;
   align-items: baseline;
-  padding-bottom: 1.25rem;
+  padding: 1rem clamp(1.25rem, 3vw, 2.5rem);
   border-bottom: 1px solid var(--lp-border);
 
   @media (max-width: 560px) {
@@ -9300,7 +10061,7 @@ $lp2-gap: 1px;               // shared border thickness
   }
 }
 
-.lp2-ds-type__tag {
+.lp2-ds-type-row__tag {
   font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -9310,9 +10071,9 @@ $lp2-gap: 1px;               // shared border thickness
 
 .lp2-ds-code {
   margin: 0;
-  padding: 1.25rem 1.5rem;
-  background: #141517;
-  color: #e7eaf0;
+  padding: 1.25rem clamp(1.25rem, 3vw, 2.5rem);
+  background: transparent;
+  color: var(--lp-ink);
   font-size: 0.78rem;
   line-height: 1.55;
   overflow-x: auto;
@@ -9326,7 +10087,8 @@ $lp2-gap: 1px;               // shared border thickness
 
 .lp2-ds-table-wrap {
   border-top: 1px solid var(--lp-border);
-  padding: 0 1rem 1rem;
+  padding: 0 clamp(1rem, 2vw, 1.5rem) 1rem;
+  background: transparent;
 
   .MuiTableCell-head {
     font-weight: 700;
@@ -9334,16 +10096,1416 @@ $lp2-gap: 1px;               // shared border thickness
     font-size: 0.68rem;
     letter-spacing: 0.08em;
   }
+
+  .MuiPaper-root {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
 }
 
-.lp2-ds-adopt__cta {
-  padding: 2rem clamp(1.25rem, 3vw, 2.5rem) 3rem;
+.lp2-ds-adopt {
+  padding: 1.5rem clamp(1.25rem, 3vw, 2.5rem) 2.5rem;
   border-top: 1px solid var(--lp-border);
 }
 
 .lp2-ds-adopt__docs {
   margin: 1.25rem 0 0;
   font-size: 0.8125rem;
+  color: var(--lp-ink-muted);
+}
+
+.lp2-shell .lp2-ds {
+  &,
+  .lp2-ds-stage,
+  .lp2-ds-section,
+  .lp2-ds-head,
+  .lp2-ds-rows,
+  .lp2-ds-row,
+  .lp2-ds-assignment,
+  .lp2-ds-assignment__col,
+  .lp2-ds-shell,
+  .lp2-ds-shell__ribbon,
+  .lp2-ds-shell__footer,
+  .lp2-ds-shell__rail,
+  .lp2-ds-shell__stage,
+  .lp2-ds-shell__dock,
+  .lp2-ds-palette-row,
+  .lp2-ds-type-row,
+  .lp2-ds-code,
+  .lp2-ds-table-wrap,
+  .lp2-ds-adopt,
+  .lp2-section-head,
+  .lp2-hero-wrap,
+  .lp2-hero-wrap--platform,
+  .lp2-trust,
+  .lp2-plat-trust,
+  .lp2-plat-firewall,
+  .lp2-plat-firewall__flow,
+  .lp2-plat-firewall__card,
+  .lp2-plat-vertical,
+  .lp2-plat-frameworks,
+  .lp2-plat-framework,
+  .lp2-plat-spec,
+  .lp2-plat-spec__inner,
+  .lp2-dev-head,
+  .lp2-keywords,
+  .lp2-pricing,
+  .lp2-pricing__included,
+  .lp2-pricing__meters,
+  .lp2-pricing__meter,
+  .lp2-faq,
+  .lp2-faq__item,
+  .lp2-tile,
+  .lp2-step-tile,
+  .lp2-grid {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+
+  .MuiTableCell-root,
+  .MuiTableRow-root,
+  .MuiTableHead-root,
+  .MuiPaper-root {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  // Marketing hero — flat canvas (same law as lp2-ds-hero)
+  .lp2-hero-wrap,
+  .lp2-hero-wrap--platform {
+    border-bottom: 1px solid var(--lp-border);
+  }
+
+  .lp2-hero,
+  .lp2-hero--platform {
+    padding: clamp(2.5rem, 5vw, 4rem) clamp(1.25rem, 3vw, 2.5rem) 2.5rem;
+    max-width: 72rem;
+  }
+
+  .lp2-hero__h1,
+  .lp2-hero__h1-line,
+  .lp2-tile__title,
+  .lp2-ds-head__title {
+    color: var(--lp-ink) !important;
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    background-clip: unset !important;
+    -webkit-text-fill-color: currentColor !important;
+    text-shadow: none !important;
+  }
+
+  .lp2-hero__sub,
+  .lp2-hero__signals li,
+  .lp2-tile__detail,
+  .lp2-tile__bullets li,
+  .lp2-ds-head__body,
+  .lp2-faq__a {
+    color: var(--lp-ink-muted) !important;
+    text-shadow: none !important;
+  }
+
+  .lp2-hero__eyebrow,
+  .lp2-ds-head__tag,
+  .lp2-tile__tag {
+    color: var(--lp-accent) !important;
+    text-shadow: none !important;
+  }
+
+  // Kill marketing glass section heads if any remain
+  .lp2-section-head {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-top: 1px solid var(--lp-border) !important;
+    border-left: none !important;
+    padding: clamp(1.75rem, 3vw, 2.5rem) clamp(1.25rem, 3vw, 2.5rem) 1.5rem !important;
+  }
+
+  .lp2-trust,
+  .lp2-plat-trust {
+    background: transparent !important;
+    border-color: var(--lp-border) !important;
+    border-top: none !important;
+  }
+
+  .lp2-plat-spec {
+    background: transparent !important;
+
+    &__tag {
+      color: var(--lp-accent) !important;
+    }
+
+    &__title {
+      color: var(--lp-ink) !important;
+    }
+
+    &__body {
+      color: var(--lp-ink-muted) !important;
+    }
+  }
+
+  .lp2-plat-firewall__flow,
+  .lp2-plat-firewall__card,
+  .lp2-plat-vertical {
+    border-color: var(--lp-border) !important;
+    box-shadow: none !important;
+  }
+
+  .lp2-plat-firewall__node--gate {
+    background: rgba(255, 79, 24, 0.04) !important;
+  }
+
+  .lp2-plat-vertical--live {
+    border-left: 4px solid var(--lp-accent) !important;
+  }
+
+  .lp2-pricing__included {
+    background: transparent !important;
+    color: var(--lp-ink) !important;
+    border-color: var(--lp-border) !important;
+
+    .lp2-pricing__tag {
+      color: var(--lp-ink-faint) !important;
+    }
+
+    .lp2-pricing__list li {
+      color: var(--lp-ink-muted) !important;
+
+      svg {
+        color: var(--lp-accent) !important;
+      }
+    }
+  }
+
+  .lp2-pricing__meter--accent {
+    background: transparent !important;
+    border-left: 3px solid var(--lp-accent) !important;
+  }
+
+  .lp2-pricing__meter,
+  .lp2-pricing__meter--estimate {
+    background: transparent !important;
+  }
+
+  .lp2-pricing__meters {
+    background: transparent !important;
+  }
+
+  .lp2-faq {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    border-top: 1px solid var(--lp-border);
+  }
+
+  .lp2-faq__item {
+    border: none !important;
+    border-bottom: 1px solid var(--lp-border) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+  }
+
+  .lp2-faq__q {
+    color: var(--lp-ink) !important;
+  }
+
+  .lp2-dev-head {
+    padding: clamp(2.5rem, 5vw, 4rem) clamp(1.25rem, 3vw, 2.5rem) 1rem;
+    border-bottom: 1px solid var(--lp-border);
+  }
+
+  .lp2-dev-doc {
+    padding-inline: clamp(1.25rem, 3vw, 2.5rem);
+  }
+}
+
+// Tiles — no fill anywhere; hairline borders only
+.lp2-tile,
+.lp2-step-tile,
+.lp2-shell .lp2-tile,
+.lp2-shell .lp2-step-tile,
+.lp2-shell .lp2-tile--wide,
+.lp2-shell .lp2-tile--faq,
+.lp2-shell .lp2-tile--flute {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+// ── Platform landing (`/`) ─────────────────────────────────────────────────────
+
+.lp2-hero--platform {
+  position: relative;
+  display: block;
+  max-width: 72rem;
+  overflow: visible;
+
+  .lp2-hero__canvas {
+    position: relative;
+    overflow: visible;
+  }
+
+  .lp2-hero__canvas-layout {
+    display: grid;
+    gap: clamp(1.25rem, 2.5vw, 2rem);
+    align-items: start;
+
+    @media (min-width: 56rem) {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
+    }
+  }
+
+  .lp2-hero__text {
+    min-width: 0;
+    padding: clamp(1rem, 2vw, 1.35rem);
+  }
+
+  .lp2-hero__head {
+    min-width: 0;
+  }
+
+  .lp2-hero__copy {
+    min-width: 0;
+  }
+
+  .lp2-hero__h1 {
+    max-width: none;
+    margin-bottom: 0;
+    font-size: clamp(1.35rem, 1.05rem + 1.35vw, 1.75rem);
+    line-height: 1.14;
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+
+    @media (min-width: 56rem) {
+      font-size: clamp(1.35rem, 0.85rem + 0.95vw, 1.625rem);
+      line-height: 1.12;
+    }
+  }
+
+  .lp2-hero__h1-line {
+    display: block;
+    margin-top: 0.08em;
+  }
+
+  .lp2-hero__visual {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    min-width: 0;
+    width: 100%;
+    margin: 0;
+    padding: clamp(0.65rem, 1.25vw, 0.85rem);
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .lp2-hero__stack {
+    position: relative;
+    width: 100%;
+    container-type: inline-size;
+    overflow: visible;
+    margin-bottom: 50.76cqw;
+  }
+
+  .lp2-hero__studio-mock {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 13.5rem;
+    overflow: hidden;
+    border: none;
+    background: #f2f4f7;
+    isolation: isolate;
+
+    .esti-dash-rail {
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      width: auto !important;
+      height: auto !important;
+      max-height: none !important;
+      padding: 0.55rem 0.5rem !important;
+    }
+
+    .esti-dash-stage {
+      padding: 0.45rem 0.5rem 0.55rem !important;
+      overflow: hidden;
+    }
+
+    .lp2-hero__studio-body {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      min-height: 0;
+      padding: 0.35rem;
+    }
+
+    .lp2-hero__studio-breath {
+      opacity: 0.55;
+
+      .esti-si-breath__rings {
+        animation: none !important;
+      }
+    }
+
+    .MuiTabs-indicator {
+      height: 2px;
+    }
+
+    .esti-zone-glass-orb {
+      width: 14px !important;
+      height: 14px !important;
+    }
+
+    .esti-status-dot {
+      width: 5px;
+      height: 5px;
+    }
+  }
+
+  .lp2-hero__calc-glass {
+    position: absolute;
+    right: -2%;
+    bottom: 0;
+    top: auto;
+    z-index: 2;
+    width: fit-content;
+    padding: 0;
+    line-height: 0;
+    background: rgba(255, 255, 255, 0.36);
+    backdrop-filter: blur(28px) saturate(1.85);
+    -webkit-backdrop-filter: blur(28px) saturate(1.85);
+    border: 1px solid rgba(255, 255, 255, 0.48);
+    box-shadow:
+      0 14px 42px rgba(20, 21, 23, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.62),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.18);
+    animation: lp2-hero-calc-float 6s ease-in-out infinite;
+    transform: translateY(66.667%);
+  }
+
+  .lp2-hero__calc {
+    display: block;
+    width: 36.72cqw;
+    height: auto;
+    vertical-align: top;
+  }
+}
+
+@keyframes lp2-hero-calc-float {
+  0%,
+  100% {
+    transform: translateY(66.667%);
+  }
+
+  50% {
+    transform: translateY(calc(66.667% - 0.65rem));
+  }
+}
+
+.lp2-plat-trust {
+  padding: 2rem $lp2-pad 2.25rem;
+  border-top: 1px solid var(--lp-border);
+  border-bottom: 1px solid var(--lp-border);
+  text-align: center;
+}
+
+.lp2-plat-trust__label {
+  margin: 0 0 1rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--lp-ink-faint);
+}
+
+.lp2-plat-trust__tools {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 0.65rem;
+
+  li {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--lp-border);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--lp-ink-muted);
+    text-decoration: line-through;
+    text-decoration-color: rgba(218, 30, 40, 0.45);
+  }
+}
+
+.lp2-plat-trust__arrow {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
+  color: var(--lp-accent);
+}
+
+.lp2-plat-trust__spine {
+  margin: 0;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: var(--lp-ink-muted);
+
+  strong {
+    color: var(--lp-ink);
+  }
+}
+
+.lp2-plat-firewall {
+  padding: 0 $lp2-pad 1rem;
+}
+
+.lp2-plat-firewall__flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 0.35rem;
+  margin-bottom: 1.5rem;
+  padding: 1.25rem 1rem;
+  border: 1px solid var(--lp-border);
+}
+
+.lp2-plat-firewall__node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--lp-ink);
+  text-align: center;
+
+  small {
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--lp-accent);
+    text-transform: uppercase;
+  }
+
+  &--gate {
+    border: 1px solid rgba(255, 79, 24, 0.35);
+    background: rgba(255, 79, 24, 0.06);
+  }
+
+  &--out {
+    color: var(--lp-accent);
+  }
+}
+
+.lp2-plat-firewall__arrow {
+  width: 1.25rem;
+  height: 1px;
+  background: var(--lp-border);
+  flex-shrink: 0;
+
+  @media (max-width: 720px) {
+    display: none;
+  }
+}
+
+.lp2-plat-firewall__cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lp2-plat-firewall__card {
+  padding: 1.25rem 1.35rem;
+  border: 1px solid var(--lp-border);
+}
+
+.lp2-plat-firewall__card-tag {
+  margin: 0 0 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lp-accent);
+}
+
+.lp2-plat-firewall__card-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--lp-ink);
+}
+
+.lp2-plat-firewall__card-body {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--lp-ink-muted);
+}
+
+.lp2-plat-modules {
+  border-top: 1px solid var(--lp-border);
+}
+
+.lp2-plat-verticals {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--lp-border);
+
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lp2-plat-vertical {
+  padding: 1.5rem clamp(1.25rem, 3vw, 2rem);
+  border-right: 1px solid var(--lp-border);
+  border-bottom: 1px solid var(--lp-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &:nth-child(4n) {
+    border-right: none;
+  }
+
+  @media (max-width: 1100px) {
+    &:nth-child(4n) {
+      border-right: 1px solid var(--lp-border);
+    }
+
+    &:nth-child(2n) {
+      border-right: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    border-right: none;
+
+    &:nth-child(2n) {
+      border-right: none;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &--live {
+    border-left: 4px solid var(--lp-accent);
+  }
+}
+
+.lp2-plat-frameworks {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-top: 1px solid var(--lp-border);
+
+  @media (max-width: 720px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lp2-plat-framework {
+  padding: 1.5rem clamp(1.25rem, 3vw, 2rem);
+  border-right: 1px solid var(--lp-border);
+  border-bottom: 1px solid var(--lp-border);
+
+  &:last-child {
+    border-right: none;
+  }
+
+  @media (max-width: 720px) {
+    border-right: none;
+
+    &:first-child {
+      border-bottom: 1px solid var(--lp-border);
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__title {
+    margin: 0 0 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--lp-ink);
+  }
+
+  &__body {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: var(--lp-ink-muted);
+  }
+}
+
+.lp2-plat-vertical__hdr {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lp2-plat-vertical__status {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lp-ink-faint);
+}
+
+.lp2-plat-vertical__title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--lp-ink);
+}
+
+.lp2-plat-vertical__subtitle {
+  margin: -0.35rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lp-ink-faint);
+}
+
+.lp2-plat-vertical__body {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--lp-ink-muted);
+}
+
+.lp2-plat-vertical__list {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--lp-ink-muted);
+}
+
+.lp2-plat-vertical__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--lp-accent);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.lp2-plat-spec {
+  padding: 2.5rem $lp2-pad;
+  border-top: 1px solid var(--lp-border);
+  border-bottom: 1px solid var(--lp-border);
+  background: transparent;
+}
+
+.lp2-plat-spec__inner {
+  max-width: 40rem;
+}
+
+.lp2-plat-spec__tag {
+  margin: 0 0 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--lp-accent);
+}
+
+.lp2-plat-spec__title {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--lp-ink);
+}
+
+.lp2-plat-spec__body {
+  margin: 0 0 1.25rem;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--lp-ink-muted);
+}
+
+.lp2-plat-spec__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--lp-accent);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.lp2-dev-head {
+  padding: 2.5rem $lp2-pad 1rem;
+  max-width: 52rem;
+}
+
+.lp2-dev-head__tag {
+  margin: 0 0 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--lp-accent);
+}
+
+.lp2-dev-head__title {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--lp-ink);
+}
+
+.lp2-dev-head__sub {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--lp-ink-muted);
+}
+
+// ── Stage legibility + contour stack (final) ─────────────────────────────────
+
+.lp2-shell .lp2-hero__h1,
+.lp2-shell .lp2-hero__h1-line {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: currentColor !important;
+  color: var(--lp-ink, #141517) !important;
+  text-shadow: none !important;
+}
+
+.lp2-shell .lp2-shell__contours .esti-lp-contours,
+.lp2-shell .lp2-stage__contours .esti-lp-contours {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+}
+
+.lp2-shell .lp2-shell__contours .esti-lp-contours__terrain,
+.lp2-shell .lp2-stage__contours .esti-lp-contours__terrain {
+  position: fixed !important;
+  left: auto !important;
+  right: -8vw !important;
+  bottom: -6vh !important;
+  top: auto !important;
+}
+
+.lp2-shell .lp2-stage {
+  position: relative;
+  z-index: 2 !important;
+}
+
+.lp2-shell .lp2-stage .lp2-content {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+// ── No fluted glass — kill ribbed overlays everywhere (final) ───────────────
+
+.lp2-shell .lp2-rail::after,
+.lp2-shell .lp2-grid::before,
+.lp2-shell .lp2-pricing::before,
+.lp2-shell .lp2-tile--flute::after,
+.lp2-shell .lp2-flute-fill::after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  mix-blend-mode: normal !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+// ── Marketing rail UX (canonical clear-glass rail · 2026-07-10) ─────────────
+
+$lp2-rail-accent: var(--lp2-orange, #ff4f18);
+$lp2-rail-ink: var(--lp2-ink, #141517);
+$lp2-rail-ink-muted: var(--lp2-ink-muted, rgba(20, 21, 23, 0.68));
+$lp2-rail-ink-faint: var(--lp2-ink-faint, rgba(20, 21, 23, 0.48));
+
+.lp2-rail-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 8995;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(20, 21, 23, 0.28);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  cursor: pointer;
+}
+
+.lp2-shell .lp2-rail {
+  border-left: 4px solid $lp2-rail-accent !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.38) !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  background:
+    linear-gradient(
+      175deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.04) 48%,
+      rgba(255, 255, 255, 0.09) 100%
+    ) !important;
+  backdrop-filter: blur(26px) saturate(1.7) brightness(1.08) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(1.7) brightness(1.08) !important;
+  box-shadow:
+    6px 0 32px rgba(20, 21, 23, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 1px 0 0 rgba(255, 255, 255, 0.28) !important;
+}
+
+.lp2-shell .lp2-rail__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  width: 100%;
+  padding: 1rem 0.75rem 0.75rem;
+  box-sizing: border-box;
+}
+
+.lp2-shell .lp2-rail__brand {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 auto;
+  color: inherit;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 2px solid $lp2-rail-accent;
+    outline-offset: 2px;
+  }
+}
+
+.lp2-shell .lp2-rail__brand-wordmark {
+  display: block;
+  height: 1.375rem;
+  width: auto;
+  max-width: 100%;
+}
+
+.lp2-shell .lp2-rail__brand-mark {
+  width: 1.375rem;
+  height: 1.375rem;
+  flex-shrink: 0;
+}
+
+.lp2-shell .lp2-rail__toggle {
+  flex-shrink: 0;
+  color: $lp2-rail-ink-muted !important;
+  width: 40px;
+  height: 40px;
+
+  &:hover {
+    color: $lp2-rail-accent !important;
+    background: rgba(255, 255, 255, 0.35) !important;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $lp2-rail-accent;
+    outline-offset: 2px;
+  }
+}
+
+.lp2-shell .lp2-rail__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
+}
+
+.lp2-shell .lp2-rail__tagline {
+  margin: 0 0 0.75rem;
+  padding: 0 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  color: $lp2-rail-ink-muted !important;
+  text-shadow: none !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.lp2-shell .lp2-rail__nav-label {
+  margin: 0 0 0.35rem;
+  padding: 0 0.75rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: $lp2-rail-ink-faint !important;
+  text-shadow: none !important;
+}
+
+.lp2-shell .lp2-rail__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 0 0.75rem;
+  padding: 0 0.25rem 0.25rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(20, 21, 23, 0.18) transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(20, 21, 23, 0.16);
+    border-radius: 0;
+  }
+}
+
+.lp2-shell .lp2-rail__link {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 40px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: $lp2-rail-ink !important;
+  text-decoration: none;
+  border-radius: 10px;
+  text-shadow: none !important;
+  transition:
+    color 0.12s ease,
+    background 0.12s ease;
+
+  &:hover {
+    color: $lp2-rail-accent !important;
+    background: rgba(255, 255, 255, 0.38) !important;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $lp2-rail-accent;
+    outline-offset: 1px;
+  }
+
+  &--active {
+    color: $lp2-rail-accent !important;
+    background: rgba(255, 255, 255, 0.48) !important;
+    font-weight: 700;
+  }
+}
+
+.lp2-shell .lp2-rail__collapse {
+  display: inline-flex !important;
+}
+
+.lp2-shell .lp2-rail__foot {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 0.75rem 0.875rem 1rem;
+  border-top: none !important;
+  box-sizing: border-box;
+
+  &::before {
+    content: "";
+    display: block;
+    height: 2px;
+    margin: 0 0 0.75rem;
+    border-radius: 1px;
+    box-shadow:
+      inset 0 1px 0 rgba(20, 21, 23, 0.11),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.42);
+  }
+}
+
+.lp2-shell .lp2-rail__value-prop {
+  margin: 0 0 0.65rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  text-align: left;
+  color: $lp2-rail-ink-muted !important;
+  text-shadow: none !important;
+  background: rgba(255, 255, 255, 0.32);
+  border: 1px solid rgba(20, 21, 23, 0.08);
+}
+
+.lp2-shell .lp2-rail__foot .hcw-attribution__mark {
+  opacity: 0.68 !important;
+  filter: none !important;
+  max-height: 12px !important;
+  width: auto !important;
+}
+
+.lp2-shell .lp2-rail__foot .hcw-attribution__note {
+  color: $lp2-rail-ink-faint !important;
+  text-shadow: none !important;
+  font-size: 0.55rem !important;
+  line-height: 1.35 !important;
+  max-width: 10.5rem !important;
+}
+
+// Desktop collapsed — mark + toggle + compact foot
+@media (min-width: 901px) {
+  .lp2-shell .lp2-rail.lp2-rail--collapsed {
+    width: 56px !important;
+
+    .lp2-rail__header {
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.35rem;
+      padding: 0.75rem 0.35rem 0.5rem;
+    }
+
+    .lp2-rail__brand {
+      flex: 0 0 auto;
+      justify-content: center;
+    }
+
+    .lp2-rail__foot {
+      padding: 0.5rem 0.35rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hcw-attribution--rail {
+      align-items: center;
+    }
+  }
+
+  .lp2-shell .lp2-rail-spacer.lp2-rail-spacer--collapsed {
+    flex-basis: 56px !important;
+    width: 56px !important;
+    min-width: 56px !important;
+  }
+}
+
+// Mobile — fixed top bar + slide-down panel
+@media (max-width: 900px) {
+  .lp2-shell .lp2-rail {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    z-index: 9000;
+    border-left: none !important;
+    border-bottom: 1px solid rgba(20, 21, 23, 0.08) !important;
+    box-shadow: 0 4px 24px rgba(20, 21, 23, 0.06) !important;
+  }
+
+  .lp2-shell .lp2-rail__header {
+    padding: 0.75rem 1rem;
+  }
+
+  .lp2-shell .lp2-rail__body,
+  .lp2-shell .lp2-rail__foot .lp2-rail__value-prop {
+    display: none;
+  }
+
+  .lp2-shell .lp2-rail--open {
+    bottom: 0;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+
+    .lp2-rail__body {
+      display: flex;
+      flex: 1 1 auto;
+      min-height: 0;
+      padding-bottom: 0.25rem;
+    }
+
+    .lp2-rail__foot .lp2-rail__value-prop {
+      display: block;
+    }
+  }
+
+  .lp2-shell .lp2-rail__foot {
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem 1rem 1.25rem;
+  }
+
+  .lp2-shell .lp2-rail:not(.lp2-rail--open) .lp2-rail__foot {
+    display: none;
+  }
+
+  .lp2-shell .lp2-stage {
+    padding-top: 3.25rem;
+  }
+}
+
+// ── Open / collapsed rail · SectionDock spacing ─────────────────────────────
+
+.lp2-shell {
+  --hcw-section-dock-bottom: 24px;
+  --esti-section-dock-height: 3.25rem;
+}
+
+.lp2-shell--section-dock .lp2-content {
+  padding-bottom: calc(var(--hcw-section-dock-bottom) + var(--esti-section-dock-height) + 1.25rem);
+}
+
+@media (min-width: 901px) {
+  .lp2-shell .lp2-rail {
+    transition: width 0.22s ease, border-radius 0.22s ease !important;
+  }
+
+  .lp2-shell .lp2-rail-spacer {
+    transition: flex-basis 0.22s ease, width 0.22s ease, min-width 0.22s ease;
+  }
+}
+
+@media (max-width: 900px) {
+  .lp2-shell--section-dock .lp2-content {
+    padding-bottom: calc(var(--hcw-section-dock-bottom) + var(--esti-section-dock-height) + 1.75rem);
+  }
+}
+
+// ── Marketing consistency (HCW-UI-KIT § Marketing shell · 2026-07) ───────────
+
+.lp2-prose {
+  max-width: 42rem;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--lp-ink);
+
+  h2, h3, h4 {
+    margin: 2rem 0 0.75rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--lp-ink);
+  }
+
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.0625rem; }
+
+  p, ul, ol {
+    margin: 0 0 1rem;
+    color: var(--lp-ink-muted);
+  }
+
+  li + li { margin-top: 0.35rem; }
+
+  a {
+    color: var(--lp-ink);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-color: rgba(20, 21, 23, 0.28);
+
+    &:hover {
+      color: var(--lp-ink-muted);
+      text-decoration-color: currentColor;
+    }
+  }
+
+  strong { color: var(--lp-ink); font-weight: 650; }
+
+  &--inline {
+    margin: 0;
+
+    p { margin: 0; }
+  }
+}
+
+.lp2-hero--minimal {
+  max-width: none;
+  padding: clamp(2rem, 4vw, 3.5rem) $lp2-pad clamp(2.5rem, 5vw, 4rem);
+}
+
+.lp2-hero__text--centered {
+  max-width: 42rem;
+  margin-inline: auto;
+  text-align: center;
+
+  .lp2-hero__h1 {
+    max-width: none;
+    margin-inline: auto;
+  }
+
+  .lp2-hero__sub {
+    max-width: 36rem;
+    margin-inline: auto;
+  }
+}
+
+.lp2-wiki-back,
+.lp2-blog-back {
+  padding: 1.25rem $lp2-pad 0;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+
+  a {
+    color: var(--lp-ink-muted);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--lp-ink);
+      text-decoration: underline;
+    }
+  }
+}
+
+.lp2-wiki-hero__hint {
+  margin: 1rem 0 0;
+  font-size: 0.875rem;
+  color: var(--lp-ink-muted);
+
+  a {
+    color: var(--lp-ink);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.lp2-shell {
+  --hcw-action-dock-height: 3.25rem;
+}
+
+.lp2-shell--conversion-dock .lp2-content {
+  padding-bottom: calc(24px + var(--hcw-action-dock-height) + 1.25rem);
+}
+
+.lp2-shell--section-dock.lp2-shell--conversion-dock .lp2-content {
+  padding-bottom: calc(
+    24px + var(--esti-section-dock-height) + var(--hcw-action-dock-height) + 2rem
+  );
+}
+
+@media (max-width: 900px) {
+  .lp2-shell--conversion-dock .lp2-content {
+    padding-bottom: calc(20px + var(--hcw-action-dock-height) + 1.75rem);
+  }
+
+  .lp2-shell--section-dock.lp2-shell--conversion-dock .lp2-content {
+    padding-bottom: calc(
+      20px + var(--esti-section-dock-height) + var(--hcw-action-dock-height) + 2.25rem
+    );
+  }
+}
+
+.lp2-investor-slides {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-top: 1px solid var(--lp-border);
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lp2-investor-slide {
+  padding: 1.75rem $lp2-pad;
+  gap: 0.75rem;
+  border-right: 1px solid var(--lp-border);
+  border-bottom: 1px solid var(--lp-border);
+}
+
+.lp2-investor-slide__n {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: var(--lp-accent);
+}
+
+.lp2-investor-slide__kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--lp-accent);
+}
+
+.lp2-investor-slide__title {
+  margin: 0 0 0.65rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--lp-ink);
+}
+
+.lp2-investor-slide__text {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--lp-ink-muted);
+}
+
+.lp2-investor-contact {
+  padding: 2rem $lp2-pad 2.5rem;
+  border-top: 1px solid var(--lp-border);
+}
+
+.lp2-investor-contact__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--lp-ink);
+}
+
+.lp2-investor-contact__fine {
+  margin: 1rem 0 0;
+  font-size: 0.75rem;
   color: var(--lp-ink-muted);
 }
 

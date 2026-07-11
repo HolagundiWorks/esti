@@ -1,4 +1,4 @@
----
+﻿---
 title: Construction Client Management Software
 metaTitle: Construction Client Management Software for Architects
 metaDescription: Keep clients informed and accountable through construction — drawings, transmittals, RFIs, approvals, running bills and progress in one scoped client portal. AORMS manages the client relationship through the build, not just design.
@@ -32,7 +32,7 @@ Construction is when "small changes" multiply. Because AORMS logs every change w
 
 ## One connected record, on your own server
 
-Design, drawings, approvals, construction coordination, billing and the client portal are one system, not five — and it is cloud SaaS with role-based access, so client and financial data stays inside the firm. See the wider platform on the [practice management](/architecture-practice-management-software) and [project management](/architecture-project-management-software) pages, or [book a demo](/demo).
+Design, drawings, approvals, construction coordination, billing and the client portal are one system, not five — and it is cloud SaaS with role-based access, so client and financial data stays inside the firm. See the wider platform on the [practice operations](/architecture-practice-management-software) and [project record](/architecture-project-management-software) pages, or [book a demo](/demo).
 
 ## Frequently asked questions
 

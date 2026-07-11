@@ -33,14 +33,3 @@ export function wikiSubdomainRedirectTarget(
   if (pathname.startsWith("/wiki")) return `${pathname}${search}${hash}`;
   return `${WIKI_PATH}${pathname}${search}${hash}`;
 }
-
-/** Rail nav for wiki surfaces (home + top guides + product). */
-export const WIKI_SHELL_NAV = [
-  { href: "/wiki", label: "Wiki home" },
-  { href: "/wiki/getting-started", label: "Getting started" },
-  { href: "/wiki/how-to-use-aorms", label: "How to use AORMS" },
-  { href: "/wiki/finance-and-billing", label: "Finance & billing" },
-  { href: "/wiki/account-and-licence", label: "Account & licence" },
-  { href: "/", label: "AORMS home" },
-  { href: "/design-system", label: "Design system" },
-] as const;

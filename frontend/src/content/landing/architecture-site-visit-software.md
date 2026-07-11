@@ -1,4 +1,4 @@
----
+﻿---
 title: Site visits, snags and inspections on one project record
 metaTitle: Site Visit Management Software for Architects India
 metaDescription: Site visit management software for architects — log visits, raise snags, issue site instructions, track phase progress and inspections on the project record.

@@ -1,9 +1,9 @@
----
+﻿---
 title: Managing multiple client feedback loops efficiently
 date: 2026-07-09
 excerpt: When every client channels feedback through a different medium, architects become human routers. One project record and scoped portals collapse the loops without killing responsiveness.
 tags: Client, Workflow, Operations
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 A mid-size studio with twelve active projects might run twelve parallel feedback loops:

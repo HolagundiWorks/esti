@@ -9,7 +9,372 @@ export const WIKI_PRODUCT_KNOWLEDGE = `\
 
 Public URL: https://aorms.in/wiki
 
-### Getting started (aorms.in/wiki/getting-started)
+### AORMS-Studio workspace (aorms.in/wiki/aorms-studio)
+
+**AORMS-Studio** is the first live **vertical workspace** on the AORMS platform — built for Indian architecture and interior design **consultancies** that advise clients. It is **not** construction project management or contractor coordination software.
+
+| Aspect | Detail |
+| --- | --- |
+| **App URL** | [app.aorms.in](https://app.aorms.in) |
+| **Audience** | Registered architects, interior designers, solo practitioners, mid-sized firms |
+| **Licence** | One standard licence — unlimited users, clients, projects; 5 GB included storage |
+| **Intelligence** | **ESTI** (Embedded Studio Intelligence) — workspace-only; not the platform EmOI layer |
+
+## What the workspace covers
+
+- **Projects & phases** — enquiry to close-out on one project record
+- **Fee recovery** — COA fee proposals, stage-wise billing, GST invoicing
+- **Client revisions** — MoM → ESTI extract → client request → architect assessment → client approval → site
+- **Drawings** — register, transmittals, approval state, revision categories
+- **Site supervision** — visits, snags, site instructions, progress reports, inspections
+- **Portals** — client, consultant, and contractor scoped access
+- **Studio Intelligence** — principal dashboard with zone health and ranked priorities
+- **Library** — compliance, master plans, standards, item/spec catalogues
+
+## The four-stage practice spine
+
+| Stage | Modules |
+| --- | --- |
+| **01 — Enquiry & proposal** | Leads, Office → Proposals |
+| **02 — Design & drawings** | Projects, Tasks, Drawings |
+| **03 — Approvals & revisions** | Client portal, Decisions, Critical notes |
+| **04 — Bill & close** | Finance → Invoices, Filing |
+
+## Guides in this wiki
+
+- [Getting started](getting-started) — account, profile, first project
+- [How to use AORMS](how-to-use-aorms) — end-to-end workflow map
+
+## Platform context
+
+AORMS (**Accelerated Operational Resources Management System**) is the wider platform — operational and design frameworks for advisory consultancies in risk, education, auditing, and AEC. Future verticals ship as separate workspace profiles:
+
+| Industry | Workspace |
+| --- | --- |
+| Risk management | **AORMS-Compliance** |
+| Education | **AORMS-Advisory** |
+| Auditing | **AORMS-Audit** |
+| AEC (architecture) | **AORMS-Studio** (this workspace) |
+
+- [AORMS platform home](/)
+- [AORMS-Studio marketing + sign in](/login)
+- [Wiki documentation](/wiki/aorms-studio)
+
+## Frequently asked questions
+
+### Is this the same as generic project management software?
+
+No. AORMS-Studio is a **consultancy project record** — phases, drawings, fee milestones, revision approval chains, and Indian GST context are first-class. It does not replace contractor scheduling or site PM tools.
+
+### Where does ESTI appear?
+
+Studio Intelligence (\`/\`), Ask ESTI (taskbar), ESTI Pulse signals, and MoM-to-revision drafting. ESTI is scoped to this workspace only.
+
+### Do I need a desktop install?
+
+No. The workspace runs in the browser. ESTICAD companion tooling is optional for takeoff workflows.
+
+---
+
+### account-and-licence.md (aorms.in/wiki/account-and-licence)
+
+﻿---
+title: Account and licence
+slug: account-and-licence
+excerpt: One standard AORMS licence, storage metering, AI usage, company members, and account portals.
+order: 5
+section: Administration
+domain: management
+updated: 2026-07-09
+---
+
+## One standard licence
+
+AORMS has **no product tiers**. Every active account receives:
+
+- The **full workspace** (projects, finance, HR, portals, AI, estimation, library)
+- **Unlimited users**, clients, contractors, consultants, and projects
+- **5 GB** included cloud storage
+
+Legacy names (Lite, Pro, Core, Enterprise) are retired — licensing console and account screens show **AORMS Standard** only.
+
+---
+
+## What you pay for
+
+| Meter | Included | Overage |
+|-------|----------|---------|
+| **Storage** | 5 GB | Per GB-month beyond included |
+| **Hosted AI** | Usage-based | Per token/request when not using BYO key |
+| **BYO AI key** | — | Your provider cost; AORMS does not meter hosted AI while BYO is active |
+
+View usage in **Company → settings** (storage bar and AI studio settings).
+
+---
+
+## Account portals
+
+| Portal | URL | Purpose |
+|--------|-----|---------|
+| **Personal account** | \`/account\` | Email, password, AORMS ID, credentials |
+| **Company account** | \`/company-account\` | Members, company licence, administration |
+
+Company **owners** invite members, approve joins, and manage the workspace licence key if your deployment uses node activation.
+
+---
+
+## Sign-in and security
+
+- **Email** is canonical (lowercase) across the platform.
+- Enable **TOTP** from the account security panel.
+- **Portal users** (clients, contractors) use separate login flows at \`/access\`.
+
+---
+
+## Workspace profile gate
+
+Existing users may be prompted once to complete **firm profile** fields (GSTIN, address, COA details) before accessing the workspace. This keeps proposals and invoices consistent.
+
+---
+
+## Storage management
+
+1. Monitor usage in Company settings.
+2. **Archive** closed projects to move files off hot storage where archive workflow exists.
+3. Purchase additional storage through your account operator or hi@aorms.in.
+
+---
+
+## AI configuration
+
+1. **Company → AI Studio settings** (firm admin).
+2. Set **OpenAI-compatible** base URL and API key for BYO.
+3. Ask ESTI and AI Studio prefer BYO when configured; fall back to hosted model if unreachable.
+
+---
+
+## Deleting a company workspace
+
+- **Members** can leave via company account.
+- **Owners** requesting full workspace deletion should contact [hi@aorms.in](mailto:hi@aorms.in).
+- Platform operators can remove organisations from the licensing console (irreversible).
+
+---
+
+## Frequently asked questions
+
+### Do I need a licence key for cloud SaaS?
+
+Cloud accounts at aorms.in are **activated on sign-up**. Self-hosted or node installs may still display a key field — ignore for standard cloud unless support instructs otherwise.
+
+### Can I add accountants without extra seats?
+
+Yes. **Unlimited users** — add finance roles without per-seat fees.
+
+### Where is the pricing page?
+
+[aorms.in/#pricing](https://aorms.in/#pricing) — usage-based storage and AI on top of the included allowance.
+
+
+---
+
+### ai-core.md (aorms.in/wiki/ai-core)
+
+﻿---
+title: AI core — EmOI and ESTI
+slug: ai-core
+excerpt: Platform EmOI (Embedded Operational Intelligence) and architecture-workspace ESTI — dual-tier AI firewall, cognition engine, Ask ESTI, and deterministic scoring.
+order: 1
+section: Overview
+domain: ai-core
+updated: 2026-07-10
+---
+
+AORMS intelligence is split into two layers. **Do not conflate them in copy or configuration.**
+
+| Layer | Name | Scope |
+| --- | --- | --- |
+| **Platform** | **EmOI** — Embedded Operational Intelligence | All AORMS verticals — dual-tier AI, RAG firewall, workflow intelligence |
+| **Architecture workspace** | **ESTI** — Embedded Studio Intelligence | AORMS-Studio only — Ask ESTI, Studio Intelligence, ESTI Pulse, MoM extraction |
+
+## Governing rule
+
+> Deterministic systems create business truth. LLMs explain business truth.
+
+LLMs must **not** invent scores, predict delays directly, calculate financial state, or create unsupported recommendations. The backend computes; the model explains.
+
+## EmOI (platform)
+
+North-star capabilities on the AORMS platform:
+
+- **External validation gate** — outbound model calls pass a quality/safety gate
+- **Internal RAG firewall** — firm knowledge stays inside the tenant boundary
+- **Workflow intelligence** — operational signals across advisory engagements
+- **Semantic search** — governed knowledge base retrieval
+
+EmOI ships progressively as vertical workspaces adopt the platform spine. Marketing and \`/development\` document the north-star; the monorepo implements ESTI-first for AORMS-Studio.
+
+## ESTI (AORMS-Studio)
+
+Live workspace intelligence:
+
+| Surface | Purpose |
+| --- | --- |
+| **Studio Intelligence** (\`/\`) | Office health, zone KPIs, ranked priorities, cognition brief |
+| **Ask ESTI** | Taskbar AI — contextual Q&A (BYO API key supported) |
+| **ESTI Pulse** | Attention signals — fee risk, revision pressure, load |
+| **MoM extraction** | Draft revision requests from meeting minutes |
+
+### Cognition pipeline
+
+\`\`\`text
+Operational records → deterministic scoring → pattern recognition
+  → causal reasoning → prediction → intervention recommendation
+  → LLM explanation → dashboard office state
+\`\`\`
+
+Key tables: \`esti_cognition_event\`, \`esti_cognition_behavior_profile\`, \`esti_cognition_priority_item\`. Exposed via \`dashboard.home\` and related tRPC namespaces.
+
+## Configuration
+
+- Firm AI settings — model provider, API keys, feature toggles (owner/admin)
+- Ask ESTI — user-level key optional for BYO inference
+- Wiki content syncs to ESTI product knowledge on build (\`sync-wiki-knowledge.mjs\`)
+
+## Where to go next
+
+- [How to use AORMS — Studio Intelligence](how-to-use-aorms#studio-intelligence--your-morning-surface)
+- [AORMS-Studio workspace overview](aorms-studio)
+- Engineering: \`docs/esti/COGNITION-ENGINE.md\`, \`docs/esti/ESTI-PULSE.md\`
+
+## Frequently asked questions
+
+### Can ESTI run on the platform home?
+
+No. ESTI is architecture-workspace scoped. The platform layer is **EmOI**.
+
+### Does the AI write invoices or change drawings?
+
+No. ESTI recommends and explains; writes go through normal audited modules (proposals, invoices, drawing register, portal approvals).
+
+### Is Ollama required?
+
+The backend AI gateway supports Ollama for on-prem inference. Cloud deployments may use other providers configured in firm AI settings.
+
+
+---
+
+### finance-and-billing.md (aorms.in/wiki/finance-and-billing)
+
+﻿---
+title: Finance and billing
+slug: finance-and-billing
+excerpt: COA fee proposals, GST invoices, reconciliation, filing abstracts, and project expenses.
+order: 4
+section: Modules
+domain: management
+updated: 2026-07-09
+---
+
+AORMS finance modules follow **Indian consultancy practice** — COA fee scales, GST, TDS reconciliation, and April–March reporting context.
+
+---
+
+## Fee proposals
+
+**Route:** Office → Proposals (\`/office/proposals\`)
+
+1. Create a **fee proposal** or **scope agreement** on the unified proposal model.
+2. Enter stage-wise fees, percentages, or lump sums per COA convention.
+3. Track **internal approval** and **client approval** on the same record.
+4. Approved proposals become the **billing baseline** for the project.
+
+---
+
+## GST invoicing
+
+**Route:** Finance → Invoices (\`/finance/invoices\`)
+
+1. **Create invoice** — select client, project, and tax profile.
+2. Line items use consultancy **SAC codes**; CGST/SGST or IGST from place of supply.
+3. Amounts are stored in **paise** internally; the UI formats INR.
+4. Issue PDF; track payment status and credit notes as your policy requires.
+
+---
+
+## Reconciliation
+
+**Route:** Finance → Reconcile (\`/finance/reconcile\`)
+
+1. Import **bank statements**, **26AS**, **AIS**, or **GSTR** files (formats supported by the worker).
+2. Review suggested matches; confirm or override.
+3. Unmatched entries stay flagged for the accountant.
+
+---
+
+## Filing abstracts
+
+**Route:** Finance → Filing (\`/finance/filing\`)
+
+- Generate **GST** and **TDS** filing abstracts for the compliance period.
+- Export for your CA or internal review — tied to reconciled data where possible.
+
+---
+
+## Office cash book and project expenses
+
+- **Cash book** — office-level receipts and payments.
+- **Project expenses** — attribute costs to projects for internal job costing.
+
+---
+
+## Payroll (optional)
+
+When HR is enabled for your firm:
+
+- **Finance → Payroll** — payslips from attendance and salary structure.
+- Requires \`hr:manage\` capability.
+
+---
+
+## Workflow: bill a design stage
+
+1. Confirm the **stage is complete** on the project (tasks/decisions closed).
+2. Open **Proposals** — verify the milestone amount for that stage.
+3. **Create invoice** for the milestone; attach reference to the proposal line.
+4. Send PDF to client; record receipt in reconcile when paid.
+5. Studio Intelligence **Financial** zone should return to green for that project.
+
+---
+
+## Frequently asked questions
+
+### Does AORMS file GST returns directly?
+
+AORMS prepares **abstracts and reconciled data** — your CA files through the government portal. Integration depth may expand; check release notes.
+
+### Are fees in rupees or paise?
+
+Display is rupees; storage is integer **paise** for precision.
+
+### Can clients see invoices in the portal?
+
+Expose as your office policy dictates — fee **status** is visible in the client portal; invoice PDFs per your sharing practice.
+
+
+---
+
+### getting-started.md (aorms.in/wiki/getting-started)
+
+﻿---
+title: Getting started
+slug: getting-started
+excerpt: Create your account, complete your workspace profile, and orient yourself in the AORMS shell.
+order: 1
+section: Start here
+domain: aorms-studio
+updated: 2026-07-09
+---
 
 ## 1. Create an account
 
@@ -76,9 +441,92 @@ Unlimited. Pricing is not per-seat. You pay for **additional cloud storage** and
 
 Yes. Contact [hi@aorms.in](mailto:hi@aorms.in) or use the demo unlock in the footer if your deployment exposes it. Demo data resets nightly (IST).
 
+
 ---
 
-### How to use AORMS (aorms.in/wiki/how-to-use-aorms)
+### hcw-ui-kit.md (aorms.in/wiki/hcw-ui-kit)
+
+﻿---
+title: HCW-UI design system
+slug: hcw-ui-kit
+excerpt: Human Centric Works UI Kit (@hcw/ui-kit) — three material layers, Rail · Stage · Dock spatial model, and Urbanist + Radiant Orange tokens.
+order: 1
+section: Overview
+domain: hcw-ui
+updated: 2026-07-10
+---
+
+**HCW-UI** (*Human Centric Works UI Kit*, package \`@hcw/ui-kit\`) is the single design system behind every AORMS surface — workspace app, client and consultant portals, licensing console, marketing pages, and the live specimen at [/design-system](/design-system).
+
+## Thesis — depth encodes importance
+
+Three material languages stack by visual depth. Pick a layer by **role**, not taste:
+
+| Layer | Language | Used for |
+| --- | --- | --- |
+| **1 — Flat** | Hyperminimalist | Data at rest — tables, text, headings, surfaces |
+| **2 — Soft** | Neumorphic | Objects you work within — dialogs, panels, widgets, recessed inputs |
+| **3 — Glass** | Glassmorphism | Live layer — hover, CTAs, ActionDock, priority alerts |
+
+**Radiant Orange** (\`#FF4F18\`) is the single accent. Filled buttons carry white text; links use slate, never the accent fill.
+
+**Shape:** surfaces are square (\`RADIUS: 0\`). Generic \`MuiButton\` uses \`BUTTON_RADIUS\` (4px). The **ActionDock** tray and its buttons use **\`DOCK_PILL_RADIUS\`** — a full capsule pill (\`ACTION_DOCK_TRAY\` + \`actionDockButtonSx\`).
+
+## Spatial model — Rail · Stage · Taskbar · ActionDock
+
+| Zone | Role |
+| --- | --- |
+| **Rail** (20%, fixed) | Navigation, filters, screen context — glass on marketing; glass dash rail in the app |
+| **Stage** (scrolls) | Primary work surface |
+| **Taskbar footer** | Calculator · launcher cluster · tray (clock, alerts, ID, sign out) |
+| **ActionDock** (floating, bottom-centre) | Context-aware screen actions via \`useScreenActions\` — left destroy · centre create · right commit |
+
+Login and auth forms sit in the **rail**, not on the stage.
+
+## Key primitives
+
+- \`<MuiRoot>\` — themed app shell
+- \`<Surface layer="flat|soft|glass|clearGlass|headingGlass">\` — layer recipes
+- \`<GlassRail>\` — marketing / auth rail
+- \`useScreenActions\` — publish CTAs to the global ActionDock
+- \`HealthGlassOrb\` — office health signal on glass chrome
+
+Tokens live in \`packages/hcw-ui-kit/src/tokens.ts\`. The frontend theme shim re-exports the kit — do not add raw hex in product screens.
+
+## Where to go next
+
+- **Live specimen:** [Design system](/design-system) on the public site
+- **Engineering docs:** \`docs/esti/HCW-UI-KIT.md\` and \`docs/esti/HCW-UI-UX-PRINCIPLES.md\` in the monorepo
+- **Brand heritage:** \`docs/esti/AORMS-BRANDING-KIT.md\`
+
+## Frequently asked questions
+
+### Is Carbon still used?
+
+No. \`@carbon/react\` was removed (2026-07). Legacy \`--cds-*\` CSS variables in \`styles.scss\` are a static compatibility layer only.
+
+### Where do marketing pages get their layout?
+
+\`MarketingShell\` — glass rail (open or collapsed icon strip) + scrolling stage + SectionDock for in-page sections. Flat marketing content uses the \`lp2-ds\` class family.
+
+### How do I add a screen action?
+
+Call \`useScreenActions\` from \`@hcw/ui-kit\` with \`{ id, zone, label, onClick, tone?, icon? }\`. Clear the array when a dialog is open so the dock does not compete with modal CTAs.
+
+
+---
+
+### how-to-use-aorms.md (aorms.in/wiki/how-to-use-aorms)
+
+﻿---
+title: How to use AORMS
+slug: how-to-use-aorms
+excerpt: End-to-end workflows — enquiry, design, approvals, site, finance, and close-out — with step-by-step instructions for every major module.
+order: 2
+section: Start here
+domain: aorms-studio
+updated: 2026-07-09
+---
 
 This guide walks through **how an Indian architecture consultancy runs on AORMS** — from the first client enquiry to final billing. All steps happen in the **cloud workspace**; there is no separate desktop product to install.
 
@@ -321,7 +769,7 @@ Capabilities are enforced server-side via \`can(role, capability)\` — the UI h
 
 ### Can we run AORMS on our own server?
 
-AORMS is offered as **cloud SaaS** at aorms.in. Contact Holagundi Consulting Works for dedicated deployment discussions.
+AORMS is offered as **cloud SaaS** at aorms.in. Contact Human Centric Works for dedicated deployment discussions.
 
 ### Are there different product editions?
 
@@ -335,193 +783,121 @@ Estimation is **in the browser workspace** on each project. There is no separate
 
 Company owners manage their organisation in the **account portal**. Platform operators use the licensing console. For account closure, email [hi@aorms.in](mailto:hi@aorms.in).
 
----
-
-### Finance and billing (aorms.in/wiki/finance-and-billing)
-
-AORMS finance modules follow **Indian consultancy practice** — COA fee scales, GST, TDS reconciliation, and April–March reporting context.
 
 ---
 
-## Fee proposals
+### index.md (aorms.in/wiki/index)
 
-**Route:** Office → Proposals (\`/office/proposals\`)
+﻿---
+title: AORMS Wiki
+slug: index
+excerpt: Central documentation for AORMS — HCW-UI design system, AORMS-Studio workspace, AI core (EmOI + ESTI), and office management.
+order: 0
+section: Home
+domain: aorms-studio
+updated: 2026-07-10
+---
 
-1. Create a **fee proposal** or **scope agreement** on the unified proposal model.
-2. Enter stage-wise fees, percentages, or lump sums per COA convention.
-3. Track **internal approval** and **client approval** on the same record.
-4. Approved proposals become the **billing baseline** for the project.
+Welcome to the **AORMS Wiki** — the canonical documentation hub for Human Centric Works products.
+
+This wiki is organised in **four domains**:
+
+| Domain | What it covers |
+| --- | --- |
+| **[HCW-UI](hcw-ui-kit)** | The layered design system (\`@hcw/ui-kit\`) — flat, soft, and glass surfaces; Rail · Stage · Dock |
+| **[AORMS-Studio](aorms-studio)** | The shipped architecture advisory workspace — projects, fees, revisions, drawings, portals |
+| **[AI core](ai-core)** | Platform **EmOI** and workspace **ESTI** — dual-tier AI, cognition engine, Ask ESTI |
+| **[Management](management)** | Finance, billing, HR, licensing, team performance, operational framework |
+
+**AORMS** (**Accelerated Operational Resources Management System**) is the platform. The live workspace from this repository is **AORMS-Studio** for Indian architecture and interior design consultancies.
+
+Sign in at [aorms.in/login](https://aorms.in/login). One standard licence — unlimited users, **5 GB** included storage, no desktop installs.
+
 
 ---
 
-## GST invoicing
+### management.md (aorms.in/wiki/management)
 
-**Route:** Finance → Invoices (\`/finance/invoices\`)
-
-1. **Create invoice** — select client, project, and tax profile.
-2. Line items use consultancy **SAC codes**; CGST/SGST or IGST from place of supply.
-3. Amounts are stored in **paise** internally; the UI formats INR.
-4. Issue PDF; track payment status and credit notes as your policy requires.
-
+﻿---
+title: Management — operational framework
+slug: management
+excerpt: How an architecture consultancy runs on AORMS — finance, billing, HR, licensing, team performance, and the operational spine.
+order: 1
+section: Overview
+domain: management
+updated: 2026-07-10
 ---
 
-## Reconciliation
+**Management** in AORMS means how the **consultancy office runs** — not client construction delivery. The platform provides an **operational framework** (process, audit trails, review chains) and a **design framework** (engagement models, deliverable templates) on one spine.
 
-**Route:** Finance → Reconcile (\`/finance/reconcile\`)
+For AORMS-Studio, management modules include:
 
-1. Import **bank statements**, **26AS**, **AIS**, or **GSTR** files (formats supported by the worker).
-2. Review suggested matches; confirm or override.
-3. Unmatched entries stay flagged for the accountant.
+## Finance & compliance
 
----
+| Module | Route | Purpose |
+| --- | --- | --- |
+| **Proposals** | \`/office/proposals\` | COA fee proposals and scope agreements |
+| **Invoices** | \`/finance/invoices\` | GST invoicing, SAC codes, FY-sequential numbering |
+| **Reconciliation** | \`/finance/reconcile\` | Bank, 26AS, AIS, GSTR imports |
+| **Filing** | \`/finance/filing\` | GST/TDS filing abstracts |
+| **Office expenses** | \`/finance/expenses\` | Project and office costing |
+| **Cash book** | \`/finance/cash-book\` | Office cash movements |
+| **Payroll** | \`/finance/payroll\` | Payslips (HR-gated) |
 
-## Filing abstracts
+See [Finance and billing](finance-and-billing) for step-by-step guides.
 
-**Route:** Finance → Filing (\`/finance/filing\`)
+## People & performance
 
-- Generate **GST** and **TDS** filing abstracts for the compliance period.
-- Export for your CA or internal review — tied to reconciled data where possible.
+| Module | Route | Purpose |
+| --- | --- | --- |
+| **Team** | \`/team\` | Roster, assignments, workload |
+| **HR** | \`/hr\` | Leaves, payroll inputs (hr:manage) |
+| **Performance** | \`/performance\` | ASPRF composite scores |
+| **Attendance** | (per-person records) | Daily attendance and time attribution |
 
----
+**ASPRF** weights: Reliability 30%, Quality 25%, Client Impact 15%, Collaboration 15%, Learning 10%, Wellbeing 5% (opt-in).
 
-## Office cash book and project expenses
+## Administration
 
-- **Cash book** — office-level receipts and payments.
-- **Project expenses** — attribute costs to projects for internal job costing.
+| Topic | Guide |
+| --- | --- |
+| Licence & storage metering | [Account and licence](account-and-licence) |
+| Users & roles | Firm admin → Users (\`firm:admin\`) |
+| Audit log | Admin → Audit (\`reports:view\`) |
+| Company profile | Firm → Company |
 
----
+## Third parties
 
-## Payroll (optional)
+- **Clients** — CRM and client log (\`/clients\`)
+- **Consultants** — engagements and collaborator portal
+- **Vendors** — placeholder directory
 
-When HR is enabled for your firm:
+## Operational principles
 
-- **Finance → Payroll** — payslips from attendance and salary structure.
-- Requires \`hr:manage\` capability.
+1. **Money in paise** — all amounts integer; display with \`formatINR\`
+2. **Immutable audit** — activity and audit namespaces for traceability
+3. **Capabilities** — \`can(role, capability)\` gates procedures; not ad-hoc UI hides
+4. **India profile** — April–March FY, GST rates, SAC codes from public \`profile\` namespace
 
----
+## Platform vs workspace
 
-## Workflow: bill a design stage
-
-1. Confirm the **stage is complete** on the project (tasks/decisions closed).
-2. Open **Proposals** — verify the milestone amount for that stage.
-3. **Create invoice** for the milestone; attach reference to the proposal line.
-4. Send PDF to client; record receipt in reconcile when paid.
-5. Studio Intelligence **Financial** zone should return to green for that project.
-
----
+| Layer | Management scope |
+| --- | --- |
+| **AORMS platform** | Frameworks, EmOI governance, multi-vertical roadmap |
+| **AORMS-Studio** | Indian consultancy finance, HR, team, and office modules listed above |
 
 ## Frequently asked questions
 
-### Does AORMS file GST returns directly?
+### Is there a Lite or Pro tier?
 
-AORMS prepares **abstracts and reconciled data** — your CA files through the government portal. Integration depth may expand; check release notes.
+No. One **AORMS Standard** licence — full workspace, unlimited users, 5 GB included storage. Legacy tier names are retired.
 
-### Are fees in rupees or paise?
+### Where is project management?
 
-Display is rupees; storage is integer **paise** for precision.
+Engagement delivery lives on the **project record** (phases, drawings, revisions) — see [AORMS-Studio](aorms-studio). AORMS is not a construction PM tool.
 
-### Can clients see invoices in the portal?
+### Who can see financial reports?
 
-Expose as your office policy dictates — fee **status** is visible in the client portal; invoice PDFs per your sharing practice.
+Capability-gated — typically principals and finance roles. See \`packages/contracts/src/permissions.ts\` for the canonical matrix.
 
----
-
-### Account and licence (aorms.in/wiki/account-and-licence)
-
-## One standard licence
-
-AORMS has **no product tiers**. Every active account receives:
-
-- The **full workspace** (projects, finance, HR, portals, AI, estimation, library)
-- **Unlimited users**, clients, contractors, consultants, and projects
-- **5 GB** included cloud storage
-
-Legacy names (Lite, Pro, Core, Enterprise) are retired — licensing console and account screens show **AORMS Standard** only.
-
----
-
-## What you pay for
-
-| Meter | Included | Overage |
-|-------|----------|---------|
-| **Storage** | 5 GB | Per GB-month beyond included |
-| **Hosted AI** | Usage-based | Per token/request when not using BYO key |
-| **BYO AI key** | — | Your provider cost; AORMS does not meter hosted AI while BYO is active |
-
-View usage in **Company → settings** (storage bar and AI studio settings).
-
----
-
-## Account portals
-
-| Portal | URL | Purpose |
-|--------|-----|---------|
-| **Personal account** | \`/account\` | Email, password, AORMS ID, credentials |
-| **Company account** | \`/company-account\` | Members, company licence, administration |
-
-Company **owners** invite members, approve joins, and manage the workspace licence key if your deployment uses node activation.
-
----
-
-## Sign-in and security
-
-- **Email** is canonical (lowercase) across the platform.
-- Enable **TOTP** from the account security panel.
-- **Portal users** (clients, contractors) use separate login flows at \`/access\`.
-
----
-
-## Workspace profile gate
-
-Existing users may be prompted once to complete **firm profile** fields (GSTIN, address, COA details) before accessing the workspace. This keeps proposals and invoices consistent.
-
----
-
-## Storage management
-
-1. Monitor usage in Company settings.
-2. **Archive** closed projects to move files off hot storage where archive workflow exists.
-3. Purchase additional storage through your account operator or hi@aorms.in.
-
----
-
-## AI configuration
-
-1. **Company → AI Studio settings** (firm admin).
-2. Set **OpenAI-compatible** base URL and API key for BYO.
-3. Ask ESTI and AI Studio prefer BYO when configured; fall back to hosted model if unreachable.
-
----
-
-## Deleting a company workspace
-
-- **Members** can leave via company account.
-- **Owners** requesting full workspace deletion should contact [hi@aorms.in](mailto:hi@aorms.in).
-- Platform operators can remove organisations from the licensing console (irreversible).
-
----
-
-## Frequently asked questions
-
-### Do I need a licence key for cloud SaaS?
-
-Cloud accounts at aorms.in are **activated on sign-up**. Self-hosted or node installs may still display a key field — ignore for standard cloud unless support instructs otherwise.
-
-### Can I add accountants without extra seats?
-
-Yes. **Unlimited users** — add finance roles without per-seat fees.
-
-### Where is the pricing page?
-
-[aorms.in/#pricing](https://aorms.in/#pricing) — usage-based storage and AI on top of the included allowance.
-
----
-
-### AORMS Wiki (aorms.in/wiki/index)
-
-Welcome to the **AORMS Wiki** — the canonical guide for using the Architecture Office Resource Management System.
-
-AORMS is a **single cloud workspace** for Indian architects and interior designers. There is **one standard licence** with unlimited users, clients, contractors, and projects. You sign in at [aorms.in](https://aorms.in/login) in your browser — there are **no desktop apps to install** and **no edition tiers** (Lite, Pro, or Enterprise).
-
-Everything in this wiki assumes you are working in the **browser workspace**. Estimation, BOQ, drawings, finance, and portals all live inside the same account.
 `;

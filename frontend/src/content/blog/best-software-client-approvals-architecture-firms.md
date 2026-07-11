@@ -1,9 +1,9 @@
----
+﻿---
 title: Best software for managing client approvals in architecture firms
 date: 2026-07-09
 excerpt: Client approvals protect fee, liability, and programme — but only when the issued drawing, the approval evidence, and the fee record live on one durable trace. What to require from approval workflow software in Indian practice.
 tags: Approvals, Client, Drawings, Workflow
-author: Holagundi Consulting Works
+author: Human Centric Works
 ---
 
 Client approval is not a courtesy checkbox. It is the **evidence layer** that protects
@@ -78,7 +78,7 @@ No separate desktop install — sign in at [aorms.in](https://aorms.in). Setup g
 | Email + PDF only | Fast start; weak evidence |
 | Generic e-sign on files | Signature without drawing register context |
 | PM tool attachments | Files present; revision logic weak |
-| Architecture practice OS | Higher setup discipline; strongest trace |
+| Architecture advisory workspace | Higher setup discipline; strongest trace |
 
 ## Rollout tips
 
