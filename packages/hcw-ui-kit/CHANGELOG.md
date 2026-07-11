@@ -4,6 +4,17 @@ All notable changes to the HCW Design System package. Versioning follows semver;
 the package is workspace-consumed (source-only), so versions mark **design-contract**
 changes, not npm releases.
 
+## 0.5.1 — 2026-07-11
+
+### Added
+- **Render tests for the structural + interaction primitives** (`primitives.test.tsx`,
+  jsdom): Surface (class + Box-prop forwarding), BrandMark (accent mark present/
+  absent), HealthGlassOrb (shape-encodes-severity contract across all 5 states +
+  glass modifier classes + title override), and ActionDock/useScreenActions (the
+  interaction contract: labelled toolbar, left→center→right zone ordering, empty
+  publish → null, onClick + disabled, roving tabindex, unmount clears). Suite: 44
+  tests (was 27).
+
 ## 0.5.0 — 2026-07-11
 
 ### Added
