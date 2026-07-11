@@ -4,6 +4,15 @@ All notable changes to the HCW Design System package. Versioning follows semver;
 the package is workspace-consumed (source-only), so versions mark **design-contract**
 changes, not npm releases.
 
+## 0.4.1 — 2026-07-11
+
+### Added
+- **Component render tests** (jsdom + @testing-library/react) for the promoted
+  primitives — StatusDot, Avatar (+`getInitials` edge cases), DataState
+  (loading/empty/children contract), ConfirmModal (accessible name, confirm/
+  cancel, pending disable), PageBreadcrumb (link injection, last-crumb text,
+  empty→null), ToastHost (live region, push/dismiss). Suite: **27 tests**.
+
 ## 0.4.0 — 2026-07-11
 
 ### Added
