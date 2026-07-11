@@ -4,6 +4,17 @@ All notable changes to the HCW Design System package. Versioning follows semver;
 the package is workspace-consumed (source-only), so versions mark **design-contract**
 changes, not npm releases.
 
+## 0.2.0 — 2026-07-11
+
+### Added
+- **Scheme-aware surface recipes** — `recipesFor(scheme)` + `DARK_RECIPES` /
+  `HIGH_CONTRAST_RECIPES` (`SurfaceRecipes` type). The theme's neu/glass materials
+  (dialogs, menus, inputs, button-hover glass, drawer/app-bar fills, hairlines) now
+  resolve per scheme. Dark: near-black shadow pairs + faint white highlights on
+  lifted fills. High contrast: no frosts/soft shadows — solid fills + full-strength
+  borders. **Light is byte-identical to 0.1.0** (resolves to the same constants);
+  dark/HC are preview-grade pending visual sign-off.
+
 ## 0.1.0 — 2026-07-11
 
 First versioned design contract (previously unversioned `0.0.0`).

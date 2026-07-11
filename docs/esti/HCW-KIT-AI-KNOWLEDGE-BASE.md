@@ -188,11 +188,12 @@ without instruction.
 - **Open debt (ranked):** ① no tests/Storybook/visual-regression (kit has no test
   runner; adding one touches the root lockfile — do while tree is quiet); ② remaining
   app-level canonicals outside the package (Toast host ⟵ app-state entangled,
-  Avatar ⟵ app resolveColor logic, Charts); ③ dark/high-contrast are palette
-  scaffolds — neu/glass RECIPES still light-tuned, no scheme switcher UI; ④ no
-  RTL/i18n; ⑤ no Figma library; ⑥ zero optimistic UI (Doherty); ⑦ visual QA of
-  restyled controls on AUTHENTICATED screens (needs credentials/session — public
-  `/design-system` verified rendering 2026-07-11 via browser screenshot).
+  Avatar ⟵ app resolveColor logic, Charts); ③ dark/high-contrast recipes are
+  IMPLEMENTED (kit 0.2.0, `recipesFor`) but preview-grade — need visual sign-off +
+  a scheme switcher UI (Settings); ④ no RTL/i18n; ⑤ no Figma library; ⑥ zero
+  optimistic UI (Doherty); ⑦ visual QA of restyled controls on AUTHENTICATED
+  screens (needs credentials/session — public `/design-system` verified rendering
+  2026-07-11 via browser screenshot; /demo flow blocked by headless renderer hangs).
   *Resolved 2026-07-11:* governance (GOVERNANCE.md + CHANGELOG + semver 0.1.0);
   HCW-UI-KIT.md listing sync; `KnowledgeBankPortal` repaired (dock API, RailLayout,
   MUI-X v8 selection, StatusDot, duplicate-CTA removal) — tree fully green;

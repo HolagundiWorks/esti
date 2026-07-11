@@ -19,25 +19,17 @@ import type {} from "@mui/x-data-grid/themeAugmentation";
 import {
   SCHEMES,
   type SchemeName,
+  recipesFor,
   MOTION,
   RADIUS as GLASS_RADIUS,
   BUTTON_RADIUS as BTN_RADIUS,
   FONT_FAMILY,
-  GLASS_BORDER,
   GLASS_BLUR,
   GLASS_SHADOW,
-  GLASS_SURFACE,
-  POP_FILL,
-  NEU_POP,
-  FLAT_POP,
   BTN_LIFT,
   UNDERLINE_ORANGE,
   UNDERLINE_RED,
   GLASS_ORANGE_30,
-  NEU_FILL,
-  NEU_INSET,
-  NEU_INSET_FOCUS,
-  NEU_INSET_ERROR,
   NEU_INPUT_RADIUS,
   DD_FLAT,
   REDUCE_MOTION,
@@ -58,6 +50,8 @@ import {
  *  so treat non-light schemes as preview-grade (see tokens.ts § Colour schemes). */
 export function createAormsTheme(options?: { scheme?: SchemeName }): Theme {
   const CDS = SCHEMES[options?.scheme ?? "light"];
+  // Scheme-matched surface recipes (neu/glass materials) — see tokens.ts.
+  const R = recipesFor(options?.scheme ?? "light");
   return createTheme({
     shape: { borderRadius: GLASS_RADIUS },
     // Scale tokens drive the theme (parity with MUI defaults → no layout shift):
@@ -124,7 +118,7 @@ export function createAormsTheme(options?: { scheme?: SchemeName }): Theme {
             backgroundColor: "transparent",
             backgroundImage: "none",
             border: "none",
-            borderBottom: GLASS_BORDER,
+            borderBottom: R.GLASS_BORDER,
             boxShadow: "none",
             borderRadius: 0,
             "&:before": { display: "none" },
@@ -134,21 +128,21 @@ export function createAormsTheme(options?: { scheme?: SchemeName }): Theme {
       },
       MuiAccordionSummary: { styleOverrides: { root: { paddingInline: 0 } } },
       MuiAccordionDetails: { styleOverrides: { root: { paddingInline: 0 } } },
-      MuiMenu: { styleOverrides: { paper: { ...FLAT_POP } } },
-      MuiPopover: { styleOverrides: { paper: { ...FLAT_POP } } },
-      MuiDialog: { styleOverrides: { paper: { ...NEU_POP } } },
+      MuiMenu: { styleOverrides: { paper: { ...R.FLAT_POP } } },
+      MuiPopover: { styleOverrides: { paper: { ...R.FLAT_POP } } },
+      MuiDialog: { styleOverrides: { paper: { ...R.NEU_POP } } },
       MuiDrawer: {
-        styleOverrides: { paper: { backgroundColor: POP_FILL, border: GLASS_BORDER, borderRadius: 0 } },
+        styleOverrides: { paper: { backgroundColor: R.POP_FILL, border: R.GLASS_BORDER, borderRadius: 0 } },
       },
       MuiAppBar: {
         defaultProps: { elevation: 0, color: "transparent" },
         styleOverrides: {
           root: {
             backgroundImage: "none",
-            backgroundColor: POP_FILL,
+            backgroundColor: R.POP_FILL,
             backdropFilter: GLASS_BLUR,
             WebkitBackdropFilter: GLASS_BLUR,
-            borderBottom: GLASS_BORDER,
+            borderBottom: R.GLASS_BORDER,
           },
         },
       },
@@ -174,9 +168,9 @@ export function createAormsTheme(options?: { scheme?: SchemeName }): Theme {
               // HOVER = Layer 3 GLASS: the label lifts onto a frosted glass slab
               // (actionability itself glows), keeping the bottom accent line.
               "&:hover": {
-                background: GLASS_SURFACE.background,
-                backdropFilter: GLASS_SURFACE.backdropFilter,
-                WebkitBackdropFilter: GLASS_SURFACE.WebkitBackdropFilter,
+                background: R.GLASS_SURFACE.background,
+                backdropFilter: R.GLASS_SURFACE.backdropFilter,
+                WebkitBackdropFilter: R.GLASS_SURFACE.WebkitBackdropFilter,
                 color: isError ? CDS.supportError : CDS.accentDark,
                 transform: BTN_LIFT,
                 boxShadow: `0 8px 24px rgba(20, 21, 23, 0.14), ${underline}`,
@@ -186,9 +180,9 @@ export function createAormsTheme(options?: { scheme?: SchemeName }): Theme {
               // users see what's actionable (mouse-only :hover left them blind).
               "&:focus-visible": {
                 ...FOCUS_RING,
-                background: GLASS_SURFACE.background,
-                backdropFilter: GLASS_SURFACE.backdropFilter,
-                WebkitBackdropFilter: GLASS_SURFACE.WebkitBackdropFilter,
+                background: R.GLASS_SURFACE.background,
+                backdropFilter: R.GLASS_SURFACE.backdropFilter,
+                WebkitBackdropFilter: R.GLASS_SURFACE.WebkitBackdropFilter,
                 color: isError ? CDS.supportError : CDS.accentDark,
                 transform: BTN_LIFT,
                 boxShadow: `0 8px 24px rgba(20, 21, 23, 0.14), ${underline}`,
@@ -229,13 +223,13 @@ export function createAormsTheme(options?: { scheme?: SchemeName }): Theme {
             if (ownerState.variant && ownerState.variant !== "standard") return {};
             if (ownerState.severity === "error")
               return {
-                ...GLASS_SURFACE,
+                ...R.GLASS_SURFACE,
                 background: "rgba(200, 68, 46, 0.10)",
                 border: "1px solid rgba(200, 68, 46, 0.25)",
               };
             if (ownerState.severity === "warning")
               return {
-                ...GLASS_SURFACE,
+                ...R.GLASS_SURFACE,
                 background: "rgba(255, 153, 50, 0.12)",
                 border: "1px solid rgba(255, 153, 50, 0.30)",
               };
@@ -310,19 +304,19 @@ export function createAormsTheme(options?: { scheme?: SchemeName }): Theme {
       MuiTextField: { defaultProps: { size: "small" } },
       MuiFormControl: { defaultProps: { size: "small" } },
       MuiSelect: { defaultProps: { size: "small" } },
-      MuiAutocomplete: { defaultProps: { size: "small" }, styleOverrides: { paper: { ...FLAT_POP } } },
+      MuiAutocomplete: { defaultProps: { size: "small" }, styleOverrides: { paper: { ...R.FLAT_POP } } },
       MuiOutlinedInput: {
         styleOverrides: {
           root: {
             borderRadius: NEU_INPUT_RADIUS,
-            backgroundColor: NEU_FILL,
-            boxShadow: NEU_INSET,
+            backgroundColor: R.NEU_FILL,
+            boxShadow: R.NEU_INSET,
             "& .MuiOutlinedInput-notchedOutline": { border: "none" },
             "&:hover .MuiOutlinedInput-notchedOutline": { border: "none" },
             "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: "none" },
-            "&.Mui-focused": { boxShadow: NEU_INSET_FOCUS },
-            "&.Mui-error": { boxShadow: NEU_INSET_ERROR },
-            "&.Mui-disabled": { boxShadow: NEU_INSET, opacity: 0.6 },
+            "&.Mui-focused": { boxShadow: R.NEU_INSET_FOCUS },
+            "&.Mui-error": { boxShadow: R.NEU_INSET_ERROR },
+            "&.Mui-disabled": { boxShadow: R.NEU_INSET, opacity: 0.6 },
             "&:has(.MuiSelect-select)": { ...DD_FLAT },
           },
         },
@@ -331,13 +325,13 @@ export function createAormsTheme(options?: { scheme?: SchemeName }): Theme {
         styleOverrides: {
           root: {
             borderRadius: NEU_INPUT_RADIUS,
-            backgroundColor: NEU_FILL,
-            boxShadow: NEU_INSET,
+            backgroundColor: R.NEU_FILL,
+            boxShadow: R.NEU_INSET,
             "&:before": { display: "none" },
             "&:after": { display: "none" },
-            "&:hover": { backgroundColor: NEU_FILL },
-            "&.Mui-focused": { backgroundColor: NEU_FILL, boxShadow: NEU_INSET_FOCUS },
-            "&.Mui-error": { boxShadow: NEU_INSET_ERROR },
+            "&:hover": { backgroundColor: R.NEU_FILL },
+            "&.Mui-focused": { backgroundColor: R.NEU_FILL, boxShadow: R.NEU_INSET_FOCUS },
+            "&.Mui-error": { boxShadow: R.NEU_INSET_ERROR },
             "&:has(.MuiSelect-select)": { ...DD_FLAT },
           },
         },

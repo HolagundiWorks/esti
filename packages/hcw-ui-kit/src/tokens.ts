@@ -377,6 +377,133 @@ export const HEADING_GLASS_SURFACE = {
   boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 24px rgba(20, 21, 23, 0.04)",
 } as const;
 
+// ── Scheme-aware surface recipes ────────────────────────────────────────────────
+// The neu/glass material language per colour scheme. LIGHT is the shipped brand
+// (the standalone constants above); DARK/HIGH-CONTRAST are preview-grade derivations
+// pending visual sign-off. Dark neumorphism: near-black shadow pairs + faint white
+// highlights on a lifted fill. High contrast: no soft shadows or frosts at all —
+// solid fills + full-strength borders (reduced-transparency friendly).
+
+export type SurfaceRecipes = {
+  POP_FILL: string;
+  GLASS_BORDER: string;
+  NEU_FILL: string;
+  NEU_POP: Record<string, unknown>;
+  FLAT_POP: Record<string, unknown>;
+  NEU_RAISED: Record<string, unknown>;
+  NEU_INSET: string;
+  NEU_INSET_FOCUS: string;
+  NEU_INSET_ERROR: string;
+  GLASS_SURFACE: {
+    background: string;
+    backdropFilter: string;
+    WebkitBackdropFilter: string;
+    border: string;
+    borderRadius: number;
+    boxShadow: string;
+  };
+};
+
+const LIGHT_RECIPES: SurfaceRecipes = {
+  POP_FILL,
+  GLASS_BORDER,
+  NEU_FILL,
+  NEU_POP,
+  FLAT_POP,
+  NEU_RAISED,
+  NEU_INSET,
+  NEU_INSET_FOCUS,
+  NEU_INSET_ERROR,
+  GLASS_SURFACE,
+};
+
+export const DARK_RECIPES: SurfaceRecipes = {
+  POP_FILL: "#191C21",
+  GLASS_BORDER: "1px solid rgba(255, 255, 255, 0.08)",
+  NEU_FILL: "#1e222a",
+  NEU_POP: {
+    backgroundColor: "#20242c",
+    backgroundImage: "none",
+    border: "none",
+    borderRadius: DIALOG_RADIUS,
+    boxShadow: "9px 9px 22px rgba(0, 0, 0, 0.60), -9px -9px 22px rgba(255, 255, 255, 0.05)",
+  },
+  FLAT_POP: {
+    backgroundColor: "#191C21",
+    backgroundImage: "none",
+    border: "none",
+    borderRadius: 0,
+    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.55)",
+  },
+  NEU_RAISED: {
+    backgroundColor: "#1e222a",
+    backgroundImage: "none",
+    border: "none",
+    borderRadius: 0,
+    boxShadow: "6px 6px 14px rgba(0, 0, 0, 0.55), -6px -6px 14px rgba(255, 255, 255, 0.045)",
+  },
+  NEU_INSET:
+    "inset 2px 2px 4.5px rgba(0, 0, 0, 0.55), inset -2px -2px 4.5px rgba(255, 255, 255, 0.05)",
+  NEU_INSET_FOCUS:
+    "inset 2.5px 2.5px 5.5px rgba(0, 0, 0, 0.62), inset -2.5px -2.5px 5.5px rgba(255, 255, 255, 0.06), inset 0 0 0 1.5px rgba(255, 92, 40, 0.5)",
+  NEU_INSET_ERROR:
+    "inset 2px 2px 4.5px rgba(0, 0, 0, 0.55), inset -2px -2px 4.5px rgba(255, 255, 255, 0.05), inset 0 0 0 1.5px rgba(240, 120, 98, 0.55)",
+  GLASS_SURFACE: {
+    background: "rgba(25, 28, 33, 0.5)",
+    backdropFilter: "blur(28px) saturate(1.6)",
+    WebkitBackdropFilter: "blur(28px) saturate(1.6)",
+    border: "1px solid rgba(255, 255, 255, 0.14)",
+    borderRadius: 0,
+    boxShadow:
+      "0 14px 42px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.10), inset 0 -1px 0 rgba(255, 255, 255, 0.04)",
+  },
+};
+
+export const HIGH_CONTRAST_RECIPES: SurfaceRecipes = {
+  POP_FILL: "#FFFFFF",
+  GLASS_BORDER: "1px solid #000000",
+  NEU_FILL: "#FFFFFF",
+  NEU_POP: {
+    backgroundColor: "#FFFFFF",
+    backgroundImage: "none",
+    border: "2px solid #000000",
+    borderRadius: DIALOG_RADIUS,
+    boxShadow: "none",
+  },
+  FLAT_POP: {
+    backgroundColor: "#FFFFFF",
+    backgroundImage: "none",
+    border: "2px solid #000000",
+    borderRadius: 0,
+    boxShadow: "none",
+  },
+  NEU_RAISED: {
+    backgroundColor: "#FFFFFF",
+    backgroundImage: "none",
+    border: "2px solid #000000",
+    borderRadius: 0,
+    boxShadow: "none",
+  },
+  NEU_INSET: "inset 0 0 0 2px #000000",
+  NEU_INSET_FOCUS: "inset 0 0 0 3px #C93A00",
+  NEU_INSET_ERROR: "inset 0 0 0 3px #A31226",
+  GLASS_SURFACE: {
+    background: "#FFFFFF",
+    backdropFilter: "none",
+    WebkitBackdropFilter: "none",
+    border: "2px solid #000000",
+    borderRadius: 0,
+    boxShadow: "none",
+  },
+};
+
+/** Surface recipes for a scheme — the theme factory resolves through this. */
+export function recipesFor(scheme: SchemeName): SurfaceRecipes {
+  if (scheme === "dark") return DARK_RECIPES;
+  if (scheme === "highContrast") return HIGH_CONTRAST_RECIPES;
+  return LIGHT_RECIPES;
+}
+
 /** The three layers, by name. `flat` is intentionally minimal (square canvas). */
 export type SurfaceLayer = "flat" | "soft" | "glass" | "clearGlass" | "headingGlass";
 export const LAYERS: Record<SurfaceLayer, Record<string, unknown>> = {
