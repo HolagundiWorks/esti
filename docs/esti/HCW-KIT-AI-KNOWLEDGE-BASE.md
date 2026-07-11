@@ -185,15 +185,15 @@ without instruction.
   re-exports; 40+ consumers inherit); app `StatusTag`/`StatusDot` now delegate to the
   kit; `TYPE_SCALE` token added and consumed by StudioAbstract micro-typography;
   kit versioned **0.1.0** with CHANGELOG + `sideEffects` field.
-- **Open debt (ranked):** ① no tests/Storybook/visual-regression (kit has no test
-  runner; adding one touches the root lockfile — do while tree is quiet); ② remaining
-  app-level canonicals outside the package (Toast host ⟵ app-state entangled,
-  Avatar ⟵ app resolveColor logic, Charts); ③ dark/high-contrast recipes are
-  IMPLEMENTED (kit 0.2.0, `recipesFor`) but preview-grade — need visual sign-off +
-  a scheme switcher UI (Settings); ④ no RTL/i18n; ⑤ no Figma library; ⑥ zero
-  optimistic UI (Doherty); ⑦ visual QA of restyled controls on AUTHENTICATED
-  screens (needs credentials/session — public `/design-system` verified rendering
-  2026-07-11 via browser screenshot; /demo flow blocked by headless renderer hangs).
+- **Open debt (ranked):** ① Storybook / visual-regression (unit tests EXIST as of
+  0.3.0 — 15 vitest tests; component-render tests + a gallery remain); ② Charts —
+  the last app-level canonical outside the package; ③ dark/high-contrast recipes
+  implemented (0.2.0) but preview-grade — need visual sign-off + a scheme switcher
+  UI (Settings); ④ no RTL/i18n; ⑤ no Figma library; ⑥ zero optimistic UI (Doherty);
+  ⑦ visual QA of restyled controls on AUTHENTICATED screens (public
+  `/design-system` verified 2026-07-11; /demo blocked by headless renderer hangs).
+  *Resolved 0.3.0:* Toast store + ToastHost and Avatar promoted (injection pattern —
+  app keeps `resolveColor` domain logic); first kit test suite (vitest, 15 tests).
   *Resolved 2026-07-11:* governance (GOVERNANCE.md + CHANGELOG + semver 0.1.0);
   HCW-UI-KIT.md listing sync; `KnowledgeBankPortal` repaired (dock API, RailLayout,
   MUI-X v8 selection, StatusDot, duplicate-CTA removal) — tree fully green;

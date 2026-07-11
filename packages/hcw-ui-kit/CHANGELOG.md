@@ -4,6 +4,18 @@ All notable changes to the HCW Design System package. Versioning follows semver;
 the package is workspace-consumed (source-only), so versions mark **design-contract**
 changes, not npm releases.
 
+## 0.3.0 — 2026-07-11
+
+### Added
+- **`ToastHost` + toast store** (`pushToast`/`dismissToast`/`useToasts`) — the one
+  transient-feedback primitive, promoted from the app; positioned via the
+  `Z_INDEX.toast` token; dedupe + TTL behaviour covered by tests.
+- **`Avatar`** (+ `getInitials`) — circular identity mark, presentational only:
+  callers inject `color` (domain palettes stay app-side; the app's `StaffAvatar`
+  wraps it with the staff-level colour logic).
+- **First test suite** — vitest; 15 tests over scheme integrity, `recipesFor`,
+  shape/scale contracts, and toast store dedupe/TTL. `pnpm test` in the package.
+
 ## 0.2.0 — 2026-07-11
 
 ### Added
