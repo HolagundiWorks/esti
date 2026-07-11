@@ -39,6 +39,7 @@ documented product exception (marketing atmosphere in `landing.scss` is one).
 |----------|------|
 | What colour / layer / component? | [HCW-UI-KIT.md](HCW-UI-KIT.md) |
 | What heuristic or law applies? | **This document** |
+| How should an AI surface (ESTI / Ask ESTI) report, ask, and defer? | [HCW-AI-ORCHESTRATION-UX.md](HCW-AI-ORCHESTRATION-UX.md) |
 | Where does this module live in nav? | [NAVIGATION.md](NAVIGATION.md) |
 | Why Radiant Orange / Urbanist? | [AORMS-BRANDING-KIT.md](AORMS-BRANDING-KIT.md) |
 | Shell rollout status | [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md) |
