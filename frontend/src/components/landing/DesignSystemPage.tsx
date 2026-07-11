@@ -1,7 +1,11 @@
 import {
+  Alert,
   Box,
   Button,
+  Checkbox,
+  FormControlLabel,
   Stack,
+  Switch,
   Tab,
   Tabs,
   Table,
@@ -9,25 +13,34 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from "@mui/material";
+import { ThemeProvider } from "@mui/material/styles";
 import {
   ActionDock,
   ActionDockProvider,
+  Avatar,
   BrandMark,
   colors,
+  createAormsTheme,
   FONT_FAMILY,
   HealthGlassOrb,
   RADIUS,
   BUTTON_RADIUS,
   DOCK_PILL_RADIUS,
   DIALOG_RADIUS,
+  SCHEMES,
+  StatusDot,
   Surface,
   liquidGlassSpecimenSx,
   sectionDockChipSx,
   useScreenActions,
   type DockAction,
   type HealthZoneState,
+  type SchemeName,
 } from "@hcw/ui-kit";
 import type { CSSProperties, ReactNode } from "react";
 import { useState } from "react";
@@ -40,6 +53,7 @@ const DS_NAV = [
   { href: "/design-system#tokens", label: "Tokens" },
   { href: "/design-system#type", label: "Typography" },
   { href: "/design-system#components", label: "Components" },
+  { href: "/design-system#schemes", label: "Schemes" },
   { href: "/design-system#ux", label: "UX" },
   { href: "/design-system#adopt", label: "Adopt" },
 ] as const;
@@ -281,6 +295,7 @@ function HeroNeuRailSpecimen() {
 
 export function DesignSystemPage() {
   const [tabDemo, setTabDemo] = useState(0);
+  const [scheme, setScheme] = useState<SchemeName>("light");
 
   return (
     <div className="lp2-ds">
@@ -569,6 +584,30 @@ export function DesignSystemPage() {
               </Stack>
             </DsRow>
             <DsRow
+              title="StatusDot"
+              label={<LayerLabel layer="flat" />}
+              detail="The one status grammar — coloured dot + ink text, never a colour-filled chip."
+            >
+              <Stack direction="row" spacing={2.5} sx={{ flexWrap: "wrap" }}>
+                <StatusDot color="green" label="Active" />
+                <StatusDot color="magenta" label="In review" />
+                <StatusDot color="blue" label="Processing" />
+                <StatusDot color="red" label="Failed" />
+                <StatusDot color="gray" label="Draft" />
+              </Stack>
+            </DsRow>
+            <DsRow
+              title="Avatar"
+              label={<LayerLabel layer="flat" />}
+              detail="Identity mark — photo or initials; the caller injects the colour (domain palettes stay app-side)."
+            >
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+                <Avatar name="Asha Rao" color={colors.accent} size="sm" />
+                <Avatar name="Vikram Iyer" color={colors.supportInfo} size="md" />
+                <Avatar name="Meera Shah" color={colors.supportSuccess} size="lg" />
+              </Stack>
+            </DsRow>
+            <DsRow
               title="Tabs"
               label={<LayerLabel layer="flat" />}
               detail="Rectangular controls with transparent background. Selected tab shows an inset top alert line — never a fill wash."
@@ -599,6 +638,58 @@ useScreenActions([
   { id: "save", zone: "right",  tone: "primary", label: "Save",   onClick },
 ], [deps]);`}</code>
           </pre>
+        </section>
+
+        <section className="lp2-ds-section" aria-labelledby="ds-schemes-title">
+          <DsHead
+            id="schemes"
+            tag="Schemes"
+            title="One theme factory — light, dark, high contrast."
+            body="createAormsTheme({ scheme }) resolves the palette AND the neu/glass material recipes per scheme. Light is the shipped brand; dark and high-contrast are preview-grade scaffolds awaiting visual sign-off — judge them here."
+          />
+          <ToggleButtonGroup
+            exclusive
+            size="small"
+            value={scheme}
+            onChange={(_e, v: SchemeName | null) => v && setScheme(v)}
+            aria-label="Colour scheme preview"
+          >
+            <ToggleButton value="light">Light</ToggleButton>
+            <ToggleButton value="dark">Dark</ToggleButton>
+            <ToggleButton value="highContrast">High contrast</ToggleButton>
+          </ToggleButtonGroup>
+          <ThemeProvider theme={createAormsTheme({ scheme })}>
+            <Box
+              sx={{
+                mt: 2,
+                p: { xs: 2, md: 3 },
+                backgroundColor: SCHEMES[scheme].background,
+                border: "1px solid",
+                borderColor: SCHEMES[scheme].borderStrong,
+              }}
+            >
+              <Stack spacing={2.5}>
+                <Typography variant="overline" sx={{ color: SCHEMES[scheme].textSecondary }}>
+                  Specimen · {scheme === "highContrast" ? "high contrast" : scheme}
+                </Typography>
+                <Stack direction="row" spacing={1.5} sx={{ flexWrap: "wrap", alignItems: "center", rowGap: 1.5 }}>
+                  <Button variant="contained">Create project</Button>
+                  <Button variant="text">Save changes</Button>
+                  <Button variant="text" color="error">Delete</Button>
+                  <StatusDot color="green" label="Active" />
+                  <Avatar name="Asha Rao" color={SCHEMES[scheme].accent} size="md" />
+                </Stack>
+                <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap", alignItems: "center", rowGap: 1.5 }}>
+                  <TextField label="Project name" size="small" sx={{ width: 240 }} />
+                  <FormControlLabel control={<Switch defaultChecked />} label="HR module" />
+                  <FormControlLabel control={<Checkbox defaultChecked />} label="Billable" />
+                </Stack>
+                <Alert severity="error" sx={{ maxWidth: 560 }}>
+                  Couldn't save the fee stage — it is locked by an issued invoice.
+                </Alert>
+              </Stack>
+            </Box>
+          </ThemeProvider>
         </section>
 
         <section className="lp2-ds-section" aria-labelledby="ds-ux-title">

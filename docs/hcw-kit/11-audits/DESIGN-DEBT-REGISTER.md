@@ -9,8 +9,8 @@ withdraws. Agents: update this file in the same change that alters a fact
 | # | Category | Item | Evidence / note | Sev |
 | --- | --- | --- | --- | --- |
 | D1b | Perf/UX | Extend the optimistic-write pattern beyond the flagship sites (task board/tab interactions, other toggles) | pattern established in Leads.setStatus + Users.setDisabled (cancel→snapshot→set→rollback→settle) | Med |
-| D2 | Testing | No Storybook / visual regression / component-render tests | unit tests exist (0.3.0); no gallery harness | High |
-| D3 | Theme | Dark/HC schemes + recipes implemented but unsigned — no visual QA, no switcher UI | kit 0.2.0 `recipesFor` | Med |
+| D2b | Testing | Visual-regression harness + component-render tests (the living gallery now exists on `/design-system`) | gallery covers promoted primitives + scheme preview; VR snapshots remain | Med |
+| D3 | Theme | Dark/HC visual **sign-off** + a Settings scheme switcher | preview LIVE at `/design-system#schemes` (toggle light/dark/HC) — owner judges there | Med |
 | D5 | Component | Charts ungoverned (MUI X Charts raw) | last canonical outside the kit | Med |
 | D8c | Feedback | Adopt `meta.errorTitle` across remaining mutations (mechanism + exemplars live) | opportunistic per Rulebook §14; convention in KB R8 | Low |
 | D11 | Duplicate | `TagChip` fork in `Clients.tsx` (parallel-WIP file) | migrate to StatusDot when WIP lands | Low |
@@ -29,6 +29,7 @@ withdraws. Agents: update this file in the same change that alters a fact
 
 ## Retired (most recent first)
 
+- 2026-07-11 · D2 (gallery half): `/design-system` extended as the living gallery — StatusDot + Avatar specimens and a **Schemes section** (light/dark/HC toggle over a ThemeProvider'd specimen panel: buttons, inputs, Switch/Checkbox, StatusDot, Avatar, error alert). DOM-verified rendering in-browser. → narrowed to D2b (VR snapshots + render tests)
 - 2026-07-11 · D10 Work tabs: merged Client/Consultant requests into one "Requests" tab (max 7 tabs; legacy slugs alias via `canonicalWorkTab`); NAVIGATION.md synced
 - 2026-07-11 · D13 route focus: `RouteFocus` moves focus to `#esti-main` on SPA navigation (WCAG 2.4.3), skipping initial render
 - 2026-07-11 · D6 dialog names: **106 dialogs across 64 files** gained `aria-labelledby` (WCAG 4.1.2); only the parallel-WIP `Clients.tsx` dialog remains (D11 scope)
