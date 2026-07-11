@@ -1,6 +1,6 @@
 # HCW Kit & AORMS — audit index
 
-**Updated:** 2026-07-12 · **Living queue:** [DESIGN-DEBT-REGISTER.md](DESIGN-DEBT-REGISTER.md) — **Open queue empty (audit·fix program complete)** · Canonical kit repo: **github.com/HolagundiWorks/hcwux**
+**Updated:** 2026-07-12 · **Living queue:** [DESIGN-DEBT-REGISTER.md](DESIGN-DEBT-REGISTER.md) — **1 low item (D18)** after an evidence-based audit run · Maturity **83/100** · Compliance **90/100** · Canonical kit repo: **github.com/HolagundiWorks/hcwux**
 
 All audits are repo-resident markdown — no external canvas URLs. Re-run surface
 audits after major feature waves; update the debt register in the same PR as fixes.
@@ -21,60 +21,61 @@ audits after major feature waves; update the debt register in the same PR as fix
 
 ---
 
-## Kit maturity snapshot — 2026-07-12 (program close-out)
+## Kit maturity snapshot — 2026-07-12 (evidence-based re-score)
 
-**Method:** 16-section framework, evidence-based static analysis (`file:line`).
-**Overall: ~78/100 — "Managed"** *(post visual sign-off; regression harnesses now
-complete — 51 kit unit tests + Playwright VR in CI). The remaining ceiling is
-**roadmap-class, not design debt**: Figma library/variables, RTL/i18n, bundle budget,
-formal breakpoint audit.*
+**Method:** 16-section weighted rubric; each dimension anchored to a **measured count**
+(reproducible `rg` / test-runner evidence), not an estimate.
+**Overall: 83/100 — "Managed"** (weighted Σ wt×score). Hard evidence: 10/10 token
+families in `tokens.ts` · **40 MUI components themed** in `theme.ts` · 15 primitives
+exported/typed · **51 unit tests** (verified runner) + Playwright VR in CI · 10
+governance docs (00–13) · 276 error-titled mutations · 37 dock screens.
 
-| Area | Score /10 | One-line basis |
-| --- | --- | --- |
-| Foundations (tokens) | 7.5 | colour/recipe layer + scale ladders + scheme tokens |
-| Visual language | 8.5 | coherent thesis, enforced centrally by theme |
-| Components | 7.5 | thin primitive set; all canonicals promoted + tested |
-| Interaction patterns | 8.0 | dock contract + shells widely adopted |
-| Accessibility | 8.0 | focus parity + gates; all dialog names fixed (D6/D11) |
-| Responsive | 6.5 | rail stack works; no formal breakpoint audit (roadmap) |
-| UX heuristics | 8.0 | principles doc maps Nielsen×10 to shipped patterns |
-| UX laws | 8.0 | laws are design inputs, documented per pattern |
-| Documentation | 8.5 | full hierarchy + governance + adoption + AI-orchestration UX |
-| Developer experience | 7.5 | 51 unit tests + VR in CI; living gallery; standalone repo |
-| Designer experience | 3.0 | no Figma library/variables (roadmap) |
-| Governance | 8.5 | semver + CHANGELOG + GOVERNANCE + standalone hcwux repo + CI |
-| Performance | 6.0 | sideEffects; no bundle budget yet |
-| Content design | 7.5 | verb/error/money/locale rules enforced |
-| Scalability | 6.5 | scheme layer + injection; RTL/i18n absent (roadmap) |
+| Area | Wt | Score | Measured evidence |
+| --- | --- | --- | --- |
+| Components | 20% | 7.5 | 15 primitives · 40 MUI components themed · 51 tests; surface area still modest, no Storybook |
+| Accessibility | 12% | 8.0 | 135 `aria-labelledby` refs · 0 banned MUI-v6 props · focus-visible parity |
+| Foundations (tokens) | 10% | 8.0 | 10/10 token families + 3 schemes + recipes + DATA_VIZ |
+| Interaction | 10% | 8.0 | `useScreenActions` in 37 screens · dock contract |
+| Visual language | 8% | 8.5 | layer thesis enforced centrally by theme |
+| UX heuristics | 8% | 8.0 | 276 `meta.errorTitle` · Nielsen×10 mapped |
+| UX laws | 8% | 8.0 | documented per pattern |
+| Responsive | 5% | 6.5 | breakpoint tokens; no formal breakpoint audit |
+| Documentation | 5% | 8.5 | 10 docs 00–13 + adoption guide + AI-Orchestration UX |
+| Developer experience | 5% | 7.5 | 51 tests + VR CI + standalone repo + build; no Storybook/npm |
+| Designer experience | 5% | 3.0 | no Figma library/variables |
+| Governance | 4% | 8.5 | Constitution + Rulebook + GOVERNANCE + standalone repo + CI |
+| Performance | 4% | 6.0 | `sideEffects`; no bundle budget |
+| Content design | 3% | 7.5 | verb/error/money/locale enforced |
+| Scalability | 3% | 6.5 | schemes + injection; no RTL/i18n |
 
-**Level:** **Managed** — documented, enforced, and regression-guarded (unit + VR).
-Advancing to "Optimizing" needs the roadmap-class programmes (Figma bridge, RTL,
-perf budget), which are product/design deliverables, not design defects.
-**Studio interface detail:** see
+**Weighted overall = 83.0/100 · Managed** (Components 0.20×7.5=1.50 · Accessibility
+0.12×8.0=0.96 · … · Σ = 8.30 → 83). Advancing to "Optimizing" needs roadmap-class
+programmes (Figma bridge · RTL · perf budget) — product/design deliverables, not
+design defects. **Studio interface detail:** see
 [AORMS-STUDIO-INTERFACE-AUDIT](../../esti/AORMS-STUDIO-INTERFACE-AUDIT-2026-07-11.md).
 
 ---
 
-## Kit compliance snapshot — 2026-07-12
+## Kit compliance snapshot — 2026-07-12 (evidence-based audit run)
 
-**Question:** is the application using HCW Kit? **Method:** R1–R9 detection sweeps
-(recipes in [HCW-KIT-AI-KNOWLEDGE-BASE.md](../../esti/HCW-KIT-AI-KNOWLEDGE-BASE.md) §2).
-**Compliance: ~92/100** — the two open gaps at the prior audit (D4 hex targets, D11
-TagChip fork) are both now closed.
+**Question:** is the application using HCW Kit? **Method:** R1–R9 `rg` detection sweeps
+over `frontend/src` (reproducible; recipes in the skill +
+[HCW-KIT-AI-KNOWLEDGE-BASE.md](../../esti/HCW-KIT-AI-KNOWLEDGE-BASE.md) §2).
+**Compliance: 90/100.**
 
-| Check | Evidence | Verdict |
+| Check (recipe) | Measured evidence | Verdict |
 | --- | --- | --- |
-| Token compliance — hex | PlanReader + ZonalCompliance tokenised (`DATA_VIZ`); residual hits sanctioned (canvas/SVG, brand) | ✓ closed (D4) |
-| Token compliance — inline fontSize | real-text drift fixed (TYPE_SCALE) | ✓ closed |
-| Token compliance — legacy `--cds-*` | frozen compat; forbidden in new code | ✓ policy |
-| Component compliance — status | filled chips eliminated; StatusDot canonical | ✓ closed |
-| Component compliance — duplicates | `Clients.tsx` TagChip fork → kit `StatusDot` | ✓ closed (D11) |
-| Layout compliance | RailLayout 48 · MarketingShell 15 · AuthRail 12 · PortalShell 9 · ExternalPortal 5 | ✓ strong |
-| Interaction compliance | useScreenActions 26+ screens; `[]`-while-dialog honoured | ✓ strong |
-| Accessibility compliance | dialog names complete incl. `Clients.tsx` (D6/D11); WCAG 2.2 AA gates | ✓ closed |
-| Custom styling (`styled()`) | mostly HiddenFileInput (sanctioned) | ✓ acceptable |
+| R1a raw hex `#[0-9a-f]{3,6}` | 15 hits / 3 files — **all sanctioned**: GoogleIconCircle (5, brand) · HcwWordmark (1, brand) · ZonalComplianceCalculator (9, centralised AA-verified SVG palette) | ✓ (1 low → DATA_VIZ tokens) |
+| R1b inline `fontSize:` | 54 hits → 51 sanctioned (TYPE_SCALE tokens · mock ×23 · icon geometry · theme-typography fns · `/design-system` specimen); **3 genuine raw-rem-on-text** | ◐ **D18** (3 low) |
+| R1c legacy `var(--cds-*)` | 53 hits — frozen compat (StudioAbstract semantic map sanctioned); forbidden in new code | ✓ policy |
+| R2 forked status chips | **0 forks** — `dashboardUi.TagChip` delegates to StatusDot; 8 `<Chip>` = outlined/removable/tag (not filled-status) | ✓ closed |
+| R4 dock contract | `useScreenActions` in **37 screens** | ✓ strong |
+| R5 dialog names | 88 `<Dialog>` sites · 135 `aria-labelledby` refs (D6/D11) | ✓ strong |
+| R6 `styled()` | 12 files — mostly HiddenFileInput (sanctioned) | ✓ acceptable |
+| R7 banned MUI-v6 props | `primaryTypographyProps`/`InputProps=`/`SelectProps=`: **0** | ✓ clean |
+| R8 contextual error titles | `meta.errorTitle` on **276 mutations** | ✓ strong |
 
-**Open items → none.** [DESIGN-DEBT-REGISTER.md](DESIGN-DEBT-REGISTER.md) Open queue is empty.
+**Residual → D18** (3 low raw-fontSize-on-text). [DESIGN-DEBT-REGISTER.md](DESIGN-DEBT-REGISTER.md).
 
 ---
 

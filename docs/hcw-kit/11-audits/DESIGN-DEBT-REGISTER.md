@@ -6,9 +6,13 @@ withdraws. Agents: update this file in the same change that alters a fact
 
 ## Open
 
-**None.** Every agent-actionable design-debt item is closed (D3s and D11 retired
-2026-07-12). Remaining scope is **roadmap-class** (below) — product/design
-programmes, not design defects.
+| # | Category | Item | Evidence / note | Sev |
+| --- | --- | --- | --- | --- |
+| D18 | Token | Raw `fontSize` on real text — 3 sites | Evidence-based audit 2026-07-12 (R1b `rg` sweep): `StudioTeamPanel.tsx:232` (`fontSize:"1.1rem"`), `AiStudioSettingsPanel.tsx:72` + `ZonalComplianceCalculator.tsx:336` (Alert `"0.8rem"`). Migrate to `TYPE_SCALE` tokens / `Typography` variants. | Low |
+
+*Low note (not registered, sanctioned):* `ZonalComplianceCalculator` keeps a
+centralised 9-colour SVG plot palette (AA-verified) — canvas/SVG is sanctioned, but
+ideally migrates to `DATA_VIZ` tokens. (D3s and D11 retired 2026-07-12.)
 
 ## Roadmap-class (not debt — tracked in 13-Roadmaps; require product/design programmes)
 
