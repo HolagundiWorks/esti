@@ -33,6 +33,8 @@ import {
 import {
   lazy,
   Suspense,
+  useEffect,
+  useRef,
   type ComponentType,
   type LazyExoticComponent,
 } from "react";
@@ -150,6 +152,22 @@ const SystemAdmin = lazyRoute(() => import("./routes/SystemAdmin.js"), "SystemAd
 
 
 // ─── App ──────────────────────────────────────────────────────────────────────
+
+/** Move focus into the stage on SPA navigation (WCAG 2.4.3): keyboard/SR users
+ *  land in the new page content instead of staying on the nav control they
+ *  activated. Skips the initial render so document load keeps its natural flow. */
+function RouteFocus() {
+  const { pathname } = useLocation();
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    document.getElementById("esti-main")?.focus();
+  }, [pathname]);
+  return null;
+}
 
 function WikiHostRoutes() {
   const { pathname, search, hash } = useLocation();
@@ -543,6 +561,7 @@ function AppShell() {
           {/* Ribbon — floating top-right; rails and stage start below the header line. */}
           <AppRibbon nav={nav} firmName={firmName} adminGroups={adminGroups} variant="float" />
           <div className={`esti-app-content2${isStudioHome ? " esti-app-content2--flush-top" : ""}`}>
+            <RouteFocus />
             <main id="esti-main" className="esti-grow" tabIndex={-1}>
               {licenseBlocked && (
                 <Alert severity="error" sx={{ mb: 2 }}>

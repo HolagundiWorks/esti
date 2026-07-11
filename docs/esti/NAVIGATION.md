@@ -77,7 +77,11 @@ Legacy `?tab=` deep links (`info`, `pipeline`, `site-visits`, `approvals`, `invo
 **Cost Management / Estimation:** `/estimation` → `/projects`; `/estimation/:id` → `/projects/:id?tab=measurement`. CMS modules in `components/cms/` are not project tabs. Measurement is the live quantity surface.
 
 ## 3. Tasks ✅
-Work hub (`/tasks`). Priority Engine 🚧 → ESTI Pulse — [ESTI-PULSE.md](ESTI-PULSE.md).
+Work hub (`/tasks`). Tabs (2026-07-11, Miller — max 7 for a full-permission user):
+Tasks · Board · Calendar · Workload (HR) · Activity · **Requests** (client +
+consultant queues stacked in one tab; legacy `?tab=client-requests` /
+`consultant-requests` alias to it) · Attendance (HR).
+Priority Engine 🚧 → ESTI Pulse — [ESTI-PULSE.md](ESTI-PULSE.md).
 
 ## 4. AI Studio 🚧
 Route `/office/ai-studio` — plan-gated, rank ≥ 60. Not a ribbon item.
