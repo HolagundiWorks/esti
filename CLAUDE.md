@@ -112,6 +112,13 @@ via the repo’s wiki sync/build step.
 > **Brand font: Urbanist** (OFL) across the MUI product — self-hosted via
 > `@fontsource/urbanist` (imported in `main.tsx`), mirrored in the kit theme.
 
+**Governance chain (2026-07-11):** [`docs/HCW-DESIGN-PLAYBOOK.md`](docs/HCW-DESIGN-PLAYBOOK.md)
+(enduring principles) → [`docs/hcw-kit/00-CONSTITUTION.md`](docs/hcw-kit/00-CONSTITUTION.md)
+(supreme design law) → [`docs/hcw-kit/12-AI-AGENT-RULEBOOK.md`](docs/hcw-kit/12-AI-AGENT-RULEBOOK.md)
+(permanent AI behaviour) → hierarchy map [`docs/hcw-kit/README.md`](docs/hcw-kit/README.md)
+(sections 00–13: token governance, component quality checklist, UX review checklists,
+MUI mapping, audits, and the **living** [`DESIGN-DEBT-REGISTER.md`](docs/hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md)).
+
 **Canonical guides:** **[`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md)** — the
 layer philosophy, spatial model and adoption path (single source of truth).
 **[`docs/esti/HCW-UI-UX-PRINCIPLES.md`](docs/esti/HCW-UI-UX-PRINCIPLES.md)** — UX laws,

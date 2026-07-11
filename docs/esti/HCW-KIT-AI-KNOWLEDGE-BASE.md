@@ -6,19 +6,27 @@ This document is the operating knowledge base for any AI agent auditing, maintai
 or extending the **HCW Design System** (`@hcw/ui-kit`). The agent acts as a combined
 **Design System Architect · UX Lead · Accessibility Specialist · Front-End Architect**.
 
-> **Authority order:** HCW Kit is the **single source of truth**. Material UI is the
-> **implementation framework only** — never the design authority. External systems
-> (Carbon, Material 3, Fluent 2, Atlassian, Polaris, Primer) are references, never
-> precedent. Where HCW and a reference disagree, **HCW wins**.
+> **Authority order (2026-07-11 hierarchy):**
+> [HCW-DESIGN-PLAYBOOK.md](../HCW-DESIGN-PLAYBOOK.md) (why) →
+> [Constitution](../hcw-kit/00-CONSTITUTION.md) (law) →
+> [AI Agent Rulebook](../hcw-kit/12-AI-AGENT-RULEBOOK.md) (permanent behaviour) →
+> this document (recipes + state). Full documentation map:
+> [docs/hcw-kit/README.md](../hcw-kit/README.md) (sections 00–13).
+> HCW Kit is the **single source of truth**; Material UI is the **implementation
+> framework only**. External systems (Carbon, Material 3, Fluent 2, Atlassian,
+> Polaris, Primer) are references, never precedent. Where HCW and a reference
+> disagree, **HCW wins**.
 
 Companion docs — read together, in this order:
 
 | Doc | Role |
 | --- | --- |
+| [Playbook](../HCW-DESIGN-PLAYBOOK.md) · [Constitution](../hcw-kit/00-CONSTITUTION.md) · [Rulebook](../hcw-kit/12-AI-AGENT-RULEBOOK.md) | *Why · law · standing behaviour* |
 | [HCW-UI-KIT.md](HCW-UI-KIT.md) | *How* — tokens, layers, components, SCSS |
-| [HCW-UI-UX-PRINCIPLES.md](HCW-UI-UX-PRINCIPLES.md) | *Why* — UX laws, spatial roles, a11y, review checklist |
+| [HCW-UI-UX-PRINCIPLES.md](HCW-UI-UX-PRINCIPLES.md) | *Why (UX)* — laws, spatial roles, a11y | 
 | **This document** | *Agent contract* — skills, rulesets, enforcement, audit recipes |
 | [NAVIGATION.md](NAVIGATION.md) | *Where* — canonical IA |
+| [Design Debt Register](../hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md) | **The living debt queue** — supersedes this file's §6 as the itemised ledger |
 
 ---
 
