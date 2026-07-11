@@ -350,8 +350,8 @@ export function Performance() {
       </RailLayout>
 
       {/* Grant modal */}
-      <Dialog open={!!grantTarget} onClose={() => setGrantTarget(null)} fullWidth maxWidth="sm">
-        <DialogTitle>Grant reward points — {grantTarget?.memberName ?? ""}</DialogTitle>
+      <Dialog aria-labelledby="performance-grant-title" open={!!grantTarget} onClose={() => setGrantTarget(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="performance-grant-title">Grant reward points — {grantTarget?.memberName ?? ""}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

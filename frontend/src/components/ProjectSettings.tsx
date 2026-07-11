@@ -469,8 +469,8 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
         </Box>
       )}
 
-      <Dialog open={confirmDelete} onClose={closeDelete} fullWidth maxWidth="sm">
-        <DialogTitle>Archive project?</DialogTitle>
+      <Dialog aria-labelledby="project-settings-archive-title" open={confirmDelete} onClose={closeDelete} fullWidth maxWidth="sm">
+        <DialogTitle id="project-settings-archive-title">Archive project?</DialogTitle>
         <DialogContent>
           <form
             onSubmit={(e) => {

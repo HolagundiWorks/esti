@@ -315,6 +315,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
       </Stack>
 
       <Dialog
+        aria-labelledby="project-drawings-revision-title"
         open={!!revFor}
         onClose={() => {
           setRevFor(null);
@@ -324,7 +325,7 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>{`Upload new revision — ${revFor?.title ?? ""}`}</DialogTitle>
+        <DialogTitle id="project-drawings-revision-title">{`Upload new revision — ${revFor?.title ?? ""}`}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <p>
@@ -372,8 +373,8 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={!!histId} onClose={() => setHistId(null)} fullWidth maxWidth="md">
-        <DialogTitle>Revision history</DialogTitle>
+      <Dialog aria-labelledby="project-drawings-history-title" open={!!histId} onClose={() => setHistId(null)} fullWidth maxWidth="md">
+        <DialogTitle id="project-drawings-history-title">Revision history</DialogTitle>
         <DialogContent>
           <DataGrid
             rows={versionsQ.data ?? []}

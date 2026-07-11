@@ -249,8 +249,8 @@ export function ConsultantRequests({ embedded = false }: { embedded?: boolean })
         />
       </DataState>
 
-      <Dialog open={triage !== null} onClose={() => setTriage(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{triage ? `Triage — ${triage.subject}` : "Triage"}</DialogTitle>
+      <Dialog aria-labelledby="consultant-requests-triage-title" open={triage !== null} onClose={() => setTriage(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="consultant-requests-triage-title">{triage ? `Triage — ${triage.subject}` : "Triage"}</DialogTitle>
         <DialogContent>
           {triage && (
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -298,8 +298,8 @@ export function ConsultantRequests({ embedded = false }: { embedded?: boolean })
         </DialogActions>
       </Dialog>
 
-      <Dialog open={threadFor !== null} onClose={() => setThreadFor(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}</DialogTitle>
+      <Dialog aria-labelledby="consultant-requests-conversation-title" open={threadFor !== null} onClose={() => setThreadFor(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="consultant-requests-conversation-title">{threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}</DialogTitle>
         <DialogContent>
           {threadFor && (
             <SubmissionThread
@@ -315,8 +315,8 @@ export function ConsultantRequests({ embedded = false }: { embedded?: boolean })
         </DialogActions>
       </Dialog>
 
-      <Dialog open={assignOpen} onClose={() => setAssignOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Assign a task to a consultant</DialogTitle>
+      <Dialog aria-labelledby="consultant-requests-assign-title" open={assignOpen} onClose={() => setAssignOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="consultant-requests-assign-title">Assign a task to a consultant</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

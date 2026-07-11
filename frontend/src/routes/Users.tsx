@@ -68,6 +68,7 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
   // Optimistic enable/disable (Doherty): flip the row immediately, roll back on
   // error, confirm with a toast (this toggle was previously silent — Nielsen #1).
   const setDisabled = trpc.users.setDisabled.useMutation({
+    meta: { errorTitle: "Couldn't change the login state" },
     onMutate: async ({ id, disabled }) => {
       await utils.users.list.cancel();
       const prev = utils.users.list.getData();
@@ -99,6 +100,7 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
   }>({ email: "", fullName: "", password: "", role: "ASSOCIATE" });
   const [msg, setMsg] = useState<string | null>(null);
   const createStaff = trpc.users.createStaff.useMutation({
+    meta: { errorTitle: "Couldn't create the staff login" },
     onSuccess: (u) => {
       invalidate();
       setAddOpen(false);
@@ -112,6 +114,7 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
   );
   const [resetPw, setResetPw] = useState("");
   const resetPassword = trpc.users.resetPassword.useMutation({
+    meta: { errorTitle: "Couldn't reset the password" },
     onSuccess: () => {
       setReset(null);
       setResetPw("");
@@ -378,8 +381,8 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
         </RailLayout>
       )}
 
-      <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Add staff login</DialogTitle>
+      <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm" aria-labelledby="users-add-title">
+        <DialogTitle id="users-add-title">Add staff login</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2">Creates an office staff login at the chosen seniority tier.</Typography>
@@ -462,8 +465,8 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={reset !== null} onClose={() => setReset(null)} fullWidth maxWidth="sm">
-        <DialogTitle>Reset password — {reset?.email ?? ""}</DialogTitle>
+      <Dialog open={reset !== null} onClose={() => setReset(null)} fullWidth maxWidth="sm" aria-labelledby="users-reset-title">
+        <DialogTitle id="users-reset-title">Reset password — {reset?.email ?? ""}</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 1 }}>
             <TextField
@@ -488,8 +491,8 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={link !== null} onClose={() => setLink(null)} fullWidth maxWidth="sm">
-        <DialogTitle>Link identity — {link?.email ?? ""}</DialogTitle>
+      <Dialog open={link !== null} onClose={() => setLink(null)} fullWidth maxWidth="sm" aria-labelledby="users-link-title">
+        <DialogTitle id="users-link-title">Link identity — {link?.email ?? ""}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2">

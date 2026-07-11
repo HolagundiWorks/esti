@@ -192,8 +192,8 @@ export function Proposals() {
         </DataState>
       </RailLayout>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>New proposal</DialogTitle>
+      <Dialog aria-labelledby="proposals-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle id="proposals-create-title">New proposal</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             {((coaTplQ.data ?? []).length > 0 || (scopeTplQ.data ?? []).length > 0) && (

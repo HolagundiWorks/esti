@@ -290,12 +290,13 @@ export function StaffProfilesTab() {
 
       {/* Upload document modal */}
       <Dialog
+        aria-labelledby="staff-profiles-tab-upload-title"
         open={uploadOpen}
         onClose={() => { setUploadOpen(false); setSelectedFile(null); }}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>{`Upload document${selected ? ` — ${selected.name}` : ""}`}</DialogTitle>
+        <DialogTitle id="staff-profiles-tab-upload-title">{`Upload document${selected ? ` — ${selected.name}` : ""}`}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

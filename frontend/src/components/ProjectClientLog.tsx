@@ -120,8 +120,8 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
         ))}
       </Box>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Log client interaction</DialogTitle>
+      <Dialog aria-labelledby="project-client-log-interaction-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-client-log-interaction-title">Log client interaction</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

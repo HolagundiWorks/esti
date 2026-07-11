@@ -110,8 +110,8 @@ export function ProjectSiteVisits({ projectId }: { projectId: string }) {
         ))}
       </Stack>
 
-      <Dialog open={createOpen} onClose={closeCreate} fullWidth maxWidth="xs">
-        <DialogTitle>Schedule site visit</DialogTitle>
+      <Dialog aria-labelledby="project-site-visits-schedule-title" open={createOpen} onClose={closeCreate} fullWidth maxWidth="xs">
+        <DialogTitle id="project-site-visits-schedule-title">Schedule site visit</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="sv-date" label="Planned date" type="date" value={form.plannedDate}

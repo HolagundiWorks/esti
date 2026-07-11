@@ -319,8 +319,8 @@ export function Hr() {
       </RailLayout>
 
       {/* Leave modal */}
-      <Dialog open={lvOpen} onClose={() => setLvOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Request leave</DialogTitle>
+      <Dialog aria-labelledby="hr-leave-title" open={lvOpen} onClose={() => setLvOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="hr-leave-title">Request leave</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -399,8 +399,8 @@ export function Hr() {
       </Dialog>
 
       {/* Payslip modal */}
-      <Dialog open={pyOpen} onClose={() => setPyOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Generate payslip</DialogTitle>
+      <Dialog aria-labelledby="hr-payslip-title" open={pyOpen} onClose={() => setPyOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="hr-payslip-title">Generate payslip</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

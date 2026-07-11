@@ -195,8 +195,8 @@ export function Team() {
       </RailLayout>
 
       {/* Add member modal */}
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New team member</DialogTitle>
+      <Dialog aria-labelledby="team-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="team-create-title">New team member</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

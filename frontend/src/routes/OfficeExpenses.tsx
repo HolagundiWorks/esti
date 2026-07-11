@@ -92,8 +92,8 @@ function ExpenseFormModal({
   const amountPaise = Math.round(parseFloat(amount || "0") * 100);
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{scope === "OFFICE" ? "New office expense" : "New project expense"}</DialogTitle>
+    <Dialog aria-labelledby="office-expenses-create-title" open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle id="office-expenses-create-title">{scope === "OFFICE" ? "New office expense" : "New project expense"}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           <TextField

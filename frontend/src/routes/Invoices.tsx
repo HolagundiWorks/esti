@@ -225,8 +225,8 @@ export function Invoices() {
         </DataState>
       </RailLayout>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New invoice (GST / TDS)</DialogTitle>
+      <Dialog aria-labelledby="invoices-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="invoices-create-title">New invoice (GST / TDS)</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

@@ -268,8 +268,8 @@ export function Contractors() {
       </RailLayout>
 
       {/* create / edit */}
-      <Dialog open={form !== null} onClose={() => setForm(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{form?.id ? "Edit contractor" : "New contractor"}</DialogTitle>
+      <Dialog aria-labelledby="contractors-form-title" open={form !== null} onClose={() => setForm(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="contractors-form-title">{form?.id ? "Edit contractor" : "New contractor"}</DialogTitle>
         <DialogContent>
           {form && (
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -304,8 +304,8 @@ export function Contractors() {
       </Dialog>
 
       {/* rating */}
-      <Dialog open={rating !== null} onClose={() => setRating(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{rating ? `Rate — ${rating.name}` : "Rate"}</DialogTitle>
+      <Dialog aria-labelledby="contractors-rate-title" open={rating !== null} onClose={() => setRating(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="contractors-rate-title">{rating ? `Rate — ${rating.name}` : "Rate"}</DialogTitle>
         <DialogContent>
           {rating && (
             <Stack spacing={2} sx={{ mt: 1 }}>

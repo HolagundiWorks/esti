@@ -301,8 +301,8 @@ export function DocumentsRegister() {
         </Stack>
       </RailLayout>
 
-      <Dialog open={tplOpen} onClose={() => setTplOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New office template</DialogTitle>
+      <Dialog aria-labelledby="documents-register-template-title" open={tplOpen} onClose={() => setTplOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="documents-register-template-title">New office template</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

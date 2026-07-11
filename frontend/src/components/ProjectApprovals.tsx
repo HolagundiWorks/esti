@@ -188,12 +188,13 @@ export function ProjectApprovals({
       </Stack>
 
       <Dialog
+        aria-labelledby="project-approvals-issue-title"
         open={open}
         onClose={() => setOpen(false)}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>Record an issue for sign-off</DialogTitle>
+        <DialogTitle id="project-approvals-issue-title">Record an issue for sign-off</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

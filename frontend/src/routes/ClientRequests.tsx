@@ -309,8 +309,8 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
       </DataState>
 
       {/* ── Impact Assessment dialog ─────────────────────────────────────── */}
-      <Dialog open={impact !== null} onClose={() => setImpact(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{impact ? `Impact assessment — ${impact.subject}` : "Impact assessment"}</DialogTitle>
+      <Dialog aria-labelledby="client-requests-impact-title" open={impact !== null} onClose={() => setImpact(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="client-requests-impact-title">{impact ? `Impact assessment — ${impact.subject}` : "Impact assessment"}</DialogTitle>
         <DialogContent>
           {impact && (
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -410,8 +410,8 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
       </Dialog>
 
       {/* ── Triage dialog ────────────────────────────────────────────────── */}
-      <Dialog open={triage !== null} onClose={() => setTriage(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{triage ? `Triage — ${triage.subject}` : "Triage"}</DialogTitle>
+      <Dialog aria-labelledby="client-requests-triage-title" open={triage !== null} onClose={() => setTriage(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="client-requests-triage-title">{triage ? `Triage — ${triage.subject}` : "Triage"}</DialogTitle>
         <DialogContent>
           {triage && (
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -460,8 +460,8 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
       </Dialog>
 
       {/* ── Thread dialog ────────────────────────────────────────────────── */}
-      <Dialog open={threadFor !== null} onClose={() => setThreadFor(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}</DialogTitle>
+      <Dialog aria-labelledby="client-requests-conversation-title" open={threadFor !== null} onClose={() => setThreadFor(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="client-requests-conversation-title">{threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}</DialogTitle>
         <DialogContent>
           {threadFor && (
             <SubmissionThread

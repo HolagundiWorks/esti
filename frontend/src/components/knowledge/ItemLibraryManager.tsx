@@ -244,8 +244,8 @@ export function ItemLibraryManager({ embedded = false }: { embedded?: boolean })
         onClose={() => setConfirmId(null)}
       />
 
-      <Dialog open={vOpen} onClose={() => setVOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New library version</DialogTitle>
+      <Dialog aria-labelledby="item-library-manager-version-title" open={vOpen} onClose={() => setVOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="item-library-manager-version-title">New library version</DialogTitle>
         <DialogContent>
           <TextField
             id="il-label"
@@ -271,8 +271,8 @@ export function ItemLibraryManager({ embedded = false }: { embedded?: boolean })
         </DialogActions>
       </Dialog>
 
-      <Dialog open={iOpen} onClose={() => setIOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>Add library item</DialogTitle>
+      <Dialog aria-labelledby="item-library-manager-item-title" open={iOpen} onClose={() => setIOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle id="item-library-manager-item-title">Add library item</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Stack direction="row" spacing={2}>

@@ -495,8 +495,8 @@ function NegotiationSection({ projectId, canWrite }: { projectId: string; canWri
         />
       )}
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Add negotiation round</DialogTitle>
+      <Dialog aria-labelledby="project-pipeline-round-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-pipeline-round-title">Add negotiation round</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="ng-fee" type="number" label="Fee change (₹, negative = discount given)" value={form.feeChange} onChange={(e) => setForm({ ...form, feeChange: e.target.value })} fullWidth />

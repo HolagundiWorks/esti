@@ -168,12 +168,13 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
       </Stack>
 
       <Dialog
+        aria-labelledby="project-team-member-title"
         open={open}
         onClose={() => setOpen(false)}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>Assign team member</DialogTitle>
+        <DialogTitle id="project-team-member-title">Assign team member</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -224,12 +225,13 @@ export function ProjectTeam({ projectId }: { projectId: string }) {
       </Dialog>
 
       <Dialog
+        aria-labelledby="project-team-team-title"
         open={teamOpen}
         onClose={() => setTeamOpen(false)}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>Assign a team</DialogTitle>
+        <DialogTitle id="project-team-team-title">Assign a team</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2">

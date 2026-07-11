@@ -250,8 +250,8 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
         autoHeight
       />
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle>New project expense</DialogTitle>
+      <Dialog aria-labelledby="project-expenses-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle id="project-expenses-create-title">New project expense</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -339,8 +339,8 @@ export function ProjectExpenses({ projectId }: { projectId: string }) {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={!!recoverId} onClose={() => setRecoverId(null)} fullWidth maxWidth="xs">
-        <DialogTitle>Mark billable expense recovered</DialogTitle>
+      <Dialog aria-labelledby="project-expenses-recover-title" open={!!recoverId} onClose={() => setRecoverId(null)} fullWidth maxWidth="xs">
+        <DialogTitle id="project-expenses-recover-title">Mark billable expense recovered</DialogTitle>
         <DialogContent>
           <p>Link to a client invoice ref manually in v1, or mark as recovered once absorbed into a GST invoice.</p>
           <TextField

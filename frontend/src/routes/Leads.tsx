@@ -81,12 +81,14 @@ export function Leads() {
   };
   const [form, setForm] = useState(blank);
   const create = trpc.leads.create.useMutation({
+    meta: { errorTitle: "Couldn't create the lead" },
     onSuccess: () => { inv(); setOpen(false); setForm(blank); },
   });
 
   // Optimistic status change (Doherty — the dropdown must feel instant): write the
   // cache immediately, roll back on error, reconcile with the server on settle.
   const setStatus = trpc.leads.setStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the lead status" },
     onMutate: async ({ id, status }) => {
       await utils.leads.list.cancel();
       const prev = utils.leads.list.getData({});
@@ -105,6 +107,7 @@ export function Leads() {
 
   const [conv, setConv] = useState({ projectTitle: "", projectType: "", workType: "ARCHITECTURE", clientId: "" });
   const convert = trpc.leads.convert.useMutation({
+    meta: { errorTitle: "Couldn't convert the lead" },
     onSuccess: () => { inv(); setConvertId(null); },
   });
 
@@ -258,8 +261,8 @@ export function Leads() {
       </RailLayout>
 
       {/* Create lead */}
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New lead</DialogTitle>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm" aria-labelledby="leads-create-title">
+        <DialogTitle id="leads-create-title">New lead</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="ld-name" label="Enquirer name" value={form.clientName} onChange={(e) => setForm({ ...form, clientName: e.target.value })} />
@@ -299,8 +302,8 @@ export function Leads() {
       </Dialog>
 
       {/* Convert lead */}
-      <Dialog open={!!convertId} onClose={() => setConvertId(null)} fullWidth maxWidth="sm">
-        <DialogTitle>Convert lead to draft project</DialogTitle>
+      <Dialog open={!!convertId} onClose={() => setConvertId(null)} fullWidth maxWidth="sm" aria-labelledby="leads-convert-title">
+        <DialogTitle id="leads-convert-title">Convert lead to draft project</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <p className="esti-label--secondary">

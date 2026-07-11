@@ -405,8 +405,8 @@ export function ProjectMeasurementPanel({ projectId }: { projectId: string }) {
         onClose={() => setConfirmId(null)}
       />
 
-      <Dialog open={rowOpen} onClose={() => setRowOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>{editId ? "Edit row" : "Add measurement row"}</DialogTitle>
+      <Dialog aria-labelledby="project-measurement-panel-row-title" open={rowOpen} onClose={() => setRowOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle id="project-measurement-panel-row-title">{editId ? "Edit row" : "Add measurement row"}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -558,8 +558,8 @@ export function ProjectMeasurementPanel({ projectId }: { projectId: string }) {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={pickOpen} onClose={() => setPickOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Add from standard library</DialogTitle>
+      <Dialog aria-labelledby="project-measurement-panel-pick-title" open={pickOpen} onClose={() => setPickOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-measurement-panel-pick-title">Add from standard library</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

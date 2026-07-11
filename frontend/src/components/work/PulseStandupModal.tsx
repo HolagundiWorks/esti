@@ -88,8 +88,8 @@ export function PulseStandupModal({
   const proposedActions = actionsQ.data ?? [];
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>{`Standup — ${projectLabel}`}</DialogTitle>
+    <Dialog aria-labelledby="pulse-standup-modal-title" open={open} onClose={onClose} fullWidth maxWidth="md">
+      <DialogTitle id="pulse-standup-modal-title">{`Standup — ${projectLabel}`}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ pt: 1 }}>
           <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>

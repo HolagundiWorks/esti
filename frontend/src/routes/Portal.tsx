@@ -677,12 +677,13 @@ export function Portal() {
 
         {/* ── approval decision dialog ──────────────────────────────────── */}
         <Dialog
+          aria-labelledby="portal-respond-title"
           open={decision !== null}
           onClose={() => setDecision(null)}
           fullWidth
           maxWidth="sm"
         >
-          <DialogTitle>{decision ? `Respond — ${decision.title}` : "Respond"}</DialogTitle>
+          <DialogTitle id="portal-respond-title">{decision ? `Respond — ${decision.title}` : "Respond"}</DialogTitle>
           {decision && (
             <DialogContent>
               <Stack spacing={2} sx={{ mt: 1 }}>
@@ -753,12 +754,13 @@ export function Portal() {
 
         {/* ── change request dialog ─────────────────────────────────────── */}
         <Dialog
+          aria-labelledby="portal-change-request-title"
           open={requestOpen}
           onClose={() => setRequestOpen(false)}
           fullWidth
           maxWidth="sm"
         >
-          <DialogTitle>Raise a change request</DialogTitle>
+          <DialogTitle id="portal-change-request-title">Raise a change request</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 1 }}>
               <TextField
@@ -839,12 +841,13 @@ export function Portal() {
 
         {/* ── feedback dialog ───────────────────────────────────────────── */}
         <Dialog
+          aria-labelledby="portal-feedback-title"
           open={feedbackOpen}
           onClose={() => setFeedbackOpen(false)}
           fullWidth
           maxWidth="sm"
         >
-          <DialogTitle>Leave feedback</DialogTitle>
+          <DialogTitle id="portal-feedback-title">Leave feedback</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 1 }}>
               <TextField id="fb-subject" label="Subject" value={feedback.subject}
@@ -882,12 +885,13 @@ export function Portal() {
 
         {/* ── schedule a meeting dialog ─────────────────────────────────── */}
         <Dialog
+          aria-labelledby="portal-meeting-title"
           open={meetingOpen}
           onClose={() => setMeetingOpen(false)}
           fullWidth
           maxWidth="sm"
         >
-          <DialogTitle>Schedule a meeting</DialogTitle>
+          <DialogTitle id="portal-meeting-title">Schedule a meeting</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 1 }}>
               <TextField id="mtg-mode" select label="Mode" value={meeting.mode}
@@ -927,12 +931,13 @@ export function Portal() {
 
         {/* ── impact assessment response dialog ─────────────────────────── */}
         <Dialog
+          aria-labelledby="portal-impact-title"
           open={impactResponse !== null}
           onClose={() => setImpactResponse(null)}
           fullWidth
           maxWidth="sm"
         >
-          <DialogTitle>
+          <DialogTitle id="portal-impact-title">
             {impactResponse ? `Impact assessment — ${impactResponse.subject}` : "Impact assessment"}
           </DialogTitle>
           {impactResponse && (
@@ -1012,12 +1017,13 @@ export function Portal() {
 
         {/* ── conversation thread dialog ────────────────────────────────── */}
         <Dialog
+          aria-labelledby="portal-conversation-title"
           open={threadFor !== null}
           onClose={() => setThreadFor(null)}
           fullWidth
           maxWidth="sm"
         >
-          <DialogTitle>{threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}</DialogTitle>
+          <DialogTitle id="portal-conversation-title">{threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}</DialogTitle>
           <DialogContent>
             {threadFor && (
               <SubmissionThread

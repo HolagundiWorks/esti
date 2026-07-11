@@ -184,8 +184,8 @@ export function ProjectMinutes({ projectId }: { projectId: string }) {
         ))}
       </Stack>
 
-      <Dialog open={formOpen} onClose={closeForm} fullWidth maxWidth="sm">
-        <DialogTitle>{editingId ? "Edit minutes" : "Record minutes of meeting"}</DialogTitle>
+      <Dialog aria-labelledby="project-minutes-form-title" open={formOpen} onClose={closeForm} fullWidth maxWidth="sm">
+        <DialogTitle id="project-minutes-form-title">{editingId ? "Edit minutes" : "Record minutes of meeting"}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

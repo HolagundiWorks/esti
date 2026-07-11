@@ -123,8 +123,8 @@ export function UploadAuthProvider({ children }: { children: ReactNode }) {
   return (
     <UploadAuthContext.Provider value={value}>
       {children}
-      <Dialog open={open} onClose={() => closeModal(null)} fullWidth maxWidth="xs">
-        <DialogTitle>Upload password required</DialogTitle>
+      <Dialog aria-labelledby="upload-auth-password-title" open={open} onClose={() => closeModal(null)} fullWidth maxWidth="xs">
+        <DialogTitle id="upload-auth-password-title">Upload password required</DialogTitle>
         <form
           onSubmit={(e) => {
             e.preventDefault();

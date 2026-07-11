@@ -155,8 +155,8 @@ function DisciplinePanel({
         </Grid>
       </DataState>
 
-      <Dialog open={open} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New standard</DialogTitle>
+      <Dialog aria-labelledby="standards-library-create-title" open={open} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="standards-library-create-title">New standard</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="std-title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />

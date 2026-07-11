@@ -104,8 +104,8 @@ function FileArchiveModal({
   const archived = !!p?.filesArchivedAt;
 
   return (
-    <Dialog open onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{`Files — ${project.ref} · ${project.title}`}</DialogTitle>
+    <Dialog aria-labelledby="archived-projects-files-title" open onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle id="archived-projects-files-title">{`Files — ${project.ref} · ${project.title}`}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           {previewQ.isLoading && <Typography>Reading files…</Typography>}
@@ -333,6 +333,7 @@ export function ArchivedProjects() {
       )}
 
       <Dialog
+        aria-labelledby="archived-projects-purge-title"
         open={!!purgeTarget}
         onClose={() => {
           setPurgeTarget(null);
@@ -341,7 +342,7 @@ export function ArchivedProjects() {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>{`Purge ${purgeTarget?.ref ?? ""} — ${purgeTarget?.title ?? ""}`}</DialogTitle>
+        <DialogTitle id="archived-projects-purge-title">{`Purge ${purgeTarget?.ref ?? ""} — ${purgeTarget?.title ?? ""}`}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography>

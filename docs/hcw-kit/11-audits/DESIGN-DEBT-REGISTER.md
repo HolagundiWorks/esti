@@ -12,8 +12,7 @@ withdraws. Agents: update this file in the same change that alters a fact
 | D2 | Testing | No Storybook / visual regression / component-render tests | unit tests exist (0.3.0); no gallery harness | High |
 | D3 | Theme | Dark/HC schemes + recipes implemented but unsigned — no visual QA, no switcher UI | kit 0.2.0 `recipesFor` | Med |
 | D5 | Component | Charts ungoverned (MUI X Charts raw) | last canonical outside the kit | Med |
-| D6 | A11y | Dialog `aria-labelledby` long tail (~80 dialogs; shared shells done) | ConfirmModal fixed; bake into remaining shared dialogs | Med |
-| D8b | Feedback | Generic global error title ("Something went wrong") — contextual titles via mutation `meta` | `main.tsx`; the silent-toggle half is fixed (toasts on Leads/Users) | Med |
+| D8c | Feedback | Adopt `meta.errorTitle` across remaining mutations (mechanism + exemplars live) | opportunistic per Rulebook §14; convention in KB R8 | Low |
 | D10 | IA | Work hub reaches 8 tabs | `Work.tsx` | Low |
 | D11 | Duplicate | `TagChip` fork in `Clients.tsx` (parallel-WIP file) | migrate to StatusDot when WIP lands | Low |
 | D12 | MUI gaps | DatePicker popup, Pagination, Stepper un-themed | govern before first heavy use (Mapping 🟨) | Low |
@@ -32,6 +31,8 @@ withdraws. Agents: update this file in the same change that alters a fact
 
 ## Retired (most recent first)
 
+- 2026-07-11 · D6 dialog names: **106 dialogs across 64 files** gained `aria-labelledby` (WCAG 4.1.2); only the parallel-WIP `Clients.tsx` dialog remains (D11 scope)
+- 2026-07-11 · D8b error context: `meta.errorTitle` mechanism live in the global query/mutation caches; exemplar adoption on all 6 Leads/Users mutations; convention codified in KB R8 → narrowed to D8c (incremental adoption)
 - 2026-07-11 · D1 optimistic writes: pattern established at flagship sites (Leads status dropdown un-frozen + instant; Users enable/disable instant + toast) → narrowed to D1b
 - 2026-07-11 · D4 canvas/SVG palettes: `DATA_VIZ` categorical token added (kit 0.4.0); PlanReaderPanel fully token-driven; ZonalCompliance palette centralised + 7px annotation darkened to hold AA
 - 2026-07-11 · D7 loading grammar: 15 bare "Loading…" replaced with skeletons across 13 files (agent batch + PortalMinutes straggler)

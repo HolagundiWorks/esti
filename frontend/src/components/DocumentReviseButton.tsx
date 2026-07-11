@@ -31,8 +31,8 @@ export function DocumentReviseButton({
       <Button variant="text" size="small" onClick={() => setOpen(true)}>
         {label}
       </Button>
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Document revision</DialogTitle>
+      <Dialog aria-labelledby="document-revise-button-revision-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="document-revise-button-revision-title">Document revision</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

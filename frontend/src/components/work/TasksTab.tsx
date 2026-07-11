@@ -320,8 +320,8 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
         onClose={() => setConfirmId(null)}
       />
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New task</DialogTitle>
+      <Dialog aria-labelledby="tasks-tab-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="tasks-tab-create-title">New task</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             <TextField id="nt-title" label="Title" value={form.title}
@@ -416,8 +416,8 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
         </DialogActions>
       </Dialog>
 
-      <Dialog open={commentsTask !== null} onClose={() => setCommentsTask(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{commentsTask ? `Task comments — ${commentsTask.title}` : "Task comments"}</DialogTitle>
+      <Dialog aria-labelledby="tasks-tab-comments-title" open={commentsTask !== null} onClose={() => setCommentsTask(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="tasks-tab-comments-title">{commentsTask ? `Task comments — ${commentsTask.title}` : "Task comments"}</DialogTitle>
         <DialogContent>
           {commentsTask && (
             <ContextualComments projectId={commentsTask.projectId} objectType="task"
@@ -430,8 +430,8 @@ export const TasksTab = forwardRef<TasksTabHandle>(function TasksTab(_props, ref
         </DialogActions>
       </Dialog>
 
-      <Dialog open={reassign !== null} onClose={() => setReassign(null)} fullWidth maxWidth="xs">
-        <DialogTitle>{reassign ? `Reassign — ${reassign.title}` : "Reassign task"}</DialogTitle>
+      <Dialog aria-labelledby="tasks-tab-reassign-title" open={reassign !== null} onClose={() => setReassign(null)} fullWidth maxWidth="xs">
+        <DialogTitle id="tasks-tab-reassign-title">{reassign ? `Reassign — ${reassign.title}` : "Reassign task"}</DialogTitle>
         <DialogContent>
           <TextField
             id="reassign-to"

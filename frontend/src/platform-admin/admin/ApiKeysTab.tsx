@@ -144,8 +144,8 @@ export default function ApiKeysTab() {
         autoHeight
       />
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Generate API key</DialogTitle>
+      <Dialog aria-labelledby="api-keys-tab-generate-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="api-keys-tab-generate-title">Generate API key</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

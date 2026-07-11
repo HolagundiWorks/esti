@@ -120,8 +120,8 @@ function ClientLogPanel({ projectId }: { projectId: string }) {
         ))}
       </Stack>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Log client interaction</DialogTitle>
+      <Dialog aria-labelledby="project-communications-log-interaction-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-communications-log-interaction-title">Log client interaction</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="cl-kind" select label="Type" value={kind} onChange={(e) => setKind(e.target.value as ClientLogKindCode)}>
@@ -219,8 +219,8 @@ function CriticalPanel({ projectId }: { projectId: string }) {
         ))}
       </Stack>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Add critical note</DialogTitle>
+      <Dialog aria-labelledby="project-communications-log-note-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-communications-log-note-title">Add critical note</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="cn-title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -310,8 +310,8 @@ function SiteChangesPanel({ projectId }: { projectId: string }) {
         ))}
       </Stack>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Add site instruction</DialogTitle>
+      <Dialog aria-labelledby="project-communications-log-instruction-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-communications-log-instruction-title">Add site instruction</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="si-subject" label="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
@@ -398,8 +398,8 @@ function RevisionPanel({ projectId }: { projectId: string }) {
         ))}
       </Stack>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Record revision</DialogTitle>
+      <Dialog aria-labelledby="project-communications-log-revision-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-communications-log-revision-title">Record revision</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="rv-title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />

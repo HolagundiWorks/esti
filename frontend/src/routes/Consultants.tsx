@@ -173,8 +173,8 @@ export function Consultants() {
       </DataState>
       </RailLayout>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New consultant</DialogTitle>
+      <Dialog aria-labelledby="consultants-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="consultants-create-title">New consultant</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -245,12 +245,13 @@ export function Consultants() {
       </Dialog>
 
       <Dialog
+        aria-labelledby="consultants-login-title"
         open={!!login}
         onClose={() => setLogin(null)}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>{`Create login — ${login?.name ?? ""}`}</DialogTitle>
+        <DialogTitle id="consultants-login-title">{`Create login — ${login?.name ?? ""}`}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <p>

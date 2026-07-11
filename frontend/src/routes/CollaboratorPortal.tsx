@@ -445,8 +445,8 @@ export function CollaboratorPortal() {
         )}
 
         {/* ── submission dialog ─────────────────────────────────────────── */}
-        <Dialog open={form !== null} onClose={() => setForm(null)} fullWidth maxWidth="sm">
-          <DialogTitle>
+        <Dialog aria-labelledby="collaborator-portal-submission-title" open={form !== null} onClose={() => setForm(null)} fullWidth maxWidth="sm">
+          <DialogTitle id="collaborator-portal-submission-title">
             {form ? `${CONSULTANT_SUBMISSION_KIND_LABEL[form.kind]} — ${d?.project.ref ?? ""}` : "Submit"}
           </DialogTitle>
           <DialogContent>
@@ -510,8 +510,8 @@ export function CollaboratorPortal() {
         </Dialog>
 
         {/* ── conversation thread dialog ────────────────────────────────── */}
-        <Dialog open={threadFor !== null} onClose={() => setThreadFor(null)} fullWidth maxWidth="sm">
-          <DialogTitle>
+        <Dialog aria-labelledby="collaborator-portal-conversation-title" open={threadFor !== null} onClose={() => setThreadFor(null)} fullWidth maxWidth="sm">
+          <DialogTitle id="collaborator-portal-conversation-title">
             {threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}
           </DialogTitle>
           <DialogContent>

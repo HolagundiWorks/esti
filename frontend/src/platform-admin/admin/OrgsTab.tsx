@@ -263,8 +263,8 @@ export default function OrgsTab() {
         autoHeight
       />
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New organization</DialogTitle>
+      <Dialog aria-labelledby="orgs-tab-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="orgs-tab-create-title">New organization</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -311,12 +311,13 @@ export default function OrgsTab() {
       </Dialog>
 
       <Dialog
+        aria-labelledby="orgs-tab-members-title"
         open={manage !== null}
         onClose={() => setManage(null)}
         fullWidth
         maxWidth="lg"
       >
-        <DialogTitle>{`Members — ${manage?.name ?? ""}`}</DialogTitle>
+        <DialogTitle id="orgs-tab-members-title">{`Members — ${manage?.name ?? ""}`}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <DataGrid
@@ -405,12 +406,13 @@ export default function OrgsTab() {
       </Dialog>
 
       <Dialog
+        aria-labelledby="orgs-tab-delete-title"
         open={deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>Delete organization</DialogTitle>
+        <DialogTitle id="orgs-tab-delete-title">Delete organization</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2">

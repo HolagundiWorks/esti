@@ -270,8 +270,8 @@ export default function AccountsTab() {
         autoHeight
       />
 
-      <Dialog open={reset !== null} onClose={() => setReset(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{`Reset password — ${reset?.email ?? ""}`}</DialogTitle>
+      <Dialog aria-labelledby="accounts-tab-reset-title" open={reset !== null} onClose={() => setReset(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="accounts-tab-reset-title">{`Reset password — ${reset?.email ?? ""}`}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2">
@@ -298,8 +298,8 @@ export default function AccountsTab() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={remove !== null} onClose={() => setRemove(null)} fullWidth maxWidth="sm">
-        <DialogTitle>Delete account</DialogTitle>
+      <Dialog aria-labelledby="accounts-tab-delete-title" open={remove !== null} onClose={() => setRemove(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="accounts-tab-delete-title">Delete account</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2">

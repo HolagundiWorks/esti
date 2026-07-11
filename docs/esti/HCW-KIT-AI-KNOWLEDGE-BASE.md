@@ -111,6 +111,10 @@ Durations/easings come from `MOTION` tokens (fast=130ms baseline). Every transfo
 Verb-first buttons; errors say *what failed + what to do next*; money = integer paise via
 `formatINR`; dates en-IN; helper text via `helperText`/`esti-label--helper`. Tone:
 plain, specific, honest (no fabricated stats — brand stance).
+- **Error-toast context:** mutations/queries pass
+  `meta: { errorTitle: "Couldn't save the invoice" }` — the global toast uses it as
+  the title (raw server message stays in the subtitle); `meta.silent` suppresses.
+  Wired in `main.tsx`; adopt on every new mutation (Rulebook §14).
 
 ### R9 — Documentation sync
 A kit change without a matching update to HCW-UI-KIT.md (and `/design-system` showcase

@@ -117,8 +117,8 @@ function CrudPanel({
         />
       </DataState>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New entry</DialogTitle>
+      <Dialog aria-labelledby="compliance-library-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="compliance-library-create-title">New entry</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             {fields.map((f) => (

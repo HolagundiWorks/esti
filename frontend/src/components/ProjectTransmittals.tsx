@@ -162,8 +162,8 @@ export function ProjectTransmittals({ projectId }: { projectId: string }) {
         />
       </Stack>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New drawing transmittal</DialogTitle>
+      <Dialog aria-labelledby="project-transmittals-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-transmittals-create-title">New drawing transmittal</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

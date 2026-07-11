@@ -237,8 +237,8 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
         onClose={() => setConfirmId(null)}
       />
 
-      <Dialog open={vOpen} onClose={() => setVOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New catalogue version</DialogTitle>
+      <Dialog aria-labelledby="spec-catalog-manager-version-title" open={vOpen} onClose={() => setVOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="spec-catalog-manager-version-title">New catalogue version</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -279,8 +279,8 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
         </DialogActions>
       </Dialog>
 
-      <Dialog open={iOpen} onClose={() => setIOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>Add catalogue item</DialogTitle>
+      <Dialog aria-labelledby="spec-catalog-manager-item-title" open={iOpen} onClose={() => setIOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle id="spec-catalog-manager-item-title">Add catalogue item</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Stack direction="row" spacing={2}>

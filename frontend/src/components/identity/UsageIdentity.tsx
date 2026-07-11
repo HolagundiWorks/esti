@@ -75,12 +75,13 @@ export function UsageIdentity() {
 
   return (
     <Dialog
+      aria-labelledby="usage-identity-id-title"
       open={open || (!closed && !!generatedId)}
       onClose={handleClose}
       fullWidth
       maxWidth="xs"
     >
-      <DialogTitle>
+      <DialogTitle id="usage-identity-id-title">
         <Stack spacing={0.5}>
           <Typography variant="overline" component="span">AORMS identity</Typography>
           <span>{generatedId ? "Your AORMS ID is ready" : "Generate your AORMS ID"}</span>

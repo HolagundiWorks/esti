@@ -154,8 +154,8 @@ export function Payroll() {
         </DataState>
       </RailLayout>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Generate payslip</DialogTitle>
+      <Dialog aria-labelledby="payroll-payslip-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="payroll-payslip-title">Generate payslip</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

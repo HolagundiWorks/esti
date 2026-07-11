@@ -462,8 +462,8 @@ export default function Companies({
           </Alert>
         )}
 
-        <Dialog open={adoptFor !== null} onClose={() => setAdoptFor(null)} fullWidth maxWidth="xs">
-          <DialogTitle>Use my existing AORMS ID</DialogTitle>
+        <Dialog aria-labelledby="companies-adopt-id-title" open={adoptFor !== null} onClose={() => setAdoptFor(null)} fullWidth maxWidth="xs">
+          <DialogTitle id="companies-adopt-id-title">Use my existing AORMS ID</DialogTitle>
           <Box component="form" onSubmit={(e) => void handleAdopt(e)}>
             <DialogContent>
               <Stack spacing={2}>

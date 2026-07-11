@@ -428,8 +428,8 @@ export function KnowledgeBankPortal() {
         )}
       </Stack>
 
-      <Dialog open={createOpen} onClose={() => setCreateOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Add textbook source</DialogTitle>
+      <Dialog aria-labelledby="knowledge-bank-portal-source-title" open={createOpen} onClose={() => setCreateOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle id="knowledge-bank-portal-source-title">Add textbook source</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             <TextField label="Title" required fullWidth value={title} onChange={(e) => setTitle(e.target.value)} />

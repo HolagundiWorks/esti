@@ -193,12 +193,13 @@ export function ApplicationsTab() {
 
       {/* New application modal */}
       <Dialog
+        aria-labelledby="applications-tab-create-title"
         open={createOpen}
         onClose={() => { setCreateOpen(false); resetForm(); }}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>New job application</DialogTitle>
+        <DialogTitle id="applications-tab-create-title">New job application</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="app-name" label="Applicant name" value={form.name} onChange={set("name")} fullWidth />
@@ -237,12 +238,13 @@ export function ApplicationsTab() {
 
       {/* Onboard modal — link to existing team member or create new */}
       <Dialog
+        aria-labelledby="applications-tab-onboard-title"
         open={!!onboardOpen}
         onClose={() => setOnboardOpen(null)}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>Onboard applicant</DialogTitle>
+        <DialogTitle id="applications-tab-onboard-title">Onboard applicant</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <p>

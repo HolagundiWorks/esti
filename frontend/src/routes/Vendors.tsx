@@ -372,8 +372,8 @@ export function Vendors() {
       </RailLayout>
 
       {/* create / edit vendor */}
-      <Dialog open={form !== null} onClose={() => setForm(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{form?.id ? "Edit vendor" : "New vendor"}</DialogTitle>
+      <Dialog aria-labelledby="vendors-form-title" open={form !== null} onClose={() => setForm(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="vendors-form-title">{form?.id ? "Edit vendor" : "New vendor"}</DialogTitle>
         <DialogContent>
           {form && (
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -412,8 +412,8 @@ export function Vendors() {
       </Dialog>
 
       {/* rating */}
-      <Dialog open={rating !== null} onClose={() => setRating(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{rating ? `Rate — ${rating.name}` : "Rate"}</DialogTitle>
+      <Dialog aria-labelledby="vendors-rate-title" open={rating !== null} onClose={() => setRating(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="vendors-rate-title">{rating ? `Rate — ${rating.name}` : "Rate"}</DialogTitle>
         <DialogContent>
           {rating && (
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -453,8 +453,8 @@ export function Vendors() {
       </Dialog>
 
       {/* add price */}
-      <Dialog open={priceForm !== null} onClose={() => setPriceForm(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{`Add price${selected ? ` — ${selected.name}` : ""}`}</DialogTitle>
+      <Dialog aria-labelledby="vendors-price-title" open={priceForm !== null} onClose={() => setPriceForm(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="vendors-price-title">{`Add price${selected ? ` — ${selected.name}` : ""}`}</DialogTitle>
         <DialogContent>
           {priceForm && (
             <Stack spacing={2} sx={{ mt: 1 }}>

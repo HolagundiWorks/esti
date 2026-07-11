@@ -172,8 +172,8 @@ export function Letters() {
         onClose={() => setConfirmId(null)}
       />
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>New letter</DialogTitle>
+      <Dialog aria-labelledby="letters-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle id="letters-create-title">New letter</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

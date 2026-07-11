@@ -215,12 +215,13 @@ export function SitePortal() {
       </Stack>
 
       <Dialog
+        aria-labelledby="site-portal-inspection-title"
         open={createOpen}
         onClose={() => { setCreateOpen(false); resetForm(); }}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>New inspection report</DialogTitle>
+        <DialogTitle id="site-portal-inspection-title">New inspection report</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

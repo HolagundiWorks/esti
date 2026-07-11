@@ -305,8 +305,8 @@ export default function LicensesTab() {
         </MenuItem>
       </Menu>
 
-      <Dialog open={createOpen} onClose={() => setCreateOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New license</DialogTitle>
+      <Dialog aria-labelledby="licenses-tab-create-title" open={createOpen} onClose={() => setCreateOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="licenses-tab-create-title">New license</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -383,8 +383,8 @@ export default function LicensesTab() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={extendId !== null} onClose={() => setExtendId(null)} fullWidth maxWidth="sm">
-        <DialogTitle>Extend / set expiry</DialogTitle>
+      <Dialog aria-labelledby="licenses-tab-extend-title" open={extendId !== null} onClose={() => setExtendId(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="licenses-tab-extend-title">Extend / set expiry</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 1 }}>
             <TextField
@@ -408,8 +408,8 @@ export default function LicensesTab() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={detail !== null} onClose={() => setDetail(null)} fullWidth maxWidth="lg">
-        <DialogTitle>{detail ? `License ${detail.license.key}` : ""}</DialogTitle>
+      <Dialog aria-labelledby="licenses-tab-detail-title" open={detail !== null} onClose={() => setDetail(null)} fullWidth maxWidth="lg">
+        <DialogTitle id="licenses-tab-detail-title">{detail ? `License ${detail.license.key}` : ""}</DialogTitle>
         {detail && (
           <DialogContent>
             <Stack spacing={4} sx={{ mt: 1 }}>

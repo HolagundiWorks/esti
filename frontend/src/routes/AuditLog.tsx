@@ -209,8 +209,8 @@ export function AuditLog({ embedded = false }: { embedded?: boolean }) {
         </RailLayout>
       )}
 
-      <Dialog open={selected !== null} onClose={() => setSelectedId(null)} fullWidth maxWidth="md">
-        <DialogTitle>{selected ? `${selected.entity} · ${selected.action}` : "Audit details"}</DialogTitle>
+      <Dialog aria-labelledby="audit-log-details-title" open={selected !== null} onClose={() => setSelectedId(null)} fullWidth maxWidth="md">
+        <DialogTitle id="audit-log-details-title">{selected ? `${selected.entity} · ${selected.action}` : "Audit details"}</DialogTitle>
         {selected && (
           <DialogContent>
             <Stack spacing={2}>

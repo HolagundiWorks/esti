@@ -268,8 +268,8 @@ export function ProjectProgram({ projectId }: { projectId: string }) {
       )}
 
       {/* Add space dialog */}
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Add program space</DialogTitle>
+      <Dialog aria-labelledby="project-program-space-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-program-space-title">Add program space</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="ps-name" label="Space name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} fullWidth />

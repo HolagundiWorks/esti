@@ -22,8 +22,8 @@ export function DemoAdminUnlock() {
       <Button variant="text" size="small" color="inherit" onClick={() => setOpen(true)}>
         Demo admin
       </Button>
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle>Demo master password</DialogTitle>
+      <Dialog aria-labelledby="demo-admin-unlock-password-title" open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle id="demo-admin-unlock-password-title">Demo master password</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             <Typography variant="body2" color="text.secondary">

@@ -213,8 +213,8 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
         onClose={() => setConfirmId(null)}
       />
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>New purchase order</DialogTitle>
+      <Dialog aria-labelledby="project-purchase-orders-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle id="project-purchase-orders-create-title">New purchase order</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Box sx={{ display: "flex", gap: 1.5 }}>

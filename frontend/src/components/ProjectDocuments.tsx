@@ -253,8 +253,8 @@ function Inspections({ projectId }: { projectId: string }) {
         open={!!detailId}
         onClose={() => setDetailId(null)}
       />
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>New site inspection report</DialogTitle>
+      <Dialog aria-labelledby="project-documents-inspection-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle id="project-documents-inspection-title">New site inspection report</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Box sx={{ display: "flex", gap: 1.5 }}>
@@ -486,8 +486,8 @@ export function ProjectSpecSheets({ projectId }: { projectId: string }) {
         }}
         onClose={() => setConfirmId(null)}
       />
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>New specification sheet</DialogTitle>
+      <Dialog aria-labelledby="project-documents-spec-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle id="project-documents-spec-title">New specification sheet</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

@@ -518,12 +518,13 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
 
       {/* Add critical note dialog */}
       <Dialog
+        aria-labelledby="project-overview-note-title"
         open={noteOpen}
         onClose={() => setNoteOpen(false)}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>Add critical note</DialogTitle>
+        <DialogTitle id="project-overview-note-title">Add critical note</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -633,12 +634,13 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
 
       {/* Add decision dialog */}
       <Dialog
+        aria-labelledby="project-overview-decision-title"
         open={decisionOpen}
         onClose={() => setDecisionOpen(false)}
         fullWidth
         maxWidth="md"
       >
-        <DialogTitle>Add decision</DialogTitle>
+        <DialogTitle id="project-overview-decision-title">Add decision</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -838,6 +840,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
 
       {/* CRIF state transition dialog */}
       <Dialog
+        aria-labelledby="project-overview-transition-title"
         open={!!transitionId}
         onClose={() => {
           setTransitionId(null);
@@ -846,7 +849,7 @@ export function ProjectOverview({ projectId }: { projectId: string }) {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>{`Transition: ${transitionDecision?.title ?? ""}`}</DialogTitle>
+        <DialogTitle id="project-overview-transition-title">{`Transition: ${transitionDecision?.title ?? ""}`}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <div className="esti-inline-with-tag">

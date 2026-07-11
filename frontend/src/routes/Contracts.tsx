@@ -226,8 +226,8 @@ export function Contracts() {
         onClose={() => setConfirmId(null)}
       />
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>New contract</DialogTitle>
+      <Dialog aria-labelledby="contracts-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle id="contracts-create-title">New contract</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             {(templatesQ.data ?? []).length > 0 && (

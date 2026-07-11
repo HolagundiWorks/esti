@@ -102,8 +102,8 @@ export function DashboardQuickActions() {
       </Stack>
 
       {/* New project */}
-      <Dialog open={projOpen} onClose={closeProj} fullWidth maxWidth="xs">
-        <DialogTitle>New project</DialogTitle>
+      <Dialog aria-labelledby="dashboard-quick-actions-project-title" open={projOpen} onClose={closeProj} fullWidth maxWidth="xs">
+        <DialogTitle id="dashboard-quick-actions-project-title">New project</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -162,8 +162,8 @@ export function DashboardQuickActions() {
       </Dialog>
 
       {/* New lead */}
-      <Dialog open={leadOpen} onClose={closeLead} fullWidth maxWidth="xs">
-        <DialogTitle>New lead</DialogTitle>
+      <Dialog aria-labelledby="dashboard-quick-actions-lead-title" open={leadOpen} onClose={closeLead} fullWidth maxWidth="xs">
+        <DialogTitle id="dashboard-quick-actions-lead-title">New lead</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

@@ -168,8 +168,8 @@ export function ProjectLessons({ projectId }: { projectId: string }) {
         onClose={() => setConfirmId(null)}
       />
 
-      <Dialog open={open} onClose={resetForm} fullWidth maxWidth="md">
-        <DialogTitle>{editId ? "Edit lesson" : "New lesson"}</DialogTitle>
+      <Dialog aria-labelledby="project-lessons-form-title" open={open} onClose={resetForm} fullWidth maxWidth="md">
+        <DialogTitle id="project-lessons-form-title">{editId ? "Edit lesson" : "New lesson"}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
