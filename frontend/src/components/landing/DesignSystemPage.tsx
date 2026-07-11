@@ -681,6 +681,13 @@ useScreenActions([
                 </Stack>
                 <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap", alignItems: "center", rowGap: 1.5 }}>
                   <TextField label="Project name" size="small" sx={{ width: 240 }} />
+                  {/* The control (Switch/Checkbox) is what this specimen demos, and
+                      it themes correctly per scheme. The adjacent label text inherits
+                      this LIGHT marketing page's ink colour (landing.scss + injectFirst
+                      win over the scheme ThemeProvider) — so it reads faint in the dark
+                      preview. That is the documented "page chrome stays light" caveat,
+                      not a dark-theme defect: in a real app shell the label colour comes
+                      from the theme. Left as-is intentionally. */}
                   <FormControlLabel control={<Switch defaultChecked />} label="HR module" />
                   <FormControlLabel control={<Checkbox defaultChecked />} label="Billable" />
                 </Stack>

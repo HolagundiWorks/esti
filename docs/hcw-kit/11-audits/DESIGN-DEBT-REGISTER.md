@@ -8,8 +8,8 @@ withdraws. Agents: update this file in the same change that alters a fact
 
 | # | Category | Item | Evidence / note | Sev |
 | --- | --- | --- | --- | --- |
-| D3s | Theme | **Owner sign-off of dark/high-contrast** (the only human act left — engineering is complete) | judge at `/design-system#schemes` or Settings→Appearance (preview-labelled switcher live); SCSS chrome darkening follows sign-off | Med |
-| D2d | Testing | Generate + commit VR baselines (harness DELIVERED: `e2e/tests/visual-regression.spec.ts`, `visual` project) | first run: `pnpm exec playwright test visual-regression --update-snapshots`; wire into CI after | Low |
+| D3s | Theme | **Owner sign-off of dark/high-contrast** (the only human act left) | agent VR-reviewed the dark/HC specimens (`ds-scheme-*` baselines) — accents/controls/inputs/alert render correctly; the "page chrome stays light" caveat is real (marketing-page label cascade). Judge at `/design-system#schemes` or Settings→Appearance | Med |
+| D2e | Testing | Wire the `visual` Playwright project into CI (baselines committed) | run on PRs touching frontend; `win32` baselines exist — add the CI platform's baselines on first CI run (`--update-snapshots`) | Low |
 | D11 | Duplicate | `TagChip` fork + unnamed dialog in `Clients.tsx` (parallel-WIP file) | migrate to StatusDot + aria when WIP lands | Low |
 
 ## Roadmap-class (not debt — tracked in 13-Roadmaps; require product/design programmes)
@@ -27,6 +27,7 @@ withdraws. Agents: update this file in the same change that alters a fact
 
 ## Retired (most recent first)
 
+- 2026-07-11 · D2d VR baselines: 6 committed snapshots (`e2e/tests/visual-regression.spec.ts-snapshots/`, win32) — DS gallery top, 3 scheme specimens, primitives, landing hero; deterministic (reduced-motion + animations-disabled), verified green on a clean run. The very first run earned its keep — it made the dark/HC schemes visible to the agent for the first time and surfaced the marketing-page label-cascade caveat (documented in the specimen + D3s). → CI wiring = D2e
 - 2026-07-11 · **Phase-D completion sweep:** D8c — `meta.errorTitle` adopted on **259 mutations across ~99 files** (5 agent batches; every user-facing mutation now titles its failure toast) · D1b — optimistic writes extended to `tasks.update` (shared `listInput`, instant status/priority flips) · D12 — Pagination/Stepper/PickerDay themed in the kit (0.5.0) · D14 — desktop token now fails CLOSED (no localStorage re-persist), `install-surface-tls.sh` provisions all 9 surface hosts, CSP `wss:` tightened to `wss://DOMAIN + *.DOMAIN` · D5 — zero live `@mui/x-charts` usage found; `DATA_VIZ` mandated on first use (mapping stays 🟨 govern-before-use) · D17 — [05-TEMPLATES.md](../05-TEMPLATES.md) documents 8 canonical page anatomies from shipped screens · D3 engineering — `MuiRoot({scheme})` + persisted Settings→Appearance switcher (preview-labelled) · D2c harness — Playwright VR spec + `visual` project (baselines = D2d)
 - 2026-07-11 · D2b (render tests): jsdom + testing-library suite for all six promoted primitives (kit 0.4.1, **27 tests total**) — behaviour contracts incl. ConfirmModal's accessible name and DataState's loading/empty grammar → narrowed to D2c (VR snapshots)
 - 2026-07-11 · D2 (gallery half): `/design-system` extended as the living gallery — StatusDot + Avatar specimens and a **Schemes section** (light/dark/HC toggle over a ThemeProvider'd specimen panel: buttons, inputs, Switch/Checkbox, StatusDot, Avatar, error alert). DOM-verified rendering in-browser. → narrowed to D2b (VR snapshots + render tests)
