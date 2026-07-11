@@ -1,6 +1,6 @@
 # HCW Kit & AORMS — audit index
 
-**Updated:** 2026-07-11 · **Living queue:** [DESIGN-DEBT-REGISTER.md](DESIGN-DEBT-REGISTER.md)
+**Updated:** 2026-07-12 · **Living queue:** [DESIGN-DEBT-REGISTER.md](DESIGN-DEBT-REGISTER.md) — **Open queue empty (audit·fix program complete)** · Canonical kit repo: **github.com/HolagundiWorks/hcwux**
 
 All audits are repo-resident markdown — no external canvas URLs. Re-run surface
 audits after major feature waves; update the debt register in the same PR as fixes.
@@ -13,6 +13,7 @@ audits after major feature waves; update the debt register in the same PR as fix
 | --- | --- | --- |
 | **AORMS-Studio interface** | Authenticated workspace (`studio.aorms.in`) — shell, nav, dock, a11y, loading | [AORMS-STUDIO-INTERFACE-AUDIT-2026-07-11.md](../../esti/AORMS-STUDIO-INTERFACE-AUDIT-2026-07-11.md) |
 | **Public pages & URLs** | Marketing, wiki, blog, auth, SEO landings | [PUBLIC-PAGES-AUDIT-2026-07-11.md](../../marketing/PUBLIC-PAGES-AUDIT-2026-07-11.md) |
+| **Public pages UI/UX** | Same scope — checklist + T7 layer compliance | [PUBLIC-PAGES-UX-AUDIT-2026-07-11.md](../../marketing/PUBLIC-PAGES-UX-AUDIT-2026-07-11.md) |
 | **Security** | API, tRPC, storage, CSP, sessions, deploy | [SECURITY-AUDIT-2026-07-11.md](../../esti/SECURITY-AUDIT-2026-07-11.md) |
 
 **Checklists:** [07-UX-REVIEW-CHECKLISTS.md](../07-UX-REVIEW-CHECKLISTS.md) ·
@@ -20,55 +21,60 @@ audits after major feature waves; update the debt register in the same PR as fix
 
 ---
 
-## Kit maturity snapshot — 2026-07-11
+## Kit maturity snapshot — 2026-07-12 (program close-out)
 
 **Method:** 16-section framework, evidence-based static analysis (`file:line`).
-**Overall: 67/100 — "Defined"** *(0.1.0–0.3.0 cycle closed several gaps — re-score
-after visual sign-off).*
+**Overall: ~78/100 — "Managed"** *(post visual sign-off; regression harnesses now
+complete — 51 kit unit tests + Playwright VR in CI). The remaining ceiling is
+**roadmap-class, not design debt**: Figma library/variables, RTL/i18n, bundle budget,
+formal breakpoint audit.*
 
 | Area | Score /10 | One-line basis |
 | --- | --- | --- |
-| Foundations (tokens) | 6.5 → improving | strong colour/recipe layer; scale ladders added |
+| Foundations (tokens) | 7.5 | colour/recipe layer + scale ladders + scheme tokens |
 | Visual language | 8.5 | coherent thesis, enforced centrally by theme |
-| Components | 6.0 → improving | thin primitive set; canonicals promoted this cycle |
+| Components | 7.5 | thin primitive set; all canonicals promoted + tested |
 | Interaction patterns | 8.0 | dock contract + shells widely adopted |
-| Accessibility | 7.0 | focus parity + gates strong; dialog names mostly fixed |
-| Responsive | 6.5 | rail stack works; no formal breakpoint audit |
-| UX heuristics | 7.5 | principles doc maps Nielsen×10 to shipped patterns |
+| Accessibility | 8.0 | focus parity + gates; all dialog names fixed (D6/D11) |
+| Responsive | 6.5 | rail stack works; no formal breakpoint audit (roadmap) |
+| UX heuristics | 8.0 | principles doc maps Nielsen×10 to shipped patterns |
 | UX laws | 8.0 | laws are design inputs, documented per pattern |
-| Documentation | 7.0 → improving | strong specs; hierarchy + governance added |
-| Developer experience | 5.0 → improving | vitest suite added (0.3.0); gallery partial |
-| Designer experience | 3.0 | no Figma library/variables |
-| Governance | 4.0 → improving | semver + CHANGELOG + GOVERNANCE added |
-| Performance | 6.0 | sideEffects added; no bundle budget |
+| Documentation | 8.5 | full hierarchy + governance + adoption + AI-orchestration UX |
+| Developer experience | 7.5 | 51 unit tests + VR in CI; living gallery; standalone repo |
+| Designer experience | 3.0 | no Figma library/variables (roadmap) |
+| Governance | 8.5 | semver + CHANGELOG + GOVERNANCE + standalone hcwux repo + CI |
+| Performance | 6.0 | sideEffects; no bundle budget yet |
 | Content design | 7.5 | verb/error/money/locale rules enforced |
-| Scalability | 6.5 | scheme layer + injection; RTL/i18n absent |
+| Scalability | 6.5 | scheme layer + injection; RTL/i18n absent (roadmap) |
 
-**Level:** Defined (documented + enforced; not yet Managed — regression harnesses
-incomplete). **Studio interface detail:** see
+**Level:** **Managed** — documented, enforced, and regression-guarded (unit + VR).
+Advancing to "Optimizing" needs the roadmap-class programmes (Figma bridge, RTL,
+perf budget), which are product/design deliverables, not design defects.
+**Studio interface detail:** see
 [AORMS-STUDIO-INTERFACE-AUDIT](../../esti/AORMS-STUDIO-INTERFACE-AUDIT-2026-07-11.md).
 
 ---
 
-## Kit compliance snapshot — 2026-07-11
+## Kit compliance snapshot — 2026-07-12
 
 **Question:** is the application using HCW Kit? **Method:** R1–R9 detection sweeps
 (recipes in [HCW-KIT-AI-KNOWLEDGE-BASE.md](../../esti/HCW-KIT-AI-KNOWLEDGE-BASE.md) §2).
-**Estimated compliance: ~72/100 at audit time** — several gaps closed same day.
+**Compliance: ~92/100** — the two open gaps at the prior audit (D4 hex targets, D11
+TagChip fork) are both now closed.
 
 | Check | Evidence | Verdict |
 | --- | --- | --- |
-| Token compliance — hex | 32 hits, ~26 sanctioned (canvas/SVG, brand); 2 targets (PlanReader, ZonalCompliance) | ◐ D4 |
+| Token compliance — hex | PlanReader + ZonalCompliance tokenised (`DATA_VIZ`); residual hits sanctioned (canvas/SVG, brand) | ✓ closed (D4) |
 | Token compliance — inline fontSize | real-text drift fixed (TYPE_SCALE) | ✓ closed |
-| Token compliance — legacy `--cds-*` | 56 usages; frozen compat; forbidden in new code | ✓ policy |
+| Token compliance — legacy `--cds-*` | frozen compat; forbidden in new code | ✓ policy |
 | Component compliance — status | filled chips eliminated; StatusDot canonical | ✓ closed |
-| Component compliance — duplicates | TagChip fork remains in `Clients.tsx` (parallel-WIP) | ◐ D11 |
+| Component compliance — duplicates | `Clients.tsx` TagChip fork → kit `StatusDot` | ✓ closed (D11) |
 | Layout compliance | RailLayout 48 · MarketingShell 15 · AuthRail 12 · PortalShell 9 · ExternalPortal 5 | ✓ strong |
 | Interaction compliance | useScreenActions 26+ screens; `[]`-while-dialog honoured | ✓ strong |
-| Accessibility compliance | 18 issue classes fixed; 3 WIP dialogs remain — [Studio audit I1–I2](../../esti/AORMS-STUDIO-INTERFACE-AUDIT-2026-07-11.md) | ◐ registered |
-| Custom styling (`styled()`) | 12 files, mostly HiddenFileInput (sanctioned) | ✓ acceptable |
+| Accessibility compliance | dialog names complete incl. `Clients.tsx` (D6/D11); WCAG 2.2 AA gates | ✓ closed |
+| Custom styling (`styled()`) | mostly HiddenFileInput (sanctioned) | ✓ acceptable |
 
-Open items → [DESIGN-DEBT-REGISTER.md](DESIGN-DEBT-REGISTER.md).
+**Open items → none.** [DESIGN-DEBT-REGISTER.md](DESIGN-DEBT-REGISTER.md) Open queue is empty.
 
 ---
 
