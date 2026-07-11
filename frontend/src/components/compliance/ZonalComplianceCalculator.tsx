@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import CalculateIcon from "@mui/icons-material/Calculate";
+import { TYPE_SCALE } from "@hcw/ui-kit";
 import {
   HOSAPETE_BUILDING_LINE_KEYS,
   HOSAPETE_BUILDING_TYPES,
@@ -333,7 +334,7 @@ export function ZonalComplianceCalculator() {
               Calculate
             </Button>
 
-            <Alert severity="warning" sx={{ fontSize: "0.8rem" }}>
+            <Alert severity="warning" sx={{ fontSize: TYPE_SCALE.body2 }}>
               Reference / planning aid only. Verify all values against the authoritative zonal
               regulations before statutory approval.
             </Alert>

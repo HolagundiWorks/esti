@@ -10,6 +10,7 @@ import {
 import ChevronLeft from "@mui/icons-material/ChevronLeft";
 import ChevronRight from "@mui/icons-material/ChevronRight";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import { TYPE_SCALE } from "@hcw/ui-kit";
 import {
   TASK_LOAD_BAND_LABEL,
   taskLoadBand,
@@ -229,7 +230,7 @@ export function StudioTeamPanel({
             <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2 }} noWrap>
               {k.label}
             </Typography>
-            <Typography sx={{ fontWeight: 300, fontSize: "1.1rem", lineHeight: 1.05 }} noWrap>
+            <Typography sx={{ fontWeight: 300, fontSize: TYPE_SCALE.kpi, lineHeight: 1.05 }} noWrap>
               {k.value}
             </Typography>
             <Typography variant="caption" color="text.secondary" noWrap>
