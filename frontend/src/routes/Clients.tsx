@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -16,32 +15,18 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import { ClientKind } from "@esti/contracts";
-import type { ReactNode } from "react";
 import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
 import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
+import { StatusDot } from "../components/StatusTag.js";
 import { pushToast } from "../lib/toast.js";
 import { trpc } from "../lib/trpc.js";
 import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 const PAGE_SIZES = [10, 25, 50];
-
-/** Status badge rendered over the Carbon `--cds-tag-*` token vars (exact colours). */
-function TagChip({ color, label }: { color: string; label: ReactNode }) {
-  return (
-    <Chip
-      size="small"
-      label={label}
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 export function Clients({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
@@ -156,7 +141,7 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
       minWidth: 120,
       valueGetter: (_v, row) => (row.disabled ? "Deactivated" : "Active"),
       renderCell: (p) => (
-        <TagChip
+        <StatusDot
           color={p.row.disabled ? "gray" : "green"}
           label={p.row.disabled ? "Deactivated" : "Active"}
         />
@@ -250,8 +235,9 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
         }}
         fullWidth
         maxWidth="sm"
+        aria-labelledby="new-client-dialog-title"
       >
-        <DialogTitle>New client</DialogTitle>
+        <DialogTitle id="new-client-dialog-title">New client</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -340,8 +326,16 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={portalOpen} onClose={() => setPortalOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Create {AORMS_PORTALS.client.label.toLowerCase()} login</DialogTitle>
+      <Dialog
+        open={portalOpen}
+        onClose={() => setPortalOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        aria-labelledby="client-portal-dialog-title"
+      >
+        <DialogTitle id="client-portal-dialog-title">
+          Create {AORMS_PORTALS.client.label.toLowerCase()} login
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
