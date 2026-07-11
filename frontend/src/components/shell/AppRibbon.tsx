@@ -263,19 +263,59 @@ function SectionMenu({
         </Button>
       )}
     >
-      {items.map((it, i) => (
-        <MenuItem
-          key={it.to}
-          selected={pathActive(pathname, it.to)}
-          onClick={() => go(it.to)}
-          sx={{
-            borderBottom: i < items.length - 1 ? 1 : 0,
-            borderColor: "divider",
-          }}
-        >
-          {it.label}
-        </MenuItem>
-      ))}
+      {node.items.some((c) => "items" in c)
+        ? // Grouped menu (Hick/Miller): nested menu nodes render as labelled
+          // ListSubheader groups — same pattern as AdminMenu.
+          node.items.flatMap((child, gi) => {
+            if (!("items" in child)) {
+              return [
+                <MenuItem
+                  key={child.to}
+                  selected={pathActive(pathname, child.to)}
+                  onClick={() => go(child.to)}
+                >
+                  {child.label}
+                </MenuItem>,
+              ];
+            }
+            const ls = leaves(child);
+            return [
+              ...(gi > 0 ? [<Divider key={`d-${child.label}`} />] : []),
+              <ListSubheader
+                key={`h-${child.label}`}
+                disableSticky
+                sx={{ bgcolor: "transparent", lineHeight: 2.2 }}
+              >
+                {child.label}
+              </ListSubheader>,
+              ...ls.map((it, ii) => (
+                <MenuItem
+                  key={it.to}
+                  selected={pathActive(pathname, it.to)}
+                  onClick={() => go(it.to)}
+                  sx={{
+                    borderBottom: ii < ls.length - 1 ? 1 : 0,
+                    borderColor: "divider",
+                  }}
+                >
+                  {it.label}
+                </MenuItem>
+              )),
+            ];
+          })
+        : items.map((it, i) => (
+            <MenuItem
+              key={it.to}
+              selected={pathActive(pathname, it.to)}
+              onClick={() => go(it.to)}
+              sx={{
+                borderBottom: i < items.length - 1 ? 1 : 0,
+                borderColor: "divider",
+              }}
+            >
+              {it.label}
+            </MenuItem>
+          ))}
     </RibbonMenu>
   );
 }

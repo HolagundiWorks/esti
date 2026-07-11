@@ -2,6 +2,7 @@ import {
   Alert,
   Box,
   Button,
+  Skeleton,
   Stack,
   Table,
   TableBody,
@@ -29,7 +30,13 @@ export function ConnectedDevicesPanel() {
           ESTICAD desktop sessions with active device tokens. Revoke a session if a
           laptop is lost or a staff member leaves.
         </Typography>
-        {devicesQ.isLoading && <Typography variant="body2">Loading…</Typography>}
+        {devicesQ.isLoading && (
+          <Stack spacing={0.5}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} variant="rectangular" height={32} />
+            ))}
+          </Stack>
+        )}
         {devicesQ.isError && <Alert severity="error">{devicesQ.error.message}</Alert>}
         {!devicesQ.isLoading && rows.length === 0 && (
           <Typography variant="body2">No active ESTICAD device sessions.</Typography>

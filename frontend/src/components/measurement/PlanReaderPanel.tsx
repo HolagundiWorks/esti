@@ -15,7 +15,7 @@ import {
   formatDimensionMm,
   type PlanMarkupGeometry,
 } from "@esti/contracts";
-import { useScreenActions } from "@hcw/ui-kit";
+import { DATA_VIZ, colors, useScreenActions } from "@hcw/ui-kit";
 import { trpc } from "../../lib/trpc.js";
 import { sanitizeSvgMarkup } from "../../lib/sanitize-svg.js";
 import { PlanPdfCanvas } from "./PlanPdfCanvas.js";
@@ -32,17 +32,18 @@ type Tool =
   | "HEIGHT"
   | "RECT";
 
+// Domain mapping stays app-side; VALUES come from kit tokens (Token Governance §7).
 const MARKER_COLOR: Record<string, string> = {
-  WALL: "#FF4F18",
-  DOOR: "#0F62FE",
-  WINDOW: "#24A148",
-  COLUMN: "#8A3FFC",
-  HEIGHT: "#A56EFF",
-  SECTION: "#1192E8",
-  POLYLINE: "#FF4F18",
-  COUNT: "#525252",
-  RECT: "#FF832B",
-  MEASURE: "#141517",
+  WALL: colors.accent,
+  DOOR: DATA_VIZ.blue,
+  WINDOW: DATA_VIZ.green,
+  COLUMN: DATA_VIZ.purple,
+  HEIGHT: DATA_VIZ.violet,
+  SECTION: DATA_VIZ.cyan,
+  POLYLINE: colors.accent,
+  COUNT: DATA_VIZ.gray,
+  RECT: DATA_VIZ.orange,
+  MEASURE: colors.ink,
 };
 
 type Pt = { x: number; y: number };
@@ -629,7 +630,7 @@ export function PlanReaderPanel({ projectId }: { projectId: string }) {
           position: "relative",
           border: "1px solid",
           borderColor: "divider",
-          bgcolor: "#fff",
+          bgcolor: colors.layer01,
           height: "70vh",
           overflow: "hidden",
           cursor,
@@ -678,9 +679,9 @@ export function PlanReaderPanel({ projectId }: { projectId: string }) {
               >
                 {items.map((item) => {
                   const geo = item.geometry as PlanMarkupGeometry;
-                  const color = MARKER_COLOR[item.markerKind] ?? "#FF4F18";
+                  const color = MARKER_COLOR[item.markerKind] ?? colors.accent;
                   const selected = selectedIds.includes(item.id);
-                  const stroke = selected ? "#141517" : color;
+                  const stroke = selected ? colors.ink : color;
                   const strokeW = selected ? 3 : 2;
                   if (geo.kind === "POINT" && geo.points[0]) {
                     const pt = geo.points[0];
@@ -728,19 +729,19 @@ export function PlanReaderPanel({ projectId }: { projectId: string }) {
                   <polyline
                     points={draftPts.map((pt) => `${pt.x},${pt.y}`).join(" ")}
                     fill="none"
-                    stroke="#141517"
+                    stroke={colors.ink}
                     strokeWidth={2}
                     strokeDasharray="6 4"
                   />
                 )}
                 {draftPts.map((pt, i) => (
-                  <circle key={i} cx={pt.x} cy={pt.y} r={4} fill="#141517" />
+                  <circle key={i} cx={pt.x} cy={pt.y} r={4} fill={colors.ink} />
                 ))}
                 {draftPts.length === 2 && (tool === "MEASURE" || tool === "CALIBRATE") && (
                   <text
                     x={(draftPts[0]!.x + draftPts[1]!.x) / 2}
                     y={(draftPts[0]!.y + draftPts[1]!.y) / 2 - 8}
-                    fill="#141517"
+                    fill={colors.ink}
                     fontSize={Math.max(12, 14 / zoom)}
                     textAnchor="middle"
                   >

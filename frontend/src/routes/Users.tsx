@@ -27,7 +27,7 @@ import {
   userType,
 } from "@esti/contracts";
 import { useState } from "react";
-import { useScreenActions } from "@hcw/ui-kit";
+import { pushToast, useScreenActions } from "@hcw/ui-kit";
 import { useAuth } from "../lib/auth.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -65,8 +65,23 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
   ];
   const roleOptions = ASSIGNABLE_STAFF_ROLES;
 
+  // Optimistic enable/disable (Doherty): flip the row immediately, roll back on
+  // error, confirm with a toast (this toggle was previously silent — Nielsen #1).
   const setDisabled = trpc.users.setDisabled.useMutation({
-    onSuccess: invalidate,
+    onMutate: async ({ id, disabled }) => {
+      await utils.users.list.cancel();
+      const prev = utils.users.list.getData();
+      utils.users.list.setData(undefined, (old) =>
+        old?.map((u) => (u.id === id ? { ...u, disabled } : u)),
+      );
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) utils.users.list.setData(undefined, ctx.prev);
+    },
+    onSuccess: (_d, v) =>
+      pushToast({ kind: "success", title: v.disabled ? "Login disabled" : "Login enabled" }),
+    onSettled: invalidate,
   });
   const setRole = trpc.users.setRole.useMutation({
     onSuccess: () => {

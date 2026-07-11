@@ -14,6 +14,7 @@ import {
   FormControlLabel,
   Grid,
   MenuItem,
+  Skeleton,
   Stack,
   Table,
   TableBody,
@@ -590,7 +591,11 @@ export function Portal() {
                     <Stack spacing={1.5}>
                       <span className="esti-label">Change requests by category</span>
                       {revisionStatsQ.isLoading ? (
-                        <span className="esti-label esti-label--secondary">Loading…</span>
+                        <Stack spacing={0.5}>
+                          {Array.from({ length: 3 }).map((_, i) => (
+                            <Skeleton key={i} variant="rectangular" height={32} />
+                          ))}
+                        </Stack>
                       ) : changesByCat.length === 0 ? (
                         <span className="esti-label esti-label--secondary">No change requests yet.</span>
                       ) : (
@@ -619,7 +624,11 @@ export function Portal() {
                     <Stack spacing={1.5}>
                       <span className="esti-label">Drawing revisions by type</span>
                       {revisionStatsQ.isLoading ? (
-                        <span className="esti-label esti-label--secondary">Loading…</span>
+                        <Stack spacing={0.5}>
+                          {Array.from({ length: 3 }).map((_, i) => (
+                            <Skeleton key={i} variant="rectangular" height={32} />
+                          ))}
+                        </Stack>
                       ) : drawingsByRev.length === 0 ? (
                         <span className="esti-label esti-label--secondary">No drawing revisions yet.</span>
                       ) : (

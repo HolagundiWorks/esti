@@ -7,6 +7,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -87,7 +88,11 @@ export function ProjectInspectionDetail({
         <DialogTitle>{row ? `${row.ref} · Site report` : "Site report"}</DialogTitle>
         <DialogContent>
           {!row ? (
-            <p>Loading…</p>
+            <Stack spacing={0.5}>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} variant="rectangular" height={32} />
+              ))}
+            </Stack>
           ) : (
             <Stack spacing={2}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>

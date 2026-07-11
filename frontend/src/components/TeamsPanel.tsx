@@ -11,6 +11,7 @@ import {
   FormControlLabel,
   FormGroup,
   Grid,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -78,7 +79,11 @@ export function TeamsPanel() {
       </Box>
 
       {teamsQ.isLoading ? (
-        <p className="esti-label esti-label--secondary">Loading…</p>
+        <Stack spacing={0.5}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} variant="rectangular" height={32} />
+          ))}
+        </Stack>
       ) : teams.length === 0 ? (
         <Box sx={{ p: 2 }}>
           <p>

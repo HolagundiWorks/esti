@@ -444,33 +444,47 @@ function AppShell() {
       kind: "menu",
       label: "Office",
       icon: Enterprise,
+      // Two labelled groups (Hick/Miller — the flat list hit 11 items). The
+      // ribbon renders nested menus as ListSubheader groups; `prune` drops an
+      // empty group when a role has none of its items.
       items: [
-        ...(can(user.role, "write")
-          ? [{ label: "Leads", to: "/leads", icon: ContactPage }]
-          : []),
-        ...(can(user.role, "fees:manage") ? [{ label: "Proposals", to: "/office/proposals", icon: Document }] : []),
-        ...(can(user.role, "write")
-          ? [
-              { label: "Documents", to: "/office/documents", icon: Document },
-              { label: "Contracts", to: "/office/contracts", icon: License },
-              { label: "Letters", to: "/office/letters", icon: Email },
-            ]
-          : []),
-        // Finance folded into Office.
-        ...(can(user.role, "invoice:manage")
-          ? [
-              { label: "Consultancy Invoices", to: "/invoices", icon: Receipt },
-              { label: "Reconcile", to: "/reconcile", icon: CompareArrows },
-              { label: "Cashbook", to: "/accounting/cash-book", icon: Wallet },
-              { label: "Office Expenses", to: "/accounting/office-expenses", icon: Purchase },
-            ]
-          : []),
-        ...(hrEnabled && can(user.role, "hr:manage")
-          ? [{ label: "Payroll", to: "/finance/payroll", icon: Money }]
-          : []),
-        ...(can(user.role, "reports:view")
-          ? [{ label: "Financial Reports", to: "/filing", icon: Report }]
-          : []),
+        {
+          kind: "menu",
+          label: "Office",
+          items: [
+            ...(can(user.role, "write")
+              ? [{ label: "Leads", to: "/leads", icon: ContactPage }]
+              : []),
+            ...(can(user.role, "fees:manage") ? [{ label: "Proposals", to: "/office/proposals", icon: Document }] : []),
+            ...(can(user.role, "write")
+              ? [
+                  { label: "Documents", to: "/office/documents", icon: Document },
+                  { label: "Contracts", to: "/office/contracts", icon: License },
+                  { label: "Letters", to: "/office/letters", icon: Email },
+                ]
+              : []),
+          ],
+        },
+        {
+          kind: "menu",
+          label: "Finance",
+          items: [
+            ...(can(user.role, "invoice:manage")
+              ? [
+                  { label: "Consultancy Invoices", to: "/invoices", icon: Receipt },
+                  { label: "Reconcile", to: "/reconcile", icon: CompareArrows },
+                  { label: "Cashbook", to: "/accounting/cash-book", icon: Wallet },
+                  { label: "Office Expenses", to: "/accounting/office-expenses", icon: Purchase },
+                ]
+              : []),
+            ...(hrEnabled && can(user.role, "hr:manage")
+              ? [{ label: "Payroll", to: "/finance/payroll", icon: Money }]
+              : []),
+            ...(can(user.role, "reports:view")
+              ? [{ label: "Financial Reports", to: "/filing", icon: Report }]
+              : []),
+          ],
+        },
       ],
     },
   ]);

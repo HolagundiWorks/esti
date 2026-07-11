@@ -8,15 +8,12 @@ withdraws. Agents: update this file in the same change that alters a fact
 
 | # | Category | Item | Evidence / note | Sev |
 | --- | --- | --- | --- | --- |
-| D1 | Perf/UX | Zero optimistic writes — every mutation blocks on refetch | `grep onMutate → 0`; worst: Leads status, Users toggle | High |
+| D1b | Perf/UX | Extend the optimistic-write pattern beyond the flagship sites (task board/tab interactions, other toggles) | pattern established in Leads.setStatus + Users.setDisabled (cancel→snapshot→set→rollback→settle) | Med |
 | D2 | Testing | No Storybook / visual regression / component-render tests | unit tests exist (0.3.0); no gallery harness | High |
 | D3 | Theme | Dark/HC schemes + recipes implemented but unsigned — no visual QA, no switcher UI | kit 0.2.0 `recipesFor` | Med |
-| D4 | Hardcoded | Canvas/SVG palettes off-token | `PlanReaderPanel.tsx` (16), `ZonalComplianceCalculator.tsx` (10) + small-text contrast unaudited | Med |
 | D5 | Component | Charts ungoverned (MUI X Charts raw) | last canonical outside the kit | Med |
 | D6 | A11y | Dialog `aria-labelledby` long tail (~80 dialogs; shared shells done) | ConfirmModal fixed; bake into remaining shared dialogs | Med |
-| D7 | Loading | 17 bare "Loading…" texts instead of DataState skeletons | OfficeExpenses, SitePortal, Portal, ProjectMinutes, +11 | Med |
-| D8 | Feedback | Generic global error title; silent success on some toggles | `main.tsx` toast wiring; Users/Leads | Med |
-| D9 | IA | Office ribbon menu = 11 flat items | `App.tsx` SectionMenu; split or ListSubheader | Med |
+| D8b | Feedback | Generic global error title ("Something went wrong") — contextual titles via mutation `meta` | `main.tsx`; the silent-toggle half is fixed (toasts on Leads/Users) | Med |
 | D10 | IA | Work hub reaches 8 tabs | `Work.tsx` | Low |
 | D11 | Duplicate | `TagChip` fork in `Clients.tsx` (parallel-WIP file) | migrate to StatusDot when WIP lands | Low |
 | D12 | MUI gaps | DatePicker popup, Pagination, Stepper un-themed | govern before first heavy use (Mapping 🟨) | Low |
@@ -35,6 +32,10 @@ withdraws. Agents: update this file in the same change that alters a fact
 
 ## Retired (most recent first)
 
+- 2026-07-11 · D1 optimistic writes: pattern established at flagship sites (Leads status dropdown un-frozen + instant; Users enable/disable instant + toast) → narrowed to D1b
+- 2026-07-11 · D4 canvas/SVG palettes: `DATA_VIZ` categorical token added (kit 0.4.0); PlanReaderPanel fully token-driven; ZonalCompliance palette centralised + 7px annotation darkened to hold AA
+- 2026-07-11 · D7 loading grammar: 15 bare "Loading…" replaced with skeletons across 13 files (agent batch + PortalMinutes straggler)
+- 2026-07-11 · D9 Office menu: grouped into Office/Finance ListSubheader groups (SectionMenu learned nested groups); NAVIGATION.md synced
 - 2026-07-11 · Toast + Avatar promoted (0.3.0); first kit test suite (15 tests)
 - 2026-07-11 · Dark/HC recipes implemented (0.2.0) → moved to D3 (sign-off)
 - 2026-07-11 · PageBreadcrumb promoted (router-agnostic injection); last real-text inline fontSize cleared

@@ -9,6 +9,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -160,9 +161,10 @@ export function SitePortal() {
         </Box>
 
         {inspectionsQ.isLoading && (
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-            <CircularProgress size={20} />
-            <Typography variant="body2">Loading…</Typography>
+          <Stack spacing={0.5}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} variant="rectangular" height={32} />
+            ))}
           </Stack>
         )}
         {inspections.length === 0 && !inspectionsQ.isLoading && (

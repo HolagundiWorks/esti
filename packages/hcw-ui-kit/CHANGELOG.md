@@ -4,6 +4,14 @@ All notable changes to the HCW Design System package. Versioning follows semver;
 the package is workspace-consumed (source-only), so versions mark **design-contract**
 changes, not npm releases.
 
+## 0.4.0 — 2026-07-11
+
+### Added
+- **`DATA_VIZ` categorical tokens** — canvas/SVG marker + series hues (blue, cyan,
+  green, purple, violet, orange, gray). Diagram palettes (CAD takeoff markers)
+  now consume tokens instead of hardcoded hex; values match the shipped palette
+  (no visual change).
+
 ## 0.3.0 — 2026-07-11
 
 ### Added

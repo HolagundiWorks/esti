@@ -8,6 +8,7 @@ import {
   DialogTitle,
   Grid,
   MenuItem,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -76,7 +77,13 @@ export function ApplicationsTab() {
         </Button>
       </div>
 
-      {listQ.isLoading && <p className="esti-label esti-label--secondary">Loading…</p>}
+      {listQ.isLoading && (
+        <Stack spacing={0.5}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} variant="rectangular" height={32} />
+          ))}
+        </Stack>
+      )}
 
       {apps.length === 0 && !listQ.isLoading && (
         <Box sx={{ p: 2 }}>

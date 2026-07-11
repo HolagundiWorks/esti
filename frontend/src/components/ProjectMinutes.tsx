@@ -7,6 +7,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -116,7 +117,13 @@ export function ProjectMinutes({ projectId }: { projectId: string }) {
         </Alert>
       )}
 
-      {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
+      {listQ.isLoading && (
+        <Stack spacing={0.5}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} variant="rectangular" height={32} />
+          ))}
+        </Stack>
+      )}
       {rows.length === 0 && !listQ.isLoading && (
         <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
           <Typography variant="body2">No meeting minutes recorded for this project yet.</Typography>

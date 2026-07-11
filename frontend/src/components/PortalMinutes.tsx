@@ -5,6 +5,7 @@ import {
   Button,
   CircularProgress,
   MenuItem,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -122,7 +123,13 @@ export function PortalMinutes({
         </Alert>
       )}
 
-      {momsQ.isLoading && <p className="esti-label esti-label--secondary">Loading…</p>}
+      {momsQ.isLoading && (
+        <Stack spacing={0.5}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} variant="rectangular" height={32} />
+          ))}
+        </Stack>
+      )}
       {!momsQ.isLoading && moms.length === 0 && (
         <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
           <Typography variant="body1">No issued meeting minutes yet.</Typography>

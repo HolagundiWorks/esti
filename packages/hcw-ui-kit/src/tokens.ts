@@ -99,6 +99,19 @@ export const SCHEMES: Record<SchemeName, ColorScheme> = {
   highContrast: HIGH_CONTRAST_SCHEME,
 };
 
+/** Categorical data-viz hues — canvas/SVG marker + series colours (CAD takeoff
+ *  markers, chart series). Kit-owned so diagram palettes stop hardcoding hex
+ *  (Token Governance §7). Values match the shipped marker palette. */
+export const DATA_VIZ = {
+  blue: "#0F62FE",
+  cyan: "#1192E8",
+  green: "#24A148",
+  purple: "#8A3FFC",
+  violet: "#A56EFF",
+  orange: "#FF832B",
+  gray: "#525252",
+} as const;
+
 /** Status hues for StatusDot/StatusTag — canonical kit-owned values (supersede the
  *  frozen `--cds-tag-*` compat layer for new code). */
 export const STATUS_COLORS: Record<string, string> = {

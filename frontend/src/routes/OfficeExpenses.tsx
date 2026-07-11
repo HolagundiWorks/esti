@@ -7,6 +7,7 @@ import {
   DialogTitle,
   FormControlLabel,
   MenuItem,
+  Skeleton,
   Stack,
   Switch,
   TextField,
@@ -329,7 +330,13 @@ export function OfficeExpenses() {
         }
       >
         <PageBreadcrumb items={[{ label: "Office" }, { label: "Office Expenses" }]} />
-        {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
+        {listQ.isLoading && (
+          <Stack spacing={0.5}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} variant="rectangular" height={32} />
+            ))}
+          </Stack>
+        )}
         {listQ.data && (
           <ExpenseTable rows={listQ.data as ExpenseRow[]} canManage={canManage} canAudit={canAudit} />
         )}
@@ -390,7 +397,13 @@ export function CashBook() {
         }
       >
         <PageBreadcrumb items={[{ label: "Office" }, { label: "Cashbook" }]} />
-        {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
+        {listQ.isLoading && (
+          <Stack spacing={0.5}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} variant="rectangular" height={32} />
+            ))}
+          </Stack>
+        )}
         {listQ.data && (
           <ExpenseTable rows={listQ.data as ExpenseRow[]} canManage={canManage} canAudit={canAudit} />
         )}

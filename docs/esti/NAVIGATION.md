@@ -33,7 +33,7 @@ Four sections (capability-gated):
 | **Projects** | link | `/projects` |
 | **Clients** | link | `/clients` (write capability) |
 | **Teams** | menu | Teams · Performance · HR |
-| **Office** | menu | Leads · Proposals · Documents · Contracts · Letters · Invoices · Reconcile · Cashbook · Expenses · Payroll · Financial Reports |
+| **Office** | menu (2 labelled groups — Hick/Miller) | **Office:** Leads · Proposals · Documents · Contracts · Letters · **Finance:** Invoices · Reconcile · Cashbook · Expenses · Payroll · Financial Reports |
 
 ### Admin hamburger (ribbon) — `adminGroups`
 | Group | Destinations |
@@ -107,8 +107,11 @@ Route `/office/ai-studio` — plan-gated, rank ≥ 60. Not a ribbon item.
 | Vendors | 🚧 | `/vendors` |
 
 ## 8–9. Office + Finance (Office ribbon menu)
-Proposals · Contracts · Letters · Consultancy Invoices · Cashbook · Office Expenses ·
-Payroll · Financial Reports (`/filing`) — capability-gated as in `App.tsx`.
+One trigger, **two labelled ListSubheader groups** (2026-07-11, Hick/Miller — the
+flat list had reached 11 items): **Office** (Leads · Proposals · Documents ·
+Contracts · Letters) and **Finance** (Consultancy Invoices · Reconcile · Cashbook ·
+Office Expenses · Payroll · Financial Reports `/filing`) — capability-gated as in
+`App.tsx`; empty groups are pruned per role.
 
 ## 10. LXOS 🚧
 Route `/lxos` (`/leos` redirects). **Lessons Learned ✅** is the only primary surface.

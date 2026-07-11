@@ -5,6 +5,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -55,7 +56,13 @@ export function ProjectSiteVisits({ projectId }: { projectId: string }) {
         )}
       </Stack>
 
-      {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
+      {listQ.isLoading && (
+        <Stack spacing={0.5}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} variant="rectangular" height={32} />
+          ))}
+        </Stack>
+      )}
       {visits.length === 0 && !listQ.isLoading && (
         <Box sx={{ p: 2 }}><Typography variant="body2">No site visits scheduled yet.</Typography></Box>
       )}

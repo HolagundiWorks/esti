@@ -2,7 +2,7 @@ import {
   Alert,
   Box,
   Button,
-  CircularProgress,
+  Skeleton,
   Stack,
   TextField,
 } from "@mui/material";
@@ -78,9 +78,10 @@ export function AccountTab() {
 
   if (checking) {
     return (
-      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-        <CircularProgress size={16} />
-        <span>Loading</span>
+      <Stack spacing={0.5}>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} variant="rectangular" height={32} />
+        ))}
       </Stack>
     );
   }
@@ -166,9 +167,10 @@ export function AccountTab() {
       </Stack>
       <Suspense
         fallback={
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-            <CircularProgress size={16} />
-            <span>Loading</span>
+          <Stack spacing={0.5}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} variant="rectangular" height={32} />
+            ))}
           </Stack>
         }
       >

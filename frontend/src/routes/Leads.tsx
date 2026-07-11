@@ -27,7 +27,7 @@ import {
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
-import { useScreenActions } from "@hcw/ui-kit";
+import { pushToast, useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
 import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
@@ -84,7 +84,24 @@ export function Leads() {
     onSuccess: () => { inv(); setOpen(false); setForm(blank); },
   });
 
-  const setStatus = trpc.leads.setStatus.useMutation({ onSuccess: inv });
+  // Optimistic status change (Doherty — the dropdown must feel instant): write the
+  // cache immediately, roll back on error, reconcile with the server on settle.
+  const setStatus = trpc.leads.setStatus.useMutation({
+    onMutate: async ({ id, status }) => {
+      await utils.leads.list.cancel();
+      const prev = utils.leads.list.getData({});
+      utils.leads.list.setData({}, (old) =>
+        old?.map((l) => (l.id === id ? { ...l, status } : l)),
+      );
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) utils.leads.list.setData({}, ctx.prev);
+    },
+    onSuccess: (_d, v) =>
+      pushToast({ kind: "success", title: `Lead marked ${LEAD_STATUS_LABEL[v.status]}` }),
+    onSettled: inv,
+  });
 
   const [conv, setConv] = useState({ projectTitle: "", projectType: "", workType: "ARCHITECTURE", clientId: "" });
   const convert = trpc.leads.convert.useMutation({
@@ -157,7 +174,6 @@ export function Leads() {
             size="small"
             hiddenLabel
             value={l.status}
-            disabled={setStatus.isPending}
             onChange={(e) => setStatus.mutate({ id: l.id, status: e.target.value as LeadStatusT })}
             sx={{ minWidth: 150 }}
           >

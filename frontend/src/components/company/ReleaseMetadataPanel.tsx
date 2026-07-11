@@ -1,4 +1,4 @@
-import { Alert, Box, Stack, Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
+import { Alert, Box, Skeleton, Stack, Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { StatusDot } from "../StatusTag.js";
 
@@ -32,7 +32,13 @@ export function ReleaseMetadataPanel() {
       <Stack spacing={2}>
         <Typography variant="h5" component="h2">Release &amp; readiness</Typography>
         <Typography variant="body2">Build revision and backing-service checks for production operations.</Typography>
-        {releaseQ.isLoading && <Typography variant="body2">Loading…</Typography>}
+        {releaseQ.isLoading && (
+          <Stack spacing={0.5}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} variant="rectangular" height={32} />
+            ))}
+          </Stack>
+        )}
         {releaseQ.isError && (
           <Alert severity="error">
             {releaseQ.error instanceof Error ? releaseQ.error.message : "Unknown error"}
