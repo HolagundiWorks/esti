@@ -7,8 +7,10 @@
 #  path; Secure cookies mean auth simply cannot work on the others over
 #  plain HTTP):
 #
-#    DOMAIN  www.  studio.  consultancy.  wiki.  kbank.  external.
-#    account.  admin.
+#    DOMAIN  www.  studio.  consultancy.  admin.
+#
+#  Retired page hosts (wiki, kbank, external, account) redirect to aorms.in paths —
+#  see deploy/nginx-proxy.conf and docs/esti/AORMS-SURFACE-URLS.md.
 #
 #  Hosts without DNS yet are SKIPPED with a warning (re-run after adding
 #  the record). Ubuntu, as root, after deploy/install.sh + update.sh:
@@ -32,7 +34,7 @@ set -a; load_dotenv "$DEPLOY_DIR/.env"; set +a
 
 ADMIN_EMAIL="${ADMIN_EMAIL:-${OWNER_EMAIL:-hi@aorms.in}}"
 # Subdomain labels ("" = apex). Override with SURFACE_HOSTS="studio wiki …".
-DEFAULT_HOSTS=("" "www" "studio" "consultancy" "wiki" "kbank" "external" "account" "admin")
+DEFAULT_HOSTS=("" "www" "studio" "consultancy" "admin")
 if [[ -n "${SURFACE_HOSTS:-}" ]]; then
   read -r -a DEFAULT_HOSTS <<<"$SURFACE_HOSTS"
 fi

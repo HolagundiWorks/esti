@@ -1,63 +1,68 @@
 # AORMS surface URLs (frozen)
 
-**Status:** Canonical · **Frozen:** 2026-07-11 · **Owner:** HCW
+**Status:** Canonical · **Frozen:** 2026-07-11 · **Revised:** 2026-07-11 (pages model) · **Owner:** HCW
 
 Executable constants: `frontend/src/lib/aorms-surface-urls.ts` and
 `frontend/src/lib/product-nomenclature.ts`.
 
-These hostnames are **frozen** — do not rename without a migration plan (nginx,
-cookies, ALLOWED_ORIGINS, SEO, printed material).
+Only **three subdomains** remain. Everything else is a **path on aorms.in**.
 
 ---
 
-## Host map
+## Subdomains (hosts)
 
 | Host | Surface | Audience | Role |
 | --- | --- | --- | --- |
-| **[aorms.in](https://aorms.in)** | Platform | Public | Marketing, blog, platform landing, `/wiki` path alias |
-| **[studio.aorms.in](https://studio.aorms.in)** | **AORMS-Studio** | Firm staff | Architecture consultancy workspace (canonical staff app) |
-| **[consultancy.aorms.in](https://consultancy.aorms.in)** | **AORMS-Consultancy** | Public / prospects | Engineering app marketing (roadmap) |
-| **[wiki.aorms.in](https://wiki.aorms.in)** | Wiki | Public | Official documentation (pages at `/` on this host) |
-| **[kbank.aorms.in](https://kbank.aorms.in)** | Knowledge Bank portal | Firm staff (L4+) | EmOI textbook library intake |
-| **[external.aorms.in](https://external.aorms.in)** | External portals | Clients, consultants, contractors, site | Client / consultant / contractor / site portal sign-in |
-| **[account.aorms.in](https://account.aorms.in)** | AORMS account | Users & firm owners | Identity, companies, licence hub |
+| **[aorms.in](https://aorms.in)** | Platform | Public + authenticated pages | Marketing, wiki, blog, auth, account, external portals |
+| **[studio.aorms.in](https://studio.aorms.in)** | **AORMS-Studio** | Firm staff | Architecture consultancy workspace |
+| **[consultancy.aorms.in](https://consultancy.aorms.in)** | **AORMS-Consultancy** | Public / prospects | Engineering consultancy marketing (roadmap) |
 | **[admin.aorms.in](https://admin.aorms.in)** | Licensing console | HCW operators | Platform administration |
 
 ---
 
-## Legacy redirects (nginx)
+## Platform pages (aorms.in paths)
+
+Same SPA bundle; no dedicated host.
+
+| Path | Surface | Notes |
+| --- | --- | --- |
+| `/` | Platform landing | Hero, frameworks, conversion dock |
+| `/login` | AORMS-Studio sign-in | Architecture marketing + workspace login |
+| `/wiki`, `/wiki/*` | AORMS Wiki | Public documentation |
+| `/blog`, `/blog/*` | Blog | Editorial |
+| `/access` | External portals | Client, consultant, contractor, site sign-in |
+| `/account` | Personal account | Identity + licence hub |
+| `/company-account` | Company account | Firm owners |
+| `/libraries/knowledge-bank-portal` | Knowledge Bank portal | Staff L4+, EmOI intake |
+| `/aorms-consultancy` | Consultancy marketing | Path alias; canonical host `consultancy.aorms.in` |
+| `/about`, `/legal`, `/investors`, SEO landings | Marketing | Public pages |
+
+---
+
+## Legacy subdomain redirects
+
+Retired hosts **301 → aorms.in** (nginx + client-side fallback in `App.tsx`):
 
 | Legacy host | Redirect |
 | --- | --- |
+| `wiki.aorms.in` | `https://aorms.in/wiki` (+ path preserved) |
+| `kbank.aorms.in` | `https://aorms.in/libraries/knowledge-bank-portal` |
+| `external.aorms.in` | `https://aorms.in/access` |
+| `account.aorms.in` | `https://aorms.in/account` |
 | `app.aorms.in` | **301 → `https://studio.aorms.in`** |
 | `www.aorms.in` | **301 → `https://aorms.in`** |
-
-Path aliases on **aorms.in** (same SPA bundle):
-
-| Path | Equivalent surface |
-| --- | --- |
-| `/login` | Studio sign-in |
-| `/access` | External portal sign-in |
-| `/account` | Account hub |
-| `/wiki/*` | Wiki (canonical host: `wiki.aorms.in`) |
-| `/libraries/knowledge-bank-portal` | Knowledge Bank portal (canonical host: `kbank.aorms.in`) |
-| `/aorms-consultancy` | Consultancy marketing (canonical host: `consultancy.aorms.in`) |
 
 ---
 
 ## Deploy checklist
 
-1. **DNS** — A records for all subdomains → VPS.
-2. **TLS** — certbot SAN cert or per-host certs (see `deploy/nginx-proxy.conf`).
-3. **ALLOWED_ORIGINS** — comma-separated list of every `https://` host above
-   (`AORMS_ALLOWED_ORIGINS` in code).
+1. **DNS** — A records for `aorms.in`, `studio`, `consultancy`, `admin`.
+2. **TLS** — certbot SAN cert (see `deploy/nginx-proxy.conf`).
+3. **ALLOWED_ORIGINS** — `https://aorms.in`, `https://studio.aorms.in`, `https://consultancy.aorms.in`, `https://admin.aorms.in` (`AORMS_ALLOWED_ORIGINS` in code).
 4. **VITE_ADMIN_URL** — `https://admin.aorms.in` for production frontend builds.
-5. **Single SPA dist** — all hosts serve the same `frontend/dist`; routing is
-   host-aware in `App.tsx`.
+5. **Single SPA dist** — apex + studio + consultancy serve the same `frontend/dist`; routing is host-aware in `App.tsx`. Admin console is a separate deployment.
 
-Local dev: add to `/etc/hosts` (optional) and extend `ALLOWED_ORIGINS` in
-`compose.yaml` if testing subdomains on localhost — otherwise use path aliases
-on `localhost:5173`.
+Local dev: use path aliases on `localhost:5173`; optional `/etc/hosts` for subdomain testing.
 
 ---
 

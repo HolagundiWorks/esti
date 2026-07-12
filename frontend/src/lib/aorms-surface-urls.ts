@@ -1,11 +1,35 @@
 /**
  * Frozen AORMS surface URLs — canonical host map (2026-07-11).
- * Docs: docs/esti/AORMS-SURFACE-URLS.md · keep in sync with product-nomenclature.ts.
+ * Only **admin**, **studio**, and **consultancy** are subdomains; everything else
+ * is a path on **aorms.in**. Docs: docs/esti/AORMS-SURFACE-URLS.md
  */
 export const AORMS_DOMAIN = "aorms.in" as const;
 
+/** Path-only surfaces on the platform apex (aorms.in). */
+export const AORMS_PLATFORM_PAGES = {
+  wiki: { path: "/wiki", label: "AORMS Wiki" },
+  externalAccess: { path: "/access", label: "External portals" },
+  account: { path: "/account", label: "AORMS account" },
+  companyAccount: { path: "/company-account", label: "Company account" },
+  knowledgeBank: {
+    path: "/libraries/knowledge-bank-portal",
+    label: "Knowledge Bank portal",
+  },
+  studioLogin: { path: "/login", label: "AORMS-Studio sign-in" },
+  /** Path alias on apex; canonical marketing host is consultancy.aorms.in. */
+  consultancyMarketing: { path: "/aorms-consultancy", label: "AORMS-Consultancy" },
+} as const;
+
+/** Subdomains retired 2026-07 — nginx / client redirect to apex paths. */
+export const LEGACY_SUBDOMAIN_HOSTS = [
+  "wiki.aorms.in",
+  "kbank.aorms.in",
+  "external.aorms.in",
+  "account.aorms.in",
+] as const;
+
 export const AORMS_SURFACES = {
-  /** Platform marketing — apex only. */
+  /** Platform marketing + path-based pages — apex only. */
   platform: {
     id: "platform",
     label: "AORMS platform",
@@ -19,50 +43,15 @@ export const AORMS_SURFACES = {
     host: `https://studio.${AORMS_DOMAIN}`,
     hostnames: [`studio.${AORMS_DOMAIN}`, `app.${AORMS_DOMAIN}`] as const,
     legacyRedirectFrom: [`app.${AORMS_DOMAIN}`] as const,
-    loginPath: "/login",
+    loginPath: AORMS_PLATFORM_PAGES.studioLogin.path,
   },
-  /** AORMS-Consultancy marketing (engineering app — roadmap). */
+  /** AORMS-Consultancy marketing + future engineering workspace. */
   consultancy: {
     id: "consultancy",
     label: "AORMS-Consultancy",
     host: `https://consultancy.${AORMS_DOMAIN}`,
     hostnames: [`consultancy.${AORMS_DOMAIN}`] as const,
-    marketingPath: "/",
-  },
-  /** Public documentation wiki. */
-  wiki: {
-    id: "wiki",
-    label: "AORMS Wiki",
-    host: `https://wiki.${AORMS_DOMAIN}`,
-    hostnames: [`wiki.${AORMS_DOMAIN}`] as const,
-    /** Wiki pages live at `/` on wiki host; `/wiki` remains on apex. */
-    rootPath: "/",
-    apexPath: "/wiki",
-  },
-  /** Knowledge Bank portal — EmOI textbook library (staff). */
-  kbank: {
-    id: "kbank",
-    label: "Knowledge Bank portal",
-    host: `https://kbank.${AORMS_DOMAIN}`,
-    hostnames: [`kbank.${AORMS_DOMAIN}`] as const,
-    homePath: "/libraries/knowledge-bank-portal",
-  },
-  /** Client, consultant, contractor & site portals. */
-  external: {
-    id: "external",
-    label: "External portals",
-    host: `https://external.${AORMS_DOMAIN}`,
-    hostnames: [`external.${AORMS_DOMAIN}`] as const,
-    loginPath: "/",
-  },
-  /** AORMS account & licensing hub (personal + company). */
-  account: {
-    id: "account",
-    label: "AORMS account",
-    host: `https://account.${AORMS_DOMAIN}`,
-    hostnames: [`account.${AORMS_DOMAIN}`] as const,
-    homePath: "/",
-    companyPath: "/company-account",
+    marketingPath: AORMS_PLATFORM_PAGES.consultancyMarketing.path,
   },
   /** HCW licensing console (platform admin). */
   admin: {
@@ -81,16 +70,41 @@ for (const [id, surface] of Object.entries(AORMS_SURFACES)) {
 }
 
 /** Resolve which frozen surface this hostname belongs to. */
-export function detectSurface(hostname = typeof window !== "undefined" ? window.location.hostname : ""): AormsSurfaceId | "unknown" {
+export function detectSurface(
+  hostname = typeof window !== "undefined" ? window.location.hostname : "",
+): AormsSurfaceId | "unknown" {
   const exact = HOST_TO_SURFACE.get(hostname);
   if (exact) return exact;
   if (/^admin\./.test(hostname)) return "admin";
-  if (/^wiki\./.test(hostname)) return "wiki";
   return "unknown";
 }
 
-export function isWikiHost(hostname?: string): boolean {
-  return detectSurface(hostname) === "wiki";
+/** 301 target for retired subdomains → aorms.in pages. */
+export function legacySubdomainRedirectUrl(
+  hostname: string,
+  pathname: string,
+  search = "",
+  hash = "",
+): string | null {
+  const apex = AORMS_SURFACES.platform.host;
+  const q = `${search}${hash}`;
+  switch (hostname) {
+    case "wiki.aorms.in":
+      if (pathname === "/" || pathname === "") return `${apex}${AORMS_PLATFORM_PAGES.wiki.path}${q}`;
+      if (pathname.startsWith(AORMS_PLATFORM_PAGES.wiki.path))
+        return `${apex}${pathname}${q}`;
+      return `${apex}${AORMS_PLATFORM_PAGES.wiki.path}${pathname}${q}`;
+    case "kbank.aorms.in":
+      return `${apex}${AORMS_PLATFORM_PAGES.knowledgeBank.path}${q}`;
+    case "external.aorms.in":
+      if (pathname === "/" || pathname === "") return `${apex}${AORMS_PLATFORM_PAGES.externalAccess.path}${q}`;
+      return `${apex}${pathname}${q}`;
+    case "account.aorms.in":
+      if (pathname === "/" || pathname === "") return `${apex}${AORMS_PLATFORM_PAGES.account.path}${q}`;
+      return `${apex}${pathname}${q}`;
+    default:
+      return null;
+  }
 }
 
 export function isStudioHost(hostname?: string): boolean {
@@ -106,27 +120,27 @@ export function isAdminHost(hostname?: string): boolean {
   return detectSurface(hostname) === "admin";
 }
 
-export function isAccountHost(hostname?: string): boolean {
-  return detectSurface(hostname) === "account";
-}
-
-export function isExternalHost(hostname?: string): boolean {
-  return detectSurface(hostname) === "external";
-}
-
-export function isKbankHost(hostname?: string): boolean {
-  return detectSurface(hostname) === "kbank";
-}
-
 export function isConsultancyHost(hostname?: string): boolean {
   return detectSurface(hostname) === "consultancy";
 }
 
-/** Absolute URL for a surface + optional path. */
+/** Absolute URL for a subdomain surface + optional path. */
 export function surfaceAbsoluteUrl(surfaceId: AormsSurfaceId, path = "/"): string {
   const base = AORMS_SURFACES[surfaceId].host.replace(/\/+$/, "");
   const p = path.startsWith("/") ? path : `/${path}`;
   return p === "/" ? base : `${base}${p}`;
+}
+
+/** Absolute URL for a path-only page on aorms.in. */
+export function platformPageUrl(
+  page: keyof typeof AORMS_PLATFORM_PAGES,
+  subpath = "",
+): string {
+  const base = AORMS_SURFACES.platform.host.replace(/\/+$/, "");
+  const root = AORMS_PLATFORM_PAGES[page].path;
+  if (!subpath) return `${base}${root}`;
+  const suffix = subpath.startsWith("/") ? subpath : `/${subpath}`;
+  return `${base}${root}${suffix}`;
 }
 
 /** All production origins that must appear in ALLOWED_ORIGINS (cookie CSRF). */

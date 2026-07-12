@@ -154,6 +154,11 @@ export function AccountPortal() {
       <Stack spacing={3}>
         <PortalPageHeader
           title="Personal account"
+          documentTitle={
+            tab === 0
+              ? `${AORMS_PORTALS.account.personal} — ${AORMS_PORTALS.account.name}`
+              : `${TAB_LABELS[tab]} — ${AORMS_PORTALS.account.personal} — ${AORMS_PORTALS.account.name}`
+          }
           subtitle={`Your portable identity, companies, and security — separate from ${AORMS_PORTALS.studio.title}.`}
           meta={
             <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>

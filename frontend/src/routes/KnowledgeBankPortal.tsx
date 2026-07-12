@@ -94,6 +94,10 @@ export function KnowledgeBankPortal() {
   const [editDirty, setEditDirty] = useState(false);
 
   useEffect(() => {
+    document.title = `${KNOWLEDGE_BANK_PORTAL.title} — ${EMOI.name}`;
+  }, []);
+
+  useEffect(() => {
     const d = detailQ.data;
     if (d?.markdownText != null || d?.rawText != null) {
       setEditRawText(d.markdownText ?? d.rawText ?? "");

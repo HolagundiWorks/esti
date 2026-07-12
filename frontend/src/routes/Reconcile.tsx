@@ -1,6 +1,10 @@
 import {
   Alert,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Stack,
   TextField,
   Typography,
@@ -83,6 +87,7 @@ export function Reconcile() {
   const [error, setError] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [remapCols, setRemapCols] = useState<ReconcileColumnMapping>({});
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   async function upload() {
     if (!file || !label) return;
@@ -102,6 +107,7 @@ export function Reconcile() {
       setLabel("");
       setFile(null);
       setColMap({});
+      setUploadOpen(false);
       utils.reconcile.list.invalidate();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
@@ -111,18 +117,19 @@ export function Reconcile() {
   }
 
   useScreenActions(
-    [
-      {
-        id: "upload-reconcile",
-        zone: "center",
-        tone: "primary",
-        label: busy ? "Uploading…" : "Upload & reconcile",
-        icon: <AddIcon />,
-        disabled: !file || !label || busy,
-        onClick: upload,
-      },
-    ],
-    [file, label, colMap, busy],
+    uploadOpen
+      ? []
+      : [
+          {
+            id: "upload-reconcile",
+            zone: "center",
+            tone: "primary",
+            label: "Upload statement",
+            icon: <AddIcon />,
+            onClick: () => setUploadOpen(true),
+          },
+        ],
+    [uploadOpen],
   );
 
   const detailQ = trpc.reconcile.byId.useQuery(
@@ -258,57 +265,10 @@ export function Reconcile() {
       description="Match bank-statement credits against invoices (CSV / XLSX). Override column names when your bank export uses non-standard headers."
       aside={
         <Stack spacing={1.5}>
-          <TextField
-            id="rcn-label"
-            label="Batch label"
-            placeholder="e.g. HDFC Apr 2026"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            className="esti-input-md"
-            fullWidth
-          />
-          <Button variant="outlined" component="label" fullWidth>
-            {file ? file.name : "Choose statement"}
-            <HiddenFileInput
-              type="file"
-              accept=".csv,.xlsx,.xls"
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setFile(e.target.files?.[0] ?? null)
-              }
-            />
-          </Button>
-          <TextField
-            id="rcn-date-col"
-            label="Date column (optional)"
-            placeholder="e.g. Transaction Date"
-            value={colMap.date ?? ""}
-            onChange={(e) => setColMap((m) => ({ ...m, date: e.target.value || undefined }))}
-            className="esti-input-sm"
-            fullWidth
-          />
-          <TextField
-            id="rcn-desc-col"
-            label="Description column (optional)"
-            placeholder="e.g. Narration"
-            value={colMap.description ?? ""}
-            onChange={(e) => setColMap((m) => ({ ...m, description: e.target.value || undefined }))}
-            className="esti-input-sm"
-            fullWidth
-          />
-          <TextField
-            id="rcn-amt-col"
-            label="Amount column (optional)"
-            placeholder="e.g. Credit"
-            value={colMap.amount ?? ""}
-            onChange={(e) => setColMap((m) => ({ ...m, amount: e.target.value || undefined }))}
-            className="esti-input-sm"
-            fullWidth
-          />
-          {error && (
-            <Alert severity="error">
-              <strong>Upload failed</strong> — {error}
-            </Alert>
-          )}
+          <Typography variant="body2" color="text.secondary">
+            Upload bank or payment-gateway exports (CSV / XLSX). Match credits to open
+            invoices, then settle from the batch row menu.
+          </Typography>
           {settleMsg && (
             <Alert severity="success" onClose={() => setSettleMsg(null)}>
               <strong>Settled</strong> — {settleMsg}
@@ -390,6 +350,85 @@ export function Reconcile() {
           />
         </>
       )}
+
+      <Dialog
+        aria-labelledby="reconcile-upload-title"
+        open={uploadOpen}
+        onClose={() => !busy && setUploadOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle id="reconcile-upload-title">Upload statement</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="rcn-label"
+              label="Batch label"
+              placeholder="e.g. HDFC Apr 2026"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              className="esti-input-md"
+              fullWidth
+            />
+            <Button variant="outlined" component="label" fullWidth>
+              {file ? file.name : "Choose statement"}
+              <HiddenFileInput
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setFile(e.target.files?.[0] ?? null)
+                }
+              />
+            </Button>
+            <TextField
+              id="rcn-date-col"
+              label="Date column (optional)"
+              placeholder="e.g. Transaction Date"
+              value={colMap.date ?? ""}
+              onChange={(e) => setColMap((m) => ({ ...m, date: e.target.value || undefined }))}
+              className="esti-input-sm"
+              fullWidth
+            />
+            <TextField
+              id="rcn-desc-col"
+              label="Description column (optional)"
+              placeholder="e.g. Narration"
+              value={colMap.description ?? ""}
+              onChange={(e) =>
+                setColMap((m) => ({ ...m, description: e.target.value || undefined }))
+              }
+              className="esti-input-sm"
+              fullWidth
+            />
+            <TextField
+              id="rcn-amt-col"
+              label="Amount column (optional)"
+              placeholder="e.g. Credit"
+              value={colMap.amount ?? ""}
+              onChange={(e) => setColMap((m) => ({ ...m, amount: e.target.value || undefined }))}
+              className="esti-input-sm"
+              fullWidth
+            />
+            {error && (
+              <Alert severity="error">
+                <strong>Upload failed</strong> — {error}
+              </Alert>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button disabled={busy} onClick={() => setUploadOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!file || !label || busy}
+            onClick={() => void upload()}
+          >
+            {busy ? "Uploading…" : "Upload & reconcile"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </RailLayout>
   );
 }

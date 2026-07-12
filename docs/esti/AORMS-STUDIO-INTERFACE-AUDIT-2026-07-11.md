@@ -11,15 +11,15 @@
 | Area | Score | Verdict |
 | --- | --- | --- |
 | **Glass rail shell (U0–U6)** | 97% | ✅ Rollout complete; Studio Intelligence uses intentional custom geometry |
-| **Navigation IA vs NAVIGATION.md** | 90% | ◐ Mostly synced; doc gaps on KB portal + capability gates |
-| **ActionDock adoption** | 79% | ◐ 27 route files use `useScreenActions`; 8 screens use inline/row CTAs |
-| **Breadcrumbs + tab titles** | 79% | ◐ 29 screens; `/` and legacy embeds missing |
+| **Navigation IA vs NAVIGATION.md** | 95% | ✅ KB portal + capability gates documented |
+| **ActionDock adoption** | 85% | ◐ Reconcile + Performance fixed; WIP CRM screens remain |
+| **Breadcrumbs + tab titles** | 88% | ◐ Studio home title fixed; account portals tab-aware |
 | **Dialog accessibility** | 92% | ◐ All gaps in parallel-WIP `Projects.tsx` / `Clients.tsx` |
-| **Loading grammar** | 85% | ◐ DataState widespread; 3 routes still bare text |
+| **Loading grammar** | 92% | ✅ I10–I12 + SitePortal skeleton |
 | **Status indicators** | 95% | ◐ `Clients.tsx` TagChip fork (registered D11) |
-| **UX checklist (aggregate)** | 82% | Defined / shippable; polish queue below |
+| **UX checklist (aggregate)** | ~90% | Post-fix I4–I14; I1–I3 blocked on WIP |
 
-**Overall:** AORMS-Studio interface is **production-grade** on shell geometry and kit adoption. Remaining debt clusters in **parallel-WIP CRM screens**, **breadcrumb/title on home**, **NAV doc drift**, and **a handful of inline CTAs**.
+**Overall:** AORMS-Studio interface is **production-grade** on shell geometry and kit adoption. Remaining debt: **parallel-WIP CRM screens (I1–I3)** and accepted/deferred items (I14–I17).
 
 ---
 
@@ -198,21 +198,21 @@ Status: `open` · `done` · `accepted` · `deferred` · `wontfix`
 | **I1** | High | open | `Clients.tsx` | A11y | 2 dialogs missing `aria-labelledby` | Add on WIP lift (D6 scope) |
 | **I2** | High | open | `Projects.tsx` | A11y | "New project" dialog missing `aria-labelledby` | Same |
 | **I3** | Medium | open | `Clients.tsx` | Components | Local `TagChip` filled chips for status | Migrate to `StatusDot` (D11) |
-| **I4** | Medium | open | `/` Studio Intelligence | SEO/a11y | No `PageBreadcrumb` → generic tab title | Set title in rail effect or crumb |
-| **I5** | Medium | open | NAVIGATION.md | Docs | KB portal route missing from Library §5 | Add `/libraries/knowledge-bank-portal` |
-| **I6** | Medium | open | NAVIGATION.md | Docs | Capability gates (Clients, Teams) undocumented | Document `write` / `hrEnabled` pruning |
-| **I7** | Medium | open | NAVIGATION.md | Docs | `kbank.aorms.in` surface behaviour | Add to [AORMS-SURFACE-URLS.md](AORMS-SURFACE-URLS.md) + NAV |
-| **I8** | Medium | open | `Performance.tsx` | CRUD | Inline "Grant reward points" per card | Move to dock or row menu |
-| **I9** | Medium | open | `Reconcile.tsx` | CRUD | Rail file picker + dock upload (dual CTA) | Consolidate to dock-only |
-| **I10** | Low | open | `SystemAdmin.tsx` | Loading | Bare "Loading modules…" | Use `DataState` skeleton |
-| **I11** | Low | open | `StandardsLibrary.tsx` | Loading | Bare "Loading documents…" in detail pane | Skeleton |
-| **I12** | Low | open | `ArchivedProjects.tsx` | Loading | "Reading files…" bare text | Skeleton |
-| **I13** | Low | open | Account portals | SEO | `PortalPageHeader` — no auto `document.title` | Optional title hook |
-| **I14** | Low | open | Library grids | Components | Category/discipline `Chip` in Compliance/Standards | Accept metadata chips or map to StatusDot |
+| **I4** | Medium | **done** | `/` Studio Intelligence | SEO/a11y | No `PageBreadcrumb` → generic tab title | `document.title` in `StudioAbstract` |
+| **I5** | Medium | **done** | NAVIGATION.md | Docs | KB portal route missing from Library §5 | Added `/libraries/knowledge-bank-portal` |
+| **I6** | Medium | **done** | NAVIGATION.md | Docs | Capability gates (Clients, Teams) undocumented | Ribbon gate table added |
+| **I7** | Medium | **done** | NAVIGATION.md | Docs | `kbank.aorms.in` surface behaviour | SURFACE-URLS + NAV §5 |
+| **I8** | Medium | **done** | `Performance.tsx` | CRUD | Inline "Grant reward points" per card | Row menu action |
+| **I9** | Medium | **done** | `Reconcile.tsx` | CRUD | Rail file picker + dock upload (dual CTA) | Dock opens upload dialog |
+| **I10** | Low | **done** | `SystemAdmin.tsx` | Loading | Bare "Loading modules…" | `DataState` skeleton in shell |
+| **I11** | Low | **done** | `StandardsLibrary.tsx` | Loading | Bare "Loading documents…" in detail pane | `DataState` skeleton |
+| **I12** | Low | **done** | `ArchivedProjects.tsx` | Loading | "Reading files…" bare text | Skeleton |
+| **I13** | Low | **done** | Account portals | SEO | `PortalPageHeader` — no auto `document.title` | Tab-aware title hook in `PortalChrome.tsx` |
+| **I14** | Low | accepted | Library grids | Components | Category/discipline `Chip` in Compliance/Standards | Metadata chips — acceptable for taxonomy labels |
 | **I15** | Low | deferred | `Alerts`, `LXOS`, `ArchivedProjects` | CRUD | No dock create actions | By design (read-only / placeholder) |
 | **I16** | Low | accepted | `StudioAbstract.tsx` | Shell | Custom layout vs shared `RailLayout` | Canonical reference — do not wrap |
 | **I17** | Low | accepted | `ContractorPortalStub.tsx` | Shell | Not full glass rail | Stub until contractor portal ships |
-| **I18** | Low | open | `KnowledgeBankPortal.tsx` | TS | Type errors in Docker tsc (pre-existing) | Fix when editing portal |
+| **I18** | Low | **done** | `KnowledgeBankPortal.tsx` | TS | Type errors in Docker tsc (pre-existing) | Clean tsc; portal `document.title` added |
 
 ---
 
@@ -298,8 +298,9 @@ Full queue: [DESIGN-DEBT-REGISTER.md](../hcw-kit/11-audits/DESIGN-DEBT-REGISTER.
 | Date | IDs | Notes |
 | --- | --- | --- |
 | 2026-07-11 | — | Initial interface audit (audit-only; no code changes) |
+| 2026-07-11 | I4–I14, I18 | Fix pass — see [AORMS-STUDIO-INTERFACE-FIX-PLAN-2026-07-11.md](AORMS-STUDIO-INTERFACE-FIX-PLAN-2026-07-11.md) |
 
----
+**Fix plan:** [AORMS-STUDIO-INTERFACE-FIX-PLAN-2026-07-11.md](AORMS-STUDIO-INTERFACE-FIX-PLAN-2026-07-11.md)
 
 ## Related
 

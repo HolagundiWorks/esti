@@ -5941,9 +5941,9 @@ $lp2-gap: 1px;               // shared border thickness
 // â”€â”€ Mobile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @media (max-width: 900px) {
-  .lp2-rail-spacer { display: none; }
+  .lp2-shell .esti-dash-rail-spacer { display: none; }
 
-  .lp2-rail {
+  .lp2-shell .esti-dash-rail.lp2-marketing-rail {
     position: static !important;
     top: auto !important;
     left: auto !important;
@@ -5953,36 +5953,11 @@ $lp2-gap: 1px;               // shared border thickness
     height: auto;
     overflow: visible;
     border-radius: 0 !important;
-    border: none !important;
-    border-bottom: 1px solid var(--lp-border) !important;
-    box-shadow: none !important;
     padding: 0.875rem 1.25rem;
     gap: 0;
   }
 
-  .lp2-rail::before { display: none; }
-  .lp2-rail__burger { display: inline-flex !important; }
-
-  .lp2-rail__collapse { display: none !important; }
-
-  .lp2-rail__tagline,
-  .lp2-rail__nav,
-  .lp2-rail__value-prop,
-  .lp2-rail__dl,
-  .lp2-rail__foot { display: none; }
-
-  .lp2-rail--open .lp2-rail__tagline,
-  .lp2-rail--open .lp2-rail__nav,
-  .lp2-rail--open .lp2-rail__value-prop,
-  .lp2-rail--open .lp2-rail__dl,
-  .lp2-rail--open .lp2-rail__foot {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .lp2-rail--open .lp2-rail__nav { gap: 0.15rem; }
-  .lp2-rail--open .lp2-rail__foot { padding-top: 0.75rem; }
-  .lp2-rail--open .lp2-rail__hcw { margin-top: 0; }
+  .lp2-rail__toggle { display: inline-flex !important; }
 
   .lp2-stage { min-height: auto; }
 
@@ -7052,6 +7027,14 @@ $lp2-gap: 1px;               // shared border thickness
 // â”€â”€ Shared frosted glass recipe â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Applied to every card surface in the stage.
 
+@mixin flat-card {
+  background: var(--lp2-surface, #ffffff) !important;
+  border: 1px solid var(--lp2-border, rgba(20, 21, 23, 0.12)) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 @mixin frost-card {
   // Clear glass (name kept for call sites) â€” light refraction, not milky frost
   background:
@@ -7069,13 +7052,13 @@ $lp2-gap: 1px;               // shared border thickness
     inset 1px 0 0 rgba(255, 255, 255, 0.18) !important;
 }
 
-// Content tiles
-.lp2-shell .lp2-tile           { @include frost-card; }
-.lp2-shell .lp2-step-tile      { @include frost-card; }
+// Content tiles — T7 flat sub-cards (glass reserved for rail + section heads)
+.lp2-shell .lp2-tile           { @include flat-card; }
+.lp2-shell .lp2-step-tile      { @include flat-card; }
 
 // Pricing meters + container
-.lp2-shell .lp2-pricing__meter { @include frost-card; }
-.lp2-shell .lp2-pricing        { @include frost-card; }
+.lp2-shell .lp2-pricing__meter { @include flat-card; }
+.lp2-shell .lp2-pricing        { @include flat-card; }
 
 // Trust / platform strip
 .lp2-shell .lp2-trust {
@@ -7110,8 +7093,8 @@ $lp2-gap: 1px;               // shared border thickness
 .lp2-shell .lp2-tile__title,
 .lp2-shell .lp2-section-head__title,
 .lp2-shell .lp2-hero__h1 {
-  color: #1a0e08;
-  text-shadow: 0 1px 4px rgba(255, 255, 255, 0.55);
+  color: var(--lp2-ink, #141517);
+  text-shadow: none;
 }
 
 .lp2-shell .lp2-tile__detail,
@@ -10530,7 +10513,7 @@ $lp2-gap: 1px;               // shared border thickness
 
 .lp2-plat-trust__tools {
   list-style: none;
-  margin: 0 0 1rem;
+  margin: 0 0 0.5rem;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
@@ -10546,6 +10529,12 @@ $lp2-gap: 1px;               // shared border thickness
     text-decoration: line-through;
     text-decoration-color: rgba(218, 30, 40, 0.45);
   }
+}
+
+.lp2-plat-trust__more {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--lp-ink-faint);
 }
 
 .lp2-plat-trust__arrow {
@@ -10954,7 +10943,7 @@ $lp2-gap: 1px;               // shared border thickness
   pointer-events: none !important;
 }
 
-// ── Marketing rail UX (canonical clear-glass rail · 2026-07-10) ─────────────
+// ── Marketing rail — studio glass chrome (esti-dash-rail · 2026-07) ─────────
 
 $lp2-rail-accent: var(--lp2-orange, #ff4f18);
 $lp2-rail-ink: var(--lp2-ink, #141517);
@@ -10974,24 +10963,14 @@ $lp2-rail-ink-faint: var(--lp2-ink-faint, rgba(20, 21, 23, 0.48));
   cursor: pointer;
 }
 
-.lp2-shell .lp2-rail {
-  border-left: 4px solid $lp2-rail-accent !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.38) !important;
-  border-top: none !important;
-  border-bottom: none !important;
-  background:
-    linear-gradient(
-      175deg,
-      rgba(255, 255, 255, 0.14) 0%,
-      rgba(255, 255, 255, 0.04) 48%,
-      rgba(255, 255, 255, 0.09) 100%
-    ) !important;
-  backdrop-filter: blur(26px) saturate(1.7) brightness(1.08) !important;
-  -webkit-backdrop-filter: blur(26px) saturate(1.7) brightness(1.08) !important;
-  box-shadow:
-    6px 0 32px rgba(20, 21, 23, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    inset 1px 0 0 rgba(255, 255, 255, 0.28) !important;
+.lp2-shell .lp2-glass-dash {
+  --esti-footer-height: 0px;
+  --esti-rail-inset-top: 0px;
+}
+
+.lp2-shell .esti-dash-rail.lp2-marketing-rail {
+  padding: 12px;
+  box-sizing: border-box;
 }
 
 .lp2-shell .lp2-rail__header {
@@ -11117,17 +11096,19 @@ $lp2-rail-ink-faint: var(--lp2-ink-faint, rgba(20, 21, 23, 0.48));
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.3;
-  color: $lp2-rail-ink !important;
+  color: $lp2-rail-ink-muted !important;
   text-decoration: none;
-  border-radius: 10px;
+  border-radius: 0;
+  background: transparent !important;
   text-shadow: none !important;
+  box-shadow: inset 0 3px 0 0 transparent;
   transition:
     color 0.12s ease,
-    background 0.12s ease;
+    box-shadow 0.12s ease;
 
   &:hover {
-    color: $lp2-rail-accent !important;
-    background: rgba(255, 255, 255, 0.38) !important;
+    color: $lp2-rail-ink !important;
+    background: transparent !important;
   }
 
   &:focus-visible {
@@ -11136,32 +11117,22 @@ $lp2-rail-ink-faint: var(--lp2-ink-faint, rgba(20, 21, 23, 0.48));
   }
 
   &--active {
-    color: $lp2-rail-accent !important;
-    background: rgba(255, 255, 255, 0.48) !important;
-    font-weight: 700;
+    color: $lp2-rail-ink !important;
+    background: transparent !important;
+    font-weight: 600;
+    box-shadow: inset 0 3px 0 0 $lp2-rail-accent;
   }
-}
-
-.lp2-shell .lp2-rail__collapse {
-  display: inline-flex !important;
 }
 
 .lp2-shell .lp2-rail__foot {
   flex-shrink: 0;
   margin-top: auto;
   padding: 0.75rem 0.875rem 1rem;
-  border-top: none !important;
+  border-top: 1px solid rgba(20, 21, 23, 0.12) !important;
   box-sizing: border-box;
 
   &::before {
-    content: "";
-    display: block;
-    height: 2px;
-    margin: 0 0 0.75rem;
-    border-radius: 1px;
-    box-shadow:
-      inset 0 1px 0 rgba(20, 21, 23, 0.11),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.42);
+    display: none;
   }
 }
 
@@ -11194,46 +11165,9 @@ $lp2-rail-ink-faint: var(--lp2-ink-faint, rgba(20, 21, 23, 0.48));
   max-width: 10.5rem !important;
 }
 
-// Desktop collapsed — mark + toggle + compact foot
-@media (min-width: 901px) {
-  .lp2-shell .lp2-rail.lp2-rail--collapsed {
-    width: 56px !important;
-
-    .lp2-rail__header {
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 0.35rem;
-      padding: 0.75rem 0.35rem 0.5rem;
-    }
-
-    .lp2-rail__brand {
-      flex: 0 0 auto;
-      justify-content: center;
-    }
-
-    .lp2-rail__foot {
-      padding: 0.5rem 0.35rem 0.75rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .hcw-attribution--rail {
-      align-items: center;
-    }
-  }
-
-  .lp2-shell .lp2-rail-spacer.lp2-rail-spacer--collapsed {
-    flex-basis: 56px !important;
-    width: 56px !important;
-    min-width: 56px !important;
-  }
-}
-
 // Mobile — fixed top bar + slide-down panel
 @media (max-width: 900px) {
-  .lp2-shell .lp2-rail {
+  .lp2-shell .esti-dash-rail.lp2-marketing-rail {
     position: fixed !important;
     top: 0;
     left: 0;
@@ -11256,7 +11190,7 @@ $lp2-rail-ink-faint: var(--lp2-ink-faint, rgba(20, 21, 23, 0.48));
     display: none;
   }
 
-  .lp2-shell .lp2-rail--open {
+  .lp2-shell .lp2-marketing-rail--open {
     bottom: 0;
     max-height: 100dvh !important;
     overflow: hidden !important;
@@ -11281,39 +11215,12 @@ $lp2-rail-ink-faint: var(--lp2-ink-faint, rgba(20, 21, 23, 0.48));
     padding: 0.75rem 1rem 1.25rem;
   }
 
-  .lp2-shell .lp2-rail:not(.lp2-rail--open) .lp2-rail__foot {
+  .lp2-shell .lp2-marketing-rail:not(.lp2-marketing-rail--open) .lp2-rail__foot {
     display: none;
   }
 
   .lp2-shell .lp2-stage {
     padding-top: 3.25rem;
-  }
-}
-
-// ── Open / collapsed rail · SectionDock spacing ─────────────────────────────
-
-.lp2-shell {
-  --hcw-section-dock-bottom: 24px;
-  --esti-section-dock-height: 3.25rem;
-}
-
-.lp2-shell--section-dock .lp2-content {
-  padding-bottom: calc(var(--hcw-section-dock-bottom) + var(--esti-section-dock-height) + 1.25rem);
-}
-
-@media (min-width: 901px) {
-  .lp2-shell .lp2-rail {
-    transition: width 0.22s ease, border-radius 0.22s ease !important;
-  }
-
-  .lp2-shell .lp2-rail-spacer {
-    transition: flex-basis 0.22s ease, width 0.22s ease, min-width 0.22s ease;
-  }
-}
-
-@media (max-width: 900px) {
-  .lp2-shell--section-dock .lp2-content {
-    padding-bottom: calc(var(--hcw-section-dock-bottom) + var(--esti-section-dock-height) + 1.75rem);
   }
 }
 
@@ -11425,21 +11332,9 @@ $lp2-rail-ink-faint: var(--lp2-ink-faint, rgba(20, 21, 23, 0.48));
   padding-bottom: calc(24px + var(--hcw-action-dock-height) + 1.25rem);
 }
 
-.lp2-shell--section-dock.lp2-shell--conversion-dock .lp2-content {
-  padding-bottom: calc(
-    24px + var(--esti-section-dock-height) + var(--hcw-action-dock-height) + 2rem
-  );
-}
-
 @media (max-width: 900px) {
   .lp2-shell--conversion-dock .lp2-content {
     padding-bottom: calc(20px + var(--hcw-action-dock-height) + 1.75rem);
-  }
-
-  .lp2-shell--section-dock.lp2-shell--conversion-dock .lp2-content {
-    padding-bottom: calc(
-      20px + var(--esti-section-dock-height) + var(--hcw-action-dock-height) + 2.25rem
-    );
   }
 }
 

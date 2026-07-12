@@ -212,6 +212,11 @@ export function CompanyAccountPortal() {
       <Stack spacing={3}>
         <PortalPageHeader
           title="Company account"
+          documentTitle={
+            tab === 0
+              ? `${AORMS_PORTALS.account.company} — ${AORMS_PORTALS.account.name}`
+              : `${TAB_LABELS[tab]} — ${AORMS_PORTALS.account.company} — ${AORMS_PORTALS.account.name}`
+          }
           subtitle="Firm identity, members, and workspace administration."
           meta={
             <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>

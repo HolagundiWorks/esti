@@ -72,7 +72,7 @@ called “AORMS portal”, **AORMS-Architecture**, or **HiveD**.
 | **Product name** | **AORMS-Studio** (slug: `aorms-studio`) |
 | **Scope** | Indian architecture office: projects, fees, GST invoicing, drawings, site supervision, HR, client & consultant portals |
 | **Typical URL** | `studio.aorms.in` (legacy `app.aorms.in` → 301) |
-| **Public wiki** | [wiki.aorms.in](https://wiki.aorms.in) · [aorms.in/wiki](https://aorms.in/wiki) |
+| **Public wiki** | [aorms.in/wiki](https://aorms.in/wiki) |
 
 ### AORMS-Consultancy (engineering app — roadmap)
 
@@ -88,16 +88,16 @@ Executable labels: `AORMS_PORTALS` in `frontend/src/lib/product-nomenclature.ts`
 
 | Surface | Display name | URL / route | Notes |
 | --- | --- | --- | --- |
-| **Staff workspace** | **AORMS-Studio** | `studio.aorms.in` · `/login` | Architecture app today; **AORMS-Consultancy** when engineering app ships |
-| **Knowledge Bank portal** | Knowledge Bank portal | `kbank.aorms.in` · `/libraries/knowledge-bank-portal` | EmOI textbook intake → ESTI RAG |
-| **Wiki** | AORMS Wiki | `wiki.aorms.in` · `/wiki/*` | Public documentation |
-| **External portals** | External portals | `external.aorms.in` · `/access` | Client, consultant, contractor, site sign-in |
+| **Staff workspace** | **AORMS-Studio** | `studio.aorms.in` · `/login` | Architecture app today |
+| **Knowledge Bank portal** | Knowledge Bank portal | `/libraries/knowledge-bank-portal` | EmOI textbook intake → ESTI RAG |
+| **Wiki** | AORMS Wiki | `/wiki/*` on **aorms.in** | Public documentation |
+| **External portals** | External portals | `/access` | Client, consultant, contractor, site sign-in |
 | **Client portal** | Client portal | external session | Scoped to client projects |
 | **Consultant portal** | Consultant portal | external session | Alias *collaborator portal* in internal copy |
 | **Contractor portal** | Contractor portal | external session | Rebuild in progress (stub) |
 | **Site portal** | Site portal | site supervisor session | Mobile-first site inspections |
-| **Personal account** | AORMS account | `account.aorms.in` · `/account` | Portable identity + licence hub |
-| **Company account** | Company account | `account.aorms.in` · `/company-account` | Firm owners: GST, members, admin |
+| **Personal account** | AORMS account | `/account` | Portable identity + licence hub |
+| **Company account** | Company account | `/company-account` | Firm owners: GST, members, admin |
 | **Licensing console** | Licensing console | `admin.aorms.in` · `/platform-admin` | Platform operators only |
 | **Consultancy marketing** | **AORMS-Consultancy** | `consultancy.aorms.in` · `/aorms-consultancy` | Engineering app (roadmap) |
 

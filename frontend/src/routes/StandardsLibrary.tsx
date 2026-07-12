@@ -208,10 +208,9 @@ function DocumentsTab() {
 
   if (isLoading) {
     return (
-      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-        <CircularProgress size={16} />
-        <Typography variant="body2">Loading documents…</Typography>
-      </Stack>
+      <DataState loading isEmpty={false} empty={{ title: "" }} columnCount={4}>
+        {null}
+      </DataState>
     );
   }
 

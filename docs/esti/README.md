@@ -27,6 +27,7 @@ in four domains: **HCW-UI**, **AORMS-Studio**, **AI core** (EmOI + ESTI), and
 New here? Read in this order:
 
 0. [AORMS-PLATFORM-NOMENCLATURE](AORMS-PLATFORM-NOMENCLATURE.md) — platform vs **AORMS-Studio** naming
+0b. [AORMS-CONSULTING-FRAMEWORKS](AORMS-CONSULTING-FRAMEWORKS.md) — philosophy + architecture/engineering operational frameworks
 1. [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) — north-star **and live system state for AORMS-Studio**
 2. [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) + [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) — the active rebuild (the old Estimation OS + Construction Cost spine + Rate Books were torn down 2026-06-28; the CMS is the unified replacement built on the Knowledge Bank foundation).
 3. [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS](PLANS-AND-TIERS.md) — role capabilities + **one standard licence** (storage, AI usage; no tiers or trials).
@@ -41,6 +42,7 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | Document | Authority |
 | --- | --- |
 | [AORMS-PLATFORM-NOMENCLATURE](AORMS-PLATFORM-NOMENCLATURE.md) | **Naming** — platform vs AORMS-Studio vs EmOI vs ESTI |
+| [AORMS-CONSULTING-FRAMEWORKS](AORMS-CONSULTING-FRAMEWORKS.md) | **Philosophy + operational frameworks** — architecture vs engineering consultancies |
 | [AORMS-DEVELOPMENT-SPEC](AORMS-DEVELOPMENT-SPEC.md) | **Platform north-star** — pre-release architecture (landing `/`) |
 | [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) | **Read first for code** — AORMS-Studio system state |
 | [NAVIGATION](NAVIGATION.md) | **Canonical navigation IA** — sidebar and module placement |

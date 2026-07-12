@@ -227,7 +227,7 @@ COOKIE_SECURE=true
 # The standalone licensing console (admin.DOMAIN) and every frozen AORMS surface
 # host call this backend — allow them through CORS + the CSRF origin gate.
 # See docs/esti/AORMS-SURFACE-URLS.md
-ALLOWED_ORIGINS=https://${DOMAIN},https://studio.${DOMAIN},https://consultancy.${DOMAIN},https://wiki.${DOMAIN},https://kbank.${DOMAIN},https://external.${DOMAIN},https://account.${DOMAIN},https://admin.${DOMAIN}
+ALLOWED_ORIGINS=https://${DOMAIN},https://studio.${DOMAIN},https://consultancy.${DOMAIN},https://admin.${DOMAIN}
 
 POSTGRES_USER=esti
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}

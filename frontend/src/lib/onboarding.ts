@@ -1,5 +1,5 @@
 // Self-serve account creation. The "Create account" CTA hands off to the AORMS
-// account + licence portal at account.aorms.in (backed by the central licensing
+// account + licence portal at /account on aorms.in (backed by the central licensing
 // platform / hlp_account) — its own hub destination, distinct from the firm
 // workspace /login. `mode=create` opens straight to the sign-up form.
 //

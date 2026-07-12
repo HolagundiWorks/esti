@@ -80,20 +80,18 @@ These belong to **AORMS-Studio** (vertical), not the platform doc landing:
 | `/platform-admin` | **Licensing console** (operators) |
 | `/development` | Full technical specification (markdown) |
 | `/design-system` | HCW-UI-Kit public specimen |
-| `/blog`, `/wiki` | Editorial + user docs (path aliases; canonical wiki: `wiki.aorms.in`) |
+| `/blog`, `/wiki` | Editorial + user docs on **aorms.in** |
 
-**Frozen surface hosts** — see [AORMS-SURFACE-URLS.md](../esti/AORMS-SURFACE-URLS.md):
+**Subdomains** — see [AORMS-SURFACE-URLS.md](../esti/AORMS-SURFACE-URLS.md):
 
 | Host | Surface |
 | --- | --- |
-| `aorms.in` | Platform marketing |
+| `aorms.in` | Platform marketing + path-based pages (wiki, account, access, …) |
 | `studio.aorms.in` | **AORMS-Studio** workspace SPA |
 | `consultancy.aorms.in` | **AORMS-Consultancy** marketing |
-| `wiki.aorms.in` | Wiki |
-| `kbank.aorms.in` | Knowledge Bank portal |
-| `external.aorms.in` | External portals sign-in |
-| `account.aorms.in` | AORMS account hub |
 | `admin.aorms.in` | Licensing console |
+
+Retired hosts (`wiki.`, `kbank.`, `external.`, `account.`) **301 → aorms.in** paths.
 
 ---
 

@@ -35,11 +35,25 @@ Four sections (capability-gated):
 | **Teams** | menu | Teams · Performance · HR |
 | **Office** | menu (2 labelled groups — Hick/Miller) | **Office:** Leads · Proposals · Documents · Contracts · Letters · **Finance:** Invoices · Reconcile · Cashbook · Expenses · Payroll · Financial Reports |
 
+**Capability gates (ribbon pruning — source: `App.tsx`):**
+
+| Item | Gate |
+|---|---|
+| **Clients** | `write` capability |
+| **Teams** menu | `hrEnabled` firm setting — when off, the whole menu is pruned |
+| Teams › Performance | `hrEnabled` + rank ≥ 60 |
+| Teams › HR | `hrEnabled` + `hr:manage` |
+| Office › Leads, Documents, Contracts, Letters | `write` |
+| Office › Proposals | `fees:manage` |
+| Finance › Invoices, Reconcile, Cashbook, Expenses | `invoice:manage` |
+| Finance › Payroll | `hrEnabled` + `hr:manage` |
+| Finance › Financial Reports | `reports:view` |
+
 ### Admin hamburger (ribbon) — `adminGroups`
 | Group | Destinations |
 |---|---|
 | **Third Parties** | Consultants · Contractors · Vendors (Clients promoted to ribbon) |
-| **Library** | Spec catalogue · Standard items · Compliance · Master Plans · Standards |
+| **Library** | Spec catalogue · Standard items · Compliance · Master Plans · Standards · Knowledge Bank portal |
 | **Admin** | Archived projects · System (system admin) |
 
 ### Taskbar footer (centre launchers)
@@ -94,6 +108,7 @@ Route `/office/ai-studio` — plan-gated, rank ≥ 60. Not a ribbon item.
 | Compliance Library | ✅ | `/libraries/compliance` |
 | Master Plan Library | ✅ | `/libraries/master-plans` |
 | Standards Library | ✅ | `/libraries/standards` |
+| Knowledge Bank portal | ✅ | `/libraries/knowledge-bank-portal` (staff L4+, EmOI intake) |
 
 ## 6. Studio (Teams menu)
 | Module | Status | Where |

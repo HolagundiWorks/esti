@@ -4,7 +4,6 @@ import {
   Button,
   Card,
   CardActionArea,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -87,9 +86,10 @@ export function SitePortal() {
             </Typography>
           </Stack>
           {projectsQ.isLoading && (
-            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-              <CircularProgress size={20} />
-              <Typography variant="body2">Loading projects…</Typography>
+            <Stack spacing={1.5} aria-busy="true" aria-label="Loading projects">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} variant="rectangular" height={72} />
+              ))}
             </Stack>
           )}
           {(projectsQ.data ?? []).length === 0 && !projectsQ.isLoading && (

@@ -1135,6 +1135,15 @@ $neu-input-radius: 0;
     max-height: 100dvh;
   }
 
+  // Public marketing pages — studio rail without app header or taskbar footer
+  .lp2-shell .esti-glass-dash .esti-dash-rail.lp2-marketing-rail {
+    top: 0;
+    left: var(--esti-shell-gutter, 16px);
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: 12px;
+  }
+
   .esti-auth-shell .esti-auth-stage-wrap {
     min-height: 100dvh;
   }
@@ -1179,13 +1188,7 @@ $neu-input-radius: 0;
 }
 
 .esti-auth-page {
-  --hcw-section-dock-bottom: 24px;
-  --esti-section-dock-height: 3.25rem;
   min-height: 100vh;
-
-  .lp2-auth-architecture {
-    padding-bottom: calc(var(--hcw-section-dock-bottom) + var(--esti-section-dock-height) + 1rem);
-  }
 
   .esti-auth-stage-wrap .lp2-footer {
     width: 100%;
@@ -1197,10 +1200,31 @@ $neu-input-radius: 0;
   }
 }
 
-.esti-auth-stage__copy {
-  position: relative;
-  z-index: 1;
-  max-width: 36rem;
+.esti-auth-stage-page {
+  display: flex;
+  justify-content: center;
+  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem) 5rem;
+  min-height: min(100vh, 100%);
+  box-sizing: border-box;
+}
+
+.esti-auth-stage-form {
+  width: 100%;
+  max-width: 28rem;
+  margin-inline: auto;
+}
+
+.esti-auth-stage-form h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+@media (max-width: 900px) {
+  .lp2-shell .esti-auth-stage-page {
+    padding-top: 1.5rem;
+  }
 }
 
 .esti-auth-stage__mark {

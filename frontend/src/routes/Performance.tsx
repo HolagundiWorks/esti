@@ -31,6 +31,7 @@ import { useState } from "react";
 import { DataState } from "../components/DataState.js";
 import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -85,6 +86,15 @@ function MemberScoreCard({
                 <StatusDot color="gray" label="Developing" />
               )}
             </Stack>
+            <RowActionsMenu
+              ariaLabel={`Actions for ${member.memberName}`}
+              actions={[
+                {
+                  label: "Grant reward points",
+                  onClick: () => onGrant(member),
+                },
+              ]}
+            />
           </Box>
 
           <Stack spacing={1}>
@@ -125,12 +135,6 @@ function MemberScoreCard({
               <Typography variant="body2" color="text.secondary">Points</Typography>
               <Typography variant="body2"><strong>{member.totalPoints}</strong></Typography>
             </Stack>
-          </Box>
-
-          <Box>
-            <Button variant="text" size="small" onClick={() => onGrant(member)}>
-              Grant reward points
-            </Button>
           </Box>
         </Stack>
       </Box>

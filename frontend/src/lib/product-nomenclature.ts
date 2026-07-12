@@ -2,6 +2,7 @@
  * Product naming — keep in sync with docs/esti/AORMS-PLATFORM-NOMENCLATURE.md.
  * Platform: AORMS (AEC consulting firms only). Apps: AORMS-Studio + AORMS-Consultancy.
  */
+import { platformPageUrl } from "./aorms-surface-urls.js";
 export const AORMS_PLATFORM = {
   name: "AORMS",
   expansion: "Accelerated Operational Resources Management System",
@@ -53,6 +54,8 @@ export const AORMS_APPS = {
     /** @deprecated Use studio.aorms.in — app.aorms.in redirects at nginx. */
     legacyAppUrl: "https://app.aorms.in",
     marketingPath: "/login",
+    /** Unified landing section on `aorms.in`. */
+    landingHref: "/#studio",
     wikiPath: "/wiki/aorms-studio",
     wikiName: "AORMS-Studio docs",
     status: "live" as const,
@@ -64,7 +67,10 @@ export const AORMS_APPS = {
     tagline: "Engineering consultancy workspace",
     audience:
       "Structural, MEP, civil, and multidisciplinary engineering consultancies advising on built-environment projects",
+    appUrl: "https://consultancy.aorms.in",
     marketingPath: "/aorms-consultancy",
+    /** Unified landing section on `aorms.in`. */
+    landingHref: "/#consultancy",
     wikiPath: "/wiki/aorms-consultancy",
     status: "roadmap" as const,
   },
@@ -99,7 +105,7 @@ export const PLATFORM_APPS = [
       "ESTI · internal AI agent · Ask ESTI",
     ],
     workspaceSlug: AORMS_STUDIO.slug,
-    href: AORMS_STUDIO.marketingPath,
+    href: AORMS_STUDIO.landingHref,
     cta: `Explore ${AORMS_STUDIO.title}`,
   },
   {
@@ -116,7 +122,7 @@ export const PLATFORM_APPS = [
       "EmOI · external AI agent · governed intake",
     ],
     workspaceSlug: AORMS_CONSULTANCY.slug,
-    href: AORMS_CONSULTANCY.marketingPath,
+    href: AORMS_CONSULTANCY.landingHref,
     cta: `Learn about ${AORMS_CONSULTANCY.title}`,
   },
 ] as const;
@@ -151,7 +157,7 @@ export const AORMS_PORTALS = {
     loginPageLink: "Client, consultant, contractor & site portals",
     marketingList: "Client, consultant, contractor, and site portals",
     stageHeadline: "External portal access",
-    url: "https://external.aorms.in",
+    url: platformPageUrl("externalAccess"),
   },
   account: {
     name: "AORMS account",
@@ -164,7 +170,7 @@ export const AORMS_PORTALS = {
     myAccount: "My AORMS account",
     stageHeadline: "AORMS account",
     stageSubline: "Identity, companies, and licence — managed in one place.",
-    url: "https://account.aorms.in",
+    url: platformPageUrl("account"),
   },
   auth: {
     licensingHeadline: "Licensing console",
@@ -213,8 +219,7 @@ export const ESTI = {
 export const KNOWLEDGE_BANK_PORTAL = {
   title: "Knowledge Bank portal",
   route: "/libraries/knowledge-bank-portal",
-  /** Frozen staff surface host. */
-  host: "https://kbank.aorms.in",
+  url: platformPageUrl("knowledgeBank"),
   summary:
     "Governed reference library: HCW Markdown Tool converts PDFs to markdown; EmOI rephrases and summarises; published sections are available to ESTI (Ask ESTI).",
 } as const;

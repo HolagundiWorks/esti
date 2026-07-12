@@ -13,6 +13,7 @@ packages/contracts/   shared TS: money (paise/Indian format), GST systems, FY, Z
 backend/              Fastify + tRPC + Drizzle (PostgreSQL) — system of record
 worker/               Python: ezdxf (DXF takeoff), pymupdf4llm (Knowledge Bank PDF→Markdown), WeasyPrint (PDF), pandas (reconcile)
 frontend/             Vite + React + TS + MUI/HCW-UI-Kit — the SPA (tRPC, type-safe to backend)
+packages/hcw-ui-kit/  @hcw/ui-kit v0.5.0 — design system (see docs/hcw-kit/README.md)
 compose.yaml          Podman pod: postgres, redis, minio, backend, worker, frontend
 .github/workflows/    ESTI-only CI (TS typecheck/lint/test + Python ruff/pytest)
 ```

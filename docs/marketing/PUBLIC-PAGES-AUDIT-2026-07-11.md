@@ -16,7 +16,7 @@ Status: `open` · `in_progress` · `done` · `wontfix` · `deferred`
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | **C1** | Critical | done | `/*` unknown on platform | UX / SEO | Unknown paths rendered **Landing** (soft-404) | **`NotFound`** route | — |
 | **C2** | Critical | done | `/demo` | Cross-link | Linked 30+ times; no route | Redirect → `/login`; content links updated | — |
-| **H1** | High | done | Wiki canonical | SEO | Sitemap/prerender used `aorms.in/wiki` | `WIKI_BASE` = `wiki.aorms.in` | — |
+| **H1** | High | done | Wiki canonical | SEO | Sitemap/prerender used stale hosts | `WIKI_BASE` = `aorms.in/wiki` (pages model) | — |
 | **H2** | High | done | Wiki content | Docs | Dead **`estimation-and-boq`** links | Removed; wiki index synced | — |
 | **H3** | High | done | `public/sitemap.xml` | SEO | Stale committed sitemap | **Prerender copies** to `public/sitemap.xml` on every build | — |
 | **H4** | High | done | Footer `/demo` | Nav | Broken demo URL in footer | Sign in `/login` | — |
@@ -33,7 +33,7 @@ Status: `open` · `in_progress` · `done` · `wontfix` · `deferred`
 | **L3** | Low | deferred | — | Careers | No careers page | When hiring | — |
 | **L4** | Low | done | `/contact` | IA | mailto only | **`/contact` → `/about#contact`** | — |
 | **L5** | Low | done | — | A11y | No accessibility statement | **`/legal#accessibility`** §10 | — |
-| **L6** | Low | open | Rail wiki link | Nav | `/wiki` path alias vs `wiki.aorms.in` | Canonical in SEO/meta only; path kept for SPA | — |
+| **L6** | Low | done | Wiki rail | Nav | Wiki on apex paths only | `/wiki` on aorms.in; legacy `wiki.aorms.in` → 301 |
 | **L7** | Low | wontfix | — | i18n | English only | v1 intentional | — |
 
 ---
@@ -65,5 +65,6 @@ After `pnpm build` in `frontend/`:
 ## Related
 
 - [`11-audits/README.md`](../hcw-kit/11-audits/README.md) — full audit index
+- [`PUBLIC-PAGES-UX-AUDIT-2026-07-11.md`](PUBLIC-PAGES-UX-AUDIT-2026-07-11.md) — UI/UX checklist pass (2026-07-11)
 - [`LANDING-REDESIGN-CONTEXT.md`](LANDING-REDESIGN-CONTEXT.md)
 - [`docs/esti/AORMS-PLATFORM-NOMENCLATURE.md`](../esti/AORMS-PLATFORM-NOMENCLATURE.md)

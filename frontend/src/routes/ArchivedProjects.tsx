@@ -6,6 +6,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -112,7 +113,12 @@ function FileArchiveModal({
       <DialogTitle id="archived-projects-files-title">{`Files — ${project.ref} · ${project.title}`}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
-          {previewQ.isLoading && <Typography>Reading files…</Typography>}
+          {previewQ.isLoading && (
+            <Stack spacing={1}>
+              <Skeleton variant="text" width="55%" />
+              <Skeleton variant="rectangular" height={72} />
+            </Stack>
+          )}
           {p && !archived && (
             <>
               <Typography>

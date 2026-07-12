@@ -47,15 +47,14 @@ not hard-code product strings in UI/SEO.
 
 | Path / host | Role |
 | --- | --- |
-| `/` · **aorms.in** | Platform landing — operational + design frameworks, EmOI |
-| **studio.aorms.in** · `/login`, `/demo` | **AORMS-Studio** workspace entry (legacy `app.aorms.in` → 301) |
-| **consultancy.aorms.in** · `/aorms-consultancy` | **AORMS-Consultancy** engineering app marketing (roadmap) |
-| **wiki.aorms.in** · `/wiki` | Four-pillar wiki: HCW-UI · AORMS-Studio · AI core · Management |
-| **kbank.aorms.in** | Knowledge Bank portal (EmOI textbook library) |
-| **external.aorms.in** · `/access` | Client, consultant, contractor, site portal sign-in |
-| **account.aorms.in** · `/account` | AORMS account & licensing hub |
-| **admin.aorms.in** | Licensing console (operators) |
-| `/development` | Full platform technical spec (markdown) |
+| `/` · **aorms.in** | Platform landing — operational + design frameworks, EmOI; all path-based pages below |
+| `/wiki` | Four-pillar wiki: HCW-UI · AORMS-Studio · AI core · Management |
+| `/access` | Client, consultant, contractor, site portal sign-in |
+| `/account` · `/company-account` | AORMS account & licensing hub |
+| `/libraries/knowledge-bank-portal` | Knowledge Bank portal (EmOI textbook library) |
+| **studio.aorms.in** · `/login` | **AORMS-Studio** workspace (architecture) |
+| **consultancy.aorms.in** · `/aorms-consultancy` | **AORMS-Consultancy** engineering marketing (roadmap) |
+| **admin.aorms.in** | Licensing console (operators only) |
 
 Frozen host map: [`docs/esti/AORMS-SURFACE-URLS.md`](docs/esti/AORMS-SURFACE-URLS.md) ·
 `frontend/src/lib/aorms-surface-urls.ts`.
@@ -64,6 +63,8 @@ Frozen host map: [`docs/esti/AORMS-SURFACE-URLS.md`](docs/esti/AORMS-SURFACE-URL
 - [`docs/marketing/LANDING-REDESIGN-CONTEXT.md`](docs/marketing/LANDING-REDESIGN-CONTEXT.md) — landing/marketing brief.
 - [`docs/hcw-kit/11-audits/README.md`](docs/hcw-kit/11-audits/README.md) — audit index (kit + surfaces).
 - [`docs/marketing/PUBLIC-PAGES-AUDIT-2026-07-11.md`](docs/marketing/PUBLIC-PAGES-AUDIT-2026-07-11.md) — public URL audit & tracked issues.
+- [`docs/marketing/PUBLIC-PAGES-UX-AUDIT-2026-07-11.md`](docs/marketing/PUBLIC-PAGES-UX-AUDIT-2026-07-11.md) — public pages UI/UX audit (2026-07-11).
+- [`docs/marketing/PUBLIC-PAGES-UX-FIX-PLAN-2026-07-11.md`](docs/marketing/PUBLIC-PAGES-UX-FIX-PLAN-2026-07-11.md) — UX fix plan + changelog.
 - [`docs/esti/SECURITY-AUDIT-2026-07-11.md`](docs/esti/SECURITY-AUDIT-2026-07-11.md) — application security audit (2026-07-11).
 - [`docs/esti/AORMS-STUDIO-INTERFACE-AUDIT-2026-07-11.md`](docs/esti/AORMS-STUDIO-INTERFACE-AUDIT-2026-07-11.md) — authenticated workspace UI audit (2026-07-11).
 
@@ -73,15 +74,18 @@ via the repo’s wiki sync/build step.
 
 ## UI / design system — HCW-UI-KIT
 
-> **⚠️ CANONICAL (2026-07): `@hcw/ui-kit`** (*HCW-UI-Kit — Human Centric Works*,
+> **⚠️ CANONICAL (2026-07): `@hcw/ui-kit` v0.5.0** (*HCW-UI-Kit — Human Centric Works*,
 > `packages/hcw-ui-kit`) is the centralised, **layered** design system deployed
 > against **every** surface — **AORMS-Studio**, client/consultant portals,
-> licensing console, and the landing page. Full spec: **[`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md)**.
-> **`@carbon/react` was removed (2026-07).** The landing page (`Landing.tsx`,
-> `components/landing/**`, `landing.scss`) already used MUI components; the
-> Carbon *Sass* it depended on for theme colours and the type scale is now a
-> static, hand-owned CSS custom-property block (`--cds-*` in `frontend/src/styles.scss`)
-> — no `@carbon/react` package, no Carbon React components anywhere.
+> licensing console, and the landing page. **`@carbon/react` was removed (2026-07).**
+> Carbon *Sass* colours/type scale survive only as a frozen `--cds-*` compat block in
+> `frontend/src/styles.scss` — no Carbon React components anywhere.
+>
+> **Documentation map (read in order):** [`docs/hcw-kit/README.md`](docs/hcw-kit/README.md)
+> (sections 00–13). Agent contract + detection recipes:
+> [`docs/esti/HCW-KIT-AI-KNOWLEDGE-BASE.md`](docs/esti/HCW-KIT-AI-KNOWLEDGE-BASE.md).
+> Living debt queue: [`DESIGN-DEBT-REGISTER.md`](docs/hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md).
+> Audit index: [`11-audits/README.md`](docs/hcw-kit/11-audits/README.md).
 >
 > **Thesis: depth encodes importance.** Three material languages stack by z-depth
 > — pick a layer by the element's ROLE, never by taste:
@@ -98,54 +102,83 @@ via the repo’s wiki sync/build step.
 >    (full-width section openers). Landing sub-cards stay **flat** — no glass on
 >    every tile (see HCW-UI-KIT.md § Marketing shell).
 >
-> **Spatial model — Rail · Stage · Taskbar footer · ActionDock:** the app shell is
-> glass **rail** (20%, full viewport height, fixed) + **stage** (scrolls independently),
-> with a **glass taskbar footer** (calculator LEFT · launcher cluster CENTRE · tray
-> RIGHT — `AppFooterBar`; the old FloatingDock is retired) and a **global,
-> context-aware ActionDock** floating bottom-centre. Studio Intelligence (`/`) is the
-> canonical glass-rail reference; marketing uses the same model without a taskbar
-> (dock-only CTAs). Rollout:
-> [`docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md`](docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md)
-> (U0–U6 ✅).
-> **Login/auth forms sit in the rail, not on the stage.** Screen CTAs migrate into
-> the dock via `useScreenActions` (left=destroy · center=create · right=commit);
-> inline page buttons are removed as screens adopt it.
+> **Spatial model — Rail · Stage · Taskbar footer · ActionDock:** glass **rail**
+> (20%, full viewport height, fixed) + **stage** (scrolls independently), **glass
+> taskbar footer** (calculator LEFT · launcher cluster CENTRE · tray RIGHT —
+> `AppFooterBar`), and a **global ActionDock** (LEFT destroy · CENTER create ·
+> RIGHT commit). Studio Intelligence (`/`) is the canonical glass-rail reference;
+> marketing uses the same model without a taskbar (dock-only CTAs). Rollout U0–U6 ✅:
+> [`AORMS-UI-AUTOPILOT-ROADMAP.md`](docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md).
+> **Login/auth forms sit in the rail, not on the stage.** Screen CTAs via
+> `useScreenActions` (publish `[]` while dialogs open).
 >
-> **Brand font: Urbanist** (OFL) across the MUI product — self-hosted via
-> `@fontsource/urbanist` (imported in `main.tsx`), mirrored in the kit theme.
+> **Brand font: Urbanist** (OFL) — `@fontsource/urbanist` in `main.tsx`, mirrored
+> in the kit theme.
+>
+> **Colour schemes:** `createAormsTheme({ scheme })` — `light` (default) · `dark` ·
+> `highContrast`. `MuiRoot({ scheme })` wires the provider; Settings → Appearance
+> persists choice (preview-labelled). Gallery: `/design-system#schemes`.
 
-**Governance chain (2026-07-11):** [`docs/HCW-DESIGN-PLAYBOOK.md`](docs/HCW-DESIGN-PLAYBOOK.md)
-(enduring principles) → [`docs/hcw-kit/00-CONSTITUTION.md`](docs/hcw-kit/00-CONSTITUTION.md)
-(supreme design law) → [`docs/hcw-kit/12-AI-AGENT-RULEBOOK.md`](docs/hcw-kit/12-AI-AGENT-RULEBOOK.md)
-(permanent AI behaviour) → hierarchy map [`docs/hcw-kit/README.md`](docs/hcw-kit/README.md)
-(sections 00–13: token governance, component quality checklist, UX review checklists,
-MUI mapping, audits, and the **living** [`DESIGN-DEBT-REGISTER.md`](docs/hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md)).
+**Governance chain:** [`HCW-DESIGN-PLAYBOOK.md`](docs/HCW-DESIGN-PLAYBOOK.md) (why) →
+[`00-CONSTITUTION.md`](docs/hcw-kit/00-CONSTITUTION.md) (law) →
+[`12-AI-AGENT-RULEBOOK.md`](docs/hcw-kit/12-AI-AGENT-RULEBOOK.md) (permanent AI behaviour) →
+[`HCW-KIT-AI-KNOWLEDGE-BASE.md`](docs/esti/HCW-KIT-AI-KNOWLEDGE-BASE.md) (R1–R9 recipes).
 
-**Canonical guides:** **[`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md)** — the
-layer philosophy, spatial model and adoption path (single source of truth).
-**[`docs/esti/HCW-UI-UX-PRINCIPLES.md`](docs/esti/HCW-UI-UX-PRINCIPLES.md)** — UX laws,
-cognitive load, accessibility, and review checklist.
-[`docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md`](docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md) —
-glass-rail rollout + login-in-rail queue.
-[`docs/esti/AORMS-BRANDING-KIT.md`](docs/esti/AORMS-BRANDING-KIT.md) — brand marks +
-colour/type heritage. [`docs/esti/MATERIAL-UI-DIRECTION.md`](docs/esti/MATERIAL-UI-DIRECTION.md)
-— the historical Carbon→MUI migration playbook.
+| # | Topic | Canonical doc |
+| --- | --- | --- |
+| 01 | Layers · spatial model | [`HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md) |
+| 02 | Tokens (executable) | `packages/hcw-ui-kit/src/tokens.ts` · [`02-TOKEN-GOVERNANCE.md`](docs/hcw-kit/02-TOKEN-GOVERNANCE.md) |
+| 03 | Components | [`CHANGELOG`](packages/hcw-ui-kit/CHANGELOG.md) · [`03-COMPONENT-QUALITY-CHECKLIST.md`](docs/hcw-kit/03-COMPONENT-QUALITY-CHECKLIST.md) |
+| 05 | Page templates (8 anatomies) | [`05-TEMPLATES.md`](docs/hcw-kit/05-TEMPLATES.md) — clone shipped references |
+| 07 | UX checklists | [`HCW-UI-UX-PRINCIPLES.md`](docs/esti/HCW-UI-UX-PRINCIPLES.md) · [`07-UX-REVIEW-CHECKLISTS.md`](docs/hcw-kit/07-UX-REVIEW-CHECKLISTS.md) |
+| 10 | MUI mapping | [`10-MUI-MAPPING.md`](docs/hcw-kit/10-MUI-MAPPING.md) — MUI is implementation only |
+| 11 | Audits + debt | [`11-audits/README.md`](docs/hcw-kit/11-audits/README.md) · [`DESIGN-DEBT-REGISTER.md`](docs/hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md) |
+| 09 | Kit semver / contribution | [`packages/hcw-ui-kit/GOVERNANCE.md`](packages/hcw-ui-kit/GOVERNANCE.md) |
+
+**Kit primitives** (`@hcw/ui-kit` — use these, never fork):
+
+| Primitive | Role |
+| --- | --- |
+| `MuiRoot` | Theme provider (`scheme` prop) |
+| `Surface` | Layer 1/2/3 material |
+| `GlassRail` | Rail shell (clear/heading glass variants) |
+| `ActionDock` + `useScreenActions` | Global dock contract |
+| `TaskbarFooter` | App footer launchers |
+| `SectionDock` | Marketing scroll-spy nav |
+| `HealthGlassOrb` | Zone health (shape + colour) |
+| `BrandMark` | HCW mark |
+| `StatusDot` | Status indicator (never filled Chip) |
+| `DataState` | Loading skeleton + empty state |
+| `ConfirmModal` | Destroy confirmation |
+| `PageBreadcrumb` | Wayfinding + `document.title` |
+| `ToastHost` + `pushToast` | Transient feedback |
+| `Avatar` + `getInitials` | Identity mark (colour injected by caller) |
+
+App compat shims re-export kit primitives where noted (`StatusTag` delegates to
+`StatusDot`). Domain colour logic (`StaffAvatar`, `resolveColor`) stays app-side.
+
+Brand heritage: [`AORMS-BRANDING-KIT.md`](docs/esti/AORMS-BRANDING-KIT.md).
+Historical Carbon→MUI migration: [`MATERIAL-UI-DIRECTION.md`](docs/esti/MATERIAL-UI-DIRECTION.md).
+
+**Open design debt (2026-07-11):** D3s dark/HC owner sign-off · D2e wire Playwright
+`visual` project into CI · D11 `Clients.tsx` parallel-WIP (TagChip + dialog a11y).
+Skill: `.claude/skills/hcw-design-audit`.
 
 ### UI task order
 
-1. Read [`docs/esti/HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md) — layers, spatial model, dock zones.
-   Read [`docs/esti/HCW-UI-UX-PRINCIPLES.md`](docs/esti/HCW-UI-UX-PRINCIPLES.md) — UX laws, a11y, review checklist.
-2. Build app/portal/landing screens from `@mui/material` + `@hcw/ui-kit` (`MuiRoot`,
- `Surface`, `GlassRail`, `useScreenActions`, `HealthGlassOrb`) — never hard-coded
- hex/gradients; raw colour lives ONLY in `packages/hcw-ui-kit/src/tokens.ts`.
- `frontend/src/theme/` is a thin re-export shim of the kit — don't add styling there.
- `frontend/src/styles.scss`'s `:root` block is a static, Carbon-derived `--cds-*`
- compatibility layer for pre-HCW-UI-Kit call sites — prefer kit tokens for new code,
- don't add to it. Marketing atmosphere (contours) and editorial type stay in
- `landing.scss`; marketing glass hierarchy follows HCW-UI-KIT.md (clear rail +
- heading glass only).
-3. No automated visual-policy guard runs in CI for this repo (the old Carbon
-   enforcement guard was removed with `@carbon/react`); code review is the check.
+1. Read [`DESIGN-DEBT-REGISTER.md`](docs/hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md) — current state.
+2. Read [`HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md) + [`05-TEMPLATES.md`](docs/hcw-kit/05-TEMPLATES.md) — pick the shipped reference anatomy.
+3. Read [`HCW-UI-UX-PRINCIPLES.md`](docs/esti/HCW-UI-UX-PRINCIPLES.md) + [`07-UX-REVIEW-CHECKLISTS.md`](docs/hcw-kit/07-UX-REVIEW-CHECKLISTS.md) before review.
+4. Build from `@mui/material` (themed/neutral per [`10-MUI-MAPPING.md`](docs/hcw-kit/10-MUI-MAPPING.md)) + `@hcw/ui-kit` — never hard-coded hex;
+   raw colour lives ONLY in `packages/hcw-ui-kit/src/tokens.ts` (+ sanctioned
+   `DATA_VIZ` for canvas/SVG). `frontend/src/theme/` is a thin re-export shim.
+   Prefer kit tokens over `--cds-*` compat; never add new `--cds-*` usage.
+   Marketing atmosphere in `landing.scss`; app-screen CSS in `styles.scss` (structural only).
+5. Kit-first: shared visual changes land in `packages/hcw-ui-kit` once. After kit
+   edits in Docker dev: `docker cp` kit `src/` into `esti-frontend` (Windows bind-mounts
+   lag), then `pnpm test` in the kit and typecheck frontend.
+6. Visual regression: `e2e/tests/visual-regression.spec.ts` (Playwright `visual`
+   project; baselines under `e2e/tests/visual-regression.spec.ts-snapshots/`).
 
 **AORMS AI:** `@hcw/aorms-ai-kit` (prompts + Ollama SDK) — backend dependency; product docs stay in `docs/esti/`.
 
