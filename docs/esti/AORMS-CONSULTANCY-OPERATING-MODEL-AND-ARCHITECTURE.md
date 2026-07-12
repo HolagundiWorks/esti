@@ -159,15 +159,15 @@ verbatim — engineering only adds the *fee-model + timesheet* front end.
 - **Surfaces** — `consultancy.aorms.in` + slug `aorms-consultancy` are already frozen in
   [`AORMS-SURFACE-URLS.md`](AORMS-SURFACE-URLS.md) and `frontend/src/lib/aorms-surface-urls.ts`.
 
-## 9. Phased rollout
+## 9. Phased rollout — **delivered 2026-07-12** (all five phases shipped; migrations 0183–0191)
 
 | Phase | Theme | Ships |
 | --- | --- | --- |
-| **0 — Living record** 🔨 *(in build 2026-07-12)* | The engagement spine | `engagements`, `disciplines`, `deliverables` register, transmittals (reuse), client portal (scoped) |
-| **1 — Reliance engine** | Governance | `reviewChains` (named serial sign-off + check categories + EoR), `technicalQueries`, issue gating |
-| **2 — Commercial** | Fee & time | `feeAgreements`/`feeStages`, `timesheets`/`rateCards`, `variations`, WIP/utilisation/realisation, stage invoicing |
-| **3 — Risk** | Defensibility | `riskRegister`, `insurance` (PI + reliance), compliance gates, EmOI input validation |
-| **4 — Intelligence** | Internal agent | precedent search, calc-lineage Q&A, capacity analytics |
+| **0 — Living record** ✅ | The engagement spine | `engagements`, `disciplines`, `deliverables` register, transmittals (reuse), client portal (scoped) |
+| **1 — Reliance engine** ✅ | Governance | `reviewChains` (named serial sign-off + check categories + EoR), `technicalQueries`, issue gating |
+| **2 — Commercial** ✅ | Fee & time | `feeAgreements`/`feeStages`, `timesheets`/`rateCards`, `variations`, WIP/utilisation/realisation, stage invoicing |
+| **3 — Risk** ✅ | Defensibility | `riskRegister`, `insurance` (PI + reliance), compliance gates, EmOI input validation |
+| **4 — Intelligence** ✅ | Internal agent | precedent search, calc-lineage Q&A, capacity analytics |
 
 ## 10. Decisions (resolved 2026-07-12 — Phase 0 unblocked)
 
