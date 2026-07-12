@@ -29,12 +29,16 @@ import {
   ConsGrade,
   CONS_ENGAGEMENT_STATUS_TAG,
   CONS_FEE_STAGE_STATUS_TAG,
+  CONSULTANCY_TYPE_LABEL,
   CONS_INPUT_PACK_STATUS_TAG,
+  CONS_PHASE_STATUS_TAG,
   CONS_RISK_STATUS_TAG,
   CONS_TQ_STATUS_TAG,
   CONS_VARIATION_STATUS_TAG,
   CheckCategory,
   ConsEngagementStatus,
+  ConsPhaseStatus,
+  ConsultancyType,
   DeliverableStatus,
   ENGAGEMENT_MODEL_LABEL,
   ENGINEERING_DISCIPLINE_LABEL,
@@ -180,6 +184,23 @@ export function ConsultancyEngagements() {
     onSuccess: invalidate,
   });
 
+  // Typed scope — engagement phases.
+  const setPhaseStatus = trpc.consultancy.phases.setStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the phase" },
+    onSuccess: invalidate,
+  });
+  const addPhase = trpc.consultancy.phases.add.useMutation({
+    meta: { errorTitle: "Couldn't add the phase" },
+    onSuccess: () => {
+      invalidate();
+      setPhaseOpen(false);
+    },
+  });
+  const removePhase = trpc.consultancy.phases.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the phase" },
+    onSuccess: invalidate,
+  });
+
   // Phase 3 — defensibility layer.
   const insuranceQ = trpc.consultancy.insurance.get.useQuery();
   const recordPack = trpc.consultancy.inputPacks.record.useMutation({
@@ -295,7 +316,12 @@ export function ConsultancyEngagements() {
   const [engOpen, setEngOpen] = useState(false);
   const [engTitle, setEngTitle] = useState("");
   const [engModel, setEngModel] = useState<EngagementModel>("FULL_DESIGN");
+  const [engConsType, setEngConsType] = useState<ConsultancyType | "">("STRUCTURAL");
   const [engDiscipline, setEngDiscipline] = useState<EngineeringDiscipline>("STRUCTURAL");
+  // Custom-phase dialog.
+  const [phaseOpen, setPhaseOpen] = useState(false);
+  const [phaseName, setPhaseName] = useState("");
+  const [phaseScope, setPhaseScope] = useState("");
   const [engStage, setEngStage] = useState("");
   const [engReliance, setEngReliance] = useState("");
 
@@ -363,7 +389,8 @@ export function ConsultancyEngagements() {
 
   const anyDialogOpen =
     engOpen || delOpen || tqOpen || feeOpen || timeOpen || ratesOpen || voOpen ||
-    packOpen || riskOpen || relOpen || askOpen || !!emoiFor || !!tqAnswerFor || !!tqCloseFor;
+    packOpen || riskOpen || relOpen || askOpen || phaseOpen ||
+    !!emoiFor || !!tqAnswerFor || !!tqCloseFor;
   useScreenActions(
     anyDialogOpen
       ? []
@@ -590,11 +617,10 @@ export function ConsultancyEngagements() {
                       {detail.title}
                     </Typography>
                     <span className="esti-label esti-label--secondary">
-                      {ENGAGEMENT_MODEL_LABEL[detail.model as EngagementModel] ?? detail.model} ·
-                      lead:{" "}
-                      {ENGINEERING_DISCIPLINE_LABEL[
-                        detail.leadDiscipline as EngineeringDiscipline
-                      ] ?? detail.leadDiscipline}
+                      {ENGAGEMENT_MODEL_LABEL[detail.model as EngagementModel] ?? detail.model}
+                      {detail.consultancyType
+                        ? ` · ${CONSULTANCY_TYPE_LABEL[detail.consultancyType as ConsultancyType] ?? detail.consultancyType}`
+                        : ` · lead: ${ENGINEERING_DISCIPLINE_LABEL[detail.leadDiscipline as EngineeringDiscipline] ?? detail.leadDiscipline}`}
                       {detail.stage ? ` · ${detail.stage}` : ""}
                     </span>
                     {detail.relianceScope && (
@@ -673,6 +699,90 @@ export function ConsultancyEngagements() {
                     ]}
                   />
                 </Stack>
+              </Box>
+
+              {/* Typed scope of work — the consultancy's time is bounded by these phases. */}
+              <Box>
+                <Stack direction="row" spacing={1} sx={{ alignItems: "baseline" }}>
+                  <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600 }} className="esti-grow">
+                    Scope of work
+                  </Typography>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => {
+                      setPhaseName("");
+                      setPhaseScope("");
+                      setPhaseOpen(true);
+                    }}
+                  >
+                    Add phase
+                  </Button>
+                </Stack>
+                {detail.phases.length === 0 ? (
+                  <span className="esti-label esti-label--secondary">
+                    No scope recorded — pick a consultancy type at creation to seed the
+                    typical phases, or add phases here. Work outside the recorded scope is
+                    a variation.
+                  </span>
+                ) : (
+                  <Stack spacing={1} sx={{ mt: 0.5 }}>
+                    {detail.phases.map((ph) => (
+                      <Stack key={ph.id} direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
+                        <Stack spacing={0.25} className="esti-grow">
+                          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {ph.name}
+                            </Typography>
+                            <StatusTag
+                              value={ph.status as ConsPhaseStatus}
+                              map={CONS_PHASE_STATUS_TAG}
+                            />
+                          </Stack>
+                          {Array.isArray(ph.scope) && ph.scope.length > 0 && (
+                            <span className="esti-label esti-label--secondary">
+                              {(ph.scope as string[]).join(" · ")}
+                            </span>
+                          )}
+                        </Stack>
+                        <RowActionsMenu
+                          actions={[
+                            ...(ph.status !== "ACTIVE"
+                              ? [
+                                  {
+                                    label: "Start (set current stage)",
+                                    onClick: () =>
+                                      setPhaseStatus.mutate({ id: ph.id, status: "ACTIVE" }),
+                                  },
+                                ]
+                              : []),
+                            ...(ph.status !== "DONE"
+                              ? [
+                                  {
+                                    label: "Mark done",
+                                    onClick: () =>
+                                      setPhaseStatus.mutate({ id: ph.id, status: "DONE" }),
+                                  },
+                                ]
+                              : [
+                                  {
+                                    label: "Reopen",
+                                    onClick: () =>
+                                      setPhaseStatus.mutate({ id: ph.id, status: "PENDING" }),
+                                  },
+                                ]),
+                            {
+                              label: "Delete",
+                              danger: true,
+                              disabled: removePhase.isPending,
+                              onClick: () => removePhase.mutate({ id: ph.id }),
+                            },
+                          ]}
+                        />
+                      </Stack>
+                    ))}
+                  </Stack>
+                )}
               </Box>
 
               {/* EmOI input gate — unvalidated packs hold issue on the whole engagement. */}
@@ -1431,6 +1541,53 @@ export function ConsultancyEngagements() {
         </DialogActions>
       </Dialog>
 
+      {/* Add custom phase */}
+      <Dialog open={phaseOpen} onClose={() => setPhaseOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Add phase</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="cons-phase-name"
+              label="Phase"
+              placeholder="e.g. Retrofit assessment"
+              value={phaseName}
+              onChange={(e) => setPhaseName(e.target.value)}
+              autoFocus
+            />
+            <TextField
+              id="cons-phase-scope"
+              label="Scope items (one per line)"
+              value={phaseScope}
+              onChange={(e) => setPhaseScope(e.target.value)}
+              multiline
+              rows={4}
+              helperText="These bound the consultancy's time — work beyond them is a variation"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPhaseOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!phaseName.trim() || !selectedId || addPhase.isPending}
+            onClick={() =>
+              selectedId &&
+              addPhase.mutate({
+                engagementId: selectedId,
+                name: phaseName.trim(),
+                scope: phaseScope
+                  .split("\n")
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+                  .slice(0, 20),
+              })
+            }
+          >
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Record input pack */}
       <Dialog open={packOpen} onClose={() => setPackOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Record input pack</DialogTitle>
@@ -2062,6 +2219,21 @@ export function ConsultancyEngagements() {
               ))}
             </TextField>
             <TextField
+              id="cons-eng-type"
+              select
+              label="Consultancy type"
+              value={engConsType}
+              onChange={(e) => setEngConsType(e.target.value as ConsultancyType | "")}
+              helperText="Seeds the engagement's phases and scope of work — each type has its own pattern"
+            >
+              {ConsultancyType.options.map((t) => (
+                <MenuItem key={t} value={t}>
+                  {CONSULTANCY_TYPE_LABEL[t]}
+                </MenuItem>
+              ))}
+              <MenuItem value="">Untyped — no seeded scope</MenuItem>
+            </TextField>
+            <TextField
               id="cons-eng-discipline"
               select
               label="Lead discipline"
@@ -2101,6 +2273,7 @@ export function ConsultancyEngagements() {
               createEngagement.mutate({
                 title: engTitle.trim(),
                 model: engModel,
+                consultancyType: engConsType || undefined,
                 leadDiscipline: engDiscipline,
                 stage: engStage.trim() || undefined,
                 relianceScope: engReliance.trim() || undefined,

@@ -1338,6 +1338,13 @@
       "when": 1783650017000,
       "tag": "0191_consultancy_phase3",
       "breakpoints": true
+    },
+    {
+      "idx": 191,
+      "version": "7",
+      "when": 1783650018000,
+      "tag": "0192_consultancy_typed_scope",
+      "breakpoints": true
     }
   ]
 }

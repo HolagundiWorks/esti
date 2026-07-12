@@ -108,6 +108,104 @@ export const CONS_DELIVERABLE_STATUS_TAG: Record<DeliverableStatus, TagColor> = 
   WITHDRAWN: "red",
 };
 
+/**
+ * Consultancy types — the Indian consultancy market's actual patterns. Unlike
+ * architecture (one COA stage ladder for every practice), consultancy work is
+ * TYPED: each type has its own scope-of-work shape and its own phases. The
+ * type chosen at engagement creation seeds the engagement's phases from
+ * {@link CONSULTANCY_SCOPE_TEMPLATES} (fully editable afterwards).
+ */
+export const ConsultancyType = z.enum([
+  "STRUCTURAL",
+  "PEB",
+  "ELECTRICAL",
+  "PLUMBING",
+  "HVAC",
+  "WATERPROOFING",
+  "LANDSCAPING",
+]);
+export type ConsultancyType = z.infer<typeof ConsultancyType>;
+
+export const CONSULTANCY_TYPE_LABEL: Record<ConsultancyType, string> = {
+  STRUCTURAL: "Structural",
+  PEB: "PEB (pre-engineered buildings)",
+  ELECTRICAL: "Electrical",
+  PLUMBING: "Plumbing (PHE)",
+  HVAC: "HVAC",
+  WATERPROOFING: "Waterproofing",
+  LANDSCAPING: "Landscaping",
+};
+
+export type ConsultancyPhaseTemplate = {
+  name: string;
+  /** The scope-of-work items this phase covers — the consultancy's time is bounded by these. */
+  scope: readonly string[];
+};
+
+/**
+ * Per-type scope-of-work patterns (Indian practice). These bound what the
+ * consultancy's time covers — the engagement's phases are seeded from here and
+ * edited per appointment; anything beyond the recorded scope is a variation.
+ */
+export const CONSULTANCY_SCOPE_TEMPLATES: Record<
+  ConsultancyType,
+  readonly ConsultancyPhaseTemplate[]
+> = {
+  STRUCTURAL: [
+    { name: "Concept & feasibility", scope: ["Structural scheme options on architect's concept", "Indicative member sizing + structural zones", "Design basis note (loads, codes, SBC assumptions)"] },
+    { name: "Schematic design", scope: ["Framing plans on frozen grids", "Preliminary analysis & sizing", "Foundation scheme on geotech recommendations"] },
+    { name: "Detailed design", scope: ["Final analysis & design (RC/steel)", "Reinforcement / connection details", "Slab, beam, column, footing schedules"] },
+    { name: "GFC & coordination", scope: ["Good-for-construction drawing issue", "Coordination with architect & MEP penetrations", "Bar bending schedule readiness"] },
+    { name: "Construction support", scope: ["Site clarifications & TQ responses", "Reinforcement checking at agreed stages", "Structural stability certificate on completion"] },
+  ],
+  PEB: [
+    { name: "Design basis & geometry", scope: ["Building geometry, bay spacing, clear heights with client/vendor", "Load basis (wind, seismic, crane, collateral)", "Design basis report for the PEB vendor"] },
+    { name: "Foundation interface", scope: ["Anchor bolt plans from vendor reaction reports", "Foundation design for column reactions", "Grouting & base plate interface details"] },
+    { name: "Vendor drawing review", scope: ["Review of fabricator design calculations", "Approval of erection & shop drawings", "Compliance check against design basis"] },
+    { name: "Erection support", scope: ["Site queries during erection", "Alignment / verticality check witness", "Completion review for handover"] },
+  ],
+  ELECTRICAL: [
+    { name: "Load assessment & DBR", scope: ["Connected & demand load calculations", "Transformer / DG / UPS sizing", "Single-line diagram concept + design basis report"] },
+    { name: "Schematic design", scope: ["Developed SLD & panel schedules", "Cable route & containment strategy", "Earthing & lightning protection concept"] },
+    { name: "Detailed design", scope: ["Lighting, power & small-power layouts", "Cable schedules & voltage-drop calculations", "Panel GA drawings & earthing layouts"] },
+    { name: "Liaison support", scope: ["CEIG / discom submission drawings", "Responses to authority scrutiny remarks"] },
+    { name: "Construction support", scope: ["Shop drawing review", "Installation stage inspections", "Testing & commissioning witness"] },
+  ],
+  PLUMBING: [
+    { name: "Demand assessment & DBR", scope: ["Water demand & storage calculations", "Source, treatment (WTP/STP) strategy", "Drainage & rainwater strategy + design basis report"] },
+    { name: "Schematic design", scope: ["Water supply & drainage riser diagrams", "STP/WTP sizing & plant room layouts", "External drainage & storm concept"] },
+    { name: "Detailed design", scope: ["Water supply & drainage layouts (floorwise)", "Rainwater harvesting details", "Fixture, pump & pipe schedules"] },
+    { name: "Construction support", scope: ["Shop drawing review", "Pressure / flow test witness", "Commissioning support"] },
+  ],
+  HVAC: [
+    { name: "Heat load & DBR", scope: ["Room-wise heat load calculations", "System selection (VRF/chilled water/split)", "Plant sizing + design basis report"] },
+    { name: "Schematic design", scope: ["Duct & pipe routing concept", "Plant room & shaft sizing", "Ventilation & pressurisation strategy"] },
+    { name: "Detailed design", scope: ["Duct & pipe layouts with sizing", "Equipment schedules & selections", "Stair pressurisation / basement ventilation calcs"] },
+    { name: "Construction support", scope: ["Shop drawing review", "Installation inspections", "Testing, adjusting & balancing (TAB) witness"] },
+  ],
+  WATERPROOFING: [
+    { name: "Risk assessment", scope: ["Wet-area, basement, terrace & joint risk mapping", "Substrate & movement assessment", "Failure-history review (retrofit jobs)"] },
+    { name: "System specification", scope: ["System selection per area (membrane/coating/integral)", "Guarantee & applicator qualification criteria", "Specification sheets per system"] },
+    { name: "Details & method statements", scope: ["Junction, drain, joint & termination details", "Method statements per application", "Interface details with structure & finishes"] },
+    { name: "Application audit", scope: ["Surface preparation inspections", "Stage inspections during application", "Ponding test witness & guarantee protocol"] },
+  ],
+  LANDSCAPING: [
+    { name: "Concept & theming", scope: ["Site analysis (sun, soil, drainage, views)", "Planting & hardscape concept + theming", "Zoning of soft/hard landscape areas"] },
+    { name: "Schematic design", scope: ["Levels & grading strategy", "Softscape & hardscape palettes", "Irrigation & drainage strategy"] },
+    { name: "Detailed design", scope: ["Planting plans with species schedules", "Irrigation & landscape drainage details", "Hardscape details & outdoor lighting coordination"] },
+    { name: "Implementation support", scope: ["Nursery / material selection support", "Site supervision visits at agreed stages", "Maintenance schedule & handover"] },
+  ],
+};
+
+export const ConsPhaseStatus = z.enum(["PENDING", "ACTIVE", "DONE"]);
+export type ConsPhaseStatus = z.infer<typeof ConsPhaseStatus>;
+
+export const CONS_PHASE_STATUS_TAG: Record<ConsPhaseStatus, TagColor> = {
+  PENDING: "gray",
+  ACTIVE: "red",
+  DONE: "green",
+};
+
 /** How the engagement fee is structured (case study §5.1). Hybrids = stages + time-charge lines (later slice). */
 export const FeeModel = z.enum(["PERCENT_OF_COST", "LUMP_SUM", "TIME_CHARGE", "RETAINER"]);
 export type FeeModel = z.infer<typeof FeeModel>;
@@ -124,6 +222,8 @@ export const ConsEngagementCreate = z.object({
   clientId: z.string().uuid().optional(),
   projectId: z.string().uuid().optional(),
   model: EngagementModel,
+  /** The consultancy pattern — seeds the engagement's phases + scope of work. */
+  consultancyType: ConsultancyType.optional(),
   leadDiscipline: EngineeringDiscipline,
   disciplines: z.array(EngineeringDiscipline).max(12).optional(),
   /** What downstream parties may rely on — explicit, per the case study §6.4. */
@@ -143,6 +243,14 @@ export const ConsEngagementUpdate = ConsEngagementCreate.partial().extend({
   status: ConsEngagementStatus.optional(),
 });
 export type ConsEngagementUpdate = z.infer<typeof ConsEngagementUpdate>;
+
+/** Add a custom phase to an engagement's scope (beyond the seeded template). */
+export const ConsPhaseCreate = z.object({
+  engagementId: z.string().uuid(),
+  name: z.string().min(1).max(200),
+  scope: z.array(z.string().min(1).max(300)).max(20).default([]),
+});
+export type ConsPhaseCreate = z.infer<typeof ConsPhaseCreate>;
 
 export const ConsDeliverableCreate = z.object({
   engagementId: z.string().uuid(),

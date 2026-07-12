@@ -15,6 +15,8 @@ export const consEngagements = pgTable("esti_cons_engagement", {
   clientId: uuid("client_id").references(() => clients.id, { onDelete: "set null" }),
   projectId: uuid("project_id").references(() => projectOffices.id, { onDelete: "set null" }),
   model: text("model").notNull(), // EngagementModel
+  /** The consultancy pattern (STRUCTURAL/PEB/ELECTRICAL/…) — seeds phases + scope. */
+  consultancyType: text("consultancy_type"), // ConsultancyType
   leadDiscipline: text("lead_discipline").notNull(), // EngineeringDiscipline
   disciplines: jsonb("disciplines"), // EngineeringDiscipline[]
   relianceScope: text("reliance_scope"),
@@ -143,6 +145,24 @@ export const consVariations = pgTable("esti_cons_variation", {
   feeStageId: uuid("fee_stage_id").references(() => consFeeStages.id, { onDelete: "set null" }),
   notes: text("notes"),
   approvedAt: timestamp("approved_at", { withTimezone: true }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/**
+ * Engagement phases — the typed scope of work. Seeded from the consultancy
+ * type's template (CONSULTANCY_SCOPE_TEMPLATES) at engagement creation and
+ * edited per appointment; the consultancy's time is bounded by these items.
+ */
+export const consPhases = pgTable("esti_cons_engagement_phase", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  seq: bigint("seq", { mode: "number" }).notNull().default(0),
+  name: text("name").notNull(),
+  scope: jsonb("scope"), // string[]
+  status: text("status").notNull().default("PENDING"), // ConsPhaseStatus
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

@@ -64,7 +64,16 @@ uses `esti_cons_engagement`, `esti_cons_deliverable`, `esti_cons_review_step`; t
 tRPC namespace is `consultancy.*` for the same reason):
 
 - **Engagement** — parallels/extends `project`: engagement **model** (design-assist / peer
-  review / full design / site support), **lead discipline**, reliance scope, work-stage set.
+  review / full design / site support), **consultancy type**, reliance scope, work-stage set.
+- **ConsultancyType** *(shipped 2026-07-12, migration 0192)* — the Indian consultancy
+  market's actual patterns: **Structural · PEB · Electrical · Plumbing (PHE) · HVAC ·
+  Waterproofing · Landscaping**. Unlike architecture (one COA ladder for every practice),
+  **consultancy work is typed — scope and phases cannot be generalised**: each type carries
+  its own scope-of-work template (`CONSULTANCY_SCOPE_TEMPLATES` in contracts) which **seeds
+  the engagement's phases at creation** (`esti_cons_engagement_phase`, editable per
+  appointment). The consultancy's time is bounded by the recorded scope — work beyond it is
+  a variation. Clients are typically **architecture firms** (sub-appointment), companies, or
+  individuals (`ClientKind` gains `ARCHITECT_FIRM`).
 - **Discipline** — structural / MEP / civil / geotech / façade …; an engagement has one or
   many; drives coordination + capacity.
 - **DeliverablePackage** — the issuable unit: revision (A/B/C), **issue class** (FI/FA/FC),

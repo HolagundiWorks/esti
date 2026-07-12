@@ -8,7 +8,10 @@
  */
 import {
   CHECK_CATEGORY_REQUIRED_STEPS,
+  CONSULTANCY_SCOPE_TEMPLATES,
   CheckCategory,
+  ConsPhaseCreate,
+  ConsultancyType,
   ConsDeliverableCreate,
   ConsDeliverableUpdate,
   ConsEngagementCreate,
@@ -40,6 +43,7 @@ import {
   consFeeStages,
   consInputPacks,
   consInsurance,
+  consPhases,
   consRateCards,
   consRelianceLetters,
   consReviewSteps,
@@ -128,6 +132,11 @@ const engagementsRouter = router({
         .from(consRelianceLetters)
         .where(eq(consRelianceLetters.engagementId, input.id))
         .orderBy(asc(consRelianceLetters.issuedOn));
+      const phases = await ctx.db
+        .select()
+        .from(consPhases)
+        .where(eq(consPhases.engagementId, input.id))
+        .orderBy(asc(consPhases.seq));
       const timesheets = await ctx.db
         .select()
         .from(consTimesheets)
@@ -163,6 +172,7 @@ const engagementsRouter = router({
         risks,
         inputPacks,
         relianceLetters,
+        phases,
         timesheets,
         feePosition,
         // Built-in PDF export — download URL once the worker has rendered it.
@@ -198,6 +208,22 @@ const engagementsRouter = router({
 
   create: manage.input(ConsEngagementCreate).mutation(async ({ ctx, input }) => {
     const [row] = await ctx.db.insert(consEngagements).values(input).returning();
+    // Typed scope: the consultancy pattern seeds the engagement's phases —
+    // consultancy work is typed, not generalised (unlike architecture's one
+    // COA ladder). Fully editable afterwards.
+    if (input.consultancyType) {
+      const template = CONSULTANCY_SCOPE_TEMPLATES[input.consultancyType as ConsultancyType];
+      if (template) {
+        await ctx.db.insert(consPhases).values(
+          template.map((p, i) => ({
+            engagementId: row!.id,
+            seq: i,
+            name: p.name,
+            scope: [...p.scope],
+          })),
+        );
+      }
+    }
     await writeAudit(ctx.db, { entity: "cons_engagement", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
     return row!;
   }),
@@ -839,6 +865,49 @@ const inputPacksRouter = router({
     }),
 });
 
+const phasesRouter = router({
+  /** Add a custom phase beyond the seeded template. */
+  add: manage.input(ConsPhaseCreate).mutation(async ({ ctx, input }) => {
+    const existing = await ctx.db
+      .select({ seq: consPhases.seq })
+      .from(consPhases)
+      .where(eq(consPhases.engagementId, input.engagementId));
+    const seq = existing.reduce((m, p) => Math.max(m, p.seq ?? 0), -1) + 1;
+    const [row] = await ctx.db
+      .insert(consPhases)
+      .values({ engagementId: input.engagementId, name: input.name, scope: input.scope, seq })
+      .returning();
+    await writeAudit(ctx.db, { entity: "cons_phase", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+
+  /** Move the phase through its lifecycle; setting ACTIVE stamps the engagement's stage text. */
+  setStatus: manage
+    .input(z.object({ id: z.string().uuid(), status: z.enum(["PENDING", "ACTIVE", "DONE"]) }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .update(consPhases)
+        .set({ status: input.status, updatedAt: new Date() })
+        .where(eq(consPhases.id, input.id))
+        .returning();
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      if (input.status === "ACTIVE") {
+        await ctx.db
+          .update(consEngagements)
+          .set({ stage: row.name, updatedAt: new Date() })
+          .where(eq(consEngagements.id, row.engagementId));
+      }
+      await writeAudit(ctx.db, { entity: "cons_phase", entityId: input.id, action: "UPDATE", actorId: ctx.user.id, after: row });
+      return row;
+    }),
+
+  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    await ctx.db.delete(consPhases).where(eq(consPhases.id, input.id));
+    await writeAudit(ctx.db, { entity: "cons_phase", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
+    return { ok: true };
+  }),
+});
+
 const intelligenceRouter = router({
   /**
    * Phase 4 — the internal agent: answers grounded ONLY in the validated firm
@@ -872,5 +941,6 @@ export const consultancyRouter = router({
   insurance: insuranceRouter,
   relianceLetters: relianceLettersRouter,
   inputPacks: inputPacksRouter,
+  phases: phasesRouter,
   intelligence: intelligenceRouter,
 });

@@ -247,7 +247,7 @@ export const clients = pgTable("esti_client", {
   /** Human-readable portable ID, e.g. AORMS-X-4K9R (EX_USER / client). */
   publicId: text("public_id").unique(),
   name: text("name").notNull(),
-  kind: text("kind", { enum: ["INDIVIDUAL", "COMPANY"] })
+  kind: text("kind", { enum: ["INDIVIDUAL", "COMPANY", "ARCHITECT_FIRM"] })
     .notNull()
     .default("INDIVIDUAL"),
   gstin: text("gstin"),
