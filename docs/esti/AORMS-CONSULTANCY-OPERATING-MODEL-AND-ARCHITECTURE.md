@@ -35,6 +35,13 @@
    the sign-off chain and hold points are the "live layer."
 5. **Progressive formalization.** Works for a 4-person studio and a 60-person multidiscipline
    firm — advanced governance (Cat-3 checking, PI tracking) is opt-in.
+6. **One account plane** *(shipped 2026-07-12)*. A single login window and a single licence
+   manager serve both apps. Every company picks its workspace at creation —
+   `hlp_organization.workspace_type` (**STUDIO** | **CONSULTANCY**, migration 0185), chosen
+   on the company-creation form and carried on every org handle/membership. **Every user —
+   individuals included — creates or joins a company before entering a workspace**; the
+   workspace type only routes *where* the company works, never *how* it signs in or is
+   licensed.
 
 ## 2. Reuse map — shared spine vs engineering-specific
 

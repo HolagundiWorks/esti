@@ -8,6 +8,8 @@ export interface OrgHandle {
   publicId: string | null;
   name: string;
   slug: string;
+  /** Which AORMS workspace the company runs — STUDIO | CONSULTANCY. */
+  workspaceType: string;
 }
 
 export type CompanyResolution =
@@ -18,7 +20,7 @@ export type CompanyResolution =
 type OrgRow = typeof schema.organizations.$inferSelect;
 
 function handle(o: OrgRow): OrgHandle {
-  return { publicId: o.publicId, name: o.name, slug: o.slug };
+  return { publicId: o.publicId, name: o.name, slug: o.slug, workspaceType: o.workspaceType };
 }
 
 /** The domain part of an email, else the input itself (already trimmed/lowercased). */
@@ -163,13 +165,14 @@ export async function membershipsFor(
       publicId: schema.organizations.publicId,
       name: schema.organizations.name,
       slug: schema.organizations.slug,
+      workspaceType: schema.organizations.workspaceType,
     })
     .from(schema.orgMembers)
     .innerJoin(schema.organizations, eq(schema.organizations.id, schema.orgMembers.orgId))
     .where(and(eq(schema.orgMembers.accountId, accountId), eq(schema.orgMembers.status, "ACTIVE")));
   return rows.map((r) => ({
     role: r.role,
-    org: { publicId: r.publicId, name: r.name, slug: r.slug },
+    org: { publicId: r.publicId, name: r.name, slug: r.slug, workspaceType: r.workspaceType },
   }));
 }
 

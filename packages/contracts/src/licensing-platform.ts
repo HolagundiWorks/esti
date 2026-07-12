@@ -9,6 +9,25 @@ import { z } from "zod";
 export const ProductKind = z.enum(["APP", "API"]);
 export type ProductKind = z.infer<typeof ProductKind>;
 
+/**
+ * Which AORMS workspace a company runs (chosen at company creation — one login
+ * window and one licence manager serve both; the workspace type only routes
+ * where the company works). Every user — individuals included — creates or
+ * joins a company before entering a workspace.
+ */
+export const WorkspaceType = z.enum(["STUDIO", "CONSULTANCY"]);
+export type WorkspaceType = z.infer<typeof WorkspaceType>;
+
+export const WORKSPACE_TYPE_LABEL: Record<WorkspaceType, string> = {
+  STUDIO: "AORMS-Studio",
+  CONSULTANCY: "AORMS-Consultancy",
+};
+
+export const WORKSPACE_TYPE_BLURB: Record<WorkspaceType, string> = {
+  STUDIO: "Architecture practice — projects, fees, drawings, and studio intelligence",
+  CONSULTANCY: "Engineering consultancy — engagements, deliverable registers, and sign-off chains",
+};
+
 /** What a plan meters its primary limit in. */
 export const MeterUnit = z.enum(["seats", "api_calls", "students"]);
 export type MeterUnit = z.infer<typeof MeterUnit>;

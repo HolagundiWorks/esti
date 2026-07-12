@@ -327,13 +327,21 @@ export function registerAuthRoutes(app: FastifyInstance): void {
       reply.code(401);
       return { error: "unauthenticated" };
     }
-    const body = req.body as { name?: string; loginDomain?: string } | undefined;
+    const body = req.body as
+      | { name?: string; loginDomain?: string; workspaceType?: string }
+      | undefined;
     const name = body?.name?.trim() ?? "";
     if (name.length < 2) {
       reply.code(400);
       return { error: "invalid_name" };
     }
-    const org = await createCompany(s.accountId, { name, loginDomain: body?.loginDomain });
+    // Workspace pick (STUDIO | CONSULTANCY) — anything else falls back to STUDIO.
+    const workspaceType = body?.workspaceType === "CONSULTANCY" ? "CONSULTANCY" : "STUDIO";
+    const org = await createCompany(s.accountId, {
+      name,
+      loginDomain: body?.loginDomain,
+      workspaceType,
+    });
     if ("error" in org) {
       reply.code(400);
       return { error: org.error };
