@@ -10,6 +10,7 @@ import {
   CHECK_CATEGORY_REQUIRED_STEPS,
   CONSULTANCY_SCOPE_TEMPLATES,
   CheckCategory,
+  ConsBriefSet,
   ConsPhaseCreate,
   ConsultancyType,
   ConsDeliverableCreate,
@@ -237,6 +238,18 @@ const engagementsRouter = router({
       .returning();
     await writeAudit(ctx.db, { entity: "cons_engagement", entityId: id, action: "UPDATE", actorId: ctx.user.id, after: row });
     return row!;
+  }),
+
+  /** Store the typed project brief — the design-basis parameter set. */
+  setBrief: manage.input(ConsBriefSet).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db
+      .update(consEngagements)
+      .set({ brief: input.brief, updatedAt: new Date() })
+      .where(eq(consEngagements.id, input.engagementId))
+      .returning();
+    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    await writeAudit(ctx.db, { entity: "cons_engagement", entityId: input.engagementId, action: "UPDATE", actorId: ctx.user.id, after: { brief: input.brief } });
+    return row;
   }),
 
   remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {

@@ -29,6 +29,7 @@ import {
   ConsGrade,
   CONS_ENGAGEMENT_STATUS_TAG,
   CONS_FEE_STAGE_STATUS_TAG,
+  CONSULTANCY_BRIEF_TEMPLATES,
   CONSULTANCY_TYPE_LABEL,
   CONS_INPUT_PACK_STATUS_TAG,
   CONS_PHASE_STATUS_TAG,
@@ -182,6 +183,17 @@ export function ConsultancyEngagements() {
   const removeVariation = trpc.consultancy.variations.remove.useMutation({
     meta: { errorTitle: "Couldn't delete the variation" },
     onSuccess: invalidate,
+  });
+
+  // Typed project brief — the design-basis parameter set.
+  const [briefOpen, setBriefOpen] = useState(false);
+  const [briefDraft, setBriefDraft] = useState<Record<string, string>>({});
+  const setBrief = trpc.consultancy.engagements.setBrief.useMutation({
+    meta: { errorTitle: "Couldn't save the project brief" },
+    onSuccess: () => {
+      invalidate();
+      setBriefOpen(false);
+    },
   });
 
   // Typed scope — engagement phases.
@@ -389,7 +401,7 @@ export function ConsultancyEngagements() {
 
   const anyDialogOpen =
     engOpen || delOpen || tqOpen || feeOpen || timeOpen || ratesOpen || voOpen ||
-    packOpen || riskOpen || relOpen || askOpen || phaseOpen ||
+    packOpen || riskOpen || relOpen || askOpen || phaseOpen || briefOpen ||
     !!emoiFor || !!tqAnswerFor || !!tqCloseFor;
   useScreenActions(
     anyDialogOpen
@@ -700,6 +712,63 @@ export function ConsultancyEngagements() {
                   />
                 </Stack>
               </Box>
+
+              {/* Typed project brief — the design-basis parameter set, per consultancy type. */}
+              {detail.consultancyType && (
+                <Box>
+                  <Stack direction="row" spacing={1} sx={{ alignItems: "baseline" }}>
+                    <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600 }} className="esti-grow">
+                      Project brief
+                    </Typography>
+                    <Button
+                      size="small"
+                      variant="text"
+                      onClick={() => {
+                        const draft: Record<string, string> = {};
+                        const current = (detail.brief ?? {}) as Record<string, unknown>;
+                        for (const f of CONSULTANCY_BRIEF_TEMPLATES[
+                          detail.consultancyType as ConsultancyType
+                        ] ?? [])
+                          draft[f.key] = current[f.key] != null ? String(current[f.key]) : "";
+                        setBriefDraft(draft);
+                        setBriefOpen(true);
+                      }}
+                    >
+                      {detail.brief ? "Edit brief" : "Fill brief"}
+                    </Button>
+                  </Stack>
+                  {!detail.brief ? (
+                    <span className="esti-label esti-label--secondary">
+                      No design-basis data recorded — the{" "}
+                      {CONSULTANCY_TYPE_LABEL[detail.consultancyType as ConsultancyType]} brief
+                      is the technical parameter set design starts from.
+                    </span>
+                  ) : (
+                    <Grid container spacing={0.5} sx={{ mt: 0.25 }}>
+                      {(CONSULTANCY_BRIEF_TEMPLATES[detail.consultancyType as ConsultancyType] ?? [])
+                        .filter((f) => {
+                          const v = (detail.brief as Record<string, unknown>)[f.key];
+                          return v != null && String(v).trim() !== "";
+                        })
+                        .map((f) => {
+                          const v = (detail.brief as Record<string, unknown>)[f.key];
+                          return (
+                            <Grid key={f.key} size={{ xs: 12, sm: 6, md: 4 }}>
+                              <span className="esti-label esti-label--secondary">{f.label}</span>
+                              <Typography variant="body2">
+                                {f.kind === "boolean"
+                                  ? v === true || v === "true"
+                                    ? "Yes"
+                                    : "No"
+                                  : `${String(v)}${f.unit ? ` ${f.unit}` : ""}`}
+                              </Typography>
+                            </Grid>
+                          );
+                        })}
+                    </Grid>
+                  )}
+                </Box>
+              )}
 
               {/* Typed scope of work — the consultancy's time is bounded by these phases. */}
               <Box>
@@ -1538,6 +1607,94 @@ export function ConsultancyEngagements() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEmoiFor(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Project brief — typed form generated from the consultancy type's template. */}
+      <Dialog open={briefOpen} onClose={() => setBriefOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>
+          Project brief — {detail?.consultancyType
+            ? CONSULTANCY_TYPE_LABEL[detail.consultancyType as ConsultancyType]
+            : ""}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {(detail?.consultancyType
+              ? CONSULTANCY_BRIEF_TEMPLATES[detail.consultancyType as ConsultancyType] ?? []
+              : []
+            ).map((f) =>
+              f.kind === "boolean" ? (
+                <FormControlLabel
+                  key={f.key}
+                  control={
+                    <Checkbox
+                      checked={briefDraft[f.key] === "true"}
+                      onChange={(e) =>
+                        setBriefDraft((d) => ({ ...d, [f.key]: e.target.checked ? "true" : "false" }))
+                      }
+                    />
+                  }
+                  label={`${f.label}${f.hint ? ` — ${f.hint}` : ""}`}
+                />
+              ) : f.kind === "choice" ? (
+                <TextField
+                  key={f.key}
+                  id={`cons-brief-${f.key}`}
+                  select
+                  size="small"
+                  label={f.label}
+                  value={briefDraft[f.key] ?? ""}
+                  onChange={(e) => setBriefDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+                  helperText={f.hint}
+                >
+                  <MenuItem value="">—</MenuItem>
+                  {(f.options ?? []).map((o) => (
+                    <MenuItem key={o} value={o}>
+                      {o}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              ) : (
+                <TextField
+                  key={f.key}
+                  id={`cons-brief-${f.key}`}
+                  size="small"
+                  label={`${f.label}${f.unit ? ` (${f.unit})` : ""}`}
+                  value={briefDraft[f.key] ?? ""}
+                  onChange={(e) => setBriefDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+                  helperText={f.hint}
+                  slotProps={f.kind === "number" ? { htmlInput: { inputMode: "decimal" } } : undefined}
+                />
+              ),
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBriefOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!selectedId || setBrief.isPending}
+            onClick={() => {
+              if (!selectedId || !detail?.consultancyType) return;
+              const template =
+                CONSULTANCY_BRIEF_TEMPLATES[detail.consultancyType as ConsultancyType] ?? [];
+              const brief: Record<string, string | number | boolean> = {};
+              for (const f of template) {
+                const raw = (briefDraft[f.key] ?? "").trim();
+                if (raw === "" || (f.kind === "boolean" && raw === "false")) continue;
+                brief[f.key] =
+                  f.kind === "number"
+                    ? Number.parseFloat(raw)
+                    : f.kind === "boolean"
+                      ? raw === "true"
+                      : raw;
+                if (f.kind === "number" && Number.isNaN(brief[f.key])) delete brief[f.key];
+              }
+              setBrief.mutate({ engagementId: selectedId, brief });
+            }}
+          >
+            Save brief
+          </Button>
         </DialogActions>
       </Dialog>
 

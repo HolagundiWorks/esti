@@ -74,6 +74,14 @@ tRPC namespace is `consultancy.*` for the same reason):
   appointment). The consultancy's time is bounded by the recorded scope — work beyond it is
   a variation. Clients are typically **architecture firms** (sub-appointment), companies, or
   individuals (`ClientKind` gains `ARCHITECT_FIRM`).
+- **Typed project brief** *(shipped 2026-07-12, migration 0193)* — a consultancy's brief is
+  a **technical parameter set (the design-basis input data sheet)**, not architecture's
+  client brief. Per-type researched field schemas in `CONSULTANCY_BRIEF_TEMPLATES`
+  (structural mirrors the statutory **SDBR** form — built-up area, floors, construction
+  type, seismic zone, SBC…; PEB mirrors the vendor RFQ sheet — span, eave height, bays,
+  cranes, collateral; electrical/PHE/HVAC/waterproofing/landscape from NBC/IS/ISHRAE intake
+  norms). Stored as `esti_cons_engagement.brief` jsonb; edited via a typed form generated
+  from the template; feeds the intelligence digest.
 - **Discipline** — structural / MEP / civil / geotech / façade …; an engagement has one or
   many; drives coordination + capacity.
 - **DeliverablePackage** — the issuable unit: revision (A/B/C), **issue class** (FI/FA/FC),

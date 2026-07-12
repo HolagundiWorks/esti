@@ -56,10 +56,17 @@ export async function buildConsultancyDigest(db: DB): Promise<string> {
       .filter((s) => s.engagementId === e.id && s.status === "INVOICED")
       .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
     lines.push(
-      `ENGAGEMENT "${e.title}" — ${e.model}, lead ${e.leadDiscipline}, stage ${e.stage ?? "-"}, status ${e.status}.` +
+      `ENGAGEMENT "${e.title}" — ${e.model}${e.consultancyType ? ` (${e.consultancyType} consultancy)` : ""}, stage ${e.stage ?? "-"}, status ${e.status}.` +
         (e.feeModel ? ` Fee: ${e.feeModel} agreed ${INR(e.feeTotalPaise)}.` : "") +
         ` Invoiced ${INR(inv)}; time value (30d) ${INR(tv)}.`,
     );
+    if (e.brief && typeof e.brief === "object") {
+      const briefLine = Object.entries(e.brief as Record<string, unknown>)
+        .map(([k, v]) => `${k}=${String(v)}`)
+        .join("; ")
+        .slice(0, 500);
+      if (briefLine) lines.push(`  BRIEF: ${briefLine}`);
+    }
     for (const d of ds) {
       const chain = steps
         .filter((s) => s.deliverableId === d.id)

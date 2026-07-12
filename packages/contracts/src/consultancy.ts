@@ -197,6 +197,138 @@ export const CONSULTANCY_SCOPE_TEMPLATES: Record<
   ],
 };
 
+// ── Typed project briefs ─────────────────────────────────────────────────────
+// A consultancy's project brief is a TECHNICAL PARAMETER SET (the design-basis
+// input data sheet), not architecture's client brief. Researched per type:
+// structural fields mirror the statutory Structural Design Basis Report (SDBR)
+// filed with Indian ULBs; HVAC mirrors real consultant DBRs; PEB mirrors the
+// vendor RFQ data sheet; PHE/waterproofing/landscape from NBC/IS intake norms.
+
+export type ConsBriefFieldKind = "number" | "text" | "choice" | "boolean";
+
+export type ConsBriefField = {
+  key: string;
+  label: string;
+  kind: ConsBriefFieldKind;
+  unit?: string;
+  options?: readonly string[];
+  hint?: string;
+};
+
+export const CONSULTANCY_BRIEF_TEMPLATES: Record<ConsultancyType, readonly ConsBriefField[]> = {
+  STRUCTURAL: [
+    { key: "buildingUse", label: "Building use", kind: "choice", options: ["Residential", "Commercial", "Institutional", "Industrial", "Mixed"], hint: "Sets live loads (IS 875-2) + importance factor" },
+    { key: "builtUpArea", label: "Built-up / slab area", kind: "number", unit: "m²" },
+    { key: "floorsAbove", label: "Floors above ground", kind: "number", hint: "Declare future vertical expansion too (SDBR item)" },
+    { key: "basements", label: "Basements", kind: "number" },
+    { key: "floorHeight", label: "Floor-to-floor height", kind: "number", unit: "m" },
+    { key: "structureType", label: "Type of construction", kind: "choice", options: ["RCC frame", "RCC frame + shear walls", "Steel frame", "Composite", "Load-bearing"] },
+    { key: "slabSystem", label: "Slab system", kind: "choice", options: ["Beam-slab", "Flat slab", "Flat plate", "PT slab", "Waffle"] },
+    { key: "seismicZone", label: "Seismic zone (IS 1893)", kind: "choice", options: ["II", "III", "IV", "V"] },
+    { key: "windSpeed", label: "Basic wind speed (IS 875-3)", kind: "number", unit: "m/s" },
+    { key: "sbc", label: "Soil bearing capacity", kind: "number", unit: "kN/m²", hint: "From geotech; note water table + sulphates" },
+    { key: "foundationType", label: "Foundation expectation", kind: "choice", options: ["Isolated", "Combined", "Raft", "Piles", "TBD"] },
+    { key: "specialLoads", label: "Special / heavy loads", kind: "text", hint: "Machinery, tanks, landscape fill, fire tender, solar" },
+    { key: "materialGrades", label: "Concrete / steel grades", kind: "text", hint: "e.g. M30 / Fe550D" },
+    { key: "designLife", label: "Design life", kind: "number", unit: "yrs", hint: "50 typical; 100 for important structures" },
+  ],
+  PEB: [
+    { key: "width", label: "Building width (clear span)", kind: "number", unit: "m", hint: "The single biggest steel-weight driver" },
+    { key: "length", label: "Building length", kind: "number", unit: "m" },
+    { key: "eaveHeight", label: "Clear eave height", kind: "number", unit: "m" },
+    { key: "roofSlope", label: "Roof slope", kind: "text", hint: "1:10 typical" },
+    { key: "baySpacing", label: "Bay spacing", kind: "number", unit: "m", hint: "6–9 typical; fixed by crane/mezzanine grid" },
+    { key: "craneData", label: "Cranes", kind: "text", hint: "Type, capacity (t), hook height (m), bays — or none" },
+    { key: "collateralLoad", label: "Collateral load", kind: "number", unit: "kN/m²", hint: "Sprinklers, ducting, solar: 0.1–0.25 typical" },
+    { key: "mezzanine", label: "Mezzanine", kind: "text", hint: "Area, live load, deck type — or none" },
+    { key: "windSpeed", label: "Basic wind speed", kind: "number", unit: "m/s" },
+    { key: "seismicZone", label: "Seismic zone", kind: "choice", options: ["II", "III", "IV", "V"] },
+    { key: "cladding", label: "Roof / wall cladding", kind: "choice", options: ["Bare Galvalume", "Colour-coated", "Standing seam", "Sandwich PUF"] },
+    { key: "skylights", label: "Ventilation / daylight", kind: "text", hint: "Ridge vents, turbo vents, skylight % of roof" },
+    { key: "expandableEndwall", label: "Expandable end wall", kind: "boolean", hint: "Changes end-frame design" },
+    { key: "sbc", label: "Soil bearing capacity", kind: "number", unit: "kN/m²", hint: "Vendor gives reactions; foundations are consultant scope" },
+  ],
+  ELECTRICAL: [
+    { key: "builtUpArea", label: "Built-up area", kind: "number", unit: "m²" },
+    { key: "buildingUse", label: "Building use", kind: "choice", options: ["Office", "Retail", "Residential", "Hospital", "Industrial", "Mixed"] },
+    { key: "connectedLoad", label: "Connected load estimate", kind: "number", unit: "kW" },
+    { key: "maxDemand", label: "Anticipated maximum demand", kind: "number", unit: "kVA", hint: "Decides HT vs LT connection" },
+    { key: "supply", label: "Supply", kind: "choice", options: ["LT 415V", "HT 11kV", "HT 33kV"] },
+    { key: "transformer", label: "Transformer / substation", kind: "text", hint: "kVA, count, dry/oil, N+1" },
+    { key: "dgBackup", label: "DG backup extent", kind: "choice", options: ["Full building", "Essential only", "Life-safety only", "None"] },
+    { key: "upsLoad", label: "UPS load", kind: "number", unit: "kVA" },
+    { key: "solarPv", label: "Solar PV provision", kind: "number", unit: "kWp" },
+    { key: "evCharging", label: "EV charging", kind: "text", hint: "Nos × kW; statutory % of parking in many states" },
+    { key: "metering", label: "Metering strategy", kind: "choice", options: ["Single-point HT + submeters", "Multi-point discom"] },
+    { key: "authority", label: "Discom / CEIG context", kind: "text" },
+    { key: "spareMargin", label: "Future expansion margin", kind: "number", unit: "%", hint: "15–25% typical" },
+  ],
+  PLUMBING: [
+    { key: "buildingUse", label: "Building use", kind: "choice", options: ["Residential", "Office", "Hotel", "Hospital", "School", "Mixed"] },
+    { key: "population", label: "Population basis", kind: "number", unit: "persons", hint: "Everything downstream is population-driven" },
+    { key: "lpcd", label: "Per-capita demand", kind: "number", unit: "lpcd", hint: "Res 135+45 flushing; office 45; hotel 320/bed (IS 1172)" },
+    { key: "waterSource", label: "Water source", kind: "choice", options: ["Municipal", "Borewell", "Tanker", "Mixed"] },
+    { key: "rawWaterTds", label: "Raw water TDS", kind: "number", unit: "ppm", hint: "Decides WTP / softener / RO" },
+    { key: "storageBasis", label: "Storage basis", kind: "text", hint: "UG sump 1–1.5 day + fire static; OHT 1/3–1/2 day" },
+    { key: "stpRequired", label: "STP required", kind: "boolean", hint: "PCB threshold; treated reuse for flushing + landscape" },
+    { key: "sewerDisposal", label: "Sewage disposal", kind: "choice", options: ["Municipal sewer", "STP + reuse", "Septic"] },
+    { key: "rwhMandate", label: "Rainwater harvesting mandated", kind: "boolean" },
+    { key: "hotWaterSource", label: "Hot water source", kind: "choice", options: ["Solar", "Heat pump", "Electric", "Central boiler"] },
+    { key: "floors", label: "Floors (pressure zoning)", kind: "number", hint: "~45 m static per zone; break tanks / PRVs" },
+  ],
+  HVAC: [
+    { key: "conditionedArea", label: "Conditioned area", kind: "number", unit: "m²" },
+    { key: "buildingUse", label: "Building use", kind: "choice", options: ["Office", "Retail", "Residential", "Hospital", "Hotel", "Industrial"] },
+    { key: "occupancy", label: "Occupancy density", kind: "number", unit: "m²/person" },
+    { key: "outsideDesign", label: "Outside design conditions", kind: "text", hint: "DB/WB °C per ISHRAE for the city; monsoon WBT governs coastal" },
+    { key: "insideDesign", label: "Inside design conditions", kind: "text", hint: "23.3 ± 1.1°C, RH 55–60% typical" },
+    { key: "freshAirStandard", label: "Fresh air standard", kind: "choice", options: ["ASHRAE 62.1", "ISHRAE", "NBC 2016"] },
+    { key: "systemPreference", label: "System preference", kind: "choice", options: ["VRF", "Chilled water", "DX split", "Landlord CHW"] },
+    { key: "redundancy", label: "Critical-area redundancy", kind: "choice", options: ["N", "N+1", "2N"], hint: "Server / UPS / OT rooms" },
+    { key: "plantSpace", label: "Plant / shaft space", kind: "text", hint: "Freeze with architect at concept or never" },
+    { key: "ventilation", label: "Mechanical ventilation areas", kind: "text", hint: "Basement CO-sensed, kitchen hood, toilets 15–20 ACPH" },
+    { key: "pressurisation", label: "Stair / lift pressurisation", kind: "boolean", hint: "NBC 2016; buildings >15 m" },
+    { key: "acousticLimit", label: "Acoustic limit", kind: "text", hint: "NC 35–40 offices; NC 25–30 boardrooms" },
+    { key: "energyMandate", label: "Energy / green mandate", kind: "text", hint: "ECBC 2017, IGBC/LEED/GRIHA target" },
+  ],
+  WATERPROOFING: [
+    { key: "areasToTreat", label: "Areas to treat", kind: "text", hint: "Basement, podium, terrace, wet areas, tanks, pools" },
+    { key: "basementDepth", label: "Basement depth below GL", kind: "number", unit: "m" },
+    { key: "waterTable", label: "Water table depth", kind: "number", unit: "m", hint: "Monsoon high from geotech — governs membrane class" },
+    { key: "newOrRetrofit", label: "New or retrofit", kind: "choice", options: ["New construction", "Retrofit / repair"] },
+    { key: "substrate", label: "Substrate type & condition", kind: "text", hint: "RCC grade, PT slab, cracks, honeycombing" },
+    { key: "failureHistory", label: "Leakage / failure history", kind: "text", hint: "Locations, monsoon-only?, previous treatments" },
+    { key: "joints", label: "Joints & penetrations", kind: "text", hint: "Expansion/construction joints, pipe penetrations — most failures start here" },
+    { key: "exposure", label: "Exposure", kind: "choice", options: ["UV-exposed", "Protected", "Trafficked"] },
+    { key: "finishesAbove", label: "Overburden / finishes above", kind: "text", hint: "Podium landscape, screed + tiles — can the system ever be reopened?" },
+    { key: "slopeDrainage", label: "Slope & drainage", kind: "text", hint: "Terrace slope 1:100–1:120; rainwater outlet count" },
+    { key: "guaranteePeriod", label: "Guarantee period expected", kind: "number", unit: "yrs", hint: "5 / 10 / 15" },
+    { key: "siteConstraints", label: "Applicator / site constraints", kind: "text", hint: "Occupied building, ponding-test water, weather window" },
+  ],
+  LANDSCAPING: [
+    { key: "siteArea", label: "Site area", kind: "number", unit: "m²" },
+    { key: "landscapeArea", label: "Landscape area", kind: "number", unit: "m²", hint: "Bye-law green cover / tree count basis" },
+    { key: "softHardRatio", label: "Softscape : hardscape intent", kind: "text", hint: "e.g. 60:40" },
+    { key: "podiumShare", label: "On-structure share + loading", kind: "text", hint: "% on podium; permissible kN/m² from structural consultant" },
+    { key: "soilDepthPodium", label: "Podium soil depth available", kind: "number", unit: "mm", hint: "450 lawn · 600 shrubs · 750+ trees" },
+    { key: "soilType", label: "Soil type (on grade)", kind: "choice", options: ["Red", "Black cotton", "Sandy", "Construction fill"] },
+    { key: "irrigationSource", label: "Irrigation water source", kind: "choice", options: ["Treated STP", "Borewell", "Municipal", "Rainwater"], hint: "STP reuse mandated in many states" },
+    { key: "irrigationSystem", label: "Irrigation system", kind: "choice", options: ["Drip", "Pop-up sprinkler", "Manual"] },
+    { key: "climateZone", label: "Climate zone", kind: "choice", options: ["Hot-dry", "Hot-humid", "Composite"] },
+    { key: "existingTrees", label: "Existing trees", kind: "text", hint: "Species, girth; retain/transplant/fell needs Tree Act NOC" },
+    { key: "theme", label: "Theme / style intent", kind: "text" },
+    { key: "maintenance", label: "Maintenance capacity", kind: "choice", options: ["In-house gardeners", "Outsourced AMC", "Minimal"] },
+    { key: "program", label: "User program", kind: "text", hint: "Kids' play, senior walkways, OAT, kitchen garden" },
+  ],
+};
+
+/** Store the engagement's typed brief (values keyed by the template's field keys). */
+export const ConsBriefSet = z.object({
+  engagementId: z.string().uuid(),
+  brief: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])),
+});
+export type ConsBriefSet = z.infer<typeof ConsBriefSet>;
+
 export const ConsPhaseStatus = z.enum(["PENDING", "ACTIVE", "DONE"]);
 export type ConsPhaseStatus = z.infer<typeof ConsPhaseStatus>;
 

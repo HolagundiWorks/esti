@@ -17,6 +17,8 @@ export const consEngagements = pgTable("esti_cons_engagement", {
   model: text("model").notNull(), // EngagementModel
   /** The consultancy pattern (STRUCTURAL/PEB/ELECTRICAL/…) — seeds phases + scope. */
   consultancyType: text("consultancy_type"), // ConsultancyType
+  /** Typed project brief — the design-basis parameter set (keys per CONSULTANCY_BRIEF_TEMPLATES). */
+  brief: jsonb("brief"),
   leadDiscipline: text("lead_discipline").notNull(), // EngineeringDiscipline
   disciplines: jsonb("disciplines"), // EngineeringDiscipline[]
   relianceScope: text("reliance_scope"),
