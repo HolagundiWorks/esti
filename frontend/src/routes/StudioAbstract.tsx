@@ -26,6 +26,7 @@ import type { ReactNode } from "react";
 import { can, formatINRShort, PRIORITY_BAND_LABEL } from "@esti/contracts";
 import { OfficeHealthGlyph } from "../components/shell/OfficeHealthGlyph.js";
 import { StatusDot } from "../components/StatusTag.js";
+import { EstiOrchestrationStatus } from "../components/EstiOrchestrationStatus.js";
 import { STATE_WORD } from "../components/dashboard/zoneState.js";
 import type { ZoneState } from "../components/dashboard/zoneState.js";
 import { StudioBreath } from "../components/dashboard/StudioBreath.js";
@@ -44,6 +45,7 @@ import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { useNavigate } from "react-router-dom";
 import { TYPE_SCALE, useScreenActions } from "@hcw/ui-kit";
+import { AORMS_STUDIO } from "../lib/product-nomenclature.js";
 
 // ── Zone state ────────────────────────────────────────────────────────────────
 
@@ -282,6 +284,10 @@ export function StudioAbstract() {
   const { user }  = useAuth();
   const wellnessPrefs = useWellnessPrefs();
   const navigate  = useNavigate();
+
+  useEffect(() => {
+    document.title = `Studio Intelligence — ${AORMS_STUDIO.title}`;
+  }, []);
 
   const homeQ     = trpc.dashboard.home.useQuery(undefined, { staleTime: 60_000 });
   const settingsQ = trpc.settings.get.useQuery();
@@ -709,6 +715,9 @@ export function StudioAbstract() {
             <Typography variant="h5" sx={{ fontWeight: 600, lineHeight: 1.15 }}>{firstName}</Typography>
             {companyName && <Typography variant="caption" color="text.secondary">{companyName}</Typography>}
           </Box>
+
+          {/* Orchestration lives in the rail — visible only while ESTI is working. */}
+          <EstiOrchestrationStatus />
 
           {/* Attention update — below the greeting */}
           <Typography variant="body2" color="text.secondary">
