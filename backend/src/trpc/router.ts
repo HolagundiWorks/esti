@@ -11,6 +11,7 @@ import { engagementRouter } from "../modules/consultant/engagement.js";
 import { consultantRequestsRouter } from "../modules/consultant/inbox.js";
 import { collaboratorRouter } from "../modules/consultant/portal.js";
 import { consultantRouter } from "../modules/consultant/router.js";
+import { consultancyRouter } from "../modules/consultancy/router.js";
 import { contractorRouter } from "../modules/contractor/router.js";
 import { vendorRouter } from "../modules/vendor/router.js";
 import { complianceRouter } from "../modules/compliance/router.js";
@@ -129,6 +130,9 @@ export const appRouter = router({
   approvals: approvalRouter,
   transmittals: transmittalRouter,
   consultants: consultantRouter,
+  // AORMS-Consultancy (engineering) — Phase 0 living record; distinct from the
+  // Studio architect↔consultant `engagements` namespace below.
+  consultancy: consultancyRouter,
   contractors: contractorRouter,
   vendors: vendorRouter,
   compliance: complianceRouter,
