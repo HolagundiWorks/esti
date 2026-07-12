@@ -1,0 +1,25 @@
+{
+  "name": "@hcw/ui-kit",
+  "version": "0.5.2",
+  "private": true,
+  "type": "module",
+  "sideEffects": ["*.scss"],
+  "description": "HCW-UI-Kit — vendored BUILT copy of github.com/HolagundiWorks/hcwux. Do not edit here; edit upstream in the hcwux repo and re-vendor its dist/.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./tokens": { "types": "./dist/tokens.d.ts", "import": "./dist/tokens.js" },
+    "./portal-chrome.scss": "./dist/portal-chrome.scss"
+  },
+  "peerDependencies": {
+    "@emotion/react": ">=11",
+    "@emotion/styled": ">=11",
+    "@mui/material": ">=9",
+    "@mui/x-data-grid": ">=9",
+    "@mui/x-date-pickers": ">=9",
+    "dayjs": ">=1.11",
+    "react": ">=18",
+    "react-dom": ">=18"
+  }
+}
