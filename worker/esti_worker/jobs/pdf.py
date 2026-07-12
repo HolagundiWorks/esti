@@ -15,6 +15,7 @@ from typing import Any
 from ..config import settings
 from ..db import (
     fetch_drawing_full,
+    fetch_engagement_full,
     fetch_feeproposal_full,
     fetch_inspection_full,
     fetch_invoice_full,
@@ -27,6 +28,7 @@ from ..db import (
     fetch_feasibility_report_full,
     fetch_site_instruction_full,
     update_drawing,
+    update_engagement,
     update_feeproposal,
     update_inspection,
     update_invoice,
@@ -616,8 +618,131 @@ def _feasibility_report_html(rec: dict[str, Any], firm: dict[str, Any]) -> str:
     </body></html>"""
 
 
+_ENG_MODEL = {
+    "DESIGN_ASSIST": "Design assist",
+    "PEER_REVIEW": "Peer review",
+    "FULL_DESIGN": "Full design",
+    "SITE_SUPPORT": "Site support",
+}
+_ENG_DISCIPLINE = {
+    "STRUCTURAL": "Structural",
+    "MEP": "MEP / building services",
+    "CIVIL": "Civil / infrastructure",
+    "GEOTECHNICAL": "Geotechnical",
+    "FACADE": "Façade / specialist",
+    "OTHER": "Other",
+}
+_ENG_ISSUE_CLASS = {
+    "FOR_INFORMATION": "For information",
+    "FOR_APPROVAL": "For approval",
+    "FOR_CONSTRUCTION": "For construction",
+}
+_ENG_STEP = {"CHECK": "Checked", "APPROVE": "Approved (EoR)", "VERIFY": "Proof-checked"}
+_ENG_FEE_MODEL = {
+    "PERCENT_OF_COST": "% of construction cost",
+    "LUMP_SUM": "Lump sum",
+    "TIME_CHARGE": "Time charge",
+    "RETAINER": "Retainer",
+}
+
+
+def _engagement_register_html(e: dict[str, Any], firm: dict[str, Any]) -> str:
+    """AORMS-Consultancy engagement register — the issue-sheet record: the
+    deliverable register with its sign-off chains, fee stages, and TQ log."""
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    steps_by_del: dict[str, list[dict[str, Any]]] = {}
+    for s in e.get("steps", []):
+        steps_by_del.setdefault(str(s["deliverable_id"]), []).append(s)
+
+    def chain_cell(d: dict[str, Any]) -> str:
+        steps = steps_by_del.get(str(d["id"]), [])
+        if not steps:
+            return "<span class='muted'>—</span>"
+        return "<br>".join(
+            f"{_ENG_STEP.get(s['kind'], s['kind'])}: {_e(s['user_name'])} "
+            f"<span class='muted'>{str(s['at'])[:10]}</span>"
+            for s in steps
+        )
+
+    del_rows = "".join(
+        f"<tr><td>{_e(d['code'])}</td><td>{_e(d['title'])}</td>"
+        f"<td>{_e(_ENG_DISCIPLINE.get(d['discipline'], d['discipline']))}</td>"
+        f"<td class='c'>{_e(d['revision'])}</td>"
+        f"<td>{_e(_ENG_ISSUE_CLASS.get(d['issue_class'], d['issue_class']))}</td>"
+        f"<td class='c'>{_e(d['check_category'])}</td>"
+        f"<td>{chain_cell(d)}</td>"
+        f"<td class='c'>{_e(d['status'])}"
+        f"{('<br><span class=muted>' + str(d['issued_at'])[:10] + '</span>') if d.get('issued_at') else ''}</td></tr>"
+        for d in e.get("deliverables", [])
+    )
+    fee_rows = "".join(
+        f"<tr><td>{_e(f['label'])}</td><td class='r'>{_inr(f['amount_paise'])}</td>"
+        f"<td class='c'>{_e(f['status'])}</td></tr>"
+        for f in e.get("fee_stages", [])
+    )
+    tq_rows = "".join(
+        f"<tr><td>{_e(t['code'])}{' <b>· scope</b>' if t.get('scope_impact') else ''}</td>"
+        f"<td>{_e(t['question'])}"
+        f"{('<br><span class=muted>Answer: ' + _e(t['answer']) + '</span>') if t.get('answer') else ''}"
+        f"{('<br><span class=muted>Closure: ' + _e(t['closure_note']) + '</span>') if t.get('closure_note') else ''}</td>"
+        f"<td class='c'>{_e(t['status'])}</td></tr>"
+        for t in e.get("tqs", [])
+    )
+    fee_line = (
+        f"{_ENG_FEE_MODEL.get(e.get('fee_model'), e.get('fee_model'))} · agreed {_inr(e.get('fee_total_paise'))}"
+        if e.get("fee_model")
+        else "No fee model recorded"
+    )
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>
+      @page {{ size: A4; margin: 16mm; }}
+      body {{ font-family: 'Helvetica Neue', Arial, sans-serif; color: #161616; font-size: 10.5px; }}
+      .firm {{ font-size: 18px; font-weight: 700; }}
+      .muted {{ color: #6f6f6f; }}
+      .title {{ font-size: 14px; font-weight: 700; text-transform: uppercase;
+                border-top: 2px solid #161616; border-bottom: 2px solid #161616;
+                padding: 6px 0; margin: 14px 0 10px; letter-spacing: 1px; }}
+      h3 {{ font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.6px;
+            margin: 16px 0 4px; }}
+      table {{ width: 100%; border-collapse: collapse; margin-top: 4px; }}
+      th, td {{ padding: 5px 7px; border-bottom: 1px solid #e0e0e0; text-align: left;
+                vertical-align: top; }}
+      th {{ background: #f4f4f4; }} td.c, th.c {{ text-align: center; }}
+      td.r, th.r {{ text-align: right; }}
+      .kv td {{ border: none; padding: 2px 8px; }}
+    </style></head><body>
+      {_firm_heading(firm)}
+      <div class="muted">{addr}</div>
+
+      <div class="title">Engagement Register — {_e(e['title'])}</div>
+      <table class="kv">
+        <tr><td class="muted">Client</td><td>{_e(e.get('client_name') or '—')}</td></tr>
+        <tr><td class="muted">Model</td><td>{_e(_ENG_MODEL.get(e['model'], e['model']))} ·
+            lead: {_e(_ENG_DISCIPLINE.get(e['lead_discipline'], e['lead_discipline']))}</td></tr>
+        <tr><td class="muted">Stage</td><td>{_e(e.get('stage') or '—')} · {_e(e['status'])}</td></tr>
+        <tr><td class="muted">Reliance</td><td>{_e(e.get('reliance_scope') or '—')}</td></tr>
+        <tr><td class="muted">Fee</td><td>{fee_line}</td></tr>
+      </table>
+
+      <h3>Deliverable register</h3>
+      <table>
+        <thead><tr><th>Code</th><th>Title</th><th>Discipline</th><th class="c">Rev</th>
+          <th>Issue class</th><th class="c">Check</th><th>Sign-off chain</th><th class="c">Status</th></tr></thead>
+        <tbody>{del_rows or '<tr><td colspan=8 class="muted">Empty register</td></tr>'}</tbody>
+      </table>
+
+      {f'<h3>Fee stages</h3><table><thead><tr><th>Stage</th><th class="r">Amount</th><th class="c">Status</th></tr></thead><tbody>{fee_rows}</tbody></table>' if fee_rows else ''}
+
+      {f'<h3>Technical queries</h3><table><thead><tr><th>Code</th><th>Question</th><th class="c">Status</th></tr></thead><tbody>{tq_rows}</tbody></table>' if tq_rows else ''}
+
+      <p class="muted" style="margin-top:22px">Issued by {_e(firm.get('legalName'))}.
+        Deliverables are issued for the stated purpose only; drafts and superseded
+        revisions remain with the office.</p>
+    </body></html>"""
+
+
 _RENDERERS = {
     "invoice": (fetch_invoice_full, _render_html, update_invoice, "invoice"),
+    "engagement_register": (fetch_engagement_full, _engagement_register_html, update_engagement, "engagement"),
     "payslip": (fetch_payslip_full, _payslip_html, update_payslip, "payslip"),
     "feeproposal": (fetch_feeproposal_full, _feeproposal_html, update_feeproposal, "feeproposal"),
     "transmittal": (fetch_transmittal_full, _transmittal_html, update_transmittal, "transmittal"),

@@ -72,7 +72,14 @@ export function ConsultancyEngagements() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const detailQ = trpc.consultancy.engagements.get.useQuery(
     { id: selectedId ?? "" },
-    { enabled: !!selectedId },
+    {
+      enabled: !!selectedId,
+      // Poll while the worker renders the register PDF.
+      refetchInterval: (q) => {
+        const st = q.state.data?.pdfStatus;
+        return st === "PENDING" || st === "PROCESSING" ? 2500 : false;
+      },
+    },
   );
 
   const invalidate = () => {
@@ -144,6 +151,12 @@ export function ConsultancyEngagements() {
     meta: { errorTitle: "Couldn't delete the technical query" },
     onSuccess: invalidate,
   });
+  // Built-in PDF export.
+  const exportPdf = trpc.consultancy.engagements.exportPdf.useMutation({
+    meta: { errorTitle: "Couldn't start the PDF export" },
+    onSuccess: invalidate,
+  });
+
   // Phase 2 slice 2 — rate card + timesheets.
   const rateCardQ = trpc.consultancy.rateCards.list.useQuery();
   const setRates = trpc.consultancy.rateCards.set.useMutation({
@@ -410,9 +423,44 @@ export function ConsultancyEngagements() {
                         Reliance: {detail.relianceScope}
                       </Typography>
                     )}
+                    {(detail.pdfStatus === "PENDING" || detail.pdfStatus === "PROCESSING") && (
+                      <span className="esti-label esti-label--secondary">
+                        Register PDF rendering…
+                      </span>
+                    )}
+                    {detail.pdfStatus === "FAILED" && (
+                      <span className="esti-label esti-label--secondary">
+                        Register PDF failed — try exporting again.
+                      </span>
+                    )}
+                    {detail.pdfUrl && (
+                      <Box>
+                        <Button
+                          component="a"
+                          href={detail.pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          variant="outlined"
+                          size="small"
+                        >
+                          Download register PDF
+                        </Button>
+                      </Box>
+                    )}
                   </Stack>
                   <RowActionsMenu
                     actions={[
+                      {
+                        label:
+                          detail.pdfStatus === "PENDING" || detail.pdfStatus === "PROCESSING"
+                            ? "Export PDF (rendering…)"
+                            : "Export register PDF",
+                        disabled:
+                          exportPdf.isPending ||
+                          detail.pdfStatus === "PENDING" ||
+                          detail.pdfStatus === "PROCESSING",
+                        onClick: () => exportPdf.mutate({ id: detail.id }),
+                      },
                       ...(detail.status !== "ON_HOLD"
                         ? [
                             {

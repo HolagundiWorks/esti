@@ -37,6 +37,9 @@ import {
   consTqs,
 } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { firmPayload } from "../../lib/firm.js";
+import { enqueueJob } from "../../lib/redis.js";
+import { presignedGet } from "../../lib/storage.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 const manage = capabilityProcedure("write");
@@ -122,7 +125,35 @@ const engagementsRouter = router({
         feeStages,
         timesheets,
         feePosition,
+        // Built-in PDF export — download URL once the worker has rendered it.
+        pdfUrl:
+          row.pdfStatus === "READY" && row.pdfKey
+            ? await presignedGet(row.pdfKey).catch(() => null)
+            : null,
       };
+    }),
+
+  /** Export the engagement register as a PDF (worker render_pdf → WeasyPrint → S3). */
+  exportPdf: manage
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select()
+        .from(consEngagements)
+        .where(eq(consEngagements.id, input.id));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      // Re-exports render a fresh snapshot — clear READY so the worker re-runs.
+      await ctx.db
+        .update(consEngagements)
+        .set({ pdfStatus: "PENDING", pdfKey: null, updatedAt: new Date() })
+        .where(eq(consEngagements.id, input.id));
+      await enqueueJob(
+        "render_pdf",
+        { target: "engagement_register", id: input.id, firm: await firmPayload(ctx.db) },
+        ctx.requestId,
+      );
+      await writeAudit(ctx.db, { entity: "cons_engagement", entityId: input.id, action: "PDF_REQUEST", actorId: ctx.user.id });
+      return { ok: true };
     }),
 
   create: manage.input(ConsEngagementCreate).mutation(async ({ ctx, input }) => {

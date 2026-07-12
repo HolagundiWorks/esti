@@ -23,6 +23,9 @@ export const consEngagements = pgTable("esti_cons_engagement", {
   // Phase 2 — fee structure (money is integer paise, house convention).
   feeModel: text("fee_model"), // FeeModel
   feeTotalPaise: bigint("fee_total_paise", { mode: "number" }),
+  // Built-in PDF export (worker render_pdf → WeasyPrint → S3).
+  pdfStatus: text("pdf_status"), // PENDING | PROCESSING | READY | FAILED
+  pdfKey: text("pdf_key"),
   notes: text("notes"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
