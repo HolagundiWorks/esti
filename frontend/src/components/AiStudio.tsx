@@ -26,6 +26,7 @@ import { PageBreadcrumb } from "./PageBreadcrumb.js";
 import { RailLayout } from "./RailLayout.js";
 import { trpc } from "../lib/trpc.js";
 import { useAuth } from "../lib/auth.js";
+import { setEstiActivity } from "../lib/esti-activity.js";
 
 const DRAFT_KINDS = AiDraftKind.options;
 
@@ -51,12 +52,27 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
 
   const generate = trpc.ai.generate.useMutation({
     meta: { errorTitle: "Couldn't generate the AI draft" },
+    onMutate: (vars) => {
+      // Publish to the rail — orchestration lives in the rail (RailLayout wraps this page).
+      const label = AI_DRAFT_KIND_LABEL[vars.kind as AiDraftKind] ?? vars.kind;
+      const hint = vars.prompt
+        ? ` — ${vars.prompt.length > 60 ? `${vars.prompt.slice(0, 60)}…` : vars.prompt}`
+        : "";
+      setEstiActivity({
+        status: "orchestrating",
+        mission: `Draft: ${label}${hint}`,
+        operation: "Generating a draft",
+        context: vars.projectId ? "this project" : "the workspace",
+      });
+    },
     onSuccess: (res) => {
       setOutput(res.output);
       setRunId(res.runId);
       setSources(res.sources);
       utils.ai.listRuns.invalidate();
+      setEstiActivity({ status: "idle" });
     },
+    onError: () => setEstiActivity({ status: "idle" }),
   });
   const updateRun = trpc.ai.updateRun.useMutation({
     meta: { errorTitle: "Couldn't update the AI run" },
