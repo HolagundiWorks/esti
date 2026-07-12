@@ -25,6 +25,8 @@ import {
   CHECK_CATEGORY_LABEL,
   CHECK_CATEGORY_REQUIRED_STEPS,
   CONS_DELIVERABLE_STATUS_TAG,
+  CONS_GRADE_LABEL,
+  ConsGrade,
   CONS_ENGAGEMENT_STATUS_TAG,
   CONS_FEE_STAGE_STATUS_TAG,
   CONS_TQ_STATUS_TAG,
@@ -142,6 +144,27 @@ export function ConsultancyEngagements() {
     meta: { errorTitle: "Couldn't delete the technical query" },
     onSuccess: invalidate,
   });
+  // Phase 2 slice 2 — rate card + timesheets.
+  const rateCardQ = trpc.consultancy.rateCards.list.useQuery();
+  const setRates = trpc.consultancy.rateCards.set.useMutation({
+    meta: { errorTitle: "Couldn't save the rate card" },
+    onSuccess: () => {
+      rateCardQ.refetch();
+      setRatesOpen(false);
+    },
+  });
+  const logTime = trpc.consultancy.timesheets.log.useMutation({
+    meta: { errorTitle: "Couldn't log the time" },
+    onSuccess: () => {
+      invalidate();
+      setTimeOpen(false);
+    },
+  });
+  const removeTime = trpc.consultancy.timesheets.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the timesheet entry" },
+    onSuccess: invalidate,
+  });
+
   // Phase 2 — fee stages.
   const createFeeStage = trpc.consultancy.feeStages.create.useMutation({
     meta: { errorTitle: "Couldn't add the fee stage" },
@@ -166,6 +189,16 @@ export function ConsultancyEngagements() {
   const [engDiscipline, setEngDiscipline] = useState<EngineeringDiscipline>("STRUCTURAL");
   const [engStage, setEngStage] = useState("");
   const [engReliance, setEngReliance] = useState("");
+
+  // Log-time + rate-card dialogs (Phase 2 slice 2).
+  const [timeOpen, setTimeOpen] = useState(false);
+  const [timeDate, setTimeDate] = useState("");
+  const [timeHours, setTimeHours] = useState("");
+  const [timeGrade, setTimeGrade] = useState<ConsGrade>("ENGINEER");
+  const [timeDeliverableId, setTimeDeliverableId] = useState("");
+  const [timeNote, setTimeNote] = useState("");
+  const [ratesOpen, setRatesOpen] = useState(false);
+  const [rateDraft, setRateDraft] = useState<Record<string, string>>({});
 
   // Fee-stage dialog (Phase 2).
   const [feeOpen, setFeeOpen] = useState(false);
@@ -193,7 +226,7 @@ export function ConsultancyEngagements() {
   const [delCheckCategory, setDelCheckCategory] = useState<CheckCategory>("CAT1");
 
   const anyDialogOpen =
-    engOpen || delOpen || tqOpen || feeOpen || !!tqAnswerFor || !!tqCloseFor;
+    engOpen || delOpen || tqOpen || feeOpen || timeOpen || ratesOpen || !!tqAnswerFor || !!tqCloseFor;
   useScreenActions(
     anyDialogOpen
       ? []
@@ -249,10 +282,35 @@ export function ConsultancyEngagements() {
                     setFeeOpen(true);
                   },
                 },
+                {
+                  id: "cons-log-time",
+                  zone: "center",
+                  label: "Log time",
+                  icon: <AddIcon />,
+                  onClick: () => {
+                    setTimeDate(new Date().toISOString().slice(0, 10));
+                    setTimeHours("");
+                    setTimeDeliverableId("");
+                    setTimeNote("");
+                    setTimeOpen(true);
+                  },
+                },
+                {
+                  id: "cons-rate-card",
+                  zone: "right",
+                  label: "Rate card",
+                  onClick: () => {
+                    const draft: Record<string, string> = {};
+                    for (const r of rateCardQ.data ?? [])
+                      draft[r.grade] = String((r.ratePaise ?? 0) / 100);
+                    setRateDraft(draft);
+                    setRatesOpen(true);
+                  },
+                },
               ] satisfies DockAction[])
             : []),
         ] satisfies DockAction[]),
-    [anyDialogOpen, selectedId],
+    [anyDialogOpen, selectedId, rateCardQ.data],
   );
 
   const engagements = listQ.data ?? [];
@@ -595,6 +653,61 @@ export function ConsultancyEngagements() {
                 )}
               </Box>
 
+              {/* Time booked — substrate for WIP / utilisation / realisation. */}
+              <Box sx={{ pt: 1 }}>
+                <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600, mb: 0.5 }}>
+                  Time
+                </Typography>
+                <span className="esti-label esti-label--secondary">
+                  {`${detail.feePosition.hoursBooked}h booked · value ${formatINR(detail.feePosition.timeValuePaise)} · WIP ${formatINR(detail.feePosition.wipPaise)}`}
+                </span>
+                {detail.timesheets.length > 0 && (
+                  <TableContainer sx={{ mt: 1 }}>
+                    <Table size="small" aria-label="Timesheet entries">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Date</TableCell>
+                          <TableCell>Who</TableCell>
+                          <TableCell>Grade</TableCell>
+                          <TableCell align="right">Hours</TableCell>
+                          <TableCell align="right">Value</TableCell>
+                          <TableCell align="right" />
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {detail.timesheets.slice(0, 8).map((t) => (
+                          <TableRow key={t.id}>
+                            <TableCell sx={{ fontVariantNumeric: "tabular-nums" }}>{t.date}</TableCell>
+                            <TableCell>{t.userName}</TableCell>
+                            <TableCell>
+                              {CONS_GRADE_LABEL[t.grade as ConsGrade] ?? t.grade}
+                            </TableCell>
+                            <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                              {t.hours}
+                            </TableCell>
+                            <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                              {formatINR(t.valuePaise ?? 0)}
+                            </TableCell>
+                            <TableCell align="right">
+                              <RowActionsMenu
+                                actions={[
+                                  {
+                                    label: "Delete",
+                                    danger: true,
+                                    disabled: removeTime.isPending,
+                                    onClick: () => removeTime.mutate({ id: t.id }),
+                                  },
+                                ]}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Box>
+
               {/* Technical query register — closure evidence required to close. */}
               <Box sx={{ pt: 1 }}>
                 <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600, mb: 1 }}>
@@ -691,6 +804,132 @@ export function ConsultancyEngagements() {
           )}
         </Grid>
       </Grid>
+
+      {/* Log time */}
+      <Dialog open={timeOpen} onClose={() => setTimeOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Log time</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="cons-time-date"
+                label="Date"
+                type="date"
+                value={timeDate}
+                onChange={(e) => setTimeDate(e.target.value)}
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
+              <TextField
+                id="cons-time-hours"
+                label="Hours"
+                placeholder="e.g. 6"
+                value={timeHours}
+                onChange={(e) => setTimeHours(e.target.value)}
+                slotProps={{ htmlInput: { inputMode: "decimal" } }}
+                autoFocus
+              />
+            </Stack>
+            <TextField
+              id="cons-time-grade"
+              select
+              label="Grade"
+              value={timeGrade}
+              onChange={(e) => setTimeGrade(e.target.value as ConsGrade)}
+              helperText="Value is snapshotted at this grade's current chargeout rate"
+            >
+              {ConsGrade.options.map((g) => (
+                <MenuItem key={g} value={g}>
+                  {CONS_GRADE_LABEL[g]}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="cons-time-deliverable"
+              select
+              label="Deliverable (optional)"
+              value={timeDeliverableId}
+              onChange={(e) => setTimeDeliverableId(e.target.value)}
+            >
+              <MenuItem value="">Engagement-level</MenuItem>
+              {(detail?.deliverables ?? []).map((d) => (
+                <MenuItem key={d.id} value={d.id}>
+                  {d.code} — {d.title}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="cons-time-note"
+              label="Note (optional)"
+              value={timeNote}
+              onChange={(e) => setTimeNote(e.target.value)}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTimeOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={
+              !timeDate ||
+              !(Number.parseFloat(timeHours) > 0) ||
+              !selectedId ||
+              logTime.isPending
+            }
+            onClick={() =>
+              selectedId &&
+              logTime.mutate({
+                engagementId: selectedId,
+                date: timeDate,
+                hours: Number.parseFloat(timeHours),
+                grade: timeGrade,
+                deliverableId: timeDeliverableId || undefined,
+                note: timeNote.trim() || undefined,
+              })
+            }
+          >
+            Log
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Rate card */}
+      <Dialog open={ratesOpen} onClose={() => setRatesOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle>Rate card (₹/hour)</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1.5} sx={{ mt: 1 }}>
+            {ConsGrade.options.map((g) => (
+              <TextField
+                key={g}
+                id={`cons-rate-${g}`}
+                label={CONS_GRADE_LABEL[g]}
+                value={rateDraft[g] ?? ""}
+                onChange={(e) => setRateDraft((d) => ({ ...d, [g]: e.target.value }))}
+                size="small"
+                slotProps={{ htmlInput: { inputMode: "decimal" } }}
+              />
+            ))}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRatesOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={setRates.isPending}
+            onClick={() =>
+              setRates.mutate({
+                rates: ConsGrade.options
+                  .filter((g) => (rateDraft[g] ?? "").trim() !== "")
+                  .map((g) => ({
+                    grade: g,
+                    ratePaise: Math.round(Number.parseFloat(rateDraft[g]!) * 100) || 0,
+                  })),
+              })
+            }
+          >
+            Save rates
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Add fee stage */}
       <Dialog open={feeOpen} onClose={() => setFeeOpen(false)} fullWidth maxWidth="sm">

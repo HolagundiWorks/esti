@@ -15,7 +15,9 @@ import {
   ConsEngagementUpdate,
   ConsFeeStageCreate,
   ConsFeeStageUpdate,
+  ConsRateCardSet,
   ConsReviewStepCreate,
+  ConsTimesheetCreate,
   ConsTqAnswer,
   ConsTqClose,
   ConsTqCreate,
@@ -29,7 +31,9 @@ import {
   consDeliverables,
   consEngagements,
   consFeeStages,
+  consRateCards,
   consReviewSteps,
+  consTimesheets,
   consTqs,
 } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
@@ -85,16 +89,27 @@ const engagementsRouter = router({
         .from(consFeeStages)
         .where(eq(consFeeStages.engagementId, input.id))
         .orderBy(asc(consFeeStages.createdAt));
-      // Fee position — agreed vs staged vs billable vs invoiced (paise).
+      const timesheets = await ctx.db
+        .select()
+        .from(consTimesheets)
+        .where(eq(consTimesheets.engagementId, input.id))
+        .orderBy(desc(consTimesheets.date), desc(consTimesheets.createdAt));
+      const invoicedPaise = feeStages
+        .filter((s) => s.status === "INVOICED")
+        .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
+      const timeValuePaise = timesheets.reduce((a, t) => a + (t.valuePaise ?? 0), 0);
+      // Fee position — agreed vs staged vs billable vs invoiced, plus time
+      // booked and WIP (time value performed but not yet invoiced; case study §5.2).
       const feePosition = {
         agreedPaise: row.feeTotalPaise ?? 0,
         stagedPaise: feeStages.reduce((a, s) => a + (s.amountPaise ?? 0), 0),
         billablePaise: feeStages
           .filter((s) => s.status === "BILLABLE")
           .reduce((a, s) => a + (s.amountPaise ?? 0), 0),
-        invoicedPaise: feeStages
-          .filter((s) => s.status === "INVOICED")
-          .reduce((a, s) => a + (s.amountPaise ?? 0), 0),
+        invoicedPaise,
+        hoursBooked: timesheets.reduce((a, t) => a + (t.hours ?? 0), 0),
+        timeValuePaise,
+        wipPaise: Math.max(0, timeValuePaise - invoicedPaise),
       };
       return {
         ...row,
@@ -105,6 +120,7 @@ const engagementsRouter = router({
         })),
         tqs,
         feeStages,
+        timesheets,
         feePosition,
       };
     }),
@@ -386,10 +402,76 @@ const feeStagesRouter = router({
   }),
 });
 
+const rateCardsRouter = router({
+  list: protectedProcedure.query(({ ctx }) =>
+    ctx.db.select().from(consRateCards).orderBy(asc(consRateCards.grade)),
+  ),
+
+  /** Upsert the firm rate card (paise/hour per grade). */
+  set: manage.input(ConsRateCardSet).mutation(async ({ ctx, input }) => {
+    for (const r of input.rates) {
+      await ctx.db
+        .insert(consRateCards)
+        .values({ grade: r.grade, ratePaise: r.ratePaise })
+        .onConflictDoUpdate({
+          target: consRateCards.grade,
+          set: { ratePaise: r.ratePaise, updatedAt: new Date() },
+        });
+    }
+    await writeAudit(ctx.db, { entity: "cons_rate_card", action: "UPDATE", actorId: ctx.user.id, after: input.rates });
+    return ctx.db.select().from(consRateCards).orderBy(asc(consRateCards.grade));
+  }),
+});
+
+const timesheetsRouter = router({
+  listByEngagement: protectedProcedure
+    .input(z.object({ engagementId: z.string().uuid() }))
+    .query(({ ctx, input }) =>
+      ctx.db
+        .select()
+        .from(consTimesheets)
+        .where(eq(consTimesheets.engagementId, input.engagementId))
+        .orderBy(desc(consTimesheets.date)),
+    ),
+
+  /** Log hours — value is snapshotted at the grade rate then in force. */
+  log: manage.input(ConsTimesheetCreate).mutation(async ({ ctx, input }) => {
+    const [rate] = await ctx.db
+      .select()
+      .from(consRateCards)
+      .where(eq(consRateCards.grade, input.grade));
+    const valuePaise = Math.round((rate?.ratePaise ?? 0) * input.hours);
+    const [row] = await ctx.db
+      .insert(consTimesheets)
+      .values({
+        engagementId: input.engagementId,
+        deliverableId: input.deliverableId,
+        date: input.date,
+        grade: input.grade,
+        hours: input.hours,
+        valuePaise,
+        note: input.note,
+        userId: ctx.user.id,
+        userName: ctx.user.fullName,
+      })
+      .returning();
+    await writeAudit(ctx.db, { entity: "cons_timesheet", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+
+  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    await ctx.db.delete(consTimesheets).where(eq(consTimesheets.id, input.id));
+    await writeAudit(ctx.db, { entity: "cons_timesheet", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
+    return { ok: true };
+  }),
+});
+
 export const consultancyRouter = router({
   engagements: engagementsRouter,
   deliverables: deliverablesRouter,
   reviews: reviewsRouter,
   tqs: tqsRouter,
   feeStages: feeStagesRouter,
+  rateCards: rateCardsRouter,
+  timesheets: timesheetsRouter,
 });

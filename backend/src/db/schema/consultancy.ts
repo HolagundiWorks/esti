@@ -5,7 +5,7 @@
  * `esti_engagement` belongs to AORMS-Studio's architect↔consultant collaboration
  * model (collaboration.ts) — the engineering-consultancy spine uses `esti_cons_*`.
  */
-import { bigint, boolean, createdAt, id, jsonb, pgTable, text, timestamp, updatedAt, uuid } from "./_helpers.js";
+import { bigint, boolean, createdAt, date, doublePrecision, id, jsonb, pgTable, text, timestamp, uniqueIndex, updatedAt, uuid } from "./_helpers.js";
 import { clients, users } from "./org-auth.js";
 import { projectOffices } from "./project.js";
 
@@ -84,6 +84,41 @@ export const consFeeStages = pgTable("esti_cons_fee_stage", {
   invoicedAt: timestamp("invoiced_at", { withTimezone: true }),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
+});
+
+/** Phase 2 slice 2 — firm rate card: chargeout per grade (integer paise/hour). */
+export const consRateCards = pgTable(
+  "esti_cons_rate_card",
+  {
+    id: id(),
+    grade: text("grade").notNull(), // ConsGrade
+    ratePaise: bigint("rate_paise", { mode: "number" }).notNull().default(0),
+    updatedAt: updatedAt(),
+  },
+  (t) => ({ gradeIdx: uniqueIndex("esti_cons_rate_card_grade_idx").on(t.grade) }),
+);
+
+/**
+ * Phase 2 slice 2 — timesheets: hours booked to engagement (× deliverable) at
+ * a grade. The substrate for time value, WIP, and later utilisation/realisation.
+ */
+export const consTimesheets = pgTable("esti_cons_timesheet", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  deliverableId: uuid("deliverable_id").references(() => consDeliverables.id, {
+    onDelete: "set null",
+  }),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  userName: text("user_name").notNull(),
+  date: date("date").notNull(),
+  grade: text("grade").notNull(), // ConsGrade
+  hours: doublePrecision("hours").notNull(),
+  /** Value at booking time — hours × the grade rate then in force (paise). */
+  valuePaise: bigint("value_paise", { mode: "number" }).notNull().default(0),
+  note: text("note"),
+  createdAt: createdAt(),
 });
 
 /** Phase 1 — technical query (TQ/RFI) register with closure evidence. */

@@ -281,3 +281,51 @@ export const ConsFeeStageUpdate = z.object({
   deliverableId: z.string().uuid().nullable().optional(),
 });
 export type ConsFeeStageUpdate = z.infer<typeof ConsFeeStageUpdate>;
+
+// ── Phase 2 slice 2 — time & health (timesheets, rate cards, WIP) ───────────
+
+/** Delivery grades (case study §2.1) — the chargeout dimension of the rate card. */
+export const ConsGrade = z.enum([
+  "PRINCIPAL",
+  "DIRECTOR",
+  "ASSOCIATE",
+  "SENIOR_ENGINEER",
+  "ENGINEER",
+  "GRADUATE",
+]);
+export type ConsGrade = z.infer<typeof ConsGrade>;
+
+export const CONS_GRADE_LABEL: Record<ConsGrade, string> = {
+  PRINCIPAL: "Principal / Partner",
+  DIRECTOR: "Technical Director",
+  ASSOCIATE: "Associate",
+  SENIOR_ENGINEER: "Senior Engineer",
+  ENGINEER: "Engineer",
+  GRADUATE: "Graduate Engineer",
+};
+
+/** Firm rate card — chargeout per grade, integer paise per hour. */
+export const ConsRateCardSet = z.object({
+  rates: z
+    .array(
+      z.object({
+        grade: ConsGrade,
+        ratePaise: z.number().int().nonnegative(),
+      }),
+    )
+    .min(1)
+    .max(12),
+});
+export type ConsRateCardSet = z.infer<typeof ConsRateCardSet>;
+
+/** A timesheet entry — hours booked to engagement (× deliverable) at a grade. */
+export const ConsTimesheetCreate = z.object({
+  engagementId: z.string().uuid(),
+  deliverableId: z.string().uuid().optional(),
+  /** ISO date (YYYY-MM-DD). */
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  grade: ConsGrade,
+  hours: z.number().positive().max(24),
+  note: z.string().max(500).optional(),
+});
+export type ConsTimesheetCreate = z.infer<typeof ConsTimesheetCreate>;
