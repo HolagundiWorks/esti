@@ -1,5 +1,5 @@
 import { Alert, AlertTitle, Box, CircularProgress } from "@mui/material";
-import { AORMS_STUDIO, AORMS_CONSULTANCY, isAormsStudioLegacySlug, KNOWLEDGE_BANK_PORTAL } from "./lib/product-nomenclature.js";
+import { AORMS_STUDIO, AORMS_CONSULTANCY, isAormsStudioLegacySlug } from "./lib/product-nomenclature.js";
 import {
   Analytics,
   Archive,
@@ -42,8 +42,8 @@ import { Navigate, Route, Routes, useLocation, useParams } from "react-router-do
 import { can, ROLE_RANK, isStaffRole } from "@esti/contracts";
 import { ThemeContext } from "./lib/theme-context.js";
 import { isLandingSlug } from "./lib/landing-slugs.js";
-import { detectSurface, isAdminHost } from "./lib/aorms-surface-urls.js";
-import { wikiSubdomainRedirectTarget, WIKI_PATH } from "./lib/wiki-url.js";
+import { detectSurface, isAdminHost, legacySubdomainRedirectUrl } from "./lib/aorms-surface-urls.js";
+import { WIKI_PATH } from "./lib/wiki-url.js";
 import { useAuth } from "./lib/auth.js";
 import { setDesktopToken } from "./lib/api-base.js";
 import { trpc } from "./lib/trpc.js";
@@ -91,18 +91,10 @@ const Alerts = lazyRoute(() => import("./routes/Alerts.js"), "Alerts");
 const ArchivedProjects = lazyRoute(() => import("./routes/ArchivedProjects.js"), "ArchivedProjects");
 const CollaboratorPortal = lazyRoute(() => import("./routes/CollaboratorPortal.js"), "CollaboratorPortal");
 const SitePortal = lazyRoute(() => import("./routes/SitePortal.js"), "SitePortal");
-const Blog = lazyRoute(() => import("./routes/Blog.js"), "Blog");
-const BlogPost = lazyRoute(() => import("./routes/BlogPost.js"), "BlogPost");
-const Wiki = lazyRoute(() => import("./routes/Wiki.js"), "Wiki");
-const WikiPage = lazyRoute(() => import("./routes/WikiPage.js"), "WikiPage");
-const SeoLanding = lazy(() =>
-  import("./routes/SeoLanding.js").then((m) => ({ default: m.SeoLanding })),
+const ConsultancyEngagements = lazyRoute(
+  () => import("./routes/ConsultancyEngagements.js"),
+  "ConsultancyEngagements",
 );
-const Investors = lazyRoute(() => import("./routes/Investors.js"), "Investors");
-const DesignSystem = lazyRoute(() => import("./routes/DesignSystem.js"), "DesignSystem");
-const Legal = lazyRoute(() => import("./routes/Legal.js"), "Legal");
-const About = lazyRoute(() => import("./routes/About.js"), "About");
-const AormsConsultancy = lazyRoute(() => import("./routes/AormsConsultancy.js"), "AormsConsultancy");
 const Contracts = lazyRoute(() => import("./routes/Contracts.js"), "Contracts");
 const DocumentsRegister = lazyRoute(() => import("./routes/DocumentsRegister.js"), "DocumentsRegister");
 const Letters = lazyRoute(() => import("./routes/Letters.js"), "Letters");
@@ -169,16 +161,14 @@ function RouteFocus() {
   return null;
 }
 
-function WikiHostRoutes() {
-  const { pathname, search, hash } = useLocation();
-  if (pathname === WIKI_PATH || pathname.startsWith(`${WIKI_PATH}/`)) {
-    return <Navigate to={wikiSubdomainRedirectTarget(pathname, search, hash)} replace />;
-  }
+function LegacyHostRedirect({ target }: { target: string }) {
+  useEffect(() => {
+    window.location.replace(target);
+  }, [target]);
   return (
-    <Routes>
-      <Route path="/" element={<Wiki />} />
-      <Route path="/:slug" element={<WikiPage />} />
-    </Routes>
+    <Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}>
+      <CircularProgress aria-label="Redirecting" />
+    </Box>
   );
 }
 
@@ -207,8 +197,16 @@ export function App() {
 }
 
 function AppShell() {
+  const { pathname, search, hash } = useLocation();
+  const legacyTarget = legacySubdomainRedirectUrl(
+    window.location.hostname,
+    pathname,
+    search,
+    hash,
+  );
+  if (legacyTarget) return <LegacyHostRedirect target={legacyTarget} />;
+
   const { user, isLoading } = useAuth();
-  const { pathname } = useLocation();
   const surface = detectSurface(window.location.hostname);
   const publicMarketing = PUBLIC_SITE && (surface === "platform" || surface === "unknown");
   const utils = trpc.useUtils();
@@ -246,88 +244,39 @@ function AppShell() {
   if (!ADMIN_CONSOLE_URL && (isAdminHost() || pathname.startsWith("/platform-admin")))
     return <PlatformAdmin />;
 
-  // wiki.aorms.in — documentation at / (aorms.in/wiki remains a path alias).
-  if (surface === "wiki") return <WikiHostRoutes />;
-
-  // consultancy.aorms.in — engineering app marketing.
+  // consultancy.aorms.in — unified platform landing.
   if (surface === "consultancy") {
     if (pathname === "/" || pathname === AORMS_CONSULTANCY.marketingPath)
-      return <AormsConsultancy />;
+      return <Landing />;
     return <Navigate to="/" replace />;
   }
 
-  // account.aorms.in — identity & licensing hub.
-  if (surface === "account" && pathname === "/")
-    return <Navigate to="/account" replace />;
-
-  // external.aorms.in — client / consultant / contractor / site sign-in.
-  if (surface === "external" && pathname === "/access")
-    return <Navigate to="/" replace />;
-
-  // AORMS Wiki — aorms.in/wiki/* (path alias on platform host).
-  if (publicMarketing && (pathname === WIKI_PATH || pathname.startsWith(`${WIKI_PATH}/`))) {
-    return (
-      <Routes>
-        <Route path="/wiki" element={<Wiki />} />
-        <Route path="/wiki/:slug" element={<WikiPage />} />
-      </Routes>
-    );
-  }
-
-  // Public marketing surfaces — platform host only.
-  if (publicMarketing && (pathname === "/blog" || pathname.startsWith("/blog/")))
-    return (
-      <Routes>
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:slug" element={<BlogPost />} />
-      </Routes>
-    );
-
-  // Public keyword landing pages (SEO) — `/architecture-office-management-software`, etc.
-  if (publicMarketing && isLandingSlug(pathname))
-    return <SeoLanding slug={pathname.replace(/^\/+/, "").replace(/\/+$/, "")} />;
-
-  // HCW-UI-Kit design system showcase — public reference page.
-  if (publicMarketing && pathname === "/design-system")
-    return <DesignSystem />;
-
-  // AORMS-Studio — canonical URL is /login (marketing + sign-in).
-  if (publicMarketing) {
-    const pathSlug = pathname.replace(/^\/+/, "").replace(/\/+$/, "");
-    if (pathSlug === AORMS_STUDIO.slug || isAormsStudioLegacySlug(pathSlug))
-      return <Navigate to="/login" replace />;
-  }
-
-  if (publicMarketing && pathname === "/development")
-    return <Navigate to={`/wiki/${AORMS_STUDIO.slug}`} replace />;
-
-  // Investor brief — standalone public page, not linked from the marketing nav.
-  if (publicMarketing && pathname === "/investors")
-    return <Investors />;
-
-  // Legal — terms, privacy, acceptable use, licensing.
-  if (publicMarketing && pathname === "/legal")
-    return <Legal />;
-
-  // AORMS-Consultancy — engineering app marketing (roadmap).
-  if (publicMarketing && pathname === AORMS_CONSULTANCY.marketingPath)
-    return <AormsConsultancy />;
-
-  // About / contact alias — /contact → talk-to-us on About.
-  if (publicMarketing && pathname === "/contact")
-    return <Navigate to="/about#contact" replace />;
-
-  // About / E-E-A-T — who builds AORMS and the expertise behind it.
-  if (publicMarketing && pathname === "/about")
-    return <About />;
-
-  // Legacy download URL — redirects to the wiki getting-started guide.
-  if (publicMarketing && pathname === "/download")
-    return <Navigate to="/wiki/getting-started" replace />;
-
-  // Legacy /demo — one-click autologin removed; studio sign-in is the entry point.
+  // Marketing consolidation (2026-07): the platform now ships a **single** landing at
+  // `/`. Every former marketing sub-page — wiki, blog, SEO keyword landings, the
+  // HCW-UI-Kit design-system showcase, investors, legal, about/contact, download, and
+  // the per-app marketing slugs — has been removed and now redirects to the landing.
+  // (Auth + account routes are handled below and are unaffected.)
   if (publicMarketing && pathname === "/demo")
     return <Navigate to="/login" replace />;
+
+  if (publicMarketing) {
+    const slug = pathname.replace(/^\/+/, "").replace(/\/+$/, "");
+    const isRemovedMarketing =
+      pathname === "/blog" || pathname.startsWith("/blog/") ||
+      pathname === WIKI_PATH || pathname.startsWith(`${WIKI_PATH}/`) ||
+      pathname === "/design-system" ||
+      pathname === "/development" ||
+      pathname === "/investors" ||
+      pathname === "/legal" ||
+      pathname === "/contact" ||
+      pathname === "/about" ||
+      pathname === "/download" ||
+      pathname === AORMS_CONSULTANCY.marketingPath ||
+      isLandingSlug(pathname) ||
+      slug === AORMS_STUDIO.slug ||
+      isAormsStudioLegacySlug(slug);
+    if (isRemovedMarketing) return <Navigate to="/" replace />;
+  }
 
   // AORMS account + licence portal (hlp_account) — available on every build variant.
   if (pathname === "/account")
@@ -343,12 +292,6 @@ function AppShell() {
 
   if (isLoading) return <Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}><CircularProgress aria-label={`Loading ${AORMS_STUDIO.title}`} /></Box>;
   if (!user) {
-    const fallbackUnauth =
-      surface === "external" ? (
-        <ExternalLogin />
-      ) : (
-        <Navigate to="/login" replace />
-      );
     return (
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -363,7 +306,7 @@ function AppShell() {
             <Route path="*" element={<NotFound />} />
           </>
         ) : (
-          <Route path="*" element={fallbackUnauth} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         )}
       </Routes>
     );
@@ -543,12 +486,7 @@ function AppShell() {
     },
   ].filter((g) => g.items.length > 0);
 
-  const isStudioHome = pathname === "/" && surface !== "kbank";
-
-  // kbank.aorms.in — Knowledge Bank portal is the home surface.
-  if (surface === "kbank" && pathname === "/") {
-    return <Navigate to={KNOWLEDGE_BANK_PORTAL.route} replace />;
-  }
+  const isStudioHome = pathname === "/" && surface === "studio";
 
   return (
     <ThemeContext.Provider value="white">
@@ -611,6 +549,11 @@ function AppShell() {
                 <Route path="/libraries/knowledge-bank-portal" element={<KnowledgeBankPortal />} />
                 <Route path="/libraries/repository" element={<Navigate to="/libraries/knowledge-bank-portal" replace />} />
                 {atLeast(60) && <Route path="/vendors" element={<Vendors />} />}
+                {/* AORMS-Consultancy Phase 0 preview — engineering engagement spine
+                    (not in the Studio sidebar; direct URL until the consultancy
+                    surface ships its own workspace shell). */}
+                <Route path="/consultancy" element={<Navigate to="/consultancy/engagements" replace />} />
+                <Route path="/consultancy/engagements" element={<ConsultancyEngagements />} />
                 {hrEnabled && can(user.role, "hr:manage") && (
                   <Route path="/finance/payroll" element={<Payroll />} />
                 )}
