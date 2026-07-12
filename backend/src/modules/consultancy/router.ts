@@ -13,6 +13,7 @@ import {
   ConsDeliverableUpdate,
   ConsEngagementCreate,
   ConsEngagementUpdate,
+  ConsAnalyticsPeriod,
   ConsFeeStageCreate,
   ConsFeeStageUpdate,
   ConsRateCardSet,
@@ -26,7 +27,7 @@ import {
   ReviewStepKind,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import { z } from "zod";
 import {
   consDeliverables,
@@ -446,15 +447,25 @@ const rateCardsRouter = router({
     ctx.db.select().from(consRateCards).orderBy(asc(consRateCards.grade)),
   ),
 
-  /** Upsert the firm rate card (paise/hour per grade). */
+  /** Upsert the firm rate card (paise/hour + weekly capacity per grade). */
   set: manage.input(ConsRateCardSet).mutation(async ({ ctx, input }) => {
     for (const r of input.rates) {
       await ctx.db
         .insert(consRateCards)
-        .values({ grade: r.grade, ratePaise: r.ratePaise })
+        .values({
+          grade: r.grade,
+          ratePaise: r.ratePaise,
+          capacityHoursWeek: r.capacityHoursWeek ?? 0,
+        })
         .onConflictDoUpdate({
           target: consRateCards.grade,
-          set: { ratePaise: r.ratePaise, updatedAt: new Date() },
+          set: {
+            ratePaise: r.ratePaise,
+            ...(r.capacityHoursWeek !== undefined
+              ? { capacityHoursWeek: r.capacityHoursWeek }
+              : {}),
+            updatedAt: new Date(),
+          },
         });
     }
     await writeAudit(ctx.db, { entity: "cons_rate_card", action: "UPDATE", actorId: ctx.user.id, after: input.rates });
@@ -568,6 +579,81 @@ const variationsRouter = router({
   }),
 });
 
+const analyticsRouter = router({
+  /**
+   * Firm-level commercial health for a period (case study §5.3).
+   * Utilisation = hours booked ÷ capacity (owner-entered hours/week per grade
+   * on the rate card × weeks in the period). Realisation = invoiced ÷ time
+   * value booked. WIP = time value not yet covered by invoiced stages, summed
+   * per engagement.
+   */
+  summary: protectedProcedure.input(ConsAnalyticsPeriod).query(async ({ ctx, input }) => {
+    const sheets = await ctx.db
+      .select()
+      .from(consTimesheets)
+      .where(and(gte(consTimesheets.date, input.from), lte(consTimesheets.date, input.to)));
+    const rates = await ctx.db.select().from(consRateCards);
+    const stages = await ctx.db.select().from(consFeeStages);
+
+    const weeks =
+      Math.max(
+        1,
+        Math.round(
+          (new Date(input.to).getTime() - new Date(input.from).getTime()) / 86400000,
+        ) + 1,
+      ) / 7;
+
+    const byGrade = rates
+      .map((r) => {
+        const graded = sheets.filter((s) => s.grade === r.grade);
+        const hours = graded.reduce((a, s) => a + (s.hours ?? 0), 0);
+        const capacity = (r.capacityHoursWeek ?? 0) * weeks;
+        return {
+          grade: r.grade,
+          hours,
+          valuePaise: graded.reduce((a, s) => a + (s.valuePaise ?? 0), 0),
+          capacityHours: capacity,
+          utilisation: capacity > 0 ? hours / capacity : null,
+        };
+      })
+      .filter((g) => g.hours > 0 || g.capacityHours > 0);
+
+    const hoursBooked = sheets.reduce((a, s) => a + (s.hours ?? 0), 0);
+    const timeValuePaise = sheets.reduce((a, s) => a + (s.valuePaise ?? 0), 0);
+    const invoicedPaise = stages
+      .filter((s) => s.status === "INVOICED")
+      .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
+    const billablePaise = stages
+      .filter((s) => s.status === "BILLABLE")
+      .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
+
+    // WIP per engagement (all-time; floored at zero), summed across the firm.
+    const allSheets = await ctx.db.select().from(consTimesheets);
+    const engIds = [...new Set(allSheets.map((s) => s.engagementId))];
+    let wipPaise = 0;
+    for (const id of engIds) {
+      const tv = allSheets
+        .filter((s) => s.engagementId === id)
+        .reduce((a, s) => a + (s.valuePaise ?? 0), 0);
+      const inv = stages
+        .filter((s) => s.engagementId === id && s.status === "INVOICED")
+        .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
+      wipPaise += Math.max(0, tv - inv);
+    }
+
+    return {
+      period: input,
+      hoursBooked,
+      timeValuePaise,
+      billablePaise,
+      invoicedPaise,
+      wipPaise,
+      realisation: timeValuePaise > 0 ? invoicedPaise / timeValuePaise : null,
+      byGrade,
+    };
+  }),
+});
+
 export const consultancyRouter = router({
   engagements: engagementsRouter,
   deliverables: deliverablesRouter,
@@ -577,4 +663,5 @@ export const consultancyRouter = router({
   rateCards: rateCardsRouter,
   timesheets: timesheetsRouter,
   variations: variationsRouter,
+  analytics: analyticsRouter,
 });

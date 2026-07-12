@@ -180,6 +180,14 @@ export function ConsultancyEngagements() {
     onSuccess: invalidate,
   });
 
+  // Phase 2 close — firm commercial health, trailing 30 days.
+  const [analyticsPeriod] = useState(() => {
+    const to = new Date();
+    const from = new Date(to.getTime() - 29 * 86400000);
+    return { from: from.toISOString().slice(0, 10), to: to.toISOString().slice(0, 10) };
+  });
+  const analyticsQ = trpc.consultancy.analytics.summary.useQuery(analyticsPeriod);
+
   // Phase 2 slice 2 — rate card + timesheets.
   const rateCardQ = trpc.consultancy.rateCards.list.useQuery();
   const setRates = trpc.consultancy.rateCards.set.useMutation({
@@ -235,6 +243,7 @@ export function ConsultancyEngagements() {
   const [timeNote, setTimeNote] = useState("");
   const [ratesOpen, setRatesOpen] = useState(false);
   const [rateDraft, setRateDraft] = useState<Record<string, string>>({});
+  const [capDraft, setCapDraft] = useState<Record<string, string>>({});
 
   // Variation dialog (Phase 2 slice 3).
   const [voOpen, setVoOpen] = useState(false);
@@ -345,9 +354,13 @@ export function ConsultancyEngagements() {
                   label: "Rate card",
                   onClick: () => {
                     const draft: Record<string, string> = {};
-                    for (const r of rateCardQ.data ?? [])
+                    const caps: Record<string, string> = {};
+                    for (const r of rateCardQ.data ?? []) {
                       draft[r.grade] = String((r.ratePaise ?? 0) / 100);
+                      caps[r.grade] = String(r.capacityHoursWeek ?? 0);
+                    }
                     setRateDraft(draft);
+                    setCapDraft(caps);
                     setRatesOpen(true);
                   },
                 },
@@ -360,10 +373,39 @@ export function ConsultancyEngagements() {
   const engagements = listQ.data ?? [];
   const detail = detailQ.data;
 
+  const a = analyticsQ.data;
+
   return (
     <RailLayout
       title="Engagements"
-      description="AORMS-Consultancy · Phase 0 living record (preview)"
+      description="AORMS-Consultancy · engineering workspace (preview)"
+      aside={
+        a && (a.hoursBooked > 0 || a.invoicedPaise > 0) ? (
+          <Stack spacing={0.75}>
+            <span className="esti-label">Commercial health · 30 days</span>
+            <span className="esti-label esti-label--secondary">
+              {`${a.hoursBooked}h · value ${formatINR(a.timeValuePaise)}`}
+            </span>
+            <span className="esti-label esti-label--secondary">
+              {`WIP ${formatINR(a.wipPaise)} · billable ${formatINR(a.billablePaise)}`}
+            </span>
+            <span className="esti-label esti-label--secondary">
+              {`Invoiced ${formatINR(a.invoicedPaise)}${
+                a.realisation != null ? ` · realisation ${Math.round(a.realisation * 100)}%` : ""
+              }`}
+            </span>
+            {a.byGrade
+              .filter((g) => g.utilisation != null)
+              .map((g) => (
+                <span key={g.grade} className="esti-label esti-label--secondary">
+                  {`${CONS_GRADE_LABEL[g.grade as ConsGrade] ?? g.grade}: ${Math.round(
+                    (g.utilisation ?? 0) * 100,
+                  )}% utilised`}
+                </span>
+              ))}
+          </Stack>
+        ) : undefined
+      }
     >
       <PageBreadcrumb items={[{ label: "Consultancy" }, { label: "Engagements" }]} />
 
@@ -1123,20 +1165,35 @@ export function ConsultancyEngagements() {
       </Dialog>
 
       {/* Rate card */}
-      <Dialog open={ratesOpen} onClose={() => setRatesOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle>Rate card (₹/hour)</DialogTitle>
+      <Dialog open={ratesOpen} onClose={() => setRatesOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Rate card</DialogTitle>
         <DialogContent>
           <Stack spacing={1.5} sx={{ mt: 1 }}>
+            <span className="esti-label esti-label--secondary">
+              Chargeout rate (₹/hour) and firm capacity (hours/week) per grade —
+              capacity is the utilisation denominator.
+            </span>
             {ConsGrade.options.map((g) => (
-              <TextField
-                key={g}
-                id={`cons-rate-${g}`}
-                label={CONS_GRADE_LABEL[g]}
-                value={rateDraft[g] ?? ""}
-                onChange={(e) => setRateDraft((d) => ({ ...d, [g]: e.target.value }))}
-                size="small"
-                slotProps={{ htmlInput: { inputMode: "decimal" } }}
-              />
+              <Stack key={g} direction="row" spacing={1.5}>
+                <TextField
+                  id={`cons-rate-${g}`}
+                  label={`${CONS_GRADE_LABEL[g]} — ₹/hr`}
+                  value={rateDraft[g] ?? ""}
+                  onChange={(e) => setRateDraft((d) => ({ ...d, [g]: e.target.value }))}
+                  size="small"
+                  className="esti-grow"
+                  slotProps={{ htmlInput: { inputMode: "decimal" } }}
+                />
+                <TextField
+                  id={`cons-cap-${g}`}
+                  label="hrs/wk"
+                  value={capDraft[g] ?? ""}
+                  onChange={(e) => setCapDraft((d) => ({ ...d, [g]: e.target.value }))}
+                  size="small"
+                  className="esti-input-sm"
+                  slotProps={{ htmlInput: { inputMode: "decimal" } }}
+                />
+              </Stack>
             ))}
           </Stack>
         </DialogContent>
@@ -1152,6 +1209,10 @@ export function ConsultancyEngagements() {
                   .map((g) => ({
                     grade: g,
                     ratePaise: Math.round(Number.parseFloat(rateDraft[g]!) * 100) || 0,
+                    capacityHoursWeek:
+                      (capDraft[g] ?? "").trim() !== ""
+                        ? Number.parseFloat(capDraft[g]!) || 0
+                        : undefined,
                   })),
               })
             }

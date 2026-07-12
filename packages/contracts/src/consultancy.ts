@@ -304,19 +304,28 @@ export const CONS_GRADE_LABEL: Record<ConsGrade, string> = {
   GRADUATE: "Graduate Engineer",
 };
 
-/** Firm rate card — chargeout per grade, integer paise per hour. */
+/** Firm rate card — chargeout per grade (paise/hour) + weekly capacity (hours). */
 export const ConsRateCardSet = z.object({
   rates: z
     .array(
       z.object({
         grade: ConsGrade,
         ratePaise: z.number().int().nonnegative(),
+        /** Firm capacity at this grade, hours/week — the utilisation denominator. */
+        capacityHoursWeek: z.number().nonnegative().max(10000).optional(),
       }),
     )
     .min(1)
     .max(12),
 });
 export type ConsRateCardSet = z.infer<typeof ConsRateCardSet>;
+
+/** Period input for firm analytics (ISO dates, inclusive). */
+export const ConsAnalyticsPeriod = z.object({
+  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+export type ConsAnalyticsPeriod = z.infer<typeof ConsAnalyticsPeriod>;
 
 /** A timesheet entry — hours booked to engagement (× deliverable) at a grade. */
 export const ConsTimesheetCreate = z.object({

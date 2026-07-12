@@ -96,6 +96,8 @@ export const consRateCards = pgTable(
     id: id(),
     grade: text("grade").notNull(), // ConsGrade
     ratePaise: bigint("rate_paise", { mode: "number" }).notNull().default(0),
+    /** Firm capacity at this grade, hours/week — the utilisation denominator. */
+    capacityHoursWeek: doublePrecision("capacity_hours_week").notNull().default(0),
     updatedAt: updatedAt(),
   },
   (t) => ({ gradeIdx: uniqueIndex("esti_cons_rate_card_grade_idx").on(t.grade) }),
