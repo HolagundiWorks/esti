@@ -2,6 +2,7 @@ import Close from "@mui/icons-material/Close";
 import Send from "@mui/icons-material/Send";
 import {
   Box,
+  Button,
   CircularProgress,
   IconButton,
   Paper,
@@ -9,9 +10,10 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../lib/auth.js";
+import { setEstiActivity } from "../lib/esti-activity.js";
 import { trpc } from "../lib/trpc.js";
 
 type ChatTurn = { role: "user" | "assistant"; text: string };
@@ -20,9 +22,12 @@ type ChatTurn = { role: "user" | "assistant"; text: string };
 export const ASK_ESTI_EVENT = "esti:ask";
 
 /**
- * Ask ESTI — a **floating command bar** (not a page). It floats above the dock,
- * follows the neumorphic soft-UI treatment (`esti-neu`), and opens from the dock
- * ESTI button (which dispatches `ASK_ESTI_EVENT`) or Alt+A. Esc / backdrop closes.
+ * Ask ESTI — the **command bar** of the AI-orchestration model (see
+ * docs/esti/HCW-AI-ORCHESTRATION-UX.md). You issue a command; **only the latest answer
+ * returns here.** The conversation is kept as *session-scoped memory* but **hidden** —
+ * surfaced on demand via "session history", never a growing transcript. Floats above
+ * the dock (neumorphic `esti-neu`), opens from the dock ESTI button (`ASK_ESTI_EVENT`)
+ * or Alt+A; Esc / backdrop closes.
  */
 export function AiAgentCommand() {
   const { user } = useAuth();
@@ -39,6 +44,13 @@ export function AiAgentCommand() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [turns, setTurns] = useState<ChatTurn[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Command-bar model: surface only the latest answer; the rest is hidden session memory.
+  const latestAnswer = useMemo(
+    () => [...turns].reverse().find((t) => t.role === "assistant")?.text ?? null,
+    [turns],
+  );
 
   const inputRef = useRef<HTMLInputElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -47,12 +59,14 @@ export function AiAgentCommand() {
     meta: { errorTitle: "Couldn't generate the AI response" },
     onSuccess: (res) => {
       setTurns((t) => [...t, { role: "assistant", text: res.output }]);
+      setEstiActivity({ status: "idle" });
     },
     onError: (err) => {
       setTurns((t) => [
         ...t,
         { role: "assistant", text: `Could not answer: ${err.message}` },
       ]);
+      setEstiActivity({ status: "idle" });
     },
   });
 
@@ -101,6 +115,11 @@ export function AiAgentCommand() {
     }
     setTurns((t) => [...t, { role: "user", text: prompt }]);
     setInput("");
+    setEstiActivity({
+      status: "orchestrating",
+      operation: prompt.length > 72 ? `${prompt.slice(0, 72)}…` : prompt,
+      context: projectId ? "this project" : "the workspace",
+    });
     generate.mutate({ kind: "SUMMARY", mode: "agent", projectId, prompt });
   }
 
@@ -186,30 +205,60 @@ export function AiAgentCommand() {
             </IconButton>
           </Stack>
 
-          {(turns.length > 0 || generate.isPending) && (
-            <Stack spacing={1}>
-              {turns.map((t, i) => (
-                <Paper key={`${t.role}-${i}`} className="esti-neu-inset" sx={{ p: 1.5 }}>
-                  <Typography variant="overline" color="text.secondary">
-                    {t.role === "user" ? "You" : "ESTI"}
-                  </Typography>
-                  <Typography variant="body2" component="p">{t.text}</Typography>
-                </Paper>
-              ))}
-              {generate.isPending && (
-                <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                  <CircularProgress size={16} />
-                  <Typography variant="body2">Thinking…</Typography>
-                </Stack>
-              )}
-              <div ref={endRef} />
+          {/* Working state — the command is being orchestrated; the answer returns below. */}
+          {generate.isPending && (
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+              <CircularProgress size={16} />
+              <Typography variant="body2" color="text.secondary">
+                ESTI is orchestrating your request…
+              </Typography>
             </Stack>
           )}
 
+          {/* Latest answer only — not a transcript. */}
+          {!generate.isPending && latestAnswer && (
+            <Paper className="esti-neu-inset" sx={{ p: 1.5 }}>
+              <Typography variant="overline" color="text.secondary">
+                ESTI
+              </Typography>
+              <Typography variant="body2" component="p">{latestAnswer}</Typography>
+            </Paper>
+          )}
+
+          {/* Session history — kept as session memory, but hidden until asked for. */}
+          {turns.length > 0 && (
+            <Box>
+              <Button
+                size="small"
+                variant="text"
+                onClick={() => setShowHistory((s) => !s)}
+                aria-expanded={showHistory}
+                sx={{ textTransform: "none", px: 0 }}
+              >
+                {showHistory ? "Hide" : "Show"} session history ({turns.length})
+              </Button>
+              {showHistory && (
+                <Stack spacing={1} sx={{ mt: 1 }}>
+                  {turns.map((t, i) => (
+                    <Paper key={`${t.role}-${i}`} className="esti-neu-inset" sx={{ p: 1.25 }}>
+                      <Typography variant="overline" color="text.secondary">
+                        {t.role === "user" ? "You" : "ESTI"}
+                      </Typography>
+                      <Typography variant="body2" component="p">{t.text}</Typography>
+                    </Paper>
+                  ))}
+                  <div ref={endRef} />
+                </Stack>
+              )}
+            </Box>
+          )}
+
+          {/* Empty state. */}
           {turns.length === 0 && !generate.isPending && (
             <Typography variant="body2" color="text.secondary">
               Ask ESTI anything — revisions, invoices, client status, upcoming
-              deadlines, fees, or team workload.
+              deadlines, fees, or team workload. Only the answer returns here; your
+              session history stays tucked away below.
             </Typography>
           )}
         </Stack>

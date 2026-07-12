@@ -1,5 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import type { ReactNode } from "react";
+import { EstiOrchestrationStatus } from "./EstiOrchestrationStatus.js";
 
 /**
  * Standard app screen shell — **Rail · Stage** split (canonical Studio Intelligence
@@ -101,6 +102,9 @@ export function RailLayout({
               </Typography>
             )}
           </Box>
+
+          {/* Orchestration lives in the rail — visible only while ESTI is working. */}
+          <EstiOrchestrationStatus />
 
           {tabs}
           {aside && (
