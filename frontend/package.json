@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/sync-wiki-knowledge.mjs && tsc -p tsconfig.json && vite build && node scripts/prerender-blog.mjs",
-    "sync:wiki-knowledge": "node scripts/sync-wiki-knowledge.mjs",
+    "build": "tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src --max-warnings 0",

@@ -1,7 +1,7 @@
 /** SEO for /login — AORMS-Studio marketing + sign-in (canonical vertical entry page). */
 import { AORMS_STUDIO, AORMS_PLATFORM, EMOI, ESTI } from "./product-nomenclature.js";
 
-const BASE = "https://aorms.in/login";
+const BASE = "https://aorms.in/";
 const LEGACY_SLUGS = AORMS_STUDIO.legacySlugs.join(", ");
 
 export const ARCHITECTURE_LANDING_SEO = {
@@ -20,7 +20,7 @@ export const ARCHITECTURE_LANDING_SEO = {
   footerBlurb: `${AORMS_STUDIO.title} on ${AORMS_PLATFORM.name}.`,
   canonical: `${BASE}`,
   siteName: AORMS_PLATFORM.name,
-  wikiUrl: "https://wiki.aorms.in",
+  wikiUrl: "https://aorms.in/wiki",
 } as const;
 
 export const ARCHITECTURE_LANDING_FAQ = [
@@ -47,7 +47,7 @@ export const ARCHITECTURE_LANDING_FAQ = [
   {
     question: "Where is the documentation?",
     answer:
-      "The official AORMS Wiki at wiki.aorms.in covers getting started, workflows, finance and account setup.",
+      "The official AORMS Wiki at aorms.in/wiki covers getting started, workflows, finance and account setup.",
   },
   {
     question: "How does client revision management work?",

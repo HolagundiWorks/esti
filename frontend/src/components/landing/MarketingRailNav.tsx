@@ -1,14 +1,13 @@
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import ArchitectureOutlinedIcon from "@mui/icons-material/ArchitectureOutlined";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import EngineeringOutlinedIcon from "@mui/icons-material/EngineeringOutlined";
 import GavelOutlinedIcon from "@mui/icons-material/GavelOutlined";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
 import PaletteOutlinedIcon from "@mui/icons-material/PaletteOutlined";
-import { AormsLogo, AormsMark } from "../AormsLogo.js";
+import { useLocation } from "react-router-dom";
+import { AormsLogo } from "../AormsLogo.js";
 import {
   railPageLinkIsActive,
   type MarketingPageLink,
@@ -32,28 +31,21 @@ function RailIcon({ name }: { name: MarketingRailIcon }) {
 }
 
 export function MarketingRailHeader({
-  collapsed,
   isMobile,
   mobileOpen,
-  onToggleCollapse,
+  brandHref = "/#platform",
   onToggleMobile,
 }: {
-  collapsed: boolean;
   isMobile: boolean;
   mobileOpen: boolean;
-  onToggleCollapse: () => void;
+  /** Context-aware home anchor (platform `/` vs wiki hub). */
+  brandHref?: string;
   onToggleMobile: () => void;
 }) {
   return (
     <header className="lp2-rail__header">
-      <a href="/#top" className="lp2-rail__brand" aria-label="AORMS home">
-        {collapsed && !isMobile ? (
-          <span className="lp2-rail__brand-mark">
-            <AormsMark size="rail" />
-          </span>
-        ) : (
-          <AormsLogo variant="rail" className="lp2-rail__brand-wordmark" />
-        )}
+      <a href={brandHref} className="lp2-rail__brand" aria-label="AORMS home">
+        <AormsLogo variant="rail" className="lp2-rail__brand-wordmark" />
       </a>
       {isMobile ? (
         <button
@@ -65,17 +57,7 @@ export function MarketingRailHeader({
         >
           {mobileOpen ? "×" : "☰"}
         </button>
-      ) : (
-        <button
-          type="button"
-          className="lp2-rail__collapse"
-          aria-label={collapsed ? "Expand navigation rail" : "Collapse navigation rail"}
-          aria-expanded={!collapsed}
-          onClick={onToggleCollapse}
-        >
-          {collapsed ? <ChevronRightIcon fontSize="small" /> : <ChevronLeftIcon fontSize="small" />}
-        </button>
-      )}
+      ) : null}
     </header>
   );
 }
@@ -83,14 +65,13 @@ export function MarketingRailHeader({
 export function MarketingRailNav({
   links,
   pathname,
-  collapsed,
   onNavigate,
 }: {
   links: readonly MarketingPageLink[];
   pathname: string;
-  collapsed: boolean;
   onNavigate: () => void;
 }) {
+  const { hash } = useLocation();
   return (
     <>
       <p className="lp2-rail__nav-label" id="lp2-rail-pages-label">
@@ -98,7 +79,7 @@ export function MarketingRailNav({
       </p>
       <nav className="lp2-rail__nav" aria-labelledby="lp2-rail-pages-label">
         {links.map((l) => {
-          const active = railPageLinkIsActive(l.href, pathname);
+          const active = railPageLinkIsActive(l.href, pathname, hash);
           return (
             <a
               key={l.href}
@@ -113,11 +94,6 @@ export function MarketingRailNav({
                 <RailIcon name={l.icon} />
               </span>
               <span className="lp2-rail__link-label">{l.label}</span>
-              {collapsed ? (
-                <span className="lp2-rail__link-tip" role="tooltip">
-                  {l.label}
-                </span>
-              ) : null}
             </a>
           );
         })}

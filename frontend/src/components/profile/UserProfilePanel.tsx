@@ -214,13 +214,14 @@ export function UserProfilePanel() {
               <Box className="esti-fill" sx={{ p: 2 }}>
                 <Stack spacing={1.5}>
                   <Typography variant="h6" component="h4">
-                    AORMS Wiki
+                    Help &amp; support
                   </Typography>
                   <Typography variant="body2" component="p" className="esti-label esti-label--secondary">
-                    Estimation, workflows, and account setup — official documentation at aorms.in/wiki.
+                    Questions about your workspace, workflows, or account? Reach the AORMS
+                    team at hi@aorms.in.
                   </Typography>
-                  <Button variant="contained" href="/wiki/getting-started">
-                    Open getting started guide
+                  <Button variant="contained" href="mailto:hi@aorms.in">
+                    Contact support
                   </Button>
                 </Stack>
               </Box>

@@ -71,7 +71,10 @@ export function AuthRailLayout({
           />
 
           <Box
+            component="main"
             className="esti-dash-rail esti-auth-rail"
+            id="esti-auth-main"
+            tabIndex={-1}
             sx={{
               flex: { xs: "0 0 auto", md: "0 0 20%" },
               maxWidth: { md: "20%" },
@@ -90,8 +93,7 @@ export function AuthRailLayout({
 
           <Box
             className="esti-dash-stage esti-auth-stage-wrap"
-            id="esti-auth-main"
-            tabIndex={-1}
+            aria-hidden={variant === "external"}
             sx={{
               flex: 1,
               minWidth: 0,

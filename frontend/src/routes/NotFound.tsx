@@ -7,7 +7,7 @@ import { MarketingShell } from "../components/landing/MarketingShell.js";
 export function NotFound() {
   useEffect(() => {
     const title = "Page not found — AORMS";
-    const description = "This page does not exist on aorms.in. Browse the platform home, wiki, or sign in to AORMS-Studio.";
+    const description = "This page does not exist on aorms.in. Browse the platform home or sign in to AORMS-Studio.";
     document.title = title;
     document.querySelector('meta[name="description"]')?.setAttribute("content", description);
     let robots = document.querySelector('meta[name="robots"]');
@@ -33,10 +33,6 @@ export function NotFound() {
             <Link to="/">{AORMS_PLATFORM.name} home</Link>
             <span aria-hidden> · </span>
             <Link to="/login">{AORMS_STUDIO.title}</Link>
-            <span aria-hidden> · </span>
-            <Link to="/wiki">Wiki</Link>
-            <span aria-hidden> · </span>
-            <Link to="/blog">Blog</Link>
           </p>
         </header>
       </div>

@@ -51,9 +51,9 @@ export function HcwAttribution({
   return (
     <div className={rootClass}>
       <a
-        href="/about"
+        href="/"
         className="hcw-attribution__link"
-        aria-label={`${HUMAN_CENTRIC_WORKS.legalName} — About`}
+        aria-label={`${HUMAN_CENTRIC_WORKS.legalName} — AORMS home`}
       >
         <img
           src={logoSrc}
