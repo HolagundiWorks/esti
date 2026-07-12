@@ -327,6 +327,111 @@ export const ConsAnalyticsPeriod = z.object({
 });
 export type ConsAnalyticsPeriod = z.infer<typeof ConsAnalyticsPeriod>;
 
+// ── Phase 3 — the defensibility layer (risk, PI, input gate) ────────────────
+
+/** Risk register (case study §6.5) — score inherent and residual separately. */
+export const RiskStatus = z.enum(["OPEN", "MITIGATED", "CLOSED"]);
+export type RiskStatus = z.infer<typeof RiskStatus>;
+
+export const CONS_RISK_STATUS_TAG: Record<RiskStatus, TagColor> = {
+  OPEN: "red",
+  MITIGATED: "teal",
+  CLOSED: "gray",
+};
+
+export const RiskResponse = z.enum(["AVOID", "REDUCE", "TRANSFER", "ACCEPT"]);
+export type RiskResponse = z.infer<typeof RiskResponse>;
+
+export const RISK_RESPONSE_LABEL: Record<RiskResponse, string> = {
+  AVOID: "Avoid",
+  REDUCE: "Reduce",
+  TRANSFER: "Transfer",
+  ACCEPT: "Accept",
+};
+
+const riskScore = z.number().int().min(1).max(5);
+
+export const ConsRiskCreate = z.object({
+  /** Omit for a practice-level risk. */
+  engagementId: z.string().uuid().optional(),
+  title: z.string().min(1).max(300),
+  /** Inherent — before controls. */
+  likelihood: riskScore,
+  impact: riskScore,
+  owner: z.string().max(200).optional(),
+  response: RiskResponse.default("REDUCE"),
+  mitigation: z.string().max(2000).optional(),
+  /** Residual — after controls (defaults to inherent until reassessed). */
+  residualLikelihood: riskScore.optional(),
+  residualImpact: riskScore.optional(),
+});
+export type ConsRiskCreate = z.infer<typeof ConsRiskCreate>;
+
+export const ConsRiskUpdate = ConsRiskCreate.omit({ engagementId: true })
+  .partial()
+  .extend({ id: z.string().uuid(), status: RiskStatus.optional() });
+export type ConsRiskUpdate = z.infer<typeof ConsRiskUpdate>;
+
+/** Firm PI policy (case study §6.1) — claims-made; track limit, period, run-off. */
+export const ConsInsuranceSet = z.object({
+  insurer: z.string().min(1).max(200),
+  policyNo: z.string().min(1).max(120),
+  /** Limit of indemnity, integer paise. */
+  limitPaise: z.number().int().nonnegative(),
+  periodFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  periodTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  /** Run-off cover end (post-cessation claims window). */
+  runOffUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  notes: z.string().max(2000).optional(),
+});
+export type ConsInsuranceSet = z.infer<typeof ConsInsuranceSet>;
+
+/** Reliance letter — a named third party allowed to rely (case study §6.4). */
+export const ConsRelianceLetterCreate = z.object({
+  engagementId: z.string().uuid(),
+  beneficiary: z.string().min(1).max(300),
+  purpose: z.string().min(1).max(1000),
+  issuedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  expiresOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  notes: z.string().max(2000).optional(),
+});
+export type ConsRelianceLetterCreate = z.infer<typeof ConsRelianceLetterCreate>;
+
+/**
+ * EmOI input gate (architecture §1.3): external inputs are recorded and
+ * validated before they become working assumptions. An unvalidated pack is a
+ * HOLD POINT — deliverables on the engagement cannot be issued past it.
+ * (Named manual validation now; EmOI-assisted validation rides with Phase 4.)
+ */
+export const InputPackKind = z.enum(["ARCHITECT_PACK", "GEOTECH", "CODE", "BRIEF", "OTHER"]);
+export type InputPackKind = z.infer<typeof InputPackKind>;
+
+export const INPUT_PACK_KIND_LABEL: Record<InputPackKind, string> = {
+  ARCHITECT_PACK: "Architect pack",
+  GEOTECH: "Geotech report",
+  CODE: "Code / standard",
+  BRIEF: "Client brief",
+  OTHER: "Other",
+};
+
+export const InputPackStatus = z.enum(["RECEIVED", "VALIDATED", "REJECTED"]);
+export type InputPackStatus = z.infer<typeof InputPackStatus>;
+
+export const CONS_INPUT_PACK_STATUS_TAG: Record<InputPackStatus, TagColor> = {
+  RECEIVED: "red",
+  VALIDATED: "green",
+  REJECTED: "gray",
+};
+
+export const ConsInputPackCreate = z.object({
+  engagementId: z.string().uuid(),
+  title: z.string().min(1).max(300),
+  kind: InputPackKind.default("ARCHITECT_PACK"),
+  /** Where it came from, e.g. "Architect issue rev C, 2026-07-10". */
+  source: z.string().max(500).optional(),
+});
+export type ConsInputPackCreate = z.infer<typeof ConsInputPackCreate>;
+
 /** A timesheet entry — hours booked to engagement (× deliverable) at a grade. */
 export const ConsTimesheetCreate = z.object({
   engagementId: z.string().uuid(),

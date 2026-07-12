@@ -29,6 +29,8 @@ import {
   ConsGrade,
   CONS_ENGAGEMENT_STATUS_TAG,
   CONS_FEE_STAGE_STATUS_TAG,
+  CONS_INPUT_PACK_STATUS_TAG,
+  CONS_RISK_STATUS_TAG,
   CONS_TQ_STATUS_TAG,
   CONS_VARIATION_STATUS_TAG,
   CheckCategory,
@@ -41,9 +43,13 @@ import {
   FEE_MODEL_LABEL,
   FeeModel,
   FeeStageStatus,
+  INPUT_PACK_KIND_LABEL,
   ISSUE_CLASS_LABEL,
+  InputPackKind,
+  InputPackStatus,
   IssueClass,
   REVIEW_STEP_LABEL,
+  RiskStatus,
   ReviewStepKind,
   TqStatus,
   VariationStatus,
@@ -174,6 +180,50 @@ export function ConsultancyEngagements() {
     onSuccess: invalidate,
   });
 
+  // Phase 3 — defensibility layer.
+  const insuranceQ = trpc.consultancy.insurance.get.useQuery();
+  const recordPack = trpc.consultancy.inputPacks.record.useMutation({
+    meta: { errorTitle: "Couldn't record the input pack" },
+    onSuccess: () => {
+      invalidate();
+      setPackOpen(false);
+    },
+  });
+  const setPackStatus = trpc.consultancy.inputPacks.setStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the input pack" },
+    onSuccess: invalidate,
+  });
+  const removePack = trpc.consultancy.inputPacks.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the input pack" },
+    onSuccess: invalidate,
+  });
+  const createRisk = trpc.consultancy.risks.create.useMutation({
+    meta: { errorTitle: "Couldn't add the risk" },
+    onSuccess: () => {
+      invalidate();
+      setRiskOpen(false);
+    },
+  });
+  const updateRisk = trpc.consultancy.risks.update.useMutation({
+    meta: { errorTitle: "Couldn't update the risk" },
+    onSuccess: invalidate,
+  });
+  const removeRisk = trpc.consultancy.risks.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the risk" },
+    onSuccess: invalidate,
+  });
+  const createReliance = trpc.consultancy.relianceLetters.create.useMutation({
+    meta: { errorTitle: "Couldn't record the reliance letter" },
+    onSuccess: () => {
+      invalidate();
+      setRelOpen(false);
+    },
+  });
+  const removeReliance = trpc.consultancy.relianceLetters.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the reliance letter" },
+    onSuccess: invalidate,
+  });
+
   // Built-in PDF export.
   const exportPdf = trpc.consultancy.engagements.exportPdf.useMutation({
     meta: { errorTitle: "Couldn't start the PDF export" },
@@ -245,6 +295,25 @@ export function ConsultancyEngagements() {
   const [rateDraft, setRateDraft] = useState<Record<string, string>>({});
   const [capDraft, setCapDraft] = useState<Record<string, string>>({});
 
+  // Phase 3 dialogs (input pack / risk / reliance letter).
+  const [packOpen, setPackOpen] = useState(false);
+  const [packTitle, setPackTitle] = useState("");
+  const [packKind, setPackKind] = useState<InputPackKind>("ARCHITECT_PACK");
+  const [packSource, setPackSource] = useState("");
+  const [riskOpen, setRiskOpen] = useState(false);
+  const [riskTitle, setRiskTitle] = useState("");
+  const [riskL, setRiskL] = useState("3");
+  const [riskI, setRiskI] = useState("3");
+  const [riskRL, setRiskRL] = useState("");
+  const [riskRI, setRiskRI] = useState("");
+  const [riskOwner, setRiskOwner] = useState("");
+  const [riskMitigation, setRiskMitigation] = useState("");
+  const [relOpen, setRelOpen] = useState(false);
+  const [relBeneficiary, setRelBeneficiary] = useState("");
+  const [relPurpose, setRelPurpose] = useState("");
+  const [relIssuedOn, setRelIssuedOn] = useState("");
+  const [relExpiresOn, setRelExpiresOn] = useState("");
+
   // Variation dialog (Phase 2 slice 3).
   const [voOpen, setVoOpen] = useState(false);
   const [voCode, setVoCode] = useState("");
@@ -279,7 +348,7 @@ export function ConsultancyEngagements() {
 
   const anyDialogOpen =
     engOpen || delOpen || tqOpen || feeOpen || timeOpen || ratesOpen || voOpen ||
-    !!tqAnswerFor || !!tqCloseFor;
+    packOpen || riskOpen || relOpen || !!tqAnswerFor || !!tqCloseFor;
   useScreenActions(
     anyDialogOpen
       ? []
@@ -403,6 +472,17 @@ export function ConsultancyEngagements() {
                   )}% utilised`}
                 </span>
               ))}
+            {insuranceQ.data && (
+              <>
+                <span className="esti-label" style={{ marginTop: 8 }}>PI cover</span>
+                <span className="esti-label esti-label--secondary">
+                  {`${insuranceQ.data.insurer} · ${insuranceQ.data.policyNo}`}
+                </span>
+                <span className="esti-label esti-label--secondary">
+                  {`Limit ${formatINR(insuranceQ.data.limitPaise ?? 0)} · to ${insuranceQ.data.periodTo}`}
+                </span>
+              </>
+            )}
           </Stack>
         ) : undefined
       }
@@ -567,6 +647,78 @@ export function ConsultancyEngagements() {
                     ]}
                   />
                 </Stack>
+              </Box>
+
+              {/* EmOI input gate — unvalidated packs hold issue on the whole engagement. */}
+              <Box>
+                <Stack direction="row" spacing={1} sx={{ alignItems: "baseline" }}>
+                  <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600 }} className="esti-grow">
+                    Input packs
+                    {detail.inputPacks.some((p) => p.status === "RECEIVED") && (
+                      <Typography component="span" variant="caption" color="error" sx={{ ml: 1 }}>
+                        hold — validation pending
+                      </Typography>
+                    )}
+                  </Typography>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => {
+                      setPackTitle("");
+                      setPackSource("");
+                      setPackOpen(true);
+                    }}
+                  >
+                    Record input
+                  </Button>
+                </Stack>
+                {detail.inputPacks.length === 0 ? (
+                  <span className="esti-label esti-label--secondary">
+                    No external inputs recorded — packs are validated before they become
+                    working assumptions; unvalidated packs hold issue.
+                  </span>
+                ) : (
+                  <Stack spacing={0.5} sx={{ mt: 0.5 }}>
+                    {detail.inputPacks.map((p) => (
+                      <Stack key={p.id} direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                        <StatusTag
+                          value={p.status as InputPackStatus}
+                          map={CONS_INPUT_PACK_STATUS_TAG}
+                          label={`${p.title} · ${INPUT_PACK_KIND_LABEL[p.kind as InputPackKind] ?? p.kind}${
+                            p.validatedByName ? ` · ${p.status.toLowerCase()} by ${p.validatedByName}` : ""
+                          }`}
+                        />
+                        <Box className="esti-grow" />
+                        <RowActionsMenu
+                          actions={[
+                            ...(p.status === "RECEIVED"
+                              ? [
+                                  {
+                                    label: "Validate",
+                                    disabled: setPackStatus.isPending,
+                                    onClick: () =>
+                                      setPackStatus.mutate({ id: p.id, status: "VALIDATED" }),
+                                  },
+                                  {
+                                    label: "Reject",
+                                    disabled: setPackStatus.isPending,
+                                    onClick: () =>
+                                      setPackStatus.mutate({ id: p.id, status: "REJECTED" }),
+                                  },
+                                ]
+                              : []),
+                            {
+                              label: "Delete",
+                              danger: true,
+                              disabled: removePack.isPending,
+                              onClick: () => removePack.mutate({ id: p.id }),
+                            },
+                          ]}
+                        />
+                      </Stack>
+                    ))}
+                  </Stack>
+                )}
               </Box>
 
               <TableContainer>
@@ -1011,10 +1163,383 @@ export function ConsultancyEngagements() {
                   </TableContainer>
                 )}
               </Box>
+              {/* Risk register — inherent vs residual. */}
+              <Box sx={{ pt: 1 }}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: "baseline" }}>
+                  <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600 }} className="esti-grow">
+                    Risks
+                  </Typography>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => {
+                      setRiskTitle("");
+                      setRiskL("3");
+                      setRiskI("3");
+                      setRiskRL("");
+                      setRiskRI("");
+                      setRiskOwner("");
+                      setRiskMitigation("");
+                      setRiskOpen(true);
+                    }}
+                  >
+                    Add risk
+                  </Button>
+                </Stack>
+                {detail.risks.length === 0 ? (
+                  <span className="esti-label esti-label--secondary">
+                    No risks registered for this engagement.
+                  </span>
+                ) : (
+                  <TableContainer>
+                    <Table size="small" aria-label="Risk register">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Risk</TableCell>
+                          <TableCell align="center">Inherent</TableCell>
+                          <TableCell align="center">Residual</TableCell>
+                          <TableCell>Owner</TableCell>
+                          <TableCell>Status</TableCell>
+                          <TableCell align="right" />
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {detail.risks.map((r) => (
+                          <TableRow key={r.id}>
+                            <TableCell>
+                              <Stack spacing={0.25}>
+                                <span>{r.title}</span>
+                                {r.mitigation && (
+                                  <span className="esti-label esti-label--secondary">
+                                    Mitigation: {r.mitigation}
+                                  </span>
+                                )}
+                              </Stack>
+                            </TableCell>
+                            <TableCell align="center" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                              {`${r.likelihood}×${r.impact} = ${(r.likelihood ?? 0) * (r.impact ?? 0)}`}
+                            </TableCell>
+                            <TableCell align="center" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                              {r.residualLikelihood != null && r.residualImpact != null
+                                ? `${r.residualLikelihood}×${r.residualImpact} = ${r.residualLikelihood * r.residualImpact}`
+                                : "—"}
+                            </TableCell>
+                            <TableCell>{r.owner ?? "—"}</TableCell>
+                            <TableCell>
+                              <StatusTag value={r.status as RiskStatus} map={CONS_RISK_STATUS_TAG} />
+                            </TableCell>
+                            <TableCell align="right">
+                              <RowActionsMenu
+                                actions={[
+                                  ...(r.status === "OPEN"
+                                    ? [
+                                        {
+                                          label: "Mark mitigated",
+                                          onClick: () =>
+                                            updateRisk.mutate({ id: r.id, status: "MITIGATED" }),
+                                        },
+                                      ]
+                                    : []),
+                                  ...(r.status !== "CLOSED"
+                                    ? [
+                                        {
+                                          label: "Close",
+                                          onClick: () =>
+                                            updateRisk.mutate({ id: r.id, status: "CLOSED" }),
+                                        },
+                                      ]
+                                    : []),
+                                  {
+                                    label: "Delete",
+                                    danger: true,
+                                    disabled: removeRisk.isPending,
+                                    onClick: () => removeRisk.mutate({ id: r.id }),
+                                  },
+                                ]}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Box>
+
+              {/* Reliance letters — controlled third-party reliance. */}
+              <Box sx={{ pt: 1 }}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: "baseline" }}>
+                  <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600 }} className="esti-grow">
+                    Reliance letters
+                  </Typography>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => {
+                      setRelBeneficiary("");
+                      setRelPurpose("");
+                      setRelIssuedOn(new Date().toISOString().slice(0, 10));
+                      setRelExpiresOn("");
+                      setRelOpen(true);
+                    }}
+                  >
+                    Record letter
+                  </Button>
+                </Stack>
+                {detail.relianceLetters.length === 0 ? (
+                  <span className="esti-label esti-label--secondary">
+                    No third-party reliance granted — each letter is a new potential claimant.
+                  </span>
+                ) : (
+                  <Stack spacing={0.5} sx={{ mt: 0.5 }}>
+                    {detail.relianceLetters.map((rl) => (
+                      <Stack key={rl.id} direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                        <Stack spacing={0} className="esti-grow">
+                          <Typography variant="body2">{rl.beneficiary}</Typography>
+                          <span className="esti-label esti-label--secondary">
+                            {rl.purpose} · issued {rl.issuedOn}
+                            {rl.expiresOn ? ` · expires ${rl.expiresOn}` : ""}
+                          </span>
+                        </Stack>
+                        <RowActionsMenu
+                          actions={[
+                            {
+                              label: "Delete",
+                              danger: true,
+                              disabled: removeReliance.isPending,
+                              onClick: () => removeReliance.mutate({ id: rl.id }),
+                            },
+                          ]}
+                        />
+                      </Stack>
+                    ))}
+                  </Stack>
+                )}
+              </Box>
             </Stack>
           )}
         </Grid>
       </Grid>
+
+      {/* Record input pack */}
+      <Dialog open={packOpen} onClose={() => setPackOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Record input pack</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="cons-pack-title"
+              label="Title"
+              placeholder="e.g. Geotech report rev B"
+              value={packTitle}
+              onChange={(e) => setPackTitle(e.target.value)}
+              autoFocus
+            />
+            <TextField
+              id="cons-pack-kind"
+              select
+              label="Kind"
+              value={packKind}
+              onChange={(e) => setPackKind(e.target.value as InputPackKind)}
+            >
+              {InputPackKind.options.map((k) => (
+                <MenuItem key={k} value={k}>
+                  {INPUT_PACK_KIND_LABEL[k]}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="cons-pack-source"
+              label="Source (optional)"
+              placeholder="e.g. SoilTech Labs, 2026-07-10"
+              value={packSource}
+              onChange={(e) => setPackSource(e.target.value)}
+              helperText="Recorded packs hold issue until validated or rejected"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPackOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!packTitle.trim() || !selectedId || recordPack.isPending}
+            onClick={() =>
+              selectedId &&
+              recordPack.mutate({
+                engagementId: selectedId,
+                title: packTitle.trim(),
+                kind: packKind,
+                source: packSource.trim() || undefined,
+              })
+            }
+          >
+            Record
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add risk */}
+      <Dialog open={riskOpen} onClose={() => setRiskOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Add risk</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="cons-risk-title"
+              label="Risk (event + cause + effect)"
+              value={riskTitle}
+              onChange={(e) => setRiskTitle(e.target.value)}
+              autoFocus
+            />
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="cons-risk-l"
+                label="Likelihood (1–5)"
+                value={riskL}
+                onChange={(e) => setRiskL(e.target.value)}
+                size="small"
+                slotProps={{ htmlInput: { inputMode: "numeric" } }}
+              />
+              <TextField
+                id="cons-risk-i"
+                label="Impact (1–5)"
+                value={riskI}
+                onChange={(e) => setRiskI(e.target.value)}
+                size="small"
+                slotProps={{ htmlInput: { inputMode: "numeric" } }}
+              />
+            </Stack>
+            <TextField
+              id="cons-risk-mitigation"
+              label="Mitigation (optional)"
+              value={riskMitigation}
+              onChange={(e) => setRiskMitigation(e.target.value)}
+              multiline
+              rows={2}
+            />
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="cons-risk-rl"
+                label="Residual L (optional)"
+                value={riskRL}
+                onChange={(e) => setRiskRL(e.target.value)}
+                size="small"
+                slotProps={{ htmlInput: { inputMode: "numeric" } }}
+              />
+              <TextField
+                id="cons-risk-ri"
+                label="Residual I (optional)"
+                value={riskRI}
+                onChange={(e) => setRiskRI(e.target.value)}
+                size="small"
+                slotProps={{ htmlInput: { inputMode: "numeric" } }}
+              />
+              <TextField
+                id="cons-risk-owner"
+                label="Owner (optional)"
+                value={riskOwner}
+                onChange={(e) => setRiskOwner(e.target.value)}
+                size="small"
+                className="esti-grow"
+              />
+            </Stack>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRiskOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={
+              !riskTitle.trim() ||
+              !(Number.parseInt(riskL) >= 1 && Number.parseInt(riskL) <= 5) ||
+              !(Number.parseInt(riskI) >= 1 && Number.parseInt(riskI) <= 5) ||
+              !selectedId ||
+              createRisk.isPending
+            }
+            onClick={() =>
+              selectedId &&
+              createRisk.mutate({
+                engagementId: selectedId,
+                title: riskTitle.trim(),
+                likelihood: Number.parseInt(riskL),
+                impact: Number.parseInt(riskI),
+                response: "REDUCE",
+                mitigation: riskMitigation.trim() || undefined,
+                owner: riskOwner.trim() || undefined,
+                residualLikelihood: riskRL.trim() ? Number.parseInt(riskRL) : undefined,
+                residualImpact: riskRI.trim() ? Number.parseInt(riskRI) : undefined,
+              })
+            }
+          >
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Record reliance letter */}
+      <Dialog open={relOpen} onClose={() => setRelOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Record reliance letter</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="cons-rel-beneficiary"
+              label="Beneficiary"
+              placeholder="e.g. HDFC Bank (project lender)"
+              value={relBeneficiary}
+              onChange={(e) => setRelBeneficiary(e.target.value)}
+              autoFocus
+            />
+            <TextField
+              id="cons-rel-purpose"
+              label="Purpose limit"
+              placeholder="What they may rely on, and for what"
+              value={relPurpose}
+              onChange={(e) => setRelPurpose(e.target.value)}
+              multiline
+              rows={2}
+              helperText="Each reliance letter is a new potential claimant — name and bound it"
+            />
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="cons-rel-issued"
+                label="Issued on"
+                type="date"
+                value={relIssuedOn}
+                onChange={(e) => setRelIssuedOn(e.target.value)}
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
+              <TextField
+                id="cons-rel-expires"
+                label="Expires (optional)"
+                type="date"
+                value={relExpiresOn}
+                onChange={(e) => setRelExpiresOn(e.target.value)}
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
+            </Stack>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRelOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={
+              !relBeneficiary.trim() || !relPurpose.trim() || !relIssuedOn || !selectedId ||
+              createReliance.isPending
+            }
+            onClick={() =>
+              selectedId &&
+              createReliance.mutate({
+                engagementId: selectedId,
+                beneficiary: relBeneficiary.trim(),
+                purpose: relPurpose.trim(),
+                issuedOn: relIssuedOn,
+                expiresOn: relExpiresOn || undefined,
+              })
+            }
+          >
+            Record
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Raise variation */}
       <Dialog open={voOpen} onClose={() => setVoOpen(false)} fullWidth maxWidth="sm">

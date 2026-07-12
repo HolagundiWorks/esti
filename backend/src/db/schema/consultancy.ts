@@ -147,6 +147,74 @@ export const consVariations = pgTable("esti_cons_variation", {
   updatedAt: updatedAt(),
 });
 
+/** Phase 3 — risk register: inherent vs residual, per engagement or practice-level. */
+export const consRisks = pgTable("esti_cons_risk", {
+  id: id(),
+  engagementId: uuid("engagement_id").references(() => consEngagements.id, {
+    onDelete: "cascade",
+  }),
+  title: text("title").notNull(),
+  likelihood: bigint("likelihood", { mode: "number" }).notNull().default(3),
+  impact: bigint("impact", { mode: "number" }).notNull().default(3),
+  owner: text("owner"),
+  response: text("response").notNull().default("REDUCE"), // RiskResponse
+  mitigation: text("mitigation"),
+  residualLikelihood: bigint("residual_likelihood", { mode: "number" }),
+  residualImpact: bigint("residual_impact", { mode: "number" }),
+  status: text("status").notNull().default("OPEN"), // RiskStatus
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Phase 3 — the firm's PI policy (single row; claims-made basis). */
+export const consInsurance = pgTable("esti_cons_insurance", {
+  id: id(),
+  insurer: text("insurer").notNull(),
+  policyNo: text("policy_no").notNull(),
+  limitPaise: bigint("limit_paise", { mode: "number" }).notNull().default(0),
+  periodFrom: date("period_from").notNull(),
+  periodTo: date("period_to").notNull(),
+  runOffUntil: date("run_off_until"),
+  notes: text("notes"),
+  updatedAt: updatedAt(),
+});
+
+/** Phase 3 — reliance letters: controlled third-party reliance instruments. */
+export const consRelianceLetters = pgTable("esti_cons_reliance_letter", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  beneficiary: text("beneficiary").notNull(),
+  purpose: text("purpose").notNull(),
+  issuedOn: date("issued_on").notNull(),
+  expiresOn: date("expires_on"),
+  notes: text("notes"),
+  createdAt: createdAt(),
+});
+
+/**
+ * Phase 3 — EmOI input gate: external inputs recorded and validated before
+ * they become working assumptions. RECEIVED packs are a hold point — the
+ * engagement's deliverables cannot be issued past them.
+ */
+export const consInputPacks = pgTable("esti_cons_input_pack", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  kind: text("kind").notNull().default("ARCHITECT_PACK"), // InputPackKind
+  source: text("source"),
+  status: text("status").notNull().default("RECEIVED"), // InputPackStatus
+  validatedBy: uuid("validated_by").references(() => users.id, { onDelete: "set null" }),
+  validatedByName: text("validated_by_name"),
+  validatedAt: timestamp("validated_at", { withTimezone: true }),
+  note: text("note"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** Phase 1 — technical query (TQ/RFI) register with closure evidence. */
 export const consTqs = pgTable("esti_cons_tq", {
   id: id(),

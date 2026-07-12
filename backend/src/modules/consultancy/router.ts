@@ -16,8 +16,13 @@ import {
   ConsAnalyticsPeriod,
   ConsFeeStageCreate,
   ConsFeeStageUpdate,
+  ConsInputPackCreate,
+  ConsInsuranceSet,
   ConsRateCardSet,
+  ConsRelianceLetterCreate,
   ConsReviewStepCreate,
+  ConsRiskCreate,
+  ConsRiskUpdate,
   ConsTimesheetCreate,
   ConsTqAnswer,
   ConsTqClose,
@@ -27,14 +32,18 @@ import {
   ReviewStepKind,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, lte } from "drizzle-orm";
 import { z } from "zod";
 import {
   consDeliverables,
   consEngagements,
   consFeeStages,
+  consInputPacks,
+  consInsurance,
   consRateCards,
+  consRelianceLetters,
   consReviewSteps,
+  consRisks,
   consTimesheets,
   consTqs,
   consVariations,
@@ -100,6 +109,21 @@ const engagementsRouter = router({
         .from(consVariations)
         .where(eq(consVariations.engagementId, input.id))
         .orderBy(asc(consVariations.code));
+      const risks = await ctx.db
+        .select()
+        .from(consRisks)
+        .where(eq(consRisks.engagementId, input.id))
+        .orderBy(desc(consRisks.createdAt));
+      const inputPacks = await ctx.db
+        .select()
+        .from(consInputPacks)
+        .where(eq(consInputPacks.engagementId, input.id))
+        .orderBy(asc(consInputPacks.createdAt));
+      const relianceLetters = await ctx.db
+        .select()
+        .from(consRelianceLetters)
+        .where(eq(consRelianceLetters.engagementId, input.id))
+        .orderBy(asc(consRelianceLetters.issuedOn));
       const timesheets = await ctx.db
         .select()
         .from(consTimesheets)
@@ -132,6 +156,9 @@ const engagementsRouter = router({
         tqs,
         feeStages,
         variations,
+        risks,
+        inputPacks,
+        relianceLetters,
         timesheets,
         feePosition,
         // Built-in PDF export — download URL once the worker has rendered it.
@@ -229,6 +256,26 @@ const deliverablesRouter = router({
           message: `Cannot issue ${d.code}: the ${d.checkCategory} sign-off chain is incomplete — missing ${missing
             .map((k) => REVIEW_STEP_LABEL[k].toLowerCase())
             .join(", ")}.`,
+        });
+      }
+      // EmOI input gate (Phase 3): an unvalidated input pack is a hold point —
+      // nothing built on unvalidated assumptions leaves the office.
+      const held = await ctx.db
+        .select({ title: consInputPacks.title })
+        .from(consInputPacks)
+        .where(
+          and(
+            eq(consInputPacks.engagementId, d.engagementId),
+            eq(consInputPacks.status, "RECEIVED"),
+          ),
+        );
+      if (held.length > 0) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: `Cannot issue ${d.code}: ${held.length} input pack${held.length > 1 ? "s" : ""} awaiting validation (${held
+            .map((h) => h.title)
+            .slice(0, 3)
+            .join(", ")}) — validate or reject them first.`,
         });
       }
     }
@@ -654,6 +701,120 @@ const analyticsRouter = router({
   }),
 });
 
+const risksRouter = router({
+  /** Practice-level risks (no engagement) — engagement risks ride on engagements.get. */
+  listPractice: protectedProcedure.query(({ ctx }) =>
+    ctx.db.select().from(consRisks).where(isNull(consRisks.engagementId)).orderBy(desc(consRisks.createdAt)),
+  ),
+
+  create: manage.input(ConsRiskCreate).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db
+      .insert(consRisks)
+      .values({
+        ...input,
+        residualLikelihood: input.residualLikelihood ?? input.likelihood,
+        residualImpact: input.residualImpact ?? input.impact,
+      })
+      .returning();
+    await writeAudit(ctx.db, { entity: "cons_risk", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+
+  update: manage.input(ConsRiskUpdate).mutation(async ({ ctx, input }) => {
+    const { id, ...rest } = input;
+    const [row] = await ctx.db
+      .update(consRisks)
+      .set({ ...rest, updatedAt: new Date() })
+      .where(eq(consRisks.id, id))
+      .returning();
+    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    await writeAudit(ctx.db, { entity: "cons_risk", entityId: id, action: "UPDATE", actorId: ctx.user.id, after: row });
+    return row;
+  }),
+
+  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    await ctx.db.delete(consRisks).where(eq(consRisks.id, input.id));
+    await writeAudit(ctx.db, { entity: "cons_risk", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
+    return { ok: true };
+  }),
+});
+
+const insuranceRouter = router({
+  /** The firm PI policy (single record; claims-made). */
+  get: protectedProcedure.query(async ({ ctx }) => {
+    const [row] = await ctx.db.select().from(consInsurance).limit(1);
+    return row ?? null;
+  }),
+
+  set: manage.input(ConsInsuranceSet).mutation(async ({ ctx, input }) => {
+    const [existing] = await ctx.db.select().from(consInsurance).limit(1);
+    const [row] = existing
+      ? await ctx.db
+          .update(consInsurance)
+          .set({ ...input, updatedAt: new Date() })
+          .where(eq(consInsurance.id, existing.id))
+          .returning()
+      : await ctx.db.insert(consInsurance).values(input).returning();
+    await writeAudit(ctx.db, { entity: "cons_insurance", entityId: row!.id, action: existing ? "UPDATE" : "CREATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+});
+
+const relianceLettersRouter = router({
+  create: manage.input(ConsRelianceLetterCreate).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db.insert(consRelianceLetters).values(input).returning();
+    await writeAudit(ctx.db, { entity: "cons_reliance_letter", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+
+  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    await ctx.db.delete(consRelianceLetters).where(eq(consRelianceLetters.id, input.id));
+    await writeAudit(ctx.db, { entity: "cons_reliance_letter", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
+    return { ok: true };
+  }),
+});
+
+const inputPacksRouter = router({
+  record: manage.input(ConsInputPackCreate).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db.insert(consInputPacks).values(input).returning();
+    await writeAudit(ctx.db, { entity: "cons_input_pack", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+
+  /** Named validation — lifts the hold point. Rejection also lifts it (the pack is unusable). */
+  setStatus: manage
+    .input(z.object({ id: z.string().uuid(), status: z.enum(["VALIDATED", "REJECTED"]), note: z.string().max(2000).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const [pack] = await ctx.db.select().from(consInputPacks).where(eq(consInputPacks.id, input.id));
+      if (!pack) throw new TRPCError({ code: "NOT_FOUND" });
+      if (pack.status !== "RECEIVED")
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: `${pack.title} is already ${pack.status.toLowerCase()}.`,
+        });
+      const [row] = await ctx.db
+        .update(consInputPacks)
+        .set({
+          status: input.status,
+          note: input.note,
+          validatedBy: ctx.user.id,
+          validatedByName: ctx.user.fullName,
+          validatedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(consInputPacks.id, input.id))
+        .returning();
+      await writeAudit(ctx.db, { entity: "cons_input_pack", entityId: input.id, action: "UPDATE", actorId: ctx.user.id, after: row });
+      return row!;
+    }),
+
+  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    await ctx.db.delete(consInputPacks).where(eq(consInputPacks.id, input.id));
+    await writeAudit(ctx.db, { entity: "cons_input_pack", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
+    return { ok: true };
+  }),
+});
+
 export const consultancyRouter = router({
   engagements: engagementsRouter,
   deliverables: deliverablesRouter,
@@ -664,4 +825,8 @@ export const consultancyRouter = router({
   timesheets: timesheetsRouter,
   variations: variationsRouter,
   analytics: analyticsRouter,
+  risks: risksRouter,
+  insurance: insuranceRouter,
+  relianceLetters: relianceLettersRouter,
+  inputPacks: inputPacksRouter,
 });
