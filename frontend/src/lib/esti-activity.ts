@@ -13,7 +13,10 @@ export type EstiActivity =
   | { status: "idle" }
   | {
       status: "orchestrating";
-      /** One-line description of the operation in flight. */
+      /** The goal/command — the mission the operation is tracked *toward*. Without
+       *  this frame a live operation can't be tracked (progress needs a destination). */
+      mission: string;
+      /** The step in flight right now. */
       operation: string;
       /** The frame it runs against — the current tab/context. */
       context: string;

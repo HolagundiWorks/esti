@@ -117,7 +117,8 @@ export function AiAgentCommand() {
     setInput("");
     setEstiActivity({
       status: "orchestrating",
-      operation: prompt.length > 72 ? `${prompt.slice(0, 72)}…` : prompt,
+      mission: prompt.length > 90 ? `${prompt.slice(0, 90)}…` : prompt,
+      operation: "Generating a response",
       context: projectId ? "this project" : "the workspace",
     });
     generate.mutate({ kind: "SUMMARY", mode: "agent", projectId, prompt });
