@@ -19,6 +19,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
@@ -26,6 +27,8 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
+  ENGINEERING_DISCIPLINE_LABEL,
+  ISSUE_CLASS_LABEL,
   formatINR,
   PORTAL_SUBMISSION_KIND_LABEL,
   PORTAL_SUBMISSION_STATUS_LABEL,
@@ -33,6 +36,8 @@ import {
   REVISION_CATEGORY_LABEL,
   REVISION_CATEGORY_TAG,
   RevisionCategory,
+  type EngineeringDiscipline,
+  type IssueClass,
   type PortalApprovalDecision,
   type PortalSubmissionKind,
   type PortalSubmissionStatus,
@@ -78,6 +83,8 @@ export function Portal() {
   });
   const brandingQ = trpc.portal.branding.useQuery();
   const projectsQ = trpc.portal.myProjects.useQuery();
+  // AORMS-Consultancy Phase 0 — issued engineering packages (ISSUED only, own client).
+  const issuedConsQ = trpc.portal.issuedConsDeliverables.useQuery();
   const detailQ = trpc.portal.projectDetail.useQuery(
     { projectId: openId ?? "" },
     { enabled: !!openId },
@@ -476,6 +483,53 @@ export function Portal() {
                 </Grid>
               ))}
             </Grid>
+
+            {/* Issued engineering packages — shown only when the firm has issued
+                consultancy deliverables to this client (Phase 0 portal scoping). */}
+            {(issuedConsQ.data ?? []).length > 0 && (
+              <Stack spacing={1.5}>
+                <Typography variant="h6" component="h2">Issued engineering packages</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Deliverable packages formally issued to you — drafts and superseded
+                  revisions stay with the office.
+                </Typography>
+                <TableContainer>
+                  <Table size="small" aria-label="Issued engineering packages">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Engagement</TableCell>
+                        <TableCell>Code</TableCell>
+                        <TableCell>Title</TableCell>
+                        <TableCell>Discipline</TableCell>
+                        <TableCell>Rev</TableCell>
+                        <TableCell>Purpose of issue</TableCell>
+                        <TableCell>Issued</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {(issuedConsQ.data ?? []).map((p) => (
+                        <TableRow key={p.id}>
+                          <TableCell>{p.engagementTitle}</TableCell>
+                          <TableCell>{p.code}</TableCell>
+                          <TableCell>{p.title}</TableCell>
+                          <TableCell>
+                            {ENGINEERING_DISCIPLINE_LABEL[p.discipline as EngineeringDiscipline] ??
+                              p.discipline}
+                          </TableCell>
+                          <TableCell>{p.revision}</TableCell>
+                          <TableCell>
+                            {ISSUE_CLASS_LABEL[p.issueClass as IssueClass] ?? p.issueClass}
+                          </TableCell>
+                          <TableCell>
+                            {p.issuedAt ? new Date(p.issuedAt).toLocaleDateString("en-IN") : "—"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Stack>
+            )}
           </Stack>
         )}
 
