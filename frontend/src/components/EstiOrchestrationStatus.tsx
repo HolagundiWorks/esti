@@ -13,6 +13,23 @@ export function EstiOrchestrationStatus() {
   const activity = useEstiActivity();
   if (activity.status === "idle") return null;
 
+  // Brief completion — the supervisor sees ESTI finish before the rail goes calm.
+  if (activity.status === "done") {
+    return (
+      <Surface layer="glass" role="status" aria-live="polite" sx={{ p: 1.5, mb: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box
+            aria-hidden
+            sx={{ width: 8, height: 8, borderRadius: "50%", flex: "0 0 auto", bgcolor: "success.main" }}
+          />
+          <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2 }}>
+            ESTI · finished
+          </Typography>
+        </Box>
+      </Surface>
+    );
+  }
+
   return (
     <Surface
       layer="glass"

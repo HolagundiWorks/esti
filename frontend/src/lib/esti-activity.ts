@@ -20,14 +20,31 @@ export type EstiActivity =
       operation: string;
       /** The frame it runs against — the current tab/context. */
       context: string;
-    };
+    }
+  /** Just finished — a brief completion the supervisor sees before the rail goes calm.
+   *  Auto-clears to idle after {@link DONE_LINGER_MS}. */
+  | { status: "done" };
+
+const DONE_LINGER_MS = 4000;
 
 let activity: EstiActivity = { status: "idle" };
 const listeners = new Set<() => void>();
+let clearTimer: ReturnType<typeof setTimeout> | null = null;
 
 export function setEstiActivity(next: EstiActivity): void {
+  if (clearTimer) {
+    clearTimeout(clearTimer);
+    clearTimer = null;
+  }
   activity = next;
   for (const l of listeners) l();
+  if (next.status === "done") {
+    clearTimer = setTimeout(() => {
+      clearTimer = null;
+      activity = { status: "idle" };
+      for (const l of listeners) l();
+    }, DONE_LINGER_MS);
+  }
 }
 
 function subscribe(listener: () => void): () => void {

@@ -70,7 +70,7 @@ export function AiDraftPanel({ projectId, defaultKind = "SUMMARY", compact }: Pr
       setRunId(res.runId);
       setSources(res.sources);
       utils.ai.listRuns.invalidate();
-      setEstiActivity({ status: "idle" });
+      setEstiActivity({ status: "done" });
     },
     onError: () => setEstiActivity({ status: "idle" }),
   });

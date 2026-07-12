@@ -59,7 +59,7 @@ export function AiAgentCommand() {
     meta: { errorTitle: "Couldn't generate the AI response" },
     onSuccess: (res) => {
       setTurns((t) => [...t, { role: "assistant", text: res.output }]);
-      setEstiActivity({ status: "idle" });
+      setEstiActivity({ status: "done" });
     },
     onError: (err) => {
       setTurns((t) => [
