@@ -13,6 +13,8 @@ import {
   ConsDeliverableUpdate,
   ConsEngagementCreate,
   ConsEngagementUpdate,
+  ConsFeeStageCreate,
+  ConsFeeStageUpdate,
   ConsReviewStepCreate,
   ConsTqAnswer,
   ConsTqClose,
@@ -21,11 +23,12 @@ import {
   ReviewStepKind,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import {
   consDeliverables,
   consEngagements,
+  consFeeStages,
   consReviewSteps,
   consTqs,
 } from "../../db/schema.js";
@@ -77,6 +80,22 @@ const engagementsRouter = router({
         .from(consTqs)
         .where(eq(consTqs.engagementId, input.id))
         .orderBy(asc(consTqs.code));
+      const feeStages = await ctx.db
+        .select()
+        .from(consFeeStages)
+        .where(eq(consFeeStages.engagementId, input.id))
+        .orderBy(asc(consFeeStages.createdAt));
+      // Fee position — agreed vs staged vs billable vs invoiced (paise).
+      const feePosition = {
+        agreedPaise: row.feeTotalPaise ?? 0,
+        stagedPaise: feeStages.reduce((a, s) => a + (s.amountPaise ?? 0), 0),
+        billablePaise: feeStages
+          .filter((s) => s.status === "BILLABLE")
+          .reduce((a, s) => a + (s.amountPaise ?? 0), 0),
+        invoicedPaise: feeStages
+          .filter((s) => s.status === "INVOICED")
+          .reduce((a, s) => a + (s.amountPaise ?? 0), 0),
+      };
       return {
         ...row,
         deliverables: deliverables.map((d) => ({
@@ -85,6 +104,8 @@ const engagementsRouter = router({
           missing: d.status === "DRAFT" ? missingSteps(d.checkCategory, steps.filter((s) => s.deliverableId === d.id)) : [],
         })),
         tqs,
+        feeStages,
+        feePosition,
       };
     }),
 
@@ -168,6 +189,17 @@ const deliverablesRouter = router({
       .where(eq(consDeliverables.id, id))
       .returning();
     await writeAudit(ctx.db, { entity: "cons_deliverable", entityId: id, action: "UPDATE", actorId: ctx.user.id, after: row });
+
+    // Billing trigger (Phase 2) — issue fires the linked fee stages BILLABLE.
+    if (status === "ISSUED") {
+      const fired = await ctx.db
+        .update(consFeeStages)
+        .set({ status: "BILLABLE", billableAt: new Date(), updatedAt: new Date() })
+        .where(and(eq(consFeeStages.deliverableId, id), eq(consFeeStages.status, "PENDING")))
+        .returning();
+      for (const s of fired)
+        await writeAudit(ctx.db, { entity: "cons_fee_stage", entityId: s.id, action: "UPDATE", actorId: ctx.user.id, after: s });
+    }
     return row!;
   }),
 
@@ -305,9 +337,59 @@ const tqsRouter = router({
   }),
 });
 
+const feeStagesRouter = router({
+  create: manage.input(ConsFeeStageCreate).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db.insert(consFeeStages).values(input).returning();
+    await writeAudit(ctx.db, { entity: "cons_fee_stage", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+
+  update: manage.input(ConsFeeStageUpdate).mutation(async ({ ctx, input }) => {
+    const { id, ...rest } = input;
+    const [row] = await ctx.db
+      .update(consFeeStages)
+      .set({ ...rest, updatedAt: new Date() })
+      .where(eq(consFeeStages.id, id))
+      .returning();
+    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    await writeAudit(ctx.db, { entity: "cons_fee_stage", entityId: id, action: "UPDATE", actorId: ctx.user.id, after: row });
+    return row;
+  }),
+
+  /** Record the invoice raised for a BILLABLE stage (invoice integration follows). */
+  markInvoiced: manage
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [stage] = await ctx.db.select().from(consFeeStages).where(eq(consFeeStages.id, input.id));
+      if (!stage) throw new TRPCError({ code: "NOT_FOUND" });
+      if (stage.status !== "BILLABLE")
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message:
+            stage.status === "INVOICED"
+              ? "This stage is already invoiced."
+              : "The stage is not billable yet — it turns billable when its linked deliverable is issued.",
+        });
+      const [row] = await ctx.db
+        .update(consFeeStages)
+        .set({ status: "INVOICED", invoicedAt: new Date(), updatedAt: new Date() })
+        .where(eq(consFeeStages.id, input.id))
+        .returning();
+      await writeAudit(ctx.db, { entity: "cons_fee_stage", entityId: input.id, action: "UPDATE", actorId: ctx.user.id, after: row });
+      return row!;
+    }),
+
+  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    await ctx.db.delete(consFeeStages).where(eq(consFeeStages.id, input.id));
+    await writeAudit(ctx.db, { entity: "cons_fee_stage", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
+    return { ok: true };
+  }),
+});
+
 export const consultancyRouter = router({
   engagements: engagementsRouter,
   deliverables: deliverablesRouter,
   reviews: reviewsRouter,
   tqs: tqsRouter,
+  feeStages: feeStagesRouter,
 });

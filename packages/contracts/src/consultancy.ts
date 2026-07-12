@@ -108,6 +108,17 @@ export const CONS_DELIVERABLE_STATUS_TAG: Record<DeliverableStatus, TagColor> = 
   WITHDRAWN: "red",
 };
 
+/** How the engagement fee is structured (case study §5.1). Hybrids = stages + time-charge lines (later slice). */
+export const FeeModel = z.enum(["PERCENT_OF_COST", "LUMP_SUM", "TIME_CHARGE", "RETAINER"]);
+export type FeeModel = z.infer<typeof FeeModel>;
+
+export const FEE_MODEL_LABEL: Record<FeeModel, string> = {
+  PERCENT_OF_COST: "% of construction cost",
+  LUMP_SUM: "Lump sum",
+  TIME_CHARGE: "Time charge",
+  RETAINER: "Retainer",
+};
+
 export const ConsEngagementCreate = z.object({
   title: z.string().min(1).max(300),
   clientId: z.string().uuid().optional(),
@@ -119,6 +130,10 @@ export const ConsEngagementCreate = z.object({
   relianceScope: z.string().max(4000).optional(),
   /** Current work stage — free text in Phase 0 (COA/RIBA vocab differs per firm). */
   stage: z.string().max(120).optional(),
+  /** Fee structure (Phase 2) — optional until the commercial terms are agreed. */
+  feeModel: FeeModel.optional(),
+  /** Agreed total fee in integer paise. */
+  feeTotalPaise: z.number().int().nonnegative().optional(),
   notes: z.string().max(8000).optional(),
 });
 export type ConsEngagementCreate = z.infer<typeof ConsEngagementCreate>;
@@ -226,3 +241,43 @@ export const ConsTqClose = z.object({
   closureNote: z.string().min(1).max(4000),
 });
 export type ConsTqClose = z.infer<typeof ConsTqClose>;
+
+// ── Phase 2 — the commercial engine (slice 1: fee stages) ───────────────────
+
+/**
+ * Stage lifecycle: PENDING → BILLABLE (fires automatically when the linked
+ * deliverable is ISSUED — stage billing is tied to deliverable issue, case
+ * study §5.4) → INVOICED (recorded when the invoice is raised).
+ */
+export const FeeStageStatus = z.enum(["PENDING", "BILLABLE", "INVOICED"]);
+export type FeeStageStatus = z.infer<typeof FeeStageStatus>;
+
+export const FEE_STAGE_STATUS_LABEL: Record<FeeStageStatus, string> = {
+  PENDING: "Pending",
+  BILLABLE: "Billable",
+  INVOICED: "Invoiced",
+};
+
+export const CONS_FEE_STAGE_STATUS_TAG: Record<FeeStageStatus, TagColor> = {
+  PENDING: "gray",
+  BILLABLE: "red",
+  INVOICED: "green",
+};
+
+export const ConsFeeStageCreate = z.object({
+  engagementId: z.string().uuid(),
+  label: z.string().min(1).max(200),
+  /** Integer paise (house convention — format with formatINR). */
+  amountPaise: z.number().int().nonnegative(),
+  /** Billing trigger — the stage turns BILLABLE when this deliverable is ISSUED. */
+  deliverableId: z.string().uuid().optional(),
+});
+export type ConsFeeStageCreate = z.infer<typeof ConsFeeStageCreate>;
+
+export const ConsFeeStageUpdate = z.object({
+  id: z.string().uuid(),
+  label: z.string().min(1).max(200).optional(),
+  amountPaise: z.number().int().nonnegative().optional(),
+  deliverableId: z.string().uuid().nullable().optional(),
+});
+export type ConsFeeStageUpdate = z.infer<typeof ConsFeeStageUpdate>;

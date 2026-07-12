@@ -5,7 +5,7 @@
  * `esti_engagement` belongs to AORMS-Studio's architect↔consultant collaboration
  * model (collaboration.ts) — the engineering-consultancy spine uses `esti_cons_*`.
  */
-import { boolean, createdAt, id, jsonb, pgTable, text, timestamp, updatedAt, uuid } from "./_helpers.js";
+import { bigint, boolean, createdAt, id, jsonb, pgTable, text, timestamp, updatedAt, uuid } from "./_helpers.js";
 import { clients, users } from "./org-auth.js";
 import { projectOffices } from "./project.js";
 
@@ -20,6 +20,9 @@ export const consEngagements = pgTable("esti_cons_engagement", {
   relianceScope: text("reliance_scope"),
   stage: text("stage"),
   status: text("status").notNull().default("ACTIVE"), // EngagementStatus
+  // Phase 2 — fee structure (money is integer paise, house convention).
+  feeModel: text("fee_model"), // FeeModel
+  feeTotalPaise: bigint("fee_total_paise", { mode: "number" }),
   notes: text("notes"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
@@ -59,6 +62,28 @@ export const consReviewSteps = pgTable("esti_cons_review_step", {
   userName: text("user_name").notNull(),
   note: text("note"),
   at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Phase 2 — fee stages: the engagement fee drawn down against deliverable
+ * issue. A stage linked to a deliverable turns BILLABLE automatically when
+ * that deliverable is ISSUED (stage billing tied to issue, case study §5.4).
+ */
+export const consFeeStages = pgTable("esti_cons_fee_stage", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  amountPaise: bigint("amount_paise", { mode: "number" }).notNull().default(0),
+  deliverableId: uuid("deliverable_id").references(() => consDeliverables.id, {
+    onDelete: "set null",
+  }),
+  status: text("status").notNull().default("PENDING"), // FeeStageStatus
+  billableAt: timestamp("billable_at", { withTimezone: true }),
+  invoicedAt: timestamp("invoiced_at", { withTimezone: true }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
 });
 
 /** Phase 1 — technical query (TQ/RFI) register with closure evidence. */

@@ -26,6 +26,7 @@ import {
   CHECK_CATEGORY_REQUIRED_STEPS,
   CONS_DELIVERABLE_STATUS_TAG,
   CONS_ENGAGEMENT_STATUS_TAG,
+  CONS_FEE_STAGE_STATUS_TAG,
   CONS_TQ_STATUS_TAG,
   CheckCategory,
   ConsEngagementStatus,
@@ -34,11 +35,15 @@ import {
   ENGINEERING_DISCIPLINE_LABEL,
   EngagementModel,
   EngineeringDiscipline,
+  FEE_MODEL_LABEL,
+  FeeModel,
+  FeeStageStatus,
   ISSUE_CLASS_LABEL,
   IssueClass,
   REVIEW_STEP_LABEL,
   ReviewStepKind,
   TqStatus,
+  formatINR,
 } from "@esti/contracts";
 import { useScreenActions, type DockAction } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
@@ -137,6 +142,22 @@ export function ConsultancyEngagements() {
     meta: { errorTitle: "Couldn't delete the technical query" },
     onSuccess: invalidate,
   });
+  // Phase 2 — fee stages.
+  const createFeeStage = trpc.consultancy.feeStages.create.useMutation({
+    meta: { errorTitle: "Couldn't add the fee stage" },
+    onSuccess: () => {
+      invalidate();
+      setFeeOpen(false);
+    },
+  });
+  const markInvoiced = trpc.consultancy.feeStages.markInvoiced.useMutation({
+    meta: { errorTitle: "Couldn't mark the stage invoiced" },
+    onSuccess: invalidate,
+  });
+  const removeFeeStage = trpc.consultancy.feeStages.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the fee stage" },
+    onSuccess: invalidate,
+  });
 
   // New-engagement dialog state.
   const [engOpen, setEngOpen] = useState(false);
@@ -145,6 +166,12 @@ export function ConsultancyEngagements() {
   const [engDiscipline, setEngDiscipline] = useState<EngineeringDiscipline>("STRUCTURAL");
   const [engStage, setEngStage] = useState("");
   const [engReliance, setEngReliance] = useState("");
+
+  // Fee-stage dialog (Phase 2).
+  const [feeOpen, setFeeOpen] = useState(false);
+  const [feeLabel, setFeeLabel] = useState("");
+  const [feeAmount, setFeeAmount] = useState(""); // rupees; converted to paise on submit
+  const [feeDeliverableId, setFeeDeliverableId] = useState<string>("");
 
   // TQ dialogs (raise / answer / close-with-evidence).
   const [tqOpen, setTqOpen] = useState(false);
@@ -165,7 +192,8 @@ export function ConsultancyEngagements() {
   const [delIssueClass, setDelIssueClass] = useState<IssueClass>("FOR_INFORMATION");
   const [delCheckCategory, setDelCheckCategory] = useState<CheckCategory>("CAT1");
 
-  const anyDialogOpen = engOpen || delOpen || tqOpen || !!tqAnswerFor || !!tqCloseFor;
+  const anyDialogOpen =
+    engOpen || delOpen || tqOpen || feeOpen || !!tqAnswerFor || !!tqCloseFor;
   useScreenActions(
     anyDialogOpen
       ? []
@@ -207,6 +235,18 @@ export function ConsultancyEngagements() {
                     setTqQuestion("");
                     setTqScopeImpact(false);
                     setTqOpen(true);
+                  },
+                },
+                {
+                  id: "cons-add-fee-stage",
+                  zone: "center",
+                  label: "Add fee stage",
+                  icon: <AddIcon />,
+                  onClick: () => {
+                    setFeeLabel("");
+                    setFeeAmount("");
+                    setFeeDeliverableId("");
+                    setFeeOpen(true);
                   },
                 },
               ] satisfies DockAction[])
@@ -480,6 +520,81 @@ export function ConsultancyEngagements() {
                 </Table>
               </TableContainer>
 
+              {/* Fee position — stage billing tied to deliverable issue (Phase 2). */}
+              <Box sx={{ pt: 1 }}>
+                <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600, mb: 0.5 }}>
+                  Fee position
+                </Typography>
+                <span className="esti-label esti-label--secondary">
+                  {detail.feeModel
+                    ? `${FEE_MODEL_LABEL[detail.feeModel as FeeModel] ?? detail.feeModel} · agreed ${formatINR(detail.feePosition.agreedPaise)}`
+                    : "No fee model recorded"}
+                  {` · staged ${formatINR(detail.feePosition.stagedPaise)} · billable ${formatINR(detail.feePosition.billablePaise)} · invoiced ${formatINR(detail.feePosition.invoicedPaise)}`}
+                </span>
+                {detail.feeStages.length > 0 && (
+                  <TableContainer sx={{ mt: 1 }}>
+                    <Table size="small" aria-label="Fee stages">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Stage</TableCell>
+                          <TableCell align="right">Amount</TableCell>
+                          <TableCell>Billing trigger</TableCell>
+                          <TableCell>Status</TableCell>
+                          <TableCell align="right" />
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {detail.feeStages.map((f) => {
+                          const linked = detail.deliverables.find((d) => d.id === f.deliverableId);
+                          return (
+                            <TableRow key={f.id}>
+                              <TableCell>{f.label}</TableCell>
+                              <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                                {formatINR(f.amountPaise ?? 0)}
+                              </TableCell>
+                              <TableCell>
+                                {linked ? (
+                                  `On issue of ${linked.code}`
+                                ) : (
+                                  <span className="esti-label esti-label--secondary">Manual</span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <StatusTag
+                                  value={f.status as FeeStageStatus}
+                                  map={CONS_FEE_STAGE_STATUS_TAG}
+                                />
+                              </TableCell>
+                              <TableCell align="right">
+                                <RowActionsMenu
+                                  actions={[
+                                    ...(f.status === "BILLABLE"
+                                      ? [
+                                          {
+                                            label: "Mark invoiced",
+                                            disabled: markInvoiced.isPending,
+                                            onClick: () => markInvoiced.mutate({ id: f.id }),
+                                          },
+                                        ]
+                                      : []),
+                                    {
+                                      label: "Delete",
+                                      danger: true,
+                                      disabled: removeFeeStage.isPending,
+                                      onClick: () => removeFeeStage.mutate({ id: f.id }),
+                                    },
+                                  ]}
+                                />
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Box>
+
               {/* Technical query register — closure evidence required to close. */}
               <Box sx={{ pt: 1 }}>
                 <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600, mb: 1 }}>
@@ -576,6 +691,71 @@ export function ConsultancyEngagements() {
           )}
         </Grid>
       </Grid>
+
+      {/* Add fee stage */}
+      <Dialog open={feeOpen} onClose={() => setFeeOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Add fee stage</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="cons-fee-label"
+              label="Stage"
+              placeholder="e.g. Stage 4 — detailed design"
+              value={feeLabel}
+              onChange={(e) => setFeeLabel(e.target.value)}
+              autoFocus
+            />
+            <TextField
+              id="cons-fee-amount"
+              label="Amount (₹)"
+              placeholder="e.g. 250000"
+              value={feeAmount}
+              onChange={(e) => setFeeAmount(e.target.value)}
+              slotProps={{ htmlInput: { inputMode: "decimal" } }}
+            />
+            <TextField
+              id="cons-fee-deliverable"
+              select
+              label="Billing trigger (optional)"
+              value={feeDeliverableId}
+              onChange={(e) => setFeeDeliverableId(e.target.value)}
+              helperText="Linked stages turn billable automatically when the deliverable is issued"
+            >
+              <MenuItem value="">Manual — no linked deliverable</MenuItem>
+              {(detail?.deliverables ?? [])
+                .filter((d) => d.status === "DRAFT")
+                .map((d) => (
+                  <MenuItem key={d.id} value={d.id}>
+                    {d.code} — {d.title}
+                  </MenuItem>
+                ))}
+            </TextField>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setFeeOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={
+              !feeLabel.trim() ||
+              !(Number.parseFloat(feeAmount) >= 0) ||
+              !selectedId ||
+              createFeeStage.isPending
+            }
+            onClick={() =>
+              selectedId &&
+              createFeeStage.mutate({
+                engagementId: selectedId,
+                label: feeLabel.trim(),
+                amountPaise: Math.round(Number.parseFloat(feeAmount) * 100),
+                deliverableId: feeDeliverableId || undefined,
+              })
+            }
+          >
+            Add stage
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Raise TQ */}
       <Dialog open={tqOpen} onClose={() => setTqOpen(false)} fullWidth maxWidth="sm">
