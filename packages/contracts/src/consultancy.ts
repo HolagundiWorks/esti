@@ -329,3 +329,38 @@ export const ConsTimesheetCreate = z.object({
   note: z.string().max(500).optional(),
 });
 export type ConsTimesheetCreate = z.infer<typeof ConsTimesheetCreate>;
+
+// ── Phase 2 slice 3 — variations (additional services) ──────────────────────
+
+/**
+ * Out-of-scope work captured as a named variation with approval (case study
+ * §5.4) — client scope changes and code updates are chargeable; design-team
+ * errors are not. Approval appends a BILLABLE fee stage automatically.
+ */
+export const VariationStatus = z.enum(["PROPOSED", "APPROVED", "REJECTED"]);
+export type VariationStatus = z.infer<typeof VariationStatus>;
+
+export const VARIATION_STATUS_LABEL: Record<VariationStatus, string> = {
+  PROPOSED: "Proposed",
+  APPROVED: "Approved",
+  REJECTED: "Rejected",
+};
+
+export const CONS_VARIATION_STATUS_TAG: Record<VariationStatus, TagColor> = {
+  PROPOSED: "teal",
+  APPROVED: "green",
+  REJECTED: "gray",
+};
+
+export const ConsVariationCreate = z.object({
+  engagementId: z.string().uuid(),
+  /** Register code, e.g. VO-001. */
+  code: z.string().min(1).max(40),
+  title: z.string().min(1).max(300),
+  /** Proposed additional fee — integer paise. */
+  amountPaise: z.number().int().nonnegative(),
+  /** The scope-impact TQ this variation grew out of, when applicable. */
+  sourceTqId: z.string().uuid().optional(),
+  notes: z.string().max(4000).optional(),
+});
+export type ConsVariationCreate = z.infer<typeof ConsVariationCreate>;

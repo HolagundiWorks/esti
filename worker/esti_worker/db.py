@@ -387,4 +387,9 @@ def fetch_engagement_full(engagement_id: str) -> dict[str, Any] | None:
             "from esti_cons_tq where engagement_id = %s order by code",
             [engagement_id],
         ).fetchall()
+        row["variations"] = conn.execute(
+            "select code, title, amount_paise, status from esti_cons_variation "
+            "where engagement_id = %s order by code",
+            [engagement_id],
+        ).fetchall()
         return row

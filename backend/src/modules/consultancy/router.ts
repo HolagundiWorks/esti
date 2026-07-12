@@ -21,6 +21,7 @@ import {
   ConsTqAnswer,
   ConsTqClose,
   ConsTqCreate,
+  ConsVariationCreate,
   REVIEW_STEP_LABEL,
   ReviewStepKind,
 } from "@esti/contracts";
@@ -35,6 +36,7 @@ import {
   consReviewSteps,
   consTimesheets,
   consTqs,
+  consVariations,
 } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
@@ -92,6 +94,11 @@ const engagementsRouter = router({
         .from(consFeeStages)
         .where(eq(consFeeStages.engagementId, input.id))
         .orderBy(asc(consFeeStages.createdAt));
+      const variations = await ctx.db
+        .select()
+        .from(consVariations)
+        .where(eq(consVariations.engagementId, input.id))
+        .orderBy(asc(consVariations.code));
       const timesheets = await ctx.db
         .select()
         .from(consTimesheets)
@@ -123,6 +130,7 @@ const engagementsRouter = router({
         })),
         tqs,
         feeStages,
+        variations,
         timesheets,
         feePosition,
         // Built-in PDF export — download URL once the worker has rendered it.
@@ -497,6 +505,69 @@ const timesheetsRouter = router({
   }),
 });
 
+const variationsRouter = router({
+  create: manage.input(ConsVariationCreate).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db.insert(consVariations).values(input).returning();
+    await writeAudit(ctx.db, { entity: "cons_variation", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+
+  /**
+   * Client approval of the additional service — the fee-defence moment (case
+   * study §5.4). Appends a BILLABLE fee stage carrying the variation amount.
+   */
+  approve: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [v] = await ctx.db.select().from(consVariations).where(eq(consVariations.id, input.id));
+    if (!v) throw new TRPCError({ code: "NOT_FOUND" });
+    if (v.status !== "PROPOSED")
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `${v.code} is already ${v.status.toLowerCase()}.`,
+      });
+    const [stage] = await ctx.db
+      .insert(consFeeStages)
+      .values({
+        engagementId: v.engagementId,
+        label: `Variation ${v.code} — ${v.title}`,
+        amountPaise: v.amountPaise,
+        status: "BILLABLE",
+        billableAt: new Date(),
+      })
+      .returning();
+    const [row] = await ctx.db
+      .update(consVariations)
+      .set({ status: "APPROVED", approvedAt: new Date(), feeStageId: stage!.id, updatedAt: new Date() })
+      .where(eq(consVariations.id, input.id))
+      .returning();
+    await writeAudit(ctx.db, { entity: "cons_variation", entityId: input.id, action: "UPDATE", actorId: ctx.user.id, after: row });
+    await writeAudit(ctx.db, { entity: "cons_fee_stage", entityId: stage!.id, action: "CREATE", actorId: ctx.user.id, after: stage });
+    return row!;
+  }),
+
+  reject: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [v] = await ctx.db.select().from(consVariations).where(eq(consVariations.id, input.id));
+    if (!v) throw new TRPCError({ code: "NOT_FOUND" });
+    if (v.status !== "PROPOSED")
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `${v.code} is already ${v.status.toLowerCase()}.`,
+      });
+    const [row] = await ctx.db
+      .update(consVariations)
+      .set({ status: "REJECTED", updatedAt: new Date() })
+      .where(eq(consVariations.id, input.id))
+      .returning();
+    await writeAudit(ctx.db, { entity: "cons_variation", entityId: input.id, action: "UPDATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+
+  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    await ctx.db.delete(consVariations).where(eq(consVariations.id, input.id));
+    await writeAudit(ctx.db, { entity: "cons_variation", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
+    return { ok: true };
+  }),
+});
+
 export const consultancyRouter = router({
   engagements: engagementsRouter,
   deliverables: deliverablesRouter,
@@ -505,4 +576,5 @@ export const consultancyRouter = router({
   feeStages: feeStagesRouter,
   rateCards: rateCardsRouter,
   timesheets: timesheetsRouter,
+  variations: variationsRouter,
 });

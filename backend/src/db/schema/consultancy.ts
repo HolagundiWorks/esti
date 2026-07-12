@@ -124,6 +124,27 @@ export const consTimesheets = pgTable("esti_cons_timesheet", {
   createdAt: createdAt(),
 });
 
+/**
+ * Phase 2 slice 3 — variations: out-of-scope work with approval → billing.
+ * Approving a variation appends a BILLABLE fee stage (feeStageId records it).
+ */
+export const consVariations = pgTable("esti_cons_variation", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  code: text("code").notNull(), // e.g. VO-001
+  title: text("title").notNull(),
+  amountPaise: bigint("amount_paise", { mode: "number" }).notNull().default(0),
+  sourceTqId: uuid("source_tq_id").references(() => consTqs.id, { onDelete: "set null" }),
+  status: text("status").notNull().default("PROPOSED"), // VariationStatus
+  feeStageId: uuid("fee_stage_id").references(() => consFeeStages.id, { onDelete: "set null" }),
+  notes: text("notes"),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** Phase 1 — technical query (TQ/RFI) register with closure evidence. */
 export const consTqs = pgTable("esti_cons_tq", {
   id: id(),

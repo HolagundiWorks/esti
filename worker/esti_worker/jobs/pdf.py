@@ -688,6 +688,11 @@ def _engagement_register_html(e: dict[str, Any], firm: dict[str, Any]) -> str:
         f"<td class='c'>{_e(t['status'])}</td></tr>"
         for t in e.get("tqs", [])
     )
+    vo_rows = "".join(
+        f"<tr><td>{_e(v['code'])}</td><td>{_e(v['title'])}</td>"
+        f"<td class='r'>{_inr(v['amount_paise'])}</td><td class='c'>{_e(v['status'])}</td></tr>"
+        for v in e.get("variations", [])
+    )
     fee_line = (
         f"{_ENG_FEE_MODEL.get(e.get('fee_model'), e.get('fee_model'))} · agreed {_inr(e.get('fee_total_paise'))}"
         if e.get("fee_model")
@@ -731,6 +736,8 @@ def _engagement_register_html(e: dict[str, Any], firm: dict[str, Any]) -> str:
       </table>
 
       {f'<h3>Fee stages</h3><table><thead><tr><th>Stage</th><th class="r">Amount</th><th class="c">Status</th></tr></thead><tbody>{fee_rows}</tbody></table>' if fee_rows else ''}
+
+      {f'<h3>Variations</h3><table><thead><tr><th>Code</th><th>Title</th><th class="r">Amount</th><th class="c">Status</th></tr></thead><tbody>{vo_rows}</tbody></table>' if vo_rows else ''}
 
       {f'<h3>Technical queries</h3><table><thead><tr><th>Code</th><th>Question</th><th class="c">Status</th></tr></thead><tbody>{tq_rows}</tbody></table>' if tq_rows else ''}
 

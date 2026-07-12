@@ -30,6 +30,7 @@ import {
   CONS_ENGAGEMENT_STATUS_TAG,
   CONS_FEE_STAGE_STATUS_TAG,
   CONS_TQ_STATUS_TAG,
+  CONS_VARIATION_STATUS_TAG,
   CheckCategory,
   ConsEngagementStatus,
   DeliverableStatus,
@@ -45,6 +46,7 @@ import {
   REVIEW_STEP_LABEL,
   ReviewStepKind,
   TqStatus,
+  VariationStatus,
   formatINR,
 } from "@esti/contracts";
 import { useScreenActions, type DockAction } from "@hcw/ui-kit";
@@ -151,6 +153,27 @@ export function ConsultancyEngagements() {
     meta: { errorTitle: "Couldn't delete the technical query" },
     onSuccess: invalidate,
   });
+  // Phase 2 slice 3 — variations.
+  const createVariation = trpc.consultancy.variations.create.useMutation({
+    meta: { errorTitle: "Couldn't raise the variation" },
+    onSuccess: () => {
+      invalidate();
+      setVoOpen(false);
+    },
+  });
+  const approveVariation = trpc.consultancy.variations.approve.useMutation({
+    meta: { errorTitle: "Couldn't approve the variation" },
+    onSuccess: invalidate,
+  });
+  const rejectVariation = trpc.consultancy.variations.reject.useMutation({
+    meta: { errorTitle: "Couldn't reject the variation" },
+    onSuccess: invalidate,
+  });
+  const removeVariation = trpc.consultancy.variations.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the variation" },
+    onSuccess: invalidate,
+  });
+
   // Built-in PDF export.
   const exportPdf = trpc.consultancy.engagements.exportPdf.useMutation({
     meta: { errorTitle: "Couldn't start the PDF export" },
@@ -213,6 +236,13 @@ export function ConsultancyEngagements() {
   const [ratesOpen, setRatesOpen] = useState(false);
   const [rateDraft, setRateDraft] = useState<Record<string, string>>({});
 
+  // Variation dialog (Phase 2 slice 3).
+  const [voOpen, setVoOpen] = useState(false);
+  const [voCode, setVoCode] = useState("");
+  const [voTitle, setVoTitle] = useState("");
+  const [voAmount, setVoAmount] = useState(""); // rupees → paise on submit
+  const [voSourceTqId, setVoSourceTqId] = useState<string | undefined>(undefined);
+
   // Fee-stage dialog (Phase 2).
   const [feeOpen, setFeeOpen] = useState(false);
   const [feeLabel, setFeeLabel] = useState("");
@@ -239,7 +269,8 @@ export function ConsultancyEngagements() {
   const [delCheckCategory, setDelCheckCategory] = useState<CheckCategory>("CAT1");
 
   const anyDialogOpen =
-    engOpen || delOpen || tqOpen || feeOpen || timeOpen || ratesOpen || !!tqAnswerFor || !!tqCloseFor;
+    engOpen || delOpen || tqOpen || feeOpen || timeOpen || ratesOpen || voOpen ||
+    !!tqAnswerFor || !!tqCloseFor;
   useScreenActions(
     anyDialogOpen
       ? []
@@ -701,6 +732,82 @@ export function ConsultancyEngagements() {
                 )}
               </Box>
 
+              {/* Variations — out-of-scope work with approval → billing. */}
+              {detail.variations.length > 0 && (
+                <Box sx={{ pt: 1 }}>
+                  <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600, mb: 0.5 }}>
+                    Variations
+                  </Typography>
+                  <TableContainer>
+                    <Table size="small" aria-label="Variations">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Code</TableCell>
+                          <TableCell>Title</TableCell>
+                          <TableCell align="right">Amount</TableCell>
+                          <TableCell>Source</TableCell>
+                          <TableCell>Status</TableCell>
+                          <TableCell align="right" />
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {detail.variations.map((v) => {
+                          const srcTq = detail.tqs.find((t) => t.id === v.sourceTqId);
+                          return (
+                            <TableRow key={v.id}>
+                              <TableCell>{v.code}</TableCell>
+                              <TableCell>{v.title}</TableCell>
+                              <TableCell align="right" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                                {formatINR(v.amountPaise ?? 0)}
+                              </TableCell>
+                              <TableCell>
+                                {srcTq ? (
+                                  srcTq.code
+                                ) : (
+                                  <span className="esti-label esti-label--secondary">—</span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <StatusTag
+                                  value={v.status as VariationStatus}
+                                  map={CONS_VARIATION_STATUS_TAG}
+                                />
+                              </TableCell>
+                              <TableCell align="right">
+                                <RowActionsMenu
+                                  actions={[
+                                    ...(v.status === "PROPOSED"
+                                      ? [
+                                          {
+                                            label: "Approve — add billable stage",
+                                            disabled: approveVariation.isPending,
+                                            onClick: () => approveVariation.mutate({ id: v.id }),
+                                          },
+                                          {
+                                            label: "Reject",
+                                            disabled: rejectVariation.isPending,
+                                            onClick: () => rejectVariation.mutate({ id: v.id }),
+                                          },
+                                        ]
+                                      : []),
+                                    {
+                                      label: "Delete",
+                                      danger: true,
+                                      disabled: removeVariation.isPending,
+                                      onClick: () => removeVariation.mutate({ id: v.id }),
+                                    },
+                                  ]}
+                                />
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+              )}
+
               {/* Time booked — substrate for WIP / utilisation / realisation. */}
               <Box sx={{ pt: 1 }}>
                 <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600, mb: 0.5 }}>
@@ -810,6 +917,20 @@ export function ConsultancyEngagements() {
                             <TableCell align="right">
                               <RowActionsMenu
                                 actions={[
+                                  ...(t.scopeImpact
+                                    ? [
+                                        {
+                                          label: "Raise variation",
+                                          onClick: () => {
+                                            setVoCode("");
+                                            setVoTitle(t.question.slice(0, 120));
+                                            setVoAmount("");
+                                            setVoSourceTqId(t.id);
+                                            setVoOpen(true);
+                                          },
+                                        },
+                                      ]
+                                    : []),
                                   ...(t.status !== "CLOSED"
                                     ? [
                                         {
@@ -852,6 +973,67 @@ export function ConsultancyEngagements() {
           )}
         </Grid>
       </Grid>
+
+      {/* Raise variation */}
+      <Dialog open={voOpen} onClose={() => setVoOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Raise variation</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="cons-vo-code"
+              label="Register code"
+              placeholder="e.g. VO-001"
+              value={voCode}
+              onChange={(e) => setVoCode(e.target.value)}
+              autoFocus
+            />
+            <TextField
+              id="cons-vo-title"
+              label="Title"
+              value={voTitle}
+              onChange={(e) => setVoTitle(e.target.value)}
+            />
+            <TextField
+              id="cons-vo-amount"
+              label="Proposed fee (₹)"
+              placeholder="e.g. 40000"
+              value={voAmount}
+              onChange={(e) => setVoAmount(e.target.value)}
+              slotProps={{ htmlInput: { inputMode: "decimal" } }}
+              helperText={
+                voSourceTqId
+                  ? "Raised from a scope-impact TQ — approval adds a billable fee stage"
+                  : "Approval adds a billable fee stage"
+              }
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setVoOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={
+              !voCode.trim() ||
+              !voTitle.trim() ||
+              !(Number.parseFloat(voAmount) >= 0) ||
+              !selectedId ||
+              createVariation.isPending
+            }
+            onClick={() =>
+              selectedId &&
+              createVariation.mutate({
+                engagementId: selectedId,
+                code: voCode.trim(),
+                title: voTitle.trim(),
+                amountPaise: Math.round(Number.parseFloat(voAmount) * 100),
+                sourceTqId: voSourceTqId,
+              })
+            }
+          >
+            Raise
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Log time */}
       <Dialog open={timeOpen} onClose={() => setTimeOpen(false)} fullWidth maxWidth="sm">
