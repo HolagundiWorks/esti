@@ -6,7 +6,9 @@
 > Architecture, NSPE/ASCE, ISO 19650, HSE CDM, Indian municipal/RERA/NBC material) — see
 > **Sources** at the end. Every non-obvious claim is citable.
 >
-> **Reads with:** philosophy in
+> **Reads with:** the procedural layer (QMS, document control, checking workflow, intake,
+> timesheet→invoice cycle, closeout SOPs) in
+> [`AORMS-CONSULTANCY-SOP-CASE-STUDY.md`](AORMS-CONSULTANCY-SOP-CASE-STUDY.md); philosophy in
 > [`AORMS-CONSULTING-FRAMEWORKS.md`](AORMS-CONSULTING-FRAMEWORKS.md) · the system design
 > in [`AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md`](AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md).
 > This document is the **evidence base** those two rest on.
