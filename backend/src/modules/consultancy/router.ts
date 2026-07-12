@@ -1,22 +1,50 @@
 /**
- * AORMS-Consultancy — Phase 0 "Living record" (engineering consultancies).
- * `consultancy.engagements.*` + `consultancy.deliverables.*` — the engagement
- * spine and the deliverable register everything later (sign-off chains, TQs,
- * fee stages) attaches to. Design: docs/esti/AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md.
+ * AORMS-Consultancy — engineering consultancy spine.
+ * Phase 0 "Living record": engagements + the deliverable register.
+ * Phase 1 "Reliance engine": the serial sign-off chain (CHECK → APPROVE →
+ * VERIFY per check category; checker ≠ author enforced server-side; ISSUED is
+ * gated on the chain) and the TQ register with closure evidence.
+ * Design: docs/esti/AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md.
  */
 import {
+  CHECK_CATEGORY_REQUIRED_STEPS,
+  CheckCategory,
   ConsDeliverableCreate,
   ConsDeliverableUpdate,
   ConsEngagementCreate,
   ConsEngagementUpdate,
+  ConsReviewStepCreate,
+  ConsTqAnswer,
+  ConsTqClose,
+  ConsTqCreate,
+  REVIEW_STEP_LABEL,
+  ReviewStepKind,
 } from "@esti/contracts";
-import { asc, desc, eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { consDeliverables, consEngagements } from "../../db/schema.js";
+import {
+  consDeliverables,
+  consEngagements,
+  consReviewSteps,
+  consTqs,
+} from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 const manage = capabilityProcedure("write");
+
+/** Steps still missing before this deliverable may be ISSUED. */
+function missingSteps(
+  checkCategory: string,
+  recorded: { kind: string }[],
+): ReviewStepKind[] {
+  const required =
+    CHECK_CATEGORY_REQUIRED_STEPS[checkCategory as CheckCategory] ??
+    CHECK_CATEGORY_REQUIRED_STEPS.CAT1;
+  const have = new Set(recorded.map((s) => s.kind));
+  return required.filter((k) => !have.has(k));
+}
 
 const engagementsRouter = router({
   list: protectedProcedure.query(({ ctx }) =>
@@ -36,7 +64,28 @@ const engagementsRouter = router({
         .from(consDeliverables)
         .where(eq(consDeliverables.engagementId, input.id))
         .orderBy(asc(consDeliverables.code));
-      return { ...row, deliverables };
+      const ids = deliverables.map((d) => d.id);
+      const steps = ids.length
+        ? await ctx.db
+            .select()
+            .from(consReviewSteps)
+            .where(inArray(consReviewSteps.deliverableId, ids))
+            .orderBy(asc(consReviewSteps.at))
+        : [];
+      const tqs = await ctx.db
+        .select()
+        .from(consTqs)
+        .where(eq(consTqs.engagementId, input.id))
+        .orderBy(asc(consTqs.code));
+      return {
+        ...row,
+        deliverables: deliverables.map((d) => ({
+          ...d,
+          chain: steps.filter((s) => s.deliverableId === d.id),
+          missing: d.status === "DRAFT" ? missingSteps(d.checkCategory, steps.filter((s) => s.deliverableId === d.id)) : [],
+        })),
+        tqs,
+      };
     }),
 
   create: manage.input(ConsEngagementCreate).mutation(async ({ ctx, input }) => {
@@ -75,23 +124,44 @@ const deliverablesRouter = router({
     ),
 
   create: manage.input(ConsDeliverableCreate).mutation(async ({ ctx, input }) => {
-    const [row] = await ctx.db.insert(consDeliverables).values(input).returning();
+    const [row] = await ctx.db
+      .insert(consDeliverables)
+      // The author is the chain's implicit ORIGINATE step (checker ≠ author).
+      .values({ ...input, originatedBy: ctx.user.id })
+      .returning();
     await writeAudit(ctx.db, { entity: "cons_deliverable", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
     return row!;
   }),
 
   update: manage.input(ConsDeliverableUpdate).mutation(async ({ ctx, input }) => {
     const { id, status, ...rest } = input;
+
+    // Reliance gate: a deliverable may only be ISSUED once the sign-off chain
+    // required by its check category is complete (case study §3.2).
+    if (status === "ISSUED") {
+      const [d] = await ctx.db.select().from(consDeliverables).where(eq(consDeliverables.id, id));
+      if (!d) throw new TRPCError({ code: "NOT_FOUND" });
+      const steps = await ctx.db
+        .select()
+        .from(consReviewSteps)
+        .where(eq(consReviewSteps.deliverableId, id));
+      const missing = missingSteps(d.checkCategory, steps);
+      if (missing.length > 0) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: `Cannot issue ${d.code}: the ${d.checkCategory} sign-off chain is incomplete — missing ${missing
+            .map((k) => REVIEW_STEP_LABEL[k].toLowerCase())
+            .join(", ")}.`,
+        });
+      }
+    }
+
     const [row] = await ctx.db
       .update(consDeliverables)
       .set({
         ...rest,
         ...(status
-          ? {
-              status,
-              // Record the issue moment; Phase 1's sign-off chain will gate it.
-              ...(status === "ISSUED" ? { issuedAt: new Date() } : {}),
-            }
+          ? { status, ...(status === "ISSUED" ? { issuedAt: new Date() } : {}) }
           : {}),
         updatedAt: new Date(),
       })
@@ -108,7 +178,136 @@ const deliverablesRouter = router({
   }),
 });
 
+const reviewsRouter = router({
+  listByDeliverable: protectedProcedure
+    .input(z.object({ deliverableId: z.string().uuid() }))
+    .query(({ ctx, input }) =>
+      ctx.db
+        .select()
+        .from(consReviewSteps)
+        .where(eq(consReviewSteps.deliverableId, input.deliverableId))
+        .orderBy(asc(consReviewSteps.at)),
+    ),
+
+  /**
+   * Record a sign-off step. Server-enforced rules (case study §3.1):
+   * - only DRAFT deliverables accept steps (issued work is already relied on)
+   * - one step per kind — the chain is serial, not a vote
+   * - CHECK must be independent: checker ≠ author
+   * - VERIFY (proof check) must be independent of both author and checker
+   * - APPROVE is the signing act; grade thresholds arrive with the grade layer
+   */
+  record: manage.input(ConsReviewStepCreate).mutation(async ({ ctx, input }) => {
+    const [d] = await ctx.db
+      .select()
+      .from(consDeliverables)
+      .where(eq(consDeliverables.id, input.deliverableId));
+    if (!d) throw new TRPCError({ code: "NOT_FOUND" });
+    if (d.status !== "DRAFT")
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `${d.code} is ${d.status} — sign-off steps can only be recorded on drafts.`,
+      });
+
+    const steps = await ctx.db
+      .select()
+      .from(consReviewSteps)
+      .where(eq(consReviewSteps.deliverableId, input.deliverableId));
+    if (steps.some((s) => s.kind === input.kind))
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: `${REVIEW_STEP_LABEL[input.kind]} is already recorded for ${d.code}.`,
+      });
+
+    if (input.kind === "CHECK" && d.originatedBy && d.originatedBy === ctx.user.id)
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "The independent check cannot be recorded by the deliverable's author.",
+      });
+    if (input.kind === "VERIFY") {
+      const checker = steps.find((s) => s.kind === "CHECK");
+      if ((d.originatedBy && d.originatedBy === ctx.user.id) || checker?.userId === ctx.user.id)
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "The proof check must be independent of both the author and the checker.",
+        });
+    }
+
+    const [row] = await ctx.db
+      .insert(consReviewSteps)
+      .values({
+        deliverableId: input.deliverableId,
+        kind: input.kind,
+        userId: ctx.user.id,
+        // Snapshot the name — the EoR record must survive user changes.
+        userName: ctx.user.fullName,
+        note: input.note,
+      })
+      .returning();
+    await writeAudit(ctx.db, { entity: "cons_review_step", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+});
+
+const tqsRouter = router({
+  listByEngagement: protectedProcedure
+    .input(z.object({ engagementId: z.string().uuid() }))
+    .query(({ ctx, input }) =>
+      ctx.db
+        .select()
+        .from(consTqs)
+        .where(eq(consTqs.engagementId, input.engagementId))
+        .orderBy(asc(consTqs.code)),
+    ),
+
+  raise: manage.input(ConsTqCreate).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db
+      .insert(consTqs)
+      .values({ ...input, raisedBy: ctx.user.id })
+      .returning();
+    await writeAudit(ctx.db, { entity: "cons_tq", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+
+  answer: manage.input(ConsTqAnswer).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db
+      .update(consTqs)
+      .set({ answer: input.answer, status: "ANSWERED", answeredAt: new Date(), updatedAt: new Date() })
+      .where(eq(consTqs.id, input.id))
+      .returning();
+    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    await writeAudit(ctx.db, { entity: "cons_tq", entityId: input.id, action: "UPDATE", actorId: ctx.user.id, after: row });
+    return row;
+  }),
+
+  /** Closing requires closure evidence — the dated trail is the dispute record. */
+  close: manage.input(ConsTqClose).mutation(async ({ ctx, input }) => {
+    const [tq] = await ctx.db.select().from(consTqs).where(eq(consTqs.id, input.id));
+    if (!tq) throw new TRPCError({ code: "NOT_FOUND" });
+    if (tq.status === "OPEN")
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `${tq.code} has no recorded answer — answer it before closing.`,
+      });
+    const [row] = await ctx.db
+      .update(consTqs)
+      .set({ closureNote: input.closureNote, status: "CLOSED", closedAt: new Date(), updatedAt: new Date() })
+      .where(eq(consTqs.id, input.id))
+      .returning();
+    await writeAudit(ctx.db, { entity: "cons_tq", entityId: input.id, action: "UPDATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+
+  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    await ctx.db.delete(consTqs).where(eq(consTqs.id, input.id));
+    await writeAudit(ctx.db, { entity: "cons_tq", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
+    return { ok: true };
+  }),
+});
+
 export const consultancyRouter = router({
   engagements: engagementsRouter,
   deliverables: deliverablesRouter,
+  reviews: reviewsRouter,
+  tqs: tqsRouter,
 });

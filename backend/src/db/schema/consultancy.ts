@@ -5,8 +5,8 @@
  * `esti_engagement` belongs to AORMS-Studio's architect↔consultant collaboration
  * model (collaboration.ts) — the engineering-consultancy spine uses `esti_cons_*`.
  */
-import { createdAt, id, jsonb, pgTable, text, timestamp, updatedAt, uuid } from "./_helpers.js";
-import { clients } from "./org-auth.js";
+import { boolean, createdAt, id, jsonb, pgTable, text, timestamp, updatedAt, uuid } from "./_helpers.js";
+import { clients, users } from "./org-auth.js";
 import { projectOffices } from "./project.js";
 
 export const consEngagements = pgTable("esti_cons_engagement", {
@@ -38,7 +38,44 @@ export const consDeliverables = pgTable("esti_cons_deliverable", {
   checkCategory: text("check_category").notNull().default("CAT1"), // CheckCategory
   status: text("status").notNull().default("DRAFT"), // DeliverableStatus
   issuedAt: timestamp("issued_at", { withTimezone: true }),
+  /** The author — the sign-off chain's implicit ORIGINATE step (checker ≠ author). */
+  originatedBy: uuid("originated_by").references(() => users.id, { onDelete: "set null" }),
   notes: text("notes"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/**
+ * Phase 1 — serial sign-off chain (CHECK → APPROVE → VERIFY per check category).
+ * Name is snapshotted at signing so the EoR record survives user changes.
+ */
+export const consReviewSteps = pgTable("esti_cons_review_step", {
+  id: id(),
+  deliverableId: uuid("deliverable_id")
+    .notNull()
+    .references(() => consDeliverables.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull(), // ReviewStepKind
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  userName: text("user_name").notNull(),
+  note: text("note"),
+  at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Phase 1 — technical query (TQ/RFI) register with closure evidence. */
+export const consTqs = pgTable("esti_cons_tq", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  code: text("code").notNull(), // e.g. TQ-001
+  question: text("question").notNull(),
+  scopeImpact: boolean("scope_impact").notNull().default(false),
+  status: text("status").notNull().default("OPEN"), // TqStatus
+  answer: text("answer"),
+  closureNote: text("closure_note"),
+  raisedBy: uuid("raised_by").references(() => users.id, { onDelete: "set null" }),
+  answeredAt: timestamp("answered_at", { withTimezone: true }),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

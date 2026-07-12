@@ -149,3 +149,80 @@ export const ConsDeliverableUpdate = ConsDeliverableCreate.omit({ engagementId: 
     status: DeliverableStatus.optional(),
   });
 export type ConsDeliverableUpdate = z.infer<typeof ConsDeliverableUpdate>;
+
+// ── Phase 1 — the reliance engine ────────────────────────────────────────────
+
+/**
+ * Sign-off chain steps (case study §3.1). ORIGINATE is implicit — the
+ * deliverable's `originatedBy` — so the recordable steps are:
+ * CHECK (independent check, never the author) → APPROVE (sign; the Engineer of
+ * Record accepts professional responsibility) → VERIFY (external/proof check,
+ * highest category only).
+ */
+export const ReviewStepKind = z.enum(["CHECK", "APPROVE", "VERIFY"]);
+export type ReviewStepKind = z.infer<typeof ReviewStepKind>;
+
+export const REVIEW_STEP_LABEL: Record<ReviewStepKind, string> = {
+  CHECK: "Independent check",
+  APPROVE: "Approve & sign (EoR)",
+  VERIFY: "Proof check",
+};
+
+/**
+ * The chain a deliverable must complete before it may be ISSUED, by check
+ * category (BS 5975 / IStructE; case study §3.2). Cat 1 vs Cat 2 differ in the
+ * *independence* of the checker (same team vs independent), which grades will
+ * encode later — the recorded chain shape is the same.
+ */
+export const CHECK_CATEGORY_REQUIRED_STEPS: Record<CheckCategory, readonly ReviewStepKind[]> = {
+  CAT0: ["APPROVE"],
+  CAT1: ["CHECK", "APPROVE"],
+  CAT2: ["CHECK", "APPROVE"],
+  CAT3: ["CHECK", "APPROVE", "VERIFY"],
+};
+
+export const ConsReviewStepCreate = z.object({
+  deliverableId: z.string().uuid(),
+  kind: ReviewStepKind,
+  note: z.string().max(2000).optional(),
+});
+export type ConsReviewStepCreate = z.infer<typeof ConsReviewStepCreate>;
+
+/** Technical query (TQ/RFI) register — questions with closure evidence (case study §4.2). */
+export const TqStatus = z.enum(["OPEN", "ANSWERED", "CLOSED"]);
+export type TqStatus = z.infer<typeof TqStatus>;
+
+export const TQ_STATUS_LABEL: Record<TqStatus, string> = {
+  OPEN: "Open",
+  ANSWERED: "Answered",
+  CLOSED: "Closed",
+};
+
+export const CONS_TQ_STATUS_TAG: Record<TqStatus, TagColor> = {
+  OPEN: "red",
+  ANSWERED: "teal",
+  CLOSED: "green",
+};
+
+export const ConsTqCreate = z.object({
+  engagementId: z.string().uuid(),
+  /** Register code, e.g. TQ-001. */
+  code: z.string().min(1).max(40),
+  question: z.string().min(1).max(4000),
+  /** A TQ that expands the brief becomes a variation (billable) — flag it. */
+  scopeImpact: z.boolean().default(false),
+});
+export type ConsTqCreate = z.infer<typeof ConsTqCreate>;
+
+export const ConsTqAnswer = z.object({
+  id: z.string().uuid(),
+  answer: z.string().min(1).max(8000),
+});
+export type ConsTqAnswer = z.infer<typeof ConsTqAnswer>;
+
+export const ConsTqClose = z.object({
+  id: z.string().uuid(),
+  /** Closure evidence is mandatory — the dated trail is the dispute record. */
+  closureNote: z.string().min(1).max(4000),
+});
+export type ConsTqClose = z.infer<typeof ConsTqClose>;

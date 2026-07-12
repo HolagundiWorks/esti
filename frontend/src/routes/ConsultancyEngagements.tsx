@@ -1,10 +1,12 @@
 import {
   Box,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   Grid,
   MenuItem,
   Stack,
@@ -21,8 +23,10 @@ import AddIcon from "@mui/icons-material/Add";
 import { useState } from "react";
 import {
   CHECK_CATEGORY_LABEL,
+  CHECK_CATEGORY_REQUIRED_STEPS,
   CONS_DELIVERABLE_STATUS_TAG,
   CONS_ENGAGEMENT_STATUS_TAG,
+  CONS_TQ_STATUS_TAG,
   CheckCategory,
   ConsEngagementStatus,
   DeliverableStatus,
@@ -32,13 +36,16 @@ import {
   EngineeringDiscipline,
   ISSUE_CLASS_LABEL,
   IssueClass,
+  REVIEW_STEP_LABEL,
+  ReviewStepKind,
+  TqStatus,
 } from "@esti/contracts";
 import { useScreenActions, type DockAction } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
 import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
-import { StatusTag } from "../components/StatusTag.js";
+import { StatusDot, StatusTag } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
 const MODELS = EngagementModel.options;
@@ -100,6 +107,36 @@ export function ConsultancyEngagements() {
     meta: { errorTitle: "Couldn't delete the deliverable" },
     onSuccess: invalidate,
   });
+  // Phase 1 — the reliance engine.
+  const recordStep = trpc.consultancy.reviews.record.useMutation({
+    meta: { errorTitle: "Couldn't record the sign-off step" },
+    onSuccess: invalidate,
+  });
+  const raiseTq = trpc.consultancy.tqs.raise.useMutation({
+    meta: { errorTitle: "Couldn't raise the technical query" },
+    onSuccess: () => {
+      invalidate();
+      setTqOpen(false);
+    },
+  });
+  const answerTq = trpc.consultancy.tqs.answer.useMutation({
+    meta: { errorTitle: "Couldn't record the answer" },
+    onSuccess: () => {
+      invalidate();
+      setTqAnswerFor(null);
+    },
+  });
+  const closeTq = trpc.consultancy.tqs.close.useMutation({
+    meta: { errorTitle: "Couldn't close the technical query" },
+    onSuccess: () => {
+      invalidate();
+      setTqCloseFor(null);
+    },
+  });
+  const removeTq = trpc.consultancy.tqs.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the technical query" },
+    onSuccess: invalidate,
+  });
 
   // New-engagement dialog state.
   const [engOpen, setEngOpen] = useState(false);
@@ -108,6 +145,16 @@ export function ConsultancyEngagements() {
   const [engDiscipline, setEngDiscipline] = useState<EngineeringDiscipline>("STRUCTURAL");
   const [engStage, setEngStage] = useState("");
   const [engReliance, setEngReliance] = useState("");
+
+  // TQ dialogs (raise / answer / close-with-evidence).
+  const [tqOpen, setTqOpen] = useState(false);
+  const [tqCode, setTqCode] = useState("");
+  const [tqQuestion, setTqQuestion] = useState("");
+  const [tqScopeImpact, setTqScopeImpact] = useState(false);
+  const [tqAnswerFor, setTqAnswerFor] = useState<string | null>(null);
+  const [tqAnswerText, setTqAnswerText] = useState("");
+  const [tqCloseFor, setTqCloseFor] = useState<string | null>(null);
+  const [tqCloseNote, setTqCloseNote] = useState("");
 
   // New-deliverable dialog state.
   const [delOpen, setDelOpen] = useState(false);
@@ -118,7 +165,7 @@ export function ConsultancyEngagements() {
   const [delIssueClass, setDelIssueClass] = useState<IssueClass>("FOR_INFORMATION");
   const [delCheckCategory, setDelCheckCategory] = useState<CheckCategory>("CAT1");
 
-  const anyDialogOpen = engOpen || delOpen;
+  const anyDialogOpen = engOpen || delOpen || tqOpen || !!tqAnswerFor || !!tqCloseFor;
   useScreenActions(
     anyDialogOpen
       ? []
@@ -148,6 +195,18 @@ export function ConsultancyEngagements() {
                     setDelTitle("");
                     setDelRevision("A");
                     setDelOpen(true);
+                  },
+                },
+                {
+                  id: "cons-raise-tq",
+                  zone: "center",
+                  label: "Raise TQ",
+                  icon: <AddIcon />,
+                  onClick: () => {
+                    setTqCode("");
+                    setTqQuestion("");
+                    setTqScopeImpact(false);
+                    setTqOpen(true);
                   },
                 },
               ] satisfies DockAction[])
@@ -301,6 +360,7 @@ export function ConsultancyEngagements() {
                       <TableCell>Rev</TableCell>
                       <TableCell>Issue class</TableCell>
                       <TableCell>Check</TableCell>
+                      <TableCell>Sign-off</TableCell>
                       <TableCell>Status</TableCell>
                       <TableCell align="right" />
                     </TableRow>
@@ -308,7 +368,7 @@ export function ConsultancyEngagements() {
                   <TableBody>
                     {detail.deliverables.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={8}>
+                        <TableCell colSpan={9}>
                           <span className="esti-label esti-label--secondary">
                             Empty register — add the first deliverable package.
                           </span>
@@ -329,6 +389,33 @@ export function ConsultancyEngagements() {
                         </TableCell>
                         <TableCell>{d.checkCategory}</TableCell>
                         <TableCell>
+                          {/* Chain progress toward the category's required steps. */}
+                          <span
+                            className="esti-label esti-label--secondary"
+                            title={
+                              d.chain.length
+                                ? d.chain
+                                    .map(
+                                      (s) =>
+                                        `${REVIEW_STEP_LABEL[s.kind as ReviewStepKind] ?? s.kind}: ${s.userName}`,
+                                    )
+                                    .join(" · ")
+                                : "No sign-off steps recorded"
+                            }
+                          >
+                            {d.chain.length}/
+                            {(CHECK_CATEGORY_REQUIRED_STEPS[d.checkCategory as CheckCategory] ?? [])
+                              .length}
+                            {d.status === "DRAFT" && d.missing.length > 0
+                              ? ` · needs ${d.missing
+                                  .map((k) =>
+                                    (REVIEW_STEP_LABEL[k as ReviewStepKind] ?? k).toLowerCase(),
+                                  )
+                                  .join(", ")}`
+                              : ""}
+                          </span>
+                        </TableCell>
+                        <TableCell>
                           <StatusTag
                             value={d.status as DeliverableStatus}
                             map={CONS_DELIVERABLE_STATUS_TAG}
@@ -337,6 +424,17 @@ export function ConsultancyEngagements() {
                         <TableCell align="right">
                           <RowActionsMenu
                             actions={[
+                              ...(d.status === "DRAFT"
+                                ? (d.missing as string[]).map((k) => ({
+                                    label: `Record: ${REVIEW_STEP_LABEL[k as ReviewStepKind] ?? k}`,
+                                    disabled: recordStep.isPending,
+                                    onClick: () =>
+                                      recordStep.mutate({
+                                        deliverableId: d.id,
+                                        kind: k as ReviewStepKind,
+                                      }),
+                                  }))
+                                : []),
                               ...(d.status === "DRAFT"
                                 ? [
                                     {
@@ -381,10 +479,217 @@ export function ConsultancyEngagements() {
                   </TableBody>
                 </Table>
               </TableContainer>
+
+              {/* Technical query register — closure evidence required to close. */}
+              <Box sx={{ pt: 1 }}>
+                <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600, mb: 1 }}>
+                  Technical queries
+                </Typography>
+                {detail.tqs.length === 0 ? (
+                  <span className="esti-label esti-label--secondary">
+                    No technical queries — raise one from the dock when a question needs a
+                    dated, closable record.
+                  </span>
+                ) : (
+                  <TableContainer>
+                    <Table size="small" aria-label="Technical query register">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Code</TableCell>
+                          <TableCell>Question</TableCell>
+                          <TableCell>Scope</TableCell>
+                          <TableCell>Status</TableCell>
+                          <TableCell align="right" />
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {detail.tqs.map((t) => (
+                          <TableRow key={t.id}>
+                            <TableCell>{t.code}</TableCell>
+                            <TableCell>
+                              <Stack spacing={0.25}>
+                                <span>{t.question}</span>
+                                {t.answer && (
+                                  <span className="esti-label esti-label--secondary">
+                                    Answer: {t.answer}
+                                  </span>
+                                )}
+                                {t.closureNote && (
+                                  <span className="esti-label esti-label--secondary">
+                                    Closure: {t.closureNote}
+                                  </span>
+                                )}
+                              </Stack>
+                            </TableCell>
+                            <TableCell>
+                              {t.scopeImpact ? (
+                                <StatusDot color="red" label="Scope impact" />
+                              ) : (
+                                <span className="esti-label esti-label--secondary">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <StatusTag value={t.status as TqStatus} map={CONS_TQ_STATUS_TAG} />
+                            </TableCell>
+                            <TableCell align="right">
+                              <RowActionsMenu
+                                actions={[
+                                  ...(t.status !== "CLOSED"
+                                    ? [
+                                        {
+                                          label: t.status === "OPEN" ? "Answer" : "Revise answer",
+                                          onClick: () => {
+                                            setTqAnswerText(t.answer ?? "");
+                                            setTqAnswerFor(t.id);
+                                          },
+                                        },
+                                      ]
+                                    : []),
+                                  ...(t.status === "ANSWERED"
+                                    ? [
+                                        {
+                                          label: "Close with evidence",
+                                          onClick: () => {
+                                            setTqCloseNote("");
+                                            setTqCloseFor(t.id);
+                                          },
+                                        },
+                                      ]
+                                    : []),
+                                  {
+                                    label: "Delete",
+                                    danger: true,
+                                    disabled: removeTq.isPending,
+                                    onClick: () => removeTq.mutate({ id: t.id }),
+                                  },
+                                ]}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Box>
             </Stack>
           )}
         </Grid>
       </Grid>
+
+      {/* Raise TQ */}
+      <Dialog open={tqOpen} onClose={() => setTqOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Raise technical query</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="cons-tq-code"
+              label="Register code"
+              placeholder="e.g. TQ-001"
+              value={tqCode}
+              onChange={(e) => setTqCode(e.target.value)}
+              autoFocus
+            />
+            <TextField
+              id="cons-tq-question"
+              label="Question"
+              value={tqQuestion}
+              onChange={(e) => setTqQuestion(e.target.value)}
+              multiline
+              rows={3}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={tqScopeImpact}
+                  onChange={(e) => setTqScopeImpact(e.target.checked)}
+                />
+              }
+              label="Expands scope — flag for a variation"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTqOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!tqCode.trim() || !tqQuestion.trim() || !selectedId || raiseTq.isPending}
+            onClick={() =>
+              selectedId &&
+              raiseTq.mutate({
+                engagementId: selectedId,
+                code: tqCode.trim(),
+                question: tqQuestion.trim(),
+                scopeImpact: tqScopeImpact,
+              })
+            }
+          >
+            Raise
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Answer TQ */}
+      <Dialog open={!!tqAnswerFor} onClose={() => setTqAnswerFor(null)} fullWidth maxWidth="sm">
+        <DialogTitle>Record answer</DialogTitle>
+        <DialogContent>
+          <TextField
+            id="cons-tq-answer"
+            label="Answer"
+            value={tqAnswerText}
+            onChange={(e) => setTqAnswerText(e.target.value)}
+            multiline
+            rows={4}
+            fullWidth
+            sx={{ mt: 1 }}
+            autoFocus
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTqAnswerFor(null)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!tqAnswerText.trim() || answerTq.isPending}
+            onClick={() =>
+              tqAnswerFor && answerTq.mutate({ id: tqAnswerFor, answer: tqAnswerText.trim() })
+            }
+          >
+            Save answer
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Close TQ with evidence */}
+      <Dialog open={!!tqCloseFor} onClose={() => setTqCloseFor(null)} fullWidth maxWidth="sm">
+        <DialogTitle>Close with evidence</DialogTitle>
+        <DialogContent>
+          <TextField
+            id="cons-tq-closure"
+            label="Closure evidence"
+            placeholder="e.g. accepted on site walk 12 Jul; drawing STR-105 rev B reissued"
+            value={tqCloseNote}
+            onChange={(e) => setTqCloseNote(e.target.value)}
+            multiline
+            rows={3}
+            fullWidth
+            sx={{ mt: 1 }}
+            autoFocus
+            helperText="Required — the dated closure trail is the dispute record"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTqCloseFor(null)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!tqCloseNote.trim() || closeTq.isPending}
+            onClick={() =>
+              tqCloseFor && closeTq.mutate({ id: tqCloseFor, closureNote: tqCloseNote.trim() })
+            }
+          >
+            Close TQ
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* New engagement */}
       <Dialog open={engOpen} onClose={() => setEngOpen(false)} fullWidth maxWidth="sm">
