@@ -2,8 +2,9 @@ import CheckCircleOutlined from "@mui/icons-material/CheckCircleOutlined";
 import RadioButtonUnchecked from "@mui/icons-material/RadioButtonUnchecked";
 import { Alert, AlertTitle, Button, Paper, Stack, Typography } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
+import { WORKSPACE_TYPE_LABEL, type WorkspaceType } from "@esti/contracts";
 import type { Me } from "./lib/auth.js";
-import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
+import { AORMS_CONSULTANCY, AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 function Step({
   done,
@@ -37,6 +38,16 @@ function Step({
 export function AccountHub({ me }: { me: Me }) {
   const ownsCompany = me.memberships.some((m) => m.role === "OWNER");
   const hasCompany = me.memberships.length > 0;
+  // The company decides the workspace: active org first, else the first
+  // company owned, else the first membership (workspaceType defaults STUDIO).
+  const primaryOrg =
+    me.activeOrg ??
+    me.memberships.find((m) => m.role === "OWNER")?.org ??
+    me.memberships[0]?.org ??
+    null;
+  const wsType: WorkspaceType =
+    primaryOrg?.workspaceType === "CONSULTANCY" ? "CONSULTANCY" : "STUDIO";
+  const wsLabel = WORKSPACE_TYPE_LABEL[wsType];
 
   return (
     <Paper sx={{ p: 3 }}>
@@ -69,14 +80,29 @@ export function AccountHub({ me }: { me: Me }) {
           <Step
             done={false}
             label="Workspace"
-            detail="Sign in to your studio to activate the workspace and start working."
+            detail={
+              hasCompany
+                ? `Your company runs ${wsLabel} — sign in to activate the workspace and start working.`
+                : "Create or join a company first — every workspace belongs to a company."
+            }
           />
         </Stack>
 
         <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
-          <Button component={RouterLink} to="/login" variant="contained" size="small">
-            Open workspace
-          </Button>
+          {wsType === "CONSULTANCY" ? (
+            <Button
+              component="a"
+              href={AORMS_CONSULTANCY.appUrl}
+              variant="contained"
+              size="small"
+            >
+              Open {wsLabel}
+            </Button>
+          ) : (
+            <Button component={RouterLink} to="/login" variant="contained" size="small">
+              Open {wsLabel}
+            </Button>
+          )}
           {ownsCompany && (
             <Button component={RouterLink} to="/company-account" variant="outlined" size="small">
               Company account

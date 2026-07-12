@@ -244,11 +244,24 @@ function AppShell() {
   if (!ADMIN_CONSOLE_URL && (isAdminHost() || pathname.startsWith("/platform-admin")))
     return <PlatformAdmin />;
 
-  // consultancy.aorms.in — unified platform landing.
+  // consultancy.aorms.in — AORMS-Consultancy. Authenticated staff enter the
+  // engineering workspace (Phase 0/1 preview home); everyone else sees the
+  // unified platform landing. One login window — the workspace type only
+  // routes where a company works.
   if (surface === "consultancy") {
-    if (pathname === "/" || pathname === AORMS_CONSULTANCY.marketingPath)
-      return <Landing />;
-    return <Navigate to="/" replace />;
+    if (user && isStaffRole(user.role)) {
+      if (pathname === "/" || pathname === AORMS_CONSULTANCY.marketingPath)
+        return <Navigate to="/consultancy/engagements" replace />;
+      // Fall through to the authenticated app router below.
+    } else {
+      if (pathname === "/" || pathname === AORMS_CONSULTANCY.marketingPath)
+        return <Landing />;
+      if (pathname === "/login") {
+        // Fall through — staff sign-in works on this host too (single login).
+      } else {
+        return <Navigate to="/" replace />;
+      }
+    }
   }
 
   // Marketing consolidation (2026-07): the platform now ships a **single** landing at
