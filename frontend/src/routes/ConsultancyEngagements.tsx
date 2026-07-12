@@ -224,6 +224,21 @@ export function ConsultancyEngagements() {
     onSuccess: invalidate,
   });
 
+  // Phase 4 — the internal agent (read-only; answers from the firm record).
+  const [askOpen, setAskOpen] = useState(false);
+  const [askQuestion, setAskQuestion] = useState("");
+  const [askAnswer, setAskAnswer] = useState<string | null>(null);
+  const ask = trpc.consultancy.intelligence.ask.useMutation({
+    meta: { errorTitle: "Couldn't reach the intelligence agent" },
+    onSuccess: (res) => setAskAnswer(res.answer),
+  });
+  const [emoiFor, setEmoiFor] = useState<string | null>(null);
+  const [emoiText, setEmoiText] = useState<string | null>(null);
+  const emoiReview = trpc.consultancy.inputPacks.emoiReview.useMutation({
+    meta: { errorTitle: "Couldn't run the EmOI review" },
+    onSuccess: (res) => setEmoiText(res.recommendation),
+  });
+
   // Built-in PDF export.
   const exportPdf = trpc.consultancy.engagements.exportPdf.useMutation({
     meta: { errorTitle: "Couldn't start the PDF export" },
@@ -348,7 +363,7 @@ export function ConsultancyEngagements() {
 
   const anyDialogOpen =
     engOpen || delOpen || tqOpen || feeOpen || timeOpen || ratesOpen || voOpen ||
-    packOpen || riskOpen || relOpen || !!tqAnswerFor || !!tqCloseFor;
+    packOpen || riskOpen || relOpen || askOpen || !!emoiFor || !!tqAnswerFor || !!tqCloseFor;
   useScreenActions(
     anyDialogOpen
       ? []
@@ -415,6 +430,17 @@ export function ConsultancyEngagements() {
                     setTimeDeliverableId("");
                     setTimeNote("");
                     setTimeOpen(true);
+                  },
+                },
+                {
+                  id: "cons-ask-intelligence",
+                  zone: "right",
+                  tone: "primary",
+                  label: "Ask intelligence",
+                  onClick: () => {
+                    setAskQuestion("");
+                    setAskAnswer(null);
+                    setAskOpen(true);
                   },
                 },
                 {
@@ -693,6 +719,15 @@ export function ConsultancyEngagements() {
                           actions={[
                             ...(p.status === "RECEIVED"
                               ? [
+                                  {
+                                    label: "EmOI review",
+                                    disabled: emoiReview.isPending,
+                                    onClick: () => {
+                                      setEmoiText(null);
+                                      setEmoiFor(p.title);
+                                      emoiReview.mutate({ id: p.id });
+                                    },
+                                  },
                                   {
                                     label: "Validate",
                                     disabled: setPackStatus.isPending,
@@ -1320,6 +1355,81 @@ export function ConsultancyEngagements() {
           )}
         </Grid>
       </Grid>
+
+      {/* Ask intelligence — the internal agent, grounded in the firm record. */}
+      <Dialog open={askOpen} onClose={() => setAskOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Ask intelligence</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="cons-ask"
+              label="Question"
+              placeholder="e.g. What is still billable, and which deliverables are held?"
+              value={askQuestion}
+              onChange={(e) => setAskQuestion(e.target.value)}
+              multiline
+              rows={2}
+              autoFocus
+              helperText="Answers only from the firm record — engagements, chains, TQs, fees, risks, input packs"
+            />
+            {ask.isPending && (
+              <span className="esti-label esti-label--secondary">
+                Reading the firm record…
+              </span>
+            )}
+            {askAnswer && (
+              <Box sx={{ p: 1.5, border: 1, borderColor: "divider", whiteSpace: "pre-wrap" }}>
+                <Typography variant="body2" component="p">
+                  {askAnswer}
+                </Typography>
+              </Box>
+            )}
+            {askAnswer && (
+              <span className="esti-label esti-label--secondary">
+                AI-generated from the record — verify against the register before relying on it.
+              </span>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAskOpen(false)}>Close</Button>
+          <Button
+            variant="contained"
+            disabled={askQuestion.trim().length < 3 || ask.isPending}
+            onClick={() => ask.mutate({ question: askQuestion.trim() })}
+          >
+            Ask
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* EmOI review recommendation */}
+      <Dialog open={!!emoiFor} onClose={() => setEmoiFor(null)} fullWidth maxWidth="sm">
+        <DialogTitle>EmOI review — {emoiFor}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1.5} sx={{ mt: 1 }}>
+            {emoiReview.isPending && (
+              <span className="esti-label esti-label--secondary">
+                EmOI is drafting the validation checklist…
+              </span>
+            )}
+            {emoiText && (
+              <Box sx={{ p: 1.5, border: 1, borderColor: "divider", whiteSpace: "pre-wrap" }}>
+                <Typography variant="body2" component="p">
+                  {emoiText}
+                </Typography>
+              </Box>
+            )}
+            <span className="esti-label esti-label--secondary">
+              A recommendation for the named validator — running the checklist and
+              validating the pack remains a human act.
+            </span>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEmoiFor(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Record input pack */}
       <Dialog open={packOpen} onClose={() => setPackOpen(false)} fullWidth maxWidth="sm">

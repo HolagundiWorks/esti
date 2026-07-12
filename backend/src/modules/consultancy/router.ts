@@ -48,6 +48,10 @@ import {
   consTqs,
   consVariations,
 } from "../../db/schema.js";
+import {
+  askConsultancyIntelligence,
+  emoiReviewInputPack,
+} from "../../lib/ai/consultancy-intelligence.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
 import { enqueueJob } from "../../lib/redis.js";
@@ -813,6 +817,45 @@ const inputPacksRouter = router({
     await writeAudit(ctx.db, { entity: "cons_input_pack", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
     return { ok: true };
   }),
+
+  /**
+   * EmOI-assisted review (Phase 4) — a validation checklist recommendation for
+   * the named human validator. The recommendation never validates anything.
+   */
+  emoiReview: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [pack] = await ctx.db.select().from(consInputPacks).where(eq(consInputPacks.id, input.id));
+      if (!pack) throw new TRPCError({ code: "NOT_FOUND" });
+      const [eng] = await ctx.db
+        .select({ title: consEngagements.title })
+        .from(consEngagements)
+        .where(eq(consEngagements.id, pack.engagementId));
+      return emoiReviewInputPack(
+        ctx.db,
+        { title: pack.title, kind: pack.kind, source: pack.source },
+        eng?.title ?? "engagement",
+      );
+    }),
+});
+
+const intelligenceRouter = router({
+  /**
+   * Phase 4 — the internal agent: answers grounded ONLY in the validated firm
+   * record (engagements, chains, TQs, fees, risks, packs). Read-only.
+   */
+  ask: protectedProcedure
+    .input(z.object({ question: z.string().min(3).max(2000) }))
+    .mutation(async ({ ctx, input }) => {
+      const res = await askConsultancyIntelligence(ctx.db, input.question);
+      await writeAudit(ctx.db, {
+        entity: "cons_intelligence",
+        action: "ASK",
+        actorId: ctx.user.id,
+        after: { question: input.question, provider: res.provider, model: res.model },
+      });
+      return res;
+    }),
 });
 
 export const consultancyRouter = router({
@@ -829,4 +872,5 @@ export const consultancyRouter = router({
   insurance: insuranceRouter,
   relianceLetters: relianceLettersRouter,
   inputPacks: inputPacksRouter,
+  intelligence: intelligenceRouter,
 });
