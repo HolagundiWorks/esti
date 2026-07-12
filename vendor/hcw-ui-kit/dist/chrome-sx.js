@@ -73,4 +73,3 @@ export function liquidGlassSpecimenSx(ink = colors.accent) {
         verticalAlign: "middle",
     };
 }
-//# sourceMappingURL=chrome-sx.js.map

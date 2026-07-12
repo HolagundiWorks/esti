@@ -13,4 +13,3 @@ export declare function actionDockButtonSx(ink: string, opts?: {
 export declare function sectionDockChipSx(active: boolean): SxProps<Theme>;
 /** Static specimen / label chip — liquid glass at rest (e.g. design-system legend). */
 export declare function liquidGlassSpecimenSx(ink?: "#FF4F18"): SxProps<Theme>;
-//# sourceMappingURL=chrome-sx.d.ts.map

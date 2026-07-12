@@ -69,4 +69,3 @@ export function ToastHost() {
             gap: 1,
         }, children: list.map((t) => (_jsxs(Alert, { severity: t.kind, variant: "filled", onClose: () => dismissToast(t.id), children: [_jsx(AlertTitle, { children: t.title }), t.subtitle] }, t.id))) }));
 }
-//# sourceMappingURL=Toast.js.map

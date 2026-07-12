@@ -39,4 +39,3 @@ export type { AvatarSize } from "./Avatar.js";
 export { SectionDock } from "./SectionDock.js";
 export type { SectionDockLink } from "./SectionDock.js";
 export { TaskbarFooter, TaskbarButton, TASKBAR_HEIGHT } from "./TaskbarFooter.js";
-//# sourceMappingURL=index.d.ts.map

@@ -23,4 +23,3 @@ export function DataState({ loading, isEmpty, empty, columnCount = 4, skeleton, 
     return _jsx(_Fragment, { children: children });
 }
 export default DataState;
-//# sourceMappingURL=DataState.js.map

@@ -22,4 +22,3 @@ export declare function ConfirmModal({ open, heading, body, confirmText, danger,
     onClose: () => void;
 }): import("react").JSX.Element;
 export default ConfirmModal;
-//# sourceMappingURL=ConfirmModal.d.ts.map

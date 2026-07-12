@@ -28,4 +28,3 @@ export declare function createAormsTheme(options?: {
 /** The shared, ready-to-use AORMS theme instance. */
 export declare const aormsTheme: Theme;
 export default aormsTheme;
-//# sourceMappingURL=theme.d.ts.map

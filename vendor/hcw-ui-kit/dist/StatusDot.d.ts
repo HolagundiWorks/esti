@@ -5,4 +5,3 @@ export declare function StatusDot({ color, label, size, }: {
     size?: "sm" | "md";
 }): import("react").JSX.Element;
 export default StatusDot;
-//# sourceMappingURL=StatusDot.d.ts.map

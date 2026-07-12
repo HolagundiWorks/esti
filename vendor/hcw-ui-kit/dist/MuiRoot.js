@@ -23,4 +23,3 @@ export function MuiRoot({ children, theme, scheme, }) {
     return (_jsx(StyledEngineProvider, { injectFirst: true, children: _jsx(ThemeProvider, { theme: resolved, children: _jsx(LocalizationProvider, { dateAdapter: AdapterDayjs, children: children }) }) }));
 }
 export default MuiRoot;
-//# sourceMappingURL=MuiRoot.js.map

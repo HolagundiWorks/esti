@@ -29,4 +29,3 @@ export function HealthGlassOrb({ state, size = 14, title, variant = "glass", cla
             .filter(Boolean)
             .join(" "), role: "img", "aria-label": label, title: title, style: { width: size, height: size, ...style } }));
 }
-//# sourceMappingURL=HealthGlassOrb.js.map

@@ -38,4 +38,3 @@ export function GlassRail({ rail, children, railAriaLabel = "Navigation", mainId
                     pb: { xs: 4, md: 6 },
                 }, children: children })] }));
 }
-//# sourceMappingURL=GlassRail.js.map

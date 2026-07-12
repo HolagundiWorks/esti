@@ -28,4 +28,3 @@ export declare function DataState({ loading, isEmpty, empty, columnCount, skelet
     children: ReactNode;
 }): import("react").JSX.Element;
 export default DataState;
-//# sourceMappingURL=DataState.d.ts.map

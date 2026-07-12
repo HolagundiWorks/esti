@@ -482,4 +482,3 @@ export function createAormsTheme(options) {
 /** The shared, ready-to-use AORMS theme instance. */
 export const aormsTheme = createAormsTheme();
 export default aormsTheme;
-//# sourceMappingURL=theme.js.map

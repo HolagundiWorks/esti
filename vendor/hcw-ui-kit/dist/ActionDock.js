@@ -154,4 +154,3 @@ export function ActionDock() {
         }, children: zones.map((z, i) => (_jsxs(Box, { sx: { display: "flex", alignItems: "center", gap: 1.5 }, children: [i > 0 && _jsx(Divider, {}), _jsx(Box, { sx: { display: "flex", gap: 1 }, children: z.map((a) => (_jsx(DockButton, { action: a, ...dockProps(a) }, a.id))) })] }, i))) }));
 }
 export default ActionDock;
-//# sourceMappingURL=ActionDock.js.map

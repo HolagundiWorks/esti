@@ -18,4 +18,3 @@ export function StatusDot({ color = "gray", label, size = "sm", }) {
     return (_jsxs(Box, { component: "span", sx: { display: "inline-flex", alignItems: "center", gap: 0.75, whiteSpace: "nowrap", lineHeight: 1.2 }, children: [_jsx(Box, { component: "span", "aria-hidden": true, sx: { width: px, height: px, borderRadius: "50%", flex: "0 0 auto", backgroundColor: dot } }), _jsx(Box, { component: "span", sx: { fontSize: size === "md" ? "0.875rem" : "0.75rem", color: "text.primary" }, children: label })] }));
 }
 export default StatusDot;
-//# sourceMappingURL=StatusDot.js.map

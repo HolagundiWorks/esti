@@ -47,4 +47,3 @@ export function BrandMark({ label = "AORMS", size = "md", accent = true, accentS
                 }, children: label })] }));
 }
 export default BrandMark;
-//# sourceMappingURL=BrandMark.js.map

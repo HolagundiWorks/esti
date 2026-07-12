@@ -29,4 +29,3 @@ export declare function TaskbarFooter({ left, center, right, showClock, sx, ...r
     showClock?: boolean;
 } & BoxProps): import("react").JSX.Element;
 export default TaskbarFooter;
-//# sourceMappingURL=TaskbarFooter.d.ts.map

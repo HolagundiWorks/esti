@@ -43,4 +43,3 @@ export function Avatar({ name, photoUrl, color = colors.textSecondary, size = "m
         }, children: photoUrl ? _jsx("img", { src: photoUrl, alt: name }) : _jsx("span", { "aria-hidden": true, children: getInitials(name) }) }));
 }
 export default Avatar;
-//# sourceMappingURL=Avatar.js.map

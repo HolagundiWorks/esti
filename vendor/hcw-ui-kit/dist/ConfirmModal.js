@@ -16,4 +16,3 @@ export function ConfirmModal({ open, heading = "Are you sure?", body, confirmTex
     return (_jsxs(Dialog, { open: open, onClose: onClose, fullWidth: true, maxWidth: "xs", "aria-labelledby": "confirm-modal-title", children: [_jsx(DialogTitle, { id: "confirm-modal-title", children: heading }), _jsx(DialogContent, { children: typeof body === "string" ? _jsx("p", { children: body }) : body }), _jsxs(DialogActions, { children: [_jsx(Button, { onClick: onClose, variant: "text", color: "inherit", children: "Cancel" }), _jsx(Button, { onClick: onConfirm, disabled: pending, variant: "contained", color: danger ? "error" : "primary", children: pending ? "Working…" : confirmText })] })] }));
 }
 export default ConfirmModal;
-//# sourceMappingURL=ConfirmModal.js.map

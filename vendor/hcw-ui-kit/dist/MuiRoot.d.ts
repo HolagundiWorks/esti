@@ -23,4 +23,3 @@ export declare function MuiRoot({ children, theme, scheme, }: {
     scheme?: SchemeName;
 }): import("react").JSX.Element;
 export default MuiRoot;
-//# sourceMappingURL=MuiRoot.d.ts.map

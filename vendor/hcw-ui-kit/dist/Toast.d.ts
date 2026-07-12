@@ -13,4 +13,3 @@ export declare function resetToasts(): void;
 export declare function useToasts(): Toast[];
 /** Renders the global toast stack — fixed bottom-right, above dialogs. */
 export declare function ToastHost(): import("react").JSX.Element;
-//# sourceMappingURL=Toast.d.ts.map

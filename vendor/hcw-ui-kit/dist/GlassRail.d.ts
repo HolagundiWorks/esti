@@ -17,4 +17,3 @@ export declare function GlassRail({ rail, children, railAriaLabel, mainId, glass
     /** `frost` = GLASS_SURFACE · `clear` = CLEAR_GLASS_SURFACE (see HCW-UI-KIT.md). */
     glass?: "frost" | "clear";
 } & Omit<BoxProps, "children">): import("react").JSX.Element;
-//# sourceMappingURL=GlassRail.d.ts.map

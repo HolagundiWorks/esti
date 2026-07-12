@@ -58,4 +58,3 @@ export function TaskbarFooter({ left, center, right, showClock = true, sx, ...re
         }, ...rest, children: [_jsx(Box, { sx: { display: "flex", alignItems: "center", gap: 1, minWidth: 0 }, children: left }), _jsx(Box, { sx: { flex: 1, display: "flex", justifyContent: "center", alignItems: "center", gap: 0.5 }, children: center }), _jsxs(Box, { sx: { display: "flex", alignItems: "center", gap: 1, minWidth: 0, justifyContent: "flex-end" }, children: [showClock && _jsx(Clock, {}), right] })] }));
 }
 export default TaskbarFooter;
-//# sourceMappingURL=TaskbarFooter.js.map

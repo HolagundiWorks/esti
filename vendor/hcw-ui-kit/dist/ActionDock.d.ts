@@ -47,4 +47,3 @@ export declare function useScreenActions(actions: DockAction[], deps?: unknown[]
 export declare function useDockActions(): DockAction[];
 export declare function ActionDock(): import("react").JSX.Element | null;
 export default ActionDock;
-//# sourceMappingURL=ActionDock.d.ts.map

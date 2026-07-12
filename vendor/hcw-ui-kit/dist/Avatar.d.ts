@@ -10,4 +10,3 @@ export declare function Avatar({ name, photoUrl, color, size, className, }: {
     className?: string;
 }): import("react").JSX.Element;
 export default Avatar;
-//# sourceMappingURL=Avatar.d.ts.map

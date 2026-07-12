@@ -19,4 +19,3 @@ export declare function HealthGlassOrb({ state, size, title, variant, className,
     className?: string;
     style?: CSSProperties;
 }): import("react").JSX.Element;
-//# sourceMappingURL=HealthGlassOrb.d.ts.map

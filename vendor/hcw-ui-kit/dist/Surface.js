@@ -21,4 +21,3 @@ export function Surface({ layer = "flat", sx, ...rest }) {
     return (_jsx(Box, { className: "hcw-surface", sx: [LAYERS[layer], SQUARE, ...(sx == null ? [] : Array.isArray(sx) ? sx : [sx]), SQUARE], ...rest }));
 }
 export default Surface;
-//# sourceMappingURL=Surface.js.map
