@@ -492,19 +492,30 @@ export type ConsTqClose = z.infer<typeof ConsTqClose>;
  * deliverable is ISSUED — stage billing is tied to deliverable issue, case
  * study §5.4) → INVOICED (recorded when the invoice is raised).
  */
-export const FeeStageStatus = z.enum(["PENDING", "BILLABLE", "INVOICED"]);
+export const FeeStageStatus = z.enum(["PENDING", "BILLABLE", "INVOICED", "PAID"]);
 export type FeeStageStatus = z.infer<typeof FeeStageStatus>;
 
 export const FEE_STAGE_STATUS_LABEL: Record<FeeStageStatus, string> = {
   PENDING: "Pending",
   BILLABLE: "Billable",
   INVOICED: "Invoiced",
+  PAID: "Paid",
 };
 
 export const CONS_FEE_STAGE_STATUS_TAG: Record<FeeStageStatus, TagColor> = {
   PENDING: "gray",
   BILLABLE: "red",
-  INVOICED: "green",
+  INVOICED: "teal",
+  PAID: "green",
+};
+
+/** SOP §8 — timesheet entries are approved weekly (named act). */
+export const TimesheetStatus = z.enum(["SUBMITTED", "APPROVED"]);
+export type TimesheetStatus = z.infer<typeof TimesheetStatus>;
+
+export const CONS_TIMESHEET_STATUS_TAG: Record<TimesheetStatus, TagColor> = {
+  SUBMITTED: "teal",
+  APPROVED: "green",
 };
 
 export const ConsFeeStageCreate = z.object({

@@ -325,6 +325,14 @@ export function ConsultancyEngagements() {
     meta: { errorTitle: "Couldn't mark the stage invoiced" },
     onSuccess: invalidate,
   });
+  const markPaid = trpc.consultancy.feeStages.markPaid.useMutation({
+    meta: { errorTitle: "Couldn't mark the stage paid" },
+    onSuccess: invalidate,
+  });
+  const approveTime = trpc.consultancy.timesheets.approve.useMutation({
+    meta: { errorTitle: "Couldn't approve the timesheets" },
+    onSuccess: invalidate,
+  });
   const removeFeeStage = trpc.consultancy.feeStages.remove.useMutation({
     meta: { errorTitle: "Couldn't delete the fee stage" },
     onSuccess: invalidate,
@@ -1091,7 +1099,10 @@ export function ConsultancyEngagements() {
                   {detail.feeModel
                     ? `${FEE_MODEL_LABEL[detail.feeModel as FeeModel] ?? detail.feeModel} · agreed ${formatINR(detail.feePosition.agreedPaise)}`
                     : "No fee model recorded"}
-                  {` · staged ${formatINR(detail.feePosition.stagedPaise)} · billable ${formatINR(detail.feePosition.billablePaise)} · invoiced ${formatINR(detail.feePosition.invoicedPaise)}`}
+                  {` · staged ${formatINR(detail.feePosition.stagedPaise)} · billable ${formatINR(detail.feePosition.billablePaise)} · invoiced ${formatINR(detail.feePosition.invoicedPaise)} · paid ${formatINR(detail.feePosition.paidPaise)}`}
+                  {detail.feePosition.outstandingPaise > 0
+                    ? ` · outstanding ${formatINR(detail.feePosition.outstandingPaise)}`
+                    : ""}
                 </span>
                 {detail.feeStages.length > 0 && (
                   <TableContainer sx={{ mt: 1 }}>
@@ -1122,10 +1133,26 @@ export function ConsultancyEngagements() {
                                 )}
                               </TableCell>
                               <TableCell>
-                                <StatusTag
-                                  value={f.status as FeeStageStatus}
-                                  map={CONS_FEE_STAGE_STATUS_TAG}
-                                />
+                                <Stack spacing={0.25}>
+                                  <StatusTag
+                                    value={f.status as FeeStageStatus}
+                                    map={CONS_FEE_STAGE_STATUS_TAG}
+                                  />
+                                  {f.status === "INVOICED" && f.invoiceDue && (
+                                    <span
+                                      className="esti-label esti-label--secondary"
+                                      style={
+                                        f.invoiceDue < new Date().toISOString().slice(0, 10)
+                                          ? { color: "var(--cds-support-error, #da1e28)" }
+                                          : undefined
+                                      }
+                                    >
+                                      {f.invoiceDue < new Date().toISOString().slice(0, 10)
+                                        ? `overdue ${Math.ceil((Date.now() - new Date(f.invoiceDue).getTime()) / 86400000)}d`
+                                        : `due ${f.invoiceDue}`}
+                                    </span>
+                                  )}
+                                </Stack>
                               </TableCell>
                               <TableCell align="right">
                                 <RowActionsMenu
@@ -1133,9 +1160,18 @@ export function ConsultancyEngagements() {
                                     ...(f.status === "BILLABLE"
                                       ? [
                                           {
-                                            label: "Mark invoiced",
+                                            label: "Mark invoiced (30-day terms)",
                                             disabled: markInvoiced.isPending,
                                             onClick: () => markInvoiced.mutate({ id: f.id }),
+                                          },
+                                        ]
+                                      : []),
+                                    ...(f.status === "INVOICED"
+                                      ? [
+                                          {
+                                            label: "Mark paid",
+                                            disabled: markPaid.isPending,
+                                            onClick: () => markPaid.mutate({ id: f.id }),
                                           },
                                         ]
                                       : []),
@@ -1235,11 +1271,28 @@ export function ConsultancyEngagements() {
 
               {/* Time booked — substrate for WIP / utilisation / realisation. */}
               <Box sx={{ pt: 1 }}>
-                <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  Time
-                </Typography>
+                <Stack direction="row" spacing={1} sx={{ alignItems: "baseline" }}>
+                  <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600, mb: 0.5 }} className="esti-grow">
+                    Time
+                  </Typography>
+                  {detail.feePosition.pendingApproval > 0 && (
+                    <Button
+                      size="small"
+                      variant="text"
+                      disabled={approveTime.isPending}
+                      onClick={() =>
+                        selectedId && approveTime.mutate({ engagementId: selectedId })
+                      }
+                    >
+                      Approve all ({detail.feePosition.pendingApproval})
+                    </Button>
+                  )}
+                </Stack>
                 <span className="esti-label esti-label--secondary">
                   {`${detail.feePosition.hoursBooked}h booked · value ${formatINR(detail.feePosition.timeValuePaise)} · WIP ${formatINR(detail.feePosition.wipPaise)}`}
+                  {detail.feePosition.pendingApproval > 0
+                    ? ` · ${detail.feePosition.pendingApproval} pending approval`
+                    : ""}
                 </span>
                 {detail.timesheets.length > 0 && (
                   <TableContainer sx={{ mt: 1 }}>
@@ -1258,7 +1311,16 @@ export function ConsultancyEngagements() {
                         {detail.timesheets.slice(0, 8).map((t) => (
                           <TableRow key={t.id}>
                             <TableCell sx={{ fontVariantNumeric: "tabular-nums" }}>{t.date}</TableCell>
-                            <TableCell>{t.userName}</TableCell>
+                            <TableCell>
+                              <Stack spacing={0.25}>
+                                <span>{t.userName}</span>
+                                <span className="esti-label esti-label--secondary">
+                                  {t.status === "APPROVED"
+                                    ? `approved · ${t.approvedByName ?? ""}`
+                                    : "pending approval"}
+                                </span>
+                              </Stack>
+                            </TableCell>
                             <TableCell>
                               {CONS_GRADE_LABEL[t.grade as ConsGrade] ?? t.grade}
                             </TableCell>

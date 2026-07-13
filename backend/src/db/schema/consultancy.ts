@@ -91,6 +91,9 @@ export const consFeeStages = pgTable("esti_cons_fee_stage", {
   status: text("status").notNull().default("PENDING"), // FeeStageStatus
   billableAt: timestamp("billable_at", { withTimezone: true }),
   invoicedAt: timestamp("invoiced_at", { withTimezone: true }),
+  /** Payment terms — the dunning ladder (SOP §8) runs off this. */
+  invoiceDue: date("invoice_due"),
+  paidAt: timestamp("paid_at", { withTimezone: true }),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
@@ -128,6 +131,11 @@ export const consTimesheets = pgTable("esti_cons_timesheet", {
   hours: doublePrecision("hours").notNull(),
   /** Value at booking time — hours × the grade rate then in force (paise). */
   valuePaise: bigint("value_paise", { mode: "number" }).notNull().default(0),
+  /** SOP §8 — entries are approved weekly by the PM (named, audited act). */
+  status: text("status").notNull().default("SUBMITTED"), // SUBMITTED | APPROVED
+  approvedBy: uuid("approved_by").references(() => users.id, { onDelete: "set null" }),
+  approvedByName: text("approved_by_name"),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
   note: text("note"),
   createdAt: createdAt(),
 });

@@ -1359,6 +1359,13 @@
       "when": 1783650020000,
       "tag": "0194_consultancy_sop_slice1",
       "breakpoints": true
+    },
+    {
+      "idx": 194,
+      "version": "7",
+      "when": 1783650021000,
+      "tag": "0195_consultancy_sop_slice2",
+      "breakpoints": true
     }
   ]
 }

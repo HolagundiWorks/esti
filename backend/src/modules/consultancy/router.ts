@@ -143,12 +143,16 @@ const engagementsRouter = router({
         .from(consTimesheets)
         .where(eq(consTimesheets.engagementId, input.id))
         .orderBy(desc(consTimesheets.date), desc(consTimesheets.createdAt));
+      // "Invoiced" totals include PAID (invoiced-ever); outstanding is unpaid only.
       const invoicedPaise = feeStages
-        .filter((s) => s.status === "INVOICED")
+        .filter((s) => s.status === "INVOICED" || s.status === "PAID")
         .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
       const timeValuePaise = timesheets.reduce((a, t) => a + (t.valuePaise ?? 0), 0);
       // Fee position — agreed vs staged vs billable vs invoiced, plus time
       // booked and WIP (time value performed but not yet invoiced; case study §5.2).
+      const paidPaise = feeStages
+        .filter((s) => s.status === "PAID")
+        .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
       const feePosition = {
         agreedPaise: row.feeTotalPaise ?? 0,
         stagedPaise: feeStages.reduce((a, s) => a + (s.amountPaise ?? 0), 0),
@@ -156,7 +160,13 @@ const engagementsRouter = router({
           .filter((s) => s.status === "BILLABLE")
           .reduce((a, s) => a + (s.amountPaise ?? 0), 0),
         invoicedPaise,
+        paidPaise,
+        /** Invoiced but not yet paid — the receivables the dunning ladder chases. */
+        outstandingPaise: feeStages
+          .filter((s) => s.status === "INVOICED")
+          .reduce((a, s) => a + (s.amountPaise ?? 0), 0),
         hoursBooked: timesheets.reduce((a, t) => a + (t.hours ?? 0), 0),
+        pendingApproval: timesheets.filter((t) => t.status === "SUBMITTED").length,
         timeValuePaise,
         wipPaise: Math.max(0, timeValuePaise - invoicedPaise),
       };
@@ -561,9 +571,9 @@ const feeStagesRouter = router({
     return row;
   }),
 
-  /** Record the invoice raised for a BILLABLE stage (invoice integration follows). */
+  /** Record the invoice raised for a BILLABLE stage; payment terms start the dunning clock. */
   markInvoiced: manage
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string().uuid(), dueInDays: z.number().int().min(0).max(180).default(30) }))
     .mutation(async ({ ctx, input }) => {
       const [stage] = await ctx.db.select().from(consFeeStages).where(eq(consFeeStages.id, input.id));
       if (!stage) throw new TRPCError({ code: "NOT_FOUND" });
@@ -571,18 +581,42 @@ const feeStagesRouter = router({
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
           message:
-            stage.status === "INVOICED"
-              ? "This stage is already invoiced."
+            stage.status === "INVOICED" || stage.status === "PAID"
+              ? `This stage is already ${stage.status.toLowerCase()}.`
               : "The stage is not billable yet — it turns billable when its linked deliverable is issued.",
         });
+      const invoiceDue = new Date(Date.now() + input.dueInDays * 86400000)
+        .toISOString()
+        .slice(0, 10);
       const [row] = await ctx.db
         .update(consFeeStages)
-        .set({ status: "INVOICED", invoicedAt: new Date(), updatedAt: new Date() })
+        .set({ status: "INVOICED", invoicedAt: new Date(), invoiceDue, updatedAt: new Date() })
         .where(eq(consFeeStages.id, input.id))
         .returning();
       await writeAudit(ctx.db, { entity: "cons_fee_stage", entityId: input.id, action: "UPDATE", actorId: ctx.user.id, after: row });
       return row!;
     }),
+
+  /** Record payment received — closes the stage's dunning clock. */
+  markPaid: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [stage] = await ctx.db.select().from(consFeeStages).where(eq(consFeeStages.id, input.id));
+    if (!stage) throw new TRPCError({ code: "NOT_FOUND" });
+    if (stage.status !== "INVOICED")
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message:
+          stage.status === "PAID"
+            ? "This stage is already paid."
+            : "Only invoiced stages can be marked paid.",
+      });
+    const [row] = await ctx.db
+      .update(consFeeStages)
+      .set({ status: "PAID", paidAt: new Date(), updatedAt: new Date() })
+      .where(eq(consFeeStages.id, input.id))
+      .returning();
+    await writeAudit(ctx.db, { entity: "cons_fee_stage", entityId: input.id, action: "UPDATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
 
   remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     await ctx.db.delete(consFeeStages).where(eq(consFeeStages.id, input.id));
@@ -663,6 +697,42 @@ const timesheetsRouter = router({
     await writeAudit(ctx.db, { entity: "cons_timesheet", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
     return { ok: true };
   }),
+
+  /** SOP §8 — weekly approval, a named audited act. Pass ids, or an engagementId to approve all pending. */
+  approve: manage
+    .input(
+      z.object({
+        ids: z.array(z.string().uuid()).max(200).optional(),
+        engagementId: z.string().uuid().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!input.ids?.length && !input.engagementId)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Pass entry ids or an engagementId." });
+      const where = input.ids?.length
+        ? and(inArray(consTimesheets.id, input.ids), eq(consTimesheets.status, "SUBMITTED"))
+        : and(
+            eq(consTimesheets.engagementId, input.engagementId!),
+            eq(consTimesheets.status, "SUBMITTED"),
+          );
+      const rows = await ctx.db
+        .update(consTimesheets)
+        .set({
+          status: "APPROVED",
+          approvedBy: ctx.user.id,
+          approvedByName: ctx.user.fullName,
+          approvedAt: new Date(),
+        })
+        .where(where)
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "cons_timesheet",
+        action: "APPROVE",
+        actorId: ctx.user.id,
+        after: { count: rows.length, ids: rows.map((r) => r.id) },
+      });
+      return { approved: rows.length };
+    }),
 });
 
 const variationsRouter = router({
@@ -769,7 +839,11 @@ const analyticsRouter = router({
 
     const hoursBooked = sheets.reduce((a, s) => a + (s.hours ?? 0), 0);
     const timeValuePaise = sheets.reduce((a, s) => a + (s.valuePaise ?? 0), 0);
+    // Invoiced-ever includes PAID; outstanding (unpaid) is the INVOICED remainder.
     const invoicedPaise = stages
+      .filter((s) => s.status === "INVOICED" || s.status === "PAID")
+      .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
+    const outstandingPaise = stages
       .filter((s) => s.status === "INVOICED")
       .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
     const billablePaise = stages
@@ -785,7 +859,10 @@ const analyticsRouter = router({
         .filter((s) => s.engagementId === id)
         .reduce((a, s) => a + (s.valuePaise ?? 0), 0);
       const inv = stages
-        .filter((s) => s.engagementId === id && s.status === "INVOICED")
+        .filter(
+          (s) =>
+            s.engagementId === id && (s.status === "INVOICED" || s.status === "PAID"),
+        )
         .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
       wipPaise += Math.max(0, tv - inv);
     }
@@ -796,6 +873,7 @@ const analyticsRouter = router({
       timeValuePaise,
       billablePaise,
       invoicedPaise,
+      outstandingPaise,
       wipPaise,
       realisation: timeValuePaise > 0 ? invoicedPaise / timeValuePaise : null,
       byGrade,

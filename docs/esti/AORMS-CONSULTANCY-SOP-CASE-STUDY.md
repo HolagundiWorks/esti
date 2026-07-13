@@ -234,10 +234,10 @@ Procedural artifacts:
 | MoM procedure | 🔲 | Studio has `moms` (reusable); not wired to consultancy engagements |
 | RFI/TQ register + SLA | ✅ | Due date on raise (default +14d); register flags overdue in red *(2026-07-12)* |
 | Site visit reports (G711-style) | 🔲 | Studio's `siteVisits`/`inspections` exist; consultancy-scoped field reports not wired |
-| Timesheets weekly + approval | 🔶 | Timesheets live; **no approval step or weekly deadline mechanics** |
+| Timesheets weekly + approval | ✅ | SUBMITTED→APPROVED, named approver, approve-all per engagement *(2026-07-12)* |
 | Monthly WIP review | 🔶 | WIP computed live in analytics; the *meeting cadence* + bill/hold/write-off decisions unrecorded |
-| Milestone invoicing | 🔶 | Fee stages flip BILLABLE on issue + mark-invoiced; **no real invoice generation** (wire to Studio `invoices`) |
-| Dunning ladder | 🔲 | Nothing past INVOICED (no paid/overdue tracking on stages) |
+| Milestone invoicing | 🔶 | BILLABLE on issue → INVOICED with payment terms → PAID; invoice-doc generation via Studio `invoices` still open |
+| Dunning ladder | ✅ | Payment terms on invoicing (default 30d); overdue days flagged red; outstanding tracked on the fee position *(2026-07-12)* |
 | Resource forecast meeting | 🔲 | Capacity per grade exists (utilisation); no forward staffing forecast |
 | Retention policy + litigation hold | 🔲 | Records are immutable in DB; no retention/archival policy layer |
 | Lessons learned + client feedback | 🔲 | Not built (Studio patterns exist to reuse) |
