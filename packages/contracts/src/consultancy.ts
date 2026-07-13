@@ -376,6 +376,31 @@ export const ConsEngagementUpdate = ConsEngagementCreate.partial().extend({
 });
 export type ConsEngagementUpdate = z.infer<typeof ConsEngagementUpdate>;
 
+// ── SOP §4 — comment resolution sheet (CRS) ─────────────────────────────────
+
+export const CrsStatus = z.enum(["OPEN", "CLOSED"]);
+export type CrsStatus = z.infer<typeof CrsStatus>;
+
+export const CONS_CRS_STATUS_TAG: Record<CrsStatus, TagColor> = {
+  OPEN: "red",
+  CLOSED: "green",
+};
+
+export const ConsReviewCommentCreate = z.object({
+  deliverableId: z.string().uuid(),
+  /** Who commented — e.g. "Architect / Studio Arcline", "Client", "Checker". */
+  reviewer: z.string().min(1).max(200),
+  comment: z.string().min(1).max(4000),
+});
+export type ConsReviewCommentCreate = z.infer<typeof ConsReviewCommentCreate>;
+
+export const ConsReviewCommentClose = z.object({
+  id: z.string().uuid(),
+  /** The designer's response — required to close the line. */
+  response: z.string().min(1).max(4000),
+});
+export type ConsReviewCommentClose = z.infer<typeof ConsReviewCommentClose>;
+
 /** Add a custom phase to an engagement's scope (beyond the seeded template). */
 export const ConsPhaseCreate = z.object({
   engagementId: z.string().uuid(),

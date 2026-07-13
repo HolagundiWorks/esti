@@ -229,7 +229,7 @@ Procedural artifacts:
 | Master Document Register | ✅ | The deliverable register (per engagement) with status + issue metadata |
 | Transmittals + acknowledgment | 🔶 | Issue is recorded + gated; **reuse Studio's `transmittals` for the form/acknowledgment step** |
 | Self-check → IDC → check → approve | 🔶 | CHECK/APPROVE/VERIFY chain enforced (checker ≠ author); **no IDC/squad-check step or check-print/CRS records** |
-| Comment resolution sheet | 🔲 | TQ register covers queries; no per-submission CRS with open/closed lines |
+| Comment resolution sheet | ✅ | Reviewer comments per deliverable+revision; response required to close; **open lines block issue** *(2026-07-12)* |
 | Status codes on issue | 🔶 | FI/FA/FC issue classes; not the full S1–S4/A-code ladder |
 | MoM procedure | 🔲 | Studio has `moms` (reusable); not wired to consultancy engagements |
 | RFI/TQ register + SLA | ✅ | Due date on raise (default +14d); register flags overdue in red *(2026-07-12)* |

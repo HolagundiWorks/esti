@@ -31,6 +31,7 @@ import {
   CONS_FEE_STAGE_STATUS_TAG,
   CONSULTANCY_BRIEF_TEMPLATES,
   CONSULTANCY_TYPE_LABEL,
+  CONS_CRS_STATUS_TAG,
   CONS_INPUT_PACK_STATUS_TAG,
   CONS_PHASE_STATUS_TAG,
   CONS_RISK_STATUS_TAG,
@@ -40,6 +41,7 @@ import {
   ConsEngagementStatus,
   ConsPhaseStatus,
   ConsultancyType,
+  CrsStatus,
   DeliverableStatus,
   ENGAGEMENT_MODEL_LABEL,
   ENGINEERING_DISCIPLINE_LABEL,
@@ -272,6 +274,28 @@ export function ConsultancyEngagements() {
     onSuccess: (res) => setEmoiText(res.recommendation),
   });
 
+  // SOP §4 — CRS (comment resolution sheet) per deliverable.
+  const [crsFor, setCrsFor] = useState<string | null>(null);
+  const [crsReviewer, setCrsReviewer] = useState("");
+  const [crsComment, setCrsComment] = useState("");
+  const [crsRespondFor, setCrsRespondFor] = useState<string | null>(null);
+  const [crsResponse, setCrsResponse] = useState("");
+  const addCrs = trpc.consultancy.crs.add.useMutation({
+    meta: { errorTitle: "Couldn't add the review comment" },
+    onSuccess: () => {
+      invalidate();
+      setCrsComment("");
+    },
+  });
+  const closeCrs = trpc.consultancy.crs.close.useMutation({
+    meta: { errorTitle: "Couldn't close the review comment" },
+    onSuccess: () => {
+      invalidate();
+      setCrsRespondFor(null);
+      setCrsResponse("");
+    },
+  });
+
   // SOP slice 1 — revise issued deliverables (bumps revision, resets the chain).
   const startRevision = trpc.consultancy.deliverables.startRevision.useMutation({
     meta: { errorTitle: "Couldn't start the revision" },
@@ -417,7 +441,7 @@ export function ConsultancyEngagements() {
   const anyDialogOpen =
     engOpen || delOpen || tqOpen || feeOpen || timeOpen || ratesOpen || voOpen ||
     packOpen || riskOpen || relOpen || askOpen || phaseOpen || briefOpen ||
-    !!emoiFor || !!tqAnswerFor || !!tqCloseFor;
+    !!crsFor || !!emoiFor || !!tqAnswerFor || !!tqCloseFor;
   useScreenActions(
     anyDialogOpen
       ? []
@@ -1018,6 +1042,13 @@ export function ConsultancyEngagements() {
                                   )
                                   .join(", ")}`
                               : ""}
+                            {d.crsOpen > 0 ? (
+                              <span style={{ color: "var(--cds-support-error, #da1e28)" }}>
+                                {` · CRS ${d.crsOpen} open`}
+                              </span>
+                            ) : (
+                              ""
+                            )}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -1040,6 +1071,16 @@ export function ConsultancyEngagements() {
                                       }),
                                   }))
                                 : []),
+                              {
+                                label: `Review comments (CRS${d.crs.length ? ` · ${d.crs.length}` : ""})`,
+                                onClick: () => {
+                                  setCrsReviewer("");
+                                  setCrsComment("");
+                                  setCrsRespondFor(null);
+                                  setCrsResponse("");
+                                  setCrsFor(d.id);
+                                },
+                              },
                               ...(d.status === "DRAFT"
                                 ? [
                                     {
@@ -1704,6 +1745,121 @@ export function ConsultancyEngagements() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEmoiFor(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* CRS — comment resolution sheet per deliverable (no issue while lines are open). */}
+      <Dialog open={!!crsFor} onClose={() => setCrsFor(null)} fullWidth maxWidth="sm">
+        <DialogTitle>
+          Review comments — {detail?.deliverables.find((d) => d.id === crsFor)?.code ?? ""}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {(detail?.deliverables.find((d) => d.id === crsFor)?.crs ?? []).map((c) => (
+              <Box key={c.id} sx={{ p: 1.25, border: 1, borderColor: "divider" }}>
+                <Stack spacing={0.5}>
+                  <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                    <span className="esti-label esti-grow">
+                      {c.reviewer} · rev {c.revision}
+                    </span>
+                    <StatusTag value={c.status as CrsStatus} map={CONS_CRS_STATUS_TAG} />
+                  </Stack>
+                  <Typography variant="body2">{c.comment}</Typography>
+                  {c.response && (
+                    <span className="esti-label esti-label--secondary">
+                      Response: {c.response}
+                    </span>
+                  )}
+                  {c.status === "OPEN" &&
+                    (crsRespondFor === c.id ? (
+                      <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
+                        <TextField
+                          id={`crs-response-${c.id}`}
+                          size="small"
+                          label="Response (required to close)"
+                          value={crsResponse}
+                          onChange={(e) => setCrsResponse(e.target.value)}
+                          className="esti-grow"
+                          autoFocus
+                        />
+                        <Button
+                          size="small"
+                          variant="contained"
+                          disabled={!crsResponse.trim() || closeCrs.isPending}
+                          onClick={() =>
+                            closeCrs.mutate({ id: c.id, response: crsResponse.trim() })
+                          }
+                        >
+                          Close line
+                        </Button>
+                      </Stack>
+                    ) : (
+                      <Box>
+                        <Button
+                          size="small"
+                          variant="text"
+                          onClick={() => {
+                            setCrsRespondFor(c.id);
+                            setCrsResponse("");
+                          }}
+                        >
+                          Respond &amp; close
+                        </Button>
+                      </Box>
+                    ))}
+                </Stack>
+              </Box>
+            ))}
+            {(detail?.deliverables.find((d) => d.id === crsFor)?.crs ?? []).length === 0 && (
+              <span className="esti-label esti-label--secondary">
+                No review comments on this deliverable yet.
+              </span>
+            )}
+            <Stack spacing={1} sx={{ pt: 1, borderTop: 1, borderColor: "divider" }}>
+              <span className="esti-label">Add comment</span>
+              <TextField
+                id="crs-reviewer"
+                size="small"
+                label="Reviewer"
+                placeholder="e.g. Architect / Studio Arcline"
+                value={crsReviewer}
+                onChange={(e) => setCrsReviewer(e.target.value)}
+              />
+              <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
+                <TextField
+                  id="crs-comment"
+                  size="small"
+                  label="Comment"
+                  value={crsComment}
+                  onChange={(e) => setCrsComment(e.target.value)}
+                  className="esti-grow"
+                  multiline
+                  rows={2}
+                />
+                <Button
+                  variant="contained"
+                  size="small"
+                  disabled={!crsReviewer.trim() || !crsComment.trim() || !crsFor || addCrs.isPending}
+                  onClick={() =>
+                    crsFor &&
+                    addCrs.mutate({
+                      deliverableId: crsFor,
+                      reviewer: crsReviewer.trim(),
+                      comment: crsComment.trim(),
+                    })
+                  }
+                >
+                  Add
+                </Button>
+              </Stack>
+              <span className="esti-label esti-label--secondary">
+                Open lines block issue — the closed sheet with responses is the review record.
+              </span>
+            </Stack>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCrsFor(null)}>Close</Button>
         </DialogActions>
       </Dialog>
 

@@ -247,6 +247,28 @@ export const consInputPacks = pgTable("esti_cons_input_pack", {
   updatedAt: updatedAt(),
 });
 
+/**
+ * SOP §4 — comment resolution sheet (CRS): review comments per deliverable
+ * submission. No revision issues while a line is OPEN; the closed sheet with
+ * responses is the review record.
+ */
+export const consReviewComments = pgTable("esti_cons_review_comment", {
+  id: id(),
+  deliverableId: uuid("deliverable_id")
+    .notNull()
+    .references(() => consDeliverables.id, { onDelete: "cascade" }),
+  /** The revision under review when the comment was raised. */
+  revision: text("revision").notNull(),
+  /** Who commented — e.g. "Architect / Studio Arcline", "Checker", "Client". */
+  reviewer: text("reviewer").notNull(),
+  comment: text("comment").notNull(),
+  response: text("response"),
+  status: text("status").notNull().default("OPEN"), // OPEN | CLOSED
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
 /** Phase 1 — technical query (TQ/RFI) register with closure evidence. */
 export const consTqs = pgTable("esti_cons_tq", {
   id: id(),

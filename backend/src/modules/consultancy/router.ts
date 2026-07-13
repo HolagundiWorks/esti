@@ -24,6 +24,8 @@ import {
   ConsInsuranceSet,
   ConsRateCardSet,
   ConsRelianceLetterCreate,
+  ConsReviewCommentClose,
+  ConsReviewCommentCreate,
   ConsReviewStepCreate,
   ConsRiskCreate,
   ConsRiskUpdate,
@@ -47,6 +49,7 @@ import {
   consPhases,
   consRateCards,
   consRelianceLetters,
+  consReviewComments,
   consReviewSteps,
   consRisks,
   consTimesheets,
@@ -102,6 +105,13 @@ const engagementsRouter = router({
             .from(consReviewSteps)
             .where(inArray(consReviewSteps.deliverableId, ids))
             .orderBy(asc(consReviewSteps.at))
+        : [];
+      const crs = ids.length
+        ? await ctx.db
+            .select()
+            .from(consReviewComments)
+            .where(inArray(consReviewComments.deliverableId, ids))
+            .orderBy(asc(consReviewComments.createdAt))
         : [];
       const tqs = await ctx.db
         .select()
@@ -176,6 +186,8 @@ const engagementsRouter = router({
           ...d,
           chain: steps.filter((s) => s.deliverableId === d.id),
           missing: d.status === "DRAFT" ? missingSteps(d.checkCategory, steps.filter((s) => s.deliverableId === d.id)) : [],
+          crs: crs.filter((c) => c.deliverableId === d.id),
+          crsOpen: crs.filter((c) => c.deliverableId === d.id && c.status === "OPEN").length,
         })),
         tqs,
         feeStages,
@@ -325,6 +337,24 @@ const deliverablesRouter = router({
             .join(", ")}.`,
         });
       }
+      // CRS gate (SOP §4): no revision issues while a review comment is open —
+      // the closed sheet with responses is the review record.
+      const openComments = await ctx.db
+        .select({ reviewer: consReviewComments.reviewer })
+        .from(consReviewComments)
+        .where(
+          and(
+            eq(consReviewComments.deliverableId, id),
+            eq(consReviewComments.status, "OPEN"),
+          ),
+        );
+      if (openComments.length > 0) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: `Cannot issue ${d.code}: ${openComments.length} review comment${openComments.length > 1 ? "s" : ""} open on the CRS — respond and close them first.`,
+        });
+      }
+
       // EmOI input gate (Phase 3): an unvalidated input pack is a hold point —
       // nothing built on unvalidated assumptions leaves the office.
       const held = await ctx.db
@@ -1058,6 +1088,47 @@ const phasesRouter = router({
   }),
 });
 
+const crsRouter = router({
+  /** Raise a review comment on the deliverable's current revision. */
+  add: manage.input(ConsReviewCommentCreate).mutation(async ({ ctx, input }) => {
+    const [d] = await ctx.db
+      .select()
+      .from(consDeliverables)
+      .where(eq(consDeliverables.id, input.deliverableId));
+    if (!d) throw new TRPCError({ code: "NOT_FOUND" });
+    const [row] = await ctx.db
+      .insert(consReviewComments)
+      .values({ ...input, revision: d.revision })
+      .returning();
+    await writeAudit(ctx.db, { entity: "cons_review_comment", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+
+  /** Close a line — the designer's response is required (the review record). */
+  close: manage.input(ConsReviewCommentClose).mutation(async ({ ctx, input }) => {
+    const [c] = await ctx.db
+      .select()
+      .from(consReviewComments)
+      .where(eq(consReviewComments.id, input.id));
+    if (!c) throw new TRPCError({ code: "NOT_FOUND" });
+    if (c.status === "CLOSED")
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: "This comment is already closed." });
+    const [row] = await ctx.db
+      .update(consReviewComments)
+      .set({ response: input.response, status: "CLOSED", closedAt: new Date(), updatedAt: new Date() })
+      .where(eq(consReviewComments.id, input.id))
+      .returning();
+    await writeAudit(ctx.db, { entity: "cons_review_comment", entityId: input.id, action: "UPDATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+
+  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    await ctx.db.delete(consReviewComments).where(eq(consReviewComments.id, input.id));
+    await writeAudit(ctx.db, { entity: "cons_review_comment", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
+    return { ok: true };
+  }),
+});
+
 const intelligenceRouter = router({
   /**
    * Phase 4 — the internal agent: answers grounded ONLY in the validated firm
@@ -1092,5 +1163,6 @@ export const consultancyRouter = router({
   relianceLetters: relianceLettersRouter,
   inputPacks: inputPacksRouter,
   phases: phasesRouter,
+  crs: crsRouter,
   intelligence: intelligenceRouter,
 });
