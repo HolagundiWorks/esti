@@ -220,19 +220,19 @@ Procedural artifacts:
 
 | SOP element | Status | In AORMS-Consultancy today / gap |
 | --- | --- | --- |
-| Job number as the spine | 🔶 | Engagement record is the spine; **no firm-level job-number convention** yet (engagement code/number field) |
+| Job number as the spine | ✅ | Job codes auto-allocated at creation (C-YY-serial, backfilled); shown across the workspace *(2026-07-12)* |
 | Enquiry register + go/no-go | 🔲 | No pre-engagement pipeline (Studio has leads; consultancy enters at engagement) |
 | Contract review checkpoint | 🔶 | Reliance scope + fee model recorded; **no §8.2.3-style review checklist gate** |
 | PEP/PQP at setup | 🔶 | Typed scope phases + brief cover much of it; no formal per-engagement quality plan |
 | Field-based doc numbering | 🔶 | Free-text register codes (STR-CAL-001); **no enforced numbering convention / originator-type-discipline fields** |
-| Two-track revisions (P/C) | 🔲 | Single revision string; no preliminary-vs-contractual track |
+| Two-track revisions (P/C) | ✅ | P01/C01 convention; new deliverables default P01; **Start revision** bumps the track and resets the sign-off chain *(2026-07-12)* |
 | Master Document Register | ✅ | The deliverable register (per engagement) with status + issue metadata |
 | Transmittals + acknowledgment | 🔶 | Issue is recorded + gated; **reuse Studio's `transmittals` for the form/acknowledgment step** |
 | Self-check → IDC → check → approve | 🔶 | CHECK/APPROVE/VERIFY chain enforced (checker ≠ author); **no IDC/squad-check step or check-print/CRS records** |
 | Comment resolution sheet | 🔲 | TQ register covers queries; no per-submission CRS with open/closed lines |
 | Status codes on issue | 🔶 | FI/FA/FC issue classes; not the full S1–S4/A-code ladder |
 | MoM procedure | 🔲 | Studio has `moms` (reusable); not wired to consultancy engagements |
-| RFI/TQ register + SLA | 🔶 | TQ register with dates + closure evidence; **no due-date/SLA tracking column** |
+| RFI/TQ register + SLA | ✅ | Due date on raise (default +14d); register flags overdue in red *(2026-07-12)* |
 | Site visit reports (G711-style) | 🔲 | Studio's `siteVisits`/`inspections` exist; consultancy-scoped field reports not wired |
 | Timesheets weekly + approval | 🔶 | Timesheets live; **no approval step or weekly deadline mechanics** |
 | Monthly WIP review | 🔶 | WIP computed live in analytics; the *meeting cadence* + bill/hold/write-off decisions unrecorded |

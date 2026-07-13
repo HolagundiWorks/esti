@@ -208,7 +208,21 @@ const engagementsRouter = router({
     }),
 
   create: manage.input(ConsEngagementCreate).mutation(async ({ ctx, input }) => {
-    const [row] = await ctx.db.insert(consEngagements).values(input).returning();
+    // Job number (SOP §2): C-YY-serial, allocated at creation — the root the
+    // timesheet bookings and document numbers hang off.
+    const yy = String(new Date().getFullYear()).slice(2);
+    const existing = await ctx.db.select({ code: consEngagements.code }).from(consEngagements);
+    const serial =
+      existing
+        .map((r) => /^C-\d{2}-(\d{3})$/.exec(r.code ?? "")?.[1])
+        .filter(Boolean)
+        .map(Number)
+        .reduce((m, n) => Math.max(m, n!), 0) + 1;
+    const code = `C-${yy}-${String(serial).padStart(3, "0")}`;
+    const [row] = await ctx.db
+      .insert(consEngagements)
+      .values({ ...input, code })
+      .returning();
     // Typed scope: the consultancy pattern seeds the engagement's phases —
     // consultancy work is typed, not generalised (unlike architecture's one
     // COA ladder). Fully editable afterwards.
@@ -354,6 +368,51 @@ const deliverablesRouter = router({
     await writeAudit(ctx.db, { entity: "cons_deliverable", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
     return { ok: true };
   }),
+
+  /**
+   * Start a new revision of an issued deliverable (SOP §4: changes re-enter
+   * the same chain at the next revision). Bumps the revision on the two-track
+   * convention (P01→P02, C01→C02, A→B) and **clears the sign-off chain** — a
+   * new revision needs fresh checks. Prior sign-offs remain in the audit log.
+   */
+  startRevision: manage
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [d] = await ctx.db.select().from(consDeliverables).where(eq(consDeliverables.id, input.id));
+      if (!d) throw new TRPCError({ code: "NOT_FOUND" });
+      if (d.status !== "ISSUED")
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: `${d.code} is ${d.status} — only issued deliverables are revised (drafts are just edited).`,
+        });
+      const rev = d.revision ?? "P01";
+      const track = /^([PC])(\d+)$/.exec(rev);
+      const letter = /^[A-Y]$/.exec(rev);
+      const next = track
+        ? `${track[1]}${String(Number(track[2]) + 1).padStart(2, "0")}`
+        : letter
+          ? String.fromCharCode(rev.charCodeAt(0) + 1)
+          : `${rev}.1`;
+      const steps = await ctx.db
+        .select()
+        .from(consReviewSteps)
+        .where(eq(consReviewSteps.deliverableId, input.id));
+      await ctx.db.delete(consReviewSteps).where(eq(consReviewSteps.deliverableId, input.id));
+      const [row] = await ctx.db
+        .update(consDeliverables)
+        .set({ status: "DRAFT", revision: next, issuedAt: null, updatedAt: new Date() })
+        .where(eq(consDeliverables.id, input.id))
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "cons_deliverable",
+        entityId: input.id,
+        action: "REVISE",
+        actorId: ctx.user.id,
+        before: { revision: rev, status: "ISSUED", chain: steps.map((s) => `${s.kind}:${s.userName}`) },
+        after: { revision: next, status: "DRAFT" },
+      });
+      return row!;
+    }),
 });
 
 const reviewsRouter = router({

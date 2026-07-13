@@ -272,6 +272,12 @@ export function ConsultancyEngagements() {
     onSuccess: (res) => setEmoiText(res.recommendation),
   });
 
+  // SOP slice 1 — revise issued deliverables (bumps revision, resets the chain).
+  const startRevision = trpc.consultancy.deliverables.startRevision.useMutation({
+    meta: { errorTitle: "Couldn't start the revision" },
+    onSuccess: invalidate,
+  });
+
   // Built-in PDF export.
   const exportPdf = trpc.consultancy.engagements.exportPdf.useMutation({
     meta: { errorTitle: "Couldn't start the PDF export" },
@@ -384,6 +390,7 @@ export function ConsultancyEngagements() {
   const [tqOpen, setTqOpen] = useState(false);
   const [tqCode, setTqCode] = useState("");
   const [tqQuestion, setTqQuestion] = useState("");
+  const [tqDueDate, setTqDueDate] = useState("");
   const [tqScopeImpact, setTqScopeImpact] = useState(false);
   const [tqAnswerFor, setTqAnswerFor] = useState<string | null>(null);
   const [tqAnswerText, setTqAnswerText] = useState("");
@@ -428,9 +435,10 @@ export function ConsultancyEngagements() {
                   label: "Add deliverable",
                   icon: <AddIcon />,
                   onClick: () => {
-                    setDelCode("");
+                    // SOP: document numbers hang off the job number.
+                    setDelCode(detail?.code ? `${detail.code}-` : "");
                     setDelTitle("");
-                    setDelRevision("A");
+                    setDelRevision("P01");
                     setDelOpen(true);
                   },
                 },
@@ -442,6 +450,8 @@ export function ConsultancyEngagements() {
                   onClick: () => {
                     setTqCode("");
                     setTqQuestion("");
+                    // SLA default: contractual turnaround is typically 5–14 working days.
+                    setTqDueDate(new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10));
                     setTqScopeImpact(false);
                     setTqOpen(true);
                   },
@@ -592,6 +602,7 @@ export function ConsultancyEngagements() {
                   <Stack spacing={0.5}>
                     <Box sx={{ display: "flex", alignItems: "baseline", gap: 1 }}>
                       <Typography variant="subtitle2" component="h3" className="esti-grow">
+                        {e.code ? `${e.code} · ` : ""}
                         {e.title}
                       </Typography>
                       <StatusTag
@@ -626,6 +637,7 @@ export function ConsultancyEngagements() {
                 <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
                   <Stack spacing={0.5} className="esti-grow">
                     <Typography variant="h6" component="h2">
+                      {detail.code ? `${detail.code} · ` : ""}
                       {detail.title}
                     </Typography>
                     <span className="esti-label esti-label--secondary">
@@ -1032,6 +1044,11 @@ export function ConsultancyEngagements() {
                               ...(d.status === "ISSUED"
                                 ? [
                                     {
+                                      label: "Start revision (resets sign-off)",
+                                      disabled: startRevision.isPending,
+                                      onClick: () => startRevision.mutate({ id: d.id }),
+                                    },
+                                    {
                                       label: "Supersede",
                                       onClick: () =>
                                         updateDeliverable.mutate({
@@ -1296,7 +1313,25 @@ export function ConsultancyEngagements() {
                       <TableBody>
                         {detail.tqs.map((t) => (
                           <TableRow key={t.id}>
-                            <TableCell>{t.code}</TableCell>
+                            <TableCell>
+                              <Stack spacing={0.25}>
+                                <span>{t.code}</span>
+                                {t.dueDate && t.status !== "CLOSED" && (
+                                  <span
+                                    className="esti-label esti-label--secondary"
+                                    style={
+                                      t.dueDate < new Date().toISOString().slice(0, 10)
+                                        ? { color: "var(--cds-support-error, #da1e28)" }
+                                        : undefined
+                                    }
+                                  >
+                                    {t.dueDate < new Date().toISOString().slice(0, 10)
+                                      ? `overdue · ${t.dueDate}`
+                                      : `due ${t.dueDate}`}
+                                  </span>
+                                )}
+                              </Stack>
+                            </TableCell>
                             <TableCell>
                               <Stack spacing={0.25}>
                                 <span>{t.question}</span>
@@ -2257,6 +2292,15 @@ export function ConsultancyEngagements() {
               multiline
               rows={3}
             />
+            <TextField
+              id="cons-tq-due"
+              label="Answer due"
+              type="date"
+              value={tqDueDate}
+              onChange={(e) => setTqDueDate(e.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+              helperText="Contractual SLA — typically 5–14 working days; the register tracks it"
+            />
             <FormControlLabel
               control={
                 <Checkbox
@@ -2279,6 +2323,7 @@ export function ConsultancyEngagements() {
                 engagementId: selectedId,
                 code: tqCode.trim(),
                 question: tqQuestion.trim(),
+                dueDate: tqDueDate || undefined,
                 scopeImpact: tqScopeImpact,
               })
             }
@@ -2481,6 +2526,7 @@ export function ConsultancyEngagements() {
                 value={delRevision}
                 onChange={(e) => setDelRevision(e.target.value)}
                 className="esti-input-sm"
+                helperText="P01… preliminary · C01… contractual"
               />
               <TextField
                 id="cons-del-issue-class"

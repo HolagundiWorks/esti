@@ -1352,6 +1352,13 @@
       "when": 1783650019000,
       "tag": "0193_cons_engagement_brief",
       "breakpoints": true
+    },
+    {
+      "idx": 193,
+      "version": "7",
+      "when": 1783650020000,
+      "tag": "0194_consultancy_sop_slice1",
+      "breakpoints": true
     }
   ]
 }

@@ -11,6 +11,8 @@ import { projectOffices } from "./project.js";
 
 export const consEngagements = pgTable("esti_cons_engagement", {
   id: id(),
+  /** Job number (SOP: allocated at creation; the root every record hangs off). */
+  code: text("code"),
   title: text("title").notNull(),
   clientId: uuid("client_id").references(() => clients.id, { onDelete: "set null" }),
   projectId: uuid("project_id").references(() => projectOffices.id, { onDelete: "set null" }),
@@ -245,6 +247,8 @@ export const consTqs = pgTable("esti_cons_tq", {
     .references(() => consEngagements.id, { onDelete: "cascade" }),
   code: text("code").notNull(), // e.g. TQ-001
   question: text("question").notNull(),
+  /** SLA — contractual turnaround is typically 5–14 working days (SOP §6). */
+  dueDate: date("due_date"),
   scopeImpact: boolean("scope_impact").notNull().default(false),
   status: text("status").notNull().default("OPEN"), // TqStatus
   answer: text("answer"),

@@ -386,11 +386,12 @@ export type ConsPhaseCreate = z.infer<typeof ConsPhaseCreate>;
 
 export const ConsDeliverableCreate = z.object({
   engagementId: z.string().uuid(),
-  /** Document number on the register, e.g. STR-CAL-001. */
+  /** Document number on the register, e.g. C-26-001-CAL-001. */
   code: z.string().min(1).max(80),
   title: z.string().min(1).max(300),
   discipline: EngineeringDiscipline,
-  revision: z.string().min(1).max(12).default("A"),
+  /** Two-track convention (SOP §3): P01, P02… preliminary · C01, C02… contractual. */
+  revision: z.string().min(1).max(12).default("P01"),
   issueClass: IssueClass.default("FOR_INFORMATION"),
   checkCategory: CheckCategory.default("CAT1"),
   notes: z.string().max(8000).optional(),
@@ -464,6 +465,8 @@ export const ConsTqCreate = z.object({
   /** Register code, e.g. TQ-001. */
   code: z.string().min(1).max(40),
   question: z.string().min(1).max(4000),
+  /** SLA due date (contractual turnaround typically 5–14 working days). */
+  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   /** A TQ that expands the brief becomes a variation (billable) — flag it. */
   scopeImpact: z.boolean().default(false),
 });
