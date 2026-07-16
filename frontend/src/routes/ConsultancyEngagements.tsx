@@ -274,6 +274,28 @@ export function ConsultancyEngagements() {
     onSuccess: (res) => setEmoiText(res.recommendation),
   });
 
+  // SOP §7 — site field reports (G711 anatomy).
+  const [frOpen, setFrOpen] = useState(false);
+  const [frDate, setFrDate] = useState("");
+  const [frWeather, setFrWeather] = useState("");
+  const [frPersonnel, setFrPersonnel] = useState("");
+  const [frWork, setFrWork] = useState("");
+  const [frObservations, setFrObservations] = useState("");
+  const [frNcs, setFrNcs] = useState("");
+  const [frInstructions, setFrInstructions] = useState("");
+  const [frNextVisit, setFrNextVisit] = useState("");
+  const createFieldReport = trpc.consultancy.fieldReports.create.useMutation({
+    meta: { errorTitle: "Couldn't record the site visit" },
+    onSuccess: () => {
+      invalidate();
+      setFrOpen(false);
+    },
+  });
+  const removeFieldReport = trpc.consultancy.fieldReports.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the field report" },
+    onSuccess: invalidate,
+  });
+
   // SOP §4 — CRS (comment resolution sheet) per deliverable.
   const [crsFor, setCrsFor] = useState<string | null>(null);
   const [crsReviewer, setCrsReviewer] = useState("");
@@ -440,7 +462,7 @@ export function ConsultancyEngagements() {
 
   const anyDialogOpen =
     engOpen || delOpen || tqOpen || feeOpen || timeOpen || ratesOpen || voOpen ||
-    packOpen || riskOpen || relOpen || askOpen || phaseOpen || briefOpen ||
+    packOpen || riskOpen || relOpen || askOpen || phaseOpen || briefOpen || frOpen ||
     !!crsFor || !!emoiFor || !!tqAnswerFor || !!tqCloseFor;
   useScreenActions(
     anyDialogOpen
@@ -1310,6 +1332,84 @@ export function ConsultancyEngagements() {
                 </Box>
               )}
 
+              {/* Site visits — field observation reports (observe, never inspect). */}
+              <Box sx={{ pt: 1 }}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: "baseline" }}>
+                  <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600 }} className="esti-grow">
+                    Site visits
+                  </Typography>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => {
+                      setFrDate(new Date().toISOString().slice(0, 10));
+                      setFrWeather("");
+                      setFrPersonnel("");
+                      setFrWork("");
+                      setFrObservations("");
+                      setFrNcs("");
+                      setFrInstructions("");
+                      setFrNextVisit("");
+                      setFrOpen(true);
+                    }}
+                  >
+                    Record visit
+                  </Button>
+                </Stack>
+                {detail.fieldReports.length === 0 ? (
+                  <span className="esti-label esti-label--secondary">
+                    No site visits recorded — field reports document general conformance
+                    observations, issued within 2–3 working days of the visit.
+                  </span>
+                ) : (
+                  <Stack spacing={1} sx={{ mt: 0.5 }}>
+                    {detail.fieldReports.map((fr) => (
+                      <Box key={fr.id} sx={{ p: 1.25, border: 1, borderColor: "divider" }}>
+                        <Stack spacing={0.5}>
+                          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }} className="esti-grow">
+                              {`Report #${fr.reportNo} · ${fr.visitDate}`}
+                              {fr.weather ? ` · ${fr.weather}` : ""}
+                            </Typography>
+                            <span className="esti-label esti-label--secondary">{fr.authorName}</span>
+                            <RowActionsMenu
+                              actions={[
+                                {
+                                  label: "Delete",
+                                  danger: true,
+                                  disabled: removeFieldReport.isPending,
+                                  onClick: () => removeFieldReport.mutate({ id: fr.id }),
+                                },
+                              ]}
+                            />
+                          </Stack>
+                          {fr.personnel && (
+                            <span className="esti-label esti-label--secondary">On site: {fr.personnel}</span>
+                          )}
+                          {fr.workObserved && (
+                            <span className="esti-label esti-label--secondary">Work: {fr.workObserved}</span>
+                          )}
+                          {fr.observations && (
+                            <Typography variant="body2">{fr.observations}</Typography>
+                          )}
+                          {fr.nonconformances && (
+                            <span className="esti-label esti-label--secondary" style={{ color: "var(--cds-support-error, #da1e28)" }}>
+                              NC: {fr.nonconformances}
+                            </span>
+                          )}
+                          {fr.instructions && (
+                            <span className="esti-label esti-label--secondary">Instructions: {fr.instructions}</span>
+                          )}
+                          {fr.nextVisit && (
+                            <span className="esti-label esti-label--secondary">Next visit: {fr.nextVisit}</span>
+                          )}
+                        </Stack>
+                      </Box>
+                    ))}
+                  </Stack>
+                )}
+              </Box>
+
               {/* Time booked — substrate for WIP / utilisation / realisation. */}
               <Box sx={{ pt: 1 }}>
                 <Stack direction="row" spacing={1} sx={{ alignItems: "baseline" }}>
@@ -1745,6 +1845,100 @@ export function ConsultancyEngagements() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEmoiFor(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Record site visit — G711 anatomy. */}
+      <Dialog open={frOpen} onClose={() => setFrOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Record site visit</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="fr-date"
+                label="Visit date"
+                type="date"
+                value={frDate}
+                onChange={(e) => setFrDate(e.target.value)}
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
+              <TextField
+                id="fr-weather"
+                label="Weather"
+                placeholder="e.g. Clear, 31°C"
+                value={frWeather}
+                onChange={(e) => setFrWeather(e.target.value)}
+                className="esti-grow"
+              />
+            </Stack>
+            <TextField
+              id="fr-personnel"
+              label="Personnel / trades on site"
+              value={frPersonnel}
+              onChange={(e) => setFrPersonnel(e.target.value)}
+            />
+            <TextField
+              id="fr-work"
+              label="Work in progress"
+              value={frWork}
+              onChange={(e) => setFrWork(e.target.value)}
+            />
+            <TextField
+              id="fr-observations"
+              label="Observations"
+              value={frObservations}
+              onChange={(e) => setFrObservations(e.target.value)}
+              multiline
+              rows={3}
+              helperText="Facts with location + responsible party — observe, never inspect/supervise"
+            />
+            <TextField
+              id="fr-ncs"
+              label="Nonconformances (optional)"
+              value={frNcs}
+              onChange={(e) => setFrNcs(e.target.value)}
+            />
+            <Stack direction="row" spacing={2}>
+              <TextField
+                id="fr-instructions"
+                label="Instructions given (optional)"
+                value={frInstructions}
+                onChange={(e) => setFrInstructions(e.target.value)}
+                className="esti-grow"
+              />
+              <TextField
+                id="fr-next"
+                label="Next visit"
+                type="date"
+                value={frNextVisit}
+                onChange={(e) => setFrNextVisit(e.target.value)}
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
+            </Stack>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setFrOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!frDate || !selectedId || createFieldReport.isPending}
+            onClick={() =>
+              selectedId &&
+              createFieldReport.mutate({
+                engagementId: selectedId,
+                visitDate: frDate,
+                weather: frWeather.trim() || undefined,
+                personnel: frPersonnel.trim() || undefined,
+                workObserved: frWork.trim() || undefined,
+                observations: frObservations.trim() || undefined,
+                nonconformances: frNcs.trim() || undefined,
+                instructions: frInstructions.trim() || undefined,
+                nextVisit: frNextVisit || undefined,
+              })
+            }
+          >
+            Record
+          </Button>
         </DialogActions>
       </Dialog>
 

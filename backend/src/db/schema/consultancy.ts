@@ -269,6 +269,29 @@ export const consReviewComments = pgTable("esti_cons_review_comment", {
   updatedAt: updatedAt(),
 });
 
+/**
+ * SOP §7 — site field reports (G711 anatomy). Language discipline: the report
+ * records *general conformance observations* — observe, never inspect/supervise.
+ */
+export const consFieldReports = pgTable("esti_cons_field_report", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  reportNo: bigint("report_no", { mode: "number" }).notNull().default(1),
+  visitDate: date("visit_date").notNull(),
+  weather: text("weather"),
+  personnel: text("personnel"), // trades/contacts present
+  workObserved: text("work_observed"),
+  observations: text("observations"), // each with location + responsible party
+  nonconformances: text("nonconformances"),
+  instructions: text("instructions"),
+  nextVisit: date("next_visit"),
+  authorId: uuid("author_id").references(() => users.id, { onDelete: "set null" }),
+  authorName: text("author_name").notNull(),
+  createdAt: createdAt(),
+});
+
 /** Phase 1 — technical query (TQ/RFI) register with closure evidence. */
 export const consTqs = pgTable("esti_cons_tq", {
   id: id(),

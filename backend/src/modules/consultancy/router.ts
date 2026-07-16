@@ -20,6 +20,7 @@ import {
   ConsAnalyticsPeriod,
   ConsFeeStageCreate,
   ConsFeeStageUpdate,
+  ConsFieldReportCreate,
   ConsInputPackCreate,
   ConsInsuranceSet,
   ConsRateCardSet,
@@ -44,6 +45,7 @@ import {
   consDeliverables,
   consEngagements,
   consFeeStages,
+  consFieldReports,
   consInputPacks,
   consInsurance,
   consPhases,
@@ -148,6 +150,11 @@ const engagementsRouter = router({
         .from(consPhases)
         .where(eq(consPhases.engagementId, input.id))
         .orderBy(asc(consPhases.seq));
+      const fieldReports = await ctx.db
+        .select()
+        .from(consFieldReports)
+        .where(eq(consFieldReports.engagementId, input.id))
+        .orderBy(desc(consFieldReports.reportNo));
       const timesheets = await ctx.db
         .select()
         .from(consTimesheets)
@@ -196,6 +203,7 @@ const engagementsRouter = router({
         inputPacks,
         relianceLetters,
         phases,
+        fieldReports,
         timesheets,
         feePosition,
         // Built-in PDF export — download URL once the worker has rendered it.
@@ -1088,6 +1096,29 @@ const phasesRouter = router({
   }),
 });
 
+const fieldReportsRouter = router({
+  /** Record a site visit — report number auto-allocated per engagement. */
+  create: manage.input(ConsFieldReportCreate).mutation(async ({ ctx, input }) => {
+    const existing = await ctx.db
+      .select({ reportNo: consFieldReports.reportNo })
+      .from(consFieldReports)
+      .where(eq(consFieldReports.engagementId, input.engagementId));
+    const reportNo = existing.reduce((m, r) => Math.max(m, r.reportNo ?? 0), 0) + 1;
+    const [row] = await ctx.db
+      .insert(consFieldReports)
+      .values({ ...input, reportNo, authorId: ctx.user.id, authorName: ctx.user.fullName })
+      .returning();
+    await writeAudit(ctx.db, { entity: "cons_field_report", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+
+  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    await ctx.db.delete(consFieldReports).where(eq(consFieldReports.id, input.id));
+    await writeAudit(ctx.db, { entity: "cons_field_report", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
+    return { ok: true };
+  }),
+});
+
 const crsRouter = router({
   /** Raise a review comment on the deliverable's current revision. */
   add: manage.input(ConsReviewCommentCreate).mutation(async ({ ctx, input }) => {
@@ -1164,5 +1195,6 @@ export const consultancyRouter = router({
   inputPacks: inputPacksRouter,
   phases: phasesRouter,
   crs: crsRouter,
+  fieldReports: fieldReportsRouter,
   intelligence: intelligenceRouter,
 });

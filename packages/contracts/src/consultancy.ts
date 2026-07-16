@@ -376,6 +376,23 @@ export const ConsEngagementUpdate = ConsEngagementCreate.partial().extend({
 });
 export type ConsEngagementUpdate = z.infer<typeof ConsEngagementUpdate>;
 
+// ── SOP §7 — site field reports (G711 anatomy) ──────────────────────────────
+
+export const ConsFieldReportCreate = z.object({
+  engagementId: z.string().uuid(),
+  visitDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  weather: z.string().max(200).optional(),
+  /** Trades / contacts present on site. */
+  personnel: z.string().max(2000).optional(),
+  workObserved: z.string().max(4000).optional(),
+  /** Observations — facts with location + responsible party ("observe", never "inspect"). */
+  observations: z.string().max(8000).optional(),
+  nonconformances: z.string().max(4000).optional(),
+  instructions: z.string().max(4000).optional(),
+  nextVisit: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+});
+export type ConsFieldReportCreate = z.infer<typeof ConsFieldReportCreate>;
+
 // ── SOP §4 — comment resolution sheet (CRS) ─────────────────────────────────
 
 export const CrsStatus = z.enum(["OPEN", "CLOSED"]);

@@ -233,7 +233,7 @@ Procedural artifacts:
 | Status codes on issue | 🔶 | FI/FA/FC issue classes; not the full S1–S4/A-code ladder |
 | MoM procedure | 🔲 | Studio has `moms` (reusable); not wired to consultancy engagements |
 | RFI/TQ register + SLA | ✅ | Due date on raise (default +14d); register flags overdue in red *(2026-07-12)* |
-| Site visit reports (G711-style) | 🔲 | Studio's `siteVisits`/`inspections` exist; consultancy-scoped field reports not wired |
+| Site visit reports (G711-style) | ✅ | Numbered field reports per engagement: weather, personnel, work observed, observations, NCs, instructions, next visit; author snapshotted *(2026-07-12)* |
 | Timesheets weekly + approval | ✅ | SUBMITTED→APPROVED, named approver, approve-all per engagement *(2026-07-12)* |
 | Monthly WIP review | 🔶 | WIP computed live in analytics; the *meeting cadence* + bill/hold/write-off decisions unrecorded |
 | Milestone invoicing | 🔶 | BILLABLE on issue → INVOICED with payment terms → PAID; invoice-doc generation via Studio `invoices` still open |
