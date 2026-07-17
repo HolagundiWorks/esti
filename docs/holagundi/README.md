@@ -5,14 +5,12 @@ complement the product docs in [`docs/esti/`](../esti/README.md).
 
 | Document | Use |
 | --- | --- |
+| [SOP.md](SOP.md) | Deep-dive Standard Operating Procedures for the full practice lifecycle — enquiry to final account, mapped to AORMS modules |
 | [CLIENT-ONBOARDING.md](CLIENT-ONBOARDING.md) | How to onboard a new client and collect briefing inputs before design starts |
 | [PROJECT-BRIEFING.md](PROJECT-BRIEFING.md) | Pre-design questionnaire, room templates, and how to compile the project design brief in AORMS |
 
-**Lifecycle placement:** Phase 0 (Appointment) through Initiation & Brief — before Concept Design sign-off.
+**Lifecycle placement:** Phase 0 (Appointment) through Initiation & Brief — before Concept Design sign-off (CLIENT-ONBOARDING/PROJECT-BRIEFING); SOP.md covers the full lifecycle end to end.
 
-The brief feeds the **design-stage estimate**: once a project brief and concept
-exist, the design-stage estimate is the next commercial artefact. The estimation
-engine that consumes these inputs is a product concern, documented canonically in
-[`docs/esti/ESTIMATION-OS.md`](../esti/ESTIMATION-OS.md)
-(promoted here from this folder — they are product architecture, not firm
-practice).
+> The in-browser Estimation OS this section used to point to was retired
+> 2026-07-09 (see [`docs/esti/DOC-CODE-DRIFT-2026-07.md`](../esti/DOC-CODE-DRIFT-2026-07.md));
+> there is no design-stage estimate module live today.

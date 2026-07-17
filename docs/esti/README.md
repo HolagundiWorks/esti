@@ -55,7 +55,9 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 
 Build and runtime instructions: [DEVELOPMENT.md](../../DEVELOPMENT.md) · [INSTALL.md](../../INSTALL.md).
 
-Firm-specific practice guides: [docs/holagundi/](../holagundi/README.md).
+Firm-specific practice guides: [docs/holagundi/](../holagundi/README.md), including
+a deep-dive [Standard Operating Procedures](../holagundi/SOP.md) for the full
+Indian architecture practice lifecycle, mapped module-by-module to AORMS.
 
 ## Archived documentation
 
