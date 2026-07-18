@@ -12,6 +12,7 @@ import {
 import type { ReactNode } from "react";
 
 export type AdminSectionKey =
+  | "dashboard"
   | "requests"
   | "licenses"
   | "accounts"
@@ -20,6 +21,7 @@ export type AdminSectionKey =
   | "apikeys";
 
 const SECTIONS: { key: AdminSectionKey; label: string }[] = [
+  { key: "dashboard", label: "Dashboard" },
   { key: "requests", label: "Requests" },
   { key: "licenses", label: "Licences" },
   { key: "accounts", label: "Accounts" },

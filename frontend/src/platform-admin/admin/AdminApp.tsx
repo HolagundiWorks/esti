@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AccountsTab from "./AccountsTab";
 import ApiKeysTab from "./ApiKeysTab";
+import DashboardTab from "./DashboardTab";
 import LicensesTab from "./LicensesTab";
 import OrgsTab from "./OrgsTab";
 import ProductsTab from "./ProductsTab";
@@ -16,6 +17,10 @@ const SECTION_COPY: Record<
   AdminSectionKey,
   { title: string; description: string }
 > = {
+  dashboard: {
+    title: "Dashboard",
+    description: "License-manager overview — status, expiries, and recent activity across every organization.",
+  },
   requests: {
     title: "Licence requests",
     description: "Review and fulfil plan requests from customers.",
@@ -49,7 +54,7 @@ export default function AdminApp({
   email: string;
   isPlatformAdmin: boolean;
 }) {
-  const [section, setSection] = useState<AdminSectionKey>("requests");
+  const [section, setSection] = useState<AdminSectionKey>("dashboard");
   const [pending, setPending] = useState(0);
 
   useEffect(() => {
@@ -67,6 +72,7 @@ export default function AdminApp({
       isPlatformAdmin={isPlatformAdmin}
     >
       <AdminSection title={copy.title} description={copy.description}>
+        {section === "dashboard" && <DashboardTab onGoTo={setSection} />}
         {section === "requests" && <RequestsTab />}
         {section === "licenses" && <LicensesTab />}
         {section === "accounts" && <AccountsTab />}
