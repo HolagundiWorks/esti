@@ -23,7 +23,7 @@ function slugify(s: string): string {
 }
 
 function orgHandle(o: typeof schema.organizations.$inferSelect): OrgHandle {
-  return { publicId: o.publicId, name: o.name, slug: o.slug };
+  return { publicId: o.publicId, name: o.name, slug: o.slug, workspaceType: o.workspaceType };
 }
 
 function domainOf(email: string): string {
@@ -40,7 +40,12 @@ function domainOf(email: string): string {
  */
 export async function createCompany(
   accountId: string,
-  input: { name: string; loginDomain?: string | null },
+  input: {
+    name: string;
+    loginDomain?: string | null;
+    /** Which AORMS workspace the company runs — STUDIO (default) | CONSULTANCY. */
+    workspaceType?: "STUDIO" | "CONSULTANCY";
+  },
 ): Promise<OrgHandle | { error: "domain_mismatch" | "domain_unverified" }> {
   const loginDomain = input.loginDomain?.trim().toLowerCase().replace(/^@/, "") || null;
 
@@ -82,6 +87,7 @@ export async function createCompany(
       name: input.name,
       slug,
       loginDomain,
+      workspaceType: input.workspaceType ?? "STUDIO",
       billingEmail: acct?.email ?? null,
       ownerAccountId: accountId,
     })
@@ -110,7 +116,7 @@ export async function ensureFirmOrgForOwner(account: AccountView): Promise<void>
   if (owned) return;
 
   const [f] = await workspaceDb.select({ companyName: firm.companyName }).from(firm).limit(1);
-  const name = f?.companyName?.trim() || account.name?.trim() || "Studio workspace";
+  const name = f?.companyName?.trim() || account.name?.trim() || "AORMS-Studio";
   const res = await createCompany(account.id, { name });
   if ("error" in res) return;
   await provisionTrial(account);
@@ -298,13 +304,14 @@ export async function pendingInvitesFor(
       publicId: schema.organizations.publicId,
       name: schema.organizations.name,
       slug: schema.organizations.slug,
+      workspaceType: schema.organizations.workspaceType,
     })
     .from(schema.orgMembers)
     .innerJoin(schema.organizations, eq(schema.organizations.id, schema.orgMembers.orgId))
     .where(and(eq(schema.orgMembers.accountId, accountId), eq(schema.orgMembers.status, "INVITED")));
   return rows.map((r) => ({
     role: r.role,
-    org: { publicId: r.publicId, name: r.name, slug: r.slug },
+    org: { publicId: r.publicId, name: r.name, slug: r.slug, workspaceType: r.workspaceType },
   }));
 }
 

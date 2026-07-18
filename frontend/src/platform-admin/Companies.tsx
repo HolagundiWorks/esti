@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import {
+  WORKSPACE_TYPE_BLURB,
+  WORKSPACE_TYPE_LABEL,
+  WorkspaceType,
+} from "@esti/contracts";
+import {
   Alert,
   AlertTitle,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -15,6 +19,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { StatusDot } from "../components/StatusTag.js";
 import {
   type CompanyIdStatus,
   type Me,
@@ -40,18 +45,6 @@ const CREATE_ERRORS: Record<string, string> = {
   domain_unverified: "Verify your email first to claim a login domain.",
 };
 
-function TagChip({ color, label }: { color: string; label: string }) {
-  return (
-    <Chip
-      label={label}
-      size="small"
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 /** Self-serve activation: create a company, join one, invite people, or leave. */
 export default function Companies({
@@ -66,6 +59,8 @@ export default function Companies({
 }) {
   const [name, setName] = useState("");
   const [domain, setDomain] = useState("");
+  // Workspace pick — every company runs exactly one AORMS workspace.
+  const [workspaceType, setWorkspaceType] = useState<WorkspaceType>("STUDIO");
   const [joinHandle, setJoinHandle] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -158,7 +153,7 @@ export default function Companies({
     e.preventDefault();
     setBusy(true);
     setNote(null);
-    const res = await createCompany(name, domain || undefined);
+    const res = await createCompany(name, domain || undefined, workspaceType);
     setBusy(false);
     if (res.error || !res.account) {
       setNote({ kind: "error", text: CREATE_ERRORS[res.error ?? ""] ?? "Could not create the company." });
@@ -166,7 +161,10 @@ export default function Companies({
     }
     setName("");
     setDomain("");
-    setNote({ kind: "success", text: "Company created. Open your workspace to activate it." });
+    setNote({
+      kind: "success",
+      text: `Company created on ${WORKSPACE_TYPE_LABEL[workspaceType]}. Open your workspace to activate it.`,
+    });
     onChange(res);
   }
 
@@ -349,10 +347,14 @@ export default function Companies({
         {me.memberships.length > 0 ? (
           <Stack direction="row" spacing={1}>
             {me.memberships.map((m) => (
-              <TagChip
+              <StatusDot
                 key={m.org.publicId ?? m.org.slug}
                 color={STATUS_TAG[m.role] ?? "cool-gray"}
-                label={`${m.org.name} · ${m.role}`}
+                label={`${m.org.name} · ${m.role}${
+                  m.org.workspaceType
+                    ? ` · ${WORKSPACE_TYPE_LABEL[m.org.workspaceType as WorkspaceType] ?? m.org.workspaceType}`
+                    : ""
+                }`}
               />
             ))}
           </Stack>
@@ -363,24 +365,57 @@ export default function Companies({
         )}
 
         <Box component="form" onSubmit={handleCreate}>
-          <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
-            <TextField
-              id="co-name"
-              label="Create a company"
-              placeholder="Acme Studio"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <TextField
-              id="co-domain"
-              label="Login domain (optional)"
-              placeholder="acme.in"
-              value={domain}
-              onChange={(e) => setDomain(e.target.value)}
-            />
-            <Button type="submit" variant="outlined" disabled={busy || name.trim().length < 2}>
-              Create
-            </Button>
+          <Stack spacing={1.5}>
+            {/* Workspace pick — one licence manager, one login; the workspace type
+                only decides where this company works. */}
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+              {(["STUDIO", "CONSULTANCY"] as const).map((t) => (
+                <Box
+                  key={t}
+                  component="button"
+                  type="button"
+                  onClick={() => setWorkspaceType(t)}
+                  aria-pressed={workspaceType === t}
+                  sx={{
+                    all: "unset",
+                    cursor: "pointer",
+                    boxSizing: "border-box",
+                    flex: 1,
+                    p: 1.5,
+                    border: 1,
+                    borderColor: workspaceType === t ? "primary.main" : "divider",
+                    borderLeft: 3,
+                    borderLeftColor: workspaceType === t ? "primary.main" : "divider",
+                  }}
+                >
+                  <Typography variant="subtitle2" component="span" sx={{ display: "block" }}>
+                    {WORKSPACE_TYPE_LABEL[t]}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" component="span">
+                    {WORKSPACE_TYPE_BLURB[t]}
+                  </Typography>
+                </Box>
+              ))}
+            </Stack>
+            <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
+              <TextField
+                id="co-name"
+                label="Create a company"
+                placeholder="Acme Studio"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+              <TextField
+                id="co-domain"
+                label="Login domain (optional)"
+                placeholder="acme.in"
+                value={domain}
+                onChange={(e) => setDomain(e.target.value)}
+              />
+              <Button type="submit" variant="outlined" disabled={busy || name.trim().length < 2}>
+                Create
+              </Button>
+            </Stack>
           </Stack>
         </Box>
         {ownedOrg && (
@@ -474,8 +509,8 @@ export default function Companies({
           </Alert>
         )}
 
-        <Dialog open={adoptFor !== null} onClose={() => setAdoptFor(null)} fullWidth maxWidth="xs">
-          <DialogTitle>Use my existing AORMS ID</DialogTitle>
+        <Dialog aria-labelledby="companies-adopt-id-title" open={adoptFor !== null} onClose={() => setAdoptFor(null)} fullWidth maxWidth="xs">
+          <DialogTitle id="companies-adopt-id-title">Use my existing AORMS ID</DialogTitle>
           <Box component="form" onSubmit={(e) => void handleAdopt(e)}>
             <DialogContent>
               <Stack spacing={2}>

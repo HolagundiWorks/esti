@@ -1,22 +1,25 @@
 ---
 title: Client Revision Management for Architects
-metaTitle: Client Revision Management for Architects
-metaDescription: Client revision management for architects â€” classify client changes, protect scope, record approvals and keep revision evidence attached to the project.
+metaTitle: Client Revision Management for Architects — MoM to Approval to Site
+metaDescription: Client revision management for architects — MoM issued to portal, ESTI drafts revision requests, client submits, architect marks criticality and implications, client approves, then site changes proceed. Scope and fee protected throughout.
 keyword: client revision management for architects
 category: moat
-updated: 2026-06-25
-intro: Control client-driven changes without losing the relationship, the fee trail or the project record.
+updated: 2026-07-10
+intro: From the meeting to the site instruction, every client-driven change follows a documented sequence — minutes, ESTI extraction, client request, architect assessment, client approval — so nothing reaches the team without a proper record.
 ---
 
 Client revision management for architects is the discipline of recording what a
 client changed, when they changed it, who approved it and what it does to scope,
-fees and programme. Most architecture firms already manage revisions, but the
+fees and timeline. Most architecture firms already manage revisions, but the
 record is scattered across email, WhatsApp, drawing folders and memory. That is
 where disputes begin.
 
-AORMS keeps revision movement inside the project record. A client request can be
-classified, reviewed, approved and linked to the drawings, fee effect and task
-work it creates. The practice no longer has to argue from memory.
+AORMS keeps revision movement inside the project record through a deliberate
+sequence: meeting minutes are issued to the client portal, ESTI extracts each
+change as a draft revision request, the client submits the real ones, the architect
+marks criticality and implications, the client approves the architect's assessment
+— and only then do site or drawing changes proceed. The practice no longer has to
+argue from memory.
 
 ## Why client revisions become expensive
 
@@ -114,20 +117,20 @@ what happened.
 
 ### What is client revision management for architects?
 
-It is the process of recording, classifying and approving client-driven changes so
-scope, drawings, fee impact and project tasks remain traceable.
+It is the practice of routing every client-driven change through a documented sequence — minutes issued to the portal, ESTI drafts requests, client submits, architect marks criticality and implications, client approves — so scope, drawings, fee impact and project tasks remain traceable and nothing reaches the team without a formal record.
 
 ### Can AORMS classify revisions by severity?
 
-Yes. Revision requests can be treated as minor, major or critical so the practice
-knows which changes are routine and which require owner or commercial attention.
+Yes. The architect marks each revision as minor, major or critical, recording the cost, timeline and scope implications. ESTI suggests a category from the minutes, but the architect owns the final call — the professional judgement that matters.
+
+### Does the client have to approve the architect's assessment?
+
+Yes. After the architect marks criticality and implications, the client receives a notification and approves that assessment through the portal before any site or drawing work proceeds. That approval is timestamped and attached to the project record.
 
 ### Does this replace email?
 
-No. Email can still be used for conversation, but AORMS becomes the authoritative
-project record for the decision, approval and follow-up action.
+No. Email can still be used for conversation, but AORMS becomes the authoritative project record for the decision, implications, approval and follow-up action.
 
 ### How does this protect fees?
 
-When changes are recorded against the project and phase, principals can see where
-client movement creates extra work and decide whether to absorb, defer or bill it.
+When changes are recorded with their implications and approved by the client, principals can show exactly what was agreed, what it costs and what additional fee applies. Client-driven revisions after sign-off become visible and billable rather than silently absorbed.

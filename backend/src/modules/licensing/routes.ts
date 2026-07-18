@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { db } from "../../db/index.js";
 import { env } from "../../env.js";
+import { isRateLimited } from "../../lib/ratelimit.js";
 import { LicenseAuthorityError, activateLicense, refreshLicense } from "./service.js";
 
 /**
@@ -16,9 +17,16 @@ export function registerLicenseRoutes(app: FastifyInstance): void {
     if (!body.key || !body.installId) {
       return reply.code(400).send({ error: "key and installId are required" });
     }
+    const key = body.key.trim();
+    if (await isRateLimited("license-activate-ip", req.ip, 20, 300)) {
+      return reply.code(429).send({ error: "too_many_requests" });
+    }
+    if (await isRateLimited("license-activate-key", key, 10, 3600)) {
+      return reply.code(429).send({ error: "too_many_requests" });
+    }
     try {
       const grant = await activateLicense(db, {
-        key: body.key.trim(),
+        key,
         installId: body.installId,
         fingerprint: body.fingerprint,
       });

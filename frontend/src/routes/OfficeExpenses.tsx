@@ -7,6 +7,7 @@ import {
   DialogTitle,
   FormControlLabel,
   MenuItem,
+  Skeleton,
   Stack,
   Switch,
   TextField,
@@ -29,6 +30,7 @@ import { useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import { useScreenActions } from "@hcw/ui-kit";
 import { AccountsCarryForward } from "../components/accounting/AccountsCarryForward.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -70,6 +72,7 @@ function ExpenseFormModal({
 }) {
   const utils = trpc.useUtils();
   const create = trpc.expenses.create.useMutation({
+    meta: { errorTitle: "Couldn't save the expense" },
     onSuccess: () => {
       void utils.expenses.list.invalidate();
       void utils.accounts.list.invalidate();
@@ -90,8 +93,8 @@ function ExpenseFormModal({
   const amountPaise = Math.round(parseFloat(amount || "0") * 100);
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{scope === "OFFICE" ? "New office expense" : "New project expense"}</DialogTitle>
+    <Dialog aria-labelledby="office-expenses-create-title" open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle id="office-expenses-create-title">{scope === "OFFICE" ? "New office expense" : "New project expense"}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           <TextField
@@ -191,15 +194,18 @@ function ExpenseTable({
 }) {
   const utils = trpc.useUtils();
   const submit = trpc.expenses.submit.useMutation({
+    meta: { errorTitle: "Couldn't submit the expense" },
     onSuccess: () => void utils.expenses.list.invalidate(),
   });
   const audit = trpc.expenses.audit.useMutation({
+    meta: { errorTitle: "Couldn't audit the expense" },
     onSuccess: () => {
       void utils.expenses.list.invalidate();
       void utils.accounts.list.invalidate();
     },
   });
   const close = trpc.expenses.close.useMutation({
+    meta: { errorTitle: "Couldn't close the expense" },
     onSuccess: () => {
       void utils.expenses.list.invalidate();
       void utils.accounts.list.invalidate();
@@ -301,8 +307,9 @@ export function OfficeExpenses() {
   const [open, setOpen] = useState(false);
 
   useScreenActions(
-    canManage
-      ? [
+    open || !canManage
+      ? []
+      : [
           {
             id: "new-expense",
             zone: "center",
@@ -311,9 +318,8 @@ export function OfficeExpenses() {
             icon: <AddIcon />,
             onClick: () => setOpen(true),
           },
-        ]
-      : [],
-    [canManage],
+        ],
+    [open, canManage],
   );
 
   return (
@@ -327,7 +333,14 @@ export function OfficeExpenses() {
           </Stack>
         }
       >
-        {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
+        <PageBreadcrumb items={[{ label: "Office" }, { label: "Office Expenses" }]} />
+        {listQ.isLoading && (
+          <Stack spacing={0.5}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} variant="rectangular" height={32} />
+            ))}
+          </Stack>
+        )}
         {listQ.data && (
           <ExpenseTable rows={listQ.data as ExpenseRow[]} canManage={canManage} canAudit={canAudit} />
         )}
@@ -355,8 +368,9 @@ export function CashBook() {
   const [open, setOpen] = useState(false);
 
   useScreenActions(
-    canManage
-      ? [
+    open || !canManage
+      ? []
+      : [
           {
             id: "new-cash-voucher",
             zone: "center",
@@ -365,9 +379,8 @@ export function CashBook() {
             icon: <AddIcon />,
             onClick: () => setOpen(true),
           },
-        ]
-      : [],
-    [canManage],
+        ],
+    [open, canManage],
   );
 
   return (
@@ -387,7 +400,14 @@ export function CashBook() {
           </Stack>
         }
       >
-        {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
+        <PageBreadcrumb items={[{ label: "Office" }, { label: "Cashbook" }]} />
+        {listQ.isLoading && (
+          <Stack spacing={0.5}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} variant="rectangular" height={32} />
+            ))}
+          </Stack>
+        )}
         {listQ.data && (
           <ExpenseTable rows={listQ.data as ExpenseRow[]} canManage={canManage} canAudit={canAudit} />
         )}

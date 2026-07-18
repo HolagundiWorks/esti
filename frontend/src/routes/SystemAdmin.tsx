@@ -17,10 +17,13 @@ import Settings from "@mui/icons-material/Settings";
 import Task from "@mui/icons-material/Task";
 import ManageAccounts from "@mui/icons-material/ManageAccounts";
 import Group from "@mui/icons-material/Group";
+import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { trpc } from "../lib/trpc.js";
 import { useAuth } from "../lib/auth.js";
 import { Navigate } from "react-router-dom";
+import { AORMS_PORTALS, AORMS_STUDIO, externalPortalsPhrase } from "../lib/product-nomenclature.js";
 
 type ModuleTileProps = {
   icon: SvgIconComponent;
@@ -77,16 +80,21 @@ export function SystemAdmin() {
     utils.settings.get.invalidate();
   };
 
-  const setHr = trpc.settings.setHrEnabled.useMutation({ onSuccess: invalidate });
-  const setPmc = trpc.settings.setPmcEnabled.useMutation({ onSuccess: invalidate });
-  const setModule = trpc.settings.setModuleEnabled.useMutation({ onSuccess: invalidate });
+  const setHr = trpc.settings.setHrEnabled.useMutation({ meta: { errorTitle: "Couldn't update the HR setting" }, onSuccess: invalidate });
+  const setPmc = trpc.settings.setPmcEnabled.useMutation({ meta: { errorTitle: "Couldn't update the PMC setting" }, onSuccess: invalidate });
+  const setModule = trpc.settings.setModuleEnabled.useMutation({ meta: { errorTitle: "Couldn't update the module setting" }, onSuccess: invalidate });
 
   if (settingsQ.isLoading) {
     return (
-      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-        <CircularProgress size={20} />
-        <Typography variant="body2">Loading modules…</Typography>
-      </Stack>
+      <RailLayout
+        title="System administration"
+        description="Installation-level controls: module toggles and data management. Visible only to system administrators."
+      >
+        <PageBreadcrumb items={[{ label: "Admin" }, { label: "System" }]} />
+        <DataState loading isEmpty={false} empty={{ title: "" }} columnCount={3}>
+          {null}
+        </DataState>
+      </RailLayout>
     );
   }
   if (!s) return null;
@@ -150,8 +158,8 @@ export function SystemAdmin() {
     },
     {
       icon: ManageAccounts,
-      title: "Client & Collaborator Portals",
-      description: "External stakeholder portals: client change requests and approvals, collaborator (consultant) scoped access. Enabled automatically when portals are provisioned.",
+      title: `${AORMS_STUDIO.title} · external portals`,
+      description: `${externalPortalsPhrase()}: client change requests and approvals, ${AORMS_PORTALS.consultant.label.toLowerCase()} scoped access, contractor and site surfaces. Enabled when portal logins are provisioned.`,
       enabled: true,
       loading: false,
       onToggle: () => undefined,
@@ -171,6 +179,7 @@ export function SystemAdmin() {
       title="System administration"
       description="Installation-level controls: module toggles and data management. Visible only to system administrators."
     >
+      <PageBreadcrumb items={[{ label: "Admin" }, { label: "System" }]} />
       {(setHr.error || setPmc.error || setModule.error) && (
         <Alert severity="error">
           <strong>Could not update module</strong>

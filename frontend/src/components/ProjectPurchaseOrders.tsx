@@ -60,9 +60,11 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
   const invalidate = () =>
     utils.purchaseOrders.listByProject.invalidate({ projectId });
   const updateStatus = trpc.purchaseOrders.updateStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the purchase order" },
     onSuccess: invalidate,
   });
   const remove = trpc.purchaseOrders.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the purchase order" },
     onSuccess: invalidate,
   });
 
@@ -73,6 +75,7 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const create = trpc.purchaseOrders.create.useMutation({
+    meta: { errorTitle: "Couldn't create the purchase order" },
     onSuccess: () => {
       invalidate();
       setOpen(false);
@@ -213,8 +216,8 @@ export function ProjectPurchaseOrders({ projectId }: { projectId: string }) {
         onClose={() => setConfirmId(null)}
       />
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>New purchase order</DialogTitle>
+      <Dialog aria-labelledby="project-purchase-orders-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle id="project-purchase-orders-create-title">New purchase order</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Box sx={{ display: "flex", gap: 1.5 }}>

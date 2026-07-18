@@ -10,10 +10,12 @@
     "test:nav": "playwright test navigation",
     "test:buttons": "playwright test buttons",
     "test:crud": "playwright test crud",
+    "test:a11y": "playwright test accessibility",
     "report": "playwright show-report",
     "install:browser": "playwright install chromium"
   },
   "devDependencies": {
-    "@playwright/test": "^1.49.0"
+    "@axe-core/playwright": "^4.10.1",
+    "@playwright/test": "1.49.0"
   }
 }

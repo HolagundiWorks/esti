@@ -1,4 +1,4 @@
-# ESTI AORMS — robots.txt
+﻿# ESTI AORMS — robots.txt
 # https://aorms.in
 # All crawlers, including AI/LLM crawlers, are welcome on public pages.
 # (Search/answer engines: GPTBot, ClaudeBot, PerplexityBot, Google-Extended, etc.)
@@ -54,8 +54,7 @@ Disallow: /activity
 Disallow: /portal
 Disallow: /collab
 
-# Auto-login launcher and the private investor brief — not for indexing
-Disallow: /demo
+# Auto-login launcher removed — /demo redirects to /login
 Disallow: /investors
 
 # Block API and tRPC endpoints

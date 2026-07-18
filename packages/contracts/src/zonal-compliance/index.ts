@@ -10,7 +10,7 @@ export function computeZonalCompliance(input: ZonalSiteInput): ZonalComplianceRe
   if (!city.calculatorReady) {
     return {
       ok: false,
-      error: `${city.label} calculator is not yet wired in AORMS — reference data is in the zonal compliance library.`,
+      error: `${city.label} calculator is not yet wired in AORMS — reference data is in docs/reference/zonal-compliance/.`,
     };
   }
 

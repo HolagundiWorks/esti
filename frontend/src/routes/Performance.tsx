@@ -29,7 +29,9 @@ import {
 } from "@esti/contracts";
 import { useState } from "react";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
+import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -84,6 +86,15 @@ function MemberScoreCard({
                 <StatusDot color="gray" label="Developing" />
               )}
             </Stack>
+            <RowActionsMenu
+              ariaLabel={`Actions for ${member.memberName}`}
+              actions={[
+                {
+                  label: "Grant reward points",
+                  onClick: () => onGrant(member),
+                },
+              ]}
+            />
           </Box>
 
           <Stack spacing={1}>
@@ -124,12 +135,6 @@ function MemberScoreCard({
               <Typography variant="body2" color="text.secondary">Points</Typography>
               <Typography variant="body2"><strong>{member.totalPoints}</strong></Typography>
             </Stack>
-          </Box>
-
-          <Box>
-            <Button variant="text" size="small" onClick={() => onGrant(member)}>
-              Grant reward points
-            </Button>
           </Box>
         </Stack>
       </Box>
@@ -206,6 +211,7 @@ export function Performance() {
   const [tab, setTab] = useState(0);
 
   const setWellbeing = trpc.aspRf.setWellbeingOptIn.useMutation({
+    meta: { errorTitle: "Couldn't update the wellbeing opt-in" },
     onSuccess: () => {
       utils.aspRf.teamScores.invalidate();
       utils.aspRf.myScore.invalidate();
@@ -220,12 +226,20 @@ export function Performance() {
     awardType: "",
   });
   const grant = trpc.rewards.grant.useMutation({
+    meta: { errorTitle: "Couldn't grant the reward" },
     onSuccess: () => {
       utils.aspRf.teamScores.invalidate();
       setGrantTarget(null);
       setGrantForm({ points: "10", reason: "", awardType: "" });
     },
   });
+
+  const grantBlockedReason =
+    !grantForm.reason.trim()
+      ? "Enter a reason for the reward."
+      : !grantForm.points || Number.parseInt(grantForm.points, 10) <= 0
+        ? "Enter a positive point value."
+        : null;
 
   const teamSize = scores.length;
   const avgScore =
@@ -295,6 +309,7 @@ export function Performance() {
           </Tabs>
         }
       >
+      <PageBreadcrumb items={[{ label: "Teams" }, { label: "Performance" }]} />
       {myScoreQ.data && (
         <Box className="esti-form-panel" sx={{ p: 2 }}>
           <Stack spacing={1.5}>
@@ -341,8 +356,8 @@ export function Performance() {
       </RailLayout>
 
       {/* Grant modal */}
-      <Dialog open={!!grantTarget} onClose={() => setGrantTarget(null)} fullWidth maxWidth="sm">
-        <DialogTitle>Grant reward points — {grantTarget?.memberName ?? ""}</DialogTitle>
+      <Dialog aria-labelledby="performance-grant-title" open={!!grantTarget} onClose={() => setGrantTarget(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="performance-grant-title">Grant reward points — {grantTarget?.memberName ?? ""}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -371,14 +386,20 @@ export function Performance() {
               rows={3}
               value={grantForm.reason}
               onChange={(e) => setGrantForm((f) => ({ ...f, reason: e.target.value }))}
+              helperText={!grantForm.reason.trim() ? "Required — visible in the reward audit log." : undefined}
             />
+            {grantBlockedReason && !grant.isPending && (
+              <Typography variant="caption" color="text.secondary">
+                {grantBlockedReason}
+              </Typography>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button variant="text" onClick={() => setGrantTarget(null)}>Cancel</Button>
           <Button
             variant="contained"
-            disabled={!grantForm.reason || !grantForm.points || grant.isPending}
+            disabled={Boolean(grantBlockedReason) || grant.isPending}
             onClick={() => {
               if (!grantTarget) return;
               grant.mutate({

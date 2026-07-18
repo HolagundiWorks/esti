@@ -55,6 +55,30 @@ pub fn store_license(secrets: &Path, key: &str) -> Result<(), String> {
         .map_err(|e| format!("write license.key: {e}"))
 }
 
+const SESSION_FILE: &str = "session.token";
+
+/// Persist the workspace session bearer token (desktop only — not web localStorage).
+pub fn store_session(secrets: &Path, token: &str) -> Result<(), String> {
+    std::fs::create_dir_all(secrets).map_err(|e| format!("create secrets dir: {e}"))?;
+    std::fs::write(secrets.join(SESSION_FILE), token.trim())
+        .map_err(|e| format!("write session.token: {e}"))
+}
+
+pub fn load_session(secrets: &Path) -> Option<String> {
+    std::fs::read_to_string(secrets.join(SESSION_FILE))
+        .ok()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+}
+
+pub fn clear_session(secrets: &Path) -> Result<(), String> {
+    let path = secrets.join(SESSION_FILE);
+    if path.exists() {
+        std::fs::remove_file(path).map_err(|e| format!("remove session.token: {e}"))?;
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

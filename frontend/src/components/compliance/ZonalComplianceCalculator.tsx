@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import CalculateIcon from "@mui/icons-material/Calculate";
+import { TYPE_SCALE } from "@hcw/ui-kit";
 import {
   HOSAPETE_BUILDING_LINE_KEYS,
   HOSAPETE_BUILDING_TYPES,
@@ -77,6 +78,18 @@ function SiteDiagram({
   buildD: number;
   envelope: number;
 }) {
+  // Sanctioned SVG illustration palette (Token Governance §7) — centralised here,
+  // not scattered as literals. `labelMuted` darkened from #5A6B85 so the 7px
+  // annotation holds ≥4.5:1 on both the plot (#EDEFF4) and build (#CDE8CC) fills.
+  const DIAGRAM = {
+    plotFill: "#EDEFF4",
+    plotEdge: "#334155",
+    buildFill: "#CDE8CC",
+    buildEdge: "#4C8C4A",
+    setback: "#D9534F",
+    label: "#0B2447",
+    labelMuted: "#47566B",
+  } as const;
   const vbW = 320;
   const vbH = 200;
   const margin = 36;
@@ -94,41 +107,41 @@ function SiteDiagram({
   return (
     <Box sx={{ width: 1, maxWidth: 420, mx: "auto" }}>
       <svg viewBox={`0 0 ${vbW} ${vbH}`} width="100%" aria-label="Site setback diagram">
-        <rect x={x0} y={y0} width={pw} height={pd} fill="#EDEFF4" stroke="#334155" strokeWidth={1.5} />
+        <rect x={x0} y={y0} width={pw} height={pd} fill={DIAGRAM.plotFill} stroke={DIAGRAM.plotEdge} strokeWidth={1.5} />
         {hasBuild && (
           <>
-            <rect x={bx0} y={by0} width={bx1 - bx0} height={by1 - by0} fill="#CDE8CC" stroke="#4C8C4A" strokeWidth={1.5} />
+            <rect x={bx0} y={by0} width={bx1 - bx0} height={by1 - by0} fill={DIAGRAM.buildFill} stroke={DIAGRAM.buildEdge} strokeWidth={1.5} />
             <rect
               x={bx0}
               y={by0}
               width={bx1 - bx0}
               height={by1 - by0}
               fill="none"
-              stroke="#D9534F"
+              stroke={DIAGRAM.setback}
               strokeWidth={1}
               strokeDasharray="4 3"
             />
-            <text x={(bx0 + bx1) / 2} y={(by0 + by1) / 2 - 4} textAnchor="middle" fontSize={9} fill="#0B2447" fontWeight={600}>
+            <text x={(bx0 + bx1) / 2} y={(by0 + by1) / 2 - 4} textAnchor="middle" fontSize={9} fill={DIAGRAM.label} fontWeight={600}>
               Buildable area
             </text>
-            <text x={(bx0 + bx1) / 2} y={(by0 + by1) / 2 + 8} textAnchor="middle" fontSize={8} fill="#0B2447">
+            <text x={(bx0 + bx1) / 2} y={(by0 + by1) / 2 + 8} textAnchor="middle" fontSize={8} fill={DIAGRAM.label}>
               {buildW.toFixed(2)} m × {buildD.toFixed(2)} m
             </text>
-            <text x={(bx0 + bx1) / 2} y={(by0 + by1) / 2 + 20} textAnchor="middle" fontSize={7} fill="#5A6B85">
+            <text x={(bx0 + bx1) / 2} y={(by0 + by1) / 2 + 20} textAnchor="middle" fontSize={7} fill={DIAGRAM.labelMuted}>
               = {envelope.toFixed(2)} sqm
             </text>
           </>
         )}
-        <text x={(x0 + x0 + pw) / 2} y={y0 - 10} textAnchor="middle" fontSize={8} fill="#0B2447">
+        <text x={(x0 + x0 + pw) / 2} y={y0 - 10} textAnchor="middle" fontSize={8} fill={DIAGRAM.label}>
           Front {front.toFixed(2)} m
         </text>
-        <text x={(x0 + x0 + pw) / 2} y={y0 + pd + 16} textAnchor="middle" fontSize={8} fill="#0B2447">
+        <text x={(x0 + x0 + pw) / 2} y={y0 + pd + 16} textAnchor="middle" fontSize={8} fill={DIAGRAM.label}>
           Rear {rear.toFixed(2)} m
         </text>
-        <text x={x0 - 8} y={(y0 + y0 + pd) / 2} textAnchor="end" fontSize={8} fill="#0B2447">
+        <text x={x0 - 8} y={(y0 + y0 + pd) / 2} textAnchor="end" fontSize={8} fill={DIAGRAM.label}>
           L {left.toFixed(2)}
         </text>
-        <text x={x0 + pw + 8} y={(y0 + y0 + pd) / 2} textAnchor="start" fontSize={8} fill="#0B2447">
+        <text x={x0 + pw + 8} y={(y0 + y0 + pd) / 2} textAnchor="start" fontSize={8} fill={DIAGRAM.label}>
           R {right.toFixed(2)}
         </text>
       </svg>
@@ -143,7 +156,7 @@ const setbackCols: GridColDef[] = [
 ];
 
 /**
- * Municipal zonal-regulations calculator — ported from `zonal compliance/`
+ * Municipal zonal-regulations calculator — ported from `docs/reference/zonal-compliance/`
  * (Hosapete live; other Karnataka / Pune authorities catalogued for reference).
  */
 export function ZonalComplianceCalculator() {
@@ -213,7 +226,7 @@ export function ZonalComplianceCalculator() {
               <Alert severity={cityMeta.calculatorReady ? "info" : "warning"}>
                 <strong>{cityMeta.source}</strong>
                 {!cityMeta.calculatorReady && (
-                  <> — reference data in <code>zonal compliance/Cities/{cityMeta.referenceFile}</code></>
+                  <> — reference data in <code>docs/reference/zonal-compliance/Cities/{cityMeta.referenceFile}</code></>
                 )}
               </Alert>
             )}
@@ -321,7 +334,7 @@ export function ZonalComplianceCalculator() {
               Calculate
             </Button>
 
-            <Alert severity="warning" sx={{ fontSize: "0.8rem" }}>
+            <Alert severity="warning" sx={{ fontSize: TYPE_SCALE.body2 }}>
               Reference / planning aid only. Verify all values against the authoritative zonal
               regulations before statutory approval.
             </Alert>

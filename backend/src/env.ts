@@ -120,6 +120,8 @@ const Env = z.object({
   DEMO_MASTER_PASSWORD: z.string().default("aorms-demo-admin"),
   /** When false, skip the automatic IST midnight demo re-seed. */
   DEMO_MIDNIGHT_RESET: envBool(true),
+  /** Optional shared secret for external uptime probes (`X-Readyz-Token` header). */
+  READYZ_PROBE_TOKEN: z.string().default(""),
   /** Legacy: owner/repo for `deploy/fetch-installers.sh` (retired `/download` portal). */
   INSTALLER_REPO: z.string().default("HolagundiWorks/esti"),
   /** Optional GitHub token to raise the unauthenticated 60/hr release-API limit. */
@@ -151,6 +153,9 @@ export function assertProductionSecrets(config: Env): void {
   }
   if (!config.COOKIE_SECURE) {
     throw new Error("COOKIE_SECURE must be true in production");
+  }
+  if (config.DEMO_MASTER_PASSWORD === "aorms-demo-admin") {
+    throw new Error("DEMO_MASTER_PASSWORD must not use the default value in production");
   }
 }
 

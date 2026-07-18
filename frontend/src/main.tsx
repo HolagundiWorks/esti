@@ -4,6 +4,7 @@ import "@fontsource/urbanist/500.css";
 import "@fontsource/urbanist/600.css";
 import "@fontsource/urbanist/700.css";
 import "./styles.scss";
+import "@hcw/ui-kit/portal-chrome.scss";
 import "./landing.scss";
 import "./glass.scss";
 import {
@@ -22,15 +23,22 @@ import { ErrorBoundary } from "./components/ErrorBoundary.js";
 import { ToastHost } from "./components/ToastHost.js";
 import { pushToast } from "./lib/toast.js";
 import { newRequestId } from "./lib/request-id.js";
-import { apiUrl, authHeaders } from "./lib/api-base.js";
+import { apiUrl, authHeaders, initDesktopAuth } from "./lib/api-base.js";
+import { initAnalytics } from "./lib/analytics.js";
 import { trpc } from "./lib/trpc.js";
 
-function toErrorToast(error: unknown, meta?: { silent?: boolean }) {
+/** Per-call toast context (Nielsen #9 — errors say WHAT failed):
+ *  `meta: { errorTitle: "Couldn't save the lead" }` on any query/mutation gives
+ *  the failure toast a contextual title; `meta.silent` suppresses it entirely
+ *  (background polls). The raw server message stays in the subtitle. */
+type ToastMeta = { silent?: boolean; errorTitle?: string };
+
+function toErrorToast(error: unknown, meta?: ToastMeta) {
   if (meta?.silent) return;
   const message = error instanceof Error ? error.message : "Unexpected error";
   pushToast({
     kind: "error",
-    title: "Something went wrong",
+    title: meta?.errorTitle ?? "Something went wrong",
     subtitle: message,
   });
 }
@@ -47,9 +55,12 @@ const queryClient = new QueryClient({
     },
   },
   queryCache: new QueryCache({
-    onError: (error, query) => toErrorToast(error, query.meta as { silent?: boolean }),
+    onError: (error, query) => toErrorToast(error, query.meta as ToastMeta),
   }),
-  mutationCache: new MutationCache({ onError: (error) => toErrorToast(error) }),
+  mutationCache: new MutationCache({
+    onError: (error, _variables, _context, mutation) =>
+      toErrorToast(error, mutation.meta as ToastMeta),
+  }),
 });
 const trpcClient = trpc.createClient({
   links: [
@@ -66,21 +77,25 @@ const trpcClient = trpc.createClient({
   ],
 });
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <ErrorBoundary>
-      <trpc.Provider client={trpcClient} queryClient={queryClient}>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter
-            future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-          >
-            <MuiRoot>
-              <App />
-            </MuiRoot>
-          </BrowserRouter>
-          <ToastHost />
-        </QueryClientProvider>
-      </trpc.Provider>
-    </ErrorBoundary>
-  </React.StrictMode>,
-);
+initAnalytics();
+
+void initDesktopAuth().then(() => {
+  ReactDOM.createRoot(document.getElementById("root")!).render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <trpc.Provider client={trpcClient} queryClient={queryClient}>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter
+              future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+            >
+              <MuiRoot>
+                <App />
+              </MuiRoot>
+            </BrowserRouter>
+            <ToastHost />
+          </QueryClientProvider>
+        </trpc.Provider>
+      </ErrorBoundary>
+    </React.StrictMode>,
+  );
+});

@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { ReactNode } from "react";
+import { AORMS_PORTALS } from "../../lib/product-nomenclature.js";
 
 export type AdminSectionKey =
   | "dashboard"
@@ -55,7 +56,7 @@ export function AdminConsoleShell({
       >
         <Box>
           <Typography variant="h4" component="h1">
-            Licensing console
+            {AORMS_PORTALS.account.licensing}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Manage accounts, organizations, licences, and API keys for AORMS Standard.
@@ -82,9 +83,9 @@ export function AdminConsoleShell({
                 key={s.key}
                 selected={section === s.key}
                 onClick={() => onSectionChange(s.key)}
-                sx={{ borderRadius: 1, mx: 0.5, my: 0.25 }}
+                sx={{ mx: 0.5, my: 0.25 }}
               >
-                <ListItemText primary={s.label} primaryTypographyProps={{ variant: "body2" }} />
+                <ListItemText primary={s.label} slotProps={{ primary: { variant: "body2" } }} />
                 {s.key === "requests" && pendingRequests > 0 && (
                   <Badge badgeContent={pendingRequests} color="primary" sx={{ mr: 1 }} />
                 )}

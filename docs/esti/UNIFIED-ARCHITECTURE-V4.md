@@ -1,7 +1,13 @@
 # AORMS — Unified Architecture v4.1 (north-star)
 
-> **Status:** North-star + **single source of truth for current system state** ·
-> **Authored:** 2026-06-25 · **Reconciled:** 2026-06-28 · Owner: Holagundi Consulting Works
+> **Status:** North-star + **single source of truth for AORMS-Studio system state** ·
+> **Authored:** 2026-06-25 · **Reconciled:** 2026-06-28 · **Nomenclature:** 2026-07-10 · Owner: HCW
+>
+> **AORMS** = **Accelerated Operational Resources Management System** (platform).
+> This document's **System state** section describes **AORMS-Studio**
+> workspace shipped from this monorepo. Platform north-star:
+> [AORMS-DEVELOPMENT-SPEC.md](AORMS-DEVELOPMENT-SPEC.md).
+> Naming: [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md).
 >
 > ⚠️ **Known stale (2026-07-09):** `a9cd072` removed the Knowledge Bank (`kb.*`) and CMS
 > (`cms.*`) entirely — the "System state" and pillar-4 sections below still describe
@@ -76,11 +82,17 @@ stack on a cleaner model):
 
 ## What AORMS is
 
-**AORMS = Architecture Office Resource Management System** — the **workspace**:
-one operating system for an Indian architecture practice, from first client
-conversation to final account on site. **ESTI = Embedded Studio Intelligence** —
-the intelligence/agent layer embedded in the workspace (ESTI AI, Ask ESTI, the
-cognition engine, ESTI Pulse). It is delivered as a single codebase (pnpm monorepo:
+**AORMS = Accelerated Operational Resources Management System** — the **platform**
+for AEC consulting firms. **AORMS-Studio** is the shipped **architecture app**
+(this monorepo): one operating system for an Indian architecture practice, from
+first client conversation to final account on site. **AORMS-Consultancy** is the
+**engineering app** on the roadmap — structural, MEP, civil, and multidisciplinary
+firms on the same **`AORMS-{Name}`** pattern.
+
+**ESTI = Embedded Studio Intelligence** — the **internal AI agent** in
+**AORMS-Studio** (ESTI AI, Ask ESTI, the cognition engine, ESTI Pulse).
+**EmOI = Embedded Operational Intelligence** — the **external AI agent** on the
+AORMS platform (validates and gates content from outside sources). The codebase is delivered as a single monorepo (pnpm:
 `packages/contracts`, `backend`, `frontend`, Python `worker`) gated two ways that
 are orthogonal: **`can(role, capability)`** by *person*
 ([ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md)) and **`planAllows(plan, feature)`**
@@ -138,8 +150,9 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
   [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
 
 ### 5. Portals — ◐
-- **Implemented:** Client portal (`portal`), Consultant/collaborator portal (`collab`), Contractor portal (`contractorPortal`) — token-scoped site coordination / view-only project access (Lite: view-only; writes gated to Pro). All HCW-UI-Kit (MUI), mobile-first.
-- **Needs creation:** a dedicated **Site Supervisor** surface. Today the L5 *Site Supervisor* role is internal staff inside the office workspace; the unified vision is a mobile-first site-ops surface (measurements, snags, progress, photos) consistent with the other portals.
+- **Implemented (AORMS-Studio):** Client portal (`portal`), Consultant portal (`collab`), Contractor portal (`contractorPortal`, stub rebuild), Site portal (`SitePortal` — mobile-first site inspections). All use `ExternalPortalShell` + HCW-UI-Kit (`GlassRail`), mobile-first.
+- **Account surfaces:** Personal **AORMS account** (`/account`), **Company account** (`/company-account`), **Licensing console** (`/platform-admin`) — not vertical workspaces; see [AORMS-PLATFORM-NOMENCLATURE](AORMS-PLATFORM-NOMENCLATURE.md) § Portals and surfaces.
+- **Staff workspace:** **AORMS-Studio** at `studio.aorms.in` — never called “AORMS portal” in product copy.
 
 ### 6. AI/ML/LLM extraction & decision support — ◐
 - **Implemented:** ESTICAD companion takeoff capture + linked drawings (`companion`), DXF→SVG conversion + AI CAD drafts, reconciliation import + matching (worker `reconcile_import`, `pandas`), dashboard cognition + risk signals.

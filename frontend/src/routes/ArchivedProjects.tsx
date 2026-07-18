@@ -6,6 +6,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -14,6 +15,7 @@ import { styled } from "@mui/material/styles";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { useRef, useState } from "react";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
@@ -65,8 +67,12 @@ function FileArchiveModal({
   const p = previewQ.data;
   const today = new Date().toISOString().slice(0, 10);
 
-  const archive = trpc.projectArchive.archive.useMutation();
-  const restore = trpc.projectArchive.restore.useMutation();
+  const archive = trpc.projectArchive.archive.useMutation({
+    meta: { errorTitle: "Couldn't archive the project files" },
+  });
+  const restore = trpc.projectArchive.restore.useMutation({
+    meta: { errorTitle: "Couldn't restore the project files" },
+  });
 
   async function archiveAndDownload() {
     setBusy(true);
@@ -103,11 +109,16 @@ function FileArchiveModal({
   const archived = !!p?.filesArchivedAt;
 
   return (
-    <Dialog open onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{`Files — ${project.ref} · ${project.title}`}</DialogTitle>
+    <Dialog aria-labelledby="archived-projects-files-title" open onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle id="archived-projects-files-title">{`Files — ${project.ref} · ${project.title}`}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
-          {previewQ.isLoading && <Typography>Reading files…</Typography>}
+          {previewQ.isLoading && (
+            <Stack spacing={1}>
+              <Skeleton variant="text" width="55%" />
+              <Skeleton variant="rectangular" height={72} />
+            </Stack>
+          )}
           {p && !archived && (
             <>
               <Typography>
@@ -180,6 +191,7 @@ export function ArchivedProjects() {
   const [fileTarget, setFileTarget] = useState<{ id: string; ref: string; title: string } | null>(null);
 
   const restore = trpc.projectOffice.restore.useMutation({
+    meta: { errorTitle: "Couldn't restore the project" },
     onSuccess: (project) => {
       setMessage(`${project.title} restored to active projects`);
       utils.projectOffice.listArchived.invalidate();
@@ -189,6 +201,7 @@ export function ArchivedProjects() {
 
 
   const purge = trpc.projectOffice.purge.useMutation({
+    meta: { errorTitle: "Couldn't purge the project" },
     onSuccess: () => {
       setMessage(`${purgeTarget?.title ?? "Project"} marked for purge`);
       setPurgeTarget(null);
@@ -279,6 +292,7 @@ export function ArchivedProjects() {
         title="Archived projects"
         description="Retained projects hidden from active work. Restore preserves full history. Export downloads a JSON bundle before permanent purge. Purge is irreversible and requires the retention period to have expired (default 90 days after archive)."
       >
+        <PageBreadcrumb items={[{ label: "Admin" }, { label: "Archived projects" }]} />
         {message && (
         <Alert severity="success" onClose={() => setMessage(null)}>
           <AlertTitle>Done</AlertTitle>
@@ -331,6 +345,7 @@ export function ArchivedProjects() {
       )}
 
       <Dialog
+        aria-labelledby="archived-projects-purge-title"
         open={!!purgeTarget}
         onClose={() => {
           setPurgeTarget(null);
@@ -339,7 +354,7 @@ export function ArchivedProjects() {
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>{`Purge ${purgeTarget?.ref ?? ""} — ${purgeTarget?.title ?? ""}`}</DialogTitle>
+        <DialogTitle id="archived-projects-purge-title">{`Purge ${purgeTarget?.ref ?? ""} — ${purgeTarget?.title ?? ""}`}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography>
@@ -352,6 +367,7 @@ export function ArchivedProjects() {
               id="purge-password"
               label="Admin password (confirm identity)"
               type="password"
+              autoComplete="new-password"
               value={purgePassword}
               onChange={(e) => setPurgePassword(e.target.value)}
             />

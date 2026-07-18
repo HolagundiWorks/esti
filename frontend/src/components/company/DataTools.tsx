@@ -19,6 +19,7 @@ export function DataTools() {
   const [purgeOpen, setPurgeOpen] = useState(false);
   const [pwd, setPwd] = useState("");
   const purge = trpc.admin.purge.useMutation({
+    meta: { errorTitle: "Couldn't reset the data" },
     onSuccess: (r) => {
       utils.invalidate();
       setPurgeOpen(false);
@@ -50,8 +51,8 @@ export function DataTools() {
         </Box>
       </Stack>
 
-      <Dialog open={purgeOpen} onClose={closePurge} fullWidth maxWidth="xs">
-        <DialogTitle>Reset all data?</DialogTitle>
+      <Dialog aria-labelledby="data-tools-purge-title" open={purgeOpen} onClose={closePurge} fullWidth maxWidth="xs">
+        <DialogTitle id="data-tools-purge-title">Reset all data?</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2">

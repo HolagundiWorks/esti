@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AORMS — Investor pitch deck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #141517;
+      --muted: #5c6370;
+      --accent: #ff4f18;
+      --canvas: #f2f4f7;
+      --card: #ffffff;
+      --sans: "Urbanist", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: var(--sans); color: var(--ink); background: var(--canvas); }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    @page { size: A4 landscape; margin: 0; }
+
+    .slide {
+      width: 297mm;
+      height: 210mm;
+      page-break-after: always;
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(255, 79, 24, 0.06), transparent 55%),
+        var(--canvas);
+      padding: 18mm 22mm;
+      display: flex;
+      flex-direction: column;
+    }
+    .slide:last-child { page-break-after: auto; }
+
+    .slide__brand {
+      display: flex;
+      align-items: center;
+      gap: 4mm;
+      margin-bottom: 10mm;
+    }
+    .slide__mark {
+      width: 10mm;
+      height: 10mm;
+      background: var(--accent);
+      mask: url("./aorms-mark.png") center / contain no-repeat;
+      -webkit-mask: url("./aorms-mark.png") center / contain no-repeat;
+    }
+    .slide__word {
+      font-size: 14pt;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .slide__n {
+      position: absolute;
+      top: 16mm;
+      right: 22mm;
+      font-size: 42pt;
+      font-weight: 700;
+      color: rgba(20, 21, 23, 0.08);
+      line-height: 1;
+    }
+
+    .slide__kicker {
+      font-size: 10pt;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 4mm;
+    }
+
+    .slide__title {
+      font-size: 28pt;
+      font-weight: 700;
+      line-height: 1.15;
+      max-width: 220mm;
+      margin-bottom: 8mm;
+    }
+
+    .slide__body {
+      font-size: 13pt;
+      line-height: 1.55;
+      color: var(--muted);
+      max-width: 230mm;
+    }
+
+    .slide--cover {
+      justify-content: center;
+      background:
+        linear-gradient(160deg, rgba(255, 79, 24, 0.12), transparent 50%),
+        var(--ink);
+      color: #fff;
+    }
+    .slide--cover .slide__title { font-size: 34pt; color: #fff; max-width: 240mm; }
+    .slide--cover .slide__body { color: rgba(255, 255, 255, 0.78); font-size: 14pt; }
+    .slide--cover .slide__kicker { color: #ffb89a; }
+    .slide--cover .slide__word { color: #fff; }
+
+    .slide--contact {
+      justify-content: flex-end;
+    }
+    .slide--contact .slide__title { font-size: 32pt; }
+    .slide__fine {
+      margin-top: 10mm;
+      font-size: 10pt;
+      color: var(--muted);
+    }
+    .slide__email {
+      margin-top: 6mm;
+      font-size: 14pt;
+      font-weight: 600;
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    @media screen {
+      body { padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+      .slide {
+        box-shadow: 0 8px 32px rgba(20, 21, 23, 0.12);
+        border-radius: 8px;
+        width: min(297mm, 100%);
+        height: auto;
+        min-height: 210mm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<section class="slide slide--cover">
+  <div class="slide__brand">
+    <span class="slide__mark" aria-hidden="true"></span>
+    <span class="slide__word">AORMS</span>
+  </div>
+  <p class="slide__kicker">Investor brief</p>
+  <h1 class="slide__title">The office intelligence system for architecture practices.</h1>
+  <p class="slide__body">
+    A continuous cognition engine that observes an architecture firm, reasons across its pressure points,
+    predicts risk, and recommends the one action that matters — built India-native, from the ground up.
+    Human Centric Works · 2026
+  </p>
+</section>
+
+<section class="slide">
+  <span class="slide__n" aria-hidden="true">01</span>
+  <div class="slide__brand"><span class="slide__mark" aria-hidden="true"></span><span class="slide__word">AORMS</span></div>
+  <p class="slide__kicker">The problem</p>
+  <h2 class="slide__title">Architecture firms fail on operations, not design</h2>
+  <p class="slide__body">
+    Brilliant studios run on spreadsheets, WhatsApp, and the memory of one or two senior people. The drawings are excellent;
+    the operations are improvised. Money and momentum leak in the quiet gaps between projects — an approval that sat too long,
+    an invoice never raised, a consultant who went silent. None of it is a design failure. All of it is a coordination failure,
+    and the principal is the bottleneck.
+  </p>
+</section>
+
+<section class="slide">
+  <span class="slide__n" aria-hidden="true">02</span>
+  <div class="slide__brand"><span class="slide__mark" aria-hidden="true"></span><span class="slide__word">AORMS</span></div>
+  <p class="slide__kicker">The solution</p>
+  <h2 class="slide__title">Continuous office cognition</h2>
+  <p class="slide__body">
+    AORMS reads the whole practice as one system — clients, drawings, approvals, billing, revisions, and team load — then
+    observes, reasons, predicts where pressure is building, and recommends the single highest-leverage action for the day.
+    It does the watching so the principal doesn't have to. The screen is calm by design: most of the office is fine, so it
+    says so, and surfaces the one place that needs attention.
+  </p>
+</section>
+
+<section class="slide">
+  <span class="slide__n" aria-hidden="true">03</span>
+  <div class="slide__brand"><span class="slide__mark" aria-hidden="true"></span><span class="slide__word">AORMS</span></div>
+  <p class="slide__kicker">Why now</p>
+  <h2 class="slide__title">Reasoning is finally good enough — and practices are digitising</h2>
+  <p class="slide__body">
+    LLM and behavioural reasoning have crossed the threshold where software can triage an office, not just store its records.
+    At the same time, Indian practices are moving off paper and into tools, while compliance (GST, TDS, COA fees) grows more
+    intricate every year. The firm that encodes that complexity natively wins the workflow.
+  </p>
+</section>
+
+<section class="slide">
+  <span class="slide__n" aria-hidden="true">04</span>
+  <div class="slide__brand"><span class="slide__mark" aria-hidden="true"></span><span class="slide__word">AORMS</span></div>
+  <p class="slide__kicker">Market</p>
+  <h2 class="slide__title">An underserved, India-native segment</h2>
+  <p class="slide__body">
+    India has one of the largest pools of registered architects in the world, and the mid-size practice — busy enough to feel
+    the pain, too small for enterprise software — is poorly served by generic project tools built for somewhere else. AORMS is
+    built for that firm: rupees in paise, the April–March year, GST and SAC codes, rate books, and COA fee logic, assumed from
+    the ground up.
+  </p>
+</section>
+
+<section class="slide">
+  <span class="slide__n" aria-hidden="true">05</span>
+  <div class="slide__brand"><span class="slide__mark" aria-hidden="true"></span><span class="slide__word">AORMS</span></div>
+  <p class="slide__kicker">Product &amp; moat</p>
+  <h2 class="slide__title">Deep domain encoding for AEC consultancies</h2>
+  <p class="slide__body">
+    The moat is depth in AEC consulting-office operations: operational and design frameworks for architecture and engineering
+    firms; EmOI dual-tier intelligence; revision and approval models in AORMS-Studio; governed knowledge and audit trails.
+    One standard cloud licence with unlimited users — usage-based storage and AI.
+  </p>
+</section>
+
+<section class="slide">
+  <span class="slide__n" aria-hidden="true">06</span>
+  <div class="slide__brand"><span class="slide__mark" aria-hidden="true"></span><span class="slide__word">AORMS</span></div>
+  <p class="slide__kicker">Business model</p>
+  <h2 class="slide__title">Self-hosted licence and hosted SaaS</h2>
+  <p class="slide__body">
+    AORMS is cloud SaaS at aorms.in — one standard licence, unlimited users, 5 GB included storage, and metered storage plus
+    AI beyond that. BYO API key supported. The public marketing surfaces, wiki, and demo double as a low-cost acquisition channel.
+  </p>
+</section>
+
+<section class="slide">
+  <span class="slide__n" aria-hidden="true">07</span>
+  <div class="slide__brand"><span class="slide__mark" aria-hidden="true"></span><span class="slide__word">AORMS</span></div>
+  <p class="slide__kicker">Traction</p>
+  <h2 class="slide__title">A working, demoable product — not a deck of mockups</h2>
+  <p class="slide__body">
+    The AORMS-Studio vertical is built and demoable: projects, fees, GST invoicing, drawings, revisions, client and consultant
+    portals, Studio Intelligence, and ESTI. A fully seeded demo practice opens in one click; dashboard numbers are computed from
+    real records. Platform frameworks and additional industry workspaces are on the roadmap.
+  </p>
+</section>
+
+<section class="slide slide--contact">
+  <p class="slide__kicker">The ask</p>
+  <h2 class="slide__title">Let's talk</h2>
+  <p class="slide__body">
+    We're raising to expand jurisdiction coverage, stand up the hosted offering, and build out go-to-market.
+  </p>
+  <a class="slide__email" href="mailto:invest@aorms.in">invest@aorms.in</a>
+  <p class="slide__fine">Human Centric Works · AORMS · aorms.in</p>
+</section>
+
+</body>
+</html>

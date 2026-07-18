@@ -68,6 +68,10 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    // Container-based tooling (Playwright in a docker network for visual
+    // regression) reaches the dev server by hostname; allow it past Vite's
+    // DNS-rebinding host check. Harmless for normal localhost/LAN dev.
+    allowedHosts: ["host.docker.internal"],
     watch: { usePolling: true },
     fs: {
       // vendor/ is inside estiRoot — no need to allow the parent directory.

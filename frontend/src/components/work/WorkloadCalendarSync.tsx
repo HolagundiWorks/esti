@@ -25,6 +25,7 @@ export function WorkloadCalendarSync() {
   });
 
   const regenerate = trpc.workload.regenerateCalendarToken.useMutation({
+    meta: { errorTitle: "Couldn't regenerate the calendar link" },
     onSuccess: () => {
       utils.workload.calendarSubscription.invalidate();
     },

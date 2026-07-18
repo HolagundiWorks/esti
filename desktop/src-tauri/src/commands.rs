@@ -70,6 +70,29 @@ pub fn submit_license(key: String, app: AppHandle) -> Result<(), String> {
     crate::provision::config::store_license(&paths.secrets, key)
 }
 
+/// Persist the workspace session token in the app secrets dir (not web localStorage).
+#[tauri::command]
+pub fn store_session_token(token: String, app: AppHandle) -> Result<(), String> {
+    let token = token.trim();
+    if token.is_empty() {
+        return Err("Empty session token.".into());
+    }
+    let paths = crate::paths::resolve(&app).map_err(|e| e.to_string())?;
+    crate::provision::config::store_session(&paths.secrets, token)
+}
+
+#[tauri::command]
+pub fn load_session_token(app: AppHandle) -> Result<Option<String>, String> {
+    let paths = crate::paths::resolve(&app).map_err(|e| e.to_string())?;
+    Ok(crate::provision::config::load_session(&paths.secrets))
+}
+
+#[tauri::command]
+pub fn clear_session_token(app: AppHandle) -> Result<(), String> {
+    let paths = crate::paths::resolve(&app).map_err(|e| e.to_string())?;
+    crate::provision::config::clear_session(&paths.secrets)
+}
+
 /// Open the dedicated Manager status window (small, separate from the app SPA).
 /// Loads `manager.html` bundled under the app's resources.
 pub fn open_manager_window(app: &AppHandle) -> Result<(), String> {

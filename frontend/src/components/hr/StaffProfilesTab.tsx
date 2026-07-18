@@ -31,7 +31,7 @@ import {
 import { type CSSProperties, useState } from "react";
 import { StaffAvatar, resolveColor } from "../StaffAvatar.js";
 import { StatusDot } from "../StatusTag.js";
-import { apiUrl, authHeaders } from "../../lib/api-base.js";
+import { useUploadAuth } from "../../lib/uploadAuth.js";
 import { trpc } from "../../lib/trpc.js";
 
 const HiddenFileInput = styled("input")({ display: "none" });
@@ -39,9 +39,11 @@ const HiddenFileInput = styled("input")({ display: "none" });
 type DocType = keyof typeof HR_DOCUMENT_TYPES;
 
 export function StaffProfilesTab() {
+  const { authorizedFetch } = useUploadAuth();
   const teamQ = trpc.team.list.useQuery();
   const utils = trpc.useUtils();
   const updateLevel = trpc.hrProfile.updateLevel.useMutation({
+    meta: { errorTitle: "Couldn't update the staff level" },
     onSuccess: () => utils.team.list.invalidate(),
   });
 
@@ -63,9 +65,11 @@ export function StaffProfilesTab() {
     { enabled: !!selectedId },
   );
   const verifyDoc = trpc.hrProfile.verifyDocument.useMutation({
+    meta: { errorTitle: "Couldn't verify the document" },
     onSuccess: () => utils.hrProfile.getProfile.invalidate({ memberId: selectedId! }),
   });
   const deleteDoc = trpc.hrProfile.deleteDocument.useMutation({
+    meta: { errorTitle: "Couldn't delete the document" },
     onSuccess: () => utils.hrProfile.getProfile.invalidate({ memberId: selectedId! }),
   });
 
@@ -77,15 +81,15 @@ export function StaffProfilesTab() {
     setUploading(true);
     setUploadMsg(null);
     try {
-      const fd = new FormData();
-      fd.append("file", selectedFile);
-      fd.append("memberId", selectedId);
-      fd.append("documentType", uploadForm.documentType);
-      fd.append("documentName", uploadForm.documentName || HR_DOCUMENT_TYPES[uploadForm.documentType]);
-      if (uploadForm.issueDate) fd.append("issueDate", uploadForm.issueDate);
-      if (uploadForm.expiryDate) fd.append("expiryDate", uploadForm.expiryDate);
-      if (uploadForm.notes) fd.append("notes", uploadForm.notes);
-      const res = await fetch(apiUrl("/upload/hr-document"), { method: "POST", body: fd, credentials: "include", headers: authHeaders() });
+      const res = await authorizedFetch("/upload/hr-document", (fd) => {
+        fd.append("file", selectedFile);
+        fd.append("memberId", selectedId);
+        fd.append("documentType", uploadForm.documentType);
+        fd.append("documentName", uploadForm.documentName || HR_DOCUMENT_TYPES[uploadForm.documentType]);
+        if (uploadForm.issueDate) fd.append("issueDate", uploadForm.issueDate);
+        if (uploadForm.expiryDate) fd.append("expiryDate", uploadForm.expiryDate);
+        if (uploadForm.notes) fd.append("notes", uploadForm.notes);
+      });
       if (!res.ok) {
         const e = await res.json().catch(() => ({ error: "Upload failed" }));
         setUploadMsg(`Upload failed: ${(e as { error: string }).error}`);
@@ -112,8 +116,17 @@ export function StaffProfilesTab() {
             return (
               <Paper
                 key={m.id}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSelected}
                 className={`esti-profile-member-tile${isSelected ? " esti-profile-member-tile--active" : ""}`}
                 onClick={() => setSelectedId(m.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelectedId(m.id);
+                  }
+                }}
                 sx={{ p: 2, cursor: "pointer" }}
                 style={{ "--esti-staff-color": color } as CSSProperties}
               >
@@ -280,12 +293,13 @@ export function StaffProfilesTab() {
 
       {/* Upload document modal */}
       <Dialog
+        aria-labelledby="staff-profiles-tab-upload-title"
         open={uploadOpen}
         onClose={() => { setUploadOpen(false); setSelectedFile(null); }}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>{`Upload document${selected ? ` — ${selected.name}` : ""}`}</DialogTitle>
+        <DialogTitle id="staff-profiles-tab-upload-title">{`Upload document${selected ? ` — ${selected.name}` : ""}`}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

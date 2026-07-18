@@ -1,8 +1,9 @@
-import { Box, Tab, Tabs } from "@mui/material";
+import { Box, Stack, Tab, Tabs, Typography } from "@mui/material";
 import { useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import { useScreenActions } from "@hcw/ui-kit";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { ActivityTab } from "../components/work/ActivityTab.js";
 import { AttendanceTab } from "../components/work/AttendanceTab.js";
@@ -11,7 +12,7 @@ import { TaskCalendarTab } from "../components/work/TaskCalendarTab.js";
 import { TasksTab, type TasksTabHandle } from "../components/work/TasksTab.js";
 import { WorkloadTab } from "../components/work/WorkloadTab.js";
 import { can } from "@esti/contracts";
-import { type WorkTabSlug } from "../components/work/workHelpers.js";
+import { canonicalWorkTab, type WorkTabSlug } from "../components/work/workHelpers.js";
 import { ClientRequests } from "./ClientRequests.js";
 import { ConsultantRequests } from "./ConsultantRequests.js";
 import { useAuth } from "../lib/auth.js";
@@ -40,11 +41,26 @@ export function Work() {
       ? [{ slug: "workload" as WorkTabSlug, label: "Workload", panel: <WorkloadTab /> }]
       : []),
     { slug: "activity", label: "Activity", panel: <ActivityTab /> },
-    // Portal triage tabs: L4+ (write)
+    // Portal triage: one "Requests" tab, both queues stacked (Miller — the tab
+    // bar had hit 8; legacy client-/consultant-requests slugs alias here).
     ...(canWrite
       ? [
-          { slug: "client-requests" as WorkTabSlug, label: "Client requests", panel: <ClientRequests embedded /> },
-          { slug: "consultant-requests" as WorkTabSlug, label: "Consultant requests", panel: <ConsultantRequests embedded /> },
+          {
+            slug: "requests" as WorkTabSlug,
+            label: "Requests",
+            panel: (
+              <Stack spacing={4}>
+                <Stack spacing={1}>
+                  <Typography variant="h6" component="h2">Client requests</Typography>
+                  <ClientRequests embedded />
+                </Stack>
+                <Stack spacing={1}>
+                  <Typography variant="h6" component="h2">Consultant requests</Typography>
+                  <ConsultantRequests embedded />
+                </Stack>
+              </Stack>
+            ),
+          },
         ]
       : []),
     // Attendance: HR module + L2+ (hr:manage)
@@ -53,7 +69,7 @@ export function Work() {
       : []),
   ];
 
-  const tab = (searchParams.get("tab") ?? "tasks") as WorkTabSlug;
+  const tab = canonicalWorkTab((searchParams.get("tab") ?? "tasks") as WorkTabSlug);
   const tabIndex = Math.max(
     0,
     allTabs.findIndex((t) => t.slug === tab),
@@ -99,6 +115,12 @@ export function Work() {
         </Tabs>
       }
     >
+      <PageBreadcrumb
+        items={[
+          { label: "Tasks" },
+          { label: allTabs[tabIndex]?.label ?? "Tasks" },
+        ]}
+      />
       <Box>{allTabs[tabIndex]?.panel}</Box>
     </RailLayout>
   );

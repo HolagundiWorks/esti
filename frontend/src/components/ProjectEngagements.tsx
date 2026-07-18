@@ -38,9 +38,11 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
     utils.engagements.listByProject.invalidate({ projectId });
 
   const updateStatus = trpc.engagements.updateStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the engagement status" },
     onSuccess: invalidate,
   });
   const pay = trpc.engagements.recordPayment.useMutation({
+    meta: { errorTitle: "Couldn't record the payment" },
     onSuccess: () => {
       invalidate();
       setPayId(null);
@@ -56,6 +58,7 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
   const [payAmt, setPayAmt] = useState("");
 
   const create = trpc.engagements.create.useMutation({
+    meta: { errorTitle: "Couldn't create the engagement" },
     onSuccess: () => {
       invalidate();
       setOpen(false);
@@ -173,8 +176,8 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
         </TableContainer>
       </Stack>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle>Engage a consultant</DialogTitle>
+      <Dialog aria-labelledby="project-engagements-engage-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle id="project-engagements-engage-title">Engage a consultant</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -230,8 +233,8 @@ export function ProjectEngagements({ projectId }: { projectId: string }) {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={payId !== null} onClose={() => setPayId(null)} fullWidth maxWidth="xs">
-        <DialogTitle>Record payment</DialogTitle>
+      <Dialog aria-labelledby="project-engagements-payment-title" open={payId !== null} onClose={() => setPayId(null)} fullWidth maxWidth="xs">
+        <DialogTitle id="project-engagements-payment-title">Record payment</DialogTitle>
         <DialogContent>
           <TextField
             id="eng-pay"

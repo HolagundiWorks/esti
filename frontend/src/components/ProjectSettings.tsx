@@ -30,11 +30,17 @@ import {
 } from "@esti/contracts";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
+import SaveOutlined from "@mui/icons-material/SaveOutlined";
+import { useScreenActions } from "@hcw/ui-kit";
 import { useCapabilities } from "../lib/capabilities.js";
 import { derivePhaseStageStatus, PHASE_STAGE_TAG } from "../lib/currentPhase.js";
+import { pushToast } from "../lib/toast.js";
 import { trpc } from "../lib/trpc.js";
 import { CurrentPhaseSelect } from "./CurrentPhaseSelect.js";
 import { ProjectEngagements } from "./ProjectEngagements.js";
+import { ProjectFloorsPanel } from "./ProjectFloorsPanel.js";
+import { ProjectStructuralDefaultsPanel } from "./ProjectStructuralDefaultsPanel.js";
 import { StatusDot, StatusTag } from "./StatusTag.js";
 
 const ACTIVITY_TAG: Record<
@@ -68,6 +74,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
     { enabled: !!projectId },
   );
   const setRevisionBudget = trpc.phases.setRevisionBudget.useMutation({
+    meta: { errorTitle: "Couldn't save the revision budget" },
     onSuccess: () => utils.phases.listByProject.invalidate({ projectId }),
   });
   const [revBudgetDraft, setRevBudgetDraft] = useState<Record<string, string>>({});
@@ -81,26 +88,31 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   }, [projectQ.data]);
 
   const update = trpc.projectOffice.update.useMutation({
+    meta: { errorTitle: "Couldn't update the project" },
     onSuccess: () => {
       utils.projectOffice.byId.invalidate({ id: projectId });
       utils.projectOffice.list.invalidate();
       setMsg("Project updated");
+      pushToast({ kind: "success", title: "Project updated" });
     },
   });
 
   const [statusDraft, setStatusDraft] = useState<ProjectStatus | "">("");
   const updateStatus = trpc.projectOffice.updateStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the project status" },
     onSuccess: () => {
       utils.projectOffice.byId.invalidate({ id: projectId });
       utils.projectOffice.list.invalidate();
       utils.projectOffice.activationStatus.invalidate({ id: projectId });
       setStatusDraft("");
       setMsg("Project status updated");
+      pushToast({ kind: "success", title: "Status updated" });
     },
   });
 
   const [note, setNote] = useState("");
   const addLog = trpc.projectOffice.addLog.useMutation({
+    meta: { errorTitle: "Couldn't add the log entry" },
     onSuccess: () => {
       utils.projectOffice.logs.invalidate({ projectId });
       setNote("");
@@ -110,8 +122,10 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [adminPwd, setAdminPwd] = useState("");
   const remove = trpc.projectOffice.remove.useMutation({
+    meta: { errorTitle: "Couldn't archive the project" },
     onSuccess: () => {
       utils.projectOffice.list.invalidate();
+      pushToast({ kind: "success", title: "Project archived" });
       navigate("/projects");
     },
   });
@@ -122,6 +136,78 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   }
 
   const p = projectQ.data;
+  const savedPmc = (p as { pmcEnabled?: boolean } | undefined)?.pmcEnabled ?? false;
+  const pmcDirty = firmPmcEnabled && pmcEnabled !== savedPmc;
+
+  useScreenActions(
+    [
+      ...(canProjectDelete
+        ? [
+            {
+              id: "archive-project",
+              zone: "left" as const,
+              tone: "danger" as const,
+              label: "Archive",
+              icon: <DeleteOutlined />,
+              onClick: () => setConfirmDelete(true),
+            },
+          ]
+        : []),
+      ...(statusDraft
+        ? [
+            {
+              id: "update-status",
+              zone: "right" as const,
+              tone: "primary" as const,
+              label: updateStatus.isPending ? "Updating…" : "Update status",
+              icon: <SaveOutlined />,
+              disabled: updateStatus.isPending,
+              onClick: () => {
+                if (statusDraft) updateStatus.mutate({ id: projectId, status: statusDraft });
+              },
+            },
+          ]
+        : pmcDirty
+          ? [
+              {
+                id: "save-pmc",
+                zone: "right" as const,
+                tone: "primary" as const,
+                label: update.isPending ? "Saving…" : "Save PMC",
+                icon: <SaveOutlined />,
+                disabled: update.isPending || !p,
+                onClick: () => {
+                  if (!p) return;
+                  update.mutate({
+                    id: projectId,
+                    title: p.title,
+                    status: p.status as ProjectStatus,
+                    projectType: p.projectType as (typeof ProjectType.options)[number],
+                    workType: ((p as { workType?: string }).workType ?? "ARCHITECTURE") as
+                      | "ARCHITECTURE"
+                      | "INTERIOR"
+                      | "LANDSCAPE"
+                      | "MISC",
+                    jurisdiction: p.jurisdiction as (typeof Jurisdiction.options)[number],
+                    dateStart: p.dateStart ?? null,
+                    pmcEnabled,
+                  });
+                },
+              },
+            ]
+          : []),
+    ],
+    [
+      canProjectDelete,
+      statusDraft,
+      pmcDirty,
+      pmcEnabled,
+      update.isPending,
+      updateStatus.isPending,
+      p,
+      projectId,
+    ],
+  );
 
   return (
     <Box sx={{ mt: 2 }}>
@@ -181,23 +267,18 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
                       {updateStatus.error.message}
                     </Alert>
                   )}
-                  <div>
-                    <Button
-                      variant="contained"
-                      disabled={!statusDraft || updateStatus.isPending}
-                      onClick={() => {
-                        if (statusDraft) updateStatus.mutate({ id: projectId, status: statusDraft });
-                      }}
-                    >
-                      Update status
-                    </Button>
-                  </div>
+                  <Typography variant="caption" color="text.secondary">
+                    Use the Action Dock (bottom) to commit the status change.
+                  </Typography>
                 </>
               );
             })()}
           </Stack>
         </Box>
       )}
+
+      <ProjectFloorsPanel projectId={projectId} />
+      <ProjectStructuralDefaultsPanel projectId={projectId} />
 
       {firmPmcEnabled && (
       <Box sx={{ maxWidth: 640, p: 2, mt: 2 }}>
@@ -215,28 +296,11 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
             }
             label="PMC on this project"
           />
-          <div>
-            <Button
-              variant="contained"
-              disabled={update.isPending || !projectQ.data}
-              onClick={() => {
-                const p = projectQ.data;
-                if (!p) return;
-                update.mutate({
-                  id: projectId,
-                  title: p.title,
-                  status: p.status as ProjectStatus,
-                  projectType: p.projectType as (typeof ProjectType.options)[number],
-                  workType: ((p as { workType?: string }).workType ?? "ARCHITECTURE") as "ARCHITECTURE" | "INTERIOR" | "LANDSCAPE" | "MISC",
-                  jurisdiction: p.jurisdiction as (typeof Jurisdiction.options)[number],
-                  dateStart: p.dateStart ?? null,
-                  pmcEnabled,
-                });
-              }}
-            >
-              Save PMC setting
-            </Button>
-          </div>
+          {pmcDirty && (
+            <Typography variant="caption" color="text.secondary">
+              Use the Action Dock (bottom) to save the PMC setting.
+            </Typography>
+          )}
         </Stack>
       </Box>
       )}
@@ -404,16 +468,14 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
           <Typography variant="body2" sx={{ mt: 1, mb: 1.5 }}>
             Archive this project from active work while retaining its phases,
             fees, invoices, drawings, estimates, and audit history. Authorized
-            managers can restore it later.
+            managers can restore it later. Use the Action Dock (left) to start
+            archive.
           </Typography>
-          <Button variant="contained" color="error" onClick={() => setConfirmDelete(true)}>
-            Archive project
-          </Button>
         </Box>
       )}
 
-      <Dialog open={confirmDelete} onClose={closeDelete} fullWidth maxWidth="sm">
-        <DialogTitle>Archive project?</DialogTitle>
+      <Dialog aria-labelledby="project-settings-archive-title" open={confirmDelete} onClose={closeDelete} fullWidth maxWidth="sm">
+        <DialogTitle id="project-settings-archive-title">Archive project?</DialogTitle>
         <DialogContent>
           <form
             onSubmit={(e) => {
@@ -433,6 +495,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
                 id="ps-admin-pwd"
                 label="Enter your admin password to confirm"
                 type="password"
+                autoComplete="new-password"
                 value={adminPwd}
                 onChange={(e) => setAdminPwd(e.target.value)}
                 fullWidth

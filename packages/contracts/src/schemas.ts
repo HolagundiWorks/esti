@@ -150,7 +150,8 @@ export type ListParams = z.infer<typeof ListParams>;
 
 // --- Clients (esti_clientlog) ---
 
-export const ClientKind = z.enum(["INDIVIDUAL", "COMPANY"]);
+/** ARCHITECT_FIRM: consultancy engagements are commonly sub-appointed by architects. */
+export const ClientKind = z.enum(["INDIVIDUAL", "COMPANY", "ARCHITECT_FIRM"]);
 export type ClientKind = z.infer<typeof ClientKind>;
 
 /** Indian GSTIN: 2-digit state + 10-char PAN + entity + 'Z' + checksum. */

@@ -14,6 +14,7 @@ import { formatINR, parseRupeeInput } from "@esti/contracts";
 import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
@@ -30,28 +31,32 @@ export function Payroll() {
   const team = teamQ.data ?? [];
 
   const markPaid = trpc.payroll.markPaid.useMutation({
+    meta: { errorTitle: "Couldn't mark the payslip as paid" },
     onSuccess: () => utils.payroll.list.invalidate(),
   });
 
   const [open, setOpen] = useState(false);
 
   useScreenActions(
-    [
-      {
-        id: "generate-payslip",
-        zone: "center",
-        tone: "primary",
-        label: "Generate payslip",
-        icon: <AddIcon />,
-        disabled: team.length === 0,
-        onClick: () => setOpen(true),
-      },
-    ],
-    [team.length],
+    open
+      ? []
+      : [
+          {
+            id: "generate-payslip",
+            zone: "center",
+            tone: "primary",
+            label: "Generate payslip",
+            icon: <AddIcon />,
+            disabled: team.length === 0,
+            onClick: () => setOpen(true),
+          },
+        ],
+    [open, team.length],
   );
 
   const [py, setPy] = useState({ teamMemberId: "", month: "", gross: "", deductions: "" });
   const generate = trpc.payroll.generate.useMutation({
+    meta: { errorTitle: "Couldn't generate the payslip" },
     onSuccess: () => {
       utils.payroll.list.invalidate();
       setOpen(false);
@@ -133,6 +138,7 @@ export function Payroll() {
         title="Payroll"
         description="Monthly payslips — gross, deductions and net pay."
       >
+        <PageBreadcrumb items={[{ label: "Office" }, { label: "Payroll" }]} />
         <DataState
           loading={payrollQ.isLoading}
           isEmpty={rows.length === 0}
@@ -150,8 +156,8 @@ export function Payroll() {
         </DataState>
       </RailLayout>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Generate payslip</DialogTitle>
+      <Dialog aria-labelledby="payroll-payslip-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="payroll-payslip-title">Generate payslip</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

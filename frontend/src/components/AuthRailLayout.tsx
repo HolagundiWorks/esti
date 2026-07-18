@@ -1,5 +1,7 @@
 import { Box } from "@mui/material";
 import type { ReactNode } from "react";
+import { HcwAttribution } from "./brand/HcwAttribution.js";
+import { MarketingFooter } from "./landing/MarketingFooter.js";
 import { AuthStageCanvas, type AuthStageVariant } from "./AuthStageCanvas.js";
 
 /**
@@ -10,15 +12,25 @@ export function AuthRailLayout({
   rail,
   stage,
   variant = "workspace",
+  showMarketingFooter = true,
+  footerVariant = "architecture",
+  visitCount,
 }: {
   /** Sign-in / recovery form content — rendered inside `.esti-dash-rail`. */
   rail: ReactNode;
   /** Optional custom stage; defaults to {@link AuthStageCanvas}. */
   stage?: ReactNode;
   variant?: AuthStageVariant;
+  /** Sitewide orange glass footer below the stage scroll (non-portal public pages). */
+  showMarketingFooter?: boolean;
+  footerVariant?: "platform" | "architecture";
+  visitCount?: number | null;
 }) {
   return (
     <div className="esti-auth-shell">
+      <a href="#esti-auth-main" className="esti-skip-link">
+        Skip to main content
+      </a>
       <div className="esti-auth-blobs" aria-hidden>
         <div className="esti-auth-blob esti-auth-blob--a" />
         <div className="esti-auth-blob esti-auth-blob--b" />
@@ -59,7 +71,10 @@ export function AuthRailLayout({
           />
 
           <Box
+            component="main"
             className="esti-dash-rail esti-auth-rail"
+            id="esti-auth-main"
+            tabIndex={-1}
             sx={{
               flex: { xs: "0 0 auto", md: "0 0 20%" },
               maxWidth: { md: "20%" },
@@ -72,11 +87,13 @@ export function AuthRailLayout({
               p: 1.5,
             }}
           >
-            <Box sx={{ minWidth: 0, width: 1 }}>{rail}</Box>
+            <Box sx={{ minWidth: 0, width: 1, flex: 1 }}>{rail}</Box>
+            <HcwAttribution variant="auth" />
           </Box>
 
           <Box
             className="esti-dash-stage esti-auth-stage-wrap"
+            aria-hidden={variant === "external"}
             sx={{
               flex: 1,
               minWidth: 0,
@@ -88,6 +105,9 @@ export function AuthRailLayout({
             }}
           >
             {stage ?? <AuthStageCanvas variant={variant} />}
+            {showMarketingFooter ? (
+              <MarketingFooter visitCount={visitCount} variant={footerVariant} />
+            ) : null}
           </Box>
         </Box>
       </Box>

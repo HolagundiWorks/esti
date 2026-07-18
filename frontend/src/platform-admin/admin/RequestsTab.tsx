@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Alert, Button, Chip, Stack } from "@mui/material";
+import { Alert, Button, Stack } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { licensingPlanLabel } from "@esti/contracts";
+import { StatusDot } from "../../components/StatusTag.js";
 import { trpc } from "../lib/trpc";
 
 type Requests = Awaited<ReturnType<typeof trpc.admin.requests.list.query>>;
@@ -11,10 +12,6 @@ const STATUS_TAG: Record<string, string> = {
   FULFILLED: "green",
   REJECTED: "red",
 };
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 const fmt = (d: Date | string) => new Date(d).toLocaleString();
 
 export default function RequestsTab() {
@@ -84,7 +81,7 @@ export default function RequestsTab() {
       flex: 0.8,
       minWidth: 120,
       renderCell: (p) => (
-        <Chip size="small" label={p.row.status} sx={chipSx(STATUS_TAG[p.row.status] ?? "gray")} />
+        <StatusDot color={STATUS_TAG[p.row.status] ?? "gray"} label={p.row.status} />
       ),
     },
     {

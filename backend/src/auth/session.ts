@@ -40,6 +40,14 @@ export async function revokeSessionByToken(
   await database.delete(sessions).where(eq(sessions.tokenHash, hashToken(token)));
 }
 
+/** Invalidate every workspace session for a user (e.g. after password reset). */
+export async function revokeAllSessionsForUser(
+  database: Pick<typeof db, "delete">,
+  userId: string,
+): Promise<void> {
+  await database.delete(sessions).where(eq(sessions.userId, userId));
+}
+
 export interface AuthUser {
   id: string;
   email: string;

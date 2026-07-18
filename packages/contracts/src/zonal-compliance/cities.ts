@@ -1,6 +1,6 @@
 import type { ZonalCityMeta } from "./types.js";
 
-/** Municipal zonal-regulation catalog — sourced from `zonal compliance/Cities/`. */
+/** Municipal zonal-regulation catalog — sourced from `docs/reference/zonal-compliance/Cities/`. */
 export const ZONAL_CITIES: ZonalCityMeta[] = [
   {
     id: "hosapete",

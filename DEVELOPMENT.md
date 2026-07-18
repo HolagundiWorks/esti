@@ -1,16 +1,19 @@
 # AORMS — Development
 
-Greenfield monorepo for AORMS, the **Architecture Office Resource Management
-System** by Holagundi Consulting Works. See
-[docs/esti/ARCHITECTURE.md](docs/esti/ARCHITECTURE.md).
+Greenfield monorepo for **AORMS-Studio** (`aorms-studio`) — the **architecture app** on the AORMS platform
+(**Accelerated Operational Resources Management System** for AEC consulting firms) by Human Centric Works.
+**AORMS-Consultancy** (engineering app) is on the roadmap. Nomenclature:
+[docs/esti/AORMS-PLATFORM-NOMENCLATURE.md](docs/esti/AORMS-PLATFORM-NOMENCLATURE.md).
+See [docs/esti/ARCHITECTURE.md](docs/esti/ARCHITECTURE.md).
 
 ## Layout
 
 ```
 packages/contracts/   shared TS: money (paise/Indian format), GST systems, FY, Zod schemas
 backend/              Fastify + tRPC + Drizzle (PostgreSQL) — system of record
-worker/               Python: ezdxf (DXF takeoff), WeasyPrint (PDF), pandas (reconcile)
+worker/               Python: ezdxf (DXF takeoff), pymupdf4llm (Knowledge Bank PDF→Markdown), WeasyPrint (PDF), pandas (reconcile)
 frontend/             Vite + React + TS + MUI/HCW-UI-Kit — the SPA (tRPC, type-safe to backend)
+packages/hcw-ui-kit/  @hcw/ui-kit v0.5.0 — design system (see docs/hcw-kit/README.md)
 compose.yaml          Podman pod: postgres, redis, minio, backend, worker, frontend
 .github/workflows/    ESTI-only CI (TS typecheck/lint/test + Python ruff/pytest)
 ```

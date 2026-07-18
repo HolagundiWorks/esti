@@ -7,6 +7,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -34,12 +35,15 @@ export function ProjectInspectionDetail({
   const { authorizedFetch } = useUploadAuth();
   const q = trpc.inspections.byId.useQuery({ id: inspectionId! }, { enabled: !!inspectionId && open });
   const addAction = trpc.inspections.addAction.useMutation({
+    meta: { errorTitle: "Couldn't add the action item" },
     onSuccess: () => inspectionId && utils.inspections.byId.invalidate({ id: inspectionId }),
   });
   const convert = trpc.inspections.convertActionToTask.useMutation({
+    meta: { errorTitle: "Couldn't convert the action to a task" },
     onSuccess: () => inspectionId && utils.inspections.byId.invalidate({ id: inspectionId }),
   });
   const revise = trpc.documents.revise.useMutation({
+    meta: { errorTitle: "Couldn't revise the inspection" },
     onSuccess: () => {
       onClose();
       void utils.inspections.listByProject.invalidate();
@@ -48,9 +52,11 @@ export function ProjectInspectionDetail({
 
   const { user } = useAuth();
   const approve = trpc.inspections.approve.useMutation({
+    meta: { errorTitle: "Couldn't approve the inspection" },
     onSuccess: () => inspectionId && utils.inspections.byId.invalidate({ id: inspectionId }),
   });
   const reject = trpc.inspections.reject.useMutation({
+    meta: { errorTitle: "Couldn't reject the inspection" },
     onSuccess: () => { if (inspectionId) utils.inspections.byId.invalidate({ id: inspectionId }); setRejectOpen(false); setRejectNote(""); },
   });
 
@@ -83,11 +89,15 @@ export function ProjectInspectionDetail({
 
   return (
     <>
-      <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-        <DialogTitle>{row ? `${row.ref} · Site report` : "Site report"}</DialogTitle>
+      <Dialog aria-labelledby="project-inspection-detail-report-title" open={open} onClose={onClose} fullWidth maxWidth="md">
+        <DialogTitle id="project-inspection-detail-report-title">{row ? `${row.ref} · Site report` : "Site report"}</DialogTitle>
         <DialogContent>
           {!row ? (
-            <p>Loading…</p>
+            <Stack spacing={0.5}>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} variant="rectangular" height={32} />
+              ))}
+            </Stack>
           ) : (
             <Stack spacing={2}>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
@@ -217,8 +227,8 @@ export function ProjectInspectionDetail({
         </DialogActions>
       </Dialog>
 
-      <Dialog open={revOpen} onClose={() => setRevOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle>Revise site report</DialogTitle>
+      <Dialog aria-labelledby="project-inspection-detail-revise-title" open={revOpen} onClose={() => setRevOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle id="project-inspection-detail-revise-title">Revise site report</DialogTitle>
         <DialogContent>
           <Stack spacing={1.5} sx={{ mt: 1 }}>
             <TextField id="rev-note" label="Revision note" multiline minRows={4} value={revisionNote}
@@ -248,12 +258,13 @@ export function ProjectInspectionDetail({
       </Dialog>
 
       <Dialog
+        aria-labelledby="project-inspection-detail-reject-title"
         open={rejectOpen}
         onClose={() => { setRejectOpen(false); setRejectNote(""); }}
         fullWidth
         maxWidth="xs"
       >
-        <DialogTitle>Reject inspection</DialogTitle>
+        <DialogTitle id="project-inspection-detail-reject-title">Reject inspection</DialogTitle>
         <DialogContent>
           <TextField
             id="rej-note"

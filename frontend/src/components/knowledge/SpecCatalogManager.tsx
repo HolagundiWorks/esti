@@ -45,6 +45,7 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
   const [vOpen, setVOpen] = useState(false);
   const [vForm, setVForm] = useState({ label: "", description: "" });
   const createVersion = trpc.specCatalog.createVersion.useMutation({
+    meta: { errorTitle: "Couldn't create the catalogue version" },
     onSuccess: (row) => {
       utils.specCatalog.listVersions.invalidate();
       setVersionId(row.id);
@@ -53,6 +54,7 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
     },
   });
   const setActive = trpc.specCatalog.setActiveVersion.useMutation({
+    meta: { errorTitle: "Couldn't activate the catalogue version" },
     onSuccess: () => {
       utils.specCatalog.listVersions.invalidate();
       utils.specCatalog.activeCatalog.invalidate();
@@ -62,6 +64,7 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
   const [iOpen, setIOpen] = useState(false);
   const [iForm, setIForm] = useState(blankItemForm());
   const createItem = trpc.specCatalog.createItem.useMutation({
+    meta: { errorTitle: "Couldn't create the specification" },
     onSuccess: () => {
       utils.specCatalog.listItems.invalidate({ versionId });
       utils.specCatalog.activeCatalog.invalidate();
@@ -70,6 +73,7 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
     },
   });
   const removeItem = trpc.specCatalog.removeItem.useMutation({
+    meta: { errorTitle: "Couldn't delete the specification" },
     onSuccess: () => {
       utils.specCatalog.listItems.invalidate({ versionId });
       utils.specCatalog.activeCatalog.invalidate();
@@ -237,8 +241,8 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
         onClose={() => setConfirmId(null)}
       />
 
-      <Dialog open={vOpen} onClose={() => setVOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New catalogue version</DialogTitle>
+      <Dialog aria-labelledby="spec-catalog-manager-version-title" open={vOpen} onClose={() => setVOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="spec-catalog-manager-version-title">New catalogue version</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -279,8 +283,8 @@ export function SpecCatalogManager({ embedded = false }: { embedded?: boolean })
         </DialogActions>
       </Dialog>
 
-      <Dialog open={iOpen} onClose={() => setIOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>Add catalogue item</DialogTitle>
+      <Dialog aria-labelledby="spec-catalog-manager-item-title" open={iOpen} onClose={() => setIOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle id="spec-catalog-manager-item-title">Add catalogue item</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Stack direction="row" spacing={2}>

@@ -21,11 +21,13 @@ import {
   formatINR,
 } from "@esti/contracts";
 import { useState } from "react";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useScreenActions } from "@hcw/ui-kit";
-import { Link, useNavigate } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { StatusTag } from "../components/StatusTag.js";
+import { pushToast } from "../lib/toast.js";
 import { trpc } from "../lib/trpc.js";
 
 const PAGE_SIZES = [10, 25, 50];
@@ -44,9 +46,12 @@ export function Projects() {
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [titleTouched, setTitleTouched] = useState(false);
   const [projectType, setProjectType] = useState<string>(ProjectType.options[0]);
   const [clientId, setClientId] = useState("");
   const clientsQ = trpc.clients.list.useQuery({ limit: 200, offset: 0 });
+  const titleMissing = !title.trim();
+  const titleError = titleTouched && titleMissing;
 
   const [search, setSearch] = useState("");
   const [paginationModel, setPaginationModel] = useState({
@@ -55,10 +60,13 @@ export function Projects() {
   });
 
   const create = trpc.projectOffice.create.useMutation({
+    meta: { errorTitle: "Couldn't create the project" },
     onSuccess: () => {
       utils.projectOffice.list.invalidate();
       setOpen(false);
       setTitle("");
+      setTitleTouched(false);
+      pushToast({ kind: "success", title: "Project created" });
     },
   });
 
@@ -83,9 +91,9 @@ export function Projects() {
       flex: 0.7,
       minWidth: 110,
       renderCell: (p) => (
-        <Link to={`/projects/${p.row.id}`} onClick={(e) => e.stopPropagation()}>
+        <RouterLink to={`/projects/${p.row.id}`} onClick={(e) => e.stopPropagation()}>
           {p.row.ref}
-        </Link>
+        </RouterLink>
       ),
     },
     { field: "title", headerName: "Title", flex: 1.6, minWidth: 200 },
@@ -117,17 +125,19 @@ export function Projects() {
   ];
 
   useScreenActions(
-    [
-      {
-        id: "new-project",
-        zone: "center",
-        tone: "primary",
-        label: "New project",
-        icon: <AddIcon />,
-        onClick: () => setOpen(true),
-      },
-    ],
-    [],
+    open
+      ? []
+      : [
+          {
+            id: "new-project",
+            zone: "center",
+            tone: "primary",
+            label: "New project",
+            icon: <AddIcon />,
+            onClick: () => setOpen(true),
+          },
+        ],
+    [open],
   );
 
   return (
@@ -179,6 +189,7 @@ export function Projects() {
           </Stack>
         }
       >
+        <PageBreadcrumb items={[{ label: "Projects" }]} />
         <DataState
           loading={list.isLoading}
           isEmpty={allRows.length === 0}
@@ -204,7 +215,15 @@ export function Projects() {
         </DataState>
       </RailLayout>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+      <Dialog
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setTitleTouched(false);
+        }}
+        fullWidth
+        maxWidth="sm"
+      >
         <DialogTitle>New project</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
@@ -212,13 +231,20 @@ export function Projects() {
               id="title"
               label="Project title"
               value={title}
+              required
+              autoComplete="organization"
+              autoFocus
+              error={titleError}
+              helperText={titleError ? "Project title is required" : undefined}
               onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => setTitleTouched(true)}
             />
             <TextField
               id="projectType"
               select
               label="Project type"
               value={projectType}
+              required
               onChange={(e) => setProjectType(e.target.value)}
             >
               {ProjectType.options.map((t) => (
@@ -249,19 +275,27 @@ export function Projects() {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button variant="text" onClick={() => setOpen(false)}>
+          <Button
+            variant="text"
+            onClick={() => {
+              setOpen(false);
+              setTitleTouched(false);
+            }}
+          >
             Cancel
           </Button>
           <Button
             variant="contained"
-            disabled={!title || create.isPending}
-            onClick={() =>
+            disabled={titleMissing || create.isPending}
+            onClick={() => {
+              setTitleTouched(true);
+              if (titleMissing) return;
               create.mutate({
-                title,
+                title: title.trim(),
                 projectType: projectType as (typeof ProjectType.options)[number],
                 clientId: clientId || undefined,
-              })
-            }
+              });
+            }}
           >
             {create.isPending ? "Creating…" : "Create"}
           </Button>

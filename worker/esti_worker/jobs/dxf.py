@@ -7,7 +7,6 @@ to object storage + PostgreSQL, and returns a summary for the log.
 from __future__ import annotations
 
 import logging
-import re
 import tempfile
 from collections import Counter
 from typing import Any
@@ -39,32 +38,28 @@ def _bounds(msp) -> dict[str, float] | None:
 
 
 def _render_svg(doc, msp) -> str | None:
+    """Render modelspace to SVG in ezdxf page space (Y-flipped).
+
+    Do NOT overwrite the resulting viewBox with CAD model extents — ezdxf's
+    SVGBackend already maps DXF → page coordinates; injecting $EXTMIN-style
+    bounds makes geometry invisible in the plan reader.
+    """
     try:
-        from ezdxf.addons.drawing import Frontend, RenderContext, layout, svg
+        from ezdxf.addons.drawing import Frontend, RenderContext, config, layout, svg
 
         backend = svg.SVGBackend()
-        Frontend(RenderContext(doc), backend).draw_layout(msp, finalize=True)
+        # White sheet + dark strokes so plans read on the Measurement white host
+        # (default ACI 7 / dark-theme strokes vanish on bgcolor #fff).
+        cfg = config.Configuration(
+            background_policy=config.BackgroundPolicy.WHITE,
+            color_policy=config.ColorPolicy.BLACK,
+        )
+        Frontend(RenderContext(doc), backend, config=cfg).draw_layout(msp, finalize=True)
         page = layout.Page(0, 0, layout.Units.mm)
         return backend.get_string(page)
     except Exception:  # noqa: BLE001
         log.exception("svg render failed; continuing with takeoff only")
         return None
-
-
-def _inject_viewbox(svg_str: str, bounds: dict[str, float]) -> str:
-    """Ensure the SVG viewBox matches model-space extents so the SPA can fit/zoom."""
-    w = bounds["maxX"] - bounds["minX"]
-    h = bounds["maxY"] - bounds["minY"]
-    if w <= 0 or h <= 0:
-        return svg_str
-    pad_x, pad_y = w * 0.02, h * 0.02
-    vb = (
-        f'{bounds["minX"] - pad_x} {bounds["minY"] - pad_y} '
-        f"{w + pad_x * 2} {h + pad_y * 2}"
-    )
-    if re.search(r'viewBox="', svg_str):
-        return re.sub(r'viewBox="[^"]*"', f'viewBox="{vb}"', svg_str, count=1)
-    return svg_str.replace("<svg", f'<svg viewBox="{vb}"', 1)
 
 
 def dxf_to_svg(payload: dict[str, Any]) -> dict[str, Any]:
@@ -97,12 +92,29 @@ def dxf_to_svg(payload: dict[str, Any]) -> dict[str, Any]:
         bounds = _bounds(msp)
 
         svg_str = _render_svg(doc, msp)
-        if svg_str and bounds:
-            svg_str = _inject_viewbox(svg_str, bounds)
         svg_key = None
         if svg_str:
             svg_key = f"svg/{file_hash}.svg"
             put_bytes(bucket, svg_key, svg_str.encode("utf-8"), "image/svg+xml")
+
+        # Takeoff can succeed without SVG, but Plan Measurement needs svg_key.
+        # Mark FAILED when render produced nothing so the SPA does not show a blank READY sheet.
+        if not svg_key:
+            update_drawing(
+                drawing_id,
+                status="FAILED",
+                entity_count=total,
+                layers=layers,
+                bounds=bounds,
+                svg_key=None,
+                error_text="DXF takeoff ok but SVG render failed — re-export DXF or try PDF",
+            )
+            return {
+                "status": "error",
+                "drawingId": drawing_id,
+                "error": "svg render empty",
+                "entities": total,
+            }
 
         update_drawing(
             drawing_id,

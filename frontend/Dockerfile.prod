@@ -58,10 +58,6 @@ RUN echo "Build revision: ${BUILD_REVISION}"
 
 RUN frontend/node_modules/.bin/vite build --config frontend/vite.config.ts
 
-# Prerender blog routes to static HTML (+ sitemap.xml) for SEO. The script keys
-# off its own dir, so it resolves frontend/dist and frontend/src/content/blog.
-RUN node frontend/scripts/prerender-blog.mjs
-
 # ── Stage 2: nginx ───────────────────────────────────────────────────────────
 FROM nginx:1.27-alpine AS runner
 

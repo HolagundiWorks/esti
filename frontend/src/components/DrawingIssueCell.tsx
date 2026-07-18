@@ -30,6 +30,7 @@ export function DrawingIssueCell({
   );
 
   const issue = trpc.drawings.issuePdf.useMutation({
+    meta: { errorTitle: "Couldn't issue the drawing" },
     onSuccess: () => {
       setActive(true);
       setOpen(false);
@@ -71,8 +72,8 @@ export function DrawingIssueCell({
       <Button variant="text" size="small" disabled={issue.isPending} onClick={() => setOpen(true)}>
         {status === "FAILED" ? "Retry issue" : "Issue PDF"}
       </Button>
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle>Issue drawing (watermarked PDF)</DialogTitle>
+      <Dialog aria-labelledby="drawing-issue-cell-issue-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle id="drawing-issue-cell-issue-title">Issue drawing (watermarked PDF)</DialogTitle>
         <DialogContent>
           <TextField
             id={`wm-${drawingId}`}

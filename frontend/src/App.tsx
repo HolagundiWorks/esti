@@ -1,10 +1,14 @@
 import { Alert, AlertTitle, Box, CircularProgress } from "@mui/material";
+import { AORMS_STUDIO, AORMS_CONSULTANCY, isAormsStudioLegacySlug } from "./lib/product-nomenclature.js";
 import {
   Analytics,
   Archive,
   Book,
+  AutoStories as AutoStoriesIcon,
   Business as Building,
   Calculate as Calculator,
+  CompareArrows,
+  ContactPage,
   Description as Document,
   Email,
   Apartment as Enterprise,
@@ -18,6 +22,7 @@ import {
   Receipt,
   Assessment as Report,
   Rule,
+  Straighten,
   Store,
   Terminal,
   Build as Tools,
@@ -29,16 +34,21 @@ import {
 import {
   lazy,
   Suspense,
+  useEffect,
+  useRef,
   type ComponentType,
   type LazyExoticComponent,
 } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { can, ROLE_RANK, isStaffRole } from "@esti/contracts";
 import { ThemeContext } from "./lib/theme-context.js";
 import { isLandingSlug } from "./lib/landing-slugs.js";
+import { detectSurface, isAdminHost, legacySubdomainRedirectUrl } from "./lib/aorms-surface-urls.js";
+import { WIKI_PATH } from "./lib/wiki-url.js";
 import { useAuth } from "./lib/auth.js";
 import { setDesktopToken } from "./lib/api-base.js";
 import { trpc } from "./lib/trpc.js";
+import { LegacyModuleRedirect } from "./components/LegacyModuleRedirect.js";
 import { AiAgentCommand } from "./components/AiAgentCommand.js";
 import { ActionDock, ActionDockProvider } from "@hcw/ui-kit";
 import { AppRibbon } from "./components/shell/AppRibbon.js";
@@ -51,6 +61,7 @@ import { UploadAuthProvider } from "./lib/uploadAuth.js";
 // chunk fetch. Every other route is code-split below so a landing visitor never
 // downloads the authenticated workspace (and its charts/xlsx) bundle.
 import { Landing } from "./routes/Landing.js";
+import { NotFound } from "./routes/NotFound.js";
 import { Signup } from "./routes/Signup.js";
 import { Login } from "./routes/Login.js";
 import { ExternalLogin } from "./routes/ExternalLogin.js";
@@ -81,16 +92,10 @@ const Alerts = lazyRoute(() => import("./routes/Alerts.js"), "Alerts");
 const ArchivedProjects = lazyRoute(() => import("./routes/ArchivedProjects.js"), "ArchivedProjects");
 const CollaboratorPortal = lazyRoute(() => import("./routes/CollaboratorPortal.js"), "CollaboratorPortal");
 const SitePortal = lazyRoute(() => import("./routes/SitePortal.js"), "SitePortal");
-const Blog = lazyRoute(() => import("./routes/Blog.js"), "Blog");
-const BlogPost = lazyRoute(() => import("./routes/BlogPost.js"), "BlogPost");
-const Wiki = lazyRoute(() => import("./routes/Wiki.js"), "Wiki");
-const WikiPage = lazyRoute(() => import("./routes/WikiPage.js"), "WikiPage");
-const SeoLanding = lazy(() =>
-  import("./routes/SeoLanding.js").then((m) => ({ default: m.SeoLanding })),
+const ConsultancyEngagements = lazyRoute(
+  () => import("./routes/ConsultancyEngagements.js"),
+  "ConsultancyEngagements",
 );
-const Investors = lazyRoute(() => import("./routes/Investors.js"), "Investors");
-const Legal = lazyRoute(() => import("./routes/Legal.js"), "Legal");
-const About = lazyRoute(() => import("./routes/About.js"), "About");
 const Contracts = lazyRoute(() => import("./routes/Contracts.js"), "Contracts");
 const DocumentsRegister = lazyRoute(() => import("./routes/DocumentsRegister.js"), "DocumentsRegister");
 const Letters = lazyRoute(() => import("./routes/Letters.js"), "Letters");
@@ -103,9 +108,11 @@ const Proposals = lazyRoute(() => import("./routes/Proposals.js"), "Proposals");
 const Leads = lazyRoute(() => import("./routes/Leads.js"), "Leads");
 const SpecCatalogLibrary = lazyRoute(() => import("./routes/SpecCatalogLibrary.js"), "SpecCatalogLibrary");
 const RateBookLibrary = lazyRoute(() => import("./routes/RateBookLibrary.js"), "RateBookLibrary");
+const ItemLibraryLibrary = lazyRoute(() => import("./routes/ItemLibraryLibrary.js"), "ItemLibraryLibrary");
 const ComplianceLibrary = lazyRoute(() => import("./routes/ComplianceLibrary.js"), "ComplianceLibrary");
 const MasterPlanLibrary = lazyRoute(() => import("./routes/MasterPlanLibrary.js"), "MasterPlanLibrary");
 const StandardsLibrary = lazyRoute(() => import("./routes/StandardsLibrary.js"), "StandardsLibrary");
+const KnowledgeBankPortal = lazyRoute(() => import("./routes/KnowledgeBankPortal.js"), "KnowledgeBankPortal");
 const Vendors = lazyRoute(() => import("./routes/Vendors.js"), "Vendors");
 const Payroll = lazyRoute(() => import("./routes/Payroll.js"), "Payroll");
 const Profile = lazyRoute(() => import("./routes/Profile.js"), "Profile");
@@ -130,11 +137,52 @@ const Performance = lazyRoute(() => import("./routes/Performance.js"), "Performa
 const Clients = lazyRoute(() => import("./routes/Clients.js"), "Clients");
 const Consultants = lazyRoute(() => import("./routes/Consultants.js"), "Consultants");
 const Contractors = lazyRoute(() => import("./routes/Contractors.js"), "Contractors");
+const ContractorPortalStub = lazyRoute(
+  () => import("./routes/ContractorPortalStub.js"),
+  "ContractorPortalStub",
+);
 const Lxos = lazyRoute(() => import("./routes/Lxos.js"), "Lxos");
 const SystemAdmin = lazyRoute(() => import("./routes/SystemAdmin.js"), "SystemAdmin");
 
 
 // ─── App ──────────────────────────────────────────────────────────────────────
+
+/** Move focus into the stage on SPA navigation (WCAG 2.4.3): keyboard/SR users
+ *  land in the new page content instead of staying on the nav control they
+ *  activated. Skips the initial render so document load keeps its natural flow. */
+function RouteFocus() {
+  const { pathname } = useLocation();
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    document.getElementById("esti-main")?.focus();
+  }, [pathname]);
+  return null;
+}
+
+function LegacyHostRedirect({ target }: { target: string }) {
+  useEffect(() => {
+    window.location.replace(target);
+  }, [target]);
+  return (
+    <Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}>
+      <CircularProgress aria-label="Redirecting" />
+    </Box>
+  );
+}
+
+function EstimationToMeasurementRedirect() {
+  const { projectId } = useParams();
+  return (
+    <Navigate
+      to={projectId ? `/projects/${projectId}?tab=measurement` : "/projects"}
+      replace
+    />
+  );
+}
 
 export function App() {
   return (
@@ -142,7 +190,7 @@ export function App() {
       <UploadAuthProvider>
         {/* One boundary covers the lazy routes rendered in every AppShell branch
             (public paths, portals, and the authenticated workspace). */}
-        <Suspense fallback={<Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}><CircularProgress aria-label="Loading AORMS" /></Box>}>
+        <Suspense fallback={<Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}><CircularProgress aria-label={`Loading ${AORMS_STUDIO.title}`} /></Box>}>
           <AppShell />
         </Suspense>
       </UploadAuthProvider>
@@ -151,8 +199,18 @@ export function App() {
 }
 
 function AppShell() {
+  const { pathname, search, hash } = useLocation();
+  const legacyTarget = legacySubdomainRedirectUrl(
+    window.location.hostname,
+    pathname,
+    search,
+    hash,
+  );
+  if (legacyTarget) return <LegacyHostRedirect target={legacyTarget} />;
+
   const { user, isLoading } = useAuth();
-  const { pathname } = useLocation();
+  const surface = detectSurface(window.location.hostname);
+  const publicMarketing = PUBLIC_SITE && (surface === "platform" || surface === "unknown");
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({
     onSuccess: () => {
@@ -185,49 +243,55 @@ function AppShell() {
   // (dev / self-host), the embedded console serves at /platform-admin or on an
   // admin.* hostname.
   const ADMIN_CONSOLE_URL = (import.meta.env.VITE_ADMIN_URL as string | undefined) ?? "";
-  const isAdminSubdomain = /^admin\./.test(window.location.hostname);
-  const isWikiSubdomain = /^wiki\./.test(window.location.hostname);
-  if (!ADMIN_CONSOLE_URL && (isAdminSubdomain || pathname.startsWith("/platform-admin")))
+  if (!ADMIN_CONSOLE_URL && (isAdminHost() || pathname.startsWith("/platform-admin")))
     return <PlatformAdmin />;
 
-  // AORMS Wiki — wiki.aorms.in (root paths) or aorms.in/wiki/* mirror.
-  if (PUBLIC_SITE && (isWikiSubdomain || pathname === "/wiki" || pathname.startsWith("/wiki/"))) {
-    return (
-      <Routes>
-        <Route path={isWikiSubdomain ? "/" : "/wiki"} element={<Wiki />} />
-        <Route path={isWikiSubdomain ? "/:slug" : "/wiki/:slug"} element={<WikiPage />} />
-      </Routes>
-    );
+  // consultancy.aorms.in — AORMS-Consultancy. Authenticated staff enter the
+  // engineering workspace (Phase 0/1 preview home); everyone else sees the
+  // unified platform landing. One login window — the workspace type only
+  // routes where a company works.
+  if (surface === "consultancy") {
+    if (user && isStaffRole(user.role)) {
+      if (pathname === "/" || pathname === AORMS_CONSULTANCY.marketingPath)
+        return <Navigate to="/consultancy/engagements" replace />;
+      // Fall through to the authenticated app router below.
+    } else {
+      if (pathname === "/" || pathname === AORMS_CONSULTANCY.marketingPath)
+        return <Landing />;
+      if (pathname === "/login") {
+        // Fall through — staff sign-in works on this host too (single login).
+      } else {
+        return <Navigate to="/" replace />;
+      }
+    }
   }
 
-  // Public marketing surfaces — only shipped in the public-site (demo/dev) variant.
-  if (PUBLIC_SITE && (pathname === "/blog" || pathname.startsWith("/blog/")))
-    return (
-      <Routes>
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:slug" element={<BlogPost />} />
-      </Routes>
-    );
+  // Marketing consolidation (2026-07): the platform now ships a **single** landing at
+  // `/`. Every former marketing sub-page — wiki, blog, SEO keyword landings, the
+  // HCW-UI-Kit design-system showcase, investors, legal, about/contact, download, and
+  // the per-app marketing slugs — has been removed and now redirects to the landing.
+  // (Auth + account routes are handled below and are unaffected.)
+  if (publicMarketing && pathname === "/demo")
+    return <Navigate to="/login" replace />;
 
-  // Public keyword landing pages (SEO) — `/architecture-office-management-software`, etc.
-  if (PUBLIC_SITE && isLandingSlug(pathname))
-    return <SeoLanding slug={pathname.replace(/^\/+/, "").replace(/\/+$/, "")} />;
-
-  // Investor brief — standalone public page, not linked from the marketing nav.
-  if (PUBLIC_SITE && pathname === "/investors")
-    return <Investors />;
-
-  // Legal — terms, privacy, acceptable use, licensing.
-  if (PUBLIC_SITE && pathname === "/legal")
-    return <Legal />;
-
-  // About / E-E-A-T — who builds AORMS and the expertise behind it.
-  if (PUBLIC_SITE && pathname === "/about")
-    return <About />;
-
-  // Legacy download URL — redirects to the wiki getting-started guide.
-  if (PUBLIC_SITE && pathname === "/download")
-    return <Navigate to="/wiki/getting-started" replace />;
+  if (publicMarketing) {
+    const slug = pathname.replace(/^\/+/, "").replace(/\/+$/, "");
+    const isRemovedMarketing =
+      pathname === "/blog" || pathname.startsWith("/blog/") ||
+      pathname === WIKI_PATH || pathname.startsWith(`${WIKI_PATH}/`) ||
+      pathname === "/design-system" ||
+      pathname === "/development" ||
+      pathname === "/investors" ||
+      pathname === "/legal" ||
+      pathname === "/contact" ||
+      pathname === "/about" ||
+      pathname === "/download" ||
+      pathname === AORMS_CONSULTANCY.marketingPath ||
+      isLandingSlug(pathname) ||
+      slug === AORMS_STUDIO.slug ||
+      isAormsStudioLegacySlug(slug);
+    if (isRemovedMarketing) return <Navigate to="/" replace />;
+  }
 
   // AORMS account + licence portal (hlp_account) — available on every build variant.
   if (pathname === "/account")
@@ -237,8 +301,12 @@ function AppShell() {
   if (pathname === "/company-account")
     return <CompanyAccountPortal />;
 
-  if (isLoading) return <Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}><CircularProgress aria-label="Loading AORMS" /></Box>;
-  if (!user)
+  // studio.aorms.in — staff sign-in lives at /login (no platform landing).
+  if (surface === "studio" && pathname === "/" && !user && !isLoading)
+    return <Navigate to="/login" replace />;
+
+  if (isLoading) return <Box sx={{ position: "fixed", inset: 0, display: "grid", placeItems: "center", zIndex: 9999 }}><CircularProgress aria-label={`Loading ${AORMS_STUDIO.title}`} /></Box>;
+  if (!user) {
     return (
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -247,10 +315,17 @@ function AppShell() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/recover" element={<RecoverWithBackupCode />} />
-        {/* Public-site builds land on marketing; the firm product goes straight to login. */}
-        <Route path="*" element={PUBLIC_SITE ? <Landing /> : <Navigate to="/login" replace />} />
+        {publicMarketing ? (
+          <>
+            <Route path="/" element={<Landing />} />
+            <Route path="*" element={<NotFound />} />
+          </>
+        ) : (
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        )}
       </Routes>
     );
+  }
   // Preloaded/community accounts must set their own password before anything else.
   if (user.mustChangePassword) return <ForcePasswordChange />;
   if (user.mustCompleteWorkspaceProfile) return <ForceWorkspaceProfile />;
@@ -283,7 +358,7 @@ function AppShell() {
     return (
       <div>
         <Routes>
-          <Route path="/" element={<p>Contractor access is being rebuilt.</p>} />
+          <Route path="/" element={<ContractorPortalStub />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
@@ -299,10 +374,9 @@ function AppShell() {
       </Routes>
     );
 
-  // Navigation tree — the Canonical V3 nav (Dashboard · Projects · Tasks · Studio ·
-  // Third Parties · Office · Finance · LXOS · Admin). Spec: docs/esti/NAVIGATION.md.
-  // A node is either a leaf `link` or a `menu` (collapsible; may nest, e.g. Studio ›
-  // Libraries). Search is a header utility; AI Studio is a top-level sidebar entry.
+  // Navigation tree — ribbon: Projects · Teams · Office. Library / Third Parties /
+  // Admin live in the ribbon hamburger. Studio · Tasks · Search live in the footer.
+  // Spec: docs/esti/NAVIGATION.md (synced 2026-07-10).
   type NavLink = { label: string; to: string; icon?: ComponentType<any> };
   type NavNode =
     | (NavLink & { kind?: "link" })
@@ -318,11 +392,14 @@ function AppShell() {
       )
       .filter((n) => !("items" in n) || n.items.length > 0);
 
-  // Top ribbon nav — three sections only: Projects · Teams · Office (Finance
-  // folded into Office). Library, Third Parties and the admin/system items move
-  // to the header admin menu (adminGroups below). See docs/esti/NAVIGATION.md.
+  // Ribbon: Projects · Clients · Teams · Office. Remaining Third Parties + Library
+  // + Admin live in the hamburger. Studio · Tasks · Search live in the footer.
+  // Spec: docs/esti/NAVIGATION.md.
   const nav: NavNode[] = prune([
     { label: "Projects", to: "/projects", icon: Building },
+    ...(can(user.role, "write")
+      ? [{ label: "Clients", to: "/clients", icon: User }]
+      : []),
     {
       kind: "menu",
       label: "Teams",
@@ -343,40 +420,56 @@ function AppShell() {
       kind: "menu",
       label: "Office",
       icon: Enterprise,
+      // Two labelled groups (Hick/Miller — the flat list hit 11 items). The
+      // ribbon renders nested menus as ListSubheader groups; `prune` drops an
+      // empty group when a role has none of its items.
       items: [
-        ...(can(user.role, "fees:manage") ? [{ label: "Proposals", to: "/office/proposals", icon: Document }] : []),
-        ...(can(user.role, "write")
-          ? [
-              { label: "Contracts", to: "/office/contracts", icon: License },
-              { label: "Letters", to: "/office/letters", icon: Email },
-            ]
-          : []),
-        // Finance folded into Office.
-        ...(can(user.role, "invoice:manage")
-          ? [
-              { label: "Consultancy Invoices", to: "/invoices", icon: Receipt },
-              { label: "Cashbook", to: "/accounting/cash-book", icon: Wallet },
-              { label: "Office Expenses", to: "/accounting/office-expenses", icon: Purchase },
-            ]
-          : []),
-        ...(hrEnabled && can(user.role, "hr:manage")
-          ? [{ label: "Payroll", to: "/finance/payroll", icon: Money }]
-          : []),
-        ...(can(user.role, "reports:view")
-          ? [{ label: "Financial Reports", to: "/filing", icon: Report }]
-          : []),
+        {
+          kind: "menu",
+          label: "Office",
+          items: [
+            ...(can(user.role, "write")
+              ? [{ label: "Leads", to: "/leads", icon: ContactPage }]
+              : []),
+            ...(can(user.role, "fees:manage") ? [{ label: "Proposals", to: "/office/proposals", icon: Document }] : []),
+            ...(can(user.role, "write")
+              ? [
+                  { label: "Documents", to: "/office/documents", icon: Document },
+                  { label: "Contracts", to: "/office/contracts", icon: License },
+                  { label: "Letters", to: "/office/letters", icon: Email },
+                ]
+              : []),
+          ],
+        },
+        {
+          kind: "menu",
+          label: "Finance",
+          items: [
+            ...(can(user.role, "invoice:manage")
+              ? [
+                  { label: "Consultancy Invoices", to: "/invoices", icon: Receipt },
+                  { label: "Reconcile", to: "/reconcile", icon: CompareArrows },
+                  { label: "Cashbook", to: "/accounting/cash-book", icon: Wallet },
+                  { label: "Office Expenses", to: "/accounting/office-expenses", icon: Purchase },
+                ]
+              : []),
+            ...(hrEnabled && can(user.role, "hr:manage")
+              ? [{ label: "Payroll", to: "/finance/payroll", icon: Money }]
+              : []),
+            ...(can(user.role, "reports:view")
+              ? [{ label: "Financial Reports", to: "/filing", icon: Report }]
+              : []),
+          ],
+        },
       ],
     },
   ]);
 
-  // Admin menu icon in the header ribbon; grouped: Third Parties, Library, system.
+  // Admin hamburger: remaining Third Parties, Library, system.
   const adminGroups: { heading: string; items: NavLink[] }[] = [
     {
       heading: "Third Parties",
       items: [
-        ...(can(user.role, "write")
-          ? [{ label: "Clients", to: "/clients", icon: User }]
-          : []),
         ...(atLeast(60)
           ? [
               { label: "Consultants", to: "/consultants", icon: UserProfile },
@@ -390,12 +483,14 @@ function AppShell() {
       heading: "Library",
       items: [
         { label: "Specification catalogue", to: "/libraries/spec-catalog", icon: ListChecked },
+        { label: "Standard items", to: "/libraries/items", icon: Straighten },
         ...(can(user.role, "fees:manage")
           ? [{ label: "Rate Books", to: "/libraries/rate-books", icon: Calculator }]
           : []),
         { label: "Compliance Library", to: "/libraries/compliance", icon: Rule },
         { label: "Master Plan Library", to: "/libraries/master-plans", icon: MapIcon },
         { label: "Standards Library", to: "/libraries/standards", icon: Book },
+        { label: "Knowledge Bank portal", to: "/libraries/knowledge-bank-portal", icon: AutoStoriesIcon },
       ],
     },
     {
@@ -409,17 +504,21 @@ function AppShell() {
     },
   ].filter((g) => g.items.length > 0);
 
-  const isStudioHome = pathname === "/";
+  const isStudioHome = pathname === "/" && surface === "studio";
 
   return (
     <ThemeContext.Provider value="white">
       <ActionDockProvider>
         <div className={`esti-app-shell2${user.isDemo ? " esti-app-shell--demo" : ""}${isStudioHome ? " esti-app-shell2--studio-home" : ""}`}>
+          <a href="#esti-main" className="esti-skip-link">
+            Skip to main content
+          </a>
           <AormsLogo variant="watermark" className="esti-app-logo-float" />
           {/* Ribbon — floating top-right; rails and stage start below the header line. */}
           <AppRibbon nav={nav} firmName={firmName} adminGroups={adminGroups} variant="float" />
           <div className={`esti-app-content2${isStudioHome ? " esti-app-content2--flush-top" : ""}`}>
-            <main className="esti-grow">
+            <RouteFocus />
+            <main id="esti-main" className="esti-grow" tabIndex={-1}>
               {licenseBlocked && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                   <AlertTitle>Workspace licence required</AlertTitle>
@@ -436,17 +535,46 @@ function AppShell() {
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
                 <Route path="/libraries/spec-catalog" element={<SpecCatalogLibrary />} />
+                <Route path="/libraries/items" element={<ItemLibraryLibrary />} />
                 {can(user.role, "fees:manage") && (
                   <Route path="/libraries/rate-books" element={<RateBookLibrary />} />
                 )}
                 <Route path="/knowledge-bank" element={<Navigate to="/libraries/spec-catalog" replace />} />
-                <Route path="/estimation" element={<Navigate to="/projects" replace />} />
-                <Route path="/estimation/:projectId" element={<Navigate to="/projects" replace />} />
-                <Route path="/libraries/estimates" element={<Navigate to="/projects" replace />} />
+                <Route
+                  path="/estimation"
+                  element={
+                    <LegacyModuleRedirect
+                      to="/projects"
+                      title="Estimation workspace moved"
+                      subtitle="Open a project — use its Measurement tab for quantity takeoff, or its Estimation tab for a priced BOQ."
+                    />
+                  }
+                />
+                <Route
+                  path="/estimation/:projectId"
+                  element={<EstimationToMeasurementRedirect />}
+                />
+                <Route
+                  path="/libraries/estimates"
+                  element={
+                    <LegacyModuleRedirect
+                      to="/libraries/rate-books"
+                      title="Rate books moved"
+                      subtitle="Opening the Rate Books library."
+                    />
+                  }
+                />
                 <Route path="/libraries/compliance" element={<ComplianceLibrary />} />
                 <Route path="/libraries/master-plans" element={<MasterPlanLibrary />} />
                 <Route path="/libraries/standards" element={<StandardsLibrary />} />
+                <Route path="/libraries/knowledge-bank-portal" element={<KnowledgeBankPortal />} />
+                <Route path="/libraries/repository" element={<Navigate to="/libraries/knowledge-bank-portal" replace />} />
                 {atLeast(60) && <Route path="/vendors" element={<Vendors />} />}
+                {/* AORMS-Consultancy Phase 0 preview — engineering engagement spine
+                    (not in the Studio sidebar; direct URL until the consultancy
+                    surface ships its own workspace shell). */}
+                <Route path="/consultancy" element={<Navigate to="/consultancy/engagements" replace />} />
+                <Route path="/consultancy/engagements" element={<ConsultancyEngagements />} />
                 {hrEnabled && can(user.role, "hr:manage") && (
                   <Route path="/finance/payroll" element={<Payroll />} />
                 )}
@@ -485,9 +613,36 @@ function AppShell() {
                 <Route path="/tasks" element={<Work />} />
                 <Route path="/work" element={<Navigate to="/tasks" replace />} />
                 {/* Consultancy-only: PMC / Construction / Programme removed. */}
-                <Route path="/pmc" element={<Navigate to="/projects" replace />} />
-                <Route path="/programme" element={<Navigate to="/projects" replace />} />
-                <Route path="/office/construction" element={<Navigate to="/projects" replace />} />
+                <Route
+                  path="/pmc"
+                  element={
+                    <LegacyModuleRedirect
+                      to="/projects"
+                      title="PMC module removed"
+                      subtitle="Portfolio management was retired — opening Projects."
+                    />
+                  }
+                />
+                <Route
+                  path="/programme"
+                  element={
+                    <LegacyModuleRedirect
+                      to="/projects"
+                      title="Programme module removed"
+                      subtitle="Delivery scheduling lives under each project's Delivery tab."
+                    />
+                  }
+                />
+                <Route
+                  path="/office/construction"
+                  element={
+                    <LegacyModuleRedirect
+                      to="/projects"
+                      title="Construction module removed"
+                      subtitle="Site supervision is under Project → Delivery."
+                    />
+                  }
+                />
                 <Route
                   path="/workload"
                   element={<Navigate to="/tasks?tab=workload" replace />}
@@ -518,6 +673,9 @@ function AppShell() {
                 />
                 {can(user.role, "invoice:manage") && (
                   <Route path="/reconcile" element={<Reconcile />} />
+                )}
+                {can(user.role, "invoice:manage") && (
+                  <Route path="/finance/reconcile" element={<Navigate to="/reconcile" replace />} />
                 )}
                 {/* OFFICE › Internal Operations — individual module pages (V2). */}
                 {hrEnabled && <Route path="/team" element={<Team />} />}
@@ -563,8 +721,8 @@ function AppShell() {
           {/* HCW-UI-Kit global action dock — screens publish CTAs via useScreenActions;
               renders nothing until they do (zero regression until adopted). */}
           <ActionDock />
-          {/* Taskbar footer (HCW-UI-Kit) — the former floating dock's widgets now
-              live here: launcher icons LEFT, search centred, tray + clock RIGHT. */}
+          {/* Taskbar footer (HCW-UI-Kit) — launchers CENTRE (Studio · Tasks · Search ·
+              Ask ESTI · Wellness · Pomodoro), tray RIGHT. */}
           <AppFooterBar
             planClass="esti-app-header--pro"
             onSignOut={() => logout.mutate()}

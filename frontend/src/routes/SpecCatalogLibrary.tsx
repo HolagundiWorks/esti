@@ -1,3 +1,4 @@
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { SpecCatalogManager } from "../components/knowledge/SpecCatalogManager.js";
 
@@ -8,6 +9,12 @@ export function SpecCatalogLibrary() {
       title="Specification catalogue"
       description="Versioned specification sheets for project spec documents — categories, items, make, and finish."
     >
+      <PageBreadcrumb
+        items={[
+          { label: "Library" },
+          { label: "Specification catalogue" },
+        ]}
+      />
       <SpecCatalogManager embedded />
     </RailLayout>
   );

@@ -15,6 +15,7 @@ export function MigrationPanel() {
   const [err, setErr] = useState<string | null>(null);
 
   const importMut = trpc.migration.import.useMutation({
+    meta: { errorTitle: "Couldn't import the bundle" },
     onSuccess: (r) => setMsg(r.diff.ok ? "Bundle imported and verified." : "Imported, but verification did not pass."),
     onError: (e) => setErr(e.message),
   });

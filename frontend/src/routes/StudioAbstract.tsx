@@ -13,6 +13,7 @@ import {
   Box,
   Button,
   LinearProgress,
+  Skeleton,
   Stack,
   Switch,
   Tab,
@@ -25,10 +26,11 @@ import type { ReactNode } from "react";
 import { can, formatINRShort, PRIORITY_BAND_LABEL } from "@esti/contracts";
 import { OfficeHealthGlyph } from "../components/shell/OfficeHealthGlyph.js";
 import { StatusDot } from "../components/StatusTag.js";
+import { EstiOrchestrationStatus } from "../components/EstiOrchestrationStatus.js";
 import { STATE_WORD } from "../components/dashboard/zoneState.js";
 import type { ZoneState } from "../components/dashboard/zoneState.js";
-import { CAPACITY_LABEL } from "../components/dashboard/dashboardUi.js";
 import { StudioBreath } from "../components/dashboard/StudioBreath.js";
+import { StudioTeamPanel } from "../components/dashboard/StudioTeamPanel.js";
 import AccountBalanceOutlined from "@mui/icons-material/AccountBalanceOutlined";
 import AutoAwesomeOutlined from "@mui/icons-material/AutoAwesomeOutlined";
 import BusinessOutlined from "@mui/icons-material/BusinessOutlined";
@@ -42,6 +44,8 @@ import { ZonalComplianceCalculator } from "../components/compliance/ZonalComplia
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { useNavigate } from "react-router-dom";
+import { TYPE_SCALE, useScreenActions } from "@hcw/ui-kit";
+import { AORMS_STUDIO } from "../lib/product-nomenclature.js";
 
 // ── Zone state ────────────────────────────────────────────────────────────────
 
@@ -52,9 +56,6 @@ const ZCOLOR: Record<ZoneState, string> = {
   critical: "var(--cds-support-error)",
   inactive: "var(--cds-text-disabled)",
 };
-
-const loadPct = (c: string): number =>
-  ({ OVERLOADED: 95, HIGH: 75, MODERATE: 55, AVAILABLE: 30 }[c] ?? 50);
 
 // ── State derivation ──────────────────────────────────────────────────────────
 
@@ -284,6 +285,10 @@ export function StudioAbstract() {
   const wellnessPrefs = useWellnessPrefs();
   const navigate  = useNavigate();
 
+  useEffect(() => {
+    document.title = `Studio Intelligence — ${AORMS_STUDIO.title}`;
+  }, []);
+
   const homeQ     = trpc.dashboard.home.useQuery(undefined, { staleTime: 60_000 });
   const settingsQ = trpc.settings.get.useQuery();
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
@@ -297,6 +302,7 @@ export function StudioAbstract() {
     { staleTime: Infinity, retry: false },
   );
   const refreshEstiPriorities = trpc.pulse.refreshTopTasks.useMutation({
+    meta: { errorTitle: "Couldn't refresh the rankings" },
     onSuccess: (data) => {
       utils.pulse.topTasks.setData({ limit: 3 }, data);
     },
@@ -309,6 +315,7 @@ export function StudioAbstract() {
   const glanceQ   = trpc.dashboard.todayGlance.useQuery(undefined, { staleTime: 60_000 });
 
   const home = homeQ.data;
+  const homeLoading = homeQ.isLoading && home == null;
   const ac   = home?.actionCenter;
   const fh   = home?.financialHealth ?? null;
   const ph   = home?.projectHealth   ?? [];
@@ -323,6 +330,23 @@ export function StudioAbstract() {
   const [tab, setTab] = useState<"priorities" | "projects" | "work" | "team" | "zoning">("priorities");
   const [estiExpanded, setEstiExpanded] = useState(false);
 
+  useScreenActions(
+    tab === "priorities"
+      ? [
+          {
+            id: "refresh-esti-rankings",
+            zone: "right",
+            tone: "primary",
+            label: refreshEstiPriorities.isPending ? "Ranking…" : "Refresh rankings",
+            icon: <AutoAwesomeOutlined />,
+            disabled: refreshEstiPriorities.isPending,
+            onClick: () => refreshEstiPriorities.mutate({ limit: 3 }),
+          },
+        ]
+      : [],
+    [tab, refreshEstiPriorities.isPending],
+  );
+
   useEffect(() => {
     if (tab !== "priorities") setEstiExpanded(false);
   }, [tab]);
@@ -330,6 +354,7 @@ export function StudioAbstract() {
   // Module toggles (moved off the dock) — admin-only, shown in the page header.
   const isAdmin = can(user?.role, "firm:admin");
   const setModule = trpc.settings.setModuleEnabled.useMutation({
+    meta: { errorTitle: "Couldn't update the module setting" },
     onSuccess: () => settingsQ.refetch(),
   });
   const financialEnabled = settingsQ.data?.financialEnabled ?? true;
@@ -407,7 +432,14 @@ export function StudioAbstract() {
   const filingDue = filingDueDates();
 
   const heroKpis: { label: string; value: string; sub: string; danger: string | null }[] =
-    canInvoice && fh
+    homeLoading
+      ? [
+          { label: "—", value: "—", sub: "Loading", danger: null },
+          { label: "—", value: "—", sub: "Loading", danger: null },
+          { label: "—", value: "—", sub: "Loading", danger: null },
+          { label: "—", value: "—", sub: "Loading", danger: null },
+        ]
+      : canInvoice && fh
       ? [
           { label: "Pipeline", value: formatINRShort(fh.pipelinePaise), sub: `Active ${formatINRShort(fh.activePipelinePaise)}`, danger: null },
           { label: "Outstanding", value: formatINRShort(fh.outstandingPaise), sub: "Receivable", danger: fh.overdue30dPaise > 0 ? `${formatINRShort(fh.overdue30dPaise)} overdue` : null },
@@ -423,7 +455,13 @@ export function StudioAbstract() {
 
   // Stage header KPIs — Pipeline · Outstanding · Collected · Ready to bill (or ops fallback).
   const kpiTiles: { label: string; value: ReactNode; sub?: ReactNode }[] =
-    heroKpis.slice(0, 4).map((k) => ({ label: k.label, value: k.value, sub: k.sub }));
+    homeLoading
+      ? Array.from({ length: 4 }, (_, i) => ({
+          label: "Loading",
+          value: <Skeleton variant="text" width={72} sx={{ fontSize: TYPE_SCALE.kpi }} />,
+          sub: i === 0 ? "Office metrics" : undefined,
+        }))
+      : heroKpis.slice(0, 4).map((k) => ({ label: k.label, value: k.value, sub: k.sub }));
 
   // Top risks
   const clientRisks = (home?.clientIntelligence ?? []).filter((c: any) => c.risk === "HIGH");
@@ -530,25 +568,6 @@ export function StudioAbstract() {
     { field: "daysWaiting", headerName: "Waiting", width: 110, renderCell: (p) => <StatusDot color={p.row.daysWaiting > 14 ? "red" : p.row.daysWaiting > 7 ? "magenta" : "warm-gray"} label={`${p.row.daysWaiting}d`} /> },
   ];
 
-  const tcRows = ti.slice(0, 10).map((m: any) => ({ ...m, id: m.memberId ?? m.assignee }));
-  const tcCols: GridColDef[] = [
-    { field: "assignee", headerName: "Member", flex: 1, minWidth: 140 },
-    { field: "totalOpen", headerName: "Open", width: 80, type: "number" },
-    { field: "overdueCount", headerName: "Late", width: 80, renderCell: (p) => ((p.row.overdueCount ?? 0) > 0 ? <StatusDot color="magenta" label={p.row.overdueCount} /> : <span>—</span>) },
-    { field: "load", headerName: "Load", width: 130, sortable: false, renderCell: (p) => {
-      const st: ZoneState = p.row.capacity === "OVERLOADED" ? "critical" : p.row.capacity === "HIGH" ? "watch" : "stable";
-      return (
-        <Box sx={{ width: 1, display: "flex", alignItems: "center", height: 1 }}>
-          <LinearProgress variant="determinate" value={loadPct(p.row.capacity)} color={st === "critical" ? "error" : st === "watch" ? "warning" : "success"} sx={{ width: 1 }} />
-        </Box>
-      );
-    } },
-    { field: "capacity", headerName: "Capacity", width: 130, renderCell: (p) => {
-      const st: ZoneState = p.row.capacity === "OVERLOADED" ? "critical" : p.row.capacity === "HIGH" ? "watch" : "stable";
-      return <StatusDot color={tagKind(st)} label={CAPACITY_LABEL[p.row.capacity] ?? p.row.capacity} />;
-    } },
-  ];
-
   const emptyText = (t: string) => <Typography variant="body2" color="text.secondary">{t}</Typography>;
 
   /** Zone health + finance snapshot — lives inside the ESTI tab only. */
@@ -588,7 +607,7 @@ export function StudioAbstract() {
           {zones.map((z) => (
             <Box key={z.label} className="esti-zone-health__item" title={z.signal} sx={{ px: 1 }}>
               <OfficeHealthGlyph state={z.state} variant="glass" title={z.signal} />
-              <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "0.65rem", maxWidth: 1 }}>
+              <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: TYPE_SCALE.micro, maxWidth: 1 }}>
                 {z.label}
               </Typography>
             </Box>
@@ -626,9 +645,9 @@ export function StudioAbstract() {
                 }}
               >
                 <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.2 }} noWrap>{c.label}</Typography>
-                <Typography sx={{ fontWeight: 300, fontSize: "1.1rem", lineHeight: 1.05 }} noWrap>{c.value}</Typography>
+                <Typography sx={{ fontWeight: 300, fontSize: TYPE_SCALE.kpi, lineHeight: 1.05 }} noWrap>{c.value}</Typography>
                 {c.sub != null && (
-                  <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.65rem" }} noWrap>
+                  <Typography variant="caption" sx={{ color: "text.secondary", fontSize: TYPE_SCALE.micro }} noWrap>
                     {c.sub}
                   </Typography>
                 )}
@@ -697,6 +716,9 @@ export function StudioAbstract() {
             {companyName && <Typography variant="caption" color="text.secondary">{companyName}</Typography>}
           </Box>
 
+          {/* Orchestration lives in the rail — visible only while ESTI is working. */}
+          <EstiOrchestrationStatus />
+
           {/* Attention update — below the greeting */}
           <Typography variant="body2" color="text.secondary">
             {attn.issue} — {attn.action}
@@ -742,9 +764,9 @@ export function StudioAbstract() {
             <Box sx={{ mt: 0.5, display: "grid", gridTemplateColumns: `repeat(${filingDue.length}, 1fr)` }}>
               {filingDue.map((f, i) => (
                 <Box key={f.name} sx={{ minWidth: 0, p: 0.5, borderLeft: i > 0 ? 1 : 0, borderColor: "divider" }}>
-                  <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: "0.62rem", display: "block" }}>{f.name}</Typography>
-                  <Typography sx={{ fontWeight: 300, fontSize: "0.9rem", lineHeight: 1.1 }} noWrap>{f.date}</Typography>
-                  <Typography variant="caption" noWrap sx={{ fontSize: "0.62rem", color: f.days <= 3 ? "error.main" : f.days <= 7 ? "warning.main" : "text.secondary" }}>{f.days}d</Typography>
+                  <Typography variant="caption" color="text.secondary" noWrap sx={{ fontSize: TYPE_SCALE.micro, display: "block" }}>{f.name}</Typography>
+                  <Typography sx={{ fontWeight: 300, fontSize: TYPE_SCALE.body2, lineHeight: 1.1 }} noWrap>{f.date}</Typography>
+                  <Typography variant="caption" noWrap sx={{ fontSize: TYPE_SCALE.micro, color: f.days <= 3 ? "error.main" : f.days <= 7 ? "warning.main" : "text.secondary" }}>{f.days}d</Typography>
                 </Box>
               ))}
             </Box>
@@ -808,11 +830,11 @@ export function StudioAbstract() {
             onChange={(_, v) => setTab(v)}
             variant="scrollable"
             scrollButtons="auto"
+            aria-label="Studio Intelligence sections"
             sx={{
               flexShrink: 0,
               borderBottom: 1,
               borderColor: "divider",
-              "& .MuiTab-root.Mui-selected": { fontWeight: 600 },
             }}
           >
             <Tab value="priorities" label="ESTI" />
@@ -849,15 +871,6 @@ export function StudioAbstract() {
                           Focus
                         </Button>
                       )}
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        disabled={refreshEstiPriorities.isPending}
-                        startIcon={<AutoAwesomeOutlined fontSize="small" />}
-                        onClick={() => refreshEstiPriorities.mutate({ limit: 3 })}
-                      >
-                        {refreshEstiPriorities.isPending ? "Ranking…" : "Refresh rankings"}
-                      </Button>
                     </Stack>
                   )}
                 >
@@ -897,8 +910,23 @@ export function StudioAbstract() {
                     {topRisks.length === 0 ? emptyText("No elevated risks right now.") : (
                       <Stack spacing={1}>
                         {topRisks.map((r) => (
-                          <Stack key={r.key} direction="row" spacing={1} sx={{ alignItems: "center", cursor: "pointer" }} onClick={() => navigate(r.href)}>
-                            <OfficeHealthGlyph state={r.state} size={12} />
+                          <Stack
+                            key={r.key}
+                            direction="row"
+                            spacing={1}
+                            role="link"
+                            tabIndex={0}
+                            aria-label={`${r.label} — ${r.detail}`}
+                            sx={{ alignItems: "center", cursor: "pointer" }}
+                            onClick={() => navigate(r.href)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                navigate(r.href);
+                              }
+                            }}
+                          >
+                            <OfficeHealthGlyph state={r.state} size={12} variant="glass" />
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                               <Typography variant="body2">{r.label}</Typography>
                               <Typography variant="caption" color="text.secondary">{r.detail}</Typography>
@@ -961,7 +989,7 @@ export function StudioAbstract() {
           {tab === "team" && (
             <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
             <TabSplit
-              title="Team capacity"
+              title="Team workload"
               action={
                 <Stack spacing={1}>
                   <ZoneChip state={ts} label={teamSignal(ts)} />
@@ -971,9 +999,7 @@ export function StudioAbstract() {
                 </Stack>
               }
             >
-              {ti.length === 0
-                ? emptyText("No team data yet.")
-                : <DataGrid rows={tcRows} columns={tcCols} {...gridProps} sx={{ ...GRID_SX, "& .MuiDataGrid-row": { cursor: "default" } }} />}
+              <StudioTeamPanel members={ti} attendance={att} />
             </TabSplit>
             </Box>
           )}

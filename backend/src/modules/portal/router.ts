@@ -11,7 +11,7 @@ import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "../../db/index.js";
-import { activities, aiRuns, approvals, assignments, drawings, invoices, moms, phases, portalSubmissions, projectOffices, teamMembers, transmittals, users } from "../../db/schema.js";
+import { activities, aiRuns, approvals, assignments, consDeliverables, consEngagements, drawings, invoices, moms, phases, portalSubmissions, projectOffices, teamMembers, transmittals, users } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { runAiGateway } from "../../lib/ai/gateway.js";
 import { getFirm } from "../../lib/firm.js";
@@ -311,6 +311,36 @@ export const portalRouter = router({
         .where(and(eq(assignments.projectId, input.projectId), sql`${users.id} IS NOT NULL`))
         .orderBy(asc(users.fullName));
     }),
+
+  /**
+   * AORMS-Consultancy Phase 0 — issued deliverable packages for this client's
+   * engineering engagements. Scoped hard: the client sees **ISSUED packages
+   * only** (drafts, superseded, and withdrawn deliverables never leave the
+   * office), and only for engagements linked to their own clientId.
+   */
+  issuedConsDeliverables: clientProcedure.query(async ({ ctx }) => {
+    return ctx.db
+      .select({
+        id: consDeliverables.id,
+        engagementId: consEngagements.id,
+        engagementTitle: consEngagements.title,
+        code: consDeliverables.code,
+        title: consDeliverables.title,
+        discipline: consDeliverables.discipline,
+        revision: consDeliverables.revision,
+        issueClass: consDeliverables.issueClass,
+        issuedAt: consDeliverables.issuedAt,
+      })
+      .from(consDeliverables)
+      .innerJoin(consEngagements, eq(consDeliverables.engagementId, consEngagements.id))
+      .where(
+        and(
+          eq(consEngagements.clientId, ctx.user.clientId),
+          eq(consDeliverables.status, "ISSUED"),
+        ),
+      )
+      .orderBy(desc(consDeliverables.issuedAt));
+  }),
 
   /** Revision stats for the client dashboard — change request breakdown by category. */
   revisionStats: clientProcedure

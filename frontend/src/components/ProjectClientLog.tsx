@@ -42,7 +42,10 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
   );
   const invalidate = () =>
     utils.clientLog.listByProject.invalidate({ projectId });
-  const remove = trpc.clientLog.remove.useMutation({ onSuccess: invalidate });
+  const remove = trpc.clientLog.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the log entry" },
+    onSuccess: invalidate,
+  });
 
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<ClientLogKindCode>("MEETING");
@@ -54,6 +57,7 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
   const [budgetObjections, setBudgetObjections] = useState("");
 
   const create = trpc.clientLog.create.useMutation({
+    meta: { errorTitle: "Couldn't create the log entry" },
     onSuccess: () => {
       invalidate();
       setOpen(false);
@@ -120,8 +124,8 @@ export function ProjectClientLog({ projectId }: { projectId: string }) {
         ))}
       </Box>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Log client interaction</DialogTitle>
+      <Dialog aria-labelledby="project-client-log-interaction-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-client-log-interaction-title">Log client interaction</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

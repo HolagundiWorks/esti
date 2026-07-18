@@ -31,7 +31,7 @@ See [`docs/esti/SELF-HOST-INSTALL.md`](../docs/esti/SELF-HOST-INSTALL.md).
 
 | Profile | Public site | Demo data | Plan | Notes |
 |---|---|---|---|---|
-| **aorms** (default) | ✅ | — | Standard | Landing + main app + licensing + wiki subdomain |
+| **aorms** (default) | ✅ | — | Standard | Landing + main app + licensing + `/wiki` docs |
 | `landing` | ✅ | — | Standard | Public marketing site |
 | `demo` | ✅ | ✅ seeded | Standard | Seeded demo workspace |
 | `core` / `enterprise` | — | — | Standard | Firm workspace — prefer `install-enterprise.sh` |
@@ -45,11 +45,11 @@ See [`docs/esti/SELF-HOST-INSTALL.md`](../docs/esti/SELF-HOST-INSTALL.md).
 | `deploy/install.sh` | **AORMS-site installer (default: aorms profile)** → sets profile env → runs `install_core` |
 | `deploy/install-enterprise.sh` | **Customer Core/Enterprise self-host** — firm-only front door + licence-key activation; reuses `install_core` |
 | `deploy/install-admin-console.sh` | **Licensing console at `admin.DOMAIN`** — vhost + TLS for the `dist/admin.html` entry; same-box `/platform/` proxy (run after the main install; needs the `admin.` DNS record) |
-| `deploy/install-wiki-tls.sh` | **Wiki at `wiki.DOMAIN`** — TLS for the wiki vhost (HTTP block is in `nginx-proxy.conf`; needs `wiki.` DNS + `dist/wiki/` from frontend build) |
+| `deploy/install-wiki-tls.sh` | **Legacy `wiki.DOMAIN`** — optional TLS so HTTPS redirects to `https://DOMAIN/wiki` (HTTP redirect block is in `nginx-proxy.conf`) |
 | `deploy/lib.sh` | Shared helpers + `write_env` + `install_core` (the one install flow) |
 | `deploy/update.sh` | In-place update (reads the profile from `.env`) |
 | `deploy/cleanup-vps.sh` | **VPS hygiene** — remove retired `/downloads` installers, `dist.old`, temp Docker containers; optional image/build-cache prune |
-| `deploy/fetch-installers.sh` | **Retired** — legacy Lite/Pro desktop installers (see archive docs) |
+| `deploy/fetch-installers.sh` | **Retired** — legacy Lite/Pro desktop installers |
 | `deploy/backup.sh` / `restore.sh` | Postgres + MinIO backup / restore |
 | `deploy/nginx-proxy.conf` | nginx vhost template |
 
@@ -60,7 +60,9 @@ cloud-only at aorms.in; `/download` redirects to the wiki. The script
 `fetch-installers.sh` and workflow `desktop.yml` remain for legacy VPS layouts
 only.
 
-The separate **AORMS Estimate** app (`estimate/`) uses `.github/workflows/estimate.yml`.
+The separate **AORMS Estimate** app is **not in this monorepo**. The **ESE**
+subdomain service is also **retired** (no `ese/` package in repo). Active cost work:
+[docs/esti/COST-MANAGEMENT-SYSTEM.md](../docs/esti/COST-MANAGEMENT-SYSTEM.md).
 
 ## Before a first install
 
@@ -150,7 +152,7 @@ GOOGLE_REDIRECT_URI=https://<domain>/platform/auth/google/callback
 PLATFORM_ADMIN_EMAILS=you@firm.in
 ```
 
-then `bash deploy/update.sh`. Google OAuth: set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in `.env` (legacy Lite guide: `docs/archive/esti/AORMS-LITE-AND-GOOGLE-AUTH.md`).
+then `bash deploy/update.sh`. Google OAuth: set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in `.env` (see [ADMIN-GUIDE.md](../docs/esti/ADMIN-GUIDE.md) §5).
 
 ## Switching profiles on an existing box
 
@@ -172,15 +174,16 @@ bash deploy/restore.sh /opt/esti/backups/esti-pg-YYYYMMDD-HHMMSS.sql.gz
 Add `backup.sh` to root's crontab for daily dumps. Health check:
 `bash scripts/smoke-health.sh http://127.0.0.1:4000`.
 
-### VPS cleanup (retired installers & build cruft)
+### VPS cleanup (retired installers, ESE, build cruft)
 
-Desktop `/downloads` hosting was retired (cloud-only). On an existing box:
+Desktop `/downloads` and **ESE** (`esti-ese`) were retired (cloud-only; estimation teardown).
+On an existing box:
 
 ```bash
 cd /opt/esti
 git pull
 bash deploy/cleanup-vps.sh                              # dry-run — shows what would go
-sudo APPLY=true bash deploy/cleanup-vps.sh              # remove installers + dist.old
-sudo APPLY=true PRUNE_DOCKER=true bash deploy/cleanup-vps.sh   # also prune Docker cache
-bash deploy/update.sh                                   # rebuild frontend without /downloads
+sudo APPLY=true REMOVE_ESE=true REMOVE_ORPHANS=true \
+  PRUNE_DOCKER=true bash deploy/cleanup-vps.sh            # apply: ESE, orphans, Docker cache
+bash deploy/update.sh                                   # rebuild frontend + re-seed demo if enabled
 ```

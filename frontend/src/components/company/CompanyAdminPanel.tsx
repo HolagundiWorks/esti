@@ -40,6 +40,7 @@ export function CompanyAdminPanel() {
   const hrStatusQ = trpc.settings.hrModuleStatus.useQuery();
 
   const setPmc = trpc.settings.setPmcEnabled.useMutation({
+    meta: { errorTitle: "Couldn't update the PMC module setting" },
     onSuccess: () => {
       utils.settings.get.invalidate();
       setMsg("PMC module setting updated.");
@@ -47,6 +48,7 @@ export function CompanyAdminPanel() {
   });
 
   const setWellness = trpc.settings.setWellness.useMutation({
+    meta: { errorTitle: "Couldn't update the break schedule" },
     onSuccess: () => {
       utils.settings.get.invalidate();
       setMsg("Break schedule updated.");
@@ -222,7 +224,7 @@ export function CompanyAdminPanel() {
             variant="determinate"
             value={pct}
             color={pct > 90 ? "error" : pct > 70 ? "warning" : "primary"}
-            sx={{ height: 6, borderRadius: 3 }}
+            sx={{ height: 6 }}
           />
           {pct > 85 && (
             <Typography variant="caption" color="error" sx={{ mt: 0.5, display: "block" }}>

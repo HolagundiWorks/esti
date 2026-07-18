@@ -1,7 +1,9 @@
 import { z } from "zod";
-import { ProgrammeProjectParams } from "./programme.js";
 
-export const PmcProjectParams = ProgrammeProjectParams;
+export const PmcProjectParams = z.object({
+  projectId: z.string().uuid(),
+});
+export type PmcProjectParams = z.infer<typeof PmcProjectParams>;
 
 export const SnagStatus = z.enum(["OPEN", "IN_PROGRESS", "VERIFIED", "CLOSED"]);
 export type SnagStatus = z.infer<typeof SnagStatus>;

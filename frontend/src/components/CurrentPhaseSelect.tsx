@@ -21,6 +21,7 @@ export function CurrentPhaseSelect({
 }) {
   const utils = trpc.useUtils();
   const setCurrent = trpc.phases.setCurrent.useMutation({
+    meta: { errorTitle: "Couldn't update the current phase" },
     onSuccess: () => {
       void utils.phases.listByProject.invalidate({ projectId });
       void utils.projectOffice.byId.invalidate({ id: projectId });

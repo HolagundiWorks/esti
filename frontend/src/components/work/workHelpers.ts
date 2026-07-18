@@ -35,11 +35,18 @@ export const WORK_TAB_SLUGS = [
   "calendar",
   "workload",
   "activity",
+  "requests",
+  // Legacy slugs — old links/bookmarks alias to "requests" (2026-07 Miller merge).
   "client-requests",
   "consultant-requests",
   "attendance",
 ] as const;
 export type WorkTabSlug = (typeof WORK_TAB_SLUGS)[number];
+
+/** Legacy ?tab= slugs → their canonical tab. */
+export function canonicalWorkTab(slug: WorkTabSlug): WorkTabSlug {
+  return slug === "client-requests" || slug === "consultant-requests" ? "requests" : slug;
+}
 
 /** Tabs always visible on Work (solo or studio). */
 export const WORK_TABS_BASE = [
@@ -47,8 +54,7 @@ export const WORK_TABS_BASE = [
   "board",
   "calendar",
   "activity",
-  "client-requests",
-  "consultant-requests",
+  "requests",
 ] as const satisfies readonly WorkTabSlug[];
 
 /** HR-gated Work tabs inserted after Board. */
@@ -62,8 +68,7 @@ export function workTabsForNav(hrEnabled: boolean): WorkTabSlug[] {
     "calendar",
     "workload",
     "activity",
-    "client-requests",
-    "consultant-requests",
+    "requests",
     "attendance",
   ];
 }

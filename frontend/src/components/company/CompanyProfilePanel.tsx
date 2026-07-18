@@ -105,6 +105,7 @@ export function CompanyProfilePanel({ isOwner }: { isOwner: boolean }) {
   }, [firmQ.data]);
 
   const update = trpc.firm.update.useMutation({
+    meta: { errorTitle: "Couldn't save the company profile" },
     onSuccess: () => {
       utils.firm.get.invalidate();
       setMsg("Company profile saved");

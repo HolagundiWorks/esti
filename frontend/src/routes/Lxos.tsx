@@ -1,92 +1,41 @@
-import { useState } from "react";
-import { Box, Chip, Grid, Stack, Tab, Tabs } from "@mui/material";
+import { Alert, Box, Chip, Stack } from "@mui/material";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { LessonsBank } from "../components/ProjectLessons.js";
 import { AcademyPanel } from "../components/AcademyPanel.js";
 
 /**
- * LXOS — Learning Exchange Operating System (AORMS knowledge & professional exchange
- * layer). Internal Exchange surfaces the live Lessons Learned bank; Certification &
- * Growth surfaces the LXOS Academy (docs/holagundi/SOP.md as theory, real workspace
- * usage as practical — see AcademyPanel). The remaining layers are greenfield (see
- * docs/esti/NAVIGATION.md § LXOS).
- *
- * Material UI (Carbon → MUI migration).
+ * LXOS — Learning Exchange Operating System. Only live surfaces are shown as
+ * primary content; unfinished layers stay behind a single "Coming soon" notice
+ * (Parkinson / Goal Gradient — avoid placeholder tab exploration). Lessons
+ * Learned and the Academy (docs/holagundi/SOP.md as theory, real workspace
+ * usage as practical — see AcademyPanel) are both live; Community Exchange
+ * and Professional Identity remain planned.
  */
-function PlannedGrid({ items }: { items: { title: string; description: string }[] }) {
-  return (
-    <Grid container spacing={1}>
-      {items.map((m) => (
-        <Grid key={m.title} size={{ xs: 12, sm: 6, lg: 3 }}>
-          <Box sx={{ p: 2, height: "100%", borderBottom: 1, borderColor: "divider" }}>
-            <Stack spacing={1}>
-              <h4>{m.title}</h4>
-              <p className="esti-label esti-label--secondary">{m.description}</p>
-              <Box>
-                <Chip label="Planned" size="small" variant="outlined" />
-              </Box>
-            </Stack>
-          </Box>
-        </Grid>
-      ))}
-    </Grid>
-  );
-}
-
-const LAYERS = ["Internal Exchange", "Community Exchange", "Professional Identity", "Certification & Growth"];
-
 export function Lxos() {
-  const [tab, setTab] = useState(0);
   return (
     <RailLayout
       title="LXOS"
-      description="Learning Exchange Operating System — AORMS knowledge & professional exchange layer. Work and learning coexist; knowledge becomes infrastructure."
-      tabs={
-        <Tabs
-          orientation="vertical"
-          value={tab}
-          onChange={(_e, v) => setTab(v)}
-          aria-label="LXOS layers"
-        >
-          {LAYERS.map((l) => (
-            <Tab key={l} label={l} />
-          ))}
-        </Tabs>
-      }
+      description="Learning Exchange Operating System — firm lessons, knowledge exchange, and the SOP Academy. Additional layers ship as they are built."
     >
-      {tab === 0 && (
-        <Stack spacing={3}>
-          <LessonsBank />
-          <PlannedGrid
-            items={[
-              { title: "Documentation Exchange", description: "Standard / detail / working drawings + documentation standards." },
-              { title: "Internal Blogs", description: "Technical notes, material learnings, compliance and research." },
-              { title: "Whiteboard Studio", description: "Team discussions, sketch sessions, design and technical reviews." },
-              { title: "Knowledge Notes", description: "Standards, site-issue, vendor and internal reference notes." },
-            ]}
-          />
-        </Stack>
-      )}
-      {tab === 1 && (
-        <PlannedGrid
-          items={[
-            { title: "Case Studies", description: "Cross-firm project case studies and documentation showcase." },
-            { title: "Architecture Blogs", description: "Public architecture and technical writing." },
-            { title: "Discussions", description: "Technical, standards and open professional discussions." },
-            { title: "Templates & Research", description: "Templates exchange, vendor reviews, research papers." },
-          ]}
-        />
-      )}
-      {tab === 2 && (
-        <PlannedGrid
-          items={[
-            { title: "AORMS ID & Role", description: "Professional identity and role across the platform." },
-            { title: "Contributions", description: "Knowledge contributions, articles and shared templates." },
-            { title: "Reputation", description: "Community reputation score and contribution history." },
-          ]}
-        />
-      )}
-      {tab === 3 && <AcademyPanel />}
+      <PageBreadcrumb items={[{ label: "LXOS" }]} />
+      <Stack spacing={3}>
+        <LessonsBank />
+        <Box sx={{ borderTop: 1, borderColor: "divider", pt: 2 }}>
+          <h4 style={{ margin: 0, marginBottom: 8 }}>Academy — SOP theory + practical</h4>
+          <AcademyPanel />
+        </Box>
+        <Box sx={{ borderTop: 1, borderColor: "divider", pt: 2 }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 1 }}>
+            <h4 style={{ margin: 0 }}>More LXOS layers</h4>
+            <Chip label="Coming soon" size="small" variant="outlined" />
+          </Stack>
+          <Alert severity="info" variant="outlined">
+            Community Exchange and Professional Identity are planned. Use Lessons
+            Learned and the Academy above for firm-private knowledge and training today.
+          </Alert>
+        </Box>
+      </Stack>
     </RailLayout>
   );
 }

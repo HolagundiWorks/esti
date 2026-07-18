@@ -1,6 +1,15 @@
 /**
- * MuiRoot now lives in the centralised branding kit (@esti/ui-kit) so every
- * portal mounts the same provider. This local path is kept as a stable re-export.
+ * MuiRoot lives in the centralised design system (@hcw/ui-kit); this app
+ * wrapper feeds it the user's persisted colour-scheme preference (Settings →
+ * Appearance). Light is the default; dark/high-contrast are preview-grade.
  */
-export { MuiRoot } from "@hcw/ui-kit";
-export { MuiRoot as default } from "@hcw/ui-kit";
+import type { ReactNode } from "react";
+import { MuiRoot as KitMuiRoot } from "@hcw/ui-kit";
+import { useScheme } from "../lib/scheme.js";
+
+export function MuiRoot({ children }: { children: ReactNode }) {
+  const scheme = useScheme();
+  return <KitMuiRoot scheme={scheme}>{children}</KitMuiRoot>;
+}
+
+export default MuiRoot;

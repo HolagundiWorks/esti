@@ -11,6 +11,7 @@ import {
   FormControlLabel,
   FormGroup,
   Grid,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -36,9 +37,9 @@ export function TeamsPanel() {
   const staff = (staffQ.data ?? []).filter((m) => m.active);
 
   const invalidate = () => utils.teams.list.invalidate();
-  const create = trpc.teams.create.useMutation({ onSuccess: () => { invalidate(); closeCreate(); } });
-  const update = trpc.teams.update.useMutation({ onSuccess: () => { invalidate(); setEditId(null); } });
-  const remove = trpc.teams.remove.useMutation({ onSuccess: invalidate });
+  const create = trpc.teams.create.useMutation({ meta: { errorTitle: "Couldn't create the team" }, onSuccess: () => { invalidate(); closeCreate(); } });
+  const update = trpc.teams.update.useMutation({ meta: { errorTitle: "Couldn't update the team" }, onSuccess: () => { invalidate(); setEditId(null); } });
+  const remove = trpc.teams.remove.useMutation({ meta: { errorTitle: "Couldn't delete the team" }, onSuccess: invalidate });
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -78,7 +79,11 @@ export function TeamsPanel() {
       </Box>
 
       {teamsQ.isLoading ? (
-        <p className="esti-label esti-label--secondary">Loading…</p>
+        <Stack spacing={0.5}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} variant="rectangular" height={32} />
+          ))}
+        </Stack>
       ) : teams.length === 0 ? (
         <Box sx={{ p: 2 }}>
           <p>
@@ -115,8 +120,8 @@ export function TeamsPanel() {
       )}
 
       {/* Create team */}
-      <Dialog open={open} onClose={closeCreate} fullWidth maxWidth="sm">
-        <DialogTitle>New team</DialogTitle>
+      <Dialog aria-labelledby="teams-panel-create-title" open={open} onClose={closeCreate} fullWidth maxWidth="sm">
+        <DialogTitle id="teams-panel-create-title">New team</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="tg-name" label="Team name" value={name}
@@ -161,8 +166,8 @@ export function TeamsPanel() {
       </Dialog>
 
       {/* Manage members */}
-      <Dialog open={editTeam !== null} onClose={() => setEditId(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{editTeam ? `Manage members — ${editTeam.name}` : "Manage members"}</DialogTitle>
+      <Dialog aria-labelledby="teams-panel-members-title" open={editTeam !== null} onClose={() => setEditId(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="teams-panel-members-title">{editTeam ? `Manage members — ${editTeam.name}` : "Manage members"}</DialogTitle>
         <DialogContent>
           <div>
             <Typography variant="subtitle2" component="legend" sx={{ mt: 1 }}>Members</Typography>

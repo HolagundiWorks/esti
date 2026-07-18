@@ -72,11 +72,13 @@ export function StorageSettingsPanel() {
   }
 
   const test = trpc.settings.testStorage.useMutation({
+    meta: { errorTitle: "Couldn't test the storage connection" },
     onSuccess: (r) =>
       setMsg(r.ok ? { kind: "success", text: "Connection succeeded — storage is reachable." } : { kind: "error", text: `Connection failed: ${r.error ?? "unreachable"}` }),
     onError: (e) => setMsg({ kind: "error", text: e.message }),
   });
   const save = trpc.settings.setStorage.useMutation({
+    meta: { errorTitle: "Couldn't save the storage settings" },
     onSuccess: () => {
       utils.settings.getStorage.invalidate();
       utils.settings.get.invalidate();

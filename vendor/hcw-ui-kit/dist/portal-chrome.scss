@@ -1,0 +1,72 @@
+// @hcw/ui-kit — portal chrome (ActionDock · SectionDock chips · dialogs)
+// Canonical values live in src/tokens.ts + src/chrome-sx.ts.
+// Import once from the app entry (frontend/src/main.tsx). Do not duplicate in glass.scss.
+
+:root {
+  --hcw-button-radius: 4px;
+  --hcw-dock-pill-radius: 9999px;
+  --hcw-dialog-radius: 8px;
+  --hcw-marketing-dock-radius: 12px;
+}
+
+.MuiDialog-paper {
+  border-radius: var(--hcw-dialog-radius) !important;
+  overflow: hidden;
+}
+
+.hcw-action-dock[role="toolbar"] {
+  border-radius: var(--hcw-dock-pill-radius) !important;
+}
+
+.hcw-action-dock-btn.MuiButton-root {
+  border-radius: var(--hcw-dock-pill-radius) !important;
+  text-transform: none !important;
+
+  &:not(:hover):not(:focus-visible):not(.Mui-disabled) {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.58) 0%,
+      rgba(255, 255, 255, 0.18) 45%,
+      rgba(255, 255, 255, 0.42) 100%
+    ) !important;
+    backdrop-filter: blur(36px) saturate(2.25) brightness(1.14) !important;
+    -webkit-backdrop-filter: blur(36px) saturate(2.25) brightness(1.14) !important;
+    border: 1px solid rgba(255, 255, 255, 0.72) !important;
+    border-radius: var(--hcw-dock-pill-radius) !important;
+    box-shadow:
+      0 12px 36px rgba(20, 21, 23, 0.11),
+      0 2px 10px rgba(255, 79, 24, 0.07),
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.92),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.28) !important;
+    transform: translateY(-3px) !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:hover,
+    &:focus-visible {
+      transform: none !important;
+    }
+  }
+}
+
+.hcw-section-dock-chip {
+  border-radius: var(--hcw-marketing-dock-radius);
+}
+
+// ActionDock zone separators — recessed groove (not flat hairline) on soft tray.
+.hcw-action-dock-divider {
+  width: 2px;
+  border-radius: 1px;
+  background: transparent;
+  box-shadow:
+    inset 1px 0 rgba(20, 21, 23, 0.15),
+    inset -1px 0 rgba(255, 255, 255, 0.82);
+}

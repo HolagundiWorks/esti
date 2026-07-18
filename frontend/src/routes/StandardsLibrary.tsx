@@ -18,9 +18,10 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { useSignal } from "../lib/useSignal.js";
@@ -36,13 +37,21 @@ const DISCIPLINES: { id: string; label: string }[] = [
   { id: "LIGHTING", label: "Lighting" },
 ];
 
-function DisciplinePanel({ discipline, openSignal }: { discipline: string; openSignal?: number }) {
+function DisciplinePanel({
+  discipline,
+  openSignal,
+  onDialogOpenChange,
+}: {
+  discipline: string;
+  openSignal?: number;
+  onDialogOpenChange?: (open: boolean) => void;
+}) {
   const utils = trpc.useUtils();
   const q = trpc.standards.listByDiscipline.useQuery({ discipline: discipline as never });
   const inv = () => utils.standards.listByDiscipline.invalidate({ discipline: discipline as never });
-  const create = trpc.standards.create.useMutation({ onSuccess: inv });
-  const remove = trpc.standards.remove.useMutation({ onSuccess: inv });
-  const removeFile = trpc.standards.removeFile.useMutation({ onSuccess: inv });
+  const create = trpc.standards.create.useMutation({ meta: { errorTitle: "Couldn't create the standard" }, onSuccess: inv });
+  const remove = trpc.standards.remove.useMutation({ meta: { errorTitle: "Couldn't delete the standard" }, onSuccess: inv });
+  const removeFile = trpc.standards.removeFile.useMutation({ meta: { errorTitle: "Couldn't delete the file" }, onSuccess: inv });
   const { authorizedFetch } = useUploadAuth();
 
   const [open, setOpen] = useState(false);
@@ -50,7 +59,15 @@ function DisciplinePanel({ discipline, openSignal }: { discipline: string; openS
   const [notes, setNotes] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  useSignal(openSignal, () => { setTitle(""); setNotes(""); setOpen(true); });
+
+  const setDialogOpen = (next: boolean) => {
+    setOpen(next);
+    onDialogOpenChange?.(next);
+  };
+
+  useSignal(openSignal, () => { setTitle(""); setNotes(""); setDialogOpen(true); });
+
+  useEffect(() => () => { onDialogOpenChange?.(false); }, [onDialogOpenChange]);
 
   async function attach(standardId: string, kind: string, file: File) {
     setBusyId(standardId);
@@ -138,8 +155,8 @@ function DisciplinePanel({ discipline, openSignal }: { discipline: string; openS
         </Grid>
       </DataState>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New standard</DialogTitle>
+      <Dialog aria-labelledby="standards-library-create-title" open={open} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="standards-library-create-title">New standard</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="std-title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -154,13 +171,13 @@ function DisciplinePanel({ discipline, openSignal }: { discipline: string; openS
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button variant="text" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="text" onClick={() => setDialogOpen(false)}>Cancel</Button>
           <Button
             variant="contained"
             disabled={!title.trim() || create.isPending}
             onClick={() => {
               create.mutate({ discipline: discipline as never, title: title.trim(), notes: notes.trim() || undefined });
-              setOpen(false);
+              setDialogOpen(false);
             }}
           >
             {create.isPending ? "Saving…" : "Create"}
@@ -191,10 +208,9 @@ function DocumentsTab() {
 
   if (isLoading) {
     return (
-      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-        <CircularProgress size={16} />
-        <Typography variant="body2">Loading documents…</Typography>
-      </Stack>
+      <DataState loading isEmpty={false} empty={{ title: "" }} columnCount={4}>
+        {null}
+      </DataState>
     );
   }
 
@@ -239,9 +255,10 @@ export function StandardsLibrary() {
   const [tab, setTab] = useState(0);
   const [discTab, setDiscTab] = useState(0);
   const [stdSignal, setStdSignal] = useState(0);
+  const [stdDialogOpen, setStdDialogOpen] = useState(false);
 
   useScreenActions(
-    tab === 1
+    tab === 1 && !stdDialogOpen
       ? [
           {
             id: "new-standard",
@@ -253,7 +270,7 @@ export function StandardsLibrary() {
           },
         ]
       : [],
-    [tab],
+    [tab, stdDialogOpen],
   );
 
   return (
@@ -272,6 +289,7 @@ export function StandardsLibrary() {
         </Tabs>
       }
     >
+      <PageBreadcrumb items={[{ label: "Library" }, { label: "Standards" }]} />
       {tab === 0 && <DocumentsTab />}
       {tab === 1 && (
         <Stack spacing={2}>
@@ -280,7 +298,12 @@ export function StandardsLibrary() {
           </Tabs>
           {DISCIPLINES.map((d, i) =>
             discTab === i ? (
-              <DisciplinePanel key={d.id} discipline={d.id} openSignal={stdSignal} />
+              <DisciplinePanel
+                key={d.id}
+                discipline={d.id}
+                openSignal={stdSignal}
+                onDialogOpenChange={setStdDialogOpen}
+              />
             ) : null,
           )}
         </Stack>

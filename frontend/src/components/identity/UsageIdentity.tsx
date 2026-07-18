@@ -29,11 +29,13 @@ export function UsageIdentity() {
   const statusQ = trpc.usage.status.useQuery(undefined, {
     refetchInterval: USAGE_PING_INTERVAL_MS,
   });
-  const ping = trpc.usage.ping.useMutation();
+  const ping = trpc.usage.ping.useMutation({ meta: { errorTitle: "Couldn't record the usage ping" } });
   const dismiss = trpc.usage.dismissIdPrompt.useMutation({
+    meta: { errorTitle: "Couldn't dismiss the prompt" },
     onSuccess: () => utils.usage.status.invalidate(),
   });
   const generate = trpc.usage.generateAormsId.useMutation({
+    meta: { errorTitle: "Couldn't generate the AORMS ID" },
     onSuccess: () => {
       void utils.usage.status.invalidate();
       void utils.users.myProfile.invalidate();
@@ -75,12 +77,13 @@ export function UsageIdentity() {
 
   return (
     <Dialog
+      aria-labelledby="usage-identity-id-title"
       open={open || (!closed && !!generatedId)}
       onClose={handleClose}
       fullWidth
       maxWidth="xs"
     >
-      <DialogTitle>
+      <DialogTitle id="usage-identity-id-title">
         <Stack spacing={0.5}>
           <Typography variant="overline" component="span">AORMS identity</Typography>
           <span>{generatedId ? "Your AORMS ID is ready" : "Generate your AORMS ID"}</span>

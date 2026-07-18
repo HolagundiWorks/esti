@@ -14,10 +14,12 @@ import {
   FormControlLabel,
   Grid,
   MenuItem,
+  Skeleton,
   Stack,
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
@@ -25,6 +27,8 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import {
+  ENGINEERING_DISCIPLINE_LABEL,
+  ISSUE_CLASS_LABEL,
   formatINR,
   PORTAL_SUBMISSION_KIND_LABEL,
   PORTAL_SUBMISSION_STATUS_LABEL,
@@ -32,6 +36,8 @@ import {
   REVISION_CATEGORY_LABEL,
   REVISION_CATEGORY_TAG,
   RevisionCategory,
+  type EngineeringDiscipline,
+  type IssueClass,
   type PortalApprovalDecision,
   type PortalSubmissionKind,
   type PortalSubmissionStatus,
@@ -41,12 +47,13 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
-import { PortalHeader } from "../components/PortalHeader.js";
+import { ExternalPortalShell } from "../components/portal/ExternalPortalShell.js";
 import { PortalMinutes } from "../components/PortalMinutes.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot, StatusTag } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 const INV_TAG: Record<string, "blue" | "green"> = {
   ISSUED: "blue",
@@ -71,10 +78,13 @@ export function Portal() {
   const openId = projectId ?? null;
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({
+    meta: { errorTitle: "Couldn't sign out" },
     onSuccess: () => utils.auth.me.invalidate(),
   });
   const brandingQ = trpc.portal.branding.useQuery();
   const projectsQ = trpc.portal.myProjects.useQuery();
+  // AORMS-Consultancy Phase 0 — issued engineering packages (ISSUED only, own client).
+  const issuedConsQ = trpc.portal.issuedConsDeliverables.useQuery();
   const detailQ = trpc.portal.projectDetail.useQuery(
     { projectId: openId ?? "" },
     { enabled: !!openId },
@@ -144,10 +154,12 @@ export function Portal() {
     utils.portal.revisionStats.invalidate();
   };
   const respond = trpc.portal.respondApproval.useMutation({
+    meta: { errorTitle: "Couldn't submit the approval decision" },
     onSuccess: () => { refresh(); setDecision(null); },
   });
-  const acknowledge = trpc.portal.acknowledge.useMutation({ onSuccess: refresh });
+  const acknowledge = trpc.portal.acknowledge.useMutation({ meta: { errorTitle: "Couldn't acknowledge the receipt" }, onSuccess: refresh });
   const changeRequest = trpc.portal.submitChangeRequest.useMutation({
+    meta: { errorTitle: "Couldn't submit the change request" },
     onSuccess: () => {
       refresh();
       setRequestOpen(false);
@@ -155,14 +167,17 @@ export function Portal() {
     },
   });
   const submitFeedback = trpc.portal.submitFeedback.useMutation({
+    meta: { errorTitle: "Couldn't submit the feedback" },
     onSuccess: () => { refresh(); setFeedbackOpen(false); setFeedback({ subject: "", body: "", rating: "" }); },
   });
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [meeting, setMeeting] = useState({ preferredDate: "", mode: "IN_PERSON" as "IN_PERSON" | "VIDEO_CALL" | "PHONE", agenda: "" });
   const requestMeeting = trpc.portal.requestMeeting.useMutation({
+    meta: { errorTitle: "Couldn't request the meeting" },
     onSuccess: () => { refresh(); setMeetingOpen(false); setMeeting({ preferredDate: "", mode: "IN_PERSON", agenda: "" }); },
   });
   const respondImpact = trpc.portal.respondToImpact.useMutation({
+    meta: { errorTitle: "Couldn't submit the impact response" },
     onSuccess: () => { refresh(); setImpactResponse(null); },
   });
 
@@ -173,6 +188,7 @@ export function Portal() {
     { enabled: !!threadFor },
   );
   const reply = trpc.portal.replySubmission.useMutation({
+    meta: { errorTitle: "Couldn't send the reply" },
     onSuccess: () => utils.portal.submissionThread.invalidate(),
   });
 
@@ -432,15 +448,12 @@ export function Portal() {
   ];
 
   return (
-    <>
-      <PortalHeader
-        companyName={brandingQ.data?.companyName}
-        logoUrl={brandingQ.data?.logoUrl}
-        portalLabel="Client portal"
-        onSignOut={() => logout.mutate()}
-        signingOut={logout.isPending}
-      />
-      <Box component="main" sx={{ p: { xs: 2, md: 4 } }}>
+    <ExternalPortalShell
+      companyName={brandingQ.data?.companyName}
+      portalLabel={AORMS_PORTALS.client.label}
+      onSignOut={() => logout.mutate()}
+      signingOut={logout.isPending}
+    >
         {!openId && (
           <Stack spacing={3}>
             <Stack spacing={1}>
@@ -470,6 +483,53 @@ export function Portal() {
                 </Grid>
               ))}
             </Grid>
+
+            {/* Issued engineering packages — shown only when the firm has issued
+                consultancy deliverables to this client (Phase 0 portal scoping). */}
+            {(issuedConsQ.data ?? []).length > 0 && (
+              <Stack spacing={1.5}>
+                <Typography variant="h6" component="h2">Issued engineering packages</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Deliverable packages formally issued to you — drafts and superseded
+                  revisions stay with the office.
+                </Typography>
+                <TableContainer>
+                  <Table size="small" aria-label="Issued engineering packages">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Engagement</TableCell>
+                        <TableCell>Code</TableCell>
+                        <TableCell>Title</TableCell>
+                        <TableCell>Discipline</TableCell>
+                        <TableCell>Rev</TableCell>
+                        <TableCell>Purpose of issue</TableCell>
+                        <TableCell>Issued</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {(issuedConsQ.data ?? []).map((p) => (
+                        <TableRow key={p.id}>
+                          <TableCell>{p.engagementTitle}</TableCell>
+                          <TableCell>{p.code}</TableCell>
+                          <TableCell>{p.title}</TableCell>
+                          <TableCell>
+                            {ENGINEERING_DISCIPLINE_LABEL[p.discipline as EngineeringDiscipline] ??
+                              p.discipline}
+                          </TableCell>
+                          <TableCell>{p.revision}</TableCell>
+                          <TableCell>
+                            {ISSUE_CLASS_LABEL[p.issueClass as IssueClass] ?? p.issueClass}
+                          </TableCell>
+                          <TableCell>
+                            {p.issuedAt ? new Date(p.issuedAt).toLocaleDateString("en-IN") : "—"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Stack>
+            )}
           </Stack>
         )}
 
@@ -592,7 +652,11 @@ export function Portal() {
                     <Stack spacing={1.5}>
                       <span className="esti-label">Change requests by category</span>
                       {revisionStatsQ.isLoading ? (
-                        <span className="esti-label esti-label--secondary">Loading…</span>
+                        <Stack spacing={0.5}>
+                          {Array.from({ length: 3 }).map((_, i) => (
+                            <Skeleton key={i} variant="rectangular" height={32} />
+                          ))}
+                        </Stack>
                       ) : changesByCat.length === 0 ? (
                         <span className="esti-label esti-label--secondary">No change requests yet.</span>
                       ) : (
@@ -621,7 +685,11 @@ export function Portal() {
                     <Stack spacing={1.5}>
                       <span className="esti-label">Drawing revisions by type</span>
                       {revisionStatsQ.isLoading ? (
-                        <span className="esti-label esti-label--secondary">Loading…</span>
+                        <Stack spacing={0.5}>
+                          {Array.from({ length: 3 }).map((_, i) => (
+                            <Skeleton key={i} variant="rectangular" height={32} />
+                          ))}
+                        </Stack>
                       ) : drawingsByRev.length === 0 ? (
                         <span className="esti-label esti-label--secondary">No drawing revisions yet.</span>
                       ) : (
@@ -670,12 +738,13 @@ export function Portal() {
 
         {/* ── approval decision dialog ──────────────────────────────────── */}
         <Dialog
+          aria-labelledby="portal-respond-title"
           open={decision !== null}
           onClose={() => setDecision(null)}
           fullWidth
           maxWidth="sm"
         >
-          <DialogTitle>{decision ? `Respond — ${decision.title}` : "Respond"}</DialogTitle>
+          <DialogTitle id="portal-respond-title">{decision ? `Respond — ${decision.title}` : "Respond"}</DialogTitle>
           {decision && (
             <DialogContent>
               <Stack spacing={2} sx={{ mt: 1 }}>
@@ -746,12 +815,13 @@ export function Portal() {
 
         {/* ── change request dialog ─────────────────────────────────────── */}
         <Dialog
+          aria-labelledby="portal-change-request-title"
           open={requestOpen}
           onClose={() => setRequestOpen(false)}
           fullWidth
           maxWidth="sm"
         >
-          <DialogTitle>Raise a change request</DialogTitle>
+          <DialogTitle id="portal-change-request-title">Raise a change request</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 1 }}>
               <TextField
@@ -832,12 +902,13 @@ export function Portal() {
 
         {/* ── feedback dialog ───────────────────────────────────────────── */}
         <Dialog
+          aria-labelledby="portal-feedback-title"
           open={feedbackOpen}
           onClose={() => setFeedbackOpen(false)}
           fullWidth
           maxWidth="sm"
         >
-          <DialogTitle>Leave feedback</DialogTitle>
+          <DialogTitle id="portal-feedback-title">Leave feedback</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 1 }}>
               <TextField id="fb-subject" label="Subject" value={feedback.subject}
@@ -875,12 +946,13 @@ export function Portal() {
 
         {/* ── schedule a meeting dialog ─────────────────────────────────── */}
         <Dialog
+          aria-labelledby="portal-meeting-title"
           open={meetingOpen}
           onClose={() => setMeetingOpen(false)}
           fullWidth
           maxWidth="sm"
         >
-          <DialogTitle>Schedule a meeting</DialogTitle>
+          <DialogTitle id="portal-meeting-title">Schedule a meeting</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 1 }}>
               <TextField id="mtg-mode" select label="Mode" value={meeting.mode}
@@ -920,12 +992,13 @@ export function Portal() {
 
         {/* ── impact assessment response dialog ─────────────────────────── */}
         <Dialog
+          aria-labelledby="portal-impact-title"
           open={impactResponse !== null}
           onClose={() => setImpactResponse(null)}
           fullWidth
           maxWidth="sm"
         >
-          <DialogTitle>
+          <DialogTitle id="portal-impact-title">
             {impactResponse ? `Impact assessment — ${impactResponse.subject}` : "Impact assessment"}
           </DialogTitle>
           {impactResponse && (
@@ -1005,12 +1078,13 @@ export function Portal() {
 
         {/* ── conversation thread dialog ────────────────────────────────── */}
         <Dialog
+          aria-labelledby="portal-conversation-title"
           open={threadFor !== null}
           onClose={() => setThreadFor(null)}
           fullWidth
           maxWidth="sm"
         >
-          <DialogTitle>{threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}</DialogTitle>
+          <DialogTitle id="portal-conversation-title">{threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}</DialogTitle>
           <DialogContent>
             {threadFor && (
               <SubmissionThread
@@ -1025,8 +1099,7 @@ export function Portal() {
             <Button variant="contained" onClick={() => setThreadFor(null)}>Close</Button>
           </DialogActions>
         </Dialog>
-      </Box>
-    </>
+    </ExternalPortalShell>
   );
 }
 

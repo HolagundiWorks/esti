@@ -7,12 +7,13 @@
 > **[`HCW-UI-KIT.md`](HCW-UI-KIT.md)**. This document is the brand **heritage** —
 > naming, rationale, and colour/motion detail not yet mirrored in the kit — but
 > where it conflicts with `tokens.ts`, **the code wins**. Two known drifts: the
-> brand font is now **Urbanist** (not Open Sans, §2 below), and corners use one
-> **soft-square radius (8px)**, not `borderRadius: 0` (§3 below).
+> brand font is now **Urbanist** (not Open Sans, §2 below), and corners are
+> **0 on surfaces** with **`BUTTON_RADIUS` (4px) on buttons only** (§3 below).
 >
-> **Product:** **AORMS** (Architecture Office Resource Management System) — the
-> workspace. **ESTI** (Embedded Studio Intelligence) — the AI/agent layer inside it.
-> Code identifiers keep the `esti` codename; the brand the user sees is **AORMS**.
+> **Product:** **AORMS** (**Accelerated Operational Resources Management System**) —
+> the platform for AEC consulting firms. **AORMS-Studio** — architecture app (`aorms-studio`).
+> **EmOI** — external AI agent; **ESTI** — internal AI agent (live in **AORMS-Studio**).
+> Code identifiers keep the `esti` codename; the platform mark is **AORMS**.
 
 ---
 
@@ -82,8 +83,9 @@ Intelligence, now everywhere):
 - **Solid Pure-White panels on the Fog-Gray canvas.** No frosted glass, no
   backdrop blur, no drop shadow. Definition comes from a **hairline edge**, not
   elevation.
-- **Square corners everywhere.** `borderRadius: 0`. No pills, no rounded cards or
-  chips. The visual guard fails the build on any non-zero radius.
+- **Square corners on surfaces.** `borderRadius: 0` on panels, cards, inputs, rails,
+  dialogs, menus, and chips. **Buttons alone** use `BUTTON_RADIUS` (4px) — the only
+  rounded control in the product chrome.
 - **Hairline separators** (`1px` @ ~8% ink) replace card edges — an 80%-width
   centred rule between flat sections (the dashboard `Sep()` idiom), a full-height
   hairline between Rail and Stage.
@@ -153,6 +155,7 @@ Autopilot rollout: [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md
   recoloured via CSS mask:
   - `.esti-brand.esti-brand--esti` → `/esti-mark-black.png` mask, orange fill
   - `.esti-brand.esti-brand--aorms` → `/aorms-logo.png` mask, orange fill
+  - `.esti-brand.esti-brand--aorms-mark` → `/aorms-mark.png` — isolated lowercase **a** from the typography logo (favicon, collapsed rail, `BrandMark` accent)
   - Fill token: `--esti-brand-accent` (`glass.scss`); `--esti-brand-yellow` is a
     legacy alias pointing at the same orange.
 - **Assets** live in `frontend/public/` (`esti-mark-*.png`, `aorms-logo*.png`,

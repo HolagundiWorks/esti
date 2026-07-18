@@ -22,6 +22,7 @@ import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusTag } from "../components/StatusTag.js";
@@ -42,24 +43,27 @@ export function Contracts() {
   const templatesQ = trpc.documents.listTemplates.useQuery({ kind: "CONTRACT" });
   const inv = () => utils.contracts.list.invalidate();
   const updateStatus = trpc.contracts.updateStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the contract status" },
     onSuccess: inv,
   });
-  const remove = trpc.contracts.remove.useMutation({ onSuccess: inv });
+  const remove = trpc.contracts.remove.useMutation({ meta: { errorTitle: "Couldn't delete the contract" }, onSuccess: inv });
 
   const [open, setOpen] = useState(false);
 
   useScreenActions(
-    [
-      {
-        id: "new-contract",
-        zone: "center",
-        tone: "primary",
-        label: "New contract",
-        icon: <AddIcon />,
-        onClick: () => setOpen(true),
-      },
-    ],
-    [],
+    open
+      ? []
+      : [
+          {
+            id: "new-contract",
+            zone: "center",
+            tone: "primary",
+            label: "New contract",
+            icon: <AddIcon />,
+            onClick: () => setOpen(true),
+          },
+        ],
+    [open],
   );
 
   const [f, setF] = useState({
@@ -76,6 +80,7 @@ export function Contracts() {
     setF((x) => ({ ...x, [k]: e.target.value }));
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const create = trpc.contracts.create.useMutation({
+    meta: { errorTitle: "Couldn't create the contract" },
     onSuccess: () => {
       inv();
       setOpen(false);
@@ -188,6 +193,7 @@ export function Contracts() {
         title="Contracts"
         description="Agreements with clients, consultants and vendors."
       >
+        <PageBreadcrumb items={[{ label: "Office" }, { label: "Contracts" }]} />
         <DataState
           loading={listQ.isLoading}
           isEmpty={rows.length === 0}
@@ -222,8 +228,8 @@ export function Contracts() {
         onClose={() => setConfirmId(null)}
       />
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>New contract</DialogTitle>
+      <Dialog aria-labelledby="contracts-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle id="contracts-create-title">New contract</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             {(templatesQ.data ?? []).length > 0 && (

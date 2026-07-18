@@ -1,11 +1,15 @@
-# AORMS — Architecture Office Resource Management System
+# AORMS — Accelerated Operational Resources Management System
 
-**AORMS** is the workspace: greenfield software to run an Indian architecture
-office, **not** a general ERP. **ESTI** (Embedded Studio Intelligence) is the
-intelligence/agent layer embedded in the AORMS workspace — ESTI AI, Ask ESTI,
-the cognition engine, ESTI Pulse. Developed by **Holagundi Consulting Works
-(HCW)** for Indian freelance architects and small architecture practices.
+**AORMS** is the **platform** for **AEC consulting firms** (architecture and
+engineering practices that advise clients — workflow consolidation, collaboration,
+audit-first AI). The **shipped app** in this repo is **AORMS-Studio** (`aorms-studio`)
+— software to run an Indian architecture consultancy. **AORMS-Consultancy** for
+engineering consultancies is on the roadmap. **ESTI** (Embedded Studio Intelligence)
+is the intelligence layer in **AORMS-Studio** only. Developed by **Human Centric Works (HCW)**.
 *(The repo, `@esti/*` packages and `esti_*` tables keep the `esti` codename.)*
+
+Nomenclature: [docs/esti/AORMS-PLATFORM-NOMENCLATURE.md](docs/esti/AORMS-PLATFORM-NOMENCLATURE.md).
+Platform north-star: [docs/esti/AORMS-DEVELOPMENT-SPEC.md](docs/esti/AORMS-DEVELOPMENT-SPEC.md).
 
 Stack: a **TypeScript** backend (Fastify + tRPC + PostgreSQL), a **React** SPA on
 **Material UI** styled by the shared [HCW-UI-Kit](docs/esti/HCW-UI-KIT.md)
@@ -31,15 +35,19 @@ drawings/PDF/reconciliation. See
   requests expanding through the roadmap.
 - Architect-side site supervision: site instructions, inspections, snags, and
   progress reports.
-- Drawing register: DXF upload, revision control, issue PDFs, transmittals, and
-  **in-browser estimation** (BOQ, materials, BBS) on each project.
+- Drawing register: DXF upload, revision control, issue PDFs, and transmittals.
+- Project-scoped client and consultant collaboration, with audited approvals and
+  requests expanding through the roadmap.
+- Architect-side site supervision: site instructions, inspections, snags, and
+  progress reports.
 
-Cost estimation and BOQ — rebuilding as the Cost Management System on
-the Construction Knowledge Bank foundation — support architect workflows.
+The **Cost Management System** (measurement book, plan markup, item library) is
+being rebuilt on the Construction Knowledge Bank foundation — see
+[docs/esti/COST-MANAGEMENT-SYSTEM.md](docs/esti/COST-MANAGEMENT-SYSTEM.md).
 General-purpose ERP, commerce, warehouse, labour,
 subcontractor-accounting, and contractor execution systems are out of scope.
 
-**User guide:** [wiki.aorms.in](https://wiki.aorms.in) · **Licence:** one standard
+**User guide:** [aorms.in/wiki](https://aorms.in/wiki) · **Licence:** one standard
 cloud workspace ([PLANS-AND-TIERS](docs/esti/PLANS-AND-TIERS.md)) — no desktop
 app installs for the main product.
 

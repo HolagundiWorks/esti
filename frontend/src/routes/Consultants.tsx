@@ -18,9 +18,11 @@ import {
 import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 export function Consultants() {
   const utils = trpc.useUtils();
@@ -38,6 +40,7 @@ export function Consultants() {
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const create = trpc.consultants.create.useMutation({
+    meta: { errorTitle: "Couldn't create the consultant" },
     onSuccess: () => {
       utils.consultants.list.invalidate();
       setOpen(false);
@@ -55,6 +58,7 @@ export function Consultants() {
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loginMsg, setLoginMsg] = useState<string | null>(null);
   const createLogin = trpc.consultants.createLogin.useMutation({
+    meta: { errorTitle: "Couldn't create the collaborator login" },
     onSuccess: (u) => {
       setLoginMsg(`Collaborator login created for ${u.email}`);
       setLogin(null);
@@ -75,17 +79,19 @@ export function Consultants() {
     })) ?? [];
 
   useScreenActions(
-    [
-      {
-        id: "new-consultant",
-        zone: "center",
-        tone: "primary",
-        label: "New consultant",
-        icon: <AddIcon />,
-        onClick: () => setOpen(true),
-      },
-    ],
-    [],
+    open || !!login
+      ? []
+      : [
+          {
+            id: "new-consultant",
+            zone: "center",
+            tone: "primary",
+            label: "New consultant",
+            icon: <AddIcon />,
+            onClick: () => setOpen(true),
+          },
+        ],
+    [open, login],
   );
 
   const [query, setQuery] = useState("");
@@ -133,6 +139,7 @@ export function Consultants() {
             <TextField
               size="small"
               placeholder="Search consultants…"
+              slotProps={{ htmlInput: { "aria-label": "Search consultants" } }}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               fullWidth
@@ -140,6 +147,7 @@ export function Consultants() {
           </Stack>
         }
       >
+      <PageBreadcrumb items={[{ label: "Third Parties" }, { label: "Consultants" }]} />
       {loginMsg && (
         <Alert severity="success" onClose={() => setLoginMsg(null)}>
           {loginMsg}
@@ -167,8 +175,8 @@ export function Consultants() {
       </DataState>
       </RailLayout>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New consultant</DialogTitle>
+      <Dialog aria-labelledby="consultants-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="consultants-create-title">New consultant</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -239,17 +247,18 @@ export function Consultants() {
       </Dialog>
 
       <Dialog
+        aria-labelledby="consultants-login-title"
         open={!!login}
         onClose={() => setLogin(null)}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>{`Create login — ${login?.name ?? ""}`}</DialogTitle>
+        <DialogTitle id="consultants-login-title">{`Create login — ${login?.name ?? ""}`}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <p>
-              Gives this consultant a project-scoped portal login (their engaged
-              projects only).
+              Gives this consultant a project-scoped {AORMS_PORTALS.consultant.label.toLowerCase()}{" "}
+              login (their engaged projects only).
             </p>
             <TextField
               id="cl-email"
@@ -264,6 +273,7 @@ export function Consultants() {
               id="cl-password"
               label="Temporary password (min 8 chars)"
               type="password"
+              autoComplete="new-password"
               value={loginForm.password}
               onChange={(e) =>
                 setLoginForm((f) => ({ ...f, password: e.target.value }))

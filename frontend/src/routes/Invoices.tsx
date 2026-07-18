@@ -30,6 +30,7 @@ import { useScreenActions } from "@hcw/ui-kit";
 import { Link } from "react-router-dom";
 import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { PeriodFilter } from "../components/PeriodFilter.js";
 import { StatusTag } from "../components/StatusTag.js";
@@ -55,6 +56,7 @@ export function Invoices() {
   const [sac, setSac] = useState<string>(SAC_CODES[0]?.code ?? "998321");
 
   const create = trpc.invoices.create.useMutation({
+    meta: { errorTitle: "Couldn't create the invoice" },
     onSuccess: () => {
       utils.invoices.listAll.invalidate();
       utils.dashboard.home.invalidate();
@@ -65,6 +67,7 @@ export function Invoices() {
     },
   });
   const updateStatus = trpc.invoices.updateStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the invoice status" },
     onSuccess: () => {
       utils.invoices.listAll.invalidate();
       utils.dashboard.home.invalidate();
@@ -76,10 +79,16 @@ export function Invoices() {
   const tdsPaise = firmTdsDefault ? computeTds194j(taxablePaise) : 0;
   const net = breakup.grandTotal - tdsPaise;
   const showSac = firmGst === GstSystem.REGULAR;
+  const createBlockedReason = !projectId
+    ? "Choose a project."
+    : !taxableR || taxablePaise <= 0
+      ? "Enter a taxable value greater than zero."
+      : null;
 
   useScreenActions(
-    canInvoice
-      ? [
+    open || !canInvoice
+      ? []
+      : [
           {
             id: "new-invoice",
             zone: "center",
@@ -88,9 +97,8 @@ export function Invoices() {
             icon: <AddIcon />,
             onClick: () => setOpen(true),
           },
-        ]
-      : [],
-    [canInvoice],
+        ],
+    [open, canInvoice],
   );
 
   const columns: GridColDef[] = [
@@ -197,6 +205,7 @@ export function Invoices() {
           </Stack>
         }
       >
+        <PageBreadcrumb items={[{ label: "Office" }, { label: "Invoices" }]} />
         <DataState
           loading={listQ.isLoading}
           isEmpty={(listQ.data ?? []).length === 0}
@@ -218,8 +227,8 @@ export function Invoices() {
         </DataState>
       </RailLayout>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New invoice (GST / TDS)</DialogTitle>
+      <Dialog aria-labelledby="invoices-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="invoices-create-title">New invoice (GST / TDS)</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -228,6 +237,7 @@ export function Invoices() {
               label="Project"
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
+              helperText={!projectId ? "Required — pick the project to invoice." : undefined}
             >
               <MenuItem value="">Select a project…</MenuItem>
               {(projectsQ.data ?? []).map((p) => (
@@ -243,6 +253,12 @@ export function Invoices() {
               type="number"
               value={taxableR}
               onChange={(e) => setTaxableR(e.target.value)}
+              helperText={
+                taxableR && taxablePaise <= 0
+                  ? "Enter an amount greater than zero."
+                  : "Excludes GST — calculated from your firm GST settings."
+              }
+              error={Boolean(taxableR) && taxablePaise <= 0}
             />
             {showSac && (
               <TextField
@@ -294,13 +310,18 @@ export function Invoices() {
                 <strong>Could not create</strong> — {create.error.message}
               </Alert>
             )}
+            {createBlockedReason && !create.isPending && (
+              <Typography variant="caption" color="text.secondary">
+                {createBlockedReason}
+              </Typography>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button variant="text" onClick={() => setOpen(false)}>Cancel</Button>
           <Button
             variant="contained"
-            disabled={!projectId || !taxableR || create.isPending}
+            disabled={Boolean(createBlockedReason) || create.isPending}
             onClick={() =>
               create.mutate({
                 projectId,

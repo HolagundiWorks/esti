@@ -8,6 +8,7 @@ import {
   DialogTitle,
   Grid,
   MenuItem,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -33,12 +34,15 @@ export function ApplicationsTab() {
   const teamQ = trpc.team.list.useQuery();
 
   const createApp = trpc.hrProfile.createApplication.useMutation({
+    meta: { errorTitle: "Couldn't create the application" },
     onSuccess: () => { utils.hrProfile.listApplications.invalidate(); setCreateOpen(false); resetForm(); },
   });
   const updateStatus = trpc.hrProfile.updateApplicationStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the application status" },
     onSuccess: () => utils.hrProfile.listApplications.invalidate(),
   });
   const onboard = trpc.hrProfile.onboardApplication.useMutation({
+    meta: { errorTitle: "Couldn't onboard the applicant" },
     onSuccess: () => {
       utils.hrProfile.listApplications.invalidate();
       utils.team.list.invalidate();
@@ -76,7 +80,13 @@ export function ApplicationsTab() {
         </Button>
       </div>
 
-      {listQ.isLoading && <p className="esti-label esti-label--secondary">Loading…</p>}
+      {listQ.isLoading && (
+        <Stack spacing={0.5}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} variant="rectangular" height={32} />
+          ))}
+        </Stack>
+      )}
 
       {apps.length === 0 && !listQ.isLoading && (
         <Box sx={{ p: 2 }}>
@@ -186,12 +196,13 @@ export function ApplicationsTab() {
 
       {/* New application modal */}
       <Dialog
+        aria-labelledby="applications-tab-create-title"
         open={createOpen}
         onClose={() => { setCreateOpen(false); resetForm(); }}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>New job application</DialogTitle>
+        <DialogTitle id="applications-tab-create-title">New job application</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="app-name" label="Applicant name" value={form.name} onChange={set("name")} fullWidth />
@@ -200,7 +211,7 @@ export function ApplicationsTab() {
                 <MenuItem key={k} value={k}>{TEAM_ROLES[k]}</MenuItem>
               ))}
             </TextField>
-            <TextField id="app-email" label="Email" type="email" value={form.email} onChange={set("email")} fullWidth />
+            <TextField id="app-email" label="Email" type="email" autoComplete="email" value={form.email} onChange={set("email")} fullWidth />
             <TextField id="app-phone" label="Phone" value={form.phone} onChange={set("phone")} fullWidth />
             <TextField id="app-notes" label="Notes" value={form.notes} onChange={set("notes")} fullWidth />
             {createApp.error && (
@@ -230,12 +241,13 @@ export function ApplicationsTab() {
 
       {/* Onboard modal — link to existing team member or create new */}
       <Dialog
+        aria-labelledby="applications-tab-onboard-title"
         open={!!onboardOpen}
         onClose={() => setOnboardOpen(null)}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>Onboard applicant</DialogTitle>
+        <DialogTitle id="applications-tab-onboard-title">Onboard applicant</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <p>

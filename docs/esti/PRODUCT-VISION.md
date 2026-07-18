@@ -8,9 +8,14 @@
 > [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
 > [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
 
-**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-06-23
+**Status:** Canonical · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-07-10
 
-**AORMS** (Architecture Office Resource Management System) is the workspace for
+> **Nomenclature (2026-07-10):** **AORMS** = **Accelerated Operational Resources
+> Management System** (platform). This document describes **AORMS-Studio**
+> — the workspace shipped from this repo (slug `aorms-studio`). See
+> [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md).
+
+**AORMS-Studio** is the operational system for
 Indian freelance architects and small architecture practices: the single
 operational record for projects, communication, tasks, decisions, drawings,
 documents, statutory work, fees, invoices, consultants, contractors, and office
@@ -90,7 +95,7 @@ out of scope.
 - Drawings, specifications, site reports, transmittals, approvals
 - Client revision intelligence and studio performance analytics, delivered in a
   transparent and non-surveillant way
-- Consultants and project-scoped collaborator portal
+- Consultants and project-scoped **Consultant portal** (alias *collaborator portal* in internal copy)
 - Contractor register and architect-side site coordination
 - Fee proposals, contracts, invoices, GST/TDS, reconciliation, and filing
 - BOQ, takeoff, and estimation with simple purchase orders (rebuilding as the CMS)
@@ -118,8 +123,11 @@ signals must not become covert surveillance or punitive monitoring.
 
 ## Naming
 
-- Product name: **AORMS** (Architecture Office Resource Management System); **ESTI**
-  (Embedded Studio Intelligence) is the embedded intelligence layer.
+- Product name: **AORMS** (**Accelerated Operational Resources Management System**, platform for AEC consulting firms).
+- Shipped app: **AORMS-Studio** (slug `aorms-studio`, architecture / Indian architecture consultancies).
+- Roadmap app: **AORMS-Consultancy** (slug `aorms-consultancy`, engineering consultancies).
+- **EmOI** (Embedded Operational Intelligence) — **external AI agent**.
+- **ESTI** (Embedded Studio Intelligence) — **internal AI agent** (live in **AORMS-Studio**).
 - Company: **Holagundi Consulting Works (HCW)**.
 - The supplied ESI-AORMS document is treated as product input; repository and
   code naming keeps the `esti` codename.

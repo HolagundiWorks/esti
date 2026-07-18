@@ -1214,38 +1214,199 @@
       "breakpoints": true
     },
     {
+      "idx": 173,
+      "version": "7",
+      "when": 1783650000000,
+      "tag": "0175_estimation_teardown",
+      "breakpoints": true
+    },
+    {
+      "idx": 174,
+      "version": "7",
+      "when": 1783650001000,
+      "tag": "0176_plan_measurement",
+      "breakpoints": true
+    },
+    {
       "idx": 175,
       "version": "7",
-      "when": 1782207425000,
-      "tag": "0175_estimation_teardown",
+      "when": 1783650002000,
+      "tag": "0176b_plan_measurement_fix",
       "breakpoints": true
     },
     {
       "idx": 176,
       "version": "7",
-      "when": 1782207426000,
-      "tag": "0176_drawing_review",
+      "when": 1783650003000,
+      "tag": "0177_building_level_stack",
       "breakpoints": true
     },
     {
       "idx": 177,
       "version": "7",
-      "when": 1782207427000,
-      "tag": "0177_lead_conflict_check",
+      "when": 1783650004000,
+      "tag": "0178_project_structural_defaults",
       "breakpoints": true
     },
     {
       "idx": 178,
       "version": "7",
-      "when": 1782207428000,
-      "tag": "0178_academy_sop_progress",
+      "when": 1783650005000,
+      "tag": "0179_varying_beam_lintel",
       "breakpoints": true
     },
     {
       "idx": 179,
       "version": "7",
-      "when": 1782207429000,
-      "tag": "0179_estimation",
+      "when": 1783650006000,
+      "tag": "0180_repo_portal",
+      "breakpoints": true
+    },
+    {
+      "idx": 180,
+      "version": "7",
+      "when": 1783650007000,
+      "tag": "0181_repo_markdown",
+      "breakpoints": true
+    },
+    {
+      "idx": 181,
+      "version": "7",
+      "when": 1783650008000,
+      "tag": "0182_calendar_feed_token_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 182,
+      "version": "7",
+      "when": 1783650009000,
+      "tag": "0183_consultancy_phase0",
+      "breakpoints": true
+    },
+    {
+      "idx": 183,
+      "version": "7",
+      "when": 1783650010000,
+      "tag": "0184_consultancy_phase1",
+      "breakpoints": true
+    },
+    {
+      "idx": 184,
+      "version": "7",
+      "when": 1783650011000,
+      "tag": "0185_org_workspace_type",
+      "breakpoints": true
+    },
+    {
+      "idx": 185,
+      "version": "7",
+      "when": 1783650012000,
+      "tag": "0186_consultancy_phase2_fees",
+      "breakpoints": true
+    },
+    {
+      "idx": 186,
+      "version": "7",
+      "when": 1783650013000,
+      "tag": "0187_consultancy_phase2_time",
+      "breakpoints": true
+    },
+    {
+      "idx": 187,
+      "version": "7",
+      "when": 1783650014000,
+      "tag": "0188_cons_engagement_pdf",
+      "breakpoints": true
+    },
+    {
+      "idx": 188,
+      "version": "7",
+      "when": 1783650015000,
+      "tag": "0189_consultancy_variations",
+      "breakpoints": true
+    },
+    {
+      "idx": 189,
+      "version": "7",
+      "when": 1783650016000,
+      "tag": "0190_cons_rate_capacity",
+      "breakpoints": true
+    },
+    {
+      "idx": 190,
+      "version": "7",
+      "when": 1783650017000,
+      "tag": "0191_consultancy_phase3",
+      "breakpoints": true
+    },
+    {
+      "idx": 191,
+      "version": "7",
+      "when": 1783650018000,
+      "tag": "0192_consultancy_typed_scope",
+      "breakpoints": true
+    },
+    {
+      "idx": 192,
+      "version": "7",
+      "when": 1783650019000,
+      "tag": "0193_cons_engagement_brief",
+      "breakpoints": true
+    },
+    {
+      "idx": 193,
+      "version": "7",
+      "when": 1783650020000,
+      "tag": "0194_consultancy_sop_slice1",
+      "breakpoints": true
+    },
+    {
+      "idx": 194,
+      "version": "7",
+      "when": 1783650021000,
+      "tag": "0195_consultancy_sop_slice2",
+      "breakpoints": true
+    },
+    {
+      "idx": 195,
+      "version": "7",
+      "when": 1783650022000,
+      "tag": "0196_consultancy_crs",
+      "breakpoints": true
+    },
+    {
+      "idx": 196,
+      "version": "7",
+      "when": 1783650023000,
+      "tag": "0197_consultancy_field_reports",
+      "breakpoints": true
+    },
+    {
+      "idx": 197,
+      "version": "7",
+      "when": 1783650024000,
+      "tag": "0198_drawing_review",
+      "breakpoints": true
+    },
+    {
+      "idx": 198,
+      "version": "7",
+      "when": 1783650025000,
+      "tag": "0199_lead_conflict_check",
+      "breakpoints": true
+    },
+    {
+      "idx": 199,
+      "version": "7",
+      "when": 1783650026000,
+      "tag": "0200_academy_sop_progress",
+      "breakpoints": true
+    },
+    {
+      "idx": 200,
+      "version": "7",
+      "when": 1783650027000,
+      "tag": "0201_estimation",
       "breakpoints": true
     }
   ]

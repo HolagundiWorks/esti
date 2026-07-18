@@ -1,11 +1,11 @@
 ---
 title: Architecture ERP India
-metaTitle: Architecture ERP India for Small and Mid-Sized Firms
-metaDescription: Architecture ERP India â€” projects, phases, approvals, fees, billing, contractor coordination, dashboard signals and AI assistance in one office platform.
+metaTitle: Architecture ERP India — Fee Recovery, Revision Control & Project Record
+metaDescription: Architecture ERP India — projects, phases, approvals, COA fee recovery, GST billing, client revision tracking with approval trail and AI-assisted office signals in one platform.
 keyword: architecture ERP India
 category: india
-updated: 2026-06-25
-intro: AORMS is not generic ERP forced onto a design office. It is an architecture-first operating record for Indian practice workflows.
+updated: 2026-07-10
+intro: AORMS is not generic ERP forced onto a design office. It is an architecture-first operating record for Indian practice workflows — with fee recovery and revision control at its commercial core.
 ---
 
 Architecture ERP India is a useful search phrase, but most architecture firms do
@@ -13,7 +13,7 @@ not need a heavy manufacturing-style ERP. They need one reliable office record:
 projects, phases, drawings, approvals, fees, bills, clients, contractors and team
 responsibilities connected in a way the practice can actually use.
 
-AORMS stands for Architecture Office Resource Management System. It gives Indian
+**AORMS-Studio** is **AORMS-Studio** on the **AORMS** platform. It gives Indian
 architecture firms an ERP-like backbone without asking the team to abandon the way
 architectural work moves.
 
@@ -24,9 +24,9 @@ planning. It should begin with the work the office produces:
 
 - Projects and phases
 - Drawing and document approvals
-- Client revision tracking
-- Fee proposals and billing
-- Contractor coordination and reconciliation
+- Client revision tracking — MoM to approval trail
+- Fee proposals, billing and fee recovery signals
+- GST invoicing and reconciliation
 - Team ownership and workload
 - Dashboard signals and AI-assisted recommendations
 
@@ -52,7 +52,7 @@ field evidence. AORMS is designed around these patterns instead of treating them
 as custom fields.
 
 For detailed product pages, see [architecture office management software](/architecture-office-management-software),
-[architecture project management software](/architecture-project-management-software)
+[architecture project record software](/architecture-project-management-software)
 and [architect fee proposal software](/architect-fee-proposal-software).
 
 ## Cognitive layer

@@ -1,5 +1,5 @@
 /**
- * Hosapete (Hospet) zonal regulations — ported from `zonal compliance/hospet_zoning_calculator.py`
+ * Hosapete (Hospet) zonal regulations — ported from `docs/reference/zonal-compliance/hospet_zoning_calculator.py`
  * with Table-1 side setbacks corrected per `Cities/_EXTRACTED_DATA.md`.
  */
 import type { ZonalComplianceResult, ZonalSiteInput, ZonalZone } from "./types.js";

@@ -35,15 +35,18 @@ export function ProjectInfo({ projectId }: { projectId: string }) {
   const phasesQ = trpc.phases.listByProject.useQuery({ projectId });
 
   const upsert = trpc.projectBrief.upsertSection.useMutation({
+    meta: { errorTitle: "Couldn't save the brief section" },
     onSuccess: () => void utils.projectBrief.getByProject.invalidate({ projectId }),
   });
   const updateProject = trpc.projectOffice.update.useMutation({
+    meta: { errorTitle: "Couldn't update the project" },
     onSuccess: () => {
       void utils.projectOffice.byId.invalidate({ id: projectId });
       void utils.projectBrief.getByProject.invalidate({ projectId });
     },
   });
   const updateSite = trpc.projectOffice.updateSite.useMutation({
+    meta: { errorTitle: "Couldn't update the site details" },
     onSuccess: () => void utils.projectOffice.byId.invalidate({ id: projectId }),
   });
 

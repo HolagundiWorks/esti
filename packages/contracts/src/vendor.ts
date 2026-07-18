@@ -94,7 +94,6 @@ export type VendorPriceSource = z.infer<typeof VendorPriceSource>;
 
 export const VendorPriceCreate = z.object({
   vendorId: z.string().uuid(),
-  materialId: z.string().uuid().optional(), // optional link to a KB material
   materialName: z.string().trim().min(1).max(200),
   unit: z.string().trim().min(1).max(40),
   ratePaise: z.number().int().min(0),
@@ -111,7 +110,6 @@ export const VendorPricesByVendorInput = z.object({ vendorId: z.string().uuid() 
 export type VendorPricesByVendorInput = z.infer<typeof VendorPricesByVendorInput>;
 
 export const VendorPriceHistoryInput = z.object({
-  materialId: z.string().uuid().optional(),
   materialName: z.string().trim().min(1).max(200).optional(),
 });
 export type VendorPriceHistoryInput = z.infer<typeof VendorPriceHistoryInput>;
@@ -121,7 +119,6 @@ export const VendorQuoteStatus = z.enum(["RECEIVED", "ACCEPTED", "REJECTED"]);
 export type VendorQuoteStatus = z.infer<typeof VendorQuoteStatus>;
 
 export const VendorQuoteLineInput = z.object({
-  materialId: z.string().uuid().optional(),
   materialName: z.string().trim().min(1).max(200),
   unit: z.string().trim().min(1).max(40),
   ratePaise: z.number().int().min(0),
@@ -142,7 +139,6 @@ export const VendorQuotesByVendorInput = z.object({ vendorId: z.string().uuid() 
 export type VendorQuotesByVendorInput = z.infer<typeof VendorQuotesByVendorInput>;
 
 export const VendorQuoteCompareInput = z.object({
-  materialId: z.string().uuid().optional(),
   materialName: z.string().trim().min(1).max(200).optional(),
 });
 export type VendorQuoteCompareInput = z.infer<typeof VendorQuoteCompareInput>;

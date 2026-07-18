@@ -27,6 +27,7 @@ export function ForceWorkspaceProfile() {
   const profileQ = trpc.users.myProfile.useQuery(undefined, { enabled: !!user });
 
   const complete = trpc.auth.completeWorkspaceProfile.useMutation({
+    meta: { errorTitle: "Couldn't save the profile" },
     onSuccess: () => void utils.auth.me.invalidate(),
   });
 

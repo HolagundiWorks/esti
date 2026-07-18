@@ -21,7 +21,7 @@ export function Partners({ isOwner }: { isOwner: boolean }) {
   const utils = trpc.useUtils();
   const partnersQ = trpc.firm.listPartners.useQuery();
   const invalidate = () => utils.firm.listPartners.invalidate();
-  const remove = trpc.firm.removePartner.useMutation({ onSuccess: invalidate });
+  const remove = trpc.firm.removePartner.useMutation({ meta: { errorTitle: "Couldn't remove the partner" }, onSuccess: invalidate });
 
   const [p, setP] = useState({
     name: "",
@@ -36,6 +36,7 @@ export function Partners({ isOwner }: { isOwner: boolean }) {
     city: "",
   });
   const add = trpc.firm.addPartner.useMutation({
+    meta: { errorTitle: "Couldn't add the partner" },
     onSuccess: () => {
       invalidate();
       setP((x) => ({

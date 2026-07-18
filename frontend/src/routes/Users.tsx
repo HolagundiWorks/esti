@@ -27,12 +27,13 @@ import {
   userType,
 } from "@esti/contracts";
 import { useState } from "react";
-import { useScreenActions } from "@hcw/ui-kit";
+import { pushToast, useScreenActions } from "@hcw/ui-kit";
 import { useAuth } from "../lib/auth.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 const ROLE_LABEL: Record<string, string> = {
   ...STAFF_ROLE_LABEL,
@@ -64,8 +65,24 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
   ];
   const roleOptions = ASSIGNABLE_STAFF_ROLES;
 
+  // Optimistic enable/disable (Doherty): flip the row immediately, roll back on
+  // error, confirm with a toast (this toggle was previously silent — Nielsen #1).
   const setDisabled = trpc.users.setDisabled.useMutation({
-    onSuccess: invalidate,
+    meta: { errorTitle: "Couldn't change the login state" },
+    onMutate: async ({ id, disabled }) => {
+      await utils.users.list.cancel();
+      const prev = utils.users.list.getData();
+      utils.users.list.setData(undefined, (old) =>
+        old?.map((u) => (u.id === id ? { ...u, disabled } : u)),
+      );
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) utils.users.list.setData(undefined, ctx.prev);
+    },
+    onSuccess: (_d, v) =>
+      pushToast({ kind: "success", title: v.disabled ? "Login disabled" : "Login enabled" }),
+    onSettled: invalidate,
   });
   const setRole = trpc.users.setRole.useMutation({
     onSuccess: () => {
@@ -83,6 +100,7 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
   }>({ email: "", fullName: "", password: "", role: "ASSOCIATE" });
   const [msg, setMsg] = useState<string | null>(null);
   const createStaff = trpc.users.createStaff.useMutation({
+    meta: { errorTitle: "Couldn't create the staff login" },
     onSuccess: (u) => {
       invalidate();
       setAddOpen(false);
@@ -96,6 +114,7 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
   );
   const [resetPw, setResetPw] = useState("");
   const resetPassword = trpc.users.resetPassword.useMutation({
+    meta: { errorTitle: "Couldn't reset the password" },
     onSuccess: () => {
       setReset(null);
       setResetPw("");
@@ -128,7 +147,7 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
   });
 
   useScreenActions(
-    embedded
+    embedded || addOpen || reset !== null || link !== null
       ? []
       : [
           {
@@ -148,8 +167,17 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
             onClick: () => resync.mutate(),
           },
         ],
-    [embedded, resync.isPending],
+    [embedded, addOpen, reset, link, resync.isPending],
   );
+
+  const createBlockedReason =
+    !form.email.trim()
+      ? "Enter a login email."
+      : form.fullName.trim().length < 2
+        ? "Full name must be at least 2 characters."
+        : form.password.length < 8
+          ? "Temporary password must be at least 8 characters."
+          : null;
 
   const columns: GridColDef[] = [
     { field: "email", headerName: "Email", flex: 1.4, minWidth: 200 },
@@ -183,9 +211,9 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
         const isSelf = u.id === user?.id;
         const scope =
           u.role === "CLIENT"
-            ? " (client portal)"
+            ? ` (${AORMS_PORTALS.client.label.toLowerCase()})`
             : u.consultantId
-              ? " (consultant portal)"
+              ? ` (${AORMS_PORTALS.consultant.label.toLowerCase()})`
               : "";
         if (!isSelf && u.role !== "OWNER" && !u.clientId && !u.consultantId) {
           return (
@@ -338,7 +366,8 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
               </Button>
             </Stack>
             <Typography variant="body2" color="text.secondary">
-              Owner / staff / portal logins. Client and consultant portal logins are created from their records.
+              Owner / staff / portal logins. {AORMS_PORTALS.client.label} and{" "}
+              {AORMS_PORTALS.consultant.label.toLowerCase()} logins are created from their records.
             </Typography>
             {body}
           </Stack>
@@ -346,29 +375,38 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
       ) : (
         <RailLayout
           title="Users & access"
-          description="Owner / staff / portal logins. Client and consultant portal logins are created from their records (Clients / Consultants)."
+          description={`Owner / staff / portal logins. ${AORMS_PORTALS.client.label} and ${AORMS_PORTALS.consultant.label.toLowerCase()} logins are created from their records (Clients / Consultants).`}
         >
           {body}
         </RailLayout>
       )}
 
-      <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Add staff login</DialogTitle>
+      <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="sm" aria-labelledby="users-add-title">
+        <DialogTitle id="users-add-title">Add staff login</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2">Creates an office staff login at the chosen seniority tier.</Typography>
             <TextField
               id="u-name"
               label="Full name"
+              autoComplete="name"
               value={form.fullName}
               onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
+              helperText={
+                form.fullName.length > 0 && form.fullName.trim().length < 2
+                  ? "At least 2 characters."
+                  : "Shown on ID cards and assignments."
+              }
+              error={form.fullName.length > 0 && form.fullName.trim().length < 2}
             />
             <TextField
               id="u-email"
               label="Login email"
               type="email"
+              autoComplete="email"
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              helperText={!form.email.trim() ? "Required for sign-in." : undefined}
             />
             <TextField
               id="u-role"
@@ -390,9 +428,21 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
               id="u-pw"
               label="Temporary password (min 8 chars)"
               type="password"
+              autoComplete="new-password"
               value={form.password}
               onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+              helperText={
+                form.password.length > 0 && form.password.length < 8
+                  ? "Use at least 8 characters."
+                  : "They can change this after first login."
+              }
+              error={form.password.length > 0 && form.password.length < 8}
             />
+            {createBlockedReason && !createStaff.isPending && (
+              <Typography variant="caption" color="text.secondary">
+                {createBlockedReason}
+              </Typography>
+            )}
             {createStaff.error && (
               <Alert severity="error">{createStaff.error.message}</Alert>
             )}
@@ -415,8 +465,8 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={reset !== null} onClose={() => setReset(null)} fullWidth maxWidth="sm">
-        <DialogTitle>Reset password — {reset?.email ?? ""}</DialogTitle>
+      <Dialog open={reset !== null} onClose={() => setReset(null)} fullWidth maxWidth="sm" aria-labelledby="users-reset-title">
+        <DialogTitle id="users-reset-title">Reset password — {reset?.email ?? ""}</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 1 }}>
             <TextField
@@ -441,8 +491,8 @@ export function Users({ embedded = false }: { embedded?: boolean }) {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={link !== null} onClose={() => setLink(null)} fullWidth maxWidth="sm">
-        <DialogTitle>Link identity — {link?.email ?? ""}</DialogTitle>
+      <Dialog open={link !== null} onClose={() => setLink(null)} fullWidth maxWidth="sm" aria-labelledby="users-link-title">
+        <DialogTitle id="users-link-title">Link identity — {link?.email ?? ""}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2">

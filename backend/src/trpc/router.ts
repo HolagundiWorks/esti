@@ -11,11 +11,13 @@ import { engagementRouter } from "../modules/consultant/engagement.js";
 import { consultantRequestsRouter } from "../modules/consultant/inbox.js";
 import { collaboratorRouter } from "../modules/consultant/portal.js";
 import { consultantRouter } from "../modules/consultant/router.js";
+import { consultancyRouter } from "../modules/consultancy/router.js";
 import { contractorRouter } from "../modules/contractor/router.js";
 import { vendorRouter } from "../modules/vendor/router.js";
 import { complianceRouter } from "../modules/compliance/router.js";
 import { masterPlanRouter } from "../modules/masterplan/router.js";
 import { standardsRouter } from "../modules/standards/router.js";
+import { knowledgeBankPortalRouter } from "../modules/repository/router.js";
 import { profileRouter } from "../modules/profile/router.js";
 import { usageRouter } from "../modules/usage/router.js";
 import { clientLogRouter } from "../modules/clientlog/log.js";
@@ -60,6 +62,9 @@ import { phaseRouter } from "../modules/phase/router.js";
 import { projectOfficeRouter } from "../modules/projectoffice/router.js";
 import { workloadRouter } from "../modules/workload/router.js";
 import { specCatalogRouter } from "../modules/knowledgebank/specCatalog.js";
+import { itemLibraryRouter } from "../modules/itemLibrary/router.js";
+import { measurementRouter } from "../modules/measurement/router.js";
+import { planMarkupRouter } from "../modules/planMarkup/router.js";
 import { attendanceRouter } from "../modules/attendance/router.js";
 import { appointmentRouter } from "../modules/appointment/router.js";
 import { rewardRouter } from "../modules/reward/router.js";
@@ -128,11 +133,15 @@ export const appRouter = router({
   approvals: approvalRouter,
   transmittals: transmittalRouter,
   consultants: consultantRouter,
+  // AORMS-Consultancy (engineering) — Phase 0 living record; distinct from the
+  // Studio architect↔consultant `engagements` namespace below.
+  consultancy: consultancyRouter,
   contractors: contractorRouter,
   vendors: vendorRouter,
   compliance: complianceRouter,
   masterPlans: masterPlanRouter,
   standards: standardsRouter,
+  knowledgeBankPortal: knowledgeBankPortalRouter,
   userProfile: profileRouter,
   usage: usageRouter,
   engagements: engagementRouter,
@@ -176,6 +185,9 @@ export const appRouter = router({
   payroll: payrollRouter,
   hrProfile: hrProfileRouter,
   specCatalog: specCatalogRouter,
+  itemLibrary: itemLibraryRouter,
+  measurement: measurementRouter,
+  planMarkup: planMarkupRouter,
   attendance: attendanceRouter,
   aspRf: aspRfRouter,
   rewards: rewardRouter,

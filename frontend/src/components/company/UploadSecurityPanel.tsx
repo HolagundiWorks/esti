@@ -16,6 +16,7 @@ export function UploadSecurityPanel() {
   }, [settingsQ.data]);
 
   const save = trpc.settings.setUploadSecurity.useMutation({
+    meta: { errorTitle: "Couldn't save the upload security settings" },
     onSuccess: () => {
       utils.settings.get.invalidate();
       setPassword("");

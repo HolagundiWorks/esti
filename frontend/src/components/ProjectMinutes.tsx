@@ -7,6 +7,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -15,6 +16,7 @@ import { can, type TagColor } from "@esti/contracts";
 import { useState } from "react";
 import { useAuth } from "../lib/auth.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 import { StatusTag } from "./StatusTag.js";
 
 // Minutes of meeting (MoM). Draft minutes are office-internal; ISSUING locks
@@ -53,10 +55,10 @@ export function ProjectMinutes({ projectId }: { projectId: string }) {
     setEditingId(null);
     setForm(EMPTY_FORM);
   };
-  const create = trpc.moms.create.useMutation({ onSuccess: () => { void invalidate(); closeForm(); } });
-  const update = trpc.moms.update.useMutation({ onSuccess: () => { void invalidate(); closeForm(); } });
-  const issue = trpc.moms.issue.useMutation({ onSuccess: () => void invalidate() });
-  const remove = trpc.moms.remove.useMutation({ onSuccess: () => void invalidate() });
+  const create = trpc.moms.create.useMutation({ meta: { errorTitle: "Couldn't create the minutes" }, onSuccess: () => { void invalidate(); closeForm(); } });
+  const update = trpc.moms.update.useMutation({ meta: { errorTitle: "Couldn't update the minutes" }, onSuccess: () => { void invalidate(); closeForm(); } });
+  const issue = trpc.moms.issue.useMutation({ meta: { errorTitle: "Couldn't issue the minutes" }, onSuccess: () => void invalidate() });
+  const remove = trpc.moms.remove.useMutation({ meta: { errorTitle: "Couldn't delete the minutes" }, onSuccess: () => void invalidate() });
 
   const canWrite = can(user?.role, "write");
   const rows = listQ.data ?? [];
@@ -104,7 +106,7 @@ export function ProjectMinutes({ projectId }: { projectId: string }) {
         )}
       </Stack>
       <p className="esti-label esti-label--secondary">
-        Issued minutes appear in the client portal, where ESTI reads them and drafts the
+        Issued minutes appear in the {AORMS_PORTALS.client.label.toLowerCase()}, where ESTI reads them and drafts the
         client&rsquo;s revision requests — those arrive under Tasks &rsaquo; Client requests.
       </p>
 
@@ -115,7 +117,13 @@ export function ProjectMinutes({ projectId }: { projectId: string }) {
         </Alert>
       )}
 
-      {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
+      {listQ.isLoading && (
+        <Stack spacing={0.5}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} variant="rectangular" height={32} />
+          ))}
+        </Stack>
+      )}
       {rows.length === 0 && !listQ.isLoading && (
         <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
           <Typography variant="body2">No meeting minutes recorded for this project yet.</Typography>
@@ -176,8 +184,8 @@ export function ProjectMinutes({ projectId }: { projectId: string }) {
         ))}
       </Stack>
 
-      <Dialog open={formOpen} onClose={closeForm} fullWidth maxWidth="sm">
-        <DialogTitle>{editingId ? "Edit minutes" : "Record minutes of meeting"}</DialogTitle>
+      <Dialog aria-labelledby="project-minutes-form-title" open={formOpen} onClose={closeForm} fullWidth maxWidth="sm">
+        <DialogTitle id="project-minutes-form-title">{editingId ? "Edit minutes" : "Record minutes of meeting"}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

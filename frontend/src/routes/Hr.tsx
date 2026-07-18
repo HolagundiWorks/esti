@@ -19,6 +19,7 @@ import { LEAVE_TYPES, type LeaveTypeCode, formatINR, parseRupeeInput } from "@es
 import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { useNavigate } from "react-router-dom";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { PayslipPdfCell } from "../components/PayslipPdfCell.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -50,9 +51,11 @@ export function Hr() {
   const [tab, setTab] = useState(0);
 
   const setLeave = trpc.leaves.setStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the leave request" },
     onSuccess: () => utils.leaves.list.invalidate(),
   });
   const markPaid = trpc.payroll.markPaid.useMutation({
+    meta: { errorTitle: "Couldn't mark the payslip as paid" },
     onSuccess: () => utils.payroll.list.invalidate(),
   });
 
@@ -67,6 +70,7 @@ export function Hr() {
     reason: "",
   });
   const createLeave = trpc.leaves.create.useMutation({
+    meta: { errorTitle: "Couldn't create the leave request" },
     onSuccess: () => {
       utils.leaves.list.invalidate();
       setLvOpen(false);
@@ -90,6 +94,7 @@ export function Hr() {
     deductions: "",
   });
   const generate = trpc.payroll.generate.useMutation({
+    meta: { errorTitle: "Couldn't generate the payslip" },
     onSuccess: () => {
       utils.payroll.list.invalidate();
       setPyOpen(false);
@@ -103,8 +108,9 @@ export function Hr() {
   });
 
   useScreenActions(
-    tab === 0
-      ? [
+    lvOpen || pyOpen || tab !== 0
+      ? []
+      : [
           {
             id: "open-register",
             zone: "right",
@@ -130,9 +136,8 @@ export function Hr() {
             disabled: team.length === 0,
             onClick: () => setPyOpen(true),
           },
-        ]
-      : [],
-    [tab, team.length, navigate],
+        ],
+    [lvOpen, pyOpen, tab, team.length, navigate],
   );
 
   const leaveColumns: GridColDef[] = [
@@ -255,6 +260,7 @@ export function Hr() {
           </Tabs>
         }
       >
+      <PageBreadcrumb items={[{ label: "Teams" }, { label: "HR" }]} />
       {/* ── Operations panel ── */}
       {tab === 0 && (
         <Stack spacing={3}>
@@ -317,8 +323,8 @@ export function Hr() {
       </RailLayout>
 
       {/* Leave modal */}
-      <Dialog open={lvOpen} onClose={() => setLvOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Request leave</DialogTitle>
+      <Dialog aria-labelledby="hr-leave-title" open={lvOpen} onClose={() => setLvOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="hr-leave-title">Request leave</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -397,8 +403,8 @@ export function Hr() {
       </Dialog>
 
       {/* Payslip modal */}
-      <Dialog open={pyOpen} onClose={() => setPyOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Generate payslip</DialogTitle>
+      <Dialog aria-labelledby="hr-payslip-title" open={pyOpen} onClose={() => setPyOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="hr-payslip-title">Generate payslip</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

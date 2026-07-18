@@ -80,6 +80,7 @@ export function UserProfilePanel() {
   const utils = trpc.useUtils();
   const usageQ = trpc.usage.status.useQuery(undefined, { enabled: !!user && !aormsId });
   const generateId = trpc.usage.generateAormsId.useMutation({
+    meta: { errorTitle: "Couldn't generate the AORMS ID" },
     onSuccess: () => {
       void utils.usage.status.invalidate();
       void utils.users.myProfile.invalidate();
@@ -213,13 +214,14 @@ export function UserProfilePanel() {
               <Box className="esti-fill" sx={{ p: 2 }}>
                 <Stack spacing={1.5}>
                   <Typography variant="h6" component="h4">
-                    AORMS Wiki
+                    Help &amp; support
                   </Typography>
                   <Typography variant="body2" component="p" className="esti-label esti-label--secondary">
-                    Estimation, workflows, and account setup — official documentation at wiki.aorms.in.
+                    Questions about your workspace, workflows, or account? Reach the AORMS
+                    team at hi@aorms.in.
                   </Typography>
-                  <Button variant="contained" href="https://wiki.aorms.in/getting-started" target="_blank" rel="noopener noreferrer">
-                    Open getting started guide
+                  <Button variant="contained" href="mailto:hi@aorms.in">
+                    Contact support
                   </Button>
                 </Stack>
               </Box>

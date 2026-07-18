@@ -4,20 +4,22 @@ import {
   Button,
   Card,
   CardActionArea,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Skeleton,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { ExternalPortalShell } from "../components/portal/ExternalPortalShell.js";
 import { ProjectSiteReference } from "../components/ProjectSiteReference.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red" | "teal"> = {
   DRAFT: "gray",
@@ -47,8 +49,9 @@ export function SitePortal() {
   );
   const invalidate = () => utils.inspections.listForSite.invalidate({ projectId: projectId! });
 
-  const submit = trpc.inspections.submit.useMutation({ onSuccess: invalidate });
+  const submit = trpc.inspections.submit.useMutation({ meta: { errorTitle: "Couldn't submit the inspection" }, onSuccess: invalidate });
   const createForSite = trpc.inspections.createForSite.useMutation({
+    meta: { errorTitle: "Couldn't create the inspection" },
     onSuccess: () => { invalidate(); setCreateOpen(false); resetForm(); },
   });
 
@@ -57,6 +60,7 @@ export function SitePortal() {
     { enabled: !!projectId },
   );
   const confirmBySupervisor = trpc.siteVisits.confirmBySupervisor.useMutation({
+    meta: { errorTitle: "Couldn't confirm the site visit" },
     onSuccess: () => utils.siteVisits.listForSite.invalidate({ projectId: projectId! }),
   });
 
@@ -66,20 +70,26 @@ export function SitePortal() {
   });
   const resetForm = () => setForm({ dateVisit: "", weather: "", attendees: "", progress: "", observations: "", instructions: "" });
 
+  const shellProps = {
+    companyName: user?.fullName ?? "Site Supervisor",
+    portalLabel: AORMS_PORTALS.site.label,
+  };
+
   if (!projectId) {
     return (
-      <Box component="main" sx={{ maxWidth: 640, mx: "auto", p: 2 }}>
-        <Stack spacing={3}>
+      <ExternalPortalShell {...shellProps}>
+        <Stack spacing={3} sx={{ maxWidth: 640 }}>
           <Stack spacing={1}>
-            <Typography variant="h5" component="h2">Site Portal</Typography>
+            <Typography variant="h5" component="h2">{AORMS_PORTALS.site.label}</Typography>
             <Typography variant="body2" color="text.secondary">
-              {user?.fullName ?? "Site Supervisor"} · Field view
+              Field view — pick a project
             </Typography>
           </Stack>
           {projectsQ.isLoading && (
-            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-              <CircularProgress size={20} />
-              <Typography variant="body2">Loading projects…</Typography>
+            <Stack spacing={1.5} aria-busy="true" aria-label="Loading projects">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} variant="rectangular" height={72} />
+              ))}
             </Stack>
           )}
           {(projectsQ.data ?? []).length === 0 && !projectsQ.isLoading && (
@@ -102,19 +112,19 @@ export function SitePortal() {
             ))}
           </Stack>
         </Stack>
-      </Box>
+      </ExternalPortalShell>
     );
   }
 
   const inspections = inspectionsQ.data ?? [];
 
   return (
-    <Box component="main" sx={{ maxWidth: 640, mx: "auto", p: 2 }}>
-      <Stack spacing={3}>
+    <ExternalPortalShell {...shellProps}>
+      <Stack spacing={3} sx={{ maxWidth: 640 }}>
         <Stack spacing={1}>
           <Typography variant="h5" component="h2">Site Inspections</Typography>
           <Typography variant="body2" color="text.secondary">
-            {user?.fullName ?? "Site Supervisor"} · Field view
+            Field view
           </Typography>
         </Stack>
 
@@ -153,9 +163,10 @@ export function SitePortal() {
         </Box>
 
         {inspectionsQ.isLoading && (
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-            <CircularProgress size={20} />
-            <Typography variant="body2">Loading…</Typography>
+          <Stack spacing={0.5}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} variant="rectangular" height={32} />
+            ))}
           </Stack>
         )}
         {inspections.length === 0 && !inspectionsQ.isLoading && (
@@ -206,12 +217,13 @@ export function SitePortal() {
       </Stack>
 
       <Dialog
+        aria-labelledby="site-portal-inspection-title"
         open={createOpen}
         onClose={() => { setCreateOpen(false); resetForm(); }}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>New inspection report</DialogTitle>
+        <DialogTitle id="site-portal-inspection-title">New inspection report</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -290,6 +302,6 @@ export function SitePortal() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </ExternalPortalShell>
   );
 }

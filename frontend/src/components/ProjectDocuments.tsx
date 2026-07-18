@@ -48,6 +48,7 @@ function InspectionPdf({ id, initial }: { id: string; initial: string }) {
   const utils = trpc.useUtils();
   const q = trpc.inspections.byId.useQuery({ id }, pdfPollOpts(initial));
   const gen = trpc.inspections.generatePdf.useMutation({
+    meta: { errorTitle: "Couldn't generate the inspection PDF" },
     onSuccess: () => utils.inspections.byId.invalidate({ id }),
   });
   return (
@@ -64,6 +65,7 @@ function SpecPdf({ id, initial }: { id: string; initial: string }) {
   const utils = trpc.useUtils();
   const q = trpc.spec.byId.useQuery({ id }, pdfPollOpts(initial));
   const gen = trpc.spec.generatePdf.useMutation({
+    meta: { errorTitle: "Couldn't generate the specification PDF" },
     onSuccess: () => utils.spec.byId.invalidate({ id }),
   });
   return (
@@ -149,12 +151,16 @@ function Inspections({ projectId }: { projectId: string }) {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const create = trpc.inspections.create.useMutation({
+    meta: { errorTitle: "Couldn't create the inspection" },
     onSuccess: () => {
       inv();
       setOpen(false);
     },
   });
-  const remove = trpc.inspections.remove.useMutation({ onSuccess: inv });
+  const remove = trpc.inspections.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the inspection" },
+    onSuccess: inv,
+  });
 
   const columns: GridColDef[] = [
     { field: "ref", headerName: "Ref", flex: 0.8, minWidth: 110 },
@@ -253,8 +259,8 @@ function Inspections({ projectId }: { projectId: string }) {
         open={!!detailId}
         onClose={() => setDetailId(null)}
       />
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>New site inspection report</DialogTitle>
+      <Dialog aria-labelledby="project-documents-inspection-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle id="project-documents-inspection-title">New site inspection report</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Box sx={{ display: "flex", gap: 1.5 }}>
@@ -394,6 +400,7 @@ export function ProjectSpecSheets({ projectId }: { projectId: string }) {
     (r) => r.catalogItemId || r.item.trim().length > 0,
   );
   const create = trpc.spec.create.useMutation({
+    meta: { errorTitle: "Couldn't create the specification" },
     onSuccess: () => {
       inv();
       setOpen(false);
@@ -401,7 +408,10 @@ export function ProjectSpecSheets({ projectId }: { projectId: string }) {
       setRows([blankRow()]);
     },
   });
-  const remove = trpc.spec.remove.useMutation({ onSuccess: inv });
+  const remove = trpc.spec.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the specification" },
+    onSuccess: inv,
+  });
   const setCell = (i: number, k: keyof Row, v: string) =>
     setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
 
@@ -486,8 +496,8 @@ export function ProjectSpecSheets({ projectId }: { projectId: string }) {
         }}
         onClose={() => setConfirmId(null)}
       />
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>New specification sheet</DialogTitle>
+      <Dialog aria-labelledby="project-documents-spec-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle id="project-documents-spec-title">New specification sheet</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

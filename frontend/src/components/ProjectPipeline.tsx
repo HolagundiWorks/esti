@@ -60,7 +60,7 @@ import {
 } from "@esti/contracts";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../lib/auth.js";
-import { apiUrl, authHeaders } from "../lib/api-base.js";
+import { useUploadAuth } from "../lib/uploadAuth.js";
 import { trpc } from "../lib/trpc.js";
 import { StatusDot } from "./StatusTag.js";
 
@@ -177,6 +177,7 @@ function DnaSection({ projectId, canWrite }: { projectId: string; canWrite: bool
   }, [q.data]);
 
   const save = trpc.projectDna.upsert.useMutation({
+    meta: { errorTitle: "Couldn't save the project DNA" },
     onSuccess: () => {
       utils.projectDna.byProject.invalidate({ projectId });
       utils.projectDna.riskScore.invalidate({ projectId });
@@ -283,6 +284,7 @@ function AssessmentSection({ projectId, canWrite }: { projectId: string; canWrit
   }, [a]);
 
   const save = trpc.assessment.upsert.useMutation({
+    meta: { errorTitle: "Couldn't save the assessment" },
     onSuccess: () => utils.assessment.byProject.invalidate({ projectId }),
   });
 
@@ -391,6 +393,7 @@ function FeasibilityReport({ projectId, canWrite }: { projectId: string; canWrit
   );
   const [timeline, setTimeline] = useState("");
   const gen = trpc.feasibility.generate.useMutation({
+    meta: { errorTitle: "Couldn't generate the feasibility report" },
     onSuccess: () => utils.feasibility.byProject.invalidate({ projectId }),
   });
   const status = q.data?.pdfStatus ?? "NONE";
@@ -435,6 +438,7 @@ function NegotiationSection({ projectId, canWrite }: { projectId: string; canWri
   const blank = { feeChange: "", discount: "", scopeChanges: "", timelineChanges: "", architectResponse: "", clientResponse: "", outcome: "ONGOING" };
   const [form, setForm] = useState(blank);
   const add = trpc.negotiation.addRound.useMutation({
+    meta: { errorTitle: "Couldn't add the negotiation round" },
     onSuccess: () => { utils.negotiation.listByProject.invalidate({ projectId }); setOpen(false); setForm(blank); },
   });
 
@@ -495,8 +499,8 @@ function NegotiationSection({ projectId, canWrite }: { projectId: string; canWri
         />
       )}
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Add negotiation round</DialogTitle>
+      <Dialog aria-labelledby="project-pipeline-round-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-pipeline-round-title">Add negotiation round</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="ng-fee" type="number" label="Fee change (₹, negative = discount given)" value={form.feeChange} onChange={(e) => setForm({ ...form, feeChange: e.target.value })} fullWidth />
@@ -550,6 +554,7 @@ function NegotiationSection({ projectId, canWrite }: { projectId: string; canWri
 
 // ── Onboarding (Slice J) ──────────────────────────────────────────────────────
 function OnboardingSection({ projectId, canWrite }: { projectId: string; canWrite: boolean }) {
+  const { authorizedFetch } = useUploadAuth();
   const utils = trpc.useUtils();
   const q = trpc.onboarding.byProject.useQuery({ projectId });
   const o = q.data;
@@ -569,17 +574,17 @@ function OnboardingSection({ projectId, canWrite }: { projectId: string; canWrit
   }, [o]);
 
   const inv = () => utils.onboarding.byProject.invalidate({ projectId });
-  const save = trpc.onboarding.upsert.useMutation({ onSuccess: inv });
-  const complete = trpc.onboarding.complete.useMutation({ onSuccess: inv });
-  const reopen = trpc.onboarding.reopen.useMutation({ onSuccess: inv });
+  const save = trpc.onboarding.upsert.useMutation({ meta: { errorTitle: "Couldn't save the onboarding checklist" }, onSuccess: inv });
+  const complete = trpc.onboarding.complete.useMutation({ meta: { errorTitle: "Couldn't complete the onboarding" }, onSuccess: inv });
+  const reopen = trpc.onboarding.reopen.useMutation({ meta: { errorTitle: "Couldn't reopen the onboarding" }, onSuccess: inv });
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
 
   async function upload(slot: "agreement" | "id", file: File) {
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("projectId", projectId);
-    fd.append("slot", slot);
-    const res = await fetch(apiUrl("/upload/onboarding-document"), { method: "POST", body: fd, credentials: "include", headers: authHeaders() });
+    const res = await authorizedFetch("/upload/onboarding-document", (fd) => {
+      fd.append("file", file);
+      fd.append("projectId", projectId);
+      fd.append("slot", slot);
+    });
     if (res.ok) { setUploadMsg(`${slot === "agreement" ? "Agreement" : "ID"} uploaded`); inv(); }
     else { const e = await res.json().catch(() => ({ error: "Upload failed" })); setUploadMsg(e.error ?? "Upload failed"); }
   }
@@ -688,6 +693,7 @@ function ActivationSection({ projectId, canWrite }: { projectId: string; canWrit
   const q = trpc.projectOffice.activationStatus.useQuery({ id: projectId });
   const gate = q.data;
   const activate = trpc.projectOffice.activate.useMutation({
+    meta: { errorTitle: "Couldn't activate the project" },
     onSuccess: () => {
       utils.projectOffice.activationStatus.invalidate({ id: projectId });
       utils.projectOffice.byId.invalidate({ id: projectId });
@@ -761,6 +767,7 @@ function FeeApprovalRows({
 }) {
   const utils = trpc.useUtils();
   const setApproval = trpc.proposals.setClientApproval.useMutation({
+    meta: { errorTitle: "Couldn't update the client approval" },
     onSuccess: () => {
       utils.proposals.listByProject.invalidate({ projectId });
       utils.projectOffice.activationStatus.invalidate({ id: projectId });

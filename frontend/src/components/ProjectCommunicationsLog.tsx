@@ -3,14 +3,15 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   MenuItem,
+  Skeleton,
   Stack,
+  Tab,
+  Tabs,
   TextField,
 } from "@mui/material";
 import {
@@ -42,9 +43,10 @@ function today() {
 
 function Loading() {
   return (
-    <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-      <CircularProgress size={16} />
-      <span className="esti-label--secondary">Loading…</span>
+    <Stack spacing={0.5}>
+      {Array.from({ length: 3 }).map((_, i) => (
+        <Skeleton key={i} variant="rectangular" height={32} />
+      ))}
     </Stack>
   );
 }
@@ -58,7 +60,10 @@ function ClientLogPanel({ projectId }: { projectId: string }) {
   const utils = trpc.useUtils();
   const logQ  = trpc.clientLog.listByProject.useQuery({ projectId });
   const invalidate = () => utils.clientLog.listByProject.invalidate({ projectId });
-  const remove = trpc.clientLog.remove.useMutation({ onSuccess: invalidate });
+  const remove = trpc.clientLog.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the log entry" },
+    onSuccess: invalidate,
+  });
 
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<ClientLogKindCode>("MEETING");
@@ -70,6 +75,7 @@ function ClientLogPanel({ projectId }: { projectId: string }) {
   const [budgetObjections, setBudgetObjections] = useState("");
 
   const create = trpc.clientLog.create.useMutation({
+    meta: { errorTitle: "Couldn't create the log entry" },
     onSuccess: () => {
       invalidate();
       setOpen(false);
@@ -118,8 +124,8 @@ function ClientLogPanel({ projectId }: { projectId: string }) {
         ))}
       </Stack>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Log client interaction</DialogTitle>
+      <Dialog aria-labelledby="project-communications-log-interaction-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-communications-log-interaction-title">Log client interaction</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="cl-kind" select label="Type" value={kind} onChange={(e) => setKind(e.target.value as ClientLogKindCode)}>
@@ -184,6 +190,7 @@ function CriticalPanel({ projectId }: { projectId: string }) {
   const [body, setBody] = useState("");
 
   const create = trpc.criticalNotes.create.useMutation({
+    meta: { errorTitle: "Couldn't create the critical note" },
     onSuccess: () => {
       invalidate();
       setOpen(false);
@@ -217,8 +224,8 @@ function CriticalPanel({ projectId }: { projectId: string }) {
         ))}
       </Stack>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Add critical note</DialogTitle>
+      <Dialog aria-labelledby="project-communications-log-note-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-communications-log-note-title">Add critical note</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="cn-title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -269,6 +276,7 @@ function SiteChangesPanel({ projectId }: { projectId: string }) {
   const [issuedAt, setIssuedAt] = useState(today());
 
   const create = trpc.siteInstructions.create.useMutation({
+    meta: { errorTitle: "Couldn't create the site instruction" },
     onSuccess: () => {
       invalidate();
       setOpen(false);
@@ -308,8 +316,8 @@ function SiteChangesPanel({ projectId }: { projectId: string }) {
         ))}
       </Stack>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Add site instruction</DialogTitle>
+      <Dialog aria-labelledby="project-communications-log-instruction-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-communications-log-instruction-title">Add site instruction</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="si-subject" label="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
@@ -357,6 +365,7 @@ function RevisionPanel({ projectId }: { projectId: string }) {
   const [revisionSource, setRevisionSource] = useState("CLIENT_DRIVEN");
 
   const create = trpc.decisions.create.useMutation({
+    meta: { errorTitle: "Couldn't record the decision" },
     onSuccess: () => {
       invalidate();
       setOpen(false);
@@ -396,8 +405,8 @@ function RevisionPanel({ projectId }: { projectId: string }) {
         ))}
       </Stack>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Record revision</DialogTitle>
+      <Dialog aria-labelledby="project-communications-log-revision-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-communications-log-revision-title">Record revision</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="rv-title" label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -443,22 +452,18 @@ export function ProjectCommunicationsLog({ projectId }: { projectId: string }) {
 
   return (
     <Box sx={{ mt: 3 }}>
-      <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 3 }}>
-        {(Object.entries(CAT) as [Category, (typeof CAT)[Category]][]).map(([key, cfg]) => {
-          const color = active === key ? cfg.tagType : "gray";
-          return (
-            <Chip
-              key={key}
-              label={cfg.label}
-              onClick={() => setActive(key)}
-              sx={{
-                backgroundColor: `var(--cds-tag-background-${color})`,
-                color: `var(--cds-tag-color-${color})`,
-              }}
-            />
-          );
-        })}
-      </Box>
+      <Tabs
+        value={active}
+        onChange={(_, v: Category) => setActive(v)}
+        variant="scrollable"
+        scrollButtons="auto"
+        aria-label="Communication category"
+        sx={{ mb: 3 }}
+      >
+        {(Object.entries(CAT) as [Category, (typeof CAT)[Category]][]).map(([key, cfg]) => (
+          <Tab key={key} value={key} label={cfg.label} />
+        ))}
+      </Tabs>
 
       {active === "clientlog" && <ClientLogPanel projectId={projectId} />}
       {active === "internal" && (

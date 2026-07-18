@@ -2,7 +2,7 @@ import {
   Alert,
   Box,
   Button,
-  CircularProgress,
+  Skeleton,
   Stack,
   TextField,
 } from "@mui/material";
@@ -13,6 +13,7 @@ import { fetchMe, login, logout, type Me } from "../../platform-admin/lib/auth.j
 import { AccountProfilePanel } from "../../platform-admin/AccountProfilePanel.js";
 import { StatusDot } from "../StatusTag.js";
 import { UpgradeToPro } from "./UpgradeToPro.js";
+import { AORMS_PORTALS } from "../../lib/product-nomenclature.js";
 
 const Companies = lazy(() => import("../../platform-admin/Companies.js"));
 const Credentials = lazy(() => import("../../platform-admin/Credentials.js"));
@@ -77,9 +78,10 @@ export function AccountTab() {
 
   if (checking) {
     return (
-      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-        <CircularProgress size={16} />
-        <span>Loading</span>
+      <Stack spacing={0.5}>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} variant="rectangular" height={32} />
+        ))}
       </Stack>
     );
   }
@@ -91,7 +93,7 @@ export function AccountTab() {
         <Box className="esti-fill" sx={{ p: 2 }}>
           <Stack spacing={2}>
             <p>
-              Sign in to your AORMS account to manage your standard licence, linked
+              Sign in to your {AORMS_PORTALS.account.name} to manage your standard licence, linked
               companies, security and credentials from here.
             </p>
             <Box component="form" onSubmit={handleSubmit}>
@@ -165,9 +167,10 @@ export function AccountTab() {
       </Stack>
       <Suspense
         fallback={
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-            <CircularProgress size={16} />
-            <span>Loading</span>
+          <Stack spacing={0.5}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} variant="rectangular" height={32} />
+            ))}
           </Stack>
         }
       >

@@ -21,6 +21,8 @@ export interface OrgHandle {
   publicId: string | null;
   name: string;
   slug: string;
+  /** Which AORMS workspace the company runs — STUDIO | CONSULTANCY. */
+  workspaceType?: string;
 }
 
 export interface Membership {
@@ -132,8 +134,12 @@ export function switchCompany(company: string): Promise<Me> {
   return postMe("/platform/auth/switch-company", { company });
 }
 
-export function createCompany(name: string, loginDomain?: string): Promise<Me & { error?: string }> {
-  return postMe("/platform/auth/create-company", { name, loginDomain });
+export function createCompany(
+  name: string,
+  loginDomain?: string,
+  workspaceType?: "STUDIO" | "CONSULTANCY",
+): Promise<Me & { error?: string }> {
+  return postMe("/platform/auth/create-company", { name, loginDomain, workspaceType });
 }
 
 /** Join / request access to a company. `status` is ACTIVE (auto) or INVITED (pending). */

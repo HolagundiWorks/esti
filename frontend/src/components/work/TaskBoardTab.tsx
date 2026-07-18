@@ -24,7 +24,7 @@ export function TaskBoardTab() {
   const utils = trpc.useUtils();
   const [myTasks, setMyTasks] = useState(false);
   const listQ = trpc.tasks.list.useQuery({ myTasks });
-  const update = trpc.tasks.update.useMutation({ onSuccess: () => utils.tasks.list.invalidate() });
+  const update = trpc.tasks.update.useMutation({ meta: { errorTitle: "Couldn't update the task" }, onSuccess: () => utils.tasks.list.invalidate() });
   const today = new Date().toISOString().slice(0, 10);
 
   const tasks = listQ.data ?? [];

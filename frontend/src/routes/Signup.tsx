@@ -1,10 +1,12 @@
 import ArrowBack from "@mui/icons-material/ArrowBack";
 import { Alert, AlertTitle, Button, Stack, TextField } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { AuthBrandBlock } from "../components/AormsLogo.js";
+import { AORMS_STUDIO } from "../lib/product-nomenclature.js";
 import { AuthRailLayout } from "../components/AuthRailLayout.js";
 import { setDesktopToken } from "../lib/api-base.js";
+import { AUTH_PAGE_SEO, applyPublicPageSeo } from "../lib/public-page-seo.js";
 import { trpc } from "../lib/trpc.js";
 
 /**
@@ -20,6 +22,7 @@ export function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const bootstrap = trpc.auth.bootstrap.useMutation({
+    meta: { errorTitle: "Couldn't create the account" },
     onSuccess: async (data) => {
       setDesktopToken((data as { token?: string }).token);
       await utils.auth.me.invalidate();
@@ -27,14 +30,20 @@ export function Signup() {
     },
   });
 
+  useEffect(() => {
+    applyPublicPageSeo(AUTH_PAGE_SEO.signup);
+  }, []);
+
+  const passwordTooShort = password.length > 0 && password.length < 8;
+
   return (
     <AuthRailLayout
       variant="workspace"
       rail={
         <Stack spacing={2}>
           <Stack spacing={1}>
-            <AuthBrandBlock tagline="Architecture Office OS" />
-            <p>Set up your workspace</p>
+            <AuthBrandBlock tagline={AORMS_STUDIO.title} />
+            <h1 className="esti-label">Set up your workspace</h1>
             <p>
               Create your firm and admin account. Your standard AORMS licence includes
               the full workspace and 5 GB storage.
@@ -50,6 +59,7 @@ export function Signup() {
               <TextField
                 id="companyName"
                 label="Firm name"
+                autoComplete="organization"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 required
@@ -58,6 +68,7 @@ export function Signup() {
               <TextField
                 id="adminName"
                 label="Your name (admin)"
+                autoComplete="name"
                 value={adminName}
                 onChange={(e) => setAdminName(e.target.value)}
                 required
@@ -67,6 +78,7 @@ export function Signup() {
                 id="email"
                 label="Admin email"
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -76,7 +88,9 @@ export function Signup() {
                 id="password"
                 label="Password"
                 type="password"
+                autoComplete="new-password"
                 helperText="At least 8 characters."
+                error={passwordTooShort}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -88,7 +102,11 @@ export function Signup() {
                   {bootstrap.error.message}
                 </Alert>
               )}
-              <Button type="submit" variant="contained" disabled={bootstrap.isPending}>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={bootstrap.isPending || password.length < 8}
+              >
                 {bootstrap.isPending ? "Setting up..." : "Create workspace"}
               </Button>
               <Button

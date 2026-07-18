@@ -9,6 +9,12 @@ const startsWith = (buf: Buffer, sig: number[], offset = 0): boolean =>
 
 const DXF_HEAD_BYTES = 8192;
 
+/** PDF — `%PDF` magic at file start (plan sheets for measurement). */
+export function looksLikePdf(buf: Buffer): boolean {
+  if (buf.length < 5) return false;
+  return buf.subarray(0, 5).toString("latin1") === "%PDF-";
+}
+
 /** AutoCAD DWG — common magic at file start (users often pick .dwg by mistake). */
 export function looksLikeDwg(buf: Buffer): boolean {
   if (buf.length < 6) return false;

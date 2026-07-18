@@ -44,7 +44,13 @@ export function AlertsBell() {
   return (
     <>
       <Tooltip title="Alerts">
-        <IconButton size="small" aria-label="Alerts" onClick={(e) => setAnchor(e.currentTarget)}>
+        <IconButton
+          aria-label="Alerts"
+          aria-expanded={Boolean(anchor)}
+          aria-haspopup="dialog"
+          onClick={(e) => setAnchor(e.currentTarget)}
+          sx={{ width: 44, height: 44 }}
+        >
           <Badge badgeContent={alerts.length} color="error">
             <Notifications />
           </Badge>

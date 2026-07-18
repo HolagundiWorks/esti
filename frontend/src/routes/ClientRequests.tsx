@@ -33,6 +33,7 @@ import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot, StatusTag } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 const KIND_TAG: Record<string, "purple" | "blue" | "teal"> = {
   ACKNOWLEDGEMENT: "teal",
@@ -55,6 +56,7 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
     { id: string; subject: string; status: PortalSubmissionStatusT; responseNote: string } | null
   >(null);
   const setStatusM = trpc.clientRequests.setStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the request status" },
     onSuccess: () => {
       utils.clientRequests.list.invalidate();
       utils.clientRequests.openCount.invalidate();
@@ -76,6 +78,7 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
     architectComment: string;
   } | null>(null);
   const sendImpact = trpc.clientRequests.sendImpactAssessment.useMutation({
+    meta: { errorTitle: "Couldn't send the impact assessment" },
     onSuccess: () => {
       utils.clientRequests.list.invalidate();
       utils.clientRequests.openCount.invalidate();
@@ -89,6 +92,7 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
     { enabled: !!threadFor },
   );
   const reply = trpc.clientRequests.reply.useMutation({
+    meta: { errorTitle: "Couldn't send the reply" },
     onSuccess: () => utils.clientRequests.thread.invalidate(),
   });
 
@@ -251,7 +255,7 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
       {!embedded && (
         <PageHeader
           title="Client requests"
-          description="Acknowledgements, change requests and feedback raised from the client portal."
+          description={`Acknowledgements, change requests and feedback raised from the ${AORMS_PORTALS.client.label.toLowerCase()}.`}
         />
       )}
 
@@ -294,7 +298,7 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
         loading={listQ.isLoading}
         isEmpty={rows.length === 0}
         columnCount={7}
-        empty={{ title: "No client requests", description: "Items raised from the client portal appear here." }}
+        empty={{ title: "No client requests", description: `Items raised from the ${AORMS_PORTALS.client.label.toLowerCase()} appear here.` }}
       >
         <DataGrid
           rows={rows}
@@ -308,8 +312,8 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
       </DataState>
 
       {/* ── Impact Assessment dialog ─────────────────────────────────────── */}
-      <Dialog open={impact !== null} onClose={() => setImpact(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{impact ? `Impact assessment — ${impact.subject}` : "Impact assessment"}</DialogTitle>
+      <Dialog aria-labelledby="client-requests-impact-title" open={impact !== null} onClose={() => setImpact(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="client-requests-impact-title">{impact ? `Impact assessment — ${impact.subject}` : "Impact assessment"}</DialogTitle>
         <DialogContent>
           {impact && (
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -409,8 +413,8 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
       </Dialog>
 
       {/* ── Triage dialog ────────────────────────────────────────────────── */}
-      <Dialog open={triage !== null} onClose={() => setTriage(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{triage ? `Triage — ${triage.subject}` : "Triage"}</DialogTitle>
+      <Dialog aria-labelledby="client-requests-triage-title" open={triage !== null} onClose={() => setTriage(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="client-requests-triage-title">{triage ? `Triage — ${triage.subject}` : "Triage"}</DialogTitle>
         <DialogContent>
           {triage && (
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -459,8 +463,8 @@ export function ClientRequests({ embedded = false }: { embedded?: boolean }) {
       </Dialog>
 
       {/* ── Thread dialog ────────────────────────────────────────────────── */}
-      <Dialog open={threadFor !== null} onClose={() => setThreadFor(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}</DialogTitle>
+      <Dialog aria-labelledby="client-requests-conversation-title" open={threadFor !== null} onClose={() => setThreadFor(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="client-requests-conversation-title">{threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}</DialogTitle>
         <DialogContent>
           {threadFor && (
             <SubmissionThread

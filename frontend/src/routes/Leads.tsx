@@ -29,8 +29,9 @@ import {
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
-import { useScreenActions } from "@hcw/ui-kit";
+import { pushToast, useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusTag } from "../components/StatusTag.js";
@@ -51,19 +52,23 @@ export function Leads() {
 
   // Create lead
   const [open, setOpen] = useState(false);
+  // Convert lead
+  const [convertId, setConvertId] = useState<string | null>(null);
 
   useScreenActions(
-    [
-      {
-        id: "new-lead",
-        zone: "center",
-        tone: "primary",
-        label: "New lead",
-        icon: <AddIcon />,
-        onClick: () => setOpen(true),
-      },
-    ],
-    [],
+    open || !!convertId
+      ? []
+      : [
+          {
+            id: "new-lead",
+            zone: "center",
+            tone: "primary",
+            label: "New lead",
+            icon: <AddIcon />,
+            onClick: () => setOpen(true),
+          },
+        ],
+    [open, convertId],
   );
 
   const blank = {
@@ -78,13 +83,30 @@ export function Leads() {
   };
   const [form, setForm] = useState(blank);
   const create = trpc.leads.create.useMutation({
+    meta: { errorTitle: "Couldn't create the lead" },
     onSuccess: () => { inv(); setOpen(false); setForm(blank); },
   });
 
-  const setStatus = trpc.leads.setStatus.useMutation({ onSuccess: inv });
+  // Optimistic status change (Doherty — the dropdown must feel instant): write the
+  // cache immediately, roll back on error, reconcile with the server on settle.
+  const setStatus = trpc.leads.setStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the lead status" },
+    onMutate: async ({ id, status }) => {
+      await utils.leads.list.cancel();
+      const prev = utils.leads.list.getData({});
+      utils.leads.list.setData({}, (old) =>
+        old?.map((l) => (l.id === id ? { ...l, status } : l)),
+      );
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) utils.leads.list.setData({}, ctx.prev);
+    },
+    onSuccess: (_d, v) =>
+      pushToast({ kind: "success", title: `Lead marked ${LEAD_STATUS_LABEL[v.status]}` }),
+    onSettled: inv,
+  });
 
-  // Convert lead
-  const [convertId, setConvertId] = useState<string | null>(null);
   const [conv, setConv] = useState({
     projectTitle: "",
     projectType: "",
@@ -94,6 +116,7 @@ export function Leads() {
     conflictCheckNotes: "",
   });
   const convert = trpc.leads.convert.useMutation({
+    meta: { errorTitle: "Couldn't convert the lead" },
     onSuccess: () => { inv(); setConvertId(null); },
   });
 
@@ -163,7 +186,6 @@ export function Leads() {
             size="small"
             hiddenLabel
             value={l.status}
-            disabled={setStatus.isPending}
             onChange={(e) => setStatus.mutate({ id: l.id, status: e.target.value as LeadStatusT })}
             sx={{ minWidth: 150 }}
           >
@@ -229,6 +251,7 @@ export function Leads() {
           </Tabs>
         }
       >
+        <PageBreadcrumb items={[{ label: "Leads" }]} />
         {tab === 0 && (
         <DataState
           loading={listQ.isLoading}
@@ -254,8 +277,8 @@ export function Leads() {
       </RailLayout>
 
       {/* Create lead */}
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New lead</DialogTitle>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm" aria-labelledby="leads-create-title">
+        <DialogTitle id="leads-create-title">New lead</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="ld-name" label="Enquirer name" value={form.clientName} onChange={(e) => setForm({ ...form, clientName: e.target.value })} />
@@ -295,8 +318,8 @@ export function Leads() {
       </Dialog>
 
       {/* Convert lead */}
-      <Dialog open={!!convertId} onClose={() => setConvertId(null)} fullWidth maxWidth="sm">
-        <DialogTitle>Convert lead to draft project</DialogTitle>
+      <Dialog open={!!convertId} onClose={() => setConvertId(null)} fullWidth maxWidth="sm" aria-labelledby="leads-convert-title">
+        <DialogTitle id="leads-convert-title">Convert lead to draft project</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <p className="esti-label--secondary">

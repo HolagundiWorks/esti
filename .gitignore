@@ -56,3 +56,16 @@ frontend/public/downloads/
 
 # Editor / agent metadata
 .cursor/
+
+# Test / coverage artifacts
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Build caches
+.turbo/
+.cache/
+pnpm-debug.log*

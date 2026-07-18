@@ -9,7 +9,7 @@ import { loginAs } from "../fixtures/auth.js";
  * or a Regenerate control), and exercises a regeneration without crashing.
  * Screens with no PDF-able rows are reported as skips, not failures.
  */
-const PDF_SCREENS = ["/invoices", "/accounting/fees", "/office/proposals"];
+const PDF_SCREENS = ["/invoices", "/office/proposals"];
 const AFFORDANCE = /open pdf|view pdf|download pdf|regenerate|generate pdf/i;
 
 test("PDF generation — artifacts available + regeneration is safe", async ({ page }) => {

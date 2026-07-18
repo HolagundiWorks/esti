@@ -2,7 +2,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -16,29 +15,18 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import { ClientKind } from "@esti/contracts";
-import type { ReactNode } from "react";
 import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
+import { StatusDot } from "../components/StatusTag.js";
+import { pushToast } from "../lib/toast.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 const PAGE_SIZES = [10, 25, 50];
-
-/** Status badge rendered over the Carbon `--cds-tag-*` token vars (exact colours). */
-function TagChip({ color, label }: { color: string; label: ReactNode }) {
-  return (
-    <Chip
-      size="small"
-      label={label}
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 export function Clients({ embedded = false }: { embedded?: boolean }) {
   const utils = trpc.useUtils();
@@ -48,6 +36,7 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
   });
 
   const [open, setOpen] = useState(false);
+  const [nameTouched, setNameTouched] = useState(false);
   const [form, setForm] = useState({
     name: "",
     kind: "INDIVIDUAL",
@@ -56,6 +45,8 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
     email: "",
     phone: "",
   });
+  const nameMissing = !form.name.trim();
+  const nameError = nameTouched && nameMissing;
   const set = (k: keyof typeof form) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -63,6 +54,7 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
     onSuccess: () => {
       utils.clients.list.invalidate();
       setOpen(false);
+      setNameTouched(false);
       setForm({
         name: "",
         kind: "INDIVIDUAL",
@@ -71,6 +63,7 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
         email: "",
         phone: "",
       });
+      pushToast({ kind: "success", title: "Client created" });
     },
   });
 
@@ -114,23 +107,25 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
     : clients;
 
   useScreenActions(
-    [
-      {
-        id: "new-client",
-        zone: "center",
-        tone: "primary",
-        label: "New client",
-        icon: <AddIcon />,
-        onClick: () => setOpen(true),
-      },
-      {
-        id: "portal-login",
-        zone: "right",
-        label: "Portal login",
-        onClick: () => setPortalOpen(true),
-      },
-    ],
-    [],
+    open || portalOpen
+      ? []
+      : [
+          {
+            id: "new-client",
+            zone: "center",
+            tone: "primary",
+            label: "New client",
+            icon: <AddIcon />,
+            onClick: () => setOpen(true),
+          },
+          {
+            id: "portal-login",
+            zone: "right",
+            label: "Portal login",
+            onClick: () => setPortalOpen(true),
+          },
+        ],
+    [open, portalOpen],
   );
 
   const columns: GridColDef[] = [
@@ -146,7 +141,7 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
       minWidth: 120,
       valueGetter: (_v, row) => (row.disabled ? "Deactivated" : "Active"),
       renderCell: (p) => (
-        <TagChip
+        <StatusDot
           color={p.row.disabled ? "gray" : "green"}
           label={p.row.disabled ? "Deactivated" : "Active"}
         />
@@ -205,7 +200,7 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
       empty={{
         title: "No clients yet",
         description:
-          "Add a client or lead to attach projects, invoices and a portal login.",
+          `Add a client or lead to attach projects, invoices and a ${AORMS_PORTALS.client.label.toLowerCase()} login.`,
         ...(embedded
           ? {
               action: (
@@ -232,12 +227,32 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
 
   const dialogs = (
     <>
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New client</DialogTitle>
+      <Dialog
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setNameTouched(false);
+        }}
+        fullWidth
+        maxWidth="sm"
+        aria-labelledby="new-client-dialog-title"
+      >
+        <DialogTitle id="new-client-dialog-title">New client</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField id="c-name" label="Name" value={form.name} onChange={set("name")} />
-            <TextField id="c-kind" select label="Type" value={form.kind} onChange={set("kind")}>
+            <TextField
+              id="c-name"
+              label="Name"
+              value={form.name}
+              onChange={set("name")}
+              onBlur={() => setNameTouched(true)}
+              required
+              autoComplete="organization"
+              autoFocus
+              error={nameError}
+              helperText={nameError ? "Name is required" : undefined}
+            />
+            <TextField id="c-kind" select label="Type" value={form.kind} onChange={set("kind")} required>
               {ClientKind.options.map((k) => (
                 <MenuItem key={k} value={k}>
                   {k}
@@ -249,16 +264,30 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
               label="GSTIN (optional)"
               value={form.gstin}
               onChange={set("gstin")}
+              autoComplete="off"
             />
-            <TextField id="c-city" label="City" value={form.city} onChange={set("city")} />
+            <TextField
+              id="c-city"
+              label="City"
+              value={form.city}
+              onChange={set("city")}
+              autoComplete="address-level2"
+            />
             <TextField
               id="c-email"
               label="Email"
               type="email"
               value={form.email}
               onChange={set("email")}
+              autoComplete="email"
             />
-            <TextField id="c-phone" label="Phone" value={form.phone} onChange={set("phone")} />
+            <TextField
+              id="c-phone"
+              label="Phone"
+              value={form.phone}
+              onChange={set("phone")}
+              autoComplete="tel"
+            />
             {create.error && (
               <Alert severity="error">
                 <strong>Could not create</strong> — {create.error.message}
@@ -267,30 +296,46 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button variant="text" onClick={() => setOpen(false)}>
+          <Button
+            variant="text"
+            onClick={() => {
+              setOpen(false);
+              setNameTouched(false);
+            }}
+          >
             Cancel
           </Button>
           <Button
             variant="contained"
-            disabled={!form.name || create.isPending}
-            onClick={() =>
+            disabled={nameMissing || create.isPending}
+            onClick={() => {
+              setNameTouched(true);
+              if (nameMissing) return;
               create.mutate({
-                name: form.name,
+                name: form.name.trim(),
                 kind: form.kind as (typeof ClientKind.options)[number],
                 gstin: form.gstin || undefined,
                 city: form.city || undefined,
                 email: form.email || undefined,
                 phone: form.phone || undefined,
-              })
-            }
+              });
+            }}
           >
             {create.isPending ? "Creating…" : "Create"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={portalOpen} onClose={() => setPortalOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Create client portal login</DialogTitle>
+      <Dialog
+        open={portalOpen}
+        onClose={() => setPortalOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        aria-labelledby="client-portal-dialog-title"
+      >
+        <DialogTitle id="client-portal-dialog-title">
+          Create {AORMS_PORTALS.client.label.toLowerCase()} login
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -374,7 +419,7 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
     <>
       <RailLayout
         title="Clients"
-        description="Clients and leads — attach projects, invoices and portal logins."
+        description={`Clients and leads — attach projects, invoices and ${AORMS_PORTALS.client.label.toLowerCase()} logins.`}
         aside={
           <Stack spacing={1.5}>
             {searchField}
@@ -386,6 +431,7 @@ export function Clients({ embedded = false }: { embedded?: boolean }) {
           </Stack>
         }
       >
+        <PageBreadcrumb items={[{ label: "Clients" }]} />
         {grid}
       </RailLayout>
       {dialogs}

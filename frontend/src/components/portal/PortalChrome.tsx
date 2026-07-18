@@ -1,6 +1,8 @@
 import { Surface } from "@hcw/ui-kit";
 import { Stack, Tab, Tabs, Typography } from "@mui/material";
 import type { ReactNode, SyntheticEvent } from "react";
+import { useEffect } from "react";
+import { AORMS_PORTALS } from "../../lib/product-nomenclature.js";
 
 /** Shared padding for portal content cards. */
 export const portalPaperSx = { p: 3 } as const;
@@ -10,12 +12,19 @@ export function PortalPageHeader({
   subtitle,
   meta,
   actions,
+  documentTitle,
 }: {
   title: string;
   subtitle?: string;
   meta?: ReactNode;
   actions?: ReactNode;
+  /** Browser tab title; defaults to `{title} — AORMS account`. */
+  documentTitle?: string;
 }) {
+  useEffect(() => {
+    document.title = documentTitle ?? `${title} — ${AORMS_PORTALS.account.name}`;
+  }, [title, documentTitle]);
+
   return (
     <Stack
       direction={{ xs: "column", md: "row" }}

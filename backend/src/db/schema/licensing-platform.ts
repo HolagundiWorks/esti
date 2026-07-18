@@ -69,6 +69,8 @@ export const organizations = pgTable(
     loginDomain: text("login_domain"),
     /** Optional alternate Step-1 handle (a company contact email). */
     loginEmail: text("login_email"),
+    /** Which AORMS workspace this company runs — STUDIO | CONSULTANCY (chosen at creation). */
+    workspaceType: text("workspace_type").notNull().default("STUDIO"),
     billingEmail: text("billing_email"),
     ownerAccountId: text("owner_account_id").references(() => accounts.id),
     createdAt,

@@ -33,11 +33,12 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { DataState } from "../components/DataState.js";
-import { PortalHeader } from "../components/PortalHeader.js";
+import { ExternalPortalShell } from "../components/portal/ExternalPortalShell.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { SubmissionThread } from "../components/SubmissionThread.js";
 import { trpc } from "../lib/trpc.js";
+import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
 type SubmissionStatus = keyof typeof CONSULTANT_SUBMISSION_STATUS_LABEL;
 
@@ -47,6 +48,7 @@ export function CollaboratorPortal() {
   const openId = projectId ?? null;
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({
+    meta: { errorTitle: "Couldn't sign out" },
     onSuccess: () => utils.auth.me.invalidate(),
   });
   const brandingQ = trpc.collab.branding.useQuery();
@@ -68,6 +70,7 @@ export function CollaboratorPortal() {
     { enabled: !!openId },
   );
   const completeTask = trpc.collab.completeTask.useMutation({
+    meta: { errorTitle: "Couldn't complete the task" },
     onSuccess: () => {
       utils.collab.assignedTasks.invalidate();
       utils.collab.activityFeed.invalidate();
@@ -84,6 +87,7 @@ export function CollaboratorPortal() {
   // ── write state ──────────────────────────────────────────────────────────
   const [form, setForm] = useState<{ kind: ConsultantOriginKindT; subject: string; body: string } | null>(null);
   const submit = trpc.collab.submit.useMutation({
+    meta: { errorTitle: "Couldn't send the submission" },
     onSuccess: () => {
       utils.collab.mySubmissions.invalidate();
       utils.collab.activityFeed.invalidate();
@@ -98,6 +102,7 @@ export function CollaboratorPortal() {
     { enabled: !!threadFor },
   );
   const reply = trpc.collab.replySubmission.useMutation({
+    meta: { errorTitle: "Couldn't send the reply" },
     onSuccess: () => utils.collab.submissionThread.invalidate(),
   });
 
@@ -234,15 +239,12 @@ export function CollaboratorPortal() {
   ];
 
   return (
-    <>
-      <PortalHeader
-        companyName={brandingQ.data?.companyName}
-        logoUrl={brandingQ.data?.logoUrl}
-        portalLabel="Consultant portal"
-        onSignOut={() => logout.mutate()}
-        signingOut={logout.isPending}
-      />
-      <Box component="main" sx={{ p: 4 }}>
+    <ExternalPortalShell
+      companyName={brandingQ.data?.companyName}
+      portalLabel={AORMS_PORTALS.consultant.label}
+      onSignOut={() => logout.mutate()}
+      signingOut={logout.isPending}
+    >
         {!openId && (
           <Stack spacing={2}>
             <Stack spacing={1}>
@@ -447,8 +449,8 @@ export function CollaboratorPortal() {
         )}
 
         {/* ── submission dialog ─────────────────────────────────────────── */}
-        <Dialog open={form !== null} onClose={() => setForm(null)} fullWidth maxWidth="sm">
-          <DialogTitle>
+        <Dialog aria-labelledby="collaborator-portal-submission-title" open={form !== null} onClose={() => setForm(null)} fullWidth maxWidth="sm">
+          <DialogTitle id="collaborator-portal-submission-title">
             {form ? `${CONSULTANT_SUBMISSION_KIND_LABEL[form.kind]} — ${d?.project.ref ?? ""}` : "Submit"}
           </DialogTitle>
           <DialogContent>
@@ -512,8 +514,8 @@ export function CollaboratorPortal() {
         </Dialog>
 
         {/* ── conversation thread dialog ────────────────────────────────── */}
-        <Dialog open={threadFor !== null} onClose={() => setThreadFor(null)} fullWidth maxWidth="sm">
-          <DialogTitle>
+        <Dialog aria-labelledby="collaborator-portal-conversation-title" open={threadFor !== null} onClose={() => setThreadFor(null)} fullWidth maxWidth="sm">
+          <DialogTitle id="collaborator-portal-conversation-title">
             {threadFor ? `Conversation — ${threadFor.subject}` : "Conversation"}
           </DialogTitle>
           <DialogContent>
@@ -530,7 +532,6 @@ export function CollaboratorPortal() {
             <Button variant="text" onClick={() => setThreadFor(null)}>Close</Button>
           </DialogActions>
         </Dialog>
-      </Box>
-    </>
+    </ExternalPortalShell>
   );
 }

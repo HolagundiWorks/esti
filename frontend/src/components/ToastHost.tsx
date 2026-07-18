@@ -1,22 +1,5 @@
-import { Alert, AlertTitle } from "@mui/material";
-import { dismissToast, useToasts } from "../lib/toast.js";
-
-/** Renders the global toast stack (bottom-right). Material UI. */
-export function ToastHost() {
-  const toasts = useToasts();
-  return (
-    <div className="esti-toast-host">
-      {toasts.map((t) => (
-        <Alert
-          key={t.id}
-          severity={t.kind}
-          variant="filled"
-          onClose={() => dismissToast(t.id)}
-        >
-          <AlertTitle>{t.title}</AlertTitle>
-          {t.subtitle}
-        </Alert>
-      ))}
-    </div>
-  );
-}
+/**
+ * ToastHost — promoted into the design system (2026-07). Compatibility
+ * re-export; new code should import from `@hcw/ui-kit` directly.
+ */
+export { ToastHost } from "@hcw/ui-kit";

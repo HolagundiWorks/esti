@@ -58,6 +58,7 @@ export function VendorQuotes({ vendorId }: { vendorId: string }) {
     void utils.vendors.pricesByVendor.invalidate({ vendorId });
   };
   const createM = trpc.vendors.quotes.create.useMutation({
+    meta: { errorTitle: "Couldn't create the quote" },
     onSuccess: () => {
       invalidate();
       setAddOpen(false);
@@ -66,9 +67,10 @@ export function VendorQuotes({ vendorId }: { vendorId: string }) {
       setLines(null);
     },
   });
-  const acceptM = trpc.vendors.quotes.accept.useMutation({ onSuccess: invalidate });
-  const rejectM = trpc.vendors.quotes.reject.useMutation({ onSuccess: invalidate });
+  const acceptM = trpc.vendors.quotes.accept.useMutation({ meta: { errorTitle: "Couldn't accept the quote" }, onSuccess: invalidate });
+  const rejectM = trpc.vendors.quotes.reject.useMutation({ meta: { errorTitle: "Couldn't reject the quote" }, onSuccess: invalidate });
   const removeM = trpc.vendors.quotes.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the quote" },
     onSuccess: () => { setOpenId(null); invalidate(); },
   });
 
@@ -240,8 +242,8 @@ export function VendorQuotes({ vendorId }: { vendorId: string }) {
       )}
 
       {/* New quote modal — paste & parse */}
-      <Dialog open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>New vendor quote</DialogTitle>
+      <Dialog aria-labelledby="vendor-quotes-create-title" open={addOpen} onClose={() => setAddOpen(false)} fullWidth maxWidth="md">
+        <DialogTitle id="vendor-quotes-create-title">New vendor quote</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Stack direction="row" spacing={2}>

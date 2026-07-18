@@ -5,6 +5,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -30,10 +31,11 @@ export function ProjectSiteVisits({ projectId }: { projectId: string }) {
   const invalidate = () => utils.siteVisits.list.invalidate({ projectId });
 
   const create = trpc.siteVisits.create.useMutation({
+    meta: { errorTitle: "Couldn't create the site visit" },
     onSuccess: () => { invalidate(); setCreateOpen(false); resetForm(); },
   });
-  const confirm = trpc.siteVisits.confirm.useMutation({ onSuccess: invalidate });
-  const cancel = trpc.siteVisits.cancel.useMutation({ onSuccess: invalidate });
+  const confirm = trpc.siteVisits.confirm.useMutation({ meta: { errorTitle: "Couldn't confirm the site visit" }, onSuccess: invalidate });
+  const cancel = trpc.siteVisits.cancel.useMutation({ meta: { errorTitle: "Couldn't cancel the site visit" }, onSuccess: invalidate });
 
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState({ plannedDate: "", notes: "", autoCancelAfter: "" });
@@ -55,7 +57,13 @@ export function ProjectSiteVisits({ projectId }: { projectId: string }) {
         )}
       </Stack>
 
-      {listQ.isLoading && <Typography variant="body2">Loading…</Typography>}
+      {listQ.isLoading && (
+        <Stack spacing={0.5}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} variant="rectangular" height={32} />
+          ))}
+        </Stack>
+      )}
       {visits.length === 0 && !listQ.isLoading && (
         <Box sx={{ p: 2 }}><Typography variant="body2">No site visits scheduled yet.</Typography></Box>
       )}
@@ -103,8 +111,8 @@ export function ProjectSiteVisits({ projectId }: { projectId: string }) {
         ))}
       </Stack>
 
-      <Dialog open={createOpen} onClose={closeCreate} fullWidth maxWidth="xs">
-        <DialogTitle>Schedule site visit</DialogTitle>
+      <Dialog aria-labelledby="project-site-visits-schedule-title" open={createOpen} onClose={closeCreate} fullWidth maxWidth="xs">
+        <DialogTitle id="project-site-visits-schedule-title">Schedule site visit</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField id="sv-date" label="Planned date" type="date" value={form.plannedDate}

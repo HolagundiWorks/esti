@@ -23,7 +23,7 @@ import {
   type ApprovalEntityTypeCode,
   ApprovalStatus,
 } from "@esti/contracts";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { StatusDot } from "./StatusTag.js";
 
@@ -39,7 +39,13 @@ const STATUS_TAG: Record<
   SUPERSEDED: "cool-gray",
 };
 
-export function ProjectApprovals({ projectId }: { projectId: string }) {
+export function ProjectApprovals({
+  projectId,
+  focusApprovalId,
+}: {
+  projectId: string;
+  focusApprovalId?: string | null;
+}) {
   const utils = trpc.useUtils();
   const listQ = trpc.approvals.listByProject.useQuery(
     { projectId },
@@ -47,7 +53,10 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
   );
   const invalidate = () =>
     utils.approvals.listByProject.invalidate({ projectId });
-  const update = trpc.approvals.update.useMutation({ onSuccess: invalidate });
+  const update = trpc.approvals.update.useMutation({
+    meta: { errorTitle: "Couldn't update the approval" },
+    onSuccess: invalidate,
+  });
 
   const [open, setOpen] = useState(false);
   const [entityType, setEntityType] =
@@ -58,6 +67,7 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
   const [sentDate, setSentDate] = useState("");
 
   const create = trpc.approvals.create.useMutation({
+    meta: { errorTitle: "Couldn't create the approval" },
     onSuccess: () => {
       invalidate();
       setOpen(false);
@@ -66,6 +76,12 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
       setSentDate("");
     },
   });
+
+  useEffect(() => {
+    if (!focusApprovalId) return;
+    const row = document.getElementById(`approval-row-${focusApprovalId}`);
+    row?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [focusApprovalId, listQ.data]);
 
   return (
     <>
@@ -106,7 +122,11 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
             </TableHead>
             <TableBody>
               {(listQ.data?.rows ?? []).map((a) => (
-                <TableRow key={a.id}>
+                <TableRow
+                  key={a.id}
+                  id={`approval-row-${a.id}`}
+                  className={a.id === focusApprovalId ? "esti-row-highlight" : undefined}
+                >
                   <TableCell>{a.title}</TableCell>
                   <TableCell>
                     {APPROVAL_ENTITY_TYPES[
@@ -172,12 +192,13 @@ export function ProjectApprovals({ projectId }: { projectId: string }) {
       </Stack>
 
       <Dialog
+        aria-labelledby="project-approvals-issue-title"
         open={open}
         onClose={() => setOpen(false)}
         fullWidth
         maxWidth="sm"
       >
-        <DialogTitle>Record an issue for sign-off</DialogTitle>
+        <DialogTitle id="project-approvals-issue-title">Record an issue for sign-off</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

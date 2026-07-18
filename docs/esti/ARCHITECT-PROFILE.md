@@ -22,6 +22,7 @@ Canonical reference: [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) (L1–L5 internal l
 - **Client portal:** one client record; own projects and explicitly client-visible objects.
 - **Consultant portal:** one consultant record; engaged projects and assigned objects.
 - **Contractor portal:** engaged/awarded projects only (token-scoped site coordination).
+- **Site portal:** site supervisors — inspections and site visits (mobile-first).
 
 Portal identities are not internal staff. Every query and mutation must apply
 row/object scope in the backend, including REST uploads and downloads.

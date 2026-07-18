@@ -23,6 +23,7 @@ export function ContextualComments({
     { enabled: !!projectId && !!objectId },
   );
   const create = trpc.comments.create.useMutation({
+    meta: { errorTitle: "Couldn't post the comment" },
     onSuccess: async () => {
       setBody("");
       await utils.comments.listByObject.invalidate({ projectId, objectType, objectId });

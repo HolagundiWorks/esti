@@ -4,27 +4,14 @@ import {
   AlertTitle,
   Box,
   Button,
-  Chip,
   Paper,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
 import { QRCodeSVG } from "qrcode.react";
+import { StatusDot } from "../components/StatusTag.js";
 import { type Me, totpDisable, totpEnable, totpSetup } from "./lib/auth";
-
-function TagChip({ color, label }: { color: string; label: string }) {
-  return (
-    <Chip
-      label={label}
-      size="small"
-      sx={{
-        backgroundColor: `var(--cds-tag-background-${color})`,
-        color: `var(--cds-tag-color-${color})`,
-      }}
-    />
-  );
-}
 
 /** Two-factor authenticator (TOTP) enrollment for the signed-in account. */
 export default function Security({ me, onChange }: { me: Me; onChange: () => void }) {
@@ -80,7 +67,7 @@ export default function Security({ me, onChange }: { me: Me; onChange: () => voi
           <Typography variant="subtitle1" component="h3" className="esti-label">
             Two-factor authentication
           </Typography>
-          <TagChip color={me.totpEnabled ? "green" : "gray"} label={me.totpEnabled ? "On" : "Off"} />
+          <StatusDot color={me.totpEnabled ? "green" : "gray"} label={me.totpEnabled ? "On" : "Off"} />
         </Stack>
 
         {!me.totpEnabled && !setup && (

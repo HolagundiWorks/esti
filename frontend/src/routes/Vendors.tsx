@@ -24,6 +24,7 @@ import { useState } from "react";
 import { useScreenActions } from "@hcw/ui-kit";
 import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -73,47 +74,50 @@ export function Vendors() {
   const [priceForm, setPriceForm] = useState<typeof EMPTY_PRICE | null>(null);
   const [confirmPriceId, setConfirmPriceId] = useState<string | null>(null);
 
-  const create = trpc.vendors.create.useMutation({ onSuccess: () => { invalidate(); setForm(null); } });
-  const update = trpc.vendors.update.useMutation({ onSuccess: () => { invalidate(); setForm(null); } });
-  const setRatingM = trpc.vendors.setRating.useMutation({ onSuccess: () => { invalidate(); setRating(null); } });
-  const remove = trpc.vendors.remove.useMutation({ onSuccess: () => { invalidate(); setSelectedId(null); } });
+  const create = trpc.vendors.create.useMutation({ meta: { errorTitle: "Couldn't create the vendor" }, onSuccess: () => { invalidate(); setForm(null); } });
+  const update = trpc.vendors.update.useMutation({ meta: { errorTitle: "Couldn't update the vendor" }, onSuccess: () => { invalidate(); setForm(null); } });
+  const setRatingM = trpc.vendors.setRating.useMutation({ meta: { errorTitle: "Couldn't save the vendor rating" }, onSuccess: () => { invalidate(); setRating(null); } });
+  const remove = trpc.vendors.remove.useMutation({ meta: { errorTitle: "Couldn't delete the vendor" }, onSuccess: () => { invalidate(); setSelectedId(null); } });
 
   const pricesQ = trpc.vendors.pricesByVendor.useQuery(
     { vendorId: selectedId! },
     { enabled: !!selectedId },
   );
   const addPrice = trpc.vendors.addPrice.useMutation({
+    meta: { errorTitle: "Couldn't add the vendor price" },
     onSuccess: () => { void pricesQ.refetch(); setPriceForm(null); },
   });
-  const removePrice = trpc.vendors.removePrice.useMutation({ onSuccess: () => void pricesQ.refetch() });
+  const removePrice = trpc.vendors.removePrice.useMutation({ meta: { errorTitle: "Couldn't delete the vendor price" }, onSuccess: () => void pricesQ.refetch() });
 
   const saving = create.isPending || update.isPending;
   const err = create.error || update.error;
   const selected = rows.find((v) => v.id === selectedId);
 
   useScreenActions(
-    [
-      {
-        id: "new-vendor",
-        zone: "center",
-        tone: "primary",
-        label: "New vendor",
-        icon: <Add />,
-        onClick: () => setForm({ ...EMPTY }),
-      },
-      ...(selected
-        ? [
-            {
-              id: "add-price",
-              zone: "center" as const,
-              label: "Add price",
-              icon: <Add />,
-              onClick: () => setPriceForm({ ...EMPTY_PRICE }),
-            },
-          ]
-        : []),
-    ],
-    [selected],
+    form !== null || rating !== null || priceForm !== null
+      ? []
+      : [
+          {
+            id: "new-vendor",
+            zone: "center",
+            tone: "primary",
+            label: "New vendor",
+            icon: <Add />,
+            onClick: () => setForm({ ...EMPTY }),
+          },
+          ...(selected
+            ? [
+                {
+                  id: "add-price",
+                  zone: "center" as const,
+                  label: "Add price",
+                  icon: <Add />,
+                  onClick: () => setPriceForm({ ...EMPTY_PRICE }),
+                },
+              ]
+            : []),
+        ],
+    [form, rating, priceForm, selected],
   );
 
   const submit = () => {
@@ -309,6 +313,7 @@ export function Vendors() {
           </Stack>
         }
       >
+      <PageBreadcrumb items={[{ label: "Third Parties" }, { label: "Vendors" }]} />
       {listQ.error && (
         <Alert severity="error">
           <strong>Could not load vendors</strong> — {listQ.error.message}
@@ -368,8 +373,8 @@ export function Vendors() {
       </RailLayout>
 
       {/* create / edit vendor */}
-      <Dialog open={form !== null} onClose={() => setForm(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{form?.id ? "Edit vendor" : "New vendor"}</DialogTitle>
+      <Dialog aria-labelledby="vendors-form-title" open={form !== null} onClose={() => setForm(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="vendors-form-title">{form?.id ? "Edit vendor" : "New vendor"}</DialogTitle>
         <DialogContent>
           {form && (
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -408,8 +413,8 @@ export function Vendors() {
       </Dialog>
 
       {/* rating */}
-      <Dialog open={rating !== null} onClose={() => setRating(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{rating ? `Rate — ${rating.name}` : "Rate"}</DialogTitle>
+      <Dialog aria-labelledby="vendors-rate-title" open={rating !== null} onClose={() => setRating(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="vendors-rate-title">{rating ? `Rate — ${rating.name}` : "Rate"}</DialogTitle>
         <DialogContent>
           {rating && (
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -449,8 +454,8 @@ export function Vendors() {
       </Dialog>
 
       {/* add price */}
-      <Dialog open={priceForm !== null} onClose={() => setPriceForm(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{`Add price${selected ? ` — ${selected.name}` : ""}`}</DialogTitle>
+      <Dialog aria-labelledby="vendors-price-title" open={priceForm !== null} onClose={() => setPriceForm(null)} fullWidth maxWidth="sm">
+        <DialogTitle id="vendors-price-title">{`Add price${selected ? ` — ${selected.name}` : ""}`}</DialogTitle>
         <DialogContent>
           {priceForm && (
             <Stack spacing={2} sx={{ mt: 1 }}>

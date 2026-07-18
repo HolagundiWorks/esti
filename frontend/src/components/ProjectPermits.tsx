@@ -46,6 +46,7 @@ export function ProjectPermits({ projectId }: { projectId: string }) {
     { enabled: !!projectId },
   );
   const update = trpc.permits.update.useMutation({
+    meta: { errorTitle: "Couldn't update the permit" },
     onSuccess: () => utils.permits.listByProject.invalidate({ projectId }),
   });
 
@@ -58,6 +59,7 @@ export function ProjectPermits({ projectId }: { projectId: string }) {
   const [dueDate, setDueDate] = useState("");
 
   const create = trpc.permits.create.useMutation({
+    meta: { errorTitle: "Couldn't create the permit" },
     onSuccess: () => {
       utils.permits.listByProject.invalidate({ projectId });
       setOpen(false);
@@ -146,8 +148,8 @@ export function ProjectPermits({ projectId }: { projectId: string }) {
         </TableContainer>
       </Stack>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New permit</DialogTitle>
+      <Dialog aria-labelledby="project-permits-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="project-permits-create-title">New permit</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

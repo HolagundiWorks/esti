@@ -1,55 +1,76 @@
-/** Landing-page SEO — keep in sync with index.html meta tags and JSON-LD. */
+/** Landing-page SEO — platform home `/`. Keep in sync with index.html meta tags. */
+import {
+  AORMS_CONSULTANCY,
+  AORMS_PLATFORM,
+  AORMS_STUDIO,
+  EMOI,
+  ESTI,
+} from "./product-nomenclature.js";
+
 export const LANDING_SEO = {
-  title: "AORMS | Practice management software for architects & designers in India",
+  title: `AORMS | ${AORMS_PLATFORM.expansion}`,
   description:
-    "AORMS is the cloud practice OS for Indian architects and interior designers — projects, COA fee proposals, drawing transmittals, revision intelligence, GST billing, specification catalogues, team load and client portals. One standard licence, 5 GB included, unlimited users.",
+    "Operational and design frameworks for AEC consulting firms — architecture and engineering consultancies on one spine with EmOI intelligence. Not solution delivery. Not construction project management.",
   keywords:
-    "architecture practice management software India, software for architects, architect office management, interior design practice software, architectural consultancy software, client revision management architects, drawing approval software, architect fee proposal software COA, GST billing architects India, architecture project management, ESTI AI architect assistant, BOQ estimating software CPWD, AORMS cloud workspace",
-  ogTitle: "AORMS — Practice OS for architects & designers",
+    "AORMS, EmOI, AEC consulting, architecture consultancy software, engineering consultancy software, operational framework, design framework, AORMS-Studio, AORMS-Consultancy, workflow consolidation",
+  ogTitle: `AORMS — ${AORMS_PLATFORM.heroHeadline[0]} ${AORMS_PLATFORM.heroHeadline[1]}`,
   ogDescription:
-    "One cloud workspace for Indian architectural studios: projects, fees, revisions, GST, specification catalogues, team and portals. Unlimited users. 5 GB included. No desktop installs.",
-  twitterTitle: "AORMS — for architects who are tired of chasing their record",
+    "Accelerated Operational Resources Management System: operational and design frameworks for AEC consulting firms. Two apps — AORMS-Studio (architecture) and AORMS-Consultancy (engineering). One spine.",
+  twitterTitle: "AORMS — frameworks for AEC consultancies",
   twitterDescription:
-    "Projects, fees, revisions and GST in one browser workspace. Built for Indian architects. One licence · unlimited users · pay for storage and AI.",
-  headline:
-    "The practice OS for architects and designers who are tired of chasing their own record.",
-  footerBlurb:
-    "AORMS is the Architecture Office Resource Management System — built by Holagundi Consulting Works in Hospet, Karnataka, for Indian architectural and interior design consultancies.",
+    `Operational + design frameworks for architecture and engineering consultancies. EmOI dual-tier intelligence. ${AORMS_STUDIO.title} shipping for Indian architecture practices; ${AORMS_CONSULTANCY.title} on the roadmap.`,
+  headline: `${AORMS_PLATFORM.heroHeadline[0]} ${AORMS_PLATFORM.heroHeadline[1]}`,
+  footerBlurb: `${AORMS_PLATFORM.name} (${AORMS_PLATFORM.expansion}).`,
   canonical: "https://aorms.in/",
-  siteName: "AORMS",
-  wikiUrl: "https://wiki.aorms.in/",
+  siteName: AORMS_PLATFORM.name,
+  wikiUrl: "https://aorms.in/wiki",
 } as const;
 
 export const LANDING_FAQ = [
   {
-    question: "Who is AORMS for?",
+    question: "What is AORMS?",
     answer:
-      "Registered architects, interior designers and architectural consultancy practices in India — from solo studios to mid-sized firms. One standard licence with unlimited users.",
+      `AORMS (Accelerated Operational Resources Management System) is a pre-release platform for AEC consulting firms — architecture and engineering practices that advise clients. It combines an operational framework and a design framework on one spine, with ${EMOI.name} as the ${EMOI.role.toLowerCase()} and ${ESTI.name} as the ${ESTI.role.toLowerCase()} in ${AORMS_STUDIO.title}. We are not in solution delivery or construction project management.`,
   },
   {
-    question: "How much does AORMS cost?",
+    question: "Who is the platform for?",
     answer:
-      "Every new account includes 5 GB of cloud storage and the full workspace. You pay for additional storage (per GB-month) and for hosted AI usage, or bring your own OpenAI-compatible API key for Ask ESTI and AI Studio.",
+      "AEC consulting firms — architecture and engineering practices of 5–500 people replacing scattered messaging, advisory workflows, documentation, email, sheets, and file sharing. AORMS-Studio ships for architecture consultancies; AORMS-Consultancy for engineering consultancies is on the roadmap.",
   },
   {
-    question: "Is there a desktop app to download?",
+    question: "What are AORMS-Studio and AORMS-Consultancy?",
     answer:
-      "No. AORMS runs entirely in the browser at aorms.in. Drawings, finance, specification catalogues, and portals are all inside the same cloud workspace.",
+      `${AORMS_STUDIO.title} is the architecture consultancy app — Indian architecture and design practices (live at ${AORMS_STUDIO.appUrl.replace(/^https:\/\//, "")}). ${AORMS_CONSULTANCY.title} is the engineering consultancy app — structural, MEP, civil, and multidisciplinary firms (roadmap). Both share the same AORMS platform spine, ${EMOI.name} (${EMOI.role.toLowerCase()}), and an internal-agent profile per app.`,
   },
   {
-    question: "Where is the documentation?",
+    question: "What are the operational and design frameworks?",
     answer:
-      "The official AORMS Wiki at wiki.aorms.in covers getting started, workflows, finance, and account setup.",
+      "The operational framework is how the consulting office runs — intake, process standards, review, audit, and governed knowledge. The design framework is how engagements are structured — methodologies, deliverable models, and versioned advisory templates. AORMS is built for AEC consultancies that advise, not firms that deliver solutions or run construction project management.",
   },
   {
-    question: "Can I use my own AI API key?",
+    question: "What is the dual-tier AI architecture?",
     answer:
-      "Yes. In Company → AI you can set an OpenAI-compatible endpoint and API key. AORMS prefers your provider for better performance; hosted usage is not metered while BYO is active.",
+      `Two agents: ${EMOI.name} (${EMOI.expansion}) is the ${EMOI.role.toLowerCase()} — it validates content from outside sources before it enters the firm. ${ESTI.name} (${ESTI.expansion}) is the ${ESTI.role.toLowerCase()} — it answers only from validated firm repositories. See the ${EMOI.name} + ${ESTI.name} section on this page.`,
   },
   {
-    question: "What does AORMS help an architecture firm manage?",
+    question: `Where is the ${AORMS_STUDIO.title} documentation?`,
     answer:
-      "Client revisions, project phases, drawing transmittals and approvals, COA fee proposals, GST invoicing and reconciliation, consultant and contractor coordination, team workload, specification catalogues, and ESTI AI-assisted office reasoning.",
+      `The ${AORMS_STUDIO.title} user guide lives at aorms.in/wiki — getting started, finance, workflows, and account setup for Indian architecture practices.`,
+  },
+  {
+    question: "What is EmOI?",
+    answer:
+      `${EMOI.name} (${EMOI.expansion}) is the ${EMOI.role.toLowerCase()} on the AORMS platform — ${EMOI.summary}`,
+  },
+  {
+    question: "What is ESTI?",
+    answer:
+      `${ESTI.name} (${ESTI.expansion}) is the ${ESTI.role.toLowerCase()} — ${ESTI.summary} Live today in ${AORMS_STUDIO.title}; ${AORMS_CONSULTANCY.title} will ship its own internal-agent profile on the roadmap.`,
+  },
+  {
+    question: "Is this documentation the shipped product?",
+    answer:
+      `This page is the platform north-star (v1.0 pre-release). The live browser workspace at ${AORMS_STUDIO.appUrl.replace(/^https:\/\//, "")} implements ${AORMS_STUDIO.title}; stack details differ in places (Fastify + tRPC today vs REST/GraphQL in the north-star spec).`,
   },
 ] as const;
 
@@ -86,21 +107,21 @@ export function injectLandingJsonLd(): void {
       },
       {
         "@type": "WebSite",
-        "@id": "https://wiki.aorms.in/#website",
-        url: "https://wiki.aorms.in/",
-        name: "AORMS Wiki",
-        description: "Official documentation for the AORMS cloud workspace.",
+        "@id": "https://aorms.in/wiki#website",
+        url: "https://aorms.in/wiki",
+        name: AORMS_STUDIO.wikiName,
+        description: `Official documentation for ${AORMS_STUDIO.title} on the AORMS platform.`,
         inLanguage: "en-IN",
         publisher: { "@id": "https://aorms.in/#organization" },
       },
       {
         "@type": "Organization",
         "@id": "https://aorms.in/#organization",
-        name: "Holagundi Consulting Works",
+        name: "Human Centric Works",
         url: "https://aorms.in",
         email: "hi@aorms.in",
         telephone: "+91-8951089191",
-        logo: "https://aorms.in/aorms-logo.png",
+        logo: "https://aorms.in/hcw-black.png",
         sameAs: ["https://www.linkedin.com/company/aorms"],
         address: {
           "@type": "PostalAddress",
@@ -112,31 +133,32 @@ export function injectLandingJsonLd(): void {
       {
         "@type": "SoftwareApplication",
         "@id": "https://aorms.in/#software",
-        name: "AORMS",
+        name: AORMS_PLATFORM.name,
         alternateName: [
-          "Architecture Office Resource Management System",
-          "ESTI",
-          "Embedded Studio Intelligence",
+          AORMS_PLATFORM.expansion,
+          AORMS_STUDIO.title,
+          AORMS_CONSULTANCY.title,
+          EMOI.name,
+          EMOI.expansion,
+          ESTI.name,
+          ESTI.expansion,
         ],
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
-        url: "https://aorms.in",
+        url: "https://aorms.in/",
         description: LANDING_SEO.description,
         featureList:
-          "project management, COA fee proposals, drawing transmittals, revision intelligence, GST billing, 26AS/AIS/GSTR reconciliation, HR and payroll, ASPRF team performance, client and consultant portals, Studio Intelligence, Ask ESTI, AI Studio, BYO AI API key, specification catalogues",
+          "operational framework, design framework, collaboration, review and approval, audit and compliance, knowledge base, analytics dashboards, EmOI external AI agent, ESTI internal AI agent",
         audience: {
           "@type": "Audience",
-          audienceType: "Indian architects, interior designers and architectural consultancies",
+          audienceType:
+            "AEC consulting firms — architecture and engineering consultancies (5–500 people)",
         },
         offers: {
           "@type": "Offer",
-          name: "AORMS Standard",
-          description:
-            "Full cloud workspace on signup with 5 GB storage included. Unlimited users, clients and projects. Additional storage and hosted AI metered; BYO API key supported.",
-          price: "0",
-          priceCurrency: "INR",
-          availability: "https://schema.org/InStock",
-          url: "https://aorms.in/#pricing",
+          name: `${AORMS_PLATFORM.name} platform`,
+          description: `Pre-release platform. ${AORMS_STUDIO.title} app available with standard licence; ${AORMS_CONSULTANCY.title} on roadmap.`,
+          url: `https://aorms.in/login`,
         },
         publisher: { "@id": "https://aorms.in/#organization" },
       },

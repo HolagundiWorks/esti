@@ -1,6 +1,7 @@
 import AutoAwesome from "@mui/icons-material/AutoAwesome";
 import CalculateOutlined from "@mui/icons-material/CalculateOutlined";
 import PowerSettingsNew from "@mui/icons-material/PowerSettingsNew";
+import SearchOutlined from "@mui/icons-material/SearchOutlined";
 import SelfImprovement from "@mui/icons-material/SelfImprovement";
 import TaskAltOutlined from "@mui/icons-material/TaskAltOutlined";
 import {
@@ -11,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ASK_ESTI_EVENT } from "../AiAgentCommand.js";
 import { AlertsBell } from "../AlertsBell.js";
 import { FloatingCalculator } from "../FloatingCalculator.js";
@@ -31,12 +32,15 @@ import { useOfficeHealth } from "./useOfficeHealth.js";
  * icons are round neumorphic chips on the frosted surface:
  *
  *   LEFT   — calculator · office health · task due.
- *   CENTER — Studio Intelligence · tasks · **Ask ESTI** · wellbeing · pomodoro (fixed viewport centre).
+ *   CENTER — Studio Intelligence · tasks · Search · **Ask ESTI** · wellbeing · pomodoro.
  *   RIGHT  — clock · alerts · ID · sign out.
  *
- * The top border carries the office-health signal (green/amber/red), taken over
- * from the retired floating dock.
+ * The top border carries the office-health signal (green/amber/red).
  */
+
+/** Persistent chrome hit target — WCAG 2.5.8 / Fitts. */
+const chromeIconSx = { width: 44, height: 44 };
+
 function TrayClock() {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -65,6 +69,7 @@ export function AppFooterBar({
   onSignOut: () => void;
 }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [showCalc, setShowCalc] = useState(false);
   const [showWellness, setShowWellness] = useState(false);
   const [wellnessSection, setWellnessSection] = useState<WellnessSection>("breathe");
@@ -92,17 +97,26 @@ export function AppFooterBar({
       ? "var(--cds-support-warning)"
       : "var(--cds-support-success)";
 
-  // Alt+C toggles the calculator (kept from the previous dock).
+  // Alt+C calculator · Ctrl/Cmd+K global search.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.altKey && (e.key === "c" || e.key === "C")) {
         e.preventDefault();
         setShowCalc((o) => !o);
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) {
+        const tag = (e.target as HTMLElement | null)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) {
+          return;
+        }
+        e.preventDefault();
+        navigate("/search");
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [navigate]);
 
   return (
     <Box
@@ -115,10 +129,10 @@ export function AppFooterBar({
         <Tooltip title="Calculator (Alt+C)">
           <IconButton
             ref={calcTriggerRef}
-            size="small"
             color={showCalc ? "primary" : "default"}
             onClick={() => setShowCalc((o) => !o)}
             aria-label="Calculator"
+            sx={chromeIconSx}
           >
             <CalculateOutlined />
           </IconButton>
@@ -127,8 +141,17 @@ export function AppFooterBar({
           <Stack
             direction="row"
             spacing={0.5}
-            sx={{ alignItems: "center", cursor: "pointer", pl: 0.5 }}
+            sx={{ alignItems: "center", cursor: "pointer", pl: 0.5, minHeight: 44 }}
             onClick={() => navigate("/")}
+            role="link"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                navigate("/");
+              }
+            }}
+            aria-label={`Office health: ${state}. Go to Studio Intelligence`}
           >
             <OfficeHealthGlyph state={state} variant="glass" title={state} />
             <Typography variant="caption" sx={{ textTransform: "capitalize" }} noWrap>{state}</Typography>
@@ -139,8 +162,16 @@ export function AppFooterBar({
             <Typography
               variant="caption"
               color="text.secondary"
-              sx={{ cursor: "pointer", pl: 0.5 }}
+              sx={{ cursor: "pointer", pl: 0.5, minHeight: 44, display: "inline-flex", alignItems: "center" }}
               onClick={() => navigate("/tasks")}
+              role="link"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  navigate("/tasks");
+                }
+              }}
             >
               {pendingTasks} due
             </Typography>
@@ -148,7 +179,7 @@ export function AppFooterBar({
         )}
       </Box>
 
-      {/* CENTER — Studio Intelligence · tasks · Ask ESTI · wellbeing · pomodoro */}
+      {/* CENTER — Studio · Tasks · Search · Ask ESTI · Wellness · Pomodoro */}
       <Stack
         direction="row"
         spacing={0.5}
@@ -156,21 +187,44 @@ export function AppFooterBar({
         sx={{ alignItems: "center" }}
       >
         <Tooltip title="Studio Intelligence">
-          <IconButton size="small" onClick={() => navigate("/")} aria-label="Studio Intelligence" color="primary">
+          <IconButton
+            onClick={() => navigate("/")}
+            aria-label="Studio Intelligence"
+            aria-current={pathname === "/" ? "page" : undefined}
+            color={pathname === "/" ? "primary" : "default"}
+            sx={chromeIconSx}
+          >
             <AutoAwesome />
           </IconButton>
         </Tooltip>
         <Tooltip title="Tasks">
-          <IconButton size="small" onClick={() => navigate("/tasks")} aria-label="Tasks">
+          <IconButton
+            onClick={() => navigate("/tasks")}
+            aria-label="Tasks"
+            aria-current={pathname.startsWith("/tasks") ? "page" : undefined}
+            color={pathname.startsWith("/tasks") ? "primary" : "default"}
+            sx={chromeIconSx}
+          >
             <TaskAltOutlined />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Search (Ctrl+K)">
+          <IconButton
+            onClick={() => navigate("/search")}
+            aria-label="Search"
+            aria-current={pathname.startsWith("/search") ? "page" : undefined}
+            color={pathname.startsWith("/search") ? "primary" : "default"}
+            sx={chromeIconSx}
+          >
+            <SearchOutlined />
           </IconButton>
         </Tooltip>
         <Tooltip title="Ask ESTI (Alt+A)">
           <IconButton
             className="esti-app-footer__esti"
-            size="small"
             onClick={() => window.dispatchEvent(new CustomEvent(ASK_ESTI_EVENT))}
             aria-label="Ask ESTI AI"
+            sx={chromeIconSx}
           >
             <span className="esti-brand esti-brand--esti esti-ai-bar__mark" role="img" aria-label="ESTI" />
           </IconButton>
@@ -178,10 +232,10 @@ export function AppFooterBar({
         <Tooltip title="Wellness — breathe, stretch, eyes">
           <IconButton
             ref={wellnessTriggerRef}
-            size="small"
             color={showWellness ? "primary" : "default"}
             onClick={() => setShowWellness((o) => !o)}
             aria-label="Wellness"
+            sx={chromeIconSx}
           >
             <SelfImprovement />
           </IconButton>
@@ -190,13 +244,13 @@ export function AppFooterBar({
       </Stack>
 
       {/* RIGHT — system tray */}
-      <Stack direction="row" spacing={1} sx={{ alignItems: "center", flex: 1, justifyContent: "flex-end", minWidth: 0 }}>
+      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", flex: 1, justifyContent: "flex-end", minWidth: 0 }}>
         <TrayClock />
         <AlertsBell />
         <DemoAdminUnlock />
         <UserIdCard />
         <Tooltip title="Sign out">
-          <IconButton size="small" onClick={onSignOut} aria-label="Sign out">
+          <IconButton onClick={onSignOut} aria-label="Sign out" sx={chromeIconSx}>
             <PowerSettingsNew />
           </IconButton>
         </Tooltip>

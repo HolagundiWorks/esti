@@ -329,3 +329,67 @@ def fetch_open_invoices() -> list[dict[str, Any]]:
             for r in cur.fetchall()
         ]
 
+
+def update_repo_source(source_id: str, **fields: Any) -> None:
+    """Patch esti_repo_source after PDF→Markdown conversion."""
+    col_map = {
+        "markdown_text": "markdown_text",
+        "raw_text": "raw_text",
+        "convert_status": "convert_status",
+        "convert_error": "convert_error",
+    }
+    mapped = {col_map.get(k, k): v for k, v in fields.items()}
+    _patch("esti_repo_source", source_id, set(), mapped)
+
+
+
+def update_engagement(engagement_id: str, **fields: Any) -> None:
+    """Patch an esti_cons_engagement row (AORMS-Consultancy register PDF)."""
+    _patch("esti_cons_engagement", engagement_id, set(), fields)
+
+
+def fetch_engagement_full(engagement_id: str) -> dict[str, Any] | None:
+    """Engagement + register + sign-off chains + fee stages + TQs for the
+    engagement-register PDF (AORMS-Consultancy)."""
+    sql = """
+        select e.id, e.title, e.model, e.lead_discipline, e.stage, e.status,
+               e.reliance_scope, e.fee_model, e.fee_total_paise, e.notes,
+               e.pdf_status, e.pdf_key,
+               c.name as client_name
+        from esti_cons_engagement e
+        left join esti_client c on c.id = e.client_id
+        where e.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        row = conn.execute(sql, [engagement_id]).fetchone()
+        if row is None:
+            return None
+        row["deliverables"] = conn.execute(
+            "select id, code, title, discipline, revision, issue_class, check_category, "
+            "status, issued_at from esti_cons_deliverable "
+            "where engagement_id = %s order by code",
+            [engagement_id],
+        ).fetchall()
+        row["steps"] = conn.execute(
+            "select s.deliverable_id, s.kind, s.user_name, s.at "
+            "from esti_cons_review_step s "
+            "join esti_cons_deliverable d on d.id = s.deliverable_id "
+            "where d.engagement_id = %s order by s.at",
+            [engagement_id],
+        ).fetchall()
+        row["fee_stages"] = conn.execute(
+            "select label, amount_paise, status from esti_cons_fee_stage "
+            "where engagement_id = %s order by created_at",
+            [engagement_id],
+        ).fetchall()
+        row["tqs"] = conn.execute(
+            "select code, question, status, scope_impact, answer, closure_note "
+            "from esti_cons_tq where engagement_id = %s order by code",
+            [engagement_id],
+        ).fetchall()
+        row["variations"] = conn.execute(
+            "select code, title, amount_paise, status from esti_cons_variation "
+            "where engagement_id = %s order by code",
+            [engagement_id],
+        ).fetchall()
+        return row

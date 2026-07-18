@@ -1,22 +1,29 @@
-/** Canonical wiki host and path helpers — wiki lives at wiki.aorms.in. */
+/** Wiki path helpers — canonical URLs on aorms.in/wiki (see aorms-surface-urls.ts). */
 
-export const WIKI_SITE = "https://wiki.aorms.in";
+import { AORMS_PLATFORM_PAGES, platformPageUrl } from "./aorms-surface-urls.js";
 
-const WIKI_HOST_RE = /^wiki\./;
+export const WIKI_PATH = AORMS_PLATFORM_PAGES.wiki.path;
 
-export function isWikiHost(hostname = window.location.hostname): boolean {
-  return WIKI_HOST_RE.test(hostname);
-}
-
-/** Absolute wiki page URL on the canonical wiki host. */
-export function wikiPageUrl(slug?: string): string {
-  if (!slug || slug === "index") return `${WIKI_SITE}/`;
-  return `${WIKI_SITE}/${slug}`;
-}
-
-/** In-app path for wiki routes (main site uses /wiki prefix; wiki host uses /). */
+/** In-app path for wiki routes (React Router + rail links). */
 export function wikiAppPath(slug?: string): string {
-  const onWiki = isWikiHost();
-  if (!slug || slug === "index") return onWiki ? "/" : "/wiki";
-  return onWiki ? `/${slug}` : `/wiki/${slug}`;
+  if (!slug || slug === "index") return WIKI_PATH;
+  return `${WIKI_PATH}/${slug}`;
+}
+
+/** Absolute canonical wiki URL (SEO, share links, prerender). */
+export function wikiPageUrl(slug?: string): string {
+  if (!slug || slug === "index") return platformPageUrl("wiki");
+  return platformPageUrl("wiki", slug);
+}
+
+/** True when pathname is a wiki route on the platform SPA. */
+export function isWikiPath(pathname?: string): boolean {
+  const p =
+    pathname ?? (typeof window !== "undefined" ? window.location.pathname : "");
+  return p === WIKI_PATH || p.startsWith(`${WIKI_PATH}/`);
+}
+
+/** @deprecated Use isWikiPath — kept for transitional imports. */
+export function isWikiHost(pathname?: string): boolean {
+  return isWikiPath(pathname);
 }

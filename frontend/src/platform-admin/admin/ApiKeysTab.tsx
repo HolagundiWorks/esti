@@ -3,7 +3,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -13,16 +12,12 @@ import {
   TextField,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import { StatusDot } from "../../components/StatusTag.js";
 import { trpc } from "../lib/trpc";
 
 type Keys = Awaited<ReturnType<typeof trpc.admin.apiKeys.list.query>>;
 type Products = Awaited<ReturnType<typeof trpc.admin.products.list.query>>;
 type Orgs = Awaited<ReturnType<typeof trpc.admin.orgs.list.query>>;
-
-const chipSx = (c: string) => ({
-  backgroundColor: `var(--cds-tag-background-${c})`,
-  color: `var(--cds-tag-color-${c})`,
-});
 
 export default function ApiKeysTab() {
   const [keys, setKeys] = useState<Keys>([]);
@@ -80,9 +75,9 @@ export default function ApiKeysTab() {
       sortable: false,
       renderCell: (p) =>
         p.row.orgName ? (
-          <Chip size="small" label={p.row.orgName} sx={chipSx("blue")} />
+          <StatusDot color="blue" label={p.row.orgName} />
         ) : (
-          <Chip size="small" label="Product-wide" sx={chipSx("gray")} />
+          <StatusDot color="gray" label="Product-wide" />
         ),
     },
     { field: "label", headerName: "Label", flex: 1.2, minWidth: 160 },
@@ -92,11 +87,7 @@ export default function ApiKeysTab() {
       flex: 0.8,
       minWidth: 110,
       renderCell: (p) => (
-        <Chip
-          size="small"
-          label={p.row.status}
-          sx={chipSx(p.row.status === "ACTIVE" ? "green" : "red")}
-        />
+        <StatusDot color={p.row.status === "ACTIVE" ? "green" : "red"} label={p.row.status} />
       ),
     },
     {
@@ -153,8 +144,8 @@ export default function ApiKeysTab() {
         autoHeight
       />
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Generate API key</DialogTitle>
+      <Dialog aria-labelledby="api-keys-tab-generate-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="api-keys-tab-generate-title">Generate API key</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

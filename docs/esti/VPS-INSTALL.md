@@ -5,9 +5,7 @@ installer (`deploy/install.sh`) does everything — Docker, nginx, TLS, seeding,
 auto-start. You only provision the box, point DNS, and run the installer.
 
 > Quick reference for the scripts is in [`deploy/README.md`](../../deploy/README.md).
-> Public documentation: [wiki.aorms.in](https://wiki.aorms.in).
-> Legacy Lite installer guide: [`docs/archive/esti/AORMS-LITE-AND-GOOGLE-AUTH.md`](../archive/esti/AORMS-LITE-AND-GOOGLE-AUTH.md).
-
+> Public documentation: [aorms.in/wiki](https://aorms.in/wiki).
 ---
 
 ## 0. TL;DR

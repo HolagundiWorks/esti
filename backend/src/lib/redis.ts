@@ -15,7 +15,7 @@ export const redis = INPROC_WORKER
     })
   : new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
 
-export type JobType = "dxf_to_svg" | "render_pdf" | "reconcile_import";
+export type JobType = "dxf_to_svg" | "render_pdf" | "pdf_to_markdown" | "reconcile_import";
 
 /**
  * Publish a job to the Redis Stream consumed by the Python worker (ADR-10).

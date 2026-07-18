@@ -53,6 +53,17 @@ export async function enforceRateLimit(
   }
 }
 
+/** HTTP route variant — returns false when the cap is exceeded (no tRPC throw). */
+export async function isRateLimited(
+  bucket: string,
+  key: string,
+  limit: number,
+  windowSec: number,
+): Promise<boolean> {
+  const count = await hitRateLimit(bucket, key, windowSec);
+  return count > limit;
+}
+
 /** Clear a limiter bucket (e.g. on a successful login). */
 export async function clearRateLimit(bucket: string, key: string): Promise<void> {
   const redisKey = `rl:${bucket}:${key}`;

@@ -7,6 +7,8 @@
  * Every slug here MUST have a matching `src/content/landing/<slug>.md`, and every
  * such file's slug MUST appear here. The build verifies this in prerender-blog.mjs.
  */
+import { AORMS_PORTALS } from "./product-nomenclature.js";
+
 export const LANDING_SLUGS = [
   // Phase 3 — primary product-category keywords.
   "architecture-office-management-software",
@@ -65,47 +67,47 @@ export interface LandingNavGroup {
 
 export const LANDING_NAV: LandingNavGroup[] = [
   {
+    heading: "Fee recovery",
+    links: [
+      { slug: "architect-fee-proposal-software", label: "Fee proposal & recovery" },
+      { slug: "coa-compliant-billing-software", label: "COA-compliant billing" },
+      { slug: "gst-billing-software-architects-india", label: "GST billing for architects" },
+      { slug: "gst-on-architecture-services", label: "GST on architecture work" },
+      { slug: "hsn-sac-code-for-architects", label: "HSN / SAC code for architects" },
+      { slug: "architecture-firm-management-software", label: "Firm management & cash flow" },
+    ],
+  },
+  {
+    heading: "Client revisions",
+    links: [
+      { slug: "minutes-of-meeting-software-for-architects", label: "Minutes of meeting" },
+      { slug: "client-revision-management", label: "Client revision management" },
+      { slug: "client-revision-management-for-architects", label: "Revision management for architects" },
+      { slug: "architecture-revision-tracking", label: "Revision tracking" },
+      { slug: "architecture-change-management-software", label: "Change management" },
+      { slug: "architecture-approval-workflow-software", label: "Approval workflows" },
+      { slug: "architecture-client-portal-software", label: AORMS_PORTALS.client.label },
+    ],
+  },
+  {
     heading: "Practice systems",
     links: [
       { slug: "architecture-office-management-software", label: "Office management software" },
-      { slug: "architecture-firm-management-software", label: "Firm management software" },
       { slug: "architecture-practice-management-software", label: "Practice management software" },
-      { slug: "architecture-project-management-software", label: "Project management software" },
+      { slug: "architecture-project-management-software", label: "Project record software" },
       { slug: "software-for-architecture-firms", label: "Software for architecture firms" },
       { slug: "architecture-consultancy-management-software", label: "Consultancy management software" },
-      { slug: "construction-client-management-software", label: "Construction client management" },
       { slug: "architecture-erp-india", label: "Architecture ERP India" },
-      { slug: "architect-fee-proposal-software", label: "Fee proposal software" },
-      { slug: "architecture-timesheet-software", label: "Timesheet & time tracking" },
-      { slug: "rfi-management-software-for-architects", label: "RFI management" },
-    ],
-  },
-  {
-    heading: "Decision records",
-    links: [
-      { slug: "architecture-revision-tracking", label: "Revision tracking" },
-      { slug: "architecture-site-visit-software", label: "Site visit management" },
-      { slug: "minutes-of-meeting-software-for-architects", label: "Minutes of meeting" },
-      { slug: "drawing-revision-tracking-software", label: "Drawing revision control" },
-      { slug: "architecture-approval-workflow-software", label: "Approval workflows" },
-      { slug: "architect-document-approval-system", label: "Document approval system" },
-      { slug: "architecture-change-management-software", label: "Change management" },
-      { slug: "client-revision-management", label: "Client revision management" },
-      { slug: "client-revision-management-for-architects", label: "Revision management for architects" },
-      { slug: "architecture-client-management-software", label: "Client management" },
-      { slug: "architecture-client-portal-software", label: "Client portal software" },
-      { slug: "architecture-office-workflow-management", label: "Workflow management" },
-    ],
-  },
-  {
-    heading: "India operations",
-    links: [
       { slug: "architecture-software-india", label: "Architecture software India" },
-      { slug: "coa-compliant-billing-software", label: "COA-compliant billing" },
-      { slug: "gst-billing-software-architects-india", label: "GST billing for architects" },
       { slug: "architecture-office-management-india", label: "Office management in India" },
-      { slug: "gst-on-architecture-services", label: "GST on architecture work" },
-      { slug: "hsn-sac-code-for-architects", label: "HSN / SAC code for architects" },
+      { slug: "architecture-client-management-software", label: "Client management" },
+      { slug: "architecture-office-workflow-management", label: "Workflow management" },
+      { slug: "architect-document-approval-system", label: "Document approval system" },
+      { slug: "drawing-revision-tracking-software", label: "Drawing revision control" },
+      { slug: "architecture-site-visit-software", label: "Site visit management" },
+      { slug: "rfi-management-software-for-architects", label: "RFI management" },
+      { slug: "architecture-timesheet-software", label: "Timesheet & time tracking" },
+      { slug: "construction-client-management-software", label: "Construction client management" },
       { slug: "contractor-billing-software-for-architects", label: "Contractor billing" },
     ],
   },

@@ -224,10 +224,10 @@ NODE_ENV=production
 BACKEND_PORT=4000
 SESSION_SECRET=${SESSION_SECRET}
 COOKIE_SECURE=true
-# The standalone licensing console (admin.DOMAIN) calls this backend's
-# /platform API from its own origin — allow it through CORS + the CSRF
-# origin gate whenever it is configured.
-ALLOWED_ORIGINS=https://${DOMAIN}${VITE_ADMIN_URL:+,${VITE_ADMIN_URL}}
+# The standalone licensing console (admin.DOMAIN) and every frozen AORMS surface
+# host call this backend — allow them through CORS + the CSRF origin gate.
+# See docs/esti/AORMS-SURFACE-URLS.md
+ALLOWED_ORIGINS=https://${DOMAIN},https://studio.${DOMAIN},https://consultancy.${DOMAIN},https://admin.${DOMAIN}
 
 POSTGRES_USER=esti
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}

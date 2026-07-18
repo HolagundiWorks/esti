@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { DEFAULT_AI_SETTINGS, type AiSettings } from "@esti/contracts";
 import { useEffect, useState } from "react";
+import { TYPE_SCALE } from "@hcw/ui-kit";
 import { EstiAiExplainLabel } from "../AiCarbon.js";
 import { trpc } from "../../lib/trpc.js";
 
@@ -41,6 +42,7 @@ export function AiStudioSettingsPanel({ isEnterprise: _isEnterprise = false }: {
   }, [settingsQ.data]);
 
   const save = trpc.ai.setSettings.useMutation({
+    meta: { errorTitle: "Couldn't save the AI Studio settings" },
     onSuccess: () => {
       utils.ai.settings.invalidate();
       setMsg("AI Studio settings saved");
@@ -68,7 +70,7 @@ export function AiStudioSettingsPanel({ isEnterprise: _isEnterprise = false }: {
           <code>/v1</code>, etc.) — no extra tier required. Hosted Ollama usage is metered
           monthly; BYO-API calls are billed directly by your provider.
         </Typography>
-        <Alert severity="info" sx={{ fontSize: "0.8rem" }}>
+        <Alert severity="info" sx={{ fontSize: TYPE_SCALE.body2 }}>
           <AlertTitle>OpenAI-compatible endpoint format</AlertTitle>
           Set the base URL to the path ending in <code>/v1</code>, e.g.{" "}
           <code>https://api.openai.com/v1</code> or{" "}

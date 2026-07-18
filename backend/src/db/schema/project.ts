@@ -50,6 +50,12 @@ export const projectOffices = pgTable("esti_projectoffice", {
   currentPhaseId: uuid("current_phase_id"),
   /** When true (and firm PMC on), project shows PMC tab and site-admin features. */
   pmcEnabled: boolean("pmc_enabled").notNull().default(false),
+  /** Typical slab thickness (mm) — column/wall height deduction. */
+  slabThicknessMm: integer("slab_thickness_mm").notNull().default(150),
+  /** Typical beam depth (mm) — column/wall height deduction. */
+  beamDepthMm: integer("beam_depth_mm").notNull().default(450),
+  /** Typical lintel depth (mm) — wall height deduction only. */
+  lintelHeightMm: integer("lintel_height_mm").notNull().default(150),
   // Project OS pipeline links (Slice G). Plain uuids — FKs added by migration to
   // avoid a circular table dependency with the project-os schema module.
   leadId: uuid("lead_id"),

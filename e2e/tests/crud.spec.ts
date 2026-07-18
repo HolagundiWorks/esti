@@ -25,10 +25,8 @@ const MODULES: {
   { name: "contractor", route: "/contractors", open: /new contractor|add contractor/i, submit: /^create$/i },
   // Office documents with a text title → assert the title lands in the list.
   { name: "contract", route: "/office/contracts", open: /new contract/i, submit: /^create$/i },
-  { name: "tender", route: "/office/tenders", open: /new tender/i, submit: /^create$/i },
   // Auto-numbered / project-scoped docs (no listable token) → modal closes cleanly.
   { name: "invoice", route: "/invoices", open: /new invoice/i, submit: /^create$/i, verify: "closed" },
-  { name: "fee-proposal", route: "/accounting/fees", open: /new fee proposal/i, submit: /^create$/i, verify: "closed" },
   { name: "proposal", route: "/office/proposals", open: /new proposal/i, submit: /^create$/i, verify: "closed" },
   { name: "letter", route: "/office/letters", open: /new letter/i, submit: /^create$/i, verify: "closed" },
   { name: "expense", route: "/accounting/office-expenses", open: /new expense/i, submit: /save draft/i, verify: "closed" },

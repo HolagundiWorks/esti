@@ -22,6 +22,7 @@ import {
 import { type CSSProperties, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import { useScreenActions } from "@hcw/ui-kit";
+import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { StatusDot } from "../components/StatusTag.js";
 import { DataState } from "../components/DataState.js";
@@ -35,6 +36,7 @@ export function Team() {
   const utils = trpc.useUtils();
   const list = trpc.team.list.useQuery();
   const update = trpc.team.update.useMutation({
+    meta: { errorTitle: "Couldn't update the team member" },
     onSuccess: () => utils.team.list.invalidate(),
   });
 
@@ -53,6 +55,7 @@ export function Team() {
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const create = trpc.team.create.useMutation({
+    meta: { errorTitle: "Couldn't add the team member" },
     onSuccess: () => {
       utils.team.list.invalidate();
       setOpen(false);
@@ -69,17 +72,19 @@ export function Team() {
   });
 
   useScreenActions(
-    [
-      {
-        id: "new-member",
-        zone: "center",
-        tone: "primary",
-        label: "New member",
-        icon: <AddIcon />,
-        onClick: () => setOpen(true),
-      },
-    ],
-    [],
+    open
+      ? []
+      : [
+          {
+            id: "new-member",
+            zone: "center",
+            tone: "primary",
+            label: "New member",
+            icon: <AddIcon />,
+            onClick: () => setOpen(true),
+          },
+        ],
+    [open],
   );
 
   const members = (list.data ?? []).filter(
@@ -104,6 +109,7 @@ export function Team() {
           </Stack>
         }
       >
+      <PageBreadcrumb items={[{ label: "Teams" }, { label: "Team" }]} />
       {/* Portrait tile grid */}
       <DataState
         loading={list.isLoading}
@@ -191,8 +197,8 @@ export function Team() {
       </RailLayout>
 
       {/* Add member modal */}
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>New team member</DialogTitle>
+      <Dialog aria-labelledby="team-create-title" open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle id="team-create-title">New team member</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
