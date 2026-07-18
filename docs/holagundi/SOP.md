@@ -1,7 +1,7 @@
 # Standard Operating Procedures — Indian Architecture Practice
 
 **Status:** Practice reference · **Owner:** Holagundi Consulting Works ·
-**Reviewed:** 2026-07-17
+**Reviewed:** 2026-07-18
 
 > Firm-wide SOPs for running an Indian architecture consultancy end to end —
 > enquiry through final account. Written generically enough for any Indian
@@ -85,10 +85,9 @@ SOP below hangs off. Percentages are the *default* fee allocation per phase
 |---|---|
 | **Trigger** | Feasibility accepted internally |
 | **Owner** | Principal / Partner (`fees:manage`, L2+) |
-| **Steps** | 1. Pick the work category and fee basis — **COA % of cost of works**, per-sq.m rate, or lump sum. 2. The system computes the COA minimum for that category automatically (Individual house 7.5% · Group housing 3.5/2.5/2.0% by size band · non-housing 5% · interiors/conservation/landscape 7.5% · urban design 1% — see Appendix). Quoting below the minimum requires a recorded **override reason** — never quote below COA minimum silently. 3. Add Doc & Communication @ 10% of the professional fee per COA convention. 4. Attach scope of work and generate the proposal PDF; send to the client. |
-| **Records** | Proposal record (ref, fee basis, COA-minimum flag, override reason if any), PDF |
-| **AORMS module** | Office → Proposals (`/office/proposals`) · ✅ |
-| **Note** | The proposal's internal `status` field (Draft/…) is not yet wired to an explicit "send" action in the UI — track "sent" informally (email/WhatsApp log) until that's built. 🚧 |
+| **Steps** | 1. Pick the work category and fee basis — **COA % of cost of works**, per-sq.m rate, or lump sum. 2. The system computes the COA minimum for that category automatically (Individual house 7.5% · Group housing 3.5/2.5/2.0% by size band · non-housing 5% · interiors/conservation/landscape 7.5% · urban design 1% — see Appendix). Quoting below the minimum requires a recorded **override reason** — never quote below COA minimum silently. 3. Add Doc & Communication @ 10% of the professional fee per COA convention. 4. Move the proposal **Draft → Internal review → Approved** (principal sign-off) before it ever reaches the client. 5. Attach scope of work, generate the proposal PDF, and move it to **Sent to client** — the record now shows exactly when and by whom it left the office. |
+| **Records** | Proposal record (ref, fee basis, COA-minimum flag, override reason if any, status history), PDF |
+| **AORMS module** | Office → Proposals (`/office/proposals`) · ✅ — status column (`proposals.setStatus`) |
 
 ### SOP-04 — Client approval and project activation
 
@@ -130,9 +129,9 @@ SOP below hangs off. Percentages are the *default* fee allocation per phase
 |---|---|
 | **Trigger** | Any sheet issued internally or externally |
 | **Owner** | Project-in-charge / drawing custodian |
-| **Steps** | 1. Register every sheet — number, title, discipline, revision — before it leaves the office, never as a loose email attachment. 2. Increment the revision on the **same register row** — never create a new row for a revision, or the audit trail breaks. 3. Issue a numbered, dated **transmittal** against the register for anything sent externally (client, consultant, statutory authority, contractor). 4. Log the client's **approval decision** against the issued drawing on the same panel. |
-| **Records** | Drawing register (single source of truth for revision history), transmittal log, approval decisions |
-| **AORMS module** | Project → Drawings & approvals · ✅ |
+| **Steps** | 1. Register every sheet — number, title, discipline, revision — before it leaves the office, never as a loose email attachment. 2. Increment the revision on the **same register row** — never create a new row for a revision, or the audit trail breaks. 3. Before issuing, mark the sheet **Reviewed** (with an optional note) — a QC checkpoint that stays visible next to "Issue PDF" so an unreviewed sheet is never issued by accident (advisory, not a hard block). 4. Issue a numbered, dated **transmittal** against the register for anything sent externally (client, consultant, statutory authority, contractor). 5. Log the client's **approval decision** against the issued drawing on the same panel. |
+| **Records** | Drawing register (single source of truth for revision history), review status + reviewer, transmittal log, approval decisions |
+| **AORMS module** | Project → Drawings & approvals · ✅ — review column (`drawings.setReviewStatus`) |
 
 ### SOP-08 — Client decision and revision management (CRIF)
 
@@ -278,8 +277,8 @@ SOP below hangs off. Percentages are the *default* fee allocation per phase
 | **Owner** | Whoever collects the quote (project-in-charge, site architect) |
 | **Steps** | 1. Add the vendor to the directory with category, contact, GSTIN/PAN. 2. Record each price point — material, unit, rate, effective date, source (manual/quote/invoice) — into that vendor's pricing history so rate trends are visible over time, not re-negotiated from scratch each project. 3. Rate the vendor (quality/reliability/pricing) after each transaction. |
 | **Records** | Vendor directory, pricing history, quote comparisons |
-| **AORMS module** | Third Parties → Vendors (`/vendors`) · ✅ |
-| **Note** | Formal purchase-order issuance has a built component but it isn't reachable from any screen today — track POs outside AORMS (or by generating a Letter) until that's mounted. 🔲 |
+| **AORMS module** | Third Parties → Vendors (`/vendors`) · ✅; formal purchase orders — Project → Purchase Orders tab · ✅ (link lines to the specification catalogue or add ad-hoc lines, DRAFT→ISSUED→RECEIVED/CANCELLED) |
+| **Note** | The vendor pricing/quote backend (`materialId` on `esti_vendor_price`/`esti_vendor_quote_line`) has a schema/code mismatch left over from the 2026-07-09 Knowledge Bank teardown — recording a vendor price may error until that's fixed. Flagged in [DOC-CODE-DRIFT-2026-07.md](../esti/DOC-CODE-DRIFT-2026-07.md). 🚧 |
 
 ---
 
@@ -346,9 +345,9 @@ SOP below hangs off. Percentages are the *default* fee allocation per phase
 |---|---|
 | **Trigger** | Every new enquiry (SOP-01/02) and periodically for ongoing engagements |
 | **Owner** | Principal |
-| **Steps** | 1. Before quoting, confirm no other architect is already engaged on the same commission without written release (COA Regulations, 1989) — do this at lead qualification, not after signing. 2. Never offer or accept trade commissions/discounts from contractors or suppliers referred on a project. 3. Print the COA registration number and architect name on every drawing, proposal, invoice, and certificate — AORMS does this automatically from the firm's Legal ID once configured. 4. Keep professional-indemnity insurance current and record the renewal date somewhere reviewed annually. |
-| **Records** | Conflict-check note on the lead/project, insurance renewal reminder |
-| **AORMS module** | Firm profile (COA number auto-stamped on documents) · ✅ for stamping; the conflict-of-interest **check itself is a manual judgement call**, not a system prompt today · 🔲 |
+| **Steps** | 1. Before quoting, confirm no other architect is already engaged on the same commission without written release (COA Regulations, 1989) — enforced as a required checkbox + optional notes on the lead **Convert** dialog; conversion is blocked server-side without it. 2. Never offer or accept trade commissions/discounts from contractors or suppliers referred on a project. 3. Print the COA registration number and architect name on every drawing, proposal, invoice, and certificate — AORMS does this automatically from the firm's Legal ID once configured. 4. Keep professional-indemnity insurance current and record the renewal date somewhere reviewed annually. |
+| **Records** | Conflict-check flag + notes on the lead record (stamped at conversion), insurance renewal reminder |
+| **AORMS module** | Firm profile (COA number auto-stamped on documents) · ✅ for stamping; conflict-of-interest check · ✅ (`leads.convert` requires `conflictCheckDone`) |
 
 ### SOP-27 — Alerts and daily escalation
 
@@ -365,17 +364,16 @@ SOP below hangs off. Percentages are the *default* fee allocation per phase
 ## Gap register
 
 Where this SOP calls for something AORMS doesn't fully support yet, so it isn't
-mistaken for a missing habit rather than a missing feature:
+mistaken for a missing habit rather than a missing feature. **Closed 2026-07-18:**
+explicit proposal-sent status, internal proposal approval, drawing QC checkpoint,
+and the conflict-of-interest prompt — see the SOP entries above for how each
+now works. Remaining:
 
 | Gap | Impact | Workaround today |
 |---|---|---|
-| Explicit "proposal sent" status transition | Can't tell from the record alone whether a proposal was actually sent | Log send date in Notes, or track offline until wired up |
 | Contractor portal | No shared drawing/instruction surface with contractors | Email/print site instructions and drawings manually |
-| Purchase order issuance | Built component exists but isn't mounted on any screen | Issue POs via a Letter, or track outside AORMS |
-| Internal (pre-client) proposal approval workflow | No formal principal sign-off step before a proposal is quoted | Get verbal/Slack sign-off before creating the proposal |
-| Formal QC / peer-review checkpoint on drawings | No dedicated peer-review gate before issue | Use the revision ledger (SOP-08) informally, or a manual checklist outside AORMS |
-| Conflict-of-interest system prompt | Relies entirely on the principal remembering to check | Make it step 1 of SOP-01/02 manually until a prompt exists |
 | LXOS beyond Lessons Learned | No documentation exchange, internal blogs, or certification tracking yet | Keep those artefacts elsewhere for now |
+| Vendor pricing `materialId` schema mismatch | Recording a vendor price/quote line may error (2026-07-09 teardown fallout) | Track vendor pricing outside AORMS until fixed |
 
 See [`docs/esti/DOC-CODE-DRIFT-2026-07.md`](../esti/DOC-CODE-DRIFT-2026-07.md) for
 the engineering-side detail behind these gaps.

@@ -1,14 +1,16 @@
 # Doc ↔ code drift — findings from the 2026-07-09 user-guide rewrite
 
 **Status:** Informational punch-list, not canonical · **Owner:** Holagundi Consulting Works ·
-**Logged:** 2026-07-09
+**Logged:** 2026-07-09 · **Updated:** 2026-07-18
 
 > This is not a spec. It's the list of discrepancies found while verifying the actual
 > shipped UI (`frontend/src/routes/**`, `backend/src/trpc/router.ts`) against the
 > existing docs, in order to rewrite the user-facing wiki
 > ([`frontend/src/content/wiki/how-to-use-aorms.md`](../../frontend/src/content/wiki/how-to-use-aorms.md)
-> and siblings — done, see that commit). The wiki is fixed. **The items below are not** —
-> they're engineering-doc drift (and two real UI bugs) still waiting on an owner. Per
+> and siblings — done, see that commit) and, later, to close gaps in
+> [`docs/holagundi/SOP.md`](../holagundi/SOP.md)'s gap register. The wiki is fixed and the
+> Purchase Orders / migration-journal bugs below are fixed. **Everything else is not** —
+> engineering-doc drift (and a live vendor-router bug) still waiting on an owner. Per
 > `CLAUDE.md`'s Change Rule, whoever next touches these areas should reconcile the doc
 > alongside the code, or update the doc to match reality if the code is intentional.
 
@@ -102,20 +104,33 @@ correctly. The `knowledgeBank` line should be deleted, and the "Removed" callout
 Knowledge should be extended to note the 2026-07-09 teardown removed the Item Library
 UI entirely (materials/labour/items/brands/recipes), not just the estimation/CMS spine.
 
-## 5. Two real UI bugs (not doc drift — code says the wrong thing to users)
+## 5. Real UI/code bugs found (not doc drift — code itself is wrong)
 
 - **`SystemAdmin.tsx:143-148`** — the "Knowledge Bank" module tile (always-on,
   descriptive) still reads *"Rate books, rate analysis, components, specification
   catalogue, parametric studies, and lessons. Core reference module — always enabled."*
   All of that except "specification catalogue" was removed 2026-07-09. This is shown to
-  system admins in the live app, not just a doc — worth fixing directly.
-- **Orphaned Purchase Orders UI** — `frontend/src/components/ProjectPurchaseOrders.tsx`
-  is a complete, working component (New PO dialog, spec-catalogue line picker or
-  ad-hoc lines, status lifecycle DRAFT→ISSUED→RECEIVED/CANCELLED) wired to the live
-  `purchaseOrders` tRPC router — but it is not imported/mounted in `ProjectDetail.tsx`
-  or any route. End users currently cannot reach a Purchase Orders screen at all. Either
-  mount it (likely as a Project workspace tab) or remove it — right now it's dead code
-  with a live backend behind it.
+  system admins in the live app, not just a doc — worth fixing directly. **Still open.**
+- ~~Orphaned Purchase Orders UI~~ — **fixed 2026-07-18.** `ProjectPurchaseOrders.tsx`
+  is now mounted as a Project workspace tab in `ProjectDetail.tsx` (gated to `write`).
+- **`vendor/router.ts` references a dropped column** — `materialId` on
+  `esti_vendor_price`/`esti_vendor_quote_line` was dropped by the 2026-07-09
+  teardown (`0175_estimation_teardown.sql` drops `material_id` from both tables), but
+  `backend/src/modules/vendor/router.ts` (lines ~135, 164, 258, 293) still reads/writes
+  it — a genuine schema/code mismatch, not just a stale comment. `pnpm exec tsc
+  --noEmit` fails on this file today (4 errors). Recording a vendor price or quote line
+  likely 500s at runtime until the router is updated to match the current
+  `esti_vendor_price`/`esti_vendor_quote_line` schema (or the column is restored,
+  whichever was intended — unclear from the teardown commit alone). **Still open** —
+  found while implementing SOP.md's gap register, see
+  [`docs/holagundi/SOP.md`](../holagundi/SOP.md) SOP-20.
+- **`0175_estimation_teardown.sql` was never registered in
+  `backend/drizzle/meta/_journal.json`** — the migration file existed but
+  `runMigrations()` (Drizzle's journal-driven migrator) would never have picked it up
+  on a real boot, meaning the DB-side teardown (dropping `esti_kb_*`, `esti_cms_*`,
+  `material_id` columns, etc.) likely never actually ran anywhere. **Fixed 2026-07-18**
+  — registered retroactively alongside two new migrations (0176, 0177) added for
+  SOP.md's gap register.
 
 ## 6. Minor / lower-confidence items
 
