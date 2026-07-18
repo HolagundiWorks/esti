@@ -104,7 +104,8 @@ Route `/office/ai-studio` — plan-gated, rank ≥ 60. Not a ribbon item.
 | Module | Status | Where |
 |---|---|---|
 | Specification catalogue | ✅ | `/libraries/spec-catalog` |
-| Standard items library | ✅ | `/libraries/items` |
+| Standard items library | ✅ | `/libraries/items` — unpriced takeoff vocabulary (code/UOM/measure-kind) feeding Plan Markup + Measurement Sheet |
+| Rate Books | ✅ (2026-07-18) | `/libraries/rate-books`, `fees:manage` gated — firm item-code/unit/**rate** sets pricing the project **Estimation** tab (BOQ + contingency/GST); ported from Construction-Billing-System, estimation-only (no Contracts/Running-Bills). Distinct from the Standard items library above (no pricing there) — not yet cross-linked, see the note under Projects §2 |
 | Compliance Library | ✅ | `/libraries/compliance` |
 | Master Plan Library | ✅ | `/libraries/master-plans` |
 | Standards Library | ✅ | `/libraries/standards` |
@@ -133,9 +134,13 @@ Office Expenses · Payroll · Financial Reports `/filing`) — capability-gated 
 `App.tsx`; empty groups are pruned per role.
 
 ## 10. LXOS 🚧
-Route `/lxos` (`/leos` redirects). **Lessons Learned ✅** is the only primary surface.
-Community Exchange · Professional Identity · Certification & Growth remain 🔲 and are
-**not** shown as empty primary tabs (Coming soon notice only).
+Route `/lxos` (`/leos` redirects). Single-page (no tabs — Parkinson / Goal Gradient,
+avoid placeholder tab exploration): **Lessons Learned ✅** and the **Academy ✅**
+(`AcademyPanel` — `docs/holagundi/SOP.md`'s 27 SOPs as theory/mark-read + practical,
+auto-detected from real usage for 13, self-attested for 14; completion pushes a
+portable growth event `hlp_growth_event` for I-5-linked users) are both live primary
+sections. Community Exchange · Professional Identity remain 🔲 behind a single
+"Coming soon" notice, not shown as empty tabs.
 
 ## 11. Admin & account portals
 | Module | Status | Where |

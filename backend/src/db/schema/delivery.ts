@@ -151,6 +151,12 @@ export const drawings = pgTable("esti_drawing", {
   rootId: uuid("root_id"),
   revisionNote: text("revision_note"),
   isCurrent: boolean("is_current").notNull().default(true),
+  // QC / peer-review checkpoint (SOP-07/08) — advisory: does not block issuePdf,
+  // but every drawing shows whether it has been reviewed before it goes out.
+  reviewStatus: text("review_status").notNull().default("PENDING_REVIEW"),
+  reviewedById: uuid("reviewed_by_id").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  reviewNote: text("review_note"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

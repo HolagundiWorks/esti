@@ -31,6 +31,8 @@ export * from "./cognition.js";
 export * from "./licensing.js";
 export * from "./sync.js";
 export * from "./pulse.js";
+export * from "./academy.js";
+export * from "./estimation.js";
 
 export type { ProjectOfficeRow } from "./project.js";
 export * from "./usage.js";

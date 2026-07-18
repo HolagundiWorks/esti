@@ -2,6 +2,7 @@ import { clients, users } from "./org-auth.js";
 import { projectOffices } from "./project.js";
 import {
   bigint,
+  boolean,
   createdAt,
   doublePrecision,
   id,
@@ -36,6 +37,9 @@ export const leads = pgTable("esti_lead", {
   /** Set on conversion — the client + draft project the lead became. */
   convertedClientId: uuid("converted_client_id").references(() => clients.id),
   convertedProjectId: uuid("converted_project_id").references(() => projectOffices.id),
+  // COA Regulations 1989 conflict-of-interest check, confirmed at conversion (SOP-01/02).
+  conflictCheckDone: boolean("conflict_check_done").notNull().default(false),
+  conflictCheckNotes: text("conflict_check_notes"),
   notes: text("notes"),
   createdById: uuid("created_by_id").references(() => users.id),
   createdAt: createdAt(),

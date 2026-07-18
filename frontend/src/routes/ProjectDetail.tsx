@@ -10,6 +10,8 @@ import { RailLayout } from "../components/RailLayout.js";
 import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { type ReactNode, useEffect, useMemo } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { ProjectPurchaseOrders } from "../components/ProjectPurchaseOrders.js";
+import { ProjectEstimates } from "../components/ProjectEstimates.js";
 import { ProjectMeasurementPanel } from "../components/measurement/ProjectMeasurementPanel.js";
 import { DrawingsApprovalsPanel } from "../components/project/DrawingsApprovalsPanel.js";
 import { DocumentsSpecsPanel } from "../components/project/DocumentsSpecsPanel.js";
@@ -48,7 +50,7 @@ export function ProjectDetail() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { canHr, canInvoice } = useCapabilities();
+  const { canHr, canWrite, canFees, canInvoice } = useCapabilities();
   const project = trpc.projectOffice.byId.useQuery({ id }, { enabled: !!id });
   const settingsQ = trpc.settings.get.useQuery();
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
@@ -114,6 +116,20 @@ export function ProjectDetail() {
         ),
       });
     }
+    if (canFees) {
+      consultancyTabs.push({
+        slug: "estimation",
+        label: "Estimation",
+        panel: <ProjectEstimates projectId={id} />,
+      });
+    }
+    if (canWrite) {
+      consultancyTabs.push({
+        slug: "purchase-orders",
+        label: "Purchase Orders",
+        panel: <ProjectPurchaseOrders projectId={id} />,
+      });
+    }
     if (showTeam) {
       consultancyTabs.push({ slug: "team", label: "Team", panel: <ProjectTeam projectId={id} /> });
     }
@@ -130,7 +146,17 @@ export function ProjectDetail() {
       { slug: "setup", label: "Setup", tabs: setupTabs },
       { slug: "consultancy", label: "Project workspace", tabs: consultancyTabs },
     ];
-  }, [id, showTeam, isResidential, canInvoice, approvalId, invoiceId, drawingsInitialSub]);
+  }, [
+    id,
+    showTeam,
+    isResidential,
+    canWrite,
+    canFees,
+    canInvoice,
+    approvalId,
+    invoiceId,
+    drawingsInitialSub,
+  ]);
 
   const projectTabs = projectGroups.flatMap((g) => g.tabs);
 

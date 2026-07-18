@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ProjectStatus } from "./schemas.js";
+import { FeeProposalStatus, ProjectStatus, type TagColor } from "./schemas.js";
 
 /**
  * Project OS — orchestration layer.
@@ -38,6 +38,50 @@ export const FeeProposalSetClientApproval = z.object({
   approvalNotes: z.string().max(2000).optional(),
 });
 export type FeeProposalSetClientApproval = z.infer<typeof FeeProposalSetClientApproval>;
+
+// --- Internal proposal workflow (esti_proposal.status) -----------------------
+// Distinct from the client approval gate above: this is the firm's own
+// draft → principal sign-off → sent-to-client → revise lifecycle (SOP-03/04).
+
+export const FEE_PROPOSAL_STATUS_LABEL: Record<FeeProposalStatus, string> = {
+  DRAFT: "Draft",
+  INTERNAL_REVIEW: "Internal review",
+  APPROVED: "Approved — ready to send",
+  CLIENT_SUBMISSION: "Sent to client",
+  REVISED: "Needs revision",
+};
+
+export const FEE_PROPOSAL_STATUS_TAG: Record<FeeProposalStatus, TagColor> = {
+  DRAFT: "gray",
+  INTERNAL_REVIEW: "blue",
+  APPROVED: "green",
+  CLIENT_SUBMISSION: "green",
+  REVISED: "magenta",
+};
+
+/** Allowed manual transitions for the internal proposal workflow. */
+export const FEE_PROPOSAL_TRANSITIONS: Record<FeeProposalStatus, FeeProposalStatus[]> = {
+  DRAFT: ["INTERNAL_REVIEW"],
+  INTERNAL_REVIEW: ["APPROVED", "REVISED", "DRAFT"],
+  APPROVED: ["CLIENT_SUBMISSION", "REVISED"],
+  CLIENT_SUBMISSION: ["REVISED"],
+  REVISED: ["DRAFT", "INTERNAL_REVIEW"],
+};
+
+export function canTransitionFeeProposal(
+  from: FeeProposalStatus,
+  to: FeeProposalStatus,
+): boolean {
+  if (from === to) return true;
+  return FEE_PROPOSAL_TRANSITIONS[from]?.includes(to) ?? false;
+}
+
+export const FeeProposalSetStatus = z.object({
+  id: z.string().uuid(),
+  status: FeeProposalStatus,
+  note: z.string().max(2000).optional(),
+});
+export type FeeProposalSetStatus = z.infer<typeof FeeProposalSetStatus>;
 
 // --- Slice G: draft-project state machine -----------------------------------
 

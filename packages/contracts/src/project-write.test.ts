@@ -43,6 +43,7 @@ describe("LeadConvert validates projectType (lead → draft project)", () => {
     id: "00000000-0000-0000-0000-000000000001",
     projectTitle: "Converted lead",
     projectType: "Commercial Architecture",
+    conflictCheckDone: true,
   };
 
   it("accepts a valid enum projectType", () => {

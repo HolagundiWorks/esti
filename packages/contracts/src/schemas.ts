@@ -273,6 +273,30 @@ export const REVISION_SOURCE_TAG: Record<RevisionSource, "blue" | "red" | "teal"
   SCOPE_CHANGE:    "magenta",
 };
 
+// --- Drawings (esti_drawing) — QC / peer-review checkpoint (SOP-07/08) ---
+
+export const DrawingReviewStatus = z.enum(["PENDING_REVIEW", "REVIEWED", "CHANGES_REQUESTED"]);
+export type DrawingReviewStatus = z.infer<typeof DrawingReviewStatus>;
+
+export const DRAWING_REVIEW_STATUS_LABEL: Record<DrawingReviewStatus, string> = {
+  PENDING_REVIEW: "Pending review",
+  REVIEWED: "Reviewed",
+  CHANGES_REQUESTED: "Changes requested",
+};
+
+export const DRAWING_REVIEW_STATUS_TAG: Record<DrawingReviewStatus, TagColor> = {
+  PENDING_REVIEW: "gray",
+  REVIEWED: "green",
+  CHANGES_REQUESTED: "magenta",
+};
+
+export const DrawingSetReviewStatus = z.object({
+  id: z.string().uuid(),
+  reviewStatus: DrawingReviewStatus,
+  reviewNote: z.string().max(2000).optional(),
+});
+export type DrawingSetReviewStatus = z.infer<typeof DrawingSetReviewStatus>;
+
 // --- Fee proposals (esti_feeproposal) ---
 
 export const FeeProposalStatus = z.enum([

@@ -122,5 +122,12 @@ export const LeadConvert = z.object({
   projectTitle: z.string().min(2).max(200),
   projectType: ProjectType,
   workType: z.enum(["ARCHITECTURE", "INTERIOR", "LANDSCAPE", "MISC"]).default("ARCHITECTURE"),
+  /**
+   * COA Regulations 1989 conflict-of-interest check (SOP-01/02, SOP-26) — must be
+   * confirmed before a lead becomes a draft project: no other architect is already
+   * engaged on this commission without a written release.
+   */
+  conflictCheckDone: z.boolean(),
+  conflictCheckNotes: z.string().max(2000).optional(),
 });
 export type LeadConvert = z.infer<typeof LeadConvert>;

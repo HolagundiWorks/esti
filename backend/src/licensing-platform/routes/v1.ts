@@ -1,6 +1,7 @@
 import {
   ActivateInput,
   ManifestRequest,
+  RecordGrowthInput,
   RefreshInput,
   SyncMembershipInput,
   ValidateInput,
@@ -16,6 +17,7 @@ import { mintPublicIdForEmail, verifyLogin } from "../modules/auth/service.js";
 import { orgIdFromHandle } from "../modules/auth/tenant.js";
 import { latestManifest } from "../modules/components/service.js";
 import { activate, editionForKey, entitlement, refresh, validate } from "../modules/licenseApi/service.js";
+import { recordGrowth } from "../modules/portable/service.js";
 
 interface ProductAuth {
   productId: string;
@@ -199,6 +201,60 @@ export function registerV1Routes(app: FastifyInstance): void {
       return { error: "not_a_member" };
     }
     return { ok: true };
+  });
+
+  // LXOS Academy (and future ASPRF signals) — a node records a portable growth
+  // event for a linked person after they complete something worth remembering
+  // across firms. Org-bound key: only for a member of that key's own org.
+  app.post("/v1/record-growth", async (req, reply) => {
+    const auth = await authProduct(req);
+    if (!auth) {
+      reply.code(401);
+      return { error: "unauthorized" };
+    }
+    const parsed = RecordGrowthInput.safeParse(req.body);
+    if (!parsed.success) {
+      reply.code(400);
+      return { error: "invalid_input" };
+    }
+    const [account] = await db
+      .select({ id: schema.accounts.id })
+      .from(schema.accounts)
+      .where(eq(schema.accounts.publicId, parsed.data.publicId))
+      .limit(1);
+    if (!account) {
+      reply.code(404);
+      return { error: "not_found" };
+    }
+    let orgPublicId: string | null = null;
+    if (parsed.data.company) {
+      const orgId = await orgIdFromHandle(parsed.data.company);
+      if (!orgId) {
+        reply.code(404);
+        return { error: "company_not_found" };
+      }
+      if (auth.orgId && auth.orgId !== orgId) {
+        reply.code(403);
+        return { error: "org_mismatch" };
+      }
+      const [member] = await db
+        .select({ id: schema.orgMembers.id })
+        .from(schema.orgMembers)
+        .where(and(eq(schema.orgMembers.accountId, account.id), eq(schema.orgMembers.orgId, orgId)))
+        .limit(1);
+      if (!member) {
+        reply.code(404);
+        return { error: "not_a_member" };
+      }
+      orgPublicId = parsed.data.company;
+    }
+    const { id } = await recordGrowth({
+      accountPublicId: parsed.data.publicId,
+      kind: parsed.data.kind,
+      value: parsed.data.value,
+      orgPublicId,
+    });
+    return { ok: true, id };
   });
 
   app.post("/v1/validate", async (req, reply) => {

@@ -66,10 +66,13 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | [DEMO-AND-HR-MODE](DEMO-AND-HR-MODE.md) | Demo account set and midnight IST reset |
 | [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA constants |
 | [LICENSE-NOTICE](LICENSE-NOTICE.md) | Ownership and distribution policy |
+| [DOC-CODE-DRIFT-2026-07](DOC-CODE-DRIFT-2026-07.md) | **Known-stale** — NAVIGATION/ACCESS-HIERARCHY/UNIFIED-ARCHITECTURE-V4 items not yet reconciled to code, logged 2026-07-09 |
 
 Build and runtime instructions: [DEVELOPMENT.md](../../DEVELOPMENT.md) · [INSTALL.md](../../INSTALL.md).
 
-Firm-specific practice guides: [docs/holagundi/](../holagundi/README.md).
+Firm-specific practice guides: [docs/holagundi/](../holagundi/README.md), including
+a deep-dive [Standard Operating Procedures](../holagundi/SOP.md) for the full
+Indian architecture practice lifecycle, mapped module-by-module to AORMS.
 
 Reference data (zonal compliance sources): [docs/reference/](../reference/README.md).
 

@@ -6,6 +6,7 @@ import {
   Book,
   AutoStories as AutoStoriesIcon,
   Business as Building,
+  Calculate as Calculator,
   CompareArrows,
   ContactPage,
   Description as Document,
@@ -106,6 +107,7 @@ const CashBook = lazyRoute(() => import("./routes/OfficeExpenses.js"), "CashBook
 const Proposals = lazyRoute(() => import("./routes/Proposals.js"), "Proposals");
 const Leads = lazyRoute(() => import("./routes/Leads.js"), "Leads");
 const SpecCatalogLibrary = lazyRoute(() => import("./routes/SpecCatalogLibrary.js"), "SpecCatalogLibrary");
+const RateBookLibrary = lazyRoute(() => import("./routes/RateBookLibrary.js"), "RateBookLibrary");
 const ItemLibraryLibrary = lazyRoute(() => import("./routes/ItemLibraryLibrary.js"), "ItemLibraryLibrary");
 const ComplianceLibrary = lazyRoute(() => import("./routes/ComplianceLibrary.js"), "ComplianceLibrary");
 const MasterPlanLibrary = lazyRoute(() => import("./routes/MasterPlanLibrary.js"), "MasterPlanLibrary");
@@ -482,6 +484,9 @@ function AppShell() {
       items: [
         { label: "Specification catalogue", to: "/libraries/spec-catalog", icon: ListChecked },
         { label: "Standard items", to: "/libraries/items", icon: Straighten },
+        ...(can(user.role, "fees:manage")
+          ? [{ label: "Rate Books", to: "/libraries/rate-books", icon: Calculator }]
+          : []),
         { label: "Compliance Library", to: "/libraries/compliance", icon: Rule },
         { label: "Master Plan Library", to: "/libraries/master-plans", icon: MapIcon },
         { label: "Standards Library", to: "/libraries/standards", icon: Book },
@@ -531,6 +536,9 @@ function AppShell() {
                 <Route path="/projects/:id" element={<ProjectDetail />} />
                 <Route path="/libraries/spec-catalog" element={<SpecCatalogLibrary />} />
                 <Route path="/libraries/items" element={<ItemLibraryLibrary />} />
+                {can(user.role, "fees:manage") && (
+                  <Route path="/libraries/rate-books" element={<RateBookLibrary />} />
+                )}
                 <Route path="/knowledge-bank" element={<Navigate to="/libraries/spec-catalog" replace />} />
                 <Route
                   path="/estimation"
@@ -538,7 +546,7 @@ function AppShell() {
                     <LegacyModuleRedirect
                       to="/projects"
                       title="Estimation workspace moved"
-                      subtitle="Open a project and use the Measurement tab."
+                      subtitle="Open a project — use its Measurement tab for quantity takeoff, or its Estimation tab for a priced BOQ."
                     />
                   }
                 />
@@ -550,9 +558,9 @@ function AppShell() {
                   path="/libraries/estimates"
                   element={
                     <LegacyModuleRedirect
-                      to="/projects"
-                      title="Rate books removed"
-                      subtitle="Estimation modules were retired — opening Projects."
+                      to="/libraries/rate-books"
+                      title="Rate books moved"
+                      subtitle="Opening the Rate Books library."
                     />
                   }
                 />
