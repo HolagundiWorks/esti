@@ -219,18 +219,31 @@ GST rates, SAC codes)
 - `spec` — project specifications; `inspections` — site inspections (PDF generation)
 - `reports` — GST/TDS filing abstracts (`reports:view`)
 
+**Estimation** (`fees:manage`; 2026-07-18, see the removal note below):
+- `rateBooks` — firm-level, versioned item-code/unit/rate sets (Library → Rate Books)
+- `estimates` — a project's priced BOQ against one rate book, with a per-item
+  measurement book (nos × dimensions by unit shape) and a contingency/GST rollup
+
 **Drawings:**
 - `drawings` — drawing/document management (DXF register + ESTICAD launch)
 
-> The **Estimation OS** (estimates/BOQ, `esti_component`/RuleSet engine,
-> `formula-engine`/`ruleset-engine`, CostingWindow, ParametricCanvas, ComponentLibrary)
-> and the **Construction Cost spine** (tenders, work packages, running bills,
-> measurement book, deviations/variations, final accounts, cost dashboard, GRN,
-> procurement forecast, BBS + steel reconciliation) were **removed** in the 2026-06-28
-> teardown — to be rebuilt from the ground up. **Rate Books** (`dsr` / `esti_dsr_*` /
-> `@hcw/master-dsr-kit` / MasterDsr) and **Rate Analysis** (`rateAnalysis` /
-> `esti_rate_*`) were also removed (migration `0108`); the spec-catalogue's optional
-> spec → rate-book link went with them.
+> The **old Estimation OS** (`esti_component`/RuleSet engine, `formula-engine`/
+> `ruleset-engine`, CostingWindow, ParametricCanvas, ComponentLibrary) and the
+> **Construction Cost spine** (tenders, work packages, running bills, measurement
+> book, deviations/variations, final accounts, cost dashboard, GRN, procurement
+> forecast, BBS + steel reconciliation) were **removed** in the 2026-06-28
+> teardown. The old **Rate Books** (`dsr` / `esti_dsr_*` / `@hcw/master-dsr-kit` /
+> MasterDsr) and **Rate Analysis** (`rateAnalysis` / `esti_rate_*`) went with it
+> (migration `0108`).
+>
+> A **new, deliberately narrower Estimation** shipped 2026-07-18 (migration
+> `0179`) — `rateBooks` + `estimates` namespaces, ported from
+> [Construction-Billing-System](https://github.com/HolagundiWorks/Construction-Billing-System)'s
+> domain model. Firm-level, versioned **Rate Books** (Library → Rate Books)
+> price a project's **Estimation** tab (priced BOQ + per-item measurement book +
+> contingency/GST rollup), both gated to `fees:manage`. No Contracts, Running/RA
+> Bills, tenders, or BBS — those stay out per the consultancy-only pivot below.
+> See `packages/contracts/src/estimation.ts` and `docs/esti/DOC-CODE-DRIFT-2026-07.md`.
 
 **Team / HR / Performance:**
 - `team` / `assignments` — roster and project-staff assignments
@@ -307,7 +320,7 @@ Key routes by area:
 |---|---|
 | `StudioAbstract.tsx` | **Studio Intelligence** home screen (route `/`; component/file name kept as StudioAbstract) — tabs Overview · Lead · Project · Financial · Team · Work · Approval, each one shell: header + **4 KPI cards** + a **DataTable** that scrolls inside its Tile (page never scrolls, 100% width). Overview merges Studio + Summary and carries the right **sidebar** (AI recommendation over last-10 Office Log). Shell + zone-state vocab in `components/dashboard/abstractShell.tsx` + `zoneState.ts`; uses `dashboard.home`. |
 | `Projects.tsx` ⚠️ | Project list (parallel WIP — avoid editing unless asked) |
-| `ProjectDetail.tsx` | Single project — phases, tasks, drawings, decisions |
+| `ProjectDetail.tsx` | Single project — phases, tasks, drawings, decisions, Estimation (BOQ, `fees:manage` gated) |
 | `ArchivedProjects.tsx` | Archived project browser |
 | `Clients.tsx` ⚠️ | Client CRM (parallel WIP — avoid editing unless asked); Third Parties (`/clients`) |
 | `Work.tsx` | Work hub shell — tabs in `components/work/` (`/tasks`; `/work` alias); Tasks pillar |
@@ -319,7 +332,8 @@ Key routes by area:
 | `Consultants.tsx` / `Contractors.tsx` | Consultants / contractors (Third Parties) |
 | `Letters.tsx` / `Contracts.tsx` | Office documents |
 | `Filing.tsx` | GST/TDS filing abstracts (Finance › Financial Reports) |
-| `KnowledgeBank.tsx` | **Item Library** (Library, `/knowledge-bank`) — Materials/Labour/Items/Brands/Specifications/Recipes/Brand Catalogue (Lessons moved to LXOS) |
+| `SpecCatalogLibrary.tsx` | Library › Specification catalogue (`/libraries/spec-catalog`) — versioned category/item/make/spec/finish rows (`/knowledge-bank` redirects here; the old Item Library — Materials/Labour/Brands/Recipes — was removed 2026-07-09) |
+| `RateBookLibrary.tsx` | Library › Rate Books (`/libraries/rate-books`, `fees:manage` gated) — item code/unit/rate sets that price project Estimation tabs |
 | `ComplianceLibrary.tsx` | Library › Compliance (`/libraries/compliance`) — NBC/FAR/Setbacks/Fire/Regulations CRUD |
 | `MasterPlanLibrary.tsx` | Library › Master Plan (`/libraries/master-plans`) — PDF/DWG file uploads |
 | `StandardsLibrary.tsx` | Library › Standards (`/libraries/standards`) — by discipline + files |

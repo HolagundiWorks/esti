@@ -78,7 +78,8 @@ Sidebar item `/office/ai-studio` — shown only when `planAllows(plan, "ai")` an
 Top-level menu (gated by the `knowledgeBank` plan feature):
 | Module | Status | Where |
 |---|---|---|
-| Item Library | ✅ | `/knowledge-bank` (Materials · Labour · Items · Brands · Specifications · Recipes · Brand Catalogue · **Import ✅** — paste/parse unstructured rate text, see `IMPORT_SPEC.md`) |
+| Item Library | 🔲 removed | `/knowledge-bank` redirects to `/libraries/spec-catalog` (Specification catalogue only — Materials/Labour/Brands/Recipes removed 2026-07-09) |
+| Rate Books | ✅ (2026-07-18) | `/libraries/rate-books`, `fees:manage` gated — firm item-code/unit/rate sets pricing the project **Estimation** tab (`ProjectDetail.tsx`); ported from Construction-Billing-System, estimation-only (no Contracts/Running-Bills) |
 | Compliance Library | ✅ | `/libraries/compliance` — structured: NBC · FAR · Setbacks · Fire · Regulations (CRUD) |
 | Master Plan Library | ✅ | `/libraries/master-plans` — PDF / DWG / zoning / development file uploads |
 | Standards Library | ✅ | `/libraries/standards` — by discipline (Interiors/Plumbing/Electrical/Lighting) + notes + files |
