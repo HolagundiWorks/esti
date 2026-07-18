@@ -36,7 +36,7 @@
 | [P0](#p0--landing--documentation-human) | Landing + docs (product law) | P0 | ✅ | human |
 | [P1](#p1--licence--migration-active) | ACTIVE licence · retire tier enums | P0 | ✅ | autopilot |
 | [P2](#p2--storage-metering-5gb-default) | Storage metering · 5 GB default | P0 | ✅ | autopilot |
-| [P3](#p3--ai-meter--byo-api-key) | AI usage meter · BYO API key | P1 | 🔄 | autopilot |
+| [P3](#p3--ai-meter--byo-api-key) | AI usage meter · BYO API key | P1 | ✅ | autopilot |
 | [P4](#p4--remove-community--full-desktop) | Remove Community + full desktop app | P1 | 🔄 | autopilot |
 | [P5](#p5--estimate-desktop-auth--project-link) | Estimate desktop auth · project link | P1 | ⬜ | autopilot |
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
@@ -99,11 +99,11 @@
 
 | # | Task | Status |
 |---|------|--------|
-| P3.1 | `esti_firm.ai_api_key_encrypted` + `ai_provider_base_url` + `ai_model` | 🔄 per-user `ai_api_key` column exists (org-auth schema) but is unencrypted and unread |
-| P3.2 | Company → AI — API key form (write-only) | ⬜ `AiStudioSettingsPanel.tsx` has model fields only, no key form |
-| P3.3 | Backend routes prefer firm key; fallback hosted Ollama | ⬜ nothing reads `ai_api_key` yet |
+| P3.1 | Firm BYO key stored encrypted (+ base URL + model) | ✅ 2026-07-18 — lives in `org_settings.ai_settings` (`cloudBaseUrl`/`cloudModel`/`cloudApiKey`), key sealed AES-256-GCM via `lib/secretBox.ts` (legacy plaintext auto-migrates on next save). Per-user `users.ai_api_key` column is vestigial/unread — drop in a later cleanup |
+| P3.2 | Company → AI — API key form (write-only) | ✅ `AiStudioSettingsPanel.tsx` cloud provider section (blank = keep stored; `cloudApiKeyConfigured` flag) |
+| P3.3 | Backend routes prefer firm key; fallback hosted Ollama | ✅ `lib/ai/gateway.ts` `resolveRuntime`; boot no longer wipes cloud config (`ensureOllamaAiSettings` preserve fix, 2026-07-18) |
 | P3.4 | Usage counter `ai_tokens_month` (hosted only) | ✅ `ai_tokens_this_month` metering in `modules/ai/router.ts` |
-| P3.5 | Settings doc + in-app hint for OpenAI-compatible endpoints | ⬜ |
+| P3.5 | Settings doc + in-app hint for OpenAI-compatible endpoints | ✅ in-app endpoint-format alert + PLANS-AND-TIERS.md AI section |
 
 **Verify:** Firm key set → calls hit external API; meter increments only when hosted.
 
@@ -202,4 +202,5 @@ P0 (human landing) ──► P1 migration ──► P2 storage
 |------|--------|
 | 2026-07-18 | Status audit vs code: P1/P2/P6 detail rows ticked (shipped but never checked off); P3 and P4 downgraded ✅→🔄 (BYO key unwired; desktop Manager + `ESTI_EDITION` still present); P5 marked blocked — `estimate/` app absent from repo. |
 | 2026-07-18 | P4.3/P4.4 shipped: Community edition code removed (`ESTI_EDITION`, `seedCommunity.ts`, `lanInstance.ts`, portal-login refusal); backup-code recovery kept via `lib/backupCode.ts`. P4.5 confirmed (no download page). Remaining P4: Manager teardown (P4.1 + P4.6). |
+| 2026-07-18 | P3 complete: BYO key now sealed at rest (AES-256-GCM, `lib/secretBox.ts`, keyed from `SESSION_SECRET`); fixed boot bug where `ensureOllamaAiSettings` wiped firm cloud config + key on every backend restart; stale Enterprise-only gate removed from `ai.setSettings`. E2E verified: key sealed in DB (`enc:v1:…`), survives restart, redacted from reads. |
 | 2026-07-09 | Roadmap created. Product pivot: no tiers; storage + AI pricing; Estimate-only desktop; ACTIVE licence migration. |

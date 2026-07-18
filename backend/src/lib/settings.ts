@@ -1,6 +1,24 @@
 import { TRPCError } from "@trpc/server";
 import type { DB } from "../db/index.js";
 import { orgSettings } from "../db/schema.js";
+import { openSecret } from "./secretBox.js";
+
+/**
+ * The BYO cloud API key inside ai_settings is sealed at rest (secretBox);
+ * consumers of getOrgSettings always see plaintext. A key that no longer
+ * opens (rotated SESSION_SECRET) is dropped so the firm re-enters it.
+ */
+function withOpenAiKey(row: typeof orgSettings.$inferSelect): typeof orgSettings.$inferSelect {
+  const s = row.aiSettings as { cloudApiKey?: unknown } | null;
+  if (s && typeof s === "object" && typeof s.cloudApiKey === "string") {
+    try {
+      s.cloudApiKey = openSecret(s.cloudApiKey);
+    } catch {
+      delete s.cloudApiKey;
+    }
+  }
+  return row;
+}
 
 /** Read the singleton org-settings row, creating it on first access. */
 export async function getOrgSettings(db: DB): Promise<typeof orgSettings.$inferSelect> {
@@ -11,9 +29,9 @@ export async function getOrgSettings(db: DB): Promise<typeof orgSettings.$inferS
         .update(orgSettings)
         .set({ hrEnabled: true, orgMode: "STUDIO", updatedAt: new Date() })
         .returning();
-      return updated!;
+      return withOpenAiKey(updated!);
     }
-    return row;
+    return withOpenAiKey(row);
   }
   const [created] = await db.insert(orgSettings).values({ hrEnabled: true, orgMode: "STUDIO" }).returning();
   return created!;

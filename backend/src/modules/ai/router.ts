@@ -18,6 +18,7 @@ import { writeAudit } from "../../lib/audit.js";
 import { runAiGateway } from "../../lib/ai/gateway.js";
 import { redactPii } from "../../lib/ai/redact.js";
 import { getOrgSettings } from "../../lib/settings.js";
+import { sealSecret } from "../../lib/secretBox.js";
 import { demoBlocksAiDraft, demoBlocksAiSettings, DEMO_AI_DRAFT_MESSAGE, DEMO_AI_SETTINGS_MESSAGE } from "../../lib/demo-policy.js";
 import { assertPlanFeature } from "../../lib/plan.js";
 import { resolveCompanionCapabilities } from "../../lib/companion/capabilities.js";
@@ -60,9 +61,8 @@ export const aiRouter = router({
       cloudApiKey: input.cloudApiKey?.trim() ? input.cloudApiKey : prev.cloudApiKey,
     };
 
-    // The cloud (bring-your-own-API) provider is Enterprise-only and needs full config.
+    // The cloud (bring-your-own-API) provider is open to every account but needs full config.
     if (toStore.provider === "cloud") {
-      await assertPlanFeature(ctx.db, "aiByoApi");
       const cerr = cloudAiConfigError(toStore);
       if (cerr) throw new TRPCError({ code: "BAD_REQUEST", message: cerr });
       if (!toStore.cloudApiKey?.trim()) {
@@ -70,9 +70,14 @@ export const aiRouter = router({
       }
     }
 
+    // Seal the BYO key at rest; getOrgSettings opens it on read.
+    const sealed = {
+      ...toStore,
+      cloudApiKey: toStore.cloudApiKey?.trim() ? sealSecret(toStore.cloudApiKey) : undefined,
+    };
     const [row] = await ctx.db
       .update(orgSettings)
-      .set({ aiSettings: toStore })
+      .set({ aiSettings: sealed })
       .where(eq(orgSettings.id, org.id))
       .returning();
     await writeAudit(ctx.db, {
