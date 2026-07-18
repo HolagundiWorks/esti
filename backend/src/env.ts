@@ -33,7 +33,6 @@ const Env = z.object({
    * licence, no online/hub, no AI, no external portals, a single admin + 3 staff.
    * STANDARD (default) = the licensed Lite/Pro product with those surfaces.
    */
-  ESTI_EDITION: z.enum(["STANDARD", "COMMUNITY"]).default("STANDARD"),
   /**
    * Deployment role (Phase B hybrid). "node" (default) = a firm's local/office
    * install: holds office data + drafts, derives its plan from a license, pushes

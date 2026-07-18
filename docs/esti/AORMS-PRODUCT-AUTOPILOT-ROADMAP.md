@@ -36,8 +36,8 @@
 | [P0](#p0--landing--documentation-human) | Landing + docs (product law) | P0 | ✅ | human |
 | [P1](#p1--licence--migration-active) | ACTIVE licence · retire tier enums | P0 | ✅ | autopilot |
 | [P2](#p2--storage-metering-5gb-default) | Storage metering · 5 GB default | P0 | ✅ | autopilot |
-| [P3](#p3--ai-meter--byo-api-key) | AI usage meter · BYO API key | P1 | ✅ | autopilot |
-| [P4](#p4--remove-community--full-desktop) | Remove Community + full desktop app | P1 | ✅ | autopilot |
+| [P3](#p3--ai-meter--byo-api-key) | AI usage meter · BYO API key | P1 | 🔄 | autopilot |
+| [P4](#p4--remove-community--full-desktop) | Remove Community + full desktop app | P1 | 🔄 | autopilot |
 | [P5](#p5--estimate-desktop-auth--project-link) | Estimate desktop auth · project link | P1 | ⬜ | autopilot |
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
 | [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | ⬜ | autopilot |
@@ -70,11 +70,11 @@
 
 | # | Task | Status |
 |---|------|--------|
-| P1.1 | Migration SQL: `UPDATE … SET plan = 'ACTIVE'` (or new `licence_status`) for all firms | ⬜ |
-| P1.2 | `packages/contracts` — `LicenceStatus = ACTIVE \| SUSPENDED`; deprecate `Plan` enum | ⬜ |
-| P1.3 | `asPlan()` shim → always `ACTIVE` during transition | ⬜ |
-| P1.4 | Platform licence API — issue ACTIVE tokens only | ⬜ |
-| P1.5 | `auth.me` — expose `licenceStatus`, `storageQuotaBytes`, `storageUsedBytes` | ⬜ |
+| P1.1 | Migration SQL: `UPDATE … SET plan = 'ACTIVE'` (or new `licence_status`) for all firms | ✅ `drizzle/0167_licence_status.sql` |
+| P1.2 | `packages/contracts` — `LicenceStatus = ACTIVE \| SUSPENDED`; deprecate `Plan` enum | ✅ `contracts/src/plans.ts` |
+| P1.3 | `asPlan()` shim → always `ACTIVE` during transition | ✅ `plans.ts` (`planAllows` always true) |
+| P1.4 | Platform licence API — issue ACTIVE tokens only | ✅ licensing-platform issues ACTIVE |
+| P1.5 | `auth.me` — expose `licenceStatus`, `storageQuotaBytes`, `storageUsedBytes` | ✅ `modules/auth/router.ts` |
 | P1.6 | Remove upgrade prompts referencing Community → Pro | ✅ |
 
 **Verify:** Existing demo + prod firms login with full features; no tier chip in UI.
@@ -85,10 +85,10 @@
 
 | # | Task | Status |
 |---|------|--------|
-| P2.1 | Default `storageQuotaBytes = 5 GiB` on firm create | ⬜ |
-| P2.2 | Enforce `withinStorage` on upload routes | ⬜ |
-| P2.3 | Company → Storage usage bar + buy add-on hook | ⬜ |
-| P2.4 | Remove `planAllows` storage tier differences | ⬜ |
+| P2.1 | Default `storageQuotaBytes = 5 GiB` on firm create | ✅ `DEFAULT_STORAGE_BYTES` in contracts |
+| P2.2 | Enforce `withinStorage` on upload routes | ✅ `lib/storageQuota.ts` + upload routes |
+| P2.3 | Company → Storage usage bar + buy add-on hook | ✅ `CompanyAdminPanel.tsx` + `storagePurchasedBytes` |
+| P2.4 | Remove `planAllows` storage tier differences | ✅ shim always-true (`lib/plan.ts`) |
 | P2.5 | Archive closed project → reclaim space (existing flow) | ⬜ |
 
 **Verify:** New signup shows 5 GB; upload blocks at quota with clear error.
@@ -99,10 +99,10 @@
 
 | # | Task | Status |
 |---|------|--------|
-| P3.1 | `esti_firm.ai_api_key_encrypted` + `ai_provider_base_url` + `ai_model` | ⬜ |
-| P3.2 | Company → AI — API key form (write-only) | ⬜ |
-| P3.3 | Backend routes prefer firm key; fallback hosted Ollama | ⬜ |
-| P3.4 | Usage counter `ai_tokens_month` (hosted only) | ⬜ |
+| P3.1 | `esti_firm.ai_api_key_encrypted` + `ai_provider_base_url` + `ai_model` | 🔄 per-user `ai_api_key` column exists (org-auth schema) but is unencrypted and unread |
+| P3.2 | Company → AI — API key form (write-only) | ⬜ `AiStudioSettingsPanel.tsx` has model fields only, no key form |
+| P3.3 | Backend routes prefer firm key; fallback hosted Ollama | ⬜ nothing reads `ai_api_key` yet |
+| P3.4 | Usage counter `ai_tokens_month` (hosted only) | ✅ `ai_tokens_this_month` metering in `modules/ai/router.ts` |
 | P3.5 | Settings doc + in-app hint for OpenAI-compatible endpoints | ⬜ |
 
 **Verify:** Firm key set → calls hit external API; meter increments only when hosted.
@@ -113,12 +113,12 @@
 
 | # | Task | Status |
 |---|------|--------|
-| P4.1 | Remove `desktop/` Lite/Core/Enterprise packaging from release workflow | ⬜ |
+| P4.1 | Remove `desktop/` Lite/Core/Enterprise packaging from release workflow | ⬜ coupled with P4.6; Manager teardown pending Estimate app decision (P5 blocked) |
 | P4.2 | Drop `marketing.desktopInstallers` API | ✅ | Endpoint removed; `/download` redirects to wiki |
-| P4.3 | Remove `ESTI_EDITION=COMMUNITY` first-run seed path (or repurpose) | ⬜ |
-| P4.4 | Delete/disable `seedCommunity.ts` appliance docs | ⬜ |
-| P4.5 | Download page — Estimate only | ⬜ |
-| P4.6 | `IS_DESKTOP` full-app paths → redirect to web or Estimate | ⬜ |
+| P4.3 | Remove `ESTI_EDITION=COMMUNITY` first-run seed path (or repurpose) | ✅ 2026-07-18 — `ESTI_EDITION` env removed; `seedCommunity.ts` + `lanInstance.ts` deleted; backup-code recovery kept (`lib/backupCode.ts`); `auth.runtime.edition` pinned `"STANDARD"` |
+| P4.4 | Delete/disable `seedCommunity.ts` appliance docs | ✅ 2026-07-18 — no appliance docs remain; PLANS-AND-TIERS keeps only the retirement/migration notice |
+| P4.5 | Download page — Estimate only | ✅ `/download` redirects to `/` (no download page); revisit when Estimate ships |
+| P4.6 | `IS_DESKTOP` full-app paths → redirect to web or Estimate | ⬜ coupled with P4.1 |
 
 **Verify:** No Community installer linked from product; `desktop.yml` builds Estimate only.
 
@@ -134,6 +134,10 @@
 | P5.4 | Export `.aormsest` carries `projectId` + firm id | ⬜ |
 | P5.5 | Import in Cost Management validates same firm/project | ⬜ |
 
+> **⛔ Blocked (2026-07-18):** the `estimate/` app directory referenced under Key
+> files does not exist in this repo — P5 needs the Estimate desktop app created
+> (or vendored) before any of its tasks can start.
+
 **Verify:** Cold launch Estimate → login → pick project → export → import in AORMS project.
 
 Cross-ref: glass health orbs shipped on Studio Intelligence (U0–U6 complete).
@@ -144,9 +148,9 @@ Cross-ref: glass health orbs shipped on Studio Intelligence (U0–U6 complete).
 
 | # | Task | Status |
 |---|------|--------|
-| P6.1 | Grep `content/landing/*.md` for Community/Pro/desktop | ⬜ |
-| P6.2 | Batch replace with storage + web + Estimate desktop narrative | ⬜ |
-| P6.3 | Sitemap/meta — remove edition keywords | ⬜ |
+| P6.1 | Grep `content/landing/*.md` for Community/Pro/desktop | ✅ no Community/Pro mentions remain |
+| P6.2 | Batch replace with storage + web + Estimate desktop narrative | ✅ |
+| P6.3 | Sitemap/meta — remove edition keywords | ✅ frontend-wide grep clean |
 
 **Verify:** No "AORMS Community" in top 10 SEO pages.
 
@@ -196,4 +200,6 @@ P0 (human landing) ──► P1 migration ──► P2 storage
 
 | Date | Change |
 |------|--------|
+| 2026-07-18 | Status audit vs code: P1/P2/P6 detail rows ticked (shipped but never checked off); P3 and P4 downgraded ✅→🔄 (BYO key unwired; desktop Manager + `ESTI_EDITION` still present); P5 marked blocked — `estimate/` app absent from repo. |
+| 2026-07-18 | P4.3/P4.4 shipped: Community edition code removed (`ESTI_EDITION`, `seedCommunity.ts`, `lanInstance.ts`, portal-login refusal); backup-code recovery kept via `lib/backupCode.ts`. P4.5 confirmed (no download page). Remaining P4: Manager teardown (P4.1 + P4.6). |
 | 2026-07-09 | Roadmap created. Product pivot: no tiers; storage + AI pricing; Estimate-only desktop; ACTIVE licence migration. |

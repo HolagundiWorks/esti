@@ -37,14 +37,12 @@ import { registerCalendarFeed } from "./modules/calendar/feed.js";
 import { registerLicenseRoutes } from "./modules/licensing/routes.js";
 import { refreshNow } from "./modules/license/consumer.js";
 import { applyFirmPlanFromEnv, licenseState } from "./lib/plan.js";
-import { seedCommunityAdmin } from "./lib/seedCommunity.js";
 import {
   checkOllamaHealth,
   ensureOllamaAiSettings,
   ollamaBaseUrlFromEnv,
   ollamaModelFromEnv,
 } from "./lib/ai/ollama-config.js";
-import { acquireCommunityInstanceLock, lanUrls } from "./lib/lanInstance.js";
 import { registerSyncRoutes } from "./modules/sync/routes.js";
 import { drainOutbox } from "./lib/sync/outbox.js";
 import { proposePulseActions, runDueStandups } from "./lib/pulseEngine.js";
@@ -148,14 +146,6 @@ try {
   await applyFirmPlanFromEnv(db);
 } catch (err) {
   app.log.warn(err, "FIRM_PLAN apply failed");
-}
-
-// Community edition first-run: seed the default admin + backup code. No-op
-// outside COMMUNITY or when the install already has users.
-try {
-  await seedCommunityAdmin(db);
-} catch (err) {
-  app.log.warn(err, "Community admin seed failed");
 }
 
 // AI Studio — point org settings at the compose Ollama service and log readiness.
@@ -358,23 +348,11 @@ app.get("/readyz", async (req, reply) => {
   return reply.code(ok ? 200 : 503).send({ ok, checks });
 });
 
-// Community: one install per machine. Throws (and exits below) if another live
-// Community instance already holds the machine lock.
-try {
-  acquireCommunityInstanceLock();
-} catch (err) {
-  app.log.error(err);
-  process.exit(1);
-}
-
 const port = env.BACKEND_PORT;
 app
   .listen({ port, host: "0.0.0.0" })
   .then(() => {
     app.log.info(`ESTI AORMS backend on :${port}`);
-    if (env.ESTI_EDITION === "COMMUNITY") {
-      for (const url of lanUrls(port)) app.log.info(`AORMS Community reachable on the LAN at ${url}`);
-    }
   })
   .catch((err) => {
     app.log.error(err);

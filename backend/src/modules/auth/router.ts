@@ -17,7 +17,7 @@ import { env } from "../../env.js";
 import { writeAudit } from "../../lib/audit.js";
 import { emailMatches, normalizeEmail } from "../../lib/email.js";
 import { licenseState } from "../../lib/plan.js";
-import { generateBackupCode, hashBackupCode } from "../../lib/seedCommunity.js";
+import { generateBackupCode, hashBackupCode } from "../../lib/backupCode.js";
 import { sendMail } from "../../lib/mail/transport.js";
 import { verifyTotp } from "../../lib/totp.js";
 import {
@@ -278,14 +278,6 @@ export const authRouter = router({
       }
     }
 
-    // Community edition has no external portals — refuse portal-role logins.
-    if (
-      env.ESTI_EDITION === "COMMUNITY" &&
-      (u.role === "CLIENT" || u.role === "CONTRACTOR" || u.role === "CONSULTANT")
-    ) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Portals are not available in this edition." });
-    }
-
     await revokeAllSessionsForUser(ctx.db, u.id);
     const token = await createSession(u.id);
     ctx.setCookie(SESSION_COOKIE, token);
@@ -540,7 +532,8 @@ export const authRouter = router({
       desktop,
       managed: state.managed,
       mode: desktop ? ("local" as const) : ("cloud" as const),
-      edition: env.ESTI_EDITION,
+      /** @deprecated Editions removed 2026-07 (single product). Always STANDARD. */
+      edition: "STANDARD" as const,
       /**
        * @deprecated Community edition removed 2026-07. Always false.
        * Retained so existing frontend branches don't break until cleaned up.

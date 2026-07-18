@@ -30,6 +30,7 @@ describe("uploadDenial", () => {
       "/upload/profile-photo": "write",
       "/upload/standard-file": "write",
       "/upload/estimate": "write",
+      "/upload/repo-textbook": "write",
     });
   });
 
