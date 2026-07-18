@@ -125,6 +125,35 @@ export async function syncMembershipAtPlatform(publicId: string, accountType: Us
   }
 }
 
+/**
+ * Best-effort push of a portable growth signal (LXOS Academy completion,
+ * future ASPRF events) to the hub for a linked person (I-5). Never throws —
+ * a firm's local record of the completion is authoritative either way; this
+ * just makes it survive across firms on the person's own AORMS-U identity.
+ */
+export async function recordGrowthAtPlatform(
+  publicId: string,
+  kind: string,
+  value?: Record<string, unknown>,
+): Promise<boolean> {
+  const base = identityBase();
+  if (!base || !env.ESTI_PRODUCT_API_KEY) return false;
+  try {
+    const res = await fetch(`${base}/v1/record-growth`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.ESTI_PRODUCT_API_KEY}`,
+      },
+      body: JSON.stringify({ publicId, company: env.ESTI_COMPANY || undefined, kind, value: value ?? {} }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export interface DelegatedIdentity {
   account: { publicId: string | null; email: string; name: string | null };
   role: string | null;

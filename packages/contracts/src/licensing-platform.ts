@@ -152,6 +152,21 @@ export const SyncMembershipInput = z.object({
 });
 export type SyncMembershipInput = z.infer<typeof SyncMembershipInput>;
 
+/**
+ * Records a portable growth/learning signal on a person's hub identity — the
+ * ASPRF/LXOS seam (`hlp_growth_event`). A node calls this for a linked person
+ * (I-5 `account_public_id`) when they complete something worth remembering
+ * across firms, e.g. an LXOS Academy SOP module. `company` scopes an org-bound
+ * key the same way `sync-membership` does; a legacy product-wide key may omit it.
+ */
+export const RecordGrowthInput = z.object({
+  publicId: z.string().min(1),
+  company: z.string().min(1).optional(),
+  kind: z.string().min(1).max(80),
+  value: z.record(z.string(), z.unknown()).default({}),
+});
+export type RecordGrowthInput = z.infer<typeof RecordGrowthInput>;
+
 // --- Desktop component manifest (Manager ⇄ hub) ---
 //
 // The desktop Manager ships as a thin bootstrapper; the actual app is pulled

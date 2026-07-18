@@ -78,3 +78,4 @@ export * from "./usage.js";
 export * from "./cpi.js";
 export * from "./migration.js";
 export * from "./wellness.js";
+export * from "./academy.js";

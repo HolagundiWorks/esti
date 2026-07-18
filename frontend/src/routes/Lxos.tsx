@@ -2,11 +2,14 @@ import { useState } from "react";
 import { Box, Chip, Grid, Stack, Tab, Tabs } from "@mui/material";
 import { RailLayout } from "../components/RailLayout.js";
 import { LessonsBank } from "../components/ProjectLessons.js";
+import { AcademyPanel } from "../components/AcademyPanel.js";
 
 /**
  * LXOS — Learning Exchange Operating System (AORMS knowledge & professional exchange
- * layer). Internal Exchange surfaces the live Lessons Learned bank; the other layers
- * are greenfield (see docs/esti/NAVIGATION.md § LXOS).
+ * layer). Internal Exchange surfaces the live Lessons Learned bank; Certification &
+ * Growth surfaces the LXOS Academy (docs/holagundi/SOP.md as theory, real workspace
+ * usage as practical — see AcademyPanel). The remaining layers are greenfield (see
+ * docs/esti/NAVIGATION.md § LXOS).
  *
  * Material UI (Carbon → MUI migration).
  */
@@ -83,15 +86,7 @@ export function Lxos() {
           ]}
         />
       )}
-      {tab === 3 && (
-        <PlannedGrid
-          items={[
-            { title: "Certification Tracks", description: "AORMS Certified Architect / HR / Finance / Operations." },
-            { title: "Skill Assessments", description: "Competency tests and practical exercises." },
-            { title: "Levels & History", description: "Foundation → Master levels and learning history." },
-          ]}
-        />
-      )}
+      {tab === 3 && <AcademyPanel />}
     </RailLayout>
   );
 }
