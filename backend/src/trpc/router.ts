@@ -85,6 +85,8 @@ import { accountsRouter } from "../modules/expense/accounts.js";
 import { expensesRouter } from "../modules/expense/expenses.js";
 import { systemRouter } from "../modules/system/router.js";
 import { academyRouter } from "../modules/academy/router.js";
+import { rateBookRouter } from "../modules/rateBook/router.js";
+import { estimateRouter } from "../modules/estimate/router.js";
 import { publicProcedure, router } from "./trpc.js";
 
 export const appRouter = router({
@@ -197,6 +199,8 @@ export const appRouter = router({
   expenses: expensesRouter,
   system: systemRouter,
   academy: academyRouter,
+  rateBooks: rateBookRouter,
+  estimates: estimateRouter,
 });
 
 /** Exported type only — the SPA imports this for end-to-end type safety. */

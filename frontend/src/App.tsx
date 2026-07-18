@@ -4,6 +4,7 @@ import {
   Archive,
   Book,
   Business as Building,
+  Calculate as Calculator,
   Description as Document,
   Email,
   Apartment as Enterprise,
@@ -101,6 +102,7 @@ const CashBook = lazyRoute(() => import("./routes/OfficeExpenses.js"), "CashBook
 const Proposals = lazyRoute(() => import("./routes/Proposals.js"), "Proposals");
 const Leads = lazyRoute(() => import("./routes/Leads.js"), "Leads");
 const SpecCatalogLibrary = lazyRoute(() => import("./routes/SpecCatalogLibrary.js"), "SpecCatalogLibrary");
+const RateBookLibrary = lazyRoute(() => import("./routes/RateBookLibrary.js"), "RateBookLibrary");
 const ComplianceLibrary = lazyRoute(() => import("./routes/ComplianceLibrary.js"), "ComplianceLibrary");
 const MasterPlanLibrary = lazyRoute(() => import("./routes/MasterPlanLibrary.js"), "MasterPlanLibrary");
 const StandardsLibrary = lazyRoute(() => import("./routes/StandardsLibrary.js"), "StandardsLibrary");
@@ -388,6 +390,9 @@ function AppShell() {
       heading: "Library",
       items: [
         { label: "Specification catalogue", to: "/libraries/spec-catalog", icon: ListChecked },
+        ...(can(user.role, "fees:manage")
+          ? [{ label: "Rate Books", to: "/libraries/rate-books", icon: Calculator }]
+          : []),
         { label: "Compliance Library", to: "/libraries/compliance", icon: Rule },
         { label: "Master Plan Library", to: "/libraries/master-plans", icon: MapIcon },
         { label: "Standards Library", to: "/libraries/standards", icon: Book },
@@ -431,6 +436,9 @@ function AppShell() {
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
                 <Route path="/libraries/spec-catalog" element={<SpecCatalogLibrary />} />
+                {can(user.role, "fees:manage") && (
+                  <Route path="/libraries/rate-books" element={<RateBookLibrary />} />
+                )}
                 <Route path="/knowledge-bank" element={<Navigate to="/libraries/spec-catalog" replace />} />
                 <Route path="/estimation" element={<Navigate to="/projects" replace />} />
                 <Route path="/estimation/:projectId" element={<Navigate to="/projects" replace />} />

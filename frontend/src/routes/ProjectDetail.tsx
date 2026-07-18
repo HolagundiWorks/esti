@@ -22,6 +22,7 @@ import { ProjectDrawings } from "../components/ProjectDrawings.js";
 import { ProjectDocuments, ProjectSpecSheets } from "../components/ProjectDocuments.js";
 import { ProjectPermits } from "../components/ProjectPermits.js";
 import { ProjectPurchaseOrders } from "../components/ProjectPurchaseOrders.js";
+import { ProjectEstimates } from "../components/ProjectEstimates.js";
 import { ProjectSettings } from "../components/ProjectSettings.js";
 import { ProjectTransmittals } from "../components/ProjectTransmittals.js";
 import { ProjectTeam } from "../components/ProjectTeam.js";
@@ -44,7 +45,7 @@ type ProjectGroup = { slug: string; label: string; tabs: ProjectTab[] };
 export function ProjectDetail() {
   const { id = "" } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { canHr, canWrite } = useCapabilities();
+  const { canHr, canWrite, canFees } = useCapabilities();
   const project = trpc.projectOffice.byId.useQuery({ id }, { enabled: !!id });
   const settingsQ = trpc.settings.get.useQuery();
   const hrEnabled = settingsQ.data?.hrEnabled ?? false;
@@ -91,6 +92,13 @@ export function ProjectDetail() {
       },
       { slug: "spec-sheets", label: "Specifications", panel: <ProjectSpecSheets projectId={id} /> },
     ];
+    if (canFees) {
+      consultancyTabs.push({
+        slug: "estimation",
+        label: "Estimation",
+        panel: <ProjectEstimates projectId={id} />,
+      });
+    }
     if (canWrite) {
       consultancyTabs.push({
         slug: "purchase-orders",
@@ -116,7 +124,7 @@ export function ProjectDetail() {
       { slug: "setup", label: "Setup", tabs: setupTabs },
       { slug: "consultancy", label: "Project workspace", tabs: consultancyTabs },
     ];
-  }, [id, showTeam, isResidential, canWrite]);
+  }, [id, showTeam, isResidential, canWrite, canFees]);
 
   const projectTabs = projectGroups.flatMap((g) => g.tabs);
 
