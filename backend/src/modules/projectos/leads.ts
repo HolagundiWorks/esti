@@ -135,6 +135,14 @@ export const leadsRouter = router({
       throw new TRPCError({ code: "BAD_REQUEST", message: "Lead is already converted." });
     if (LEAD_TERMINAL_STATUSES.has(lead.status as LeadStatus) && lead.status !== "QUALIFIED")
       throw new TRPCError({ code: "BAD_REQUEST", message: `A ${lead.status} lead cannot be converted.` });
+    // COA Regulations 1989 conflict-of-interest check (SOP-01/02/26) — confirmed at
+    // the point of conversion, not left to memory.
+    if (!input.conflictCheckDone) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Confirm the conflict-of-interest check before converting this lead.",
+      });
+    }
 
     await assertNotFixedPlan(ctx.db);
     await getOrgSettings(ctx.db);
@@ -201,6 +209,8 @@ export const leadsRouter = router({
           status: "QUALIFIED",
           convertedClientId: clientId,
           convertedProjectId: p!.id,
+          conflictCheckDone: true,
+          conflictCheckNotes: clean(input.conflictCheckNotes ?? null),
           updatedAt: new Date(),
         })
         .where(eq(leads.id, lead.id))

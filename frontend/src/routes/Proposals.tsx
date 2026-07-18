@@ -15,6 +15,10 @@ import {
   COA_MIN_FEE_PCT,
   CoaWorkCategory,
   FEE_BASIS_LABEL,
+  FEE_PROPOSAL_STATUS_LABEL,
+  FEE_PROPOSAL_STATUS_TAG,
+  FEE_PROPOSAL_TRANSITIONS,
+  FeeProposalStatus,
   type FeeBasis,
   ProjectWorkType,
   coaMinimumFee,
@@ -40,6 +44,10 @@ export function Proposals() {
   const scopeTplQ = trpc.documents.listTemplates.useQuery({ kind: "SCOPE" });
 
   const [open, setOpen] = useState(false);
+
+  const setStatus = trpc.proposals.setStatus.useMutation({
+    onSuccess: () => utils.proposals.listAll.invalidate(),
+  });
 
   useScreenActions(
     [
@@ -138,6 +146,41 @@ export function Proposals() {
         ) : (
           <StatusDot color="green" label="OK" />
         ),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      flex: 1.3,
+      minWidth: 190,
+      sortable: false,
+      renderCell: (p) => (
+        <Stack spacing={0.5} sx={{ justifyContent: "center", height: 1 }}>
+          <TextField
+            id={`fp-status-${p.row.id}`}
+            select
+            size="small"
+            aria-label="Proposal status"
+            value={p.row.status}
+            onChange={(e) =>
+              setStatus.mutate({
+                id: p.row.id,
+                status: e.target.value as FeeProposalStatus,
+              })
+            }
+          >
+            {[
+              p.row.status as FeeProposalStatus,
+              ...(FEE_PROPOSAL_TRANSITIONS[p.row.status as FeeProposalStatus] ?? []),
+            ].map((s) => (
+              <MenuItem key={s} value={s}>{FEE_PROPOSAL_STATUS_LABEL[s]}</MenuItem>
+            ))}
+          </TextField>
+          <StatusDot
+            color={FEE_PROPOSAL_STATUS_TAG[p.row.status as FeeProposalStatus]}
+            label={FEE_PROPOSAL_STATUS_LABEL[p.row.status as FeeProposalStatus] ?? p.row.status}
+          />
+        </Stack>
+      ),
     },
     {
       field: "document",

@@ -7,6 +7,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  MenuItem,
   Stack,
   TextField,
   Typography,
@@ -14,7 +15,12 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import Launch from "@mui/icons-material/Launch";
-import { can } from "@esti/contracts";
+import {
+  DRAWING_REVIEW_STATUS_LABEL,
+  DRAWING_REVIEW_STATUS_TAG,
+  DrawingReviewStatus,
+  can,
+} from "@esti/contracts";
 import { useState } from "react";
 import { DrawingIssueCell } from "./DrawingIssueCell.js";
 import { StatusDot } from "./StatusTag.js";
@@ -56,6 +62,10 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const setReviewStatus = trpc.drawings.setReviewStatus.useMutation({
+    onSuccess: () => utils.drawings.listByProject.invalidate({ projectId }),
+  });
 
   const [revFor, setRevFor] = useState<{ id: string; title: string } | null>(null);
   const [revFile, setRevFile] = useState<File | null>(null);
@@ -190,6 +200,39 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
       ),
     },
     {
+      field: "review",
+      headerName: "Review",
+      sortable: false,
+      filterable: false,
+      flex: 1,
+      minWidth: 170,
+      renderCell: (p) =>
+        canUpload ? (
+          <TextField
+            id={`dwg-review-${p.row.id}`}
+            select
+            size="small"
+            aria-label="Review status"
+            value={p.row.reviewStatus ?? "PENDING_REVIEW"}
+            onChange={(e) =>
+              setReviewStatus.mutate({
+                id: p.row.id,
+                reviewStatus: e.target.value as DrawingReviewStatus,
+              })
+            }
+          >
+            {DrawingReviewStatus.options.map((s) => (
+              <MenuItem key={s} value={s}>{DRAWING_REVIEW_STATUS_LABEL[s]}</MenuItem>
+            ))}
+          </TextField>
+        ) : (
+          <StatusDot
+            color={DRAWING_REVIEW_STATUS_TAG[(p.row.reviewStatus ?? "PENDING_REVIEW") as DrawingReviewStatus]}
+            label={DRAWING_REVIEW_STATUS_LABEL[(p.row.reviewStatus ?? "PENDING_REVIEW") as DrawingReviewStatus]}
+          />
+        ),
+    },
+    {
       field: "issue",
       headerName: "Issue",
       sortable: false,
@@ -198,7 +241,14 @@ export function ProjectDrawings({ projectId }: { projectId: string }) {
       minWidth: 150,
       renderCell: (p) =>
         p.row.status === "READY" ? (
-          <DrawingIssueCell drawingId={p.row.id} initialStatus={p.row.issuePdfStatus} />
+          <Stack spacing={0.25}>
+            <DrawingIssueCell drawingId={p.row.id} initialStatus={p.row.issuePdfStatus} />
+            {(p.row.reviewStatus ?? "PENDING_REVIEW") !== "REVIEWED" && (
+              <Typography variant="caption" color="warning.main">
+                Not yet reviewed
+              </Typography>
+            )}
+          </Stack>
         ) : null,
     },
     {

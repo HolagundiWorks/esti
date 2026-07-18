@@ -2,10 +2,12 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   MenuItem,
   Stack,
   Tab,
@@ -83,7 +85,14 @@ export function Leads() {
 
   // Convert lead
   const [convertId, setConvertId] = useState<string | null>(null);
-  const [conv, setConv] = useState({ projectTitle: "", projectType: "", workType: "ARCHITECTURE", clientId: "" });
+  const [conv, setConv] = useState({
+    projectTitle: "",
+    projectType: "",
+    workType: "ARCHITECTURE",
+    clientId: "",
+    conflictCheckDone: false,
+    conflictCheckNotes: "",
+  });
   const convert = trpc.leads.convert.useMutation({
     onSuccess: () => { inv(); setConvertId(null); },
   });
@@ -185,7 +194,14 @@ export function Leads() {
                   const carried = (ProjectType.options as readonly string[]).includes(l.projectType ?? "")
                     ? (l.projectType as string)
                     : ProjectType.options[0];
-                  setConv({ projectTitle: l.projectType || l.clientName, projectType: carried, workType: "ARCHITECTURE", clientId: "" });
+                  setConv({
+                    projectTitle: l.projectType || l.clientName,
+                    projectType: carried,
+                    workType: "ARCHITECTURE",
+                    clientId: "",
+                    conflictCheckDone: false,
+                    conflictCheckNotes: "",
+                  });
                   setConvertId(l.id);
                 },
               },
@@ -297,6 +313,24 @@ export function Leads() {
               <MenuItem value="">— Create new client from lead —</MenuItem>
               {(clientsQ.data ?? []).map((c) => <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}
             </TextField>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  id="cv-conflict"
+                  checked={conv.conflictCheckDone}
+                  onChange={(e) => setConv({ ...conv, conflictCheckDone: e.target.checked })}
+                />
+              }
+              label="No conflict of interest identified — no other architect already holds this commission without a written release (COA Regulations, 1989)."
+            />
+            <TextField
+              id="cv-conflict-notes"
+              label="Conflict-check notes (optional)"
+              value={conv.conflictCheckNotes}
+              onChange={(e) => setConv({ ...conv, conflictCheckNotes: e.target.value })}
+              multiline
+              rows={2}
+            />
             {convert.error && <Alert severity="error">{convert.error.message}</Alert>}
           </Stack>
         </DialogContent>
@@ -304,7 +338,7 @@ export function Leads() {
           <Button variant="text" color="inherit" onClick={() => setConvertId(null)}>Cancel</Button>
           <Button
             variant="contained"
-            disabled={!conv.projectTitle || !conv.projectType || convert.isPending}
+            disabled={!conv.projectTitle || !conv.projectType || !conv.conflictCheckDone || convert.isPending}
             onClick={() => {
               if (!convertId) return;
               convert.mutate({
@@ -313,6 +347,8 @@ export function Leads() {
                 projectType: conv.projectType as (typeof ProjectType.options)[number],
                 workType: conv.workType as (typeof ProjectWorkType.options)[number],
                 clientId: conv.clientId || undefined,
+                conflictCheckDone: conv.conflictCheckDone,
+                conflictCheckNotes: conv.conflictCheckNotes || undefined,
               });
             }}
           >

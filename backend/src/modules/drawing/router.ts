@@ -1,4 +1,9 @@
-import { ProjectListParams, CompanionDrawingSetScale, clampListLimit } from "@esti/contracts";
+import {
+  ProjectListParams,
+  CompanionDrawingSetScale,
+  DrawingSetReviewStatus,
+  clampListLimit,
+} from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, gt, or } from "drizzle-orm";
 import { z } from "zod";
@@ -90,6 +95,47 @@ export const drawingRouter = router({
         summary: `Issue PDF requested for drawing ${row.ref}`,
       });
       return { ok: true };
+    }),
+
+  /**
+   * QC / peer-review checkpoint (SOP-07/08) — advisory sign-off recorded before a
+   * drawing goes out via issuePdf. Does not block issuePdf; ProjectDrawings surfaces
+   * the status so it isn't skipped silently.
+   */
+  setReviewStatus: protectedProcedure
+    .input(DrawingSetReviewStatus)
+    .mutation(async ({ ctx, input }) => {
+      const [before] = await ctx.db.select().from(drawings).where(eq(drawings.id, input.id));
+      if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+      const [row] = await ctx.db
+        .update(drawings)
+        .set({
+          reviewStatus: input.reviewStatus,
+          reviewedById: ctx.user.id,
+          reviewedAt: new Date(),
+          reviewNote: input.reviewNote ?? null,
+          updatedAt: new Date(),
+        })
+        .where(eq(drawings.id, input.id))
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "drawing",
+        entityId: input.id,
+        action: "REVIEW_STATUS_UPDATE",
+        actorId: ctx.user.id,
+        before: { reviewStatus: before.reviewStatus },
+        after: { reviewStatus: input.reviewStatus, reviewNote: input.reviewNote ?? null },
+      });
+      await writeActivity(ctx.db, {
+        projectId: before.projectId,
+        objectType: "drawing",
+        objectId: input.id,
+        eventType: "drawing.review_status_changed",
+        actorId: ctx.user.id,
+        actorName: ctx.user.fullName,
+        summary: `Drawing ${before.ref} review → ${input.reviewStatus}`,
+      });
+      return row!;
     }),
 
   /** Proxy the rendered SVG text (same-origin via the API — avoids MinIO CORS). */

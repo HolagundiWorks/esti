@@ -1,6 +1,8 @@
 import {
   FeeProposalCreate,
   FeeProposalSetClientApproval,
+  FeeProposalSetStatus,
+  canTransitionFeeProposal,
   coaMinimumFee,
   isBelowCoaMinimum,
 } from "@esti/contracts";
@@ -148,6 +150,40 @@ export const proposalRouter = router({
       before: row,
     });
     return { ok: true };
+  }),
+
+  /**
+   * Internal proposal workflow (SOP-03/04) — Draft → Internal review → Approved
+   * (principal sign-off) → Sent to client, with a Revised loop-back. Distinct from
+   * `setClientApproval` below, which is the client's own decision on a sent proposal.
+   */
+  setStatus: manage.input(FeeProposalSetStatus).mutation(async ({ ctx, input }) => {
+    const [before] = await ctx.db.select().from(proposals).where(eq(proposals.id, input.id));
+    if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+    if (!canTransitionFeeProposal(before.status as never, input.status)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Proposal cannot move from ${before.status} to ${input.status}.`,
+      });
+    }
+    const [row] = await ctx.db
+      .update(proposals)
+      .set({
+        status: input.status,
+        notes: input.note ? `${before.notes ? `${before.notes}\n\n` : ""}${input.note}` : before.notes,
+        updatedAt: new Date(),
+      })
+      .where(eq(proposals.id, input.id))
+      .returning();
+    await writeAudit(ctx.db, {
+      entity: "proposal",
+      entityId: input.id,
+      action: "STATUS_UPDATE",
+      actorId: ctx.user.id,
+      before: { status: before.status },
+      after: { status: input.status, note: input.note ?? null },
+    });
+    return row!;
   }),
 
   /**
