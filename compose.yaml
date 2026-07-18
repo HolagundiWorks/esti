@@ -155,10 +155,12 @@ services:
       - ./frontend/src:/app/esti/frontend/src
       - ./frontend/public:/app/esti/frontend/public
       - ./packages/contracts/src:/app/esti/packages/contracts/src
-      - ./packages/hcw-ui-kit/package.json:/app/esti/packages/hcw-ui-kit/package.json
-      - ./packages/hcw-ui-kit/src:/app/esti/packages/hcw-ui-kit/src
       - ./backend/src:/app/esti/backend/src # type-only: SPA imports AppRouter
-      - ./vendor:/app/esti/vendor
+      # Mount only the kit dist/ (not all of vendor/) — a whole-vendor mount
+      # hides the vendor packages' node_modules created by pnpm install in the
+      # image, breaking peer-dep resolution (e.g. @mui/* from hcw-ui-kit).
+      - ./vendor/hcw-ui-kit/dist:/app/esti/vendor/hcw-ui-kit/dist
+      - ./vendor/hcw-aorms-ai-kit/dist:/app/esti/vendor/hcw-aorms-ai-kit/dist
     ports: ["5173:5173"]
     depends_on: [backend]
 

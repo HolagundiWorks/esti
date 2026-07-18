@@ -14,7 +14,6 @@ WORKDIR /app/esti
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY packages/contracts/package.json packages/contracts/
-COPY packages/hcw-ui-kit/package.json packages/hcw-ui-kit/
 COPY backend/package.json backend/
 COPY frontend/package.json frontend/
 COPY vendor vendor/
@@ -22,7 +21,6 @@ COPY vendor vendor/
 RUN pnpm install --no-frozen-lockfile --ignore-scripts
 
 COPY packages/contracts packages/contracts
-COPY packages/hcw-ui-kit packages/hcw-ui-kit
 COPY backend backend
 COPY frontend frontend
 

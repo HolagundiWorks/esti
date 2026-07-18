@@ -9,6 +9,8 @@ containers/
 # Both the directory and its contents must be explicitly un-excluded.
 !vendor/hcw-aorms-ai-kit/dist/
 !vendor/hcw-aorms-ai-kit/dist/**
+!vendor/hcw-ui-kit/dist/
+!vendor/hcw-ui-kit/dist/**
 **/.venv/
 **/__pycache__/
 *.log
