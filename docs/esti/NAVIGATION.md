@@ -121,7 +121,7 @@ Renamed from LEOS. Placeholder pillar (`/lxos`, `Lxos.tsx`; `/leos` redirects). 
 | Internal Exchange (firm-private) | 🚧 | **Lessons Learned ✅ live** (`LessonsBank` in the LXOS Internal Exchange tab; moved out of Item Library). Documentation Exchange · Internal Blogs · Whiteboard Studio · Knowledge Notes still 🔲 |
 | Community Exchange (cross-firm) | 🔲 | Case studies · documentation showcase · architecture blogs · technical/standards discussions · vendor reviews · templates exchange · research papers · open discussions |
 | Professional Identity | 🔲 | AORMS ID · role · knowledge contributions · community reputation · articles · templates · contribution history *(shared with User Profile)* |
-| Certification & Growth | 🔲 | AORMS certification (Architect/HR/Finance/Operations) · skill assessments · levels (Foundation/Practitioner/Specialist/Master) · learning history *(shared with User Profile)* |
+| Certification & Growth | 🚧 | **LXOS Academy ✅ live** (`AcademyPanel`) — `docs/holagundi/SOP.md`'s 27 SOPs as theory (mark read) + practical (auto-detected from real usage for 13, self-attested for 14); completion pushes a portable growth event (`hlp_growth_event`) for I-5-linked users. Formal certification issuance (`hlp_certification`), skill assessments, and levels still 🔲 |
 
 ## 11. Admin & account portals
 

@@ -18,6 +18,16 @@
 supported (manual step or workaround needed) · 🔲 not supported — track outside
 AORMS for now.
 
+**This document is also the LXOS Academy curriculum.** Each SOP below is a
+teaching module in **LXOS → Certification & Growth**: the *theory* half is a
+condensed version of that SOP's steps (kept in sync with `ACADEMY_CURRICULUM`
+in `packages/contracts/src/academy.ts`); the *practical* half is doing the
+real workflow in AORMS, auto-detected from the audit log where a SOP has one
+verifiable action (marked **AUTO** in the curriculum) and self-attested
+otherwise (**SELF**). Changing a SOP's steps here should be followed by
+updating the matching module's `theory`/`practical` text in `academy.ts` so
+the two don't drift.
+
 ---
 
 ## Regulatory foundation
@@ -372,7 +382,7 @@ now works. Remaining:
 | Gap | Impact | Workaround today |
 |---|---|---|
 | Contractor portal | No shared drawing/instruction surface with contractors | Email/print site instructions and drawings manually |
-| LXOS beyond Lessons Learned | No documentation exchange, internal blogs, or certification tracking yet | Keep those artefacts elsewhere for now |
+| LXOS beyond Lessons Learned + Academy | No documentation exchange, internal blogs, community exchange, professional identity, or formal certification issuance yet | Keep those artefacts elsewhere for now |
 | Vendor pricing `materialId` schema mismatch | Recording a vendor price/quote line may error (2026-07-09 teardown fallout) | Track vendor pricing outside AORMS until fixed |
 
 See [`docs/esti/DOC-CODE-DRIFT-2026-07.md`](../esti/DOC-CODE-DRIFT-2026-07.md) for
