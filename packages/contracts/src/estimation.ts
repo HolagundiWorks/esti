@@ -133,6 +133,44 @@ export function measurementQuantity(
   }
 }
 
+// --- Browser takeoff → estimate bridge (2026-07-19) ---
+
+/**
+ * The measurement book and the estimate sheet model quantities differently:
+ * the book stores integer millimetres with a MeasurementUom (RMT/SQM/CUM/NOS...)
+ * and derives a rounded SI quantity; the estimate sheet stores float dimensions
+ * and classifies the item's free-text `unit` into a MeasureShape.
+ *
+ * Rather than re-deriving through the second model (which would round twice and
+ * could silently disagree), the import carries the book's already-derived
+ * quantity across and only checks that the two units describe the *same kind of
+ * measure*. A mismatch is refused, never converted.
+ */
+export const MEASUREMENT_UOM_SHAPE: Record<string, MeasureShape> = {
+  RMT: "LENGTH",
+  SQM: "AREA",
+  CUM: "VOLUME",
+  NOS: "COUNT",
+  KG: "WEIGHT",
+  LTR: "WEIGHT",
+};
+
+/**
+ * Null when a measurement-book row may be imported onto an estimate item;
+ * otherwise a human-readable reason to show the user.
+ */
+export function measurementImportError(rowUom: string, itemUnit: string): string | null {
+  const rowShape = MEASUREMENT_UOM_SHAPE[rowUom.toUpperCase()];
+  if (!rowShape) return `Unsupported measurement unit "${rowUom}".`;
+  const itemShape = shapeForUnit(itemUnit);
+  // LUMPSUM items take any quantity as a direct figure.
+  if (itemShape === "LUMPSUM") return null;
+  if (itemShape !== rowShape) {
+    return `Unit mismatch: the measurement is ${rowUom} (${rowShape.toLowerCase()}) but the estimate item is "${itemUnit}" (${itemShape.toLowerCase()}). Import refused — fix the item unit or the measurement.`;
+  }
+  return null;
+}
+
 // --- Estimate totals (mirrors EstimateCalculator::totals) ---
 
 export interface EstimateTotals {
@@ -270,3 +308,10 @@ export const EstimateMeasurementUpsert = z.object({
   directQuantity: z.number().default(0),
 });
 export type EstimateMeasurementUpsert = z.infer<typeof EstimateMeasurementUpsert>;
+
+/** Pull marked-up quantities from a measurement book onto one estimate item. */
+export const EstimateImportFromMeasurementBook = z.object({
+  estimateItemId: z.string().uuid(),
+  measurementRowIds: z.array(z.string().uuid()).min(1).max(500),
+});
+export type EstimateImportFromMeasurementBook = z.infer<typeof EstimateImportFromMeasurementBook>;

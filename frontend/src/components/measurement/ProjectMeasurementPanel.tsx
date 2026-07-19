@@ -13,9 +13,9 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import { DataGrid, type GridColDef, type GridRowSelectionModel } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   formatDimensionMm,
@@ -101,6 +101,36 @@ export function ProjectMeasurementPanel({ projectId }: { projectId: string }) {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
 
+  // --- Send to estimate (browser takeoff → estimate, 2026-07-19) ---
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
+  const [sendOpen, setSendOpen] = useState(false);
+  const [targetEstimateId, setTargetEstimateId] = useState("");
+  const [targetItemId, setTargetItemId] = useState("");
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [sendDone, setSendDone] = useState<string | null>(null);
+
+  const estimatesQ = trpc.estimates.listByProject.useQuery(
+    { projectId },
+    { enabled: sendOpen && !!projectId },
+  );
+  const estimateQ = trpc.estimates.byId.useQuery(
+    { id: targetEstimateId },
+    { enabled: !!targetEstimateId },
+  );
+  // Reset the item when the estimate changes so a stale item can't be submitted.
+  useEffect(() => setTargetItemId(""), [targetEstimateId]);
+
+  const sendToEstimate = trpc.estimates.importFromMeasurementBook.useMutation({
+    meta: { silent: true },
+    onSuccess: (r) => {
+      setSendError(null);
+      setSendDone(`${r.created} added, ${r.updated} updated on the estimate.`);
+      setSendOpen(false);
+      setSelectedRowIds([]);
+    },
+    onError: (e) => setSendError(e.message),
+  });
+
   const syncHeights = trpc.measurement.syncHeightsFromLevels.useMutation({
     meta: { errorTitle: "Couldn't sync the heights" },
     onSuccess: (res) => {
@@ -172,6 +202,20 @@ export function ProjectMeasurementPanel({ projectId }: { projectId: string }) {
             onClick: () => setPickOpen(true),
           },
           {
+            id: "meas-send-estimate",
+            zone: "center",
+            label:
+              selectedRowIds.length > 0
+                ? `Send ${selectedRowIds.length} to estimate`
+                : "Send to estimate",
+            disabled: selectedRowIds.length === 0,
+            onClick: () => {
+              setSendError(null);
+              setSendDone(null);
+              setSendOpen(true);
+            },
+          },
+          {
             id: "meas-sync-heights",
             zone: "right",
             label: "Sync heights",
@@ -179,7 +223,14 @@ export function ProjectMeasurementPanel({ projectId }: { projectId: string }) {
             onClick: () => syncHeights.mutate({ projectId }),
           },
         ],
-    [mode, book, catalogQ.data?.items.length, levels.length, syncHeights.isPending],
+    [
+      mode,
+      book,
+      catalogQ.data?.items.length,
+      levels.length,
+      syncHeights.isPending,
+      selectedRowIds.length,
+    ],
   );
 
   const columns: GridColDef[] = [
@@ -389,12 +440,97 @@ export function ProjectMeasurementPanel({ projectId }: { projectId: string }) {
           rows={rows}
           columns={columns}
           density="compact"
+          checkboxSelection
           disableRowSelectionOnClick
+          rowSelectionModel={{ type: "include", ids: new Set<string>(selectedRowIds) }}
+          onRowSelectionModelChange={(model: GridRowSelectionModel) => {
+            const ids = Array.from(model.ids, String);
+            // "exclude" is what the header select-all emits — invert it against
+            // the visible rows so the count and payload stay correct.
+            setSelectedRowIds(
+              model.type === "exclude"
+                ? rows.map((r) => String(r.id)).filter((id) => !ids.includes(id))
+                : ids,
+            );
+          }}
           hideFooter
           autoHeight
           getRowHeight={() => "auto"}
         />
       </DataState>
+
+      {/* Browser takeoff → estimate. Quantities carry across as measured; the
+          server refuses a batch whose unit doesn't match the item's unit. */}
+      <Dialog open={sendOpen} onClose={() => setSendOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Send {selectedRowIds.length} measurement row(s) to an estimate</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {sendError && (
+              <Alert severity="error" onClose={() => setSendError(null)}>
+                {sendError}
+              </Alert>
+            )}
+            <Alert severity="info">
+              Quantities are carried across exactly as measured. Re-sending the same
+              rows updates the existing lines instead of duplicating them.
+            </Alert>
+            <TextField
+              select
+              label="Estimate"
+              value={targetEstimateId}
+              onChange={(e) => setTargetEstimateId(e.target.value)}
+              helperText={
+                estimatesQ.data && estimatesQ.data.length === 0
+                  ? "This project has no estimates yet — create one first."
+                  : " "
+              }
+              fullWidth
+            >
+              {(estimatesQ.data ?? []).map((e) => (
+                <MenuItem key={e.id} value={e.id}>
+                  {e.ref} — {e.title}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="Estimate item"
+              value={targetItemId}
+              onChange={(e) => setTargetItemId(e.target.value)}
+              disabled={!targetEstimateId}
+              helperText="The item's unit must match the measured unit (sqm → sqm, cum → cum…)."
+              fullWidth
+            >
+              {(estimateQ.data?.items ?? []).map((it) => (
+                <MenuItem key={it.id} value={it.id}>
+                  {it.description} ({it.unit})
+                </MenuItem>
+              ))}
+            </TextField>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSendOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!targetItemId || sendToEstimate.isPending}
+            onClick={() =>
+              sendToEstimate.mutate({
+                estimateItemId: targetItemId,
+                measurementRowIds: selectedRowIds,
+              })
+            }
+          >
+            {sendToEstimate.isPending ? "Sending…" : "Send to estimate"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {sendDone && (
+        <Alert severity="success" onClose={() => setSendDone(null)} sx={{ mt: 2 }}>
+          {sendDone}
+        </Alert>
+      )}
 
       <ConfirmModal
         open={!!confirmId}

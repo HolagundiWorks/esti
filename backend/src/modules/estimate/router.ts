@@ -1,5 +1,6 @@
 import {
   EstimateCreate,
+  EstimateImportFromMeasurementBook,
   EstimateItemUpsert,
   EstimateMeasurementUpsert,
   EstimateStatus,
@@ -8,6 +9,7 @@ import {
   computeEstimateTotals,
   computeEstimateTotalsFromSubtotal,
   estimateItemAmountPaise,
+  measurementImportError,
   measurementQuantity,
   shapeForUnit,
 } from "@esti/contracts";
@@ -15,7 +17,13 @@ import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "../../db/index.js";
-import { estimateItems, estimateMeasurements, estimates, rateBooks } from "../../db/schema.js";
+import {
+  estimateItems,
+  estimateMeasurements,
+  estimates,
+  measurementRows,
+  rateBooks,
+} from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
@@ -267,6 +275,100 @@ export const estimateRouter = router({
     await recomputeItemFromMeasurements(ctx.db, input.estimateItemId);
     return { ok: true };
   }),
+
+  /**
+   * Browser takeoff → estimate (replaces the ESTICAD import path, 2026-07-19).
+   *
+   * Carries measurement-book rows onto an estimate item as measurement lines.
+   * The book's derived quantity is authoritative and copied across as-is — it is
+   * what the QS measured and signed off — so this never re-derives through the
+   * estimate's shape model. Dimensions are written in metres for a readable
+   * abstract sheet, and the row's unit must describe the same kind of measure as
+   * the item's unit or the import is refused (see measurementImportError).
+   *
+   * Idempotent per (item, row): re-importing updates the existing line.
+   */
+  importFromMeasurementBook: manage
+    .input(EstimateImportFromMeasurementBook)
+    .mutation(async ({ ctx, input }) => {
+      const [item] = await ctx.db
+        .select()
+        .from(estimateItems)
+        .where(eq(estimateItems.id, input.estimateItemId));
+      if (!item) throw new TRPCError({ code: "NOT_FOUND", message: "Estimate item not found" });
+
+      const rows = await ctx.db
+        .select()
+        .from(measurementRows)
+        .where(inArray(measurementRows.id, input.measurementRowIds));
+      if (rows.length === 0) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "No measurement rows found" });
+      }
+
+      // Refuse the whole batch on any unit mismatch — a partial import would
+      // leave a silently wrong quantity on the item.
+      for (const r of rows) {
+        const err = measurementImportError(r.uom, item.unit);
+        if (err) throw new TRPCError({ code: "BAD_REQUEST", message: `"${r.particulars}": ${err}` });
+      }
+
+      const existing = await ctx.db
+        .select({ id: estimateMeasurements.id, rowId: estimateMeasurements.sourceMeasurementRowId })
+        .from(estimateMeasurements)
+        .where(eq(estimateMeasurements.estimateItemId, input.estimateItemId));
+      const bySourceRow = new Map(
+        existing.filter((e) => e.rowId).map((e) => [e.rowId as string, e.id]),
+      );
+
+      const maxSort = await ctx.db
+        .select({ n: estimateMeasurements.sortOrder })
+        .from(estimateMeasurements)
+        .where(eq(estimateMeasurements.estimateItemId, input.estimateItemId))
+        .orderBy(desc(estimateMeasurements.sortOrder))
+        .limit(1);
+      let sort = (maxSort[0]?.n ?? 0) + 10;
+
+      let created = 0;
+      let updated = 0;
+      for (const r of rows) {
+        // mm → m for display; quantity itself comes from the book unchanged.
+        const line = {
+          description: r.particulars,
+          nos: 1,
+          length: (r.lengthMm ?? 0) / 1000,
+          breadth: (r.breadthMm ?? 0) / 1000,
+          depth: (r.heightMm ?? 0) / 1000,
+          quantity: r.quantity,
+        };
+        const existingId = bySourceRow.get(r.id);
+        if (existingId) {
+          await ctx.db
+            .update(estimateMeasurements)
+            .set(line)
+            .where(eq(estimateMeasurements.id, existingId));
+          updated += 1;
+        } else {
+          await ctx.db.insert(estimateMeasurements).values({
+            ...line,
+            estimateItemId: input.estimateItemId,
+            sortOrder: sort,
+            sourceMeasurementRowId: r.id,
+          });
+          sort += 10;
+          created += 1;
+        }
+      }
+
+      await recomputeItemFromMeasurements(ctx.db, input.estimateItemId);
+      await writeAudit(ctx.db, {
+        entity: "estimate_item",
+        entityId: input.estimateItemId,
+        action: "IMPORT_MEASUREMENTS",
+        actorId: ctx.user.id,
+        after: { created, updated, rowIds: input.measurementRowIds },
+      });
+      return { ok: true as const, created, updated };
+    }),
 
   removeMeasurement: manage
     .input(z.object({ id: z.string().uuid(), estimateItemId: z.string().uuid() }))

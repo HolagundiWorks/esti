@@ -100,5 +100,11 @@ export const estimateMeasurements = pgTable("esti_estimate_measurement", {
   depth: doublePrecision("depth").notNull().default(0),
   /** directQuantity for Weight/Lumpsum shapes; computed contribution otherwise. */
   quantity: doublePrecision("quantity").notNull().default(0),
+  /**
+   * Set when this line was imported from browser takeoff — the measurement-book
+   * row it came from. Gives the abstract sheet provenance back to the marked-up
+   * plan, and makes re-import update in place instead of duplicating.
+   */
+  sourceMeasurementRowId: uuid("source_measurement_row_id"),
   createdAt: createdAt(),
 });

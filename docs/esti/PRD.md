@@ -188,10 +188,10 @@ accounting systems.
   tRPC namespace, device-token auth, CAD AI draft kinds, and `esticad://` deep
   links have all been removed from the codebase.
 - ~~Visual estimation connector in the web app — superseded by ESTICAD; do not
-  add a second quantity pipeline in AORMS web.~~ ⚠️ **This ban is void.** It
-  existed only because ESTICAD owned the quantity pipeline. With ESTICAD gone
-  there is no pipeline at all, so whether AORMS web gains takeoff is an **open
-  product decision** — see [STABILITY-CHARTER](STABILITY-CHARTER.md).
+  add a second quantity pipeline in AORMS web.~~ **Ban lifted 2026-07-19.**
+  Browser takeoff is now the only quantity pipeline: calibrate a sheet in
+  `PlanReaderPanel`, measure, derive measurement-book rows, then push those
+  quantities into an estimate (`estimate.importFromMeasurementBook`).
 
 All money is integer paise and formatted through shared `formatINR` utilities.
 

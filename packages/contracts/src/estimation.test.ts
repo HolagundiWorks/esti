@@ -3,9 +3,36 @@ import {
   canTransitionEstimate,
   computeEstimateTotals,
   estimateItemAmountPaise,
+  measurementImportError,
   measurementQuantity,
   shapeForUnit,
 } from "./estimation.js";
+
+describe("measurementImportError (browser takeoff → estimate)", () => {
+  it("allows matching measures across unit spellings", () => {
+    expect(measurementImportError("SQM", "sqm")).toBeNull();
+    expect(measurementImportError("SQM", "Sq. M.")).toBeNull();
+    expect(measurementImportError("CUM", "Cu.M.")).toBeNull();
+    expect(measurementImportError("RMT", "rmt")).toBeNull();
+    expect(measurementImportError("NOS", "nos")).toBeNull();
+  });
+
+  it("refuses a mismatch instead of converting", () => {
+    const err = measurementImportError("SQM", "cum");
+    expect(err).toContain("Unit mismatch");
+    expect(err).toContain("refused");
+    expect(measurementImportError("RMT", "sqm")).toContain("Unit mismatch");
+    expect(measurementImportError("NOS", "rmt")).toContain("Unit mismatch");
+  });
+
+  it("accepts any measure onto a lumpsum item", () => {
+    expect(measurementImportError("SQM", "LS")).toBeNull();
+  });
+
+  it("rejects an unknown measurement unit", () => {
+    expect(measurementImportError("BANANAS", "sqm")).toContain("Unsupported");
+  });
+});
 
 describe("shapeForUnit", () => {
   it("classifies volume units", () => {

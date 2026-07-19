@@ -129,11 +129,12 @@
 | P4.8 | Correct docs + published marketing copy claiming a desktop app | 🔄 docs done; **LinkedIn/Instagram campaigns bannered STALE, not rewritten** — replacement copy needs a pricing/positioning decision |
 | P4.9 | **Drop ESTICAD** (native CAD companion) | ✅ 2026-07-19 — `companion` namespace, device-token auth, `ai.generateCad` + CAD draft kinds, `drawings.setScale`, `esticad://` links, Connected Devices panel all removed |
 
-**⚠️ Open product question left by P4.9 — takeoff.** The stability charter banned
-browser geometry *because* ESTICAD owned quantity takeoff. ESTICAD is gone, so
-**nothing** provides takeoff today. Either reaffirm the ban (accept no takeoff)
-or lift it and build web takeoff — see [STABILITY-CHARTER.md](STABILITY-CHARTER.md)
-and [PRD.md](PRD.md). Decide deliberately.
+**✅ Resolved 2026-07-19 — browser takeoff.** The ban is **lifted**: measuring in
+the browser is now the supported (and only) takeoff path. Note the charter had
+already drifted from the code — on-canvas calibrate/measure shipped in
+`PlanReaderPanel.tsx` (Plan Measurement Phases 1–3) while the rule still
+forbade it. What was actually missing was the last hop, measurement book →
+estimate, now shipped as `estimates.importFromMeasurementBook`. See P8.
 
 **Data left in place (not dropped):** the `esti_device_session` table and the
 ESTICAD columns on `esti_measurement`. Both are inert without their writer;
@@ -196,6 +197,36 @@ exists today) — that is a prerequisite for P7.2, not a detail of it.
 
 ---
 
+## P8 — Browser takeoff (replaces ESTICAD)
+
+**Goal:** quantities measured on a plan in the browser reach an estimate.
+
+| # | Task | Status |
+|---|------|--------|
+| P8.1 | Render drawings in-browser (DXF→SVG, PDF via PDF.js) | ✅ pre-existing — `PlanReaderPanel.tsx`, `PlanPdfCanvas.tsx` |
+| P8.2 | Two-point sheet calibration (pixel→world) | ✅ pre-existing — `esti_sheet_calibration.unitsPerPoint` |
+| P8.3 | On-canvas measure/markup tools | ✅ pre-existing — CALIBRATE/MEASURE/WALL/COLUMN/DOOR/WINDOW/RECT |
+| P8.4 | Markup → measurement-book rows | ✅ pre-existing — `measurement.deriveFromMarkup` |
+| P8.5 | **Measurement book → estimate** | ✅ 2026-07-19 — `estimates.importFromMeasurementBook` + "Send to estimate" |
+| P8.6 | Area/polygon measure producing SQM directly | ⬜ today's derivation is oriented to WALL/COLUMN/DOOR/WINDOW semantics |
+| P8.7 | Abstract-sheet export (Excel/PDF) | ⬜ Phase 4 of [PLAN-MEASUREMENT-ARCHITECTURE](PLAN-MEASUREMENT-ARCHITECTURE.md) |
+
+**Design note — two quantity models, deliberately not merged.** The measurement
+book stores integer millimetres with a `MeasurementUom` and derives a rounded SI
+quantity; the estimate sheet stores float dimensions and infers a `MeasureShape`
+from the item's free-text `unit`. The import **carries the book's derived
+quantity across unchanged** (it is what was measured and signed off) rather than
+re-deriving through the second model, which would round twice and could silently
+disagree. It only checks that both units describe the same kind of measure, and
+**refuses the batch on a mismatch** instead of converting. Dimensions are written
+in metres so the abstract sheet stays readable. Provenance and idempotency come
+from `esti_estimate_measurement.source_measurement_row_id` (migration `0202`).
+
+**Verify:** measure on a plan → select rows → Send to estimate → the item's
+quantity and amount update; re-sending updates in place; sqm→cum is refused.
+
+---
+
 ## Execution order
 
 ```
@@ -232,6 +263,7 @@ P5 (Estimate desktop auth) — CANCELLED 2026-07-19, web-only
 |------|--------|
 | 2026-07-18 | Status audit vs code: P1/P2/P6 detail rows ticked (shipped but never checked off); P3 and P4 downgraded ✅→🔄 (BYO key unwired; desktop Manager + `ESTI_EDITION` still present); P5 marked blocked — `estimate/` app absent from repo. |
 | 2026-07-18 | P4.3/P4.4 shipped: Community edition code removed (`ESTI_EDITION`, `seedCommunity.ts`, `lanInstance.ts`, portal-login refusal); backup-code recovery kept via `lib/backupCode.ts`. P4.5 confirmed (no download page). Remaining P4: Manager teardown (P4.1 + P4.6). |
+| 2026-07-19 | **Browser-geometry ban lifted; P8 browser takeoff.** Corrected a charter/code drift — on-canvas calibrate+measure had already shipped while the charter still forbade it. Built the one genuinely missing hop: `estimates.importFromMeasurementBook` (migration `0202`) plus "Send to estimate" in the measurement panel. The book's quantity is carried across unchanged and a unit mismatch is refused, never converted. Also corrected a stale premise: `esti_measurement` (the ESTICAD table) has no readers and is not the estimate bridge — `esti_estimate_measurement` is. |
 | 2026-07-19 | P4.9: **ESTICAD dropped.** Removed the `companion` tRPC namespace, device-token bearer auth, `ai.generateCad` + the 8 CAD draft kinds, `drawings.setScale`, `esticadLink.ts`, the Connected Devices panel, and ~217 lines of orphaned landing SCSS. `esti_device_session` and the `esti_measurement` ESTICAD columns are left in the DB deliberately. Verified: the scale columns had no reader, and `esti_ai_run` is empty, so narrowing the kind enum is runtime-safe. Leaves an open decision on quantity takeoff. |
 | 2026-07-19 | P4.1/P4.6/P4.7 shipped: `desktop/` (26 files), `desktop.yml`, `fetch-installers.sh`, `manager.html`, `env.DESKTOP`, `IS_DESKTOP` + bearer-token plumbing, `@tauri-apps/api`, and all `VITE_*_DOWNLOAD_URL`/`INSTALLER_REPO` removed. Verified with a real browser login through tenant-select into the workspace on cookie auth. |
 | 2026-07-19 | **Product direction: web-only — no desktop apps.** P5 (Estimate desktop auth) cancelled outright; P4 widened to remove every desktop artifact (Manager/Tauri, installers, download plumbing, `env.DESKTOP`/`IS_DESKTOP`). PLANS-AND-TIERS updated: the licence table now states "Desktop: None". `FIRM_PLAN` explicitly retained — the VPS installer, not the desktop app, is its surviving consumer. ESTICAD (native CAD companion) deliberately left out of scope. |

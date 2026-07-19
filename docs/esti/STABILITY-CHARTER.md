@@ -9,12 +9,12 @@ office record — projects, fees, CRIF, documents, coordination, and traceabilit
 See also [PRODUCT-VISION](PRODUCT-VISION.md), [ROADMAP](ROADMAP.md), and
 [ARCHITECTURE](ARCHITECTURE.md).
 
-> **ESTICAD dropped (2026-07-19).** The desktop CAD companion is retired along
-> with every other desktop app — AORMS is web-only. This leaves an **open
-> product question**, flagged in the takeoff rule below: the charter banned
-> browser geometry *because* ESTICAD was the takeoff surface. With it gone,
-> either that ban is lifted or AORMS has no quantity takeoff at all. Decide
-> deliberately; do not let it be settled by accident.
+> **Browser-geometry ban LIFTED (2026-07-19).** ESTICAD is retired and AORMS is
+> web-only, so measuring in the browser is now the *only* way to take off
+> quantities — and it is explicitly supported. Note this rule had already
+> drifted from the code: on-canvas calibrate/measure/markup shipped in
+> `PlanReaderPanel.tsx` under Plan Measurement Phases 1–3 while the charter
+> still forbade it. The rule below is corrected to match reality.
 
 ---
 
@@ -39,7 +39,7 @@ charter exception with migration plan and redirects.
 | Rule | Meaning |
 | --- | --- |
 | **IA freeze** | Side nav, project tabs, Work module URLs (`/tasks?tab=`), and portal entry points do not rename or move without a deprecation period and redirects. Phase 2G (2026-06-15) was the last major IA pass. |
-| **No browser geometry** ⚠️ **under review** | Historically: no web takeoff, scale setting, or drawing markup — because takeoff belonged to ESTICAD. ESTICAD is retired (2026-07-19), so nothing provides takeoff today. Current drawing actions: register version, transmittal, export. **Reaffirm the ban (accept no takeoff) or lift it (build web takeoff) — this rule is not settled.** |
+| **Browser takeoff is the takeoff** *(replaces "No browser geometry", lifted 2026-07-19)* | Measuring happens **in the browser**: open a drawing (DXF→SVG or PDF), two-point **calibrate** the sheet, then measure/mark up. Quantities land in the measurement book and flow to estimates. Scope guard: AORMS measures **on 2D sheets** — it is not a CAD editor and does not author or edit geometry. Design geometry still belongs to the primary tools. |
 | **Human issue only** | AI (ESTI agent, AI Studio) never auto-issues invoices, drawings, CRIF decisions, or portal messages. |
 | **Additive schema** | Prefer new optional columns and API fields over reshaping workflows. |
 | **Secondary UX** | Marketing landing and dashboard polish do not drive in-app navigation changes. |
