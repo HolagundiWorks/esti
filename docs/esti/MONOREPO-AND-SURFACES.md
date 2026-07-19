@@ -54,9 +54,9 @@ It is a module *of* the workspace: same session cookie, same HCW shell, same
 `can(role, capability)` permissions, and it re-costs against the same project rate
 book. A subdomain would add cross-origin auth cost for **zero** isolation benefit.
 So the AORMS estimation surface lives **inside a project → Cost Management**
-(`Estimation · BOQ · BBS · …`) — import an `.aormsest` under the project, re-cost
-it, keep a project rate book. (The old top-level `/estimation` and
-`/libraries/estimates` paths redirect to `/projects`.)
+(`Estimation · BOQ · BBS · …`) — measure on a calibrated plan sheet, send those
+rows to an estimate, re-cost against the project rate book. (The old top-level
+`/estimation` and `/libraries/estimates` paths redirect to `/projects`.)
 
 ### ESE → the one subdomain `ese.aorms.in`
 Different users (`kbteam`, admin seeded from deploy env), a different job
@@ -64,8 +64,10 @@ Different users (`kbteam`, admin seeded from deploy env), a different job
 clock (once a year). It publishes *into* the system across a versioned seam; it is
 not in the request path of daily work. That earns a subdomain.
 
-### Estimate app → not in this monorepo
-Standalone C++ desktop + `.aormsest` interchange was retired. Active cost work:
+### Estimate app → cancelled
+The standalone C++ desktop and its `.aormsest` interchange are retired; nothing
+replaces them as a separate surface. Quantities now come from **browser takeoff**
+inside Cost Management. Active cost work:
 [COST-MANAGEMENT-SYSTEM.md](./COST-MANAGEMENT-SYSTEM.md).
 
 ```
@@ -95,12 +97,13 @@ One versioned, checksummed contract lets the surfaces evolve independently:
    seal (`ese/src/pack-checksum.ts`). Imported into the office rate book via
    `estimates.importRateBookPack`.
 
-> **Retired 2026-07-19 — `.aormsest`.** The `EstimateFile` interchange and the
-> `recostEstimate` re-pricing helper existed only to hand work off from the
-> Estimate **desktop** app. With the product web-only there is no hand-off:
-> measurement and pricing happen in one place, in the browser. Both symbols
-> remain in `@esti/contracts` as **dead code referenced by nothing in
-> `backend/` or `frontend/`** — safe to delete in a follow-up.
+> **Retired 2026-07-19 — `.aormsest`.** The `EstimateFile` interchange existed
+> only to hand work off from the Estimate **desktop** app. With the product
+> web-only there is no hand-off: measurement and pricing happen in one place, in
+> the browser. Nothing to delete — the format was specified in these docs but
+> **never implemented in code**; `EstimateFile`/`recostEstimate` do not exist in
+> `@esti/contracts`. Quantities reach an estimate via
+> `estimates.importFromMeasurementBook` instead.
 
 ### Rate vs specification (finalised)
 One schedule only — **CPWD**. **Rates live only in the Rate Book** (`esti_rate_book`
@@ -115,8 +118,6 @@ state DSRs.
 - **Workspace (incl. Project › Cost Management)** — one session cookie, tRPC `protectedProcedure`
   ladder; rate-book writes need `write`. The extension inherits everything.
 - **ESE** — own `kbteam` users; never shares the AORMS session; emits signed packs.
-- **Estimate app** — no server auth; trust is established at *import* via the
-  `.aormsest` seal, not at edit time.
 
 ---
 

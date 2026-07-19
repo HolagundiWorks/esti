@@ -4,10 +4,15 @@
 # No Dolibarr, no PHP, no MariaDB.
 name: esti-aorms
 
+# Every service sets `restart: unless-stopped` so the stack comes back by itself
+# when the Docker daemon restarts — on WSL the VM is recycled when idle, which
+# otherwise leaves the whole stack down until someone runs `up` again. An
+# explicit `aorms stop` still stays stopped.
 services:
   db:
     image: docker.io/library/postgres:16-alpine
     container_name: esti-db
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-esti}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-esti}
@@ -22,11 +27,13 @@ services:
   redis:
     image: docker.io/library/redis:7-alpine
     container_name: esti-redis
+    restart: unless-stopped
     ports: ["6379:6379"]
 
   minio:
     image: docker.io/minio/minio:latest
     container_name: esti-minio
+    restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${S3_ACCESS_KEY:-esti}
@@ -40,6 +47,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     container_name: esti-backend
+    restart: unless-stopped
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       BACKEND_PORT: "4000"
@@ -99,6 +107,7 @@ services:
   ollama:
     image: docker.io/ollama/ollama:latest
     container_name: esti-ollama
+    restart: unless-stopped
     ports: ["11434:11434"]
     volumes: ["esti-ollama-data:/root/.ollama"]
     healthcheck:
@@ -114,6 +123,7 @@ services:
       context: .
       dockerfile: worker/Dockerfile.dev
     container_name: esti-worker
+    restart: unless-stopped
     environment:
       REDIS_URL: redis://redis:6379
       DATABASE_URL: ${DATABASE_URL:-postgres://esti:esti@db:5432/esti}
@@ -145,6 +155,7 @@ services:
       context: .
       dockerfile: frontend/Dockerfile.dev
     container_name: esti-frontend
+    restart: unless-stopped
     environment:
       VITE_API_URL: http://localhost:4000
       VITE_PROXY_TARGET: http://backend:4000
