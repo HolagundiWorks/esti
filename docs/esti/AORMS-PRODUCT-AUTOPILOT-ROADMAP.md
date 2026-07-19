@@ -40,7 +40,7 @@
 | [P4](#p4--remove-community--full-desktop) | Remove Community + full desktop app | P1 | 🔄 | autopilot |
 | [P5](#p5--estimate-desktop-auth--project-link) | Estimate desktop auth · project link | P1 | ⬜ | autopilot |
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
-| [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | ⬜ | autopilot |
+| [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | 🔄 | autopilot |
 
 ---
 
@@ -160,9 +160,19 @@ Cross-ref: glass health orbs shipped on Studio Intelligence (U0–U6 complete).
 
 | # | Task | Status |
 |---|------|--------|
-| P7.1 | Usage dashboard — storage GB-month, AI tokens | ⬜ |
-| P7.2 | Stripe / invoice hook (or manual export for India) | ⬜ |
-| P7.3 | Suspend on payment failure | ⬜ |
+| P7.1 | Usage dashboard — storage GB-month, AI tokens | ✅ 2026-07-19 — `admin.dashboard.usage` + "Metered usage" panel on the platform-admin dashboard |
+| P7.2 | Stripe / invoice hook (or manual export for India) | ⬜ blocked on a business decision: Stripe vs manual invoice export |
+| P7.3 | Suspend on payment failure | ⬜ follows P7.2 (`licenceStatus = SUSPENDED` already exists to flip) |
+
+**Scope note (P7.1).** `esti_orgsettings` is a **singleton** — one install = one
+firm — and the `hlp_` licensing tables share that database, so the dashboard
+reads workspace counters directly (`backend/src/licensing-platform/modules/admin/dashboard.ts`).
+It therefore reports usage for **the workspace on this install**, not per-tenant
+usage across every licensed org. True multi-tenant billing needs installs to
+report into a platform-side usage table (no such table or reporting endpoint
+exists today) — that is a prerequisite for P7.2, not a detail of it.
+
+**Verify:** platform-admin console → Dashboard → "Metered usage — this workspace".
 
 ---
 
@@ -202,5 +212,6 @@ P0 (human landing) ──► P1 migration ──► P2 storage
 |------|--------|
 | 2026-07-18 | Status audit vs code: P1/P2/P6 detail rows ticked (shipped but never checked off); P3 and P4 downgraded ✅→🔄 (BYO key unwired; desktop Manager + `ESTI_EDITION` still present); P5 marked blocked — `estimate/` app absent from repo. |
 | 2026-07-18 | P4.3/P4.4 shipped: Community edition code removed (`ESTI_EDITION`, `seedCommunity.ts`, `lanInstance.ts`, portal-login refusal); backup-code recovery kept via `lib/backupCode.ts`. P4.5 confirmed (no download page). Remaining P4: Manager teardown (P4.1 + P4.6). |
+| 2026-07-19 | P7.1 shipped: `admin.dashboard.usage` (storage used/quota incl. add-on, hosted AI tokens) + "Metered usage" panel on the platform-admin dashboard. Stale-month token counters correctly report 0, matching the AI router's lazy reset. Verified via tRPC caller against real rows (current/stale/null month) with admin, non-admin, and anonymous contexts. Documented the single-tenant scope limit that blocks P7.2. |
 | 2026-07-18 | P3 complete: BYO key now sealed at rest (AES-256-GCM, `lib/secretBox.ts`, keyed from `SESSION_SECRET`); fixed boot bug where `ensureOllamaAiSettings` wiped firm cloud config + key on every backend restart; stale Enterprise-only gate removed from `ai.setSettings`. E2E verified: key sealed in DB (`enc:v1:…`), survives restart, redacted from reads. |
 | 2026-07-09 | Roadmap created. Product pivot: no tiers; storage + AI pricing; Estimate-only desktop; ACTIVE licence migration. |

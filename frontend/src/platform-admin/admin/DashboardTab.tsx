@@ -1,9 +1,19 @@
 import { useEffect, useState } from "react";
-import { Box, Chip, Grid, Paper, Stack, Typography } from "@mui/material";
+import { Box, Chip, Grid, LinearProgress, Paper, Stack, Typography } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { trpc } from "../lib/trpc";
 
 type Overview = Awaited<ReturnType<typeof trpc.admin.dashboard.overview.query>>;
+type Usage = Awaited<ReturnType<typeof trpc.admin.dashboard.usage.query>>;
+
+const GIB = 1024 ** 3;
+/** Bytes → human GB/MB, matching how storage is billed (GB-month). */
+function fmtBytes(n: number): string {
+  if (n >= GIB) return `${(n / GIB).toFixed(2)} GB`;
+  if (n >= 1024 ** 2) return `${(n / 1024 ** 2).toFixed(1)} MB`;
+  if (n >= 1024) return `${(n / 1024).toFixed(0)} KB`;
+  return `${n} B`;
+}
 
 const STATUS_LABEL: Record<string, string> = {
   ACTIVE: "Active",
@@ -42,12 +52,19 @@ function Kpi({ label, value, tone }: { label: string; value: number | string; to
 /** License-manager landing page — KPI overview for the platform-admin console. */
 export default function DashboardTab({ onGoTo }: { onGoTo: (section: "licenses" | "requests" | "orgs") => void }) {
   const [data, setData] = useState<Overview | null>(null);
+  const [usage, setUsage] = useState<Usage | null>(null);
 
   useEffect(() => {
     void trpc.admin.dashboard.overview.query().then(setData);
+    void trpc.admin.dashboard.usage.query().then(setUsage);
   }, []);
 
   if (!data) return null;
+
+  const storagePct =
+    usage && usage.storageQuotaBytes > 0
+      ? Math.min(100, (usage.storageUsedBytes / usage.storageQuotaBytes) * 100)
+      : 0;
 
   const expiringColumns: GridColDef<Overview["expiringSoon"][number]>[] = [
     { field: "orgName", headerName: "Organization", flex: 1.2, minWidth: 160 },
@@ -111,6 +128,53 @@ export default function DashboardTab({ onGoTo }: { onGoTo: (section: "licenses" 
           />
         </Grid>
       </Grid>
+
+      {usage && (
+        <Box>
+          <Typography variant="h6" component="h3" sx={{ mb: 1 }}>
+            Metered usage — this workspace
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <Paper variant="outlined" sx={{ p: 2, height: "100%" }}>
+                <Typography variant="body2" color="text.secondary">
+                  Storage used
+                </Typography>
+                <Typography variant="h4" component="p">
+                  {fmtBytes(usage.storageUsedBytes)}
+                </Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={storagePct}
+                  color={storagePct >= 90 ? "warning" : "primary"}
+                  sx={{ my: 1 }}
+                />
+                <Typography variant="body2" color="text.secondary">
+                  {storagePct.toFixed(1)}% of {fmtBytes(usage.storageQuotaBytes)}
+                  {usage.storagePurchasedBytes > 0 &&
+                    ` (incl. ${fmtBytes(usage.storagePurchasedBytes)} add-on)`}
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <Paper variant="outlined" sx={{ p: 2, height: "100%" }}>
+                <Typography variant="body2" color="text.secondary">
+                  Hosted AI tokens this month
+                </Typography>
+                <Typography variant="h4" component="p">
+                  {usage.aiTokensThisMonth.toLocaleString()}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  BYO-API calls are billed by your provider and excluded here.
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Metering since {fmtDate(usage.aiTokensMonthStart)}
+                </Typography>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Box>
+      )}
 
       <Box>
         <Typography variant="h6" component="h3" sx={{ mb: 1 }}>

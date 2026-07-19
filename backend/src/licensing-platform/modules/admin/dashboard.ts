@@ -1,5 +1,7 @@
+import { DEFAULT_STORAGE_BYTES } from "@esti/contracts";
 import { and, desc, eq, gte, isNull, lte, sql } from "drizzle-orm";
 import { db, schema } from "../../db/client.js";
+import { orgSettings } from "../../../db/schema.js";
 import { platformAdminProcedure, router } from "../../trpc/trpc.js";
 import { pendingRequestCount } from "../request/service.js";
 
@@ -90,6 +92,45 @@ export const dashboardRouter = router({
       byProduct,
       expiringSoon,
       recentEvents,
+    };
+  }),
+
+  /**
+   * P7.1 — metered usage for the workspace running on this install.
+   *
+   * `esti_orgsettings` is a singleton (one install = one firm), and the hlp_
+   * tables share its database, so this reads the workspace counters directly.
+   * There is no per-tenant usage here: aggregating usage across every licensed
+   * org needs installs to report into a platform-side usage table first.
+   */
+  usage: platformAdminProcedure.query(async () => {
+    const [row] = await db
+      .select({
+        storageBytesUsed: orgSettings.storageBytesUsed,
+        storagePurchasedBytes: orgSettings.storagePurchasedBytes,
+        aiTokensThisMonth: orgSettings.aiTokensThisMonth,
+        aiTokensMonthStart: orgSettings.aiTokensMonthStart,
+        licenceStatus: orgSettings.licenceStatus,
+      })
+      .from(orgSettings)
+      .limit(1);
+    if (!row) return null;
+
+    // The hosted-AI counter resets lazily on the next generation, so a stored
+    // total from an earlier month is already spent — report it as 0.
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const tokensCurrent =
+      row.aiTokensMonthStart && row.aiTokensMonthStart >= monthStart ? row.aiTokensThisMonth : 0;
+
+    const purchased = Math.max(0, row.storagePurchasedBytes);
+    return {
+      storageUsedBytes: row.storageBytesUsed,
+      storageQuotaBytes: DEFAULT_STORAGE_BYTES + purchased,
+      storagePurchasedBytes: purchased,
+      aiTokensThisMonth: tokensCurrent,
+      aiTokensMonthStart: row.aiTokensMonthStart,
+      licenceStatus: row.licenceStatus,
     };
   }),
 });
