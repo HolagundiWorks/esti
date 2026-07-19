@@ -1,0 +1,4 @@
+# Windows batch/cmd scripts must keep CRLF endings — cmd.exe mis-parses LF-only
+# .bat files (stray tokens, broken goto/labels).
+*.bat text eol=crlf
+*.cmd text eol=crlf
