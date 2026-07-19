@@ -258,6 +258,35 @@ def fetch_specsheet_full(sid: str) -> dict[str, Any] | None:
         return row
 
 
+def update_measurement_book(bid: str, **fields: Any) -> None:
+    _patch("esti_measurement_book", bid, set(), fields)
+
+
+def fetch_measurement_book_full(bid: str) -> dict[str, Any] | None:
+    """Abstract sheet: the book header, its project, and every measured row."""
+    sql = """
+        select b.title, b.status, b.revision_no,
+               p.ref as project_ref, p.title as project_title
+        from esti_measurement_book b
+        join esti_projectoffice p on p.id = b.project_id
+        where b.id = %s
+    """
+    with psycopg.connect(settings.database_url, row_factory=dict_row) as conn:
+        row = conn.execute(sql, [bid]).fetchone()
+        if row is None:
+            return None
+        row["rows"] = conn.execute(
+            "select r.particulars, r.library_item_code, r.length_mm, r.breadth_mm, "
+            "       r.height_mm, r.quantity, r.uom, r.derivation, "
+            "       l.code as level_code, l.name as level_name "
+            "from esti_measurement_row r "
+            "left join esti_building_level l on l.id = r.level_id "
+            "where r.book_id = %s order by r.sort_order",
+            [bid],
+        ).fetchall()
+        return row
+
+
 def update_progress_report(rid: str, **fields: Any) -> None:
     _patch("esti_progress_report", rid, set(), fields)
 

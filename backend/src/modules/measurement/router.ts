@@ -19,7 +19,7 @@ import {
   type StructuralDeductionOverrides,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, gt, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   buildingLevels,
@@ -31,6 +31,8 @@ import {
   projectOffices,
 } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
+import { firmPayload } from "../../lib/firm.js";
+import { enqueueJob } from "../../lib/redis.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 
 async function getOrCreateBook(db: Parameters<typeof writeAudit>[0], projectId: string) {
@@ -192,6 +194,39 @@ export const measurementRouter = router({
         .where(eq(measurementRows.bookId, book.id))
         .orderBy(asc(measurementRows.sortOrder), asc(measurementRows.createdAt));
       return { book, rows };
+    }),
+
+  /** P8.7 — queue the printable abstract sheet (worker renders it, ADR-10). */
+  generateAbstractPdf: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const book = await getOrCreateBook(ctx.db, input.projectId);
+      const countRows = await ctx.db
+        .select({ n: sql<number>`count(*)::int` })
+        .from(measurementRows)
+        .where(eq(measurementRows.bookId, book.id));
+      if (!countRows[0]?.n) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Nothing to print — the measurement book has no rows yet.",
+        });
+      }
+      await ctx.db
+        .update(measurementBooks)
+        .set({ pdfStatus: "PENDING" })
+        .where(eq(measurementBooks.id, book.id));
+      await enqueueJob(
+        "render_pdf",
+        { target: "measurement_book", id: book.id, firm: await firmPayload(ctx.db) },
+        ctx.requestId,
+      );
+      await writeAudit(ctx.db, {
+        entity: "measurement_book",
+        entityId: book.id,
+        action: "ABSTRACT_PDF_REQUEST",
+        actorId: ctx.user.id,
+      });
+      return { bookId: book.id, status: "PENDING" as const };
     }),
 
   listLevels: protectedProcedure

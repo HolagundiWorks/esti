@@ -133,6 +133,16 @@ export function ProjectMeasurementPanel({ projectId }: { projectId: string }) {
     onError: (e) => setSendError(e.message),
   });
 
+  // P8.7 — the printable abstract is rendered by the worker, so this only
+  // queues it; getBook is invalidated so pdfStatus/pdfKey refresh when done.
+  const generatePdf = trpc.measurement.generateAbstractPdf.useMutation({
+    meta: { errorTitle: "Couldn't queue the abstract PDF" },
+    onSuccess: () => {
+      void utils.measurement.getBook.invalidate({ projectId });
+      setSendDone("Abstract PDF queued — it appears in project documents once rendered.");
+    },
+  });
+
   const syncHeights = trpc.measurement.syncHeightsFromLevels.useMutation({
     meta: { errorTitle: "Couldn't sync the heights" },
     onSuccess: (res) => {
@@ -232,6 +242,13 @@ export function ProjectMeasurementPanel({ projectId }: { projectId: string }) {
             onClick: exportAbstract,
           },
           {
+            id: "meas-abstract-pdf",
+            zone: "right",
+            label: generatePdf.isPending ? "Queueing…" : "Abstract PDF",
+            disabled: rows.length === 0 || generatePdf.isPending,
+            onClick: () => generatePdf.mutate({ projectId }),
+          },
+          {
             id: "meas-sync-heights",
             zone: "right",
             label: "Sync heights",
@@ -247,6 +264,7 @@ export function ProjectMeasurementPanel({ projectId }: { projectId: string }) {
       syncHeights.isPending,
       selectedRowIds.length,
       rows.length,
+      generatePdf.isPending,
     ],
   );
 

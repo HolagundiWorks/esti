@@ -20,6 +20,7 @@ from ..db import (
     fetch_inspection_full,
     fetch_invoice_full,
     fetch_letter_full,
+    fetch_measurement_book_full,
     fetch_payslip_full,
     fetch_proposal_full,
     fetch_specsheet_full,
@@ -33,6 +34,7 @@ from ..db import (
     update_inspection,
     update_invoice,
     update_letter,
+    update_measurement_book,
     update_payslip,
     update_progress_report,
     update_proposal,
@@ -747,8 +749,86 @@ def _engagement_register_html(e: dict[str, Any], firm: dict[str, Any]) -> str:
     </body></html>"""
 
 
+_UOM_LABEL = {"SQM": "sqm", "CUM": "cum", "RMT": "rmt", "NOS": "nos", "KG": "kg", "LTR": "ltr"}
+
+
+def _mm(value: Any) -> str:
+    """Millimetres as metres to 3 dp — the Indian abstract convention."""
+    if value is None:
+        return "—"
+    try:
+        return f"{float(value) / 1000:.3f}"
+    except (TypeError, ValueError):
+        return "—"
+
+
+def _abstract_html(b: dict[str, Any], firm: dict[str, Any]) -> str:
+    """Measurement book as a printable abstract sheet (P8.7).
+
+    Mirrors the Excel export: L/B/H in metres, quantity with its unit, and a
+    TOTAL line per unit — an abstract is read bottom-up. Totals are summed then
+    rounded once so a column of 3-dp rows cannot drift the total.
+    """
+    addr = "<br>".join(_e(line) for line in firm.get("addressLines", []))
+    rows = b.get("rows", [])
+
+    body = "".join(
+        f"<tr><td class='c'>{i + 1}</td>"
+        f"<td>{_e((r.get('level_code') + ' — ' + r.get('level_name')) if r.get('level_code') else 'All levels')}</td>"
+        f"<td>{_e(r.get('library_item_code') or '—')}</td>"
+        f"<td>{_e(r['particulars'])}</td>"
+        f"<td class='r'>{_mm(r.get('length_mm'))}</td>"
+        f"<td class='r'>{_mm(r.get('breadth_mm'))}</td>"
+        f"<td class='r'>{_mm(r.get('height_mm'))}</td>"
+        f"<td class='r'>{float(r['quantity'] or 0):.3f}</td>"
+        f"<td class='c'>{_e(_UOM_LABEL.get(r['uom'], r['uom']))}</td></tr>"
+        for i, r in enumerate(rows)
+    )
+
+    totals: dict[str, float] = {}
+    for r in rows:
+        totals[r["uom"]] = totals.get(r["uom"], 0.0) + float(r["quantity"] or 0)
+    total_rows = "".join(
+        f"<tr class='total'><td colspan='7' class='r'>TOTAL — {_e(_UOM_LABEL.get(u, u))}</td>"
+        f"<td class='r'>{round(t, 3):.3f}</td><td class='c'>{_e(_UOM_LABEL.get(u, u))}</td></tr>"
+        for u, t in totals.items()
+    )
+
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{_DOC_CSS}
+      td.r, th.r {{ text-align: right; }} td.c, th.c {{ text-align: center; }}
+      tr.total td {{ font-weight: 700; border-top: 2px solid #161616; }}
+    </style></head><body>
+      {_firm_heading(firm)}
+      <div class="muted">{addr} · COA Reg {_e(firm.get('coaRegNo'))}</div>
+
+      <div class="title">Abstract of Measurements — {_e(b['title'])}</div>
+      <table class="kv">
+        <tr><td class="muted">Project</td><td>{_e(b['project_title'])} ({_e(b['project_ref'])})</td></tr>
+        <tr><td class="muted">Status</td><td>{_e(b['status'])} · revision {_e(b['revision_no'])}</td></tr>
+      </table>
+
+      <table>
+        <thead><tr>
+          <th class="c">S.No</th><th>Level</th><th>Item code</th><th>Particulars</th>
+          <th class="r">L (m)</th><th class="r">B (m)</th><th class="r">H (m)</th>
+          <th class="r">Quantity</th><th class="c">Unit</th>
+        </tr></thead>
+        <tbody>{body or '<tr><td colspan=9 class="muted">No measured rows</td></tr>'}{total_rows}</tbody>
+      </table>
+
+      <p class="muted" style="margin-top:22px">Measured from calibrated plan sheets in
+        {_e(firm.get('legalName'))}. Quantities are as measured; check against the issued drawings.</p>
+    </body></html>"""
+
+
 _RENDERERS = {
     "invoice": (fetch_invoice_full, _render_html, update_invoice, "invoice"),
+    "measurement_book": (
+        fetch_measurement_book_full,
+        _abstract_html,
+        update_measurement_book,
+        "abstract",
+    ),
     "engagement_register": (fetch_engagement_full, _engagement_register_html, update_engagement, "engagement"),
     "payslip": (fetch_payslip_full, _payslip_html, update_payslip, "payslip"),
     "feeproposal": (fetch_feeproposal_full, _feeproposal_html, update_feeproposal, "feeproposal"),

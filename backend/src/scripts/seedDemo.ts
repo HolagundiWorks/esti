@@ -74,6 +74,29 @@ async function clearDemoWorkspace(principalId: string) {
   await db.execute(rawSql`SET session_replication_role = 'replica'`);
   try {
     await clearStudioDemoRows(db, principalId);
+    // Replica mode disables FK triggers — deliberately, because not every table
+    // referencing a project cascades — but that also means ON DELETE CASCADE
+    // does NOT fire here. Anything project-scoped must be deleted explicitly or
+    // it outlives the wipe as an orphan (invisible in the UI, since every query
+    // joins through the project, but still reachable by id — a queued PDF job
+    // for an orphaned book fails with "not found").
+    await db.execute(rawSql`
+      DELETE FROM esti_measurement_book
+       WHERE project_id NOT IN (SELECT id FROM esti_projectoffice)
+          OR project_id IN (
+            SELECT id FROM esti_projectoffice WHERE created_by_id = ${principalId}
+          )
+    `);
+    await db.execute(rawSql`
+      DELETE FROM esti_estimate
+       WHERE project_id NOT IN (SELECT id FROM esti_projectoffice)
+          OR project_id IN (
+            SELECT id FROM esti_projectoffice WHERE created_by_id = ${principalId}
+          )
+    `);
+    await db.execute(rawSql`
+      DELETE FROM esti_rate_book WHERE name = 'Demo rate book (CPWD-style)'
+    `);
     await db.delete(projectOffices).where(eq(projectOffices.createdById, principalId));
     await db.delete(contractors).where(eq(contractors.createdById, principalId));
     await db.delete(teamMembers).where(inArray(teamMembers.email, DEMO_EMAILS));

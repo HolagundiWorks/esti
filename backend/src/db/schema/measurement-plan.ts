@@ -53,6 +53,9 @@ export const measurementBooks = pgTable("esti_measurement_book", {
   status: text("status").notNull().default("DRAFT"),
   libraryVersionId: uuid("library_version_id").references(() => itemLibraryVersions.id),
   revisionNo: integer("revision_no").notNull().default(1),
+  /** Printable abstract — rendered by the worker (ADR-10), same shape as other docs. */
+  pdfKey: text("pdf_key"),
+  pdfStatus: text("pdf_status").notNull().default("NONE"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
