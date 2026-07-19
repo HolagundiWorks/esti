@@ -662,6 +662,10 @@ export const measurementRouter = router({
         } else if (markup.markerKind === "COLUMN") {
           uom = "CUM";
           measureKind = "LBH";
+        } else if (markup.markerKind === "AREA") {
+          // Plan area comes from the enclosed shape, not L x B — see below.
+          uom = "SQM";
+          measureKind = "LB";
         }
 
         if (heightMm == null) {
@@ -673,14 +677,25 @@ export const measurementRouter = router({
           });
         }
 
-        const quantity = deriveMeasurementQuantity({
-          measureKind,
-          uom,
-          lengthMm: markup.lengthMm,
-          breadthMm,
-          heightMm,
-          count: markup.count,
-        });
+        /**
+         * An AREA marker measures the polygon it encloses, so its quantity
+         * cannot come from L x B — an L-shaped room's bounding box is bigger
+         * than the room. Use the stored enclosed area (mm² -> SQM) directly,
+         * and only fall back to the dimensional derivation when the shape
+         * enclosed nothing (an open polyline, say), so a bad shape reports 0
+         * rather than a plausible-looking wrong number.
+         */
+        const quantity =
+          markup.markerKind === "AREA" && markup.areaMm2 != null && markup.areaMm2 > 0
+            ? Math.round((markup.areaMm2 / 1_000_000) * (markup.count || 1) * 1000) / 1000
+            : deriveMeasurementQuantity({
+                measureKind,
+                uom,
+                lengthMm: markup.lengthMm,
+                breadthMm,
+                heightMm,
+                count: markup.count,
+              });
 
         sortCursor += 10;
         const [row] = await ctx.db

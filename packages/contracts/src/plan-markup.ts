@@ -40,6 +40,8 @@ export const PlanMarkupItem = z.object({
   lengthMm: z.number().int().nullable(),
   breadthMm: z.number().int().nullable(),
   heightMm: z.number().int().nullable(),
+  /** Enclosed plan area in mm² (AREA markers only; see areaPointsToMm2). */
+  areaMm2: z.number().nonnegative().nullable(),
   count: z.number().int().positive().default(1),
   measurementRowId: z.string().uuid().nullable(),
   createdAt: z.string(),
@@ -66,6 +68,7 @@ export const UpsertPlanMarkupItemInput = z.object({
   lengthMm: z.number().int().nonnegative().nullable().optional(),
   breadthMm: z.number().int().nonnegative().nullable().optional(),
   heightMm: z.number().int().nonnegative().nullable().optional(),
+  areaMm2: z.number().nonnegative().nullable().optional(),
   count: z.number().int().positive().default(1),
 });
 export type UpsertPlanMarkupItemInput = z.infer<typeof UpsertPlanMarkupItemInput>;
@@ -86,6 +89,42 @@ export function geometryLengthPoints(geometry: PlanMarkupGeometry): number {
     total += Math.hypot(b.x - a.x, b.y - a.y);
   }
   return total;
+}
+
+/**
+ * Enclosed area of a closed shape, in **square** sheet points (shoelace).
+ *
+ * RECT is treated as its bounding box; POLYLINE only encloses an area when it
+ * is `closed`. Anything else (a line, a point, an open polyline) has no area
+ * and returns 0 — an open shape must never silently report one.
+ *
+ * The result is unsigned, so winding order does not matter.
+ */
+export function geometryAreaPoints(geometry: PlanMarkupGeometry): number {
+  const pts = geometry.points;
+  if (geometry.kind === "RECT") {
+    const { width, height } = geometryBoundsPoints(geometry);
+    return width * height;
+  }
+  if (geometry.kind !== "POLYLINE" || !geometry.closed || pts.length < 3) return 0;
+  let twiceArea = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i]!;
+    const b = pts[(i + 1) % pts.length]!;
+    twiceArea += a.x * b.y - b.x * a.y;
+  }
+  return Math.abs(twiceArea) / 2;
+}
+
+/**
+ * Convert an enclosed area from sheet points to real mm².
+ *
+ * Calibration is **linear** (mm per point), so area scales by its **square**.
+ * Multiplying an area by `unitsPerPoint` once is a classic and silent error —
+ * at a typical 1:100 sheet it under-reports by around two orders of magnitude.
+ */
+export function areaPointsToMm2(areaPoints: number, unitsPerPoint: number): number {
+  return areaPoints * unitsPerPoint * unitsPerPoint;
 }
 
 /** Axis-aligned width/height of geometry bounding box in sheet points. */

@@ -12,6 +12,8 @@ export function testUser(role: AuthUser["role"], overrides: Partial<AuthUser> = 
     contractorId: null,
     isDemo: false,
     isSystemAdmin: false,
+    mustChangePassword: false,
+    mustCompleteWorkspaceProfile: false,
     userCode: null,
     designation: null,
     photoKey: null,
@@ -26,6 +28,8 @@ export function testCtx(user: AuthUser | null, db: Context["db"]): Context {
     ip: "127.0.0.1",
     requestId: "test-request",
     sessionToken: undefined,
+    demoAdminUnlocked: false,
+    platformAccountId: null,
     setCookie: () => undefined,
   };
 }

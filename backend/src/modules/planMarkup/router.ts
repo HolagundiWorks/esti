@@ -1,6 +1,8 @@
 import {
   UpsertPlanMarkupItemInput,
   UpsertSheetCalibrationInput,
+  areaPointsToMm2,
+  geometryAreaPoints,
   geometryBoundsPoints,
   geometryLengthPoints,
 } from "@esti/contracts";
@@ -54,20 +56,24 @@ function dimsFromGeometry(
     heightMm?: number | null;
   },
 ) {
-  if (overrides.lengthMm != null || overrides.breadthMm != null) {
+  const calibrated = unitsPerPoint != null && unitsPerPoint > 0;
+
+  // Enclosed area is a property of the shape, so it is computed even when the
+  // user has overridden length/breadth — those describe a run, not the polygon.
+  // 0 for any shape that encloses nothing (a line, an open polyline).
+  const areaMm2 = calibrated
+    ? areaPointsToMm2(geometryAreaPoints(geometry), unitsPerPoint) || null
+    : null;
+
+  if (overrides.lengthMm != null || overrides.breadthMm != null || !calibrated) {
     return {
       lengthMm: overrides.lengthMm ?? null,
       breadthMm: overrides.breadthMm ?? null,
       heightMm: overrides.heightMm ?? null,
+      areaMm2,
     };
   }
-  if (unitsPerPoint == null || unitsPerPoint <= 0) {
-    return {
-      lengthMm: overrides.lengthMm ?? null,
-      breadthMm: overrides.breadthMm ?? null,
-      heightMm: overrides.heightMm ?? null,
-    };
-  }
+
   const lenPts = geometryLengthPoints(geometry);
   const bounds = geometryBoundsPoints(geometry);
   const lengthMm = Math.round(lenPts * unitsPerPoint);
@@ -80,6 +86,7 @@ function dimsFromGeometry(
     lengthMm: lengthMm > 0 ? lengthMm : null,
     breadthMm,
     heightMm: overrides.heightMm ?? null,
+    areaMm2,
   };
 }
 
@@ -198,6 +205,8 @@ export const planMarkupRouter = router({
         lengthMm: dims.lengthMm,
         breadthMm: dims.breadthMm,
         heightMm: dims.heightMm,
+        // Explicit override wins (hand-entered area); otherwise from the shape.
+        areaMm2: input.areaMm2 ?? dims.areaMm2,
         count: input.count ?? 1,
       };
 

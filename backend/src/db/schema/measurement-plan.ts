@@ -122,6 +122,8 @@ export const planMarkupItems = pgTable("esti_plan_markup_item", {
   lengthMm: integer("length_mm"),
   breadthMm: integer("breadth_mm"),
   heightMm: integer("height_mm"),
+  /** Enclosed plan area in mm² for AREA markers (double — a 30x20 m slab exceeds int4). */
+  areaMm2: doublePrecision("area_mm2"),
   count: integer("count").notNull().default(1),
   measurementRowId: uuid("measurement_row_id").references(() => measurementRows.id),
   createdAt: createdAt(),

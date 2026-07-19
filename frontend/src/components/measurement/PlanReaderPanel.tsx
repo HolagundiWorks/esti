@@ -12,7 +12,9 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   PlanMarkerKind,
+  areaPointsToMm2,
   formatDimensionMm,
+  geometryAreaPoints,
   type PlanMarkupGeometry,
 } from "@esti/contracts";
 import { DATA_VIZ, colors, useScreenActions } from "@hcw/ui-kit";
@@ -30,7 +32,8 @@ type Tool =
   | "DOOR"
   | "WINDOW"
   | "HEIGHT"
-  | "RECT";
+  | "RECT"
+  | "AREA";
 
 // Domain mapping stays app-side; VALUES come from kit tokens (Token Governance §7).
 const MARKER_COLOR: Record<string, string> = {
@@ -43,6 +46,9 @@ const MARKER_COLOR: Record<string, string> = {
   POLYLINE: colors.accent,
   COUNT: DATA_VIZ.gray,
   RECT: DATA_VIZ.orange,
+  // Palette has 7 tokens for 9 marker kinds, so AREA shares cyan with SECTION —
+  // they are rarely marked up on the same sheet.
+  AREA: DATA_VIZ.cyan,
   MEASURE: colors.ink,
 };
 
@@ -438,7 +444,7 @@ export function PlanReaderPanel({ projectId }: { projectId: string }) {
       return;
     }
 
-    if (tool === "WALL") {
+    if (tool === "WALL" || tool === "AREA") {
       setDraftPts((prev) => [...prev, p]);
       return;
     }
@@ -469,6 +475,25 @@ export function PlanReaderPanel({ projectId }: { projectId: string }) {
     if (draftPts.length < 2) return;
     finishMarkup({ kind: "POLYLINE", points: draftPts }, "WALL");
   };
+
+  /**
+   * Plan area — the polygon is closed on commit so the server can shoelace it.
+   * Needs 3+ points: two points enclose nothing and would silently measure 0.
+   */
+  const commitArea = () => {
+    if (draftPts.length < 3) return;
+    finishMarkup({ kind: "POLYLINE", points: draftPts, closed: true }, "AREA");
+  };
+
+  /** Live area readout for the in-progress polygon, in m². */
+  const draftAreaSqm = useMemo(() => {
+    if (tool !== "AREA" || draftPts.length < 3 || !calibration) return null;
+    const mm2 = areaPointsToMm2(
+      geometryAreaPoints({ kind: "POLYLINE", points: draftPts, closed: true }),
+      calibration.unitsPerPoint,
+    );
+    return mm2 / 1_000_000;
+  }, [tool, draftPts, calibration]);
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
@@ -576,6 +601,7 @@ export function PlanReaderPanel({ projectId }: { projectId: string }) {
           <ToggleButton value="WINDOW">Window</ToggleButton>
           <ToggleButton value="HEIGHT">Height</ToggleButton>
           <ToggleButton value="RECT">Rect</ToggleButton>
+          <ToggleButton value="AREA">Area</ToggleButton>
         </ToggleButtonGroup>
         <Typography variant="body2" className="esti-label--secondary">
           Zoom {(zoom * 100).toFixed(0)}% · wheel zoom · Space/middle-drag pan
@@ -764,6 +790,26 @@ export function PlanReaderPanel({ projectId }: { projectId: string }) {
         <Button variant="contained" size="small" onClick={commitWall} disabled={upsertItem.isPending}>
           Commit wall ({draftPts.length} pts)
         </Button>
+      )}
+
+      {tool === "AREA" && (
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={commitArea}
+            disabled={draftPts.length < 3 || upsertItem.isPending}
+          >
+            Commit area ({draftPts.length} pts)
+          </Button>
+          <Typography variant="body2" className="esti-label--secondary">
+            {draftPts.length < 3
+              ? "Click at least 3 points to enclose an area — it closes automatically."
+              : draftAreaSqm != null
+                ? `Enclosed: ${draftAreaSqm.toFixed(3)} m²`
+                : "Calibrate the sheet to see the area in m²."}
+          </Typography>
+        </Stack>
       )}
 
       {items.length > 0 && (

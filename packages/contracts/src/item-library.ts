@@ -27,6 +27,12 @@ export const PlanMarkerKind = z.enum([
   "SECTION",
   "POLYLINE",
   "COUNT",
+  /**
+   * Plan area enclosed by a closed shape — slabs, flooring, terraces, plaster
+   * on a horizontal face. Distinct from WALL, which is an *elevation* area
+   * (run length x wall height); AREA comes from the enclosed polygon itself.
+   */
+  "AREA",
 ]);
 export type PlanMarkerKind = z.infer<typeof PlanMarkerKind>;
 
