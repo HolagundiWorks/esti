@@ -45,7 +45,6 @@ function callerFor(user: typeof users.$inferSelect) {
       designation: user.designation ?? null,
       photoKey: user.photoKey ?? null,
     },
-    deviceSessionId: null,
     ip: "127.0.0.1",
     requestId: "test-ai-agent",
     sessionToken: undefined,

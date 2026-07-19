@@ -53,7 +53,6 @@ async function main(): Promise<void> {
   const caller = appRouter.createCaller({
     db,
     user: owner!,
-    deviceSessionId: null,
     ip: "127.0.0.1",
     requestId: "test-api-smoke",
     sessionToken: undefined,

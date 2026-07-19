@@ -1,9 +1,8 @@
-import { DeviceLoginInput, DeviceRefreshInput, WorkspaceProfileCompletion } from "@esti/contracts";
+import { WorkspaceProfileCompletion } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, count, eq, gt, sql } from "drizzle-orm";
 import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
-import { createDeviceSession, refreshDeviceAccessToken } from "../../auth/device.js";
 import {
   SESSION_COOKIE,
   createSession,
@@ -415,89 +414,6 @@ export const authRouter = router({
       });
       return { ok: true };
     }),
-
-  /** ESTICAD companion — email/password → bearer token pair (no browser cookie). */
-  loginDevice: publicProcedure.input(DeviceLoginInput).mutation(async ({ ctx, input }) => {
-    const email = normalizeEmail(input.email);
-    await enforceRateLimit("device-login-ip", ctx.ip, 10, 60);
-    await enforceRateLimit("device-login-email", email, 10, 300);
-
-    const rows = await ctx.db
-      .select()
-      .from(users)
-      .where(emailMatches(users.email, email))
-      .limit(1);
-    const u = rows[0];
-    if (!u || !u.passwordHash || !(await verifyPassword(u.passwordHash, input.password))) {
-      throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password" });
-    }
-    if (u.disabled) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "This account has been disabled" });
-    }
-    if (u.role === "CLIENT" || (u.role === "CONSULTANT" && u.consultantId)) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Companion login is for office staff only" });
-    }
-
-    // Second factor: a device token grants the same full API access as a browser
-    // session, so it must clear the same 2FA bar as `login` — otherwise pairing a
-    // device is a password-only bypass of an account's authenticator.
-    if (u.totpSecret) {
-      const code = input.code?.trim();
-      if (!code) throw new TRPCError({ code: "UNAUTHORIZED", message: "totp_required" });
-      if (!verifyTotp(u.totpSecret, code)) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "totp_invalid" });
-      }
-    }
-
-    const tokens = await createDeviceSession(ctx.db, {
-      userId: u.id,
-      deviceName: input.deviceName,
-      clientId: input.clientId,
-    });
-
-    await clearRateLimit("device-login-email", input.email.toLowerCase());
-    await writeAudit(ctx.db, {
-      entity: "device_session",
-      entityId: tokens.sessionId,
-      action: "LOGIN_DEVICE",
-      actorId: u.id,
-      after: { clientId: input.clientId, deviceName: input.deviceName },
-    });
-
-    return {
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      accessExpiresAt: tokens.accessExpiresAt.toISOString(),
-      refreshExpiresAt: tokens.refreshExpiresAt.toISOString(),
-      userId: u.id,
-      email: u.email,
-      fullName: u.fullName,
-      role: u.role,
-    };
-  }),
-
-  refreshDevice: publicProcedure.input(DeviceRefreshInput).mutation(async ({ ctx, input }) => {
-    await enforceRateLimit("device-refresh-ip", ctx.ip, 30, 60);
-    const tokens = await refreshDeviceAccessToken(ctx.db, {
-      refreshToken: input.refreshToken,
-      clientId: input.clientId,
-    });
-    if (!tokens) {
-      throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid or expired refresh token" });
-    }
-    await writeAudit(ctx.db, {
-      entity: "device_session",
-      entityId: tokens.sessionId,
-      action: "REFRESH_DEVICE",
-      actorId: ctx.user?.id,
-    });
-    return {
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      accessExpiresAt: tokens.accessExpiresAt.toISOString(),
-      refreshExpiresAt: tokens.refreshExpiresAt.toISOString(),
-    };
-  }),
 
   me: publicProcedure.query(async ({ ctx }) => {
     if (!ctx.user) return null;

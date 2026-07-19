@@ -20,7 +20,7 @@ export const aiRuns = pgTable("esti_ai_run", {
   issuedEntityId: uuid("issued_entity_id"),
   usedExternalApi: text("used_external_api").notNull().default("false"),
   tokenEstimate: text("token_estimate"),
-  /** aorms = web AI Studio; esticad = companion generateCad */
+  /** Always "aorms" — the esticad companion was dropped 2026-07-19. */
   source: text("source").notNull().default("aorms"),
   createdAt: createdAt(),
 });

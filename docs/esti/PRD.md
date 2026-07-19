@@ -182,14 +182,16 @@ accounting systems.
   contractor work packages + running bills)~~ — **removed** 2026-06-28 and being rebuilt
   ground-up on the Construction Knowledge Bank. Spec:
   [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) +
-  [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md). (ESTICAD takeoff capture stays — see below.)
-- **ESTICAD companion** (Phase 13, complete): native desktop CAD links to AORMS for
-  cloud-only takeoff (world-coordinate measurements, server-published catalog,
-  no local measurement storage) and proxied Ollama AI for the full CAD use-case
-  set. Requires a paying firm account and staff write access; offline drafting
-  without takeoff is supported. Companion integration: `companion` tRPC namespace and `esticad://` deep links (see [ARCHITECTURE](ARCHITECTURE.md)).
-- ~~Visual estimation connector in the web app~~ — **superseded** by the ESTICAD
-  companion (Phase 13). Do not add a second quantity pipeline in AORMS web.
+  [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md).
+- ~~**ESTICAD companion** (Phase 13)~~ — **dropped 2026-07-19**. The native
+  desktop CAD companion is retired with every other desktop app; the `companion`
+  tRPC namespace, device-token auth, CAD AI draft kinds, and `esticad://` deep
+  links have all been removed from the codebase.
+- ~~Visual estimation connector in the web app — superseded by ESTICAD; do not
+  add a second quantity pipeline in AORMS web.~~ ⚠️ **This ban is void.** It
+  existed only because ESTICAD owned the quantity pipeline. With ESTICAD gone
+  there is no pipeline at all, so whether AORMS web gains takeoff is an **open
+  product decision** — see [STABILITY-CHARTER](STABILITY-CHARTER.md).
 
 All money is integer paise and formatted through shared `formatINR` utilities.
 
@@ -212,10 +214,10 @@ All money is integer paise and formatted through shared `formatINR` utilities.
   auditable, and never auto-issued.
 - **ESTI agent (Alt+A)** reads live AORMS data and suggests next steps — read-only;
   no auto-issue, upload, or mutation on behalf of the user.
-- **CAD AI** (ESTICAD companion, delivered): dimensioning, naming, documentation,
-  quantity extraction, layer audit, revision summary, plot assist, and BOQ
-  narrative — proxied through `ai.generateCad` and the Ollama gateway with
-  CAD-specific draft kinds and ESTICAD-side reconciliation before commit.
+- ~~**CAD AI** (ESTICAD companion): dimensioning, naming, documentation, quantity
+  extraction, layer audit, revision summary, plot assist, BOQ narrative~~ —
+  **removed 2026-07-19** with ESTICAD. `ai.generateCad` and the CAD draft kinds
+  no longer exist; AI Studio and the ESTI agent are unaffected.
 - Admin exposes application version, deployment date, pipeline status, release
   notes, users, capabilities, audit review, retention, backup, and restore state.
 

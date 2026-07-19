@@ -1,6 +1,5 @@
 import {
   can,
-  isCadAiDraftKind,
   MOM_REVISION_MAX_SUGGESTIONS,
   type AiDraftKind,
   type AiSourceRef,
@@ -29,7 +28,6 @@ import {
   type DecisionCtx,
   type ProjectCtx,
 } from "./templates.js";
-import { assembleCadAiContext } from "./cad-context.js";
 
 type UserCtx = { id: string; role: string; email?: string; fullName?: string };
 
@@ -293,12 +291,6 @@ export async function assembleAiContext(
     contextQuery?: string;
   },
 ): Promise<AiContextBundle> {
-  if (isCadAiDraftKind(input.kind)) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "CAD draft kinds require ai.generateCad from ESTICAD",
-    });
-  }
   if (isAgentQuery(input)) {
     return assembleAgentContext(db, user, input);
   }
@@ -373,23 +365,8 @@ export async function generateMockOutput(
     projectId?: string;
     drawingId?: string;
     prompt?: string;
-    cadContext?: import("@esti/contracts").AiCadContext;
   },
 ): Promise<{ output: string; sources: AiSourceRef[]; promptSummary: string }> {
-  if (isCadAiDraftKind(input.kind)) {
-    const bundle = await assembleCadAiContext(db, user, {
-      kind: input.kind,
-      projectId: input.projectId,
-      drawingId: input.drawingId,
-      prompt: input.prompt,
-      context: input.cadContext,
-    });
-    return {
-      output: bundle.templateJson,
-      sources: bundle.sources,
-      promptSummary: bundle.promptSummary,
-    };
-  }
   if (isAgentQuery(input)) {
     const bundle = await assembleAgentContext(db, user, input);
     const { snapshot } = await loadOperatorSnapshot(db, user, input.projectId);

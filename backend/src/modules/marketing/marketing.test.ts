@@ -20,7 +20,6 @@ import { enforceRateLimit } from "../../lib/ratelimit.js";
 const caller = marketingRouter.createCaller({
   db: {} as Context["db"],
   user: null,
-  deviceSessionId: null,
   ip: "127.0.0.1",
   requestId: "test",
   sessionToken: undefined,

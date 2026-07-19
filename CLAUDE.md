@@ -337,7 +337,7 @@ GST rates, SAC codes)
   measurement book (nos × dimensions by unit shape) and a contingency/GST rollup
 
 **Drawings:**
-- `drawings` — drawing/document management (DXF register + ESTICAD launch)
+- `drawings` — drawing/document management (DXF register)
 
 > The **old Estimation OS** (`esti_component`/RuleSet engine, `formula-engine`/
 > `ruleset-engine`, CostingWindow, ParametricCanvas, ComponentLibrary) and the
@@ -409,7 +409,6 @@ computed KPIs, Action Center, health modules (`dashboard.home` bundles the offic
 - `projectBrief` — Project Info questionnaire sections
 - `accounts` / `expenses` — office cash book and project costing expenses
 - `system` — release metadata (owner-only)
-- `companion` — ESTICAD device auth, takeoff catalog, linked drawings
 - `marketing` — landing visit counter
 - `specCatalog` — specification material catalogue (Knowledge Bank)
 

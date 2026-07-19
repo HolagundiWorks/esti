@@ -7,7 +7,14 @@ and rendering tools as their **primary** workspace. AORMS is the **secondary**
 office record — projects, fees, CRIF, documents, coordination, and traceability.
 
 See also [PRODUCT-VISION](PRODUCT-VISION.md), [ROADMAP](ROADMAP.md), and
-[ARCHITECTURE](ARCHITECTURE.md) (ESTICAD companion — optional desktop CAD client).
+[ARCHITECTURE](ARCHITECTURE.md).
+
+> **ESTICAD dropped (2026-07-19).** The desktop CAD companion is retired along
+> with every other desktop app — AORMS is web-only. This leaves an **open
+> product question**, flagged in the takeoff rule below: the charter banned
+> browser geometry *because* ESTICAD was the takeoff surface. With it gone,
+> either that ban is lifted or AORMS has no quantity takeoff at all. Decide
+> deliberately; do not let it be settled by accident.
 
 ---
 
@@ -16,11 +23,11 @@ See also [PRODUCT-VISION](PRODUCT-VISION.md), [ROADMAP](ROADMAP.md), and
 | Layer | Tools | AORMS role |
 | --- | --- | --- |
 | Primary | Revit, SketchUp, Rhino, AutoCAD, Blender, etc. | None — do not compete |
-| Bridge | ESTICAD desktop (takeoff + CAD AI) | Thin companion only |
+| ~~Bridge~~ | ~~ESTICAD desktop (takeoff + CAD AI)~~ | **Retired 2026-07-19** |
 | Secondary | AORMS web | Record, coordinate, bill, search, advise |
 
 Design geometry, rendering, and mark-up stay in primary tools. AORMS stores
-decisions, issued documents, commercial records, and synced takeoff quantities.
+decisions, issued documents, commercial records, and estimate quantities.
 
 ---
 
@@ -32,9 +39,9 @@ charter exception with migration plan and redirects.
 | Rule | Meaning |
 | --- | --- |
 | **IA freeze** | Side nav, project tabs, Work module URLs (`/tasks?tab=`), and portal entry points do not rename or move without a deprecation period and redirects. Phase 2G (2026-06-15) was the last major IA pass. |
-| **No browser geometry** | No web takeoff, scale setting, or drawing markup. Drawing actions: register version, transmittal, **Open in ESTICAD**, export. |
-| **Human issue only** | AI (ESTI agent, AI Studio, ESTICAD AI) never auto-issues invoices, drawings, CRIF decisions, or portal messages. |
-| **Additive schema** | Prefer new optional columns and API fields over reshaping workflows. Breaking companion API changes require versioned contracts. |
+| **No browser geometry** ⚠️ **under review** | Historically: no web takeoff, scale setting, or drawing markup — because takeoff belonged to ESTICAD. ESTICAD is retired (2026-07-19), so nothing provides takeoff today. Current drawing actions: register version, transmittal, export. **Reaffirm the ban (accept no takeoff) or lift it (build web takeoff) — this rule is not settled.** |
+| **Human issue only** | AI (ESTI agent, AI Studio) never auto-issues invoices, drawings, CRIF decisions, or portal messages. |
+| **Additive schema** | Prefer new optional columns and API fields over reshaping workflows. |
 | **Secondary UX** | Marketing landing and dashboard polish do not drive in-app navigation changes. |
 | **Read-only agent** | ESTI (Alt+A) reads live AORMS data and suggests next steps; it does not execute mutations or uploads on behalf of the user. |
 
@@ -61,7 +68,7 @@ Deferred P3 ideas in [ROADMAP](ROADMAP.md) remain **charter-rejected by default*
 ## What we implement instead
 
 1. **Production ops** — backup/restore drill, pagination, smoke tests — **Phase 12 engineering complete**; operator restore sign-off remains ([PRODUCTION-OPS](PRODUCTION-OPS.md)).
-2. **ESTICAD bridge** — cloud measurements, drawing link, device admin (Phase 13B/C/E before 13D).
+2. ~~**ESTICAD bridge** — cloud measurements, drawing link, device admin~~ — **dropped 2026-07-19**.
 3. **Incremental record-keeping** — exports, search, deep links, lessons learned, spec catalogue consumption.
 4. **Documentation accuracy** — PRD, module profile, and roadmap stay aligned with code.
 

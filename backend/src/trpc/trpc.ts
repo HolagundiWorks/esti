@@ -172,16 +172,3 @@ export const contractorWriteProcedure = contractorProcedure.use(async ({ ctx, ne
   return next({ ctx });
 });
 
-/** ESTICAD device bearer writes — takeoff, drawing link, scale calibration. */
-export const companionWriteProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (!ctx.deviceSessionId) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Companion write requires ESTICAD device authentication.",
-    });
-  }
-  if (!can(ctx.user.role, "write")) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Companion write requires staff write access" });
-  }
-  return next({ ctx });
-});

@@ -77,7 +77,6 @@ import { dashboardRouter } from "../modules/dashboard/router.js";
 import { lessonRouter } from "../modules/lesson/router.js";
 import { searchRouter } from "../modules/search/router.js";
 import { aiRouter } from "../modules/ai/router.js";
-import { companionRouter } from "../modules/companion/router.js";
 import { marketingRouter } from "../modules/marketing/router.js";
 import { snagsRouter } from "../modules/pmc/snags.js";
 import { siteInstructionsRouter } from "../modules/pmc/siteInstructions.js";
@@ -192,7 +191,6 @@ export const appRouter = router({
   aspRf: aspRfRouter,
   rewards: rewardRouter,
   ai: aiRouter,
-  companion: companionRouter,
   marketing: marketingRouter,
   snags: snagsRouter,
   siteInstructions: siteInstructionsRouter,

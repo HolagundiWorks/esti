@@ -98,7 +98,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
 export const PLAN_FEATURES = [
   "pmc", "costing", "revisionIntelligence", "gstFiling", "hr",
   "performance", "consultantPortal", "contractorPortal",
-  "ai", "aiByoApi", "byos", "esticad", "auditLog", "specCatalog",
+  "ai", "aiByoApi", "byos", "auditLog", "specCatalog",
   "sso", "apiAccess", "multiOffice", "whiteLabel",
 ] as const;
 /** @deprecated */
@@ -108,7 +108,7 @@ export type PlanFeature = (typeof PLAN_FEATURES)[number];
 const _FEATURE_MIN_PLAN: Record<PlanFeature, Plan> = {
   pmc: "LITE", costing: "LITE", revisionIntelligence: "LITE", gstFiling: "LITE",
   hr: "LITE", performance: "LITE", consultantPortal: "LITE", contractorPortal: "LITE",
-  ai: "LITE", aiByoApi: "LITE", byos: "LITE", esticad: "LITE", auditLog: "LITE",
+  ai: "LITE", aiByoApi: "LITE", byos: "LITE", auditLog: "LITE",
   specCatalog: "LITE", sso: "LITE", apiAccess: "LITE", multiOffice: "LITE",
   whiteLabel: "LITE",
 };

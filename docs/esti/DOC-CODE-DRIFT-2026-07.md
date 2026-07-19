@@ -145,7 +145,8 @@ UI entirely (materials/labour/items/brands/recipes), not just the estimation/CMS
 - `ai.run` is referenced in `CLAUDE.md`'s Ask OS pillar description
   (`docs/esti/UNIFIED-ARCHITECTURE-V4.md` pillar table) but the actual procedure the AI
   Studio page calls is `ai.generate`; `ai.generateCad` is real but only reachable from
-  the ESTICAD desktop companion, not the browser.
+  the ESTICAD desktop companion — which was dropped 2026-07-19, so no takeoff
+  surface exists in the product today.
 
 ---
 

@@ -60,7 +60,6 @@ export * from "./vendor.js";
 export * from "./nbc-compliance.js";
 export * from "./zonal-compliance/index.js";
 export * from "./list-limits.js";
-export * from "./companion.js";
 export * from "./trial-request.js";
 export * from "./account-profile.js";
 export * from "./workspace-profile.js";

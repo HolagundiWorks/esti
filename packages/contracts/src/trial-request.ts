@@ -34,7 +34,6 @@ export const TrialModuleInterest = z.enum([
   "TASKS_ASPRF",
   "PORTALS",
   "TENDERS",
-  "ESTICAD",
   "SELF_HOSTED",
 ]);
 

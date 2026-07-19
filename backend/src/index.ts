@@ -91,8 +91,8 @@ app.addHook("onRequest", (req, reply, done) => {
     void reply.code(403).send({ error: denial });
     return;
   }
-  // CORS for trusted cross-origin clients (ESTICAD companion, separate SPA
-  // origins). Same-origin web/VPS traffic sends no Origin, so this is inert.
+  // CORS for trusted cross-origin clients (separate SPA origins).
+  // Same-origin web/VPS traffic sends no Origin, so this is inert.
   const allowOrigin = corsAllowOrigin(req.headers.origin, allowedOrigins);
   if (allowOrigin) {
     reply

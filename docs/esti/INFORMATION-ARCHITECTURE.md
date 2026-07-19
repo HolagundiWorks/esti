@@ -207,7 +207,7 @@ is rebuilding as the Cost Management System.)*
 | **Accounts** | `invoices` (rollup), `reconcile`, `accounts`/cash book, `expenses` rollup, `reports` (GST/TDS filing), `purchaseOrders` rollup | single home for firm finance; invoices *raised* in-project, *filed* here |
 | **People** *(V3: Studio + Third Parties)* | `team`, `attendance`, `leaves`+`payroll` (HR), `workload`, performance (`aspRf`, `teamScores`, `rewards`) → Studio; `consultants` + `contractors` **directories** → Third Parties | the firm's roster + capability; engagements live in the project |
 | **Knowledge** | `knowledgeBank`, `specCatalog`, Construction Knowledge Bank (`kb`: Material/Labour/Item libraries, Specifications, Recipes), Lessons | **reference data**, not project instances |
-| **Admin / Governance** | `firm` (company), `users`, `settings`, `audit`, `system` (release), `companion` (ESTICAD devices), `marketing` | run the installation |
+| **Admin / Governance** | `firm` (company), `users`, `settings`, `audit`, `system` (release), `marketing` | run the installation |
 
 `health`, `profile` are public/infra — no nav home.
 

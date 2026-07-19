@@ -46,7 +46,6 @@ const MODULE_LABELS: Record<TrialRequestInput["interestedModules"][number], stri
   TASKS_ASPRF: "Tasks, workload & ASPRF",
   PORTALS: "Client & consultant portals",
   TENDERS: "Tender & contractor coordination",
-  ESTICAD: "ESTICAD desktop companion",
   SELF_HOSTED: "Self-hosted on our VPS",
 };
 

@@ -225,22 +225,10 @@ export const sessions = pgTable("esti_session", {
   createdAt: createdAt(),
 });
 
-/** ESTICAD / companion bearer tokens — refresh + short-lived access pairs. */
-export const deviceSessions = pgTable("esti_device_session", {
-  id: id(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  clientId: text("client_id").notNull().default("esticad"),
-  deviceName: text("device_name").notNull(),
-  refreshTokenHash: text("refresh_token_hash").notNull(),
-  accessTokenHash: text("access_token_hash").notNull(),
-  accessExpiresAt: timestamp("access_expires_at", { withTimezone: true }).notNull(),
-  refreshExpiresAt: timestamp("refresh_expires_at", { withTimezone: true }).notNull(),
-  revokedAt: timestamp("revoked_at", { withTimezone: true }),
-  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
-  createdAt: createdAt(),
-});
+// NOTE: the physical `esti_device_session` table (ESTICAD device bearer tokens)
+// is intentionally left in the database. ESTICAD was dropped 2026-07-19 and the
+// mapping removed here, but the table is not dropped by this change — do that in
+// a deliberate cleanup migration once you have confirmed no install needs the rows.
 
 export const clients = pgTable("esti_client", {
   id: id(),

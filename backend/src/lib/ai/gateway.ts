@@ -1,7 +1,5 @@
 import { callOllamaChat } from "@hcw/aorms-ai-kit/ollama";
-import type { AiCadContext, AiSettings } from "@esti/contracts";
-import { isCadAiDraftKind } from "@esti/contracts";
-import { assembleCadAiContext } from "./cad-context.js";
+import type { AiSettings } from "@esti/contracts";
 import { assembleAiContext, generateMockOutput } from "./context.js";
 import { ollamaBaseUrlFromEnv, ollamaModelFromEnv } from "./ollama-config.js";
 import type { DB } from "../../db/index.js";
@@ -14,8 +12,6 @@ export type GatewayInput = {
   drawingId?: string;
   prompt?: string;
   contextQuery?: string;
-  /** ESTICAD context bundle (Phase 13D). */
-  cadContext?: AiCadContext;
 };
 
 export type GatewayResult = {
@@ -103,18 +99,6 @@ async function callCloudChat(opts: {
   return { text: json.choices?.[0]?.message?.content ?? "", tokens: json.usage?.total_tokens ?? null };
 }
 
-function normalizeCadJsonOutput(text: string, fallbackJson: string): string {
-  try {
-    const parsed = JSON.parse(text) as { proposals?: unknown };
-    if (parsed && Array.isArray(parsed.proposals)) {
-      return JSON.stringify(parsed, null, 2);
-    }
-  } catch {
-    /* use fallback */
-  }
-  return fallbackJson;
-}
-
 export async function runAiGateway(
   db: DB,
   user: { id: string; role: string; email?: string; fullName?: string; isDemo?: boolean },
@@ -126,20 +110,7 @@ export async function runAiGateway(
   }
 
   const runtime = resolveRuntime(settings);
-  const bundle =
-    isCadAiDraftKind(input.kind) ?
-      await assembleCadAiContext(db, user, {
-        kind: input.kind,
-        projectId: input.projectId,
-        drawingId: input.drawingId,
-        prompt: input.prompt,
-        context: input.cadContext,
-      })
-    : await assembleAiContext(db, user, input);
-
-  const cadFallback = isCadAiDraftKind(input.kind) ?
-    (bundle as Awaited<ReturnType<typeof assembleCadAiContext>>).templateJson
-  : undefined;
+  const bundle = await assembleAiContext(db, user, input);
 
   if (runtime.mode === "cloud") {
     try {
@@ -151,7 +122,7 @@ export async function runAiGateway(
         user: bundle.userPrompt,
       });
       return {
-        output: cadFallback ? normalizeCadJsonOutput(text, cadFallback) : text,
+        output: text,
         sources: bundle.sources,
         promptSummary: bundle.promptSummary,
         provider: runtime.provider,
@@ -162,10 +133,7 @@ export async function runAiGateway(
     } catch (err) {
       const mock = await generateMockOutput(db, user, input);
       const hint = err instanceof Error ? err.message : "Cloud provider unavailable";
-      const output =
-        cadFallback ?
-          normalizeCadJsonOutput(mock.output, cadFallback)
-        : `${mock.output}\n\n---\n*Cloud provider fallback (${hint.slice(0, 120)})*`;
+      const output = `${mock.output}\n\n---\n*Cloud provider fallback (${hint.slice(0, 120)})*`;
       return {
         output,
         sources: mock.sources,
@@ -187,7 +155,7 @@ export async function runAiGateway(
         user: bundle.userPrompt,
       });
       return {
-        output: cadFallback ? normalizeCadJsonOutput(text, cadFallback) : text,
+        output: text,
         sources: bundle.sources,
         promptSummary: bundle.promptSummary,
         provider: runtime.provider,
@@ -199,10 +167,7 @@ export async function runAiGateway(
       const mock = await generateMockOutput(db, user, input);
       const hint =
         err instanceof Error ? err.message : "Ollama unavailable";
-      const output =
-        cadFallback ?
-          normalizeCadJsonOutput(mock.output, cadFallback)
-        : `${mock.output}\n\n---\n*Ollama fallback (${hint.slice(0, 120)})*`;
+      const output = `${mock.output}\n\n---\n*Ollama fallback (${hint.slice(0, 120)})*`;
       return {
         output,
         sources: mock.sources,
@@ -217,7 +182,7 @@ export async function runAiGateway(
 
   const mock = await generateMockOutput(db, user, input);
   return {
-    output: cadFallback ? normalizeCadJsonOutput(mock.output, cadFallback) : mock.output,
+    output: mock.output,
     sources: mock.sources,
     promptSummary: mock.promptSummary,
     provider: "mock",

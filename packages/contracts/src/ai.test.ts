@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   AI_DRAFT_KIND_LABEL,
   AiDraftKind,
-  isCadAiDraftKind,
   parseAiSettings,
   parseMomRevisionSuggestions,
 } from "./ai.js";
@@ -33,9 +32,8 @@ describe("ai contracts", () => {
     }
   });
 
-  it("identifies CAD draft kinds", () => {
-    expect(isCadAiDraftKind("CAD_NAMING")).toBe(true);
-    expect(isCadAiDraftKind("PROPOSAL")).toBe(false);
+  it("no longer exposes ESTICAD CAD draft kinds", () => {
+    expect(AiDraftKind.options.some((k) => k.startsWith("CAD_"))).toBe(false);
   });
 });
 

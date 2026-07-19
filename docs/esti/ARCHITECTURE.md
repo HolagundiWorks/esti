@@ -20,19 +20,14 @@ Fastify/TypeScript backend ---- PostgreSQL (system of record)
        |        +---- MinIO/S3 (content-addressed binaries)
        |
        +---- Redis Streams ---- Python worker (DXF, PDF, imports)
-
-ESTICAD (native Windows CAD, companion client)
-       |
-       | HTTPS device tokens + companion REST/tRPC adapter
-       v
-       (same Fastify backend — takeoff measurements, AI gateway)
 ```
+
+Every client is a browser — there are no desktop or companion clients
+(ESTICAD retired 2026-07-19).
 
 The TypeScript backend owns domain rules, authorization, state transitions,
 money/tax, numbering, audit, and activity. The Python worker owns no
-authoritative business state. ESTICAD owns local geometry only; takeoff
-measurements and CAD AI runs are authoritative in PostgreSQL via the `companion`
-tRPC namespace (device auth, `esticad://` deep links).
+authoritative business state.
 
 The same authority boundary applies to the AORMS cognition engine:
 deterministic TypeScript read models calculate office health and interventions,
@@ -146,17 +141,17 @@ AI providers are accessed through a backend gateway. Retrieval is permission
 filtered; prompts and outputs are auditable; secrets stay server-side; sensitive
 data transmission is explicit; output remains a draft until a human issues it.
 
-ESTICAD uses the same gateway for all CAD AI scenarios; it does not call Ollama locally.
+### Companion Clients (ESTICAD) — retired
 
-### Companion Clients (ESTICAD)
+ESTICAD, the native desktop CAD companion, was **dropped on 2026-07-19** with the
+rest of the desktop apps. Removed from the codebase: the `companion` tRPC
+namespace, device-token bearer auth (`esti_device_session`), the CAD AI draft
+kinds and `ai.generateCad`, drawing scale calibration (`drawings.setScale`), and
+the `esticad://` deep links.
 
-ESTICAD is a native desktop companion — not a second product database.
-
-- Authentication uses device tokens (bearer), not browser cookies.
-- Takeoff requires an active paying firm and staff `write` capability.
-- Measurements are stored only in `esti_measurement` with `source: ESTICAD` and world-coordinate geometry; no local measurement persistence in `.esti` files.
-- Takeoff catalog is server-published JSON aligned with `packages/contracts/src/takeoff.ts`.
-- CAD AI draft kinds extend `AiDraftKind`; runs are recorded in `esti_ai_run` with companion provenance.
+Residue left deliberately: the `esti_measurement` ESTICAD columns and the
+`esti_device_session` table are **not dropped** — inert without their writer, but
+existing rows are preserved until a deliberate cleanup migration.
 
 ## Operational Requirements
 

@@ -116,7 +116,7 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 | **3. Task OS** | Everyone's work surface — tasks (billable/work-type/difficulty dimensions), assignments, workload, attendance, ASPRF | `team`, `assignments`, `workload`, `attendance`, `aspRf`, `rewards`; `Work.tsx` hub | ◐ |
 | **4. Cost Management System** | Architect cost control from estimate to certified bill — unified CMS on the Construction Knowledge Bank foundation | `kb.*` (Construction Knowledge Bank — live); `cms.*` (CMS-1+2 live: Element spine, Estimate, BOQ, Final Estimation Set; CMS-3–8 planned). Office costing (`accounts`, `expenses`, `purchaseOrders`) stays live | ◐ |
 | **5. Portals** | External collaborators on the same OS, scoped + mobile-first | `portal` (client), `collab` (consultant), `contractorPortal` (token-scoped site coordination / view-only project access); `Portal.tsx`, `CollaboratorPortal.tsx`, `ContractorPortal.tsx` | ◐ |
-| **6. AI/ML/LLM extraction & decision support** | The intelligence under the pillars — takeoff/CAD extraction, reconciliation matching, cognition, risk notes | `companion` (ESTICAD takeoff), `ai.generateCad`, `reconcile` + worker (`dxf_to_svg`, `reconcile_import` via `pandas`), cognition engine | ◐ |
+| **6. AI/ML/LLM extraction & decision support** | The intelligence under the pillars — takeoff/CAD extraction, reconciliation matching, cognition, risk notes | `reconcile` + worker (`dxf_to_svg`, `reconcile_import` via `pandas`), cognition engine (ESTICAD takeoff and `ai.generateCad` retired 2026-07-19) | ◐ |
 
 ## Per-pillar: implemented vs needs-mapping vs needs-creation
 
@@ -155,7 +155,7 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 - **Staff workspace:** **AORMS-Studio** at `studio.aorms.in` — never called “AORMS portal” in product copy.
 
 ### 6. AI/ML/LLM extraction & decision support — ◐
-- **Implemented:** ESTICAD companion takeoff capture + linked drawings (`companion`), DXF→SVG conversion + AI CAD drafts, reconciliation import + matching (worker `reconcile_import`, `pandas`), dashboard cognition + risk signals.
+- **Implemented:** DXF→SVG conversion, reconciliation import + matching (worker `reconcile_import`, `pandas`), dashboard cognition + risk signals. (ESTICAD companion takeoff and AI CAD drafts were removed 2026-07-19 — no quantity takeoff surface exists today.)
 - **Needs creation:** extraction feeding the cost spine directly (takeoff → BOQ quantities), decision support attached to deviations/variations and fee defence, and a consistent "AI assist" pattern reused across pillars.
 
 ## Reading order for a new agent

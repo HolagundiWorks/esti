@@ -1,6 +1,5 @@
 import {
   ProjectListParams,
-  CompanionDrawingSetScale,
   DrawingSetReviewStatus,
   clampListLimit,
   drawingSourceKind,
@@ -11,7 +10,6 @@ import { z } from "zod";
 import { drawings } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { writeActivity } from "../../lib/activity.js";
-import { assertCompanionTakeoff } from "../../lib/companion/writeGate.js";
 import { firmPayload } from "../../lib/firm.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { getObjectBuffer, getObjectText, presignedGet } from "../../lib/storage.js";
@@ -177,42 +175,6 @@ export const drawingRouter = router({
         pageNo: 0,
       };
     }),
-
-  /** Drawing scale calibration — ESTICAD companion only (TOSCALE). */
-  setScale: protectedProcedure.input(CompanionDrawingSetScale).mutation(async ({ ctx, input }) => {
-    if (!ctx.deviceSessionId) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message:
-          "Drawing scale calibration is only available in ESTICAD. Open the drawing with Open in ESTICAD.",
-      });
-    }
-    await assertCompanionTakeoff(ctx);
-
-    const [before] = await ctx.db.select().from(drawings).where(eq(drawings.id, input.drawingId));
-    if (!before) throw new TRPCError({ code: "NOT_FOUND", message: "Drawing not found" });
-
-    const [row] = await ctx.db
-      .update(drawings)
-      .set({
-        scaleUnit: input.scaleUnit,
-        scaleUnitsPerVb: input.scaleFactor,
-        updatedAt: new Date(),
-      })
-      .where(eq(drawings.id, input.drawingId))
-      .returning();
-
-    await writeAudit(ctx.db, {
-      entity: "drawing",
-      entityId: input.drawingId,
-      action: "SET_SCALE_COMPANION",
-      actorId: ctx.user.id,
-      before: { scaleUnit: before.scaleUnit, scaleUnitsPerVb: before.scaleUnitsPerVb },
-      after: { scaleUnit: row!.scaleUnit, scaleUnitsPerVb: row!.scaleUnitsPerVb },
-    });
-
-    return row!;
-  }),
 
   /** All revised drawings (rev > 1) for a project — general revision feed. */
   recentRevisions: protectedProcedure

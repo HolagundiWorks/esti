@@ -38,7 +38,7 @@ export function corsAllowOrigin(
  * credentials — browsers can't attach a cross-origin `Authorization` header
  * without a CORS preflight this allow-list already governs — so it's exempt.
  * Without this, server-to-server machine calls (a firm node hitting
- * `/platform/v1/*`, the ESTICAD device API) send no Origin and were 403'd.
+ * `/platform/v1/*`, firm nodes) send no Origin and were 403'd.
  */
 export function originDenial(
   method: string,

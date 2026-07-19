@@ -62,7 +62,6 @@ function caller(authUser: AuthUser | null) {
   return authorizationRouter.createCaller({
     db: dbStub,
     user: authUser,
-    deviceSessionId: null,
     ip: "127.0.0.1",
     requestId: "test-request",
     sessionToken: undefined,

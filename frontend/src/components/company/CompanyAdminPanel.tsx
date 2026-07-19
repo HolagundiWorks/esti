@@ -21,7 +21,6 @@ import { AiStudioSettingsPanel } from "./AiStudioSettingsPanel.js";
 import { LicensePanel } from "./LicensePanel.js";
 import { MigrationPanel } from "./MigrationPanel.js";
 import { StorageSettingsPanel } from "./StorageSettingsPanel.js";
-import { ConnectedDevicesPanel } from "./ConnectedDevicesPanel.js";
 import { DataTools } from "./DataTools.js";
 import { EscalationSettingsPanel } from "./EscalationSettingsPanel.js";
 import { ReleaseMetadataPanel } from "./ReleaseMetadataPanel.js";
@@ -239,7 +238,6 @@ export function CompanyAdminPanel() {
         {isOwner && <UploadSecurityPanel />}
         {isOwner && !user?.isDemo && <AiStudioSettingsPanel />}
         {isOwner && <StorageSettingsPanel />}
-        {isOwner && <ConnectedDevicesPanel />}
         {isOwner && <ReleaseMetadataPanel />}
         {isOwner && <DataTools />}
       </Stack>
