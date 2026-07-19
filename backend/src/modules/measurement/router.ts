@@ -715,14 +715,18 @@ export const measurementRouter = router({
         /**
          * An AREA marker measures the polygon it encloses, so its quantity
          * cannot come from L x B — an L-shaped room's bounding box is bigger
-         * than the room. Use the stored enclosed area (mm² -> SQM) directly,
-         * and only fall back to the dimensional derivation when the shape
-         * enclosed nothing (an open polyline, say), so a bad shape reports 0
-         * rather than a plausible-looking wrong number.
+         * than the room.
+         *
+         * It must NEVER fall through to the dimensional derivation either. For a
+         * closed shape `dimsFromGeometry` sets lengthMm to the *perimeter*, so
+         * "LB" would multiply perimeter by the bounding width: a 10x10 m shape
+         * would report ~483 SQM instead of ~50. A shape that encloses nothing
+         * (an open polyline, or a self-intersecting bowtie that cancels to zero)
+         * yields 0 here, which reads as obviously wrong rather than plausible.
          */
         const quantity =
-          markup.markerKind === "AREA" && markup.areaMm2 != null && markup.areaMm2 > 0
-            ? Math.round((markup.areaMm2 / 1_000_000) * (markup.count || 1) * 1000) / 1000
+          markup.markerKind === "AREA"
+            ? Math.round(((markup.areaMm2 ?? 0) / 1_000_000) * (markup.count || 1) * 1000) / 1000
             : deriveMeasurementQuantity({
                 measureKind,
                 uom,

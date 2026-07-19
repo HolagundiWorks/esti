@@ -138,13 +138,19 @@ export function measurementQuantity(
 /**
  * The measurement book and the estimate sheet model quantities differently:
  * the book stores integer millimetres with a MeasurementUom (RMT/SQM/CUM/NOS...)
- * and derives a rounded SI quantity; the estimate sheet stores float dimensions
- * and classifies the item's free-text `unit` into a MeasureShape.
+ * and derives a rounded SI quantity; the estimate sheet stores a free-text
+ * `unit` string.
  *
- * Rather than re-deriving through the second model (which would round twice and
- * could silently disagree), the import carries the book's already-derived
- * quantity across and only checks that the two units describe the *same kind of
- * measure*. A mismatch is refused, never converted.
+ * The import carries the book's derived quantity across **unconverted**, so the
+ * two units must be the *same unit* — not merely the same kind of measure.
+ * Comparing MeasureShape is not enough: `shapeForUnit` maps both "sqm" and
+ * "sqft" to AREA (Indian BOQs use both), so a shape check would happily import
+ * 100 SQM onto a ₹/sqft item and understate it by 10.76x. Likewise KG onto MT
+ * (1000x) and CUM onto cft (35.3x).
+ *
+ * So each MeasurementUom lists the item-unit spellings that mean exactly it.
+ * Anything else is refused with a message naming both units. No conversion is
+ * attempted: guessing between rate bases is how estimates go quietly wrong.
  */
 export const MEASUREMENT_UOM_SHAPE: Record<string, MeasureShape> = {
   RMT: "LENGTH",
@@ -155,20 +161,37 @@ export const MEASUREMENT_UOM_SHAPE: Record<string, MeasureShape> = {
   LTR: "WEIGHT",
 };
 
+/** Item-unit spellings that denote exactly the same unit as each MeasurementUom. */
+const UOM_EQUIVALENT_UNITS: Record<string, readonly string[]> = {
+  RMT: ["rmt", "rm", "rmtr", "m", "mt", "mtr", "metre", "meter", "runningmetre", "runningmeter"],
+  SQM: ["sqm", "sqmt", "sqmtr", "sqmtrs", "m2", "sm", "squaremetre", "squaremeter"],
+  CUM: ["cum", "cumt", "cumtr", "m3", "cbm", "cubicmetre", "cubicmeter"],
+  NOS: ["nos", "no", "num", "number", "each", "ea", "pcs", "pc", "piece", "count", "job", "set"],
+  KG: ["kg", "kgs", "kilogram", "kilograms", "kilo"],
+  LTR: ["ltr", "l", "lit", "litre", "liter", "litres", "liters"],
+};
+
 /**
  * Null when a measurement-book row may be imported onto an estimate item;
  * otherwise a human-readable reason to show the user.
  */
 export function measurementImportError(rowUom: string, itemUnit: string): string | null {
-  const rowShape = MEASUREMENT_UOM_SHAPE[rowUom.toUpperCase()];
+  const uom = rowUom.toUpperCase();
+  const rowShape = MEASUREMENT_UOM_SHAPE[uom];
   if (!rowShape) return `Unsupported measurement unit "${rowUom}".`;
+
+  const normalised = normaliseUnit(itemUnit);
+  if (!normalised) return `The estimate item has no unit — set one before importing.`;
+
+  if (UOM_EQUIVALENT_UNITS[uom]?.includes(normalised)) return null;
+
+  // Same kind of measure but a different unit is the dangerous case: the
+  // quantity would look plausible and be wrong by a conversion factor.
   const itemShape = shapeForUnit(itemUnit);
-  // LUMPSUM items take any quantity as a direct figure.
-  if (itemShape === "LUMPSUM") return null;
-  if (itemShape !== rowShape) {
-    return `Unit mismatch: the measurement is ${rowUom} (${rowShape.toLowerCase()}) but the estimate item is "${itemUnit}" (${itemShape.toLowerCase()}). Import refused — fix the item unit or the measurement.`;
+  if (itemShape === rowShape) {
+    return `Unit mismatch: the measurement is in ${rowUom} but the estimate item is priced per "${itemUnit}". Both measure ${rowShape.toLowerCase()}, but importing would carry the figure across unconverted. Import refused — price the item per ${rowUom.toLowerCase()}, or re-measure in the item's unit.`;
   }
-  return null;
+  return `Unit mismatch: the measurement is ${rowUom} (${rowShape.toLowerCase()}) but the estimate item is "${itemUnit}" (${itemShape.toLowerCase()}). Import refused — fix the item unit or the measurement.`;
 }
 
 // --- Estimate totals (mirrors EstimateCalculator::totals) ---

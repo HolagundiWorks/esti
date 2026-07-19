@@ -14,13 +14,14 @@ import {
   shapeForUnit,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "../../db/index.js";
 import {
   estimateItems,
   estimateMeasurements,
   estimates,
+  measurementBooks,
   measurementRows,
   rateBooks,
 } from "../../db/schema.js";
@@ -33,15 +34,36 @@ import { capabilityProcedure, router } from "../../trpc/trpc.js";
 // Estimates carry firm costing (rates, contingency) — same gate as fee proposals.
 const manage = capabilityProcedure("fees:manage");
 
-/** Sums an item's measurement lines and updates its quantity/amount to match. */
-async function recomputeItemFromMeasurements(db: DB, estimateItemId: string): Promise<void> {
+/**
+ * Sums an item's measurement lines and updates its quantity/amount to match.
+ *
+ * `emptiedByDelete` tells us a line was just removed, so zero lines means the
+ * measured quantity is genuinely zero — as opposed to an item that never had
+ * lines, whose hand-typed quantity must be left alone.
+ */
+async function recomputeItemFromMeasurements(
+  db: DB,
+  estimateItemId: string,
+  opts?: { emptiedByDelete?: boolean },
+): Promise<void> {
   const [item] = await db.select().from(estimateItems).where(eq(estimateItems.id, estimateItemId));
   if (!item) return;
   const lines = await db
     .select({ quantity: estimateMeasurements.quantity })
     .from(estimateMeasurements)
     .where(eq(estimateMeasurements.estimateItemId, estimateItemId));
-  if (lines.length === 0) return; // no measurement lines — manual quantity stays authoritative
+  // No lines left. An item that never had any keeps its manually-typed
+  // quantity; an item whose last line was just deleted must fall to zero, or
+  // deleting a wrongly-measured wall leaves its money in the estimate. The
+  // caller knows which case it is, so it says so rather than us guessing.
+  if (lines.length === 0) {
+    if (!opts?.emptiedByDelete) return;
+    await db
+      .update(estimateItems)
+      .set({ quantity: 0, amountPaise: 0, updatedAt: new Date() })
+      .where(eq(estimateItems.id, estimateItemId));
+    return;
+  }
   // Round the total to 3 dp, the same precision the measurement book derives at.
   // Without this, summing 3-dp line quantities surfaces float drift on the item
   // (e.g. 25.2 + 18.6 + 12.3 -> 56.099999999999994) and in the printed abstract.
@@ -300,75 +322,111 @@ export const estimateRouter = router({
         .where(eq(estimateItems.id, input.estimateItemId));
       if (!item) throw new TRPCError({ code: "NOT_FOUND", message: "Estimate item not found" });
 
+      // The item's estimate and the rows' books must belong to the same
+      // project — otherwise one project's measured quantities can be priced
+      // into another's estimate, which the audit log would record as legitimate.
+      const [estimate] = await ctx.db
+        .select({ projectId: estimates.projectId })
+        .from(estimates)
+        .where(eq(estimates.id, item.estimateId));
+      if (!estimate) throw new TRPCError({ code: "NOT_FOUND", message: "Estimate not found" });
+
       const rows = await ctx.db
-        .select()
+        .select({
+          id: measurementRows.id,
+          particulars: measurementRows.particulars,
+          lengthMm: measurementRows.lengthMm,
+          breadthMm: measurementRows.breadthMm,
+          heightMm: measurementRows.heightMm,
+          quantity: measurementRows.quantity,
+          uom: measurementRows.uom,
+          projectId: measurementBooks.projectId,
+        })
         .from(measurementRows)
+        .innerJoin(measurementBooks, eq(measurementBooks.id, measurementRows.bookId))
         .where(inArray(measurementRows.id, input.measurementRowIds));
       if (rows.length === 0) {
         throw new TRPCError({ code: "NOT_FOUND", message: "No measurement rows found" });
       }
 
-      // Refuse the whole batch on any unit mismatch — a partial import would
-      // leave a silently wrong quantity on the item.
+      // Validate the whole batch first — a partial import would leave a
+      // silently wrong quantity on the item.
       for (const r of rows) {
+        if (r.projectId !== estimate.projectId) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `"${r.particulars}" belongs to a different project than this estimate.`,
+          });
+        }
         const err = measurementImportError(r.uom, item.unit);
         if (err) throw new TRPCError({ code: "BAD_REQUEST", message: `"${r.particulars}": ${err}` });
       }
 
-      const existing = await ctx.db
-        .select({ id: estimateMeasurements.id, rowId: estimateMeasurements.sourceMeasurementRowId })
-        .from(estimateMeasurements)
-        .where(eq(estimateMeasurements.estimateItemId, input.estimateItemId));
-      const bySourceRow = new Map(
-        existing.filter((e) => e.rowId).map((e) => [e.rowId as string, e.id]),
-      );
+      // One transaction: N line writes plus the item recompute have to land
+      // together, or the sheet shows lines the item's quantity ignores.
+      const { created, updated } = await ctx.db.transaction(async (tx) => {
+        const existing = await tx
+          .select({ rowId: estimateMeasurements.sourceMeasurementRowId })
+          .from(estimateMeasurements)
+          .where(eq(estimateMeasurements.estimateItemId, input.estimateItemId));
+        const alreadyLinked = new Set(existing.map((e) => e.rowId).filter(Boolean) as string[]);
 
-      const maxSort = await ctx.db
-        .select({ n: estimateMeasurements.sortOrder })
-        .from(estimateMeasurements)
-        .where(eq(estimateMeasurements.estimateItemId, input.estimateItemId))
-        .orderBy(desc(estimateMeasurements.sortOrder))
-        .limit(1);
-      let sort = (maxSort[0]?.n ?? 0) + 10;
+        const maxSort = await tx
+          .select({ n: estimateMeasurements.sortOrder })
+          .from(estimateMeasurements)
+          .where(eq(estimateMeasurements.estimateItemId, input.estimateItemId))
+          .orderBy(desc(estimateMeasurements.sortOrder))
+          .limit(1);
+        let sort = (maxSort[0]?.n ?? 0) + 10;
 
-      let created = 0;
-      let updated = 0;
-      for (const r of rows) {
-        // mm → m for display; quantity itself comes from the book unchanged.
-        const line = {
-          description: r.particulars,
-          nos: 1,
-          length: (r.lengthMm ?? 0) / 1000,
-          breadth: (r.breadthMm ?? 0) / 1000,
-          depth: (r.heightMm ?? 0) / 1000,
-          quantity: r.quantity,
-        };
-        const existingId = bySourceRow.get(r.id);
-        if (existingId) {
-          await ctx.db
-            .update(estimateMeasurements)
-            .set(line)
-            .where(eq(estimateMeasurements.id, existingId));
-          updated += 1;
-        } else {
-          await ctx.db.insert(estimateMeasurements).values({
-            ...line,
-            estimateItemId: input.estimateItemId,
-            sortOrder: sort,
-            sourceMeasurementRowId: r.id,
-          });
+        let c = 0;
+        let u = 0;
+        for (const r of rows) {
+          // mm → m for display; quantity itself comes from the book unchanged.
+          const line = {
+            description: r.particulars,
+            nos: 1,
+            length: (r.lengthMm ?? 0) / 1000,
+            breadth: (r.breadthMm ?? 0) / 1000,
+            depth: (r.heightMm ?? 0) / 1000,
+            quantity: r.quantity,
+          };
+          if (alreadyLinked.has(r.id)) u += 1;
+          else c += 1;
+          // Upsert on the (item, source row) unique index rather than
+          // read-then-write, so two concurrent imports cannot collide.
+          await tx
+            .insert(estimateMeasurements)
+            .values({
+              ...line,
+              estimateItemId: input.estimateItemId,
+              sortOrder: sort,
+              sourceMeasurementRowId: r.id,
+            })
+            .onConflictDoUpdate({
+              target: [
+                estimateMeasurements.estimateItemId,
+                estimateMeasurements.sourceMeasurementRowId,
+              ],
+              // The unique index is partial (…WHERE source_measurement_row_id
+              // IS NOT NULL), so Postgres only infers it as the arbiter when
+              // the predicate is repeated here.
+              targetWhere: isNotNull(estimateMeasurements.sourceMeasurementRowId),
+              set: line,
+            });
           sort += 10;
-          created += 1;
         }
-      }
 
-      await recomputeItemFromMeasurements(ctx.db, input.estimateItemId);
+        await recomputeItemFromMeasurements(tx, input.estimateItemId);
+        return { created: c, updated: u };
+      });
+
       await writeAudit(ctx.db, {
         entity: "estimate_item",
         entityId: input.estimateItemId,
         action: "IMPORT_MEASUREMENTS",
         actorId: ctx.user.id,
-        after: { created, updated, rowIds: input.measurementRowIds },
+        after: { created, updated, rowIds: rows.map((r) => r.id) },
       });
       return { ok: true as const, created, updated };
     }),
@@ -377,7 +435,7 @@ export const estimateRouter = router({
     .input(z.object({ id: z.string().uuid(), estimateItemId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.db.delete(estimateMeasurements).where(eq(estimateMeasurements.id, input.id));
-      await recomputeItemFromMeasurements(ctx.db, input.estimateItemId);
+      await recomputeItemFromMeasurements(ctx.db, input.estimateItemId, { emptiedByDelete: true });
       return { ok: true };
     }),
 });

@@ -25,8 +25,35 @@ describe("measurementImportError (browser takeoff → estimate)", () => {
     expect(measurementImportError("NOS", "rmt")).toContain("Unit mismatch");
   });
 
-  it("accepts any measure onto a lumpsum item", () => {
-    expect(measurementImportError("SQM", "LS")).toBeNull();
+  // The dangerous case: same kind of measure, different unit. A shape-only
+  // check passes these and the figure lands unconverted — sqm onto a per-sqft
+  // rate understates by 10.76x, kg onto MT by 1000x.
+  it("refuses same-shape units that would need converting", () => {
+    for (const [uom, unit] of [
+      ["SQM", "sqft"],
+      ["SQM", "sft"],
+      ["CUM", "cft"],
+      ["CUM", "brass"],
+      ["RMT", "rft"],
+      ["KG", "MT"],
+      ["KG", "quintal"],
+      ["LTR", "kg"],
+    ] as const) {
+      const err = measurementImportError(uom, unit);
+      expect(err, `${uom} -> ${unit} must be refused`).toContain("refused");
+      expect(err).toContain("unconverted");
+    }
+  });
+
+  it("does NOT wave everything through onto a lumpsum item", () => {
+    // Summing sqm + cum + kg into one lumpsum figure is meaningless.
+    expect(measurementImportError("SQM", "LS")).toContain("refused");
+    expect(measurementImportError("CUM", "lumpsum")).toContain("refused");
+  });
+
+  it("refuses an item with no unit rather than guessing", () => {
+    expect(measurementImportError("SQM", "")).toContain("no unit");
+    expect(measurementImportError("SQM", "  ")).toContain("no unit");
   });
 
   it("rejects an unknown measurement unit", () => {
