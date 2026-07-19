@@ -39,7 +39,7 @@
 | [P1](#p1--licence--migration-active) | ACTIVE licence · retire tier enums | P0 | ✅ | autopilot |
 | [P2](#p2--storage-metering-5gb-default) | Storage metering · 5 GB default | P0 | ✅ | autopilot |
 | [P3](#p3--ai-meter--byo-api-key) | AI usage meter · BYO API key | P1 | ✅ | autopilot |
-| [P4](#p4--remove-community--all-desktop-apps) | Remove Community + **all** desktop apps | P1 | 🔄 | autopilot |
+| [P4](#p4--remove-community--all-desktop-apps) | Remove Community + **all** desktop apps | P1 | 🔄 code done; marketing copy pending | autopilot |
 | ~~P5~~ | ~~Estimate desktop auth~~ — **cancelled 2026-07-19** (web-only) | — | ❌ | — |
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
 | [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | 🔄 | autopilot |
@@ -119,14 +119,19 @@
 
 | # | Task | Status |
 |---|------|--------|
-| P4.1 | Delete `desktop/` (Tauri Manager) + `.github/workflows/desktop.yml` | ⬜ |
+| P4.1 | Delete `desktop/` (Tauri Manager) + `.github/workflows/desktop.yml` | ✅ 2026-07-19 |
 | P4.2 | Drop `marketing.desktopInstallers` API | ✅ | Endpoint removed; `/download` redirects to wiki |
 | P4.3 | Remove `ESTI_EDITION=COMMUNITY` first-run seed path (or repurpose) | ✅ 2026-07-18 — `ESTI_EDITION` env removed; `seedCommunity.ts` + `lanInstance.ts` deleted; backup-code recovery kept (`lib/backupCode.ts`); `auth.runtime.edition` pinned `"STANDARD"` |
 | P4.4 | Delete/disable `seedCommunity.ts` appliance docs | ✅ 2026-07-18 — no appliance docs remain; PLANS-AND-TIERS keeps only the retirement/migration notice |
 | P4.5 | Download page | ✅ `/download` redirects to `/` — permanent, nothing to download |
-| P4.6 | Remove `env.DESKTOP` / `IS_DESKTOP` + desktop-token plumbing | ⬜ |
-| P4.7 | Purge desktop install/download plumbing: `deploy/fetch-installers.sh`, `VITE_*_DOWNLOAD_URL`, `INSTALLER_REPO`, `@tauri-apps/api`, `frontend/public/manager.html` | ⬜ |
-| P4.8 | Correct docs + published marketing copy claiming a desktop app | ⬜ |
+| P4.6 | Remove `env.DESKTOP` / `IS_DESKTOP` + desktop-token plumbing | ✅ 2026-07-19 — `api-base.ts` collapsed to same-origin; `auth.runtime.desktop`/`mode` kept as deprecated constants so stale clients still parse |
+| P4.7 | Purge desktop install/download plumbing: `deploy/fetch-installers.sh`, `VITE_*_DOWNLOAD_URL`, `INSTALLER_REPO`, `@tauri-apps/api`, `frontend/public/manager.html` | ✅ 2026-07-19 |
+| P4.8 | Correct docs + published marketing copy claiming a desktop app | 🔄 docs done; **LinkedIn/Instagram campaigns bannered STALE, not rewritten** — replacement copy needs a pricing/positioning decision |
+
+**Behaviour changes shipped with P4.6** (deliberate, both desktop-only paths):
+`bootstrap` and self-`register` are now unconditionally refused in production
+(a desktop build could previously bypass that; the install seed is the supported
+path), and `licenseState.blocked` no longer excepts DESKTOP installs.
 
 **Keep (not desktop):** `FIRM_PLAN` / `applyFirmPlanFromEnv` — dual-purpose, the
 surviving consumer is the **self-hosted VPS installer** (`deploy/`).
@@ -216,6 +221,7 @@ P5 (Estimate desktop auth) — CANCELLED 2026-07-19, web-only
 |------|--------|
 | 2026-07-18 | Status audit vs code: P1/P2/P6 detail rows ticked (shipped but never checked off); P3 and P4 downgraded ✅→🔄 (BYO key unwired; desktop Manager + `ESTI_EDITION` still present); P5 marked blocked — `estimate/` app absent from repo. |
 | 2026-07-18 | P4.3/P4.4 shipped: Community edition code removed (`ESTI_EDITION`, `seedCommunity.ts`, `lanInstance.ts`, portal-login refusal); backup-code recovery kept via `lib/backupCode.ts`. P4.5 confirmed (no download page). Remaining P4: Manager teardown (P4.1 + P4.6). |
+| 2026-07-19 | P4.1/P4.6/P4.7 shipped: `desktop/` (26 files), `desktop.yml`, `fetch-installers.sh`, `manager.html`, `env.DESKTOP`, `IS_DESKTOP` + bearer-token plumbing, `@tauri-apps/api`, and all `VITE_*_DOWNLOAD_URL`/`INSTALLER_REPO` removed. Verified with a real browser login through tenant-select into the workspace on cookie auth. |
 | 2026-07-19 | **Product direction: web-only — no desktop apps.** P5 (Estimate desktop auth) cancelled outright; P4 widened to remove every desktop artifact (Manager/Tauri, installers, download plumbing, `env.DESKTOP`/`IS_DESKTOP`). PLANS-AND-TIERS updated: the licence table now states "Desktop: None". `FIRM_PLAN` explicitly retained — the VPS installer, not the desktop app, is its surviving consumer. ESTICAD (native CAD companion) deliberately left out of scope. |
 | 2026-07-19 | P7.1 shipped: `admin.dashboard.usage` (storage used/quota incl. add-on, hosted AI tokens) + "Metered usage" panel on the platform-admin dashboard. Stale-month token counters correctly report 0, matching the AI router's lazy reset. Verified via tRPC caller against real rows (current/stale/null month) with admin, non-admin, and anonymous contexts. Documented the single-tenant scope limit that blocks P7.2. |
 | 2026-07-18 | P3 complete: BYO key now sealed at rest (AES-256-GCM, `lib/secretBox.ts`, keyed from `SESSION_SECRET`); fixed boot bug where `ensureOllamaAiSettings` wiped firm cloud config + key on every backend restart; stale Enterprise-only gate removed from `ai.setSettings`. E2E verified: key sealed in DB (`enc:v1:…`), survives restart, redacted from reads. |
