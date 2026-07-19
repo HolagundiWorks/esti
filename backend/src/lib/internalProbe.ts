@@ -12,7 +12,7 @@ function isLoopback(ip: string): boolean {
 
 /** Whether `/readyz` may be served to this caller (production hardening). */
 export function readyzAllowed(req: FastifyRequest): boolean {
-  if (env.NODE_ENV !== "production" || env.DESKTOP) return true;
+  if (env.NODE_ENV !== "production") return true;
   if (isLoopback(req.ip)) return true;
   const token = env.READYZ_PROBE_TOKEN;
   if (token && req.headers["x-readyz-token"] === token) return true;

@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { Link as RouterLink, useNavigate, useSearchParams } from "react-router-dom";
-import { IS_DESKTOP, setDesktopToken } from "../lib/api-base.js";
 import { login as platformLogin } from "../platform-admin/lib/auth.js";
 import { trpc } from "../lib/trpc.js";
 import { AuthBrandBlock } from "../components/AormsLogo.js";
@@ -70,12 +69,6 @@ export function Login() {
   }, []);
 
   async function afterLogin(data: unknown) {
-    setDesktopToken((data as { token?: string }).token);
-    if (IS_DESKTOP) {
-      await utils.auth.me.invalidate();
-      navigate("/", { replace: true });
-      return;
-    }
     setCompanies((data as { companies?: CompanyOption[] }).companies ?? []);
   }
 
@@ -157,11 +150,9 @@ export function Login() {
             </p>
           ) : (
             <p className="esti-label esti-label--secondary">
-              {IS_DESKTOP
-                ? `${AORMS_STUDIO.title} · sign in with your studio account.`
-                : PUBLIC_SITE
-                  ? `${AORMS_STUDIO.title} — your architecture consultancy workspace.`
-                  : "Sign in, then choose your workspace, account, or company."}
+              {PUBLIC_SITE
+                ? `${AORMS_STUDIO.title} — your architecture consultancy workspace.`
+                : "Sign in, then choose your workspace, account, or company."}
             </p>
           )}
         </Stack>
@@ -335,7 +326,7 @@ export function Login() {
                 </Button>
               ) : (
                 <Button component={RouterLink} to="/signup" variant="text" size="small">
-                  {IS_DESKTOP ? "First time? Set up your studio" : "Create account"}
+                  Create account
                 </Button>
               )}
             </div>

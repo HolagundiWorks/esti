@@ -1,6 +1,5 @@
 import { Button, Stack, Typography } from "@mui/material";
 import { ExternalPortalShell } from "../components/portal/ExternalPortalShell.js";
-import { setDesktopToken } from "../lib/api-base.js";
 import { trpc } from "../lib/trpc.js";
 import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 
@@ -9,10 +8,7 @@ export function ContractorPortalStub() {
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({
     meta: { errorTitle: "Couldn't sign out" },
-    onSuccess: () => {
-      setDesktopToken(null);
-      return utils.auth.me.invalidate();
-    },
+    onSuccess: () => utils.auth.me.invalidate(),
   });
 
   return (

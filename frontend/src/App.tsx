@@ -46,7 +46,6 @@ import { isLandingSlug } from "./lib/landing-slugs.js";
 import { detectSurface, isAdminHost, legacySubdomainRedirectUrl } from "./lib/aorms-surface-urls.js";
 import { WIKI_PATH } from "./lib/wiki-url.js";
 import { useAuth } from "./lib/auth.js";
-import { setDesktopToken } from "./lib/api-base.js";
 import { trpc } from "./lib/trpc.js";
 import { LegacyModuleRedirect } from "./components/LegacyModuleRedirect.js";
 import { AiAgentCommand } from "./components/AiAgentCommand.js";
@@ -213,10 +212,7 @@ function AppShell() {
   const publicMarketing = PUBLIC_SITE && (surface === "platform" || surface === "unknown");
   const utils = trpc.useUtils();
   const logout = trpc.auth.logout.useMutation({
-    onSuccess: () => {
-      setDesktopToken(null);
-      return utils.auth.me.invalidate();
-    },
+    onSuccess: () => utils.auth.me.invalidate(),
   });
   // Only staff read settings; portal users (CLIENT, CONTRACTOR) never reach this query.
   const settingsQ = trpc.settings.get.useQuery(undefined, {

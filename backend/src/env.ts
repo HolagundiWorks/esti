@@ -26,8 +26,6 @@ const Env = z.object({
    * the Python worker; "inproc" (desktop) runs an in-process stub runner.
    */
   WORKER_MODE: z.enum(["redis", "inproc"]).default("redis"),
-  /** When true (native desktop build), loopback HTTP + generated secrets are allowed. */
-  DESKTOP: envBool(),
   /**
    * Product edition. COMMUNITY = the free, offline, LAN-only appliance: no
    * licence, no online/hub, no AI, no external portals, a single admin + 3 staff.
@@ -121,8 +119,6 @@ const Env = z.object({
   DEMO_MIDNIGHT_RESET: envBool(true),
   /** Optional shared secret for external uptime probes (`X-Readyz-Token` header). */
   READYZ_PROBE_TOKEN: z.string().default(""),
-  /** Legacy: owner/repo for `deploy/fetch-installers.sh` (retired `/download` portal). */
-  INSTALLER_REPO: z.string().default("HolagundiWorks/esti"),
   /** Optional GitHub token to raise the unauthenticated 60/hr release-API limit. */
   GITHUB_TOKEN: z.string().default(""),
 });
@@ -136,10 +132,6 @@ const DEV_DATABASE_PREFIX = "postgres://esti:esti@";
 /** Reject known dev defaults when running in production. */
 export function assertProductionSecrets(config: Env): void {
   if (config.NODE_ENV !== "production") return;
-  // The native desktop build runs the backend on loopback HTTP with per-install
-  // generated secrets and a filesystem store — the prod-secret asserts (which assume
-  // a public TLS deployment with MinIO) don't apply.
-  if (config.DESKTOP) return;
 
   if (config.SESSION_SECRET === DEV_SESSION_SECRET || config.SESSION_SECRET.includes("change-me")) {
     throw new Error("SESSION_SECRET must be set to a strong unique value in production");

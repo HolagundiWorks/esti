@@ -91,9 +91,8 @@ app.addHook("onRequest", (req, reply, done) => {
     void reply.code(403).send({ error: denial });
     return;
   }
-  // CORS for trusted cross-origin clients — the desktop webview (tauri://localhost)
-  // is cross-origin to the loopback backend, so fetch() needs these headers + a
-  // preflight response. Same-origin web/VPS traffic sends no Origin, so this is inert.
+  // CORS for trusted cross-origin clients (ESTICAD companion, separate SPA
+  // origins). Same-origin web/VPS traffic sends no Origin, so this is inert.
   const allowOrigin = corsAllowOrigin(req.headers.origin, allowedOrigins);
   if (allowOrigin) {
     reply
@@ -141,7 +140,7 @@ try {
   process.exit(1);
 }
 
-// Licence-free plan pin (desktop LITE / self-hosted firm). No-op when FIRM_PLAN unset.
+// Licence-free plan pin for self-hosted VPS installs. No-op when FIRM_PLAN unset.
 try {
   await applyFirmPlanFromEnv(db);
 } catch (err) {
@@ -250,22 +249,6 @@ void ensureBucketWithRetry()
 
 await app.register(cookie, { secret: env.SESSION_SECRET });
 
-// Desktop auth: the Tauri webview's origin (tauri://localhost) is cross-origin to
-// the loopback backend, so SameSite cookies aren't sent. The desktop SPA instead
-// sends the session token as `Authorization: Bearer`. This shim (desktop only,
-// runs after cookie parsing) copies it into the cookie slot so the tRPC context,
-// every upload route, and the /files route resolve it via the unchanged cookie path.
-if (env.DESKTOP) {
-  app.addHook("onRequest", async (req) => {
-    const h = req.headers.authorization;
-    if (h?.startsWith("Bearer ")) {
-      const token = h.slice(7).trim();
-      const r = req as unknown as { cookies?: Record<string, string> };
-      r.cookies = { ...(r.cookies ?? {}), [SESSION_COOKIE]: token };
-    }
-  });
-}
-
 await app.register(multipart, { limits: { fileSize: DRAWING_MAX_BYTES, files: 1 } });
 registerDrawingUpload(app);
 registerReconcileUpload(app);
@@ -292,10 +275,10 @@ await app.register(fastifyTRPCPlugin, {
 // /platform/v1/*, and its own tRPC at /platform/trpc (separate Google session).
 await registerLicensingPlatform(app);
 
-// Serve filesystem-stored objects on desktop (STORAGE_DRIVER=fs). On S3 the SPA
-// fetches presigned URLs directly from MinIO, so this route is only meaningful on
-// desktop, but it's harmless to register either way. Auth: signed-in user with
-// firm- or portal-scoped key ownership (see storageAccess.ts).
+// Serve filesystem-stored objects when STORAGE_DRIVER=fs. On S3 the SPA fetches
+// presigned URLs directly from MinIO, so this route is inert there, but it is
+// harmless to register either way. Auth: signed-in user with firm- or
+// portal-scoped key ownership (see storageAccess.ts).
 const FILE_MIME: Record<string, string> = {
   ".pdf": "application/pdf",
   ".svg": "image/svg+xml",

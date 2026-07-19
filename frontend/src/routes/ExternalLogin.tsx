@@ -6,7 +6,6 @@ import { AORMS_PORTALS } from "../lib/product-nomenclature.js";
 import { AuthBrandBlock } from "../components/AormsLogo.js";
 import { AuthRailLayout } from "../components/AuthRailLayout.js";
 import { PublicAuthStageLayout } from "../components/PublicAuthStageLayout.js";
-import { setDesktopToken } from "../lib/api-base.js";
 import { AUTH_PAGE_SEO, applyPublicPageSeo } from "../lib/public-page-seo.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -24,8 +23,7 @@ export function ExternalLogin() {
 
   const login = trpc.auth.login.useMutation({
     meta: { errorTitle: "Couldn't sign in" },
-    onSuccess: async (data) => {
-      setDesktopToken((data as { token?: string }).token);
+    onSuccess: async () => {
       await utils.auth.me.invalidate();
       navigate("/", { replace: true });
     },

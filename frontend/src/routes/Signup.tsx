@@ -5,7 +5,6 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { AuthBrandBlock } from "../components/AormsLogo.js";
 import { AORMS_STUDIO } from "../lib/product-nomenclature.js";
 import { AuthRailLayout } from "../components/AuthRailLayout.js";
-import { setDesktopToken } from "../lib/api-base.js";
 import { AUTH_PAGE_SEO, applyPublicPageSeo } from "../lib/public-page-seo.js";
 import { trpc } from "../lib/trpc.js";
 
@@ -23,8 +22,7 @@ export function Signup() {
   const [password, setPassword] = useState("");
   const bootstrap = trpc.auth.bootstrap.useMutation({
     meta: { errorTitle: "Couldn't create the account" },
-    onSuccess: async (data) => {
-      setDesktopToken((data as { token?: string }).token);
+    onSuccess: async () => {
       await utils.auth.me.invalidate();
       navigate("/", { replace: true });
     },

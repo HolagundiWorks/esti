@@ -3,7 +3,6 @@ interface ImportMetaEnv {
   readonly VITE_PUBLIC_SITE?: string;
   readonly VITE_ADMIN_URL?: string;
   readonly VITE_PLAUSIBLE_DOMAIN?: string;
-  readonly VITE_ESTIMATION_DOWNLOAD_URL?: string;
 }
 
 interface ImportMeta {

@@ -65,7 +65,7 @@ export const authRouter = router({
    * Runs only when the install has no users yet — afterwards it 409s.
    */
   bootstrap: publicProcedure.input(BootstrapInput).mutation(async ({ ctx, input }) => {
-    if (env.NODE_ENV === "production" && !env.DESKTOP) {
+    if (env.NODE_ENV === "production") {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "Bootstrap is disabled in production — use the install seed.",
@@ -123,9 +123,7 @@ export const authRouter = router({
 
     const token = await createSession(owner.id);
     ctx.setCookie(SESSION_COOKIE, token);
-    // On desktop the webview is cross-origin to the loopback backend, so cookies
-    // aren't sent — return the token for the SPA to attach as a bearer header.
-    return env.DESKTOP ? { ...owner, token } : owner;
+    return owner;
   }),
 
   /**
@@ -139,7 +137,7 @@ export const authRouter = router({
         message: "Managing users and credentials is disabled on the demo account.",
       });
     }
-    if (env.NODE_ENV === "production" && !env.DESKTOP) {
+    if (env.NODE_ENV === "production") {
       const rows = await ctx.db.select({ n: count() }).from(users);
       if (Number(rows[0]?.n ?? 0) === 0) {
         throw new TRPCError({
@@ -296,7 +294,7 @@ export const authRouter = router({
     // there is more than just this studio's workspace.
     const companies = env.ESTI_UNIFIED_ACCOUNTS ? await activeCompaniesByEmail(email) : [];
     const profile = { id: u.id, email: u.email, role: u.role, fullName: u.fullName, companies };
-    return env.DESKTOP ? { ...profile, token } : profile;
+    return profile;
   }),
 
   /**
@@ -344,7 +342,7 @@ export const authRouter = router({
     await writeAudit(ctx.db, { entity: "user", entityId: u.id, action: "LOGIN", actorId: u.id });
     const companies = await activeCompaniesByEmail(email);
     const profile = { id: u.id, email: u.email, role: u.role, fullName: u.fullName, companies };
-    return env.DESKTOP ? { ...profile, token } : profile;
+    return profile;
   }),
 
   /**
@@ -520,18 +518,16 @@ export const authRouter = router({
   }),
 
   /**
-   * Server-authoritative runtime signal so the SPA can branch on WHERE it runs
-   * instead of guessing from build flags. `desktop` = a local-first desktop
-   * install (data on this machine, no online workspace); `managed` = a licence
-   * token or hub is configured; `mode` folds these for convenience.
+   * Server-authoritative runtime signal. `managed` = a licence token or hub is
+   * configured. AORMS is web-only (2026-07-19), so `desktop`/`mode` are fixed.
    */
   runtime: publicProcedure.query(async ({ ctx }) => {
     const state = await licenseState(ctx.db);
-    const desktop = Boolean(env.DESKTOP);
     return {
-      desktop,
       managed: state.managed,
-      mode: desktop ? ("local" as const) : ("cloud" as const),
+      /** @deprecated Desktop apps removed 2026-07-19. Always false / "cloud". */
+      desktop: false as const,
+      mode: "cloud" as const,
       /** @deprecated Editions removed 2026-07 (single product). Always STANDARD. */
       edition: "STANDARD" as const,
       /**

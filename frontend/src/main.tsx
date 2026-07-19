@@ -23,7 +23,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary.js";
 import { ToastHost } from "./components/ToastHost.js";
 import { pushToast } from "./lib/toast.js";
 import { newRequestId } from "./lib/request-id.js";
-import { apiUrl, authHeaders, initDesktopAuth } from "./lib/api-base.js";
+import { apiUrl } from "./lib/api-base.js";
 import { initAnalytics } from "./lib/analytics.js";
 import { trpc } from "./lib/trpc.js";
 
@@ -65,37 +65,34 @@ const queryClient = new QueryClient({
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      // Web: relative "/trpc" (same-origin). Desktop: absolute loopback base.
+      // Same-origin "/trpc" — cookie auth.
       url: apiUrl("/trpc"),
       fetch(url, options) {
         return fetch(url, { ...options, credentials: "include" });
       },
-      // Per-batch request ID for backend↔worker log correlation (audit O3),
-      // plus the desktop bearer token when running in the Tauri shell.
-      headers: () => ({ "x-request-id": newRequestId(), ...authHeaders() }),
+      // Per-batch request ID for backend↔worker log correlation (audit O3).
+      headers: () => ({ "x-request-id": newRequestId() }),
     }),
   ],
 });
 
 initAnalytics();
 
-void initDesktopAuth().then(() => {
-  ReactDOM.createRoot(document.getElementById("root")!).render(
-    <React.StrictMode>
-      <ErrorBoundary>
-        <trpc.Provider client={trpcClient} queryClient={queryClient}>
-          <QueryClientProvider client={queryClient}>
-            <BrowserRouter
-              future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-            >
-              <MuiRoot>
-                <App />
-              </MuiRoot>
-            </BrowserRouter>
-            <ToastHost />
-          </QueryClientProvider>
-        </trpc.Provider>
-      </ErrorBoundary>
-    </React.StrictMode>,
-  );
-});
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <ErrorBoundary>
+      <trpc.Provider client={trpcClient} queryClient={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter
+            future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+          >
+            <MuiRoot>
+              <App />
+            </MuiRoot>
+          </BrowserRouter>
+          <ToastHost />
+        </QueryClientProvider>
+      </trpc.Provider>
+    </ErrorBoundary>
+  </React.StrictMode>,
+);
