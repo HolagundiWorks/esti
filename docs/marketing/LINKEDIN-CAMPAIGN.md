@@ -7,6 +7,24 @@
 **Companion doc:** [`INSTAGRAM-CAMPAIGN.md`](INSTAGRAM-CAMPAIGN.md) — shared product
 truth, brand voice and content rules apply here too.
 
+> ## ⛔ STALE — DO NOT PUBLISH (flagged 2026-07-19)
+>
+> The product claims below are **factually wrong** and would misrepresent AORMS:
+>
+> - **"AORMS-Lite free forever"** — tiers were retired 2026-07-09. There is one
+>   **AORMS Standard** licence, **no free tier and no trial workspace**.
+> - **"offline Windows desktop app" / "data on your machine"** — AORMS is
+>   **web-only**; all desktop apps were cancelled 2026-07-19.
+>
+> Affected copy includes lines ~40–41, 57, 73, 126, 143–144, 180, 213–214, 248,
+> 256, 304, 335, 374, 382, 392, 409. The funnel metric ("Lite signups") also
+> needs rebasing on the real signup flow.
+>
+> Rewriting this needs a **pricing/positioning decision**, not just an edit —
+> the current offer is one paid Standard licence with storage + AI usage billing
+> ([PLANS-AND-TIERS.md](../esti/PLANS-AND-TIERS.md)). Treat everything below as
+> historical until that rewrite lands.
+
 ---
 
 ## 1. Why LinkedIn is a different campaign, not a repost channel

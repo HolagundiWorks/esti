@@ -9,11 +9,10 @@
 > keep the "projection" model (linked, not merged) that AORMS Identity chose from the
 > start (§8, open decision 4); a real merge is a live-data migration across every
 > customer's database and needs its own sign-off before any build starts. Remaining
-> runtime work: point the firm app / desktop at the live platform as the identity
-> authority, and the hybrid desktop offline-cache (needs the deployed platform base URL +
-> a desktop change) — tracked as follow-ups below.
+> runtime work: point the firm app at the live platform as the identity authority.
+> (The "hybrid desktop offline-cache" follow-up is **dropped** — AORMS went
+> web-only on 2026-07-19, so there is no desktop client to cache a session.)
 > Delivery: phased to `main`, each phase additive so existing logins keep working.
-> Desktop target is hybrid: online identity, locally-cached session for offline open.
 > Supersedes the ad-hoc split between
 > the licensing-platform accounts (`hlp_*`) and the firm-app users (`esti_user`).
 > Related: [`ACCESS-HIERARCHY.md`](ACCESS-HIERARCHY.md), the licensing platform

@@ -5,6 +5,21 @@
 **Audience geography:** India (primary: Bengaluru, then metro + tier-2 practice hubs)
 **Prepared:** July 2026
 
+> ## ⛔ STALE — DO NOT PUBLISH (flagged 2026-07-19)
+>
+> The "product truth" section below is **no longer true**:
+>
+> - **"native Windows desktop app that runs offline"** (~line 19, and ~105) —
+>   AORMS is **web-only**; all desktop apps were cancelled 2026-07-19.
+> - **"Lite free forever / Pro"** (~lines 35, 44) — tiers retired 2026-07-09;
+>   one **AORMS Standard** licence, no free tier, no trial.
+> - **funnel destination "download"** (~line 313) — there is nothing to
+>   download; `/download` redirects to the landing page.
+>
+> Correcting this is a **pricing/positioning decision**, not a copy edit. Current
+> product law: [PLANS-AND-TIERS.md](../esti/PLANS-AND-TIERS.md). Treat everything
+> below as historical until rewritten.
+
 ---
 
 ## 1. Strategic foundation

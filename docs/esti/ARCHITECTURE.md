@@ -51,10 +51,11 @@ One monorepo (pnpm workspaces); surfaces are build targets, not repos.
 - `worker`: Redis consumer for DXF, PDF, and reconciliation processing.
 - `ese`: the Estimation Specification Engine — its own Fastify service that turns
   the CPWD schedule into sealed Rate Library Packs (deploys at `ese.aorms.in`).
-- `desktop`: the Tauri shell (AORMS Lite/Pro/Community).
-- `estimate`: the standalone Estimate app — SPA + `desktop-cpp/` (native C++
-  webview host + vendored SQLite; no Rust, no server).
 - `docs/esti`: canonical product and engineering documentation.
+
+> **Web-only (2026-07-19).** AORMS ships no desktop application. The former
+> `desktop/` Tauri shell and the planned standalone `estimate/` app are both
+> retired — see [PLANS-AND-TIERS](PLANS-AND-TIERS.md).
 
 ### Surfaces And Access Topology
 
@@ -62,9 +63,9 @@ Estimation is accessed **inside a project (Cost Management)** of the
 workspace — same session, nav, permissions, and Carbon shell — not a subdomain.
 **ESE** is the one true subdomain (`ese.aorms.in`): different users (`kbteam`),
 different cadence (yearly SR), publishing into the system across a versioned,
-checksummed seam. The **Estimate app** is a separate offline **native C++**
-desktop binary (`estimate/desktop-cpp/` — no Rust, no server; SQLite in-process)
-that persists estimates and exports a sealed `.aormsest`. Full topology, the
+checksummed seam. **Estimating itself runs in the browser** as part of Cost
+Management (rate books + BOQ estimates) — there is no desktop estimator and no
+`.aormsest` interchange file. Full topology, the
 subdomain-vs-extension test, and the shared seams:
 [MONOREPO-AND-SURFACES](MONOREPO-AND-SURFACES.md).
 

@@ -48,8 +48,8 @@ General-purpose ERP, commerce, warehouse, labour,
 subcontractor-accounting, and contractor execution systems are out of scope.
 
 **User guide:** [aorms.in/wiki](https://aorms.in/wiki) · **Licence:** one standard
-cloud workspace ([PLANS-AND-TIERS](docs/esti/PLANS-AND-TIERS.md)) — no desktop
-app installs for the main product.
+cloud workspace ([PLANS-AND-TIERS](docs/esti/PLANS-AND-TIERS.md)) — AORMS is
+**web-only**; there are no desktop apps or installers.
 
 ## Fixed India profile
 

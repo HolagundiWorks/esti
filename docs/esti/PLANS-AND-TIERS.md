@@ -16,10 +16,12 @@
 | **Clients / contractors / consultants / projects** | Unlimited |
 | **Storage** | **5 GB** included; overage billed per GB-month |
 | **AI** | Hosted ESTI metered, or BYO OpenAI-compatible API key |
-| **Desktop** | **AORMS Estimate** only (Windows) — sign in, link exports to projects |
+| **Desktop** | **None** — AORMS is web-only (2026-07-19) |
 
-There is **no** free tier, **no** trial workspace, **no** Community desktop, and
-**no** full-product offline installer. Capability gates are **role-based**
+AORMS ships **no desktop application of any kind**: no free tier, no trial
+workspace, no Community desktop, no full-product offline installer, and no
+standalone Estimate app. Estimating, BOQs, and rate books run **in the browser**
+as part of the workspace. Capability gates are **role-based**
 (`can(role, capability)` in `packages/contracts`) — not edition-based.
 
 ## Surfaces
@@ -27,7 +29,6 @@ There is **no** free tier, **no** trial workspace, **no** Community desktop, and
 | Surface | Where | Auth |
 |---------|-------|------|
 | **AORMS** (workspace) | Cloud web app | Firm login · ACTIVE licence |
-| **AORMS Estimate** | Desktop (Windows) | Firm login before estimating |
 
 ## Signup flow
 
@@ -72,7 +73,9 @@ Tier enums in code are **deprecated shims** only.
 | AORMS Community | Web signup, standard licence |
 | Lite / Pro / Enterprise / Core editions | ACTIVE + usage meters |
 | Trial workspace requests | Self-serve signup or demo |
-| Full-product desktop installers | Web workspace + Estimate desktop |
+| Full-product desktop installers | Web workspace |
+| AORMS Estimate desktop app | In-browser estimating (rate books + BOQ estimates) |
+| Desktop Manager / Tauri shell | Web workspace |
 | Community self-host appliance | Cloud workspace (self-host = ops profile only) |
 | Seat / client / project count caps | Unlimited on ACTIVE |
 

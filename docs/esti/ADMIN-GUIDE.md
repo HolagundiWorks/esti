@@ -198,15 +198,19 @@ The installer/`update.sh` builds the frontend with Vite (4 GB heap) inside the `
 build-only container and atomic-swaps `frontend/dist`, served statically by nginx.
 `VITE_*` values are **build-time** — changing them requires a rebuild (`deploy/update.sh`).
 
-### 6b. Desktop installers (retired)
+### 6b. Desktop apps (removed)
 
-Full AORMS **Lite/Pro/Manager** desktop installers and the `/download` portal were
-retired 2026-07. The product is **cloud-only** at aorms.in. Legacy scripts
-(`deploy/fetch-installers.sh`, `.github/workflows/desktop.yml`) remain for
-operators migrating old VPS layouts but are not required for new installs.
+AORMS is **web-only**. The Lite/Pro/Manager desktop installers and the
+`/download` portal were retired 2026-07, and the packaging itself
+(`desktop/`, `.github/workflows/desktop.yml`, `deploy/fetch-installers.sh`) was
+deleted 2026-07-19. `/download` permanently redirects to the landing page.
 
-The separate **AORMS Estimate** desktop app is **not in this monorepo** — see
-[COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) for the active cost rebuild.
+The planned standalone **AORMS Estimate** desktop app is **cancelled** —
+estimating runs in the browser inside Project › Cost Management. See
+[COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
+
+Operators on pre-2026-07 VPS layouts: `deploy/cleanup-vps.sh` removes leftover
+installer files and `VITE_*_DOWNLOAD_URL` entries from a live host.
 
 ---
 

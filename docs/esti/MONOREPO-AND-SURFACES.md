@@ -23,12 +23,14 @@ esti/                     pnpm workspace root
 ├─ frontend/              React + Vite + MUI / @hcw/ui-kit — AORMS SPA + marketing
 ├─ worker/                Python Redis-Streams consumer (PDF/DXF/reconcile)
 ├─ vendor/hcw-aorms-ai-kit/  AI prompts + Ollama SDK
-├─ desktop/               Tauri shell (legacy Manager packaging scripts)
 ├─ docs/reference/        Zonal-regulation reference data (municipal bylaws)
 ```
 
-**Invariant:** any shape crossing two surfaces (rates, `.aormsest`, permissions,
-money) lives in `@esti/contracts` and nowhere else. Surfaces import it; they never
+> **Web-only (2026-07-19).** There is no `desktop/` shell and no standalone
+> Estimate binary — both retired. Every surface below is browser-delivered.
+
+**Invariant:** any shape crossing two surfaces (rates, permissions, money) lives
+in `@esti/contracts` and nowhere else. Surfaces import it; they never
 re-declare it. That single rule is what makes one repo worth more than four.
 
 ---
@@ -44,7 +46,7 @@ Any "yes" that matters → a **subdomain** (or a binary).
 | AORMS-Studio | firm staff | continuous | — | `studio.aorms.in` (root) |
 | **Estimation** | **same staff** | **same** | **none** | **Project › Cost Management — nested** |
 | **ESE** (pack publisher) | **`kbteam`** | **yearly SR** | **yes** | **`ese.aorms.in` — subdomain** |
-| **Estimate app** | estimators, **offline** | independent | native/offline | **desktop binary** |
+| ~~Estimate app~~ | — | — | — | **retired 2026-07-19 — estimating is in-browser** |
 | Client / consultant / contractor / site portals | external parties | continuous | session-scoped | `external.aorms.in` · `/access` |
 
 ### Estimation → nested inside a project (Cost Management)
@@ -75,31 +77,30 @@ Standalone C++ desktop + `.aormsest` interchange was retired. Active cost work:
         │  │ CPWD SR → │ ───────► │   /projects/:id › Cost Management  │ │
         │  │  packs    │ (→ rate  │      Abstract·BOQ·Materials·Steel  │ │
         │  └───────────┘   book)  │      + project Rate Book           │ │
-        │                         └───────────▲───────────────────────┘ │
-        │                            .aormsest │ import (frozen qty)     │
-        └────────────────────────────────────┼─────────────────────────┘
-                                    ┌─────────┴──────────┐  offline
-                                    │ Estimate desktop   │  (native C++,
-                                    │ measure → export   │   SQLite in-process)
-                                    └────────────────────┘
+        │                         └────────────────────────────────────┘ │
+        └──────────────────────────────────────────────────────────────┘
+
+  Measurement and estimating happen in the browser, inside Cost Management.
+  (The former offline Estimate desktop binary and its .aormsest hand-off
+   were retired 2026-07-19 — AORMS is web-only.)
 ```
 
 ---
 
 ## 3. Shared seams (why the split is safe)
 
-Two versioned, checksummed contracts + one pure engine let the surfaces evolve
-independently:
+One versioned, checksummed contract lets the surfaces evolve independently:
 
 1. **Rate Library Pack** (`ese-packs.ts`) — ESE → AORMS. `formatVersion` + sha256
    seal (`ese/src/pack-checksum.ts`). Imported into the office rate book via
    `estimates.importRateBookPack`.
-2. **`.aormsest`** (`estimate.ts` `EstimateFile`) — Estimate app → AORMS.
-   `formatVersion` + `estimateSealString` seal. Frozen quantities + measurements +
-   material take-off + steel + optional per-item **lead** (carriage).
-3. **`recostEstimate`** (pure, `@esti/contracts`) — `.aormsest` + rate book →
-   Abstract/BOQ/Materials/Steel. Quantities frozen; **price is the one live lever**,
-   precedence **project → office → as-estimated**.
+
+> **Retired 2026-07-19 — `.aormsest`.** The `EstimateFile` interchange and the
+> `recostEstimate` re-pricing helper existed only to hand work off from the
+> Estimate **desktop** app. With the product web-only there is no hand-off:
+> measurement and pricing happen in one place, in the browser. Both symbols
+> remain in `@esti/contracts` as **dead code referenced by nothing in
+> `backend/` or `frontend/`** — safe to delete in a follow-up.
 
 ### Rate vs specification (finalised)
 One schedule only — **CPWD**. **Rates live only in the Rate Book** (`esti_rate_book`

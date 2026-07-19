@@ -1,8 +1,8 @@
 # AORMS — Product pivot autopilot roadmap
 
 > **Agent queue** for the **2026-07 pricing & surface pivot**: one product, usage
-> billing (storage + AI model), Estimate-only desktop, BYO AI API key, legacy
-> licence migration. Canonical product law:
+> billing (storage + AI model), **web-only (no desktop apps)**, BYO AI API key,
+> legacy licence migration. Canonical product law:
 > [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md).
 >
 > **Human-led (now):** fresh landing pages — rail/stage marketing shell + copy.
@@ -24,7 +24,9 @@
 
 1. Product law is [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) — no new LITE/PRO/ENTERPRISE UI.
 2. Landing/marketing copy follows rail/stage layout ([HCW-UI-KIT.md](HCW-UI-KIT.md) § Glass Rail — landing uses `esti-lp-rail` / `esti-lp-stage`).
-3. Estimate desktop auth + project link must not duplicate qty math — `@esti/contracts` only.
+3. **No desktop apps.** AORMS is web-only — do not add Tauri/Electron shells,
+   installers, download CTAs, or a standalone Estimate binary. Estimating runs
+   in the browser (rate books + BOQ estimates).
 4. Update this file when a phase ships.
 
 ---
@@ -37,8 +39,8 @@
 | [P1](#p1--licence--migration-active) | ACTIVE licence · retire tier enums | P0 | ✅ | autopilot |
 | [P2](#p2--storage-metering-5gb-default) | Storage metering · 5 GB default | P0 | ✅ | autopilot |
 | [P3](#p3--ai-meter--byo-api-key) | AI usage meter · BYO API key | P1 | ✅ | autopilot |
-| [P4](#p4--remove-community--full-desktop) | Remove Community + full desktop app | P1 | 🔄 | autopilot |
-| [P5](#p5--estimate-desktop-auth--project-link) | Estimate desktop auth · project link | P1 | ⬜ | autopilot |
+| [P4](#p4--remove-community--all-desktop-apps) | Remove Community + **all** desktop apps | P1 | 🔄 | autopilot |
+| ~~P5~~ | ~~Estimate desktop auth~~ — **cancelled 2026-07-19** (web-only) | — | ❌ | — |
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
 | [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | 🔄 | autopilot |
 
@@ -109,38 +111,40 @@
 
 ---
 
-## P4 — Remove Community + full desktop
+## P4 — Remove Community + all desktop apps
+
+> **Scope widened 2026-07-19:** the product is **web-only**. This phase now
+> removes *every* desktop artifact, not just the Community/Manager packaging.
+> The planned Estimate desktop app is cancelled with it (ex-P5, below).
 
 | # | Task | Status |
 |---|------|--------|
-| P4.1 | Remove `desktop/` Lite/Core/Enterprise packaging from release workflow | ⬜ coupled with P4.6; Manager teardown pending Estimate app decision (P5 blocked) |
+| P4.1 | Delete `desktop/` (Tauri Manager) + `.github/workflows/desktop.yml` | ⬜ |
 | P4.2 | Drop `marketing.desktopInstallers` API | ✅ | Endpoint removed; `/download` redirects to wiki |
 | P4.3 | Remove `ESTI_EDITION=COMMUNITY` first-run seed path (or repurpose) | ✅ 2026-07-18 — `ESTI_EDITION` env removed; `seedCommunity.ts` + `lanInstance.ts` deleted; backup-code recovery kept (`lib/backupCode.ts`); `auth.runtime.edition` pinned `"STANDARD"` |
 | P4.4 | Delete/disable `seedCommunity.ts` appliance docs | ✅ 2026-07-18 — no appliance docs remain; PLANS-AND-TIERS keeps only the retirement/migration notice |
-| P4.5 | Download page — Estimate only | ✅ `/download` redirects to `/` (no download page); revisit when Estimate ships |
-| P4.6 | `IS_DESKTOP` full-app paths → redirect to web or Estimate | ⬜ coupled with P4.1 |
+| P4.5 | Download page | ✅ `/download` redirects to `/` — permanent, nothing to download |
+| P4.6 | Remove `env.DESKTOP` / `IS_DESKTOP` + desktop-token plumbing | ⬜ |
+| P4.7 | Purge desktop install/download plumbing: `deploy/fetch-installers.sh`, `VITE_*_DOWNLOAD_URL`, `INSTALLER_REPO`, `@tauri-apps/api`, `frontend/public/manager.html` | ⬜ |
+| P4.8 | Correct docs + published marketing copy claiming a desktop app | ⬜ |
 
-**Verify:** No Community installer linked from product; `desktop.yml` builds Estimate only.
+**Keep (not desktop):** `FIRM_PLAN` / `applyFirmPlanFromEnv` — dual-purpose, the
+surviving consumer is the **self-hosted VPS installer** (`deploy/`).
+**Out of scope:** ESTICAD, the separate native CAD companion — retiring it is an
+independent product decision, not part of this phase.
+
+**Verify:** no `tauri`/`IS_DESKTOP`/`DESKTOP` hits outside history; no download CTA.
 
 ---
 
-## P5 — Estimate desktop auth · project link
+## ~~P5 — Estimate desktop auth · project link~~ — CANCELLED
 
-| # | Task | Status |
-|---|------|--------|
-| P5.1 | Estimate app — login gate before estimator UI | ⬜ |
-| P5.2 | Session: OAuth/device code or token from AORMS login | ⬜ |
-| P5.3 | Project picker — open estimate scoped to `projectId` | ⬜ |
-| P5.4 | Export `.aormsest` carries `projectId` + firm id | ⬜ |
-| P5.5 | Import in Cost Management validates same firm/project | ⬜ |
-
-> **⛔ Blocked (2026-07-18):** the `estimate/` app directory referenced under Key
-> files does not exist in this repo — P5 needs the Estimate desktop app created
-> (or vendored) before any of its tasks can start.
-
-**Verify:** Cold launch Estimate → login → pick project → export → import in AORMS project.
-
-Cross-ref: glass health orbs shipped on Studio Intelligence (U0–U6 complete).
+> **Cancelled 2026-07-19.** AORMS is web-only, so there is no Estimate desktop
+> app to authenticate. The `estimate/` directory this phase referenced never
+> existed in the repo. Estimating instead ships **in the browser** as part of the
+> workspace — rate books and BOQ estimates (`backend/src/modules/estimate/`,
+> `backend/src/modules/rateBook/`, `frontend/src/components/ProjectEstimates.tsx`),
+> so the `.aormsest` interchange format is unnecessary and is not being built.
 
 ---
 
@@ -149,7 +153,7 @@ Cross-ref: glass health orbs shipped on Studio Intelligence (U0–U6 complete).
 | # | Task | Status |
 |---|------|--------|
 | P6.1 | Grep `content/landing/*.md` for Community/Pro/desktop | ✅ no Community/Pro mentions remain |
-| P6.2 | Batch replace with storage + web + Estimate desktop narrative | ✅ |
+| P6.2 | Batch replace with storage + web-only narrative | ✅ |
 | P6.3 | Sitemap/meta — remove edition keywords | ✅ frontend-wide grep clean |
 
 **Verify:** No "AORMS Community" in top 10 SEO pages.
@@ -182,11 +186,11 @@ exists today) — that is a prerequisite for P7.2, not a detail of it.
 P0 (human landing) ──► P1 migration ──► P2 storage
                               │
                               ├─► P3 AI key
-                              ├─► P4 remove desktop/community
-                              └─► P5 Estimate auth
-                                        │
-                                        ├─► P6 SEO content
-                                        └─► P7 billing
+                              ├─► P4 remove community + ALL desktop
+                              ├─► P6 SEO content
+                              └─► P7 billing
+
+P5 (Estimate desktop auth) — CANCELLED 2026-07-19, web-only
 ```
 
 ---
@@ -199,8 +203,8 @@ P0 (human landing) ──► P1 migration ──► P2 storage
 | Plans (legacy code) | `packages/contracts/src/plans.ts` |
 | Landing shell | `frontend/src/components/landing/MarketingShell.tsx` |
 | Landing route | `frontend/src/routes/Landing.tsx` |
-| Desktop (retire) | `desktop/`, `.github/workflows/desktop.yml` |
-| Estimate app | `estimate/` |
+| Desktop (deleting — P4.1) | `desktop/`, `.github/workflows/desktop.yml`, `deploy/fetch-installers.sh` |
+| In-browser estimating (replaces the cancelled desktop app) | `backend/src/modules/estimate/`, `backend/src/modules/rateBook/`, `frontend/src/components/ProjectEstimates.tsx` |
 | Firm AI settings | `backend/src/modules/firm/`, `Company.tsx` |
 | UI rail/stage autopilot | [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md) |
 
@@ -212,6 +216,7 @@ P0 (human landing) ──► P1 migration ──► P2 storage
 |------|--------|
 | 2026-07-18 | Status audit vs code: P1/P2/P6 detail rows ticked (shipped but never checked off); P3 and P4 downgraded ✅→🔄 (BYO key unwired; desktop Manager + `ESTI_EDITION` still present); P5 marked blocked — `estimate/` app absent from repo. |
 | 2026-07-18 | P4.3/P4.4 shipped: Community edition code removed (`ESTI_EDITION`, `seedCommunity.ts`, `lanInstance.ts`, portal-login refusal); backup-code recovery kept via `lib/backupCode.ts`. P4.5 confirmed (no download page). Remaining P4: Manager teardown (P4.1 + P4.6). |
+| 2026-07-19 | **Product direction: web-only — no desktop apps.** P5 (Estimate desktop auth) cancelled outright; P4 widened to remove every desktop artifact (Manager/Tauri, installers, download plumbing, `env.DESKTOP`/`IS_DESKTOP`). PLANS-AND-TIERS updated: the licence table now states "Desktop: None". `FIRM_PLAN` explicitly retained — the VPS installer, not the desktop app, is its surviving consumer. ESTICAD (native CAD companion) deliberately left out of scope. |
 | 2026-07-19 | P7.1 shipped: `admin.dashboard.usage` (storage used/quota incl. add-on, hosted AI tokens) + "Metered usage" panel on the platform-admin dashboard. Stale-month token counters correctly report 0, matching the AI router's lazy reset. Verified via tRPC caller against real rows (current/stale/null month) with admin, non-admin, and anonymous contexts. Documented the single-tenant scope limit that blocks P7.2. |
 | 2026-07-18 | P3 complete: BYO key now sealed at rest (AES-256-GCM, `lib/secretBox.ts`, keyed from `SESSION_SECRET`); fixed boot bug where `ensureOllamaAiSettings` wiped firm cloud config + key on every backend restart; stale Enterprise-only gate removed from `ai.setSettings`. E2E verified: key sealed in DB (`enc:v1:…`), survives restart, redacted from reads. |
 | 2026-07-09 | Roadmap created. Product pivot: no tiers; storage + AI pricing; Estimate-only desktop; ACTIVE licence migration. |
