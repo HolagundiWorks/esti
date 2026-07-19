@@ -209,7 +209,7 @@ exists today) — that is a prerequisite for P7.2, not a detail of it.
 | P8.4 | Markup → measurement-book rows | ✅ pre-existing — `measurement.deriveFromMarkup` |
 | P8.5 | **Measurement book → estimate** | ✅ 2026-07-19 — `estimates.importFromMeasurementBook` + "Send to estimate" |
 | P8.6 | Area/polygon measure producing SQM directly | ⬜ today's derivation is oriented to WALL/COLUMN/DOOR/WINDOW semantics |
-| P8.7 | Abstract-sheet export (Excel/PDF) | ⬜ Phase 4 of [PLAN-MEASUREMENT-ARCHITECTURE](PLAN-MEASUREMENT-ARCHITECTURE.md) |
+| P8.7 | Abstract-sheet export (Excel) | ✅ 2026-07-19 — "Export abstract" action; row shaping is a unit-tested pure fn (`buildAbstractExportRows`). PDF export still open |
 
 **Design note — two quantity models, deliberately not merged.** The measurement
 book stores integer millimetres with a `MeasurementUom` and derives a rounded SI
@@ -263,6 +263,7 @@ P5 (Estimate desktop auth) — CANCELLED 2026-07-19, web-only
 |------|--------|
 | 2026-07-18 | Status audit vs code: P1/P2/P6 detail rows ticked (shipped but never checked off); P3 and P4 downgraded ✅→🔄 (BYO key unwired; desktop Manager + `ESTI_EDITION` still present); P5 marked blocked — `estimate/` app absent from repo. |
 | 2026-07-18 | P4.3/P4.4 shipped: Community edition code removed (`ESTI_EDITION`, `seedCommunity.ts`, `lanInstance.ts`, portal-login refusal); backup-code recovery kept via `lib/backupCode.ts`. P4.5 confirmed (no download page). Remaining P4: Manager teardown (P4.1 + P4.6). |
+| 2026-07-19 | P8.5 verified in-browser against seeded demo data (`seedDemoTakeoff`), which exposed float drift on the estimate total — quantities now round to 3 dp. P8.7 shipped: Excel abstract export with per-UOM totals, shaped by a unit-tested pure function in contracts. Dev stack given `restart: unless-stopped` so WSL recycles stop taking it down. |
 | 2026-07-19 | **Browser-geometry ban lifted; P8 browser takeoff.** Corrected a charter/code drift — on-canvas calibrate+measure had already shipped while the charter still forbade it. Built the one genuinely missing hop: `estimates.importFromMeasurementBook` (migration `0202`) plus "Send to estimate" in the measurement panel. The book's quantity is carried across unchanged and a unit mismatch is refused, never converted. Also corrected a stale premise: `esti_measurement` (the ESTICAD table) has no readers and is not the estimate bridge — `esti_estimate_measurement` is. |
 | 2026-07-19 | P4.9: **ESTICAD dropped.** Removed the `companion` tRPC namespace, device-token bearer auth, `ai.generateCad` + the 8 CAD draft kinds, `drawings.setScale`, `esticadLink.ts`, the Connected Devices panel, and ~217 lines of orphaned landing SCSS. `esti_device_session` and the `esti_measurement` ESTICAD columns are left in the DB deliberately. Verified: the scale columns had no reader, and `esti_ai_run` is empty, so narrowing the kind enum is runtime-safe. Leaves an open decision on quantity takeoff. |
 | 2026-07-19 | P4.1/P4.6/P4.7 shipped: `desktop/` (26 files), `desktop.yml`, `fetch-installers.sh`, `manager.html`, `env.DESKTOP`, `IS_DESKTOP` + bearer-token plumbing, `@tauri-apps/api`, and all `VITE_*_DOWNLOAD_URL`/`INSTALLER_REPO` removed. Verified with a real browser login through tenant-select into the workspace on cookie auth. |

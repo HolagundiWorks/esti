@@ -18,6 +18,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
+  buildAbstractExportRows,
   formatDimensionMm,
   formatINR,
   MEASUREMENT_UOM_LABEL,
@@ -29,6 +30,7 @@ import { useScreenActions } from "@hcw/ui-kit";
 import { ConfirmModal } from "../ConfirmModal.js";
 import { DataState } from "../DataState.js";
 import { PlanReaderPanel } from "./PlanReaderPanel.js";
+import { downloadXlsx } from "../../lib/exportXlsx.js";
 import { trpc } from "../../lib/trpc.js";
 
 function metresToMm(value: string): number | null {
@@ -177,6 +179,13 @@ export function ProjectMeasurementPanel({ projectId }: { projectId: string }) {
     return (id: string | null) => (id ? (map.get(id) ?? "—") : "All levels");
   }, [levels]);
 
+  /** Abstract-sheet export (P8.7) — row shaping lives in @esti/contracts and is unit-tested. */
+  function exportAbstract() {
+    const data = buildAbstractExportRows(rows, levelLabel);
+    const stamp = new Date().toISOString().slice(0, 10);
+    downloadXlsx(data, "Abstract", `abstract-${stamp}.xlsx`);
+  }
+
   useScreenActions(
     mode !== "sheet"
       ? []
@@ -216,6 +225,13 @@ export function ProjectMeasurementPanel({ projectId }: { projectId: string }) {
             },
           },
           {
+            id: "meas-export-abstract",
+            zone: "right",
+            label: "Export abstract",
+            disabled: rows.length === 0,
+            onClick: exportAbstract,
+          },
+          {
             id: "meas-sync-heights",
             zone: "right",
             label: "Sync heights",
@@ -230,6 +246,7 @@ export function ProjectMeasurementPanel({ projectId }: { projectId: string }) {
       levels.length,
       syncHeights.isPending,
       selectedRowIds.length,
+      rows.length,
     ],
   );
 
