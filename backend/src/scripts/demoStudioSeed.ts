@@ -9,12 +9,17 @@ import {
   activities,
   approvals,
   attendance,
+  estimateItems,
+  estimates,
   firm,
   invoices,
   leads,
+  measurementBooks,
+  measurementRows,
   moms,
   phases,
   projectOffices,
+  rateBooks,
   rewardPoints,
   siteVisits,
   tasks,
@@ -429,6 +434,78 @@ export async function rebalanceDemoTaskAssignees(db: DB): Promise<void> {
     }).where(eq(tasks.id, t.id));
     i++;
   }
+}
+
+/**
+ * Browser-takeoff demo payload (P8): a calibrated-sheet measurement book with
+ * brickwork rows, plus an estimate whose items use matching units, so the
+ * "Send to estimate" flow is demoable end to end without hand-built fixtures.
+ */
+export async function seedDemoTakeoff(db: DB, projectId: string): Promise<void> {
+  const [existing] = await db
+    .select({ id: measurementBooks.id })
+    .from(measurementBooks)
+    .where(eq(measurementBooks.projectId, projectId))
+    .limit(1);
+  if (existing) return;
+
+  const [book] = await db
+    .insert(measurementBooks)
+    .values({ projectId, title: "Ground floor — brickwork takeoff" })
+    .returning();
+
+  // Quantities as PlanReaderPanel would derive them from a calibrated sheet.
+  const rows = [
+    { particulars: "External wall — north", lengthMm: 8400, breadthMm: 3000, quantity: 25.2 },
+    { particulars: "External wall — east", lengthMm: 6200, breadthMm: 3000, quantity: 18.6 },
+    { particulars: "Internal partition — hall/kitchen", lengthMm: 4100, breadthMm: 3000, quantity: 12.3 },
+  ];
+  await db.insert(measurementRows).values(
+    rows.map((r, i) => ({
+      bookId: book!.id,
+      particulars: r.particulars,
+      lengthMm: r.lengthMm,
+      breadthMm: r.breadthMm,
+      quantity: r.quantity,
+      uom: "SQM",
+      derivation: "AUTO",
+      sortOrder: (i + 1) * 10,
+    })),
+  );
+
+  const [rateBook] = await db
+    .insert(rateBooks)
+    .values({ name: "Demo rate book (CPWD-style)", versionLabel: "2026-27" })
+    .returning();
+  const { ref } = await nextRef(db, "estimate", "EST");
+  const [estimate] = await db
+    .insert(estimates)
+    .values({
+      projectId,
+      rateBookId: rateBook!.id,
+      ref,
+      title: "Ground floor — civil works",
+    })
+    .returning();
+
+  // sqm item matches the book's SQM rows; the cum item is deliberately a
+  // different measure so the unit guard is visible in the demo.
+  await db.insert(estimateItems).values([
+    {
+      estimateId: estimate!.id,
+      description: "Brickwork in CM 1:6 with 230mm thick wall",
+      unit: "sqm",
+      ratePaise: 1_850_00,
+      sortOrder: 10,
+    },
+    {
+      estimateId: estimate!.id,
+      description: "RCC M25 for columns and beams",
+      unit: "cum",
+      ratePaise: 7_400_00,
+      sortOrder: 20,
+    },
+  ]);
 }
 
 export async function clearStudioDemoRows(db: DB, principalId: string): Promise<void> {

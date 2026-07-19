@@ -42,7 +42,10 @@ async function recomputeItemFromMeasurements(db: DB, estimateItemId: string): Pr
     .from(estimateMeasurements)
     .where(eq(estimateMeasurements.estimateItemId, estimateItemId));
   if (lines.length === 0) return; // no measurement lines — manual quantity stays authoritative
-  const quantity = lines.reduce((s, l) => s + l.quantity, 0);
+  // Round the total to 3 dp, the same precision the measurement book derives at.
+  // Without this, summing 3-dp line quantities surfaces float drift on the item
+  // (e.g. 25.2 + 18.6 + 12.3 -> 56.099999999999994) and in the printed abstract.
+  const quantity = Math.round(lines.reduce((s, l) => s + l.quantity, 0) * 1000) / 1000;
   const amountPaise = estimateItemAmountPaise(item.ratePaise, quantity);
   await db
     .update(estimateItems)

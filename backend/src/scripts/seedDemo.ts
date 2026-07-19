@@ -57,6 +57,7 @@ import {
   patchDemoApprovalSignals,
   rebalanceDemoTaskAssignees,
   seedDemoTeamRoster,
+  seedDemoTakeoff,
   seedStudioGlanceAndLeads,
   upsertDemoFirm,
 } from "./demoStudioSeed.js";
@@ -95,6 +96,7 @@ async function backfillStudioDemo(principalId: string, pwHash: string): Promise<
   await seedStudioGlanceAndLeads(db, principalId, projectIds, memberIds);
   await patchDemoApprovalSignals(db, projectIds, principalId);
   await rebalanceDemoTaskAssignees(db);
+  if (projectIds[0]) await seedDemoTakeoff(db, projectIds[0]);
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -479,6 +481,7 @@ async function main() {
 
   await seedStudioGlanceAndLeads(db, principal.id, allProjectIds, memberIds);
   await rebalanceDemoTaskAssignees(db);
+  if (allProjectIds[0]) await seedDemoTakeoff(db, allProjectIds[0]);
 
   console.log("✓ seeded demo workspace (Studio Intelligence tuned)");
   console.log(`    principal: ${principalEmail} / ${DEMO_PASSWORD}`);
