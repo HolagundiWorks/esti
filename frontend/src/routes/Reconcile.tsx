@@ -65,8 +65,12 @@ export function Reconcile() {
   const settle = trpc.reconcile.settle.useMutation({
     meta: { errorTitle: "Couldn't settle the matched invoices" },
     onSuccess: (res) => {
+      const partial = res.applied - res.settled;
       setSettleMsg(
-        `Settled ${res.settled} invoice(s) as PAID · ${res.skipped} skipped`,
+        `Applied ${res.applied} receipt(s): ${res.settled} invoice(s) fully paid` +
+          (partial > 0 ? ` · ${partial} part-paid` : "") +
+          (res.skipped > 0 ? ` · ${res.skipped} skipped` : "") +
+          (res.alreadyApplied > 0 ? ` · ${res.alreadyApplied} already applied` : ""),
       );
       utils.reconcile.list.invalidate();
       utils.dashboard.home.invalidate();

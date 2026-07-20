@@ -24,6 +24,12 @@ export const ReconcileLine = z.object({
   matchType: ReconcileMatchType,
   matchedInvoiceId: z.string().uuid().nullable(),
   matchedInvoiceRef: z.string().nullable(),
+  /**
+   * Set when this line's amount has been applied to its invoice. Makes settle
+   * idempotent: re-running a batch skips lines already applied rather than
+   * adding the receipt to the invoice a second time.
+   */
+  settledAt: z.string().nullable().optional(),
 });
 export type ReconcileLine = z.infer<typeof ReconcileLine>;
 

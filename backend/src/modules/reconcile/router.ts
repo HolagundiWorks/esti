@@ -31,48 +31,91 @@ export const reconcileRouter = router({
     }),
 
   /**
-   * Close the loop: mark the invoices matched by this batch as PAID. Only
-   * ISSUED invoices transition (idempotent — re-running settles the rest);
-   * everything else is counted as skipped.
+   * Close the loop: apply this batch's matched receipts to their invoices.
+   *
+   * Settlement is amount-aware. Each matched line adds its actual received
+   * amount to the invoice's paid total, and the invoice becomes PAID only when
+   * that total reaches its net receivable. A partial receipt therefore leaves
+   * the invoice ISSUED and partly paid, with the balance still in receivables —
+   * previously any reference match flipped the whole invoice to PAID and the
+   * shortfall silently disappeared.
+   *
+   * Idempotent per line: each applied line is stamped `settledAt`, so
+   * re-running the batch skips it rather than adding the receipt again.
    */
   settle: financeOps
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const [batch] = await ctx.db
-        .select()
-        .from(reconciliations)
-        .where(eq(reconciliations.id, input.id));
-      if (!batch) throw new TRPCError({ code: "NOT_FOUND" });
+      return ctx.db.transaction(async (tx) => {
+        const [batch] = await tx
+          .select()
+          .from(reconciliations)
+          .where(eq(reconciliations.id, input.id));
+        if (!batch) throw new TRPCError({ code: "NOT_FOUND" });
 
-      const lines = (batch.lines as ReconcileLine[] | null) ?? [];
-      const ids = [
-        ...new Set(
-          lines
-            .filter((l) => l.matchType !== "none" && l.matchedInvoiceId)
-            .map((l) => l.matchedInvoiceId as string),
-        ),
-      ];
+        const lines = (batch.lines as ReconcileLine[] | null) ?? [];
+        const now = new Date().toISOString();
+        let applied = 0;
+        let settled = 0;
+        let skipped = 0;
+        let alreadyDone = 0;
 
-      let settled = 0;
-      let skipped = 0;
-      for (const invId of ids) {
-        const [inv] = await ctx.db.select().from(invoices).where(eq(invoices.id, invId));
-        if (!inv || inv.status !== "ISSUED") {
-          skipped += 1;
-          continue;
+        for (const line of lines) {
+          if (line.matchType === "none" || !line.matchedInvoiceId) continue;
+          if (line.settledAt) {
+            alreadyDone += 1;
+            continue;
+          }
+          const [inv] = await tx
+            .select()
+            .from(invoices)
+            .where(eq(invoices.id, line.matchedInvoiceId));
+          // Only ISSUED invoices receive payment. A DRAFT has not been sent, and
+          // CANCELLED/PAID are closed — count those as skipped, and do NOT stamp
+          // the line, so a later re-issue can still be reconciled against it.
+          if (!inv || inv.status !== "ISSUED") {
+            skipped += 1;
+            continue;
+          }
+
+          const paid = inv.paidPaise + line.amountPaise;
+          const fullyPaid = paid >= inv.netReceivablePaise;
+          await tx
+            .update(invoices)
+            .set({
+              paidPaise: paid,
+              ...(fullyPaid ? { status: "PAID" as const } : {}),
+              updatedAt: new Date(),
+            })
+            .where(eq(invoices.id, inv.id));
+          await writeAudit(tx, {
+            entity: "invoice",
+            entityId: inv.id,
+            action: fullyPaid ? "STATUS" : "PART_PAYMENT",
+            actorId: ctx.user.id,
+            before: { status: inv.status, paidPaise: inv.paidPaise },
+            after: {
+              status: fullyPaid ? "PAID" : "ISSUED",
+              paidPaise: paid,
+              appliedPaise: line.amountPaise,
+              via: "reconcile",
+              batch: batch.ref,
+            },
+          });
+
+          line.settledAt = now;
+          applied += 1;
+          if (fullyPaid) settled += 1;
         }
-        await ctx.db.update(invoices).set({ status: "PAID" }).where(eq(invoices.id, invId));
-        await writeAudit(ctx.db, {
-          entity: "invoice",
-          entityId: invId,
-          action: "STATUS",
-          actorId: ctx.user.id,
-          before: { status: "ISSUED" },
-          after: { status: "PAID", via: "reconcile", batch: batch.ref },
-        });
-        settled += 1;
-      }
-      return { settled, skipped, matched: ids.length };
+
+        // Persist the settledAt stamps so the applied lines are not re-applied.
+        await tx
+          .update(reconciliations)
+          .set({ lines })
+          .where(eq(reconciliations.id, batch.id));
+
+        return { applied, settled, skipped, alreadyApplied: alreadyDone };
+      });
     }),
 
   setColumnMapping: financeOps

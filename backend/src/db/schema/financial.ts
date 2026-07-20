@@ -94,6 +94,12 @@ export const invoices = pgTable("esti_invoice", {
   netReceivablePaise: bigint("net_receivable_paise", { mode: "number" })
     .notNull()
     .default(0),
+  /**
+   * Cumulative receipts reconciled against this invoice. An invoice becomes
+   * PAID only when this reaches its net receivable; a smaller amount leaves it
+   * ISSUED and partly paid, so the balance stays visible in receivables.
+   */
+  paidPaise: bigint("paid_paise", { mode: "number" }).notNull().default(0),
   dateInvoice: date("date_invoice"),
   notes: text("notes"),
   pdfKey: text("pdf_key"),
