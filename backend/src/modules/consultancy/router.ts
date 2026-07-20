@@ -7,9 +7,11 @@
  * Design: docs/esti/AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md.
  */
 import {
+  CHECK_CATEGORY_RANK,
   CHECK_CATEGORY_REQUIRED_STEPS,
   CONSULTANCY_SCOPE_TEMPLATES,
   CheckCategory,
+  can,
   ConsBriefSet,
   ConsPhaseCreate,
   ConsultancyType,
@@ -35,6 +37,7 @@ import {
   ConsTqClose,
   ConsTqCreate,
   ConsVariationCreate,
+  DELIVERABLE_STATUS_LABEL,
   REVIEW_STEP_LABEL,
   ReviewStepKind,
 } from "@esti/contracts";
@@ -62,6 +65,7 @@ import {
   askConsultancyIntelligence,
   emoiReviewInputPack,
 } from "../../lib/ai/consultancy-intelligence.js";
+import type { DB } from "../../db/index.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
 import { enqueueJob } from "../../lib/redis.js";
@@ -69,6 +73,16 @@ import { presignedGet } from "../../lib/storage.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 const manage = capabilityProcedure("write");
+// Money is L2+ in this firm's permission model ("ASSOCIATE: no invoices/fees").
+// Fee stages, rate cards, variation approvals and the commercial reads sit
+// behind the finance capabilities, not the operational `write` — mirroring the
+// invoice/estimate modules. `write` (associate+) still logs time and records the
+// engineering sign-off chain; those are not financial acts.
+const feesManage = capabilityProcedure("fees:manage");
+const costApprove = capabilityProcedure("cost:approve");
+
+/** Whether the caller may see rupee figures (fee position, rates, WIP). */
+const seesMoney = (role: string | null | undefined) => can(role, "fees:manage");
 
 /** Steps still missing before this deliverable may be ISSUED. */
 function missingSteps(
@@ -83,9 +97,16 @@ function missingSteps(
 }
 
 const engagementsRouter = router({
-  list: protectedProcedure.query(({ ctx }) =>
-    ctx.db.select().from(consEngagements).orderBy(desc(consEngagements.updatedAt)),
-  ),
+  list: protectedProcedure.query(async ({ ctx }) => {
+    const rows = await ctx.db
+      .select()
+      .from(consEngagements)
+      .orderBy(desc(consEngagements.updatedAt));
+    // Redact the agreed fee for callers without finance access.
+    return seesMoney(ctx.user.role)
+      ? rows
+      : rows.map((r) => ({ ...r, feeTotalPaise: null }));
+  }),
 
   get: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
@@ -95,6 +116,7 @@ const engagementsRouter = router({
         .from(consEngagements)
         .where(eq(consEngagements.id, input.id));
       if (!row) return null;
+      const money = seesMoney(ctx.user.role);
       const deliverables = await ctx.db
         .select()
         .from(consDeliverables)
@@ -189,6 +211,8 @@ const engagementsRouter = router({
       };
       return {
         ...row,
+        // Redact rupee figures for non-finance callers (money = L2+).
+        feeTotalPaise: money ? row.feeTotalPaise : null,
         deliverables: deliverables.map((d) => ({
           ...d,
           chain: steps.filter((s) => s.deliverableId === d.id),
@@ -197,15 +221,19 @@ const engagementsRouter = router({
           crsOpen: crs.filter((c) => c.deliverableId === d.id && c.status === "OPEN").length,
         })),
         tqs,
-        feeStages,
-        variations,
+        feeStages: money ? feeStages : [],
+        variations: money
+          ? variations
+          : variations.map((v) => ({ ...v, amountPaise: null })),
         risks,
         inputPacks,
         relianceLetters,
         phases,
         fieldReports,
-        timesheets,
-        feePosition,
+        timesheets: money
+          ? timesheets
+          : timesheets.map((t) => ({ ...t, valuePaise: null })),
+        feePosition: money ? feePosition : null,
         // Built-in PDF export — download URL once the worker has rendered it.
         pdfUrl:
           row.pdfStatus === "READY" && row.pdfKey
@@ -238,6 +266,9 @@ const engagementsRouter = router({
     }),
 
   create: manage.input(ConsEngagementCreate).mutation(async ({ ctx, input }) => {
+    // The agreed fee is finance-only; a non-finance creator sets everything else
+    // and a partner fills the fee later.
+    if (!seesMoney(ctx.user.role)) input = { ...input, feeTotalPaise: undefined };
     // Job number (SOP §2): C-YY-serial, allocated at creation — the root the
     // timesheet bookings and document numbers hang off.
     const yy = String(new Date().getFullYear()).slice(2);
@@ -275,6 +306,8 @@ const engagementsRouter = router({
 
   update: manage.input(ConsEngagementUpdate).mutation(async ({ ctx, input }) => {
     const { id, ...rest } = input;
+    // Non-finance callers cannot rewrite the agreed fee (undefined = unchanged).
+    if (!seesMoney(ctx.user.role)) rest.feeTotalPaise = undefined;
     const [row] = await ctx.db
       .update(consEngagements)
       .set({ ...rest, updatedAt: new Date() })
@@ -303,6 +336,19 @@ const engagementsRouter = router({
   }),
 });
 
+/**
+ * Forward-only deliverable lifecycle. A revision does NOT flow ISSUED→DRAFT here
+ * — that path is `startRevision`, which clears the sign-off chain so fresh checks
+ * are re-required. Allowing a plain update to revert ISSUED→DRAFT would let the
+ * body be edited and the deliverable re-issued on the stale chain.
+ */
+const DELIVERABLE_TRANSITIONS: Record<string, readonly string[]> = {
+  DRAFT: ["ISSUED", "WITHDRAWN"],
+  ISSUED: ["SUPERSEDED", "WITHDRAWN"],
+  SUPERSEDED: [],
+  WITHDRAWN: [],
+};
+
 const deliverablesRouter = router({
   listByEngagement: protectedProcedure
     .input(z.object({ engagementId: z.string().uuid() }))
@@ -326,88 +372,109 @@ const deliverablesRouter = router({
 
   update: manage.input(ConsDeliverableUpdate).mutation(async ({ ctx, input }) => {
     const { id, status, ...rest } = input;
+    const [d] = await ctx.db.select().from(consDeliverables).where(eq(consDeliverables.id, id));
+    if (!d) throw new TRPCError({ code: "NOT_FOUND" });
 
-    // Reliance gate: a deliverable may only be ISSUED once the sign-off chain
-    // required by its check category is complete (case study §3.2).
+    const bodyEdits = (Object.keys(rest) as (keyof typeof rest)[]).filter(
+      (k) => rest[k] !== undefined,
+    );
+
+    // Issued content is immutable — the document number, title and revision sit
+    // on a relied-upon register. Edits re-enter only through startRevision (which
+    // resets to DRAFT and clears the chain). Status-only transitions still pass.
+    if (d.status !== "DRAFT" && bodyEdits.length > 0)
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `${d.code} is ${(DELIVERABLE_STATUS_LABEL as Record<string, string>)[d.status] ?? d.status} — issued content is immutable; start a new revision to change it.`,
+      });
+
+    // Check category may be raised (more rigour) but never lowered.
+    if (
+      rest.checkCategory &&
+      CHECK_CATEGORY_RANK[rest.checkCategory] < CHECK_CATEGORY_RANK[d.checkCategory as CheckCategory]
+    )
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: `Check category cannot be downgraded from ${d.checkCategory} to ${rest.checkCategory} — a lower category means less review.`,
+      });
+
+    // Forward-only status machine (blocks ISSUED→DRAFT reverts and re-issue).
+    if (status && status !== d.status) {
+      const allowed = DELIVERABLE_TRANSITIONS[d.status] ?? [];
+      if (!allowed.includes(status))
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: `${d.code}: cannot move from ${d.status} to ${status}.`,
+        });
+    }
+    if (status === "ISSUED" && d.status === "ISSUED")
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: `${d.code} is already issued.` });
+
+    // Issuing runs the three reliance gates, the status write, and the billing
+    // fire atomically — no window for a comment to be reopened or a chain step
+    // deleted between the check and the commit (TOCTOU).
     if (status === "ISSUED") {
-      const [d] = await ctx.db.select().from(consDeliverables).where(eq(consDeliverables.id, id));
-      if (!d) throw new TRPCError({ code: "NOT_FOUND" });
-      const steps = await ctx.db
-        .select()
-        .from(consReviewSteps)
-        .where(eq(consReviewSteps.deliverableId, id));
-      const missing = missingSteps(d.checkCategory, steps);
-      if (missing.length > 0) {
-        throw new TRPCError({
-          code: "PRECONDITION_FAILED",
-          message: `Cannot issue ${d.code}: the ${d.checkCategory} sign-off chain is incomplete — missing ${missing
-            .map((k) => REVIEW_STEP_LABEL[k].toLowerCase())
-            .join(", ")}.`,
-        });
-      }
-      // CRS gate (SOP §4): no revision issues while a review comment is open —
-      // the closed sheet with responses is the review record.
-      const openComments = await ctx.db
-        .select({ reviewer: consReviewComments.reviewer })
-        .from(consReviewComments)
-        .where(
-          and(
-            eq(consReviewComments.deliverableId, id),
-            eq(consReviewComments.status, "OPEN"),
-          ),
-        );
-      if (openComments.length > 0) {
-        throw new TRPCError({
-          code: "PRECONDITION_FAILED",
-          message: `Cannot issue ${d.code}: ${openComments.length} review comment${openComments.length > 1 ? "s" : ""} open on the CRS — respond and close them first.`,
-        });
-      }
-
-      // EmOI input gate (Phase 3): an unvalidated input pack is a hold point —
-      // nothing built on unvalidated assumptions leaves the office.
-      const held = await ctx.db
-        .select({ title: consInputPacks.title })
-        .from(consInputPacks)
-        .where(
-          and(
-            eq(consInputPacks.engagementId, d.engagementId),
-            eq(consInputPacks.status, "RECEIVED"),
-          ),
-        );
-      if (held.length > 0) {
-        throw new TRPCError({
-          code: "PRECONDITION_FAILED",
-          message: `Cannot issue ${d.code}: ${held.length} input pack${held.length > 1 ? "s" : ""} awaiting validation (${held
-            .map((h) => h.title)
-            .slice(0, 3)
-            .join(", ")}) — validate or reject them first.`,
-        });
-      }
+      return ctx.db.transaction(async (tx) => {
+        const steps = await tx
+          .select()
+          .from(consReviewSteps)
+          .where(eq(consReviewSteps.deliverableId, id));
+        const missing = missingSteps(d.checkCategory, steps);
+        if (missing.length > 0)
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: `Cannot issue ${d.code}: the ${d.checkCategory} sign-off chain is incomplete — missing ${missing
+              .map((k) => REVIEW_STEP_LABEL[k].toLowerCase())
+              .join(", ")}.`,
+          });
+        const openComments = await tx
+          .select({ reviewer: consReviewComments.reviewer })
+          .from(consReviewComments)
+          .where(
+            and(eq(consReviewComments.deliverableId, id), eq(consReviewComments.status, "OPEN")),
+          );
+        if (openComments.length > 0)
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: `Cannot issue ${d.code}: ${openComments.length} review comment${openComments.length > 1 ? "s" : ""} open on the CRS — respond and close them first.`,
+          });
+        const held = await tx
+          .select({ title: consInputPacks.title })
+          .from(consInputPacks)
+          .where(
+            and(eq(consInputPacks.engagementId, d.engagementId), eq(consInputPacks.status, "RECEIVED")),
+          );
+        if (held.length > 0)
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: `Cannot issue ${d.code}: ${held.length} input pack${held.length > 1 ? "s" : ""} awaiting validation (${held
+              .map((h) => h.title)
+              .slice(0, 3)
+              .join(", ")}) — validate or reject them first.`,
+          });
+        const [row] = await tx
+          .update(consDeliverables)
+          .set({ ...rest, status, issuedAt: new Date(), updatedAt: new Date() })
+          .where(eq(consDeliverables.id, id))
+          .returning();
+        await writeAudit(tx, { entity: "cons_deliverable", entityId: id, action: "UPDATE", actorId: ctx.user.id, after: row });
+        const fired = await tx
+          .update(consFeeStages)
+          .set({ status: "BILLABLE", billableAt: new Date(), updatedAt: new Date() })
+          .where(and(eq(consFeeStages.deliverableId, id), eq(consFeeStages.status, "PENDING")))
+          .returning();
+        for (const s of fired)
+          await writeAudit(tx, { entity: "cons_fee_stage", entityId: s.id, action: "UPDATE", actorId: ctx.user.id, after: s });
+        return row!;
+      });
     }
 
     const [row] = await ctx.db
       .update(consDeliverables)
-      .set({
-        ...rest,
-        ...(status
-          ? { status, ...(status === "ISSUED" ? { issuedAt: new Date() } : {}) }
-          : {}),
-        updatedAt: new Date(),
-      })
+      .set({ ...rest, ...(status ? { status } : {}), updatedAt: new Date() })
       .where(eq(consDeliverables.id, id))
       .returning();
     await writeAudit(ctx.db, { entity: "cons_deliverable", entityId: id, action: "UPDATE", actorId: ctx.user.id, after: row });
-
-    // Billing trigger (Phase 2) — issue fires the linked fee stages BILLABLE.
-    if (status === "ISSUED") {
-      const fired = await ctx.db
-        .update(consFeeStages)
-        .set({ status: "BILLABLE", billableAt: new Date(), updatedAt: new Date() })
-        .where(and(eq(consFeeStages.deliverableId, id), eq(consFeeStages.status, "PENDING")))
-        .returning();
-      for (const s of fired)
-        await writeAudit(ctx.db, { entity: "cons_fee_stage", entityId: s.id, action: "UPDATE", actorId: ctx.user.id, after: s });
-    }
     return row!;
   }),
 
@@ -517,6 +584,14 @@ const reviewsRouter = router({
           message: "The proof check must be independent of both the author and the checker.",
         });
     }
+    // APPROVE is the signing act (Engineer of Record accepts responsibility) — an
+    // author may not approve their own work, or the "author ≠ reviewer" control
+    // has no arm on the one step that carries the professional signature.
+    if (input.kind === "APPROVE" && d.originatedBy && d.originatedBy === ctx.user.id)
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "The approval (EoR sign-off) cannot be recorded by the deliverable's author.",
+      });
 
     const [row] = await ctx.db
       .insert(consReviewSteps)
@@ -590,15 +665,54 @@ const tqsRouter = router({
   }),
 });
 
+/**
+ * A fee stage may only link to a deliverable in its OWN engagement — otherwise
+ * issuing engagement B's deliverable would flip engagement A's stage billable.
+ */
+async function assertDeliverableInEngagement(
+  db: DB,
+  deliverableId: string,
+  engagementId: string,
+) {
+  const [d] = await db
+    .select({ engagementId: consDeliverables.engagementId })
+    .from(consDeliverables)
+    .where(eq(consDeliverables.id, deliverableId));
+  if (!d) throw new TRPCError({ code: "NOT_FOUND", message: "Linked deliverable not found." });
+  if (d.engagementId !== engagementId)
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "The linked deliverable belongs to a different engagement.",
+    });
+}
+
 const feeStagesRouter = router({
-  create: manage.input(ConsFeeStageCreate).mutation(async ({ ctx, input }) => {
+  create: feesManage.input(ConsFeeStageCreate).mutation(async ({ ctx, input }) => {
+    if (input.deliverableId)
+      await assertDeliverableInEngagement(ctx.db, input.deliverableId, input.engagementId);
     const [row] = await ctx.db.insert(consFeeStages).values(input).returning();
     await writeAudit(ctx.db, { entity: "cons_fee_stage", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
     return row!;
   }),
 
-  update: manage.input(ConsFeeStageUpdate).mutation(async ({ ctx, input }) => {
+  update: feesManage.input(ConsFeeStageUpdate).mutation(async ({ ctx, input }) => {
     const { id, ...rest } = input;
+    const [existing] = await ctx.db.select().from(consFeeStages).where(eq(consFeeStages.id, id));
+    if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
+    // Amount and deliverable link are frozen once the stage leaves PENDING — an
+    // INVOICED/PAID stage must keep matching the invoice actually raised and the
+    // cash received. Only PENDING/BILLABLE stages (not yet on an invoice) may be
+    // repriced or relinked; the label stays editable in any state.
+    const financialChange =
+      (rest.amountPaise !== undefined && rest.amountPaise !== existing.amountPaise) ||
+      (rest.deliverableId !== undefined && rest.deliverableId !== existing.deliverableId);
+    if (financialChange && existing.status !== "PENDING" && existing.status !== "BILLABLE")
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `Stage is ${existing.status.toLowerCase()} — its amount and linked deliverable are locked. Raise a credit note / adjustment instead of editing a billed stage.`,
+      });
+    if (rest.deliverableId)
+      await assertDeliverableInEngagement(ctx.db, rest.deliverableId, existing.engagementId);
     const [row] = await ctx.db
       .update(consFeeStages)
       .set({ ...rest, updatedAt: new Date() })
@@ -610,7 +724,7 @@ const feeStagesRouter = router({
   }),
 
   /** Record the invoice raised for a BILLABLE stage; payment terms start the dunning clock. */
-  markInvoiced: manage
+  markInvoiced: feesManage
     .input(z.object({ id: z.string().uuid(), dueInDays: z.number().int().min(0).max(180).default(30) }))
     .mutation(async ({ ctx, input }) => {
       const [stage] = await ctx.db.select().from(consFeeStages).where(eq(consFeeStages.id, input.id));
@@ -636,7 +750,7 @@ const feeStagesRouter = router({
     }),
 
   /** Record payment received — closes the stage's dunning clock. */
-  markPaid: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+  markPaid: feesManage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const [stage] = await ctx.db.select().from(consFeeStages).where(eq(consFeeStages.id, input.id));
     if (!stage) throw new TRPCError({ code: "NOT_FOUND" });
     if (stage.status !== "INVOICED")
@@ -656,7 +770,16 @@ const feeStagesRouter = router({
     return row!;
   }),
 
-  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+  remove: feesManage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [stage] = await ctx.db.select().from(consFeeStages).where(eq(consFeeStages.id, input.id));
+    if (!stage) throw new TRPCError({ code: "NOT_FOUND" });
+    // A billed or paid stage is a financial record — deleting it silently erases
+    // a receivable or a payment. Only un-invoiced stages may be discarded.
+    if (stage.status === "INVOICED" || stage.status === "PAID")
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `Stage is ${stage.status.toLowerCase()} — it cannot be deleted. Reverse the invoice / record an adjustment instead.`,
+      });
     await ctx.db.delete(consFeeStages).where(eq(consFeeStages.id, input.id));
     await writeAudit(ctx.db, { entity: "cons_fee_stage", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
     return { ok: true };
@@ -664,12 +787,13 @@ const feeStagesRouter = router({
 });
 
 const rateCardsRouter = router({
-  list: protectedProcedure.query(({ ctx }) =>
+  // Chargeout rates are commercial data — finance-only.
+  list: feesManage.query(({ ctx }) =>
     ctx.db.select().from(consRateCards).orderBy(asc(consRateCards.grade)),
   ),
 
   /** Upsert the firm rate card (paise/hour + weekly capacity per grade). */
-  set: manage.input(ConsRateCardSet).mutation(async ({ ctx, input }) => {
+  set: feesManage.input(ConsRateCardSet).mutation(async ({ ctx, input }) => {
     for (const r of input.rates) {
       await ctx.db
         .insert(consRateCards)
@@ -697,13 +821,17 @@ const rateCardsRouter = router({
 const timesheetsRouter = router({
   listByEngagement: protectedProcedure
     .input(z.object({ engagementId: z.string().uuid() }))
-    .query(({ ctx, input }) =>
-      ctx.db
+    .query(async ({ ctx, input }) => {
+      const rows = await ctx.db
         .select()
         .from(consTimesheets)
         .where(eq(consTimesheets.engagementId, input.engagementId))
-        .orderBy(desc(consTimesheets.date)),
-    ),
+        .orderBy(desc(consTimesheets.date));
+      // Hours stay visible (own-work review); rupee value is finance-only.
+      return seesMoney(ctx.user.role)
+        ? rows
+        : rows.map((t) => ({ ...t, valuePaise: null }));
+    }),
 
   /** Log hours — value is snapshotted at the grade rate then in force. */
   log: manage.input(ConsTimesheetCreate).mutation(async ({ ctx, input }) => {
@@ -784,32 +912,45 @@ const variationsRouter = router({
    * Client approval of the additional service — the fee-defence moment (case
    * study §5.4). Appends a BILLABLE fee stage carrying the variation amount.
    */
-  approve: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
-    const [v] = await ctx.db.select().from(consVariations).where(eq(consVariations.id, input.id));
-    if (!v) throw new TRPCError({ code: "NOT_FOUND" });
-    if (v.status !== "PROPOSED")
-      throw new TRPCError({
-        code: "PRECONDITION_FAILED",
-        message: `${v.code} is already ${v.status.toLowerCase()}.`,
-      });
-    const [stage] = await ctx.db
-      .insert(consFeeStages)
-      .values({
-        engagementId: v.engagementId,
-        label: `Variation ${v.code} — ${v.title}`,
-        amountPaise: v.amountPaise,
-        status: "BILLABLE",
-        billableAt: new Date(),
-      })
-      .returning();
-    const [row] = await ctx.db
-      .update(consVariations)
-      .set({ status: "APPROVED", approvedAt: new Date(), feeStageId: stage!.id, updatedAt: new Date() })
-      .where(eq(consVariations.id, input.id))
-      .returning();
-    await writeAudit(ctx.db, { entity: "cons_variation", entityId: input.id, action: "UPDATE", actorId: ctx.user.id, after: row });
-    await writeAudit(ctx.db, { entity: "cons_fee_stage", entityId: stage!.id, action: "CREATE", actorId: ctx.user.id, after: stage });
-    return row!;
+  approve: costApprove.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    // Transactional with a conditional status flip so two concurrent approvals
+    // cannot each append a BILLABLE stage (double-billing the same variation).
+    return ctx.db.transaction(async (tx) => {
+      const claimed = await tx
+        .update(consVariations)
+        .set({ status: "APPROVED", approvedAt: new Date(), updatedAt: new Date() })
+        .where(and(eq(consVariations.id, input.id), eq(consVariations.status, "PROPOSED")))
+        .returning();
+      if (claimed.length === 0) {
+        // Either it doesn't exist or it was already approved/rejected — the
+        // loser of a race, or a stale client.
+        const [v] = await tx.select().from(consVariations).where(eq(consVariations.id, input.id));
+        if (!v) throw new TRPCError({ code: "NOT_FOUND" });
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: `${v.code} is already ${v.status.toLowerCase()}.`,
+        });
+      }
+      const v = claimed[0]!;
+      const [stage] = await tx
+        .insert(consFeeStages)
+        .values({
+          engagementId: v.engagementId,
+          label: `Variation ${v.code} — ${v.title}`,
+          amountPaise: v.amountPaise,
+          status: "BILLABLE",
+          billableAt: new Date(),
+        })
+        .returning();
+      const [row] = await tx
+        .update(consVariations)
+        .set({ feeStageId: stage!.id, updatedAt: new Date() })
+        .where(eq(consVariations.id, input.id))
+        .returning();
+      await writeAudit(tx, { entity: "cons_variation", entityId: input.id, action: "UPDATE", actorId: ctx.user.id, after: row });
+      await writeAudit(tx, { entity: "cons_fee_stage", entityId: stage!.id, action: "CREATE", actorId: ctx.user.id, after: stage });
+      return row!;
+    });
   }),
 
   reject: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
@@ -829,7 +970,16 @@ const variationsRouter = router({
     return row!;
   }),
 
-  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+  remove: feesManage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [v] = await ctx.db.select().from(consVariations).where(eq(consVariations.id, input.id));
+    if (!v) throw new TRPCError({ code: "NOT_FOUND" });
+    // An approved variation owns a BILLABLE fee stage; deleting it would leave
+    // that stage billing with no variation behind it. Reject it first.
+    if (v.status === "APPROVED")
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `${v.code} is approved and carries a billable fee stage — it cannot be deleted.`,
+      });
     await ctx.db.delete(consVariations).where(eq(consVariations.id, input.id));
     await writeAudit(ctx.db, { entity: "cons_variation", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
     return { ok: true };
@@ -844,7 +994,7 @@ const analyticsRouter = router({
    * value booked. WIP = time value not yet covered by invoiced stages, summed
    * per engagement.
    */
-  summary: protectedProcedure.input(ConsAnalyticsPeriod).query(async ({ ctx, input }) => {
+  summary: feesManage.input(ConsAnalyticsPeriod).query(async ({ ctx, input }) => {
     const sheets = await ctx.db
       .select()
       .from(consTimesheets)
@@ -980,15 +1130,39 @@ const insuranceRouter = router({
 
 const relianceLettersRouter = router({
   create: manage.input(ConsRelianceLetterCreate).mutation(async ({ ctx, input }) => {
+    // A reliance letter grants a third party a legal right to rely on the firm's
+    // work — it must stand on something actually issued. Refuse to write one over
+    // an engagement with no ISSUED deliverable (all-draft / unchecked work).
+    const [issued] = await ctx.db
+      .select({ id: consDeliverables.id })
+      .from(consDeliverables)
+      .where(
+        and(
+          eq(consDeliverables.engagementId, input.engagementId),
+          eq(consDeliverables.status, "ISSUED"),
+        ),
+      )
+      .limit(1);
+    if (!issued)
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message:
+          "This engagement has no issued deliverable — a reliance letter cannot be granted over unissued work.",
+      });
     const [row] = await ctx.db.insert(consRelianceLetters).values(input).returning();
     await writeAudit(ctx.db, { entity: "cons_reliance_letter", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
     return row!;
   }),
 
-  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
-    await ctx.db.delete(consRelianceLetters).where(eq(consRelianceLetters.id, input.id));
-    await writeAudit(ctx.db, { entity: "cons_reliance_letter", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
-    return { ok: true };
+  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async () => {
+    // A reliance letter is a legal instrument issued to a beneficiary; it is not
+    // silently deletable. To correct one, issue a superseding letter (and set its
+    // expiry) so the audit trail survives.
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message:
+        "Reliance letters cannot be deleted — issue a superseding letter or set an expiry date instead.",
+    });
   }),
 });
 
@@ -1127,6 +1301,13 @@ const crsRouter = router({
       .from(consDeliverables)
       .where(eq(consDeliverables.id, input.deliverableId));
     if (!d) throw new TRPCError({ code: "NOT_FOUND" });
+    // Comments belong to the review of a DRAFT. Once issued, the CRS is the frozen
+    // review record for that revision — new comments open a new revision instead.
+    if (d.status !== "DRAFT")
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `${d.code} is ${(DELIVERABLE_STATUS_LABEL as Record<string, string>)[d.status] ?? d.status} — start a new revision to raise further comments.`,
+      });
     const [row] = await ctx.db
       .insert(consReviewComments)
       .values({ ...input, revision: d.revision })
@@ -1154,6 +1335,15 @@ const crsRouter = router({
   }),
 
   remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [c] = await ctx.db.select().from(consReviewComments).where(eq(consReviewComments.id, input.id));
+    if (!c) throw new TRPCError({ code: "NOT_FOUND" });
+    // A closed comment (comment + response) is the review record — deleting it
+    // rewrites history. Only an open, unanswered line may be withdrawn.
+    if (c.status === "CLOSED")
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: "A closed review comment is part of the review record and cannot be deleted.",
+      });
     await ctx.db.delete(consReviewComments).where(eq(consReviewComments.id, input.id));
     await writeAudit(ctx.db, { entity: "cons_review_comment", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
     return { ok: true };

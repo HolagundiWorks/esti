@@ -479,6 +479,18 @@ export const CHECK_CATEGORY_REQUIRED_STEPS: Record<CheckCategory, readonly Revie
   CAT3: ["CHECK", "APPROVE", "VERIFY"],
 };
 
+/**
+ * Rigour ordering of the check categories (higher = more independent review).
+ * Used to forbid *downgrading* a deliverable's category — lowering rigour after
+ * work has been classified is a liability decision, not a routine edit.
+ */
+export const CHECK_CATEGORY_RANK: Record<CheckCategory, number> = {
+  CAT0: 0,
+  CAT1: 1,
+  CAT2: 2,
+  CAT3: 3,
+};
+
 export const ConsReviewStepCreate = z.object({
   deliverableId: z.string().uuid(),
   kind: ReviewStepKind,

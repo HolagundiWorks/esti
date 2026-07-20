@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   accessLevelForRole,
+  can,
   minLevelForCapability,
 } from "@esti/contracts";
 
@@ -118,6 +119,27 @@ describe("tRPC authorization boundaries", () => {
   it("limits firm economics to partner and owner", async () => {
     await expect(caller(user("PARTNER")).fees()).resolves.toBe(true);
     await expect(caller(user("SENIOR")).fees()).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  // The consultancy module gates fee stages / rate cards / variation approvals
+  // behind fees:manage & cost:approve (money = L2+), while the engineering
+  // sign-off chain and timesheet logging stay on `write`. These assertions lock
+  // the exact capability split that separation relies on — in particular that
+  // HR_MANAGER, which holds `write` via its allow-list, does NOT reach money.
+  it.each([
+    ["OWNER", true],
+    ["PARTNER", true],
+    ["ACCOUNTANT", true],
+    ["HR_MANAGER", false],
+    ["SENIOR", false],
+    ["ASSOCIATE", false],
+    ["VIEWER", false],
+  ] as const)("scopes consultancy money capabilities for %s", (role, money) => {
+    expect(can(role, "fees:manage")).toBe(money);
+    expect(can(role, "cost:approve")).toBe(money);
+    // Operational `write` (sign-off chain, timesheet logging) is broader.
+    if (["OWNER", "PARTNER", "ACCOUNTANT", "HR_MANAGER", "SENIOR", "ASSOCIATE"].includes(role))
+      expect(can(role, "write")).toBe(true);
   });
 
   it("enforces portal record scope", async () => {
