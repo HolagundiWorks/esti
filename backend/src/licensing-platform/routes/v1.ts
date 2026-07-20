@@ -227,8 +227,9 @@ export function registerV1Routes(app: FastifyInstance): void {
       return { error: "not_found" };
     }
     let orgPublicId: string | null = null;
+    let orgId: string | null = null;
     if (parsed.data.company) {
-      const orgId = await orgIdFromHandle(parsed.data.company);
+      orgId = await orgIdFromHandle(parsed.data.company);
       if (!orgId) {
         reply.code(404);
         return { error: "company_not_found" };
@@ -237,6 +238,24 @@ export function registerV1Routes(app: FastifyInstance): void {
         reply.code(403);
         return { error: "org_mismatch" };
       }
+      orgPublicId = parsed.data.company;
+    } else {
+      // No explicit company: fall back to the org this API key is bound to.
+      orgId = auth.orgId;
+    }
+
+    /**
+     * An org-scoped key may only record growth for its own members.
+     *
+     * This check used to sit inside the `if (parsed.data.company)` branch, so
+     * omitting `company` skipped it entirely — and omitting it is the default,
+     * since the caller sends `ESTI_COMPANY || undefined` and that env var
+     * defaults to empty. Any node with any org-bound key could therefore append
+     * arbitrary events to any account's portable cross-firm record, where they
+     * read as earned. A key with no org binding is a first-party platform
+     * credential and keeps its wider reach.
+     */
+    if (orgId) {
       const [member] = await db
         .select({ id: schema.orgMembers.id })
         .from(schema.orgMembers)
@@ -246,7 +265,6 @@ export function registerV1Routes(app: FastifyInstance): void {
         reply.code(404);
         return { error: "not_a_member" };
       }
-      orgPublicId = parsed.data.company;
     }
     const { id } = await recordGrowth({
       accountPublicId: parsed.data.publicId,

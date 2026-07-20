@@ -104,6 +104,12 @@ const SELF_SERVICE_MUTATIONS = new Set([
   "usage.ping",
   "usage.dismissIdPrompt",
   "usage.generateAormsId",
+  // LXOS Academy — juniors and interns are the training audience and hold
+  // read-only roles, so without these the Academy showed them buttons that
+  // could only ever answer "Your role has read-only access". Both writes touch
+  // nothing but the caller's own progress row (scoped to ctx.user.id).
+  "academy.markTheoryRead",
+  "academy.attestPractical",
 ]);
 
 /**

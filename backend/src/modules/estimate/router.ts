@@ -6,6 +6,7 @@ import {
   EstimateStatus,
   EstimateUpdateHeader,
   canTransitionEstimate,
+  estimateLockedError,
   computeEstimateTotals,
   computeEstimateTotalsFromSubtotal,
   estimateItemAmountPaise,
@@ -33,6 +34,34 @@ import { capabilityProcedure, router } from "../../trpc/trpc.js";
 
 // Estimates carry firm costing (rates, contingency) — same gate as fee proposals.
 const manage = capabilityProcedure("fees:manage");
+
+/**
+ * Refuse to change the contents of an estimate that is no longer editable.
+ *
+ * `canTransitionEstimate` only ever governed the status field, so an APPROVED
+ * estimate — a number already quoted to a client — could still have its items,
+ * measurements, contingency or GST rewritten through the API. The read-only
+ * treatment existed solely in the React component.
+ */
+async function assertEstimateEditable(db: DB, estimateId: string): Promise<void> {
+  const [row] = await db
+    .select({ status: estimates.status })
+    .from(estimates)
+    .where(eq(estimates.id, estimateId));
+  if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Estimate not found" });
+  const err = estimateLockedError(row.status as EstimateStatus);
+  if (err) throw new TRPCError({ code: "PRECONDITION_FAILED", message: err });
+}
+
+/** Same guard, reached through an item id. */
+async function assertEstimateEditableForItem(db: DB, estimateItemId: string): Promise<void> {
+  const [item] = await db
+    .select({ estimateId: estimateItems.estimateId })
+    .from(estimateItems)
+    .where(eq(estimateItems.id, estimateItemId));
+  if (!item) throw new TRPCError({ code: "NOT_FOUND", message: "Estimate item not found" });
+  await assertEstimateEditable(db, item.estimateId);
+}
 
 /**
  * Sums an item's measurement lines and updates its quantity/amount to match.
@@ -84,10 +113,20 @@ export const estimateRouter = router({
         .from(estimates)
         .where(eq(estimates.projectId, input.projectId))
         .orderBy(desc(estimates.createdAt));
-      const totalsByEstimate = await ctx.db
-        .select({ estimateId: estimateItems.estimateId, subtotal: sql<number>`coalesce(sum(${estimateItems.amountPaise}), 0)::bigint` })
-        .from(estimateItems)
-        .groupBy(estimateItems.estimateId);
+      // Scoped to this project's estimates. Without the WHERE this summed
+      // every estimate item in the database on every call and then threw all
+      // but a handful away — a sequential scan that grows with the whole firm.
+      const ids = rows.map((e) => e.id);
+      const totalsByEstimate = ids.length
+        ? await ctx.db
+            .select({
+              estimateId: estimateItems.estimateId,
+              subtotal: sql<number>`coalesce(sum(${estimateItems.amountPaise}), 0)::bigint`,
+            })
+            .from(estimateItems)
+            .where(inArray(estimateItems.estimateId, ids))
+            .groupBy(estimateItems.estimateId)
+        : [];
       const subtotalOf = new Map(totalsByEstimate.map((t) => [t.estimateId, Number(t.subtotal)]));
       return rows.map((e) => {
         const t = computeEstimateTotalsFromSubtotal(subtotalOf.get(e.id) ?? 0, e.contingencyPct, e.gstPct);
@@ -160,6 +199,8 @@ export const estimateRouter = router({
   updateHeader: manage.input(EstimateUpdateHeader).mutation(async ({ ctx, input }) => {
     const [before] = await ctx.db.select().from(estimates).where(eq(estimates.id, input.id));
     if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+    const lockErr = estimateLockedError(before.status as EstimateStatus);
+    if (lockErr) throw new TRPCError({ code: "PRECONDITION_FAILED", message: lockErr });
     const [row] = await ctx.db
       .update(estimates)
       .set({
@@ -172,6 +213,16 @@ export const estimateRouter = router({
       })
       .where(eq(estimates.id, input.id))
       .returning();
+    // Contingency and GST move the contract sum, so header edits are audited —
+    // previously `before` was loaded here and then discarded, leaving no trail.
+    await writeAudit(ctx.db, {
+      entity: "estimate",
+      entityId: input.id,
+      action: "UPDATE_HEADER",
+      actorId: ctx.user.id,
+      before: { contingencyPct: before.contingencyPct, gstPct: before.gstPct, title: before.title },
+      after: { contingencyPct: row!.contingencyPct, gstPct: row!.gstPct, title: row!.title },
+    });
     return row!;
   }),
 
@@ -212,6 +263,7 @@ export const estimateRouter = router({
   }),
 
   upsertItem: manage.input(EstimateItemUpsert).mutation(async ({ ctx, input }) => {
+    await assertEstimateEditable(ctx.db, input.estimateId);
     const amountPaise = estimateItemAmountPaise(input.ratePaise, input.quantity);
     if (input.id) {
       const [row] = await ctx.db
@@ -257,11 +309,29 @@ export const estimateRouter = router({
   }),
 
   removeItem: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
-    await ctx.db.delete(estimateItems).where(eq(estimateItems.id, input.id));
+    await assertEstimateEditableForItem(ctx.db, input.id);
+    const [deleted] = await ctx.db
+      .delete(estimateItems)
+      .where(eq(estimateItems.id, input.id))
+      .returning();
+    if (deleted) {
+      await writeAudit(ctx.db, {
+        entity: "estimate",
+        entityId: deleted.estimateId,
+        action: "REMOVE_ITEM",
+        actorId: ctx.user.id,
+        before: {
+          description: deleted.description,
+          quantity: deleted.quantity,
+          amountPaise: deleted.amountPaise,
+        },
+      });
+    }
     return { ok: true };
   }),
 
   upsertMeasurement: manage.input(EstimateMeasurementUpsert).mutation(async ({ ctx, input }) => {
+    await assertEstimateEditableForItem(ctx.db, input.estimateItemId);
     const [item] = await ctx.db.select().from(estimateItems).where(eq(estimateItems.id, input.estimateItemId));
     if (!item) throw new TRPCError({ code: "NOT_FOUND", message: "Estimate item not found" });
     const shape = shapeForUnit(item.unit);
@@ -455,8 +525,36 @@ export const estimateRouter = router({
   removeMeasurement: manage
     .input(z.object({ id: z.string().uuid(), estimateItemId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.delete(estimateMeasurements).where(eq(estimateMeasurements.id, input.id));
-      await recomputeItemFromMeasurements(ctx.db, input.estimateItemId, { emptiedByDelete: true });
+      await assertEstimateEditableForItem(ctx.db, input.estimateItemId);
+      // Scope the delete to the item the caller named, and recompute from the
+      // row actually deleted. The two ids used to be independent: deleting
+      // item A's line while naming item B left A over-billing (never
+      // recomputed) and zeroed B's hand-typed quantity, in one call.
+      const [deleted] = await ctx.db
+        .delete(estimateMeasurements)
+        .where(
+          and(
+            eq(estimateMeasurements.id, input.id),
+            eq(estimateMeasurements.estimateItemId, input.estimateItemId),
+          ),
+        )
+        .returning();
+      if (!deleted) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Measurement line not found on that estimate item",
+        });
+      }
+      await recomputeItemFromMeasurements(ctx.db, deleted.estimateItemId, {
+        emptiedByDelete: true,
+      });
+      await writeAudit(ctx.db, {
+        entity: "estimate_item",
+        entityId: deleted.estimateItemId,
+        action: "REMOVE_MEASUREMENT",
+        actorId: ctx.user.id,
+        before: { quantity: deleted.quantity, description: deleted.description },
+      });
       return { ok: true };
     }),
 });

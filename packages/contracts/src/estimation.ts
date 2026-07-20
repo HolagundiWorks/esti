@@ -265,6 +265,26 @@ export function canTransitionEstimate(from: EstimateStatus, to: EstimateStatus):
   return ESTIMATE_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
+/**
+ * Whether an estimate's contents (items, measurements, contingency, GST) may
+ * still change. APPROVED means a number has been quoted to a client and
+ * CANCELLED is closed, so both are frozen — re-price by moving the estimate
+ * back to DRAFT, which leaves a status trail, or by raising a revision.
+ *
+ * `canTransitionEstimate` governs only the status field; this governs content.
+ */
+export function isEstimateEditable(status: EstimateStatus): boolean {
+  return status === "DRAFT" || status === "FINALISED";
+}
+
+/** Null when the estimate may be edited, else a message naming why not. */
+export function estimateLockedError(status: EstimateStatus): string | null {
+  if (isEstimateEditable(status)) return null;
+  return status === "APPROVED"
+    ? "This estimate is approved and cannot be changed. Move it back to draft to re-price it."
+    : "This estimate is cancelled and cannot be changed.";
+}
+
 // --- Input schemas ---
 
 export const RateBookCreate = z.object({
@@ -320,15 +340,24 @@ export const EstimateItemUpsert = z.object({
 });
 export type EstimateItemUpsert = z.infer<typeof EstimateItemUpsert>;
 
+/**
+ * Dimensions are non-negative and finite. A negative length silently subtracts
+ * money — 1 x 10 x 5 then 1 x -10 x 5 nets an item to zero — and `1e400`
+ * becomes Infinity, which reaches a bigint amount column as a driver error
+ * rather than a validation message. Deductions belong in an explicit deduction
+ * line, not a minus sign smuggled into a dimension.
+ */
+const dimension = (fallback: number) => z.number().finite().nonnegative().default(fallback);
+
 export const EstimateMeasurementUpsert = z.object({
   id: z.string().uuid().optional(),
   estimateItemId: z.string().uuid(),
   description: z.string().max(200).optional(),
-  nos: z.number().default(1),
-  length: z.number().default(0),
-  breadth: z.number().default(0),
-  depth: z.number().default(0),
-  directQuantity: z.number().default(0),
+  nos: dimension(1),
+  length: dimension(0),
+  breadth: dimension(0),
+  depth: dimension(0),
+  directQuantity: dimension(0),
 });
 export type EstimateMeasurementUpsert = z.infer<typeof EstimateMeasurementUpsert>;
 
