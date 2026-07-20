@@ -454,14 +454,15 @@ export function StudioAbstract() {
         ];
 
   // Stage header KPIs — Pipeline · Outstanding · Collected · Ready to bill (or ops fallback).
-  const kpiTiles: { label: string; value: ReactNode; sub?: ReactNode }[] =
+  const kpiTiles: { id: string; label: string; value: ReactNode; sub?: ReactNode }[] =
     homeLoading
       ? Array.from({ length: 4 }, (_, i) => ({
+          id: `kpi-loading-${i}`,
           label: "Loading",
           value: <Skeleton variant="text" width={72} sx={{ fontSize: TYPE_SCALE.kpi }} />,
           sub: i === 0 ? "Office metrics" : undefined,
         }))
-      : heroKpis.slice(0, 4).map((k) => ({ label: k.label, value: k.value, sub: k.sub }));
+      : heroKpis.slice(0, 4).map((k) => ({ id: `kpi-${k.label}`, label: k.label, value: k.value, sub: k.sub }));
 
   // Top risks
   const clientRisks = (home?.clientIntelligence ?? []).filter((c: any) => c.risk === "HIGH");
@@ -632,7 +633,7 @@ export function StudioAbstract() {
           >
             {kpiTiles.map((c, i) => (
               <Box
-                key={c.label}
+                key={c.id}
                 sx={{
                   minWidth: 0,
                   p: 1,

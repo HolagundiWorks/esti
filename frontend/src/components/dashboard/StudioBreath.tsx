@@ -36,10 +36,11 @@ function contourPath(baseR: number, seed: number): string {
 }
 
 export function StudioBreath() {
-  const skip =
-    useMediaQuery("(max-width: 900px)") ||
-    useMediaQuery("(prefers-reduced-motion: reduce)");
-  if (skip) return null;
+  // Both queries must run unconditionally — `||` would short-circuit the second
+  // hook once the first is true, changing the hook count between renders.
+  const isNarrow = useMediaQuery("(max-width: 900px)");
+  const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  if (isNarrow || reduceMotion) return null;
 
   return (
     <div className="esti-si-breath" aria-hidden>
