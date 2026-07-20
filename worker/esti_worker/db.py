@@ -347,7 +347,9 @@ def fetch_open_invoices() -> list[dict[str, Any]]:
     with psycopg.connect(settings.database_url) as conn:
         cur = conn.execute(
             "select id, ref, grand_total_paise, net_receivable_paise "
-            "from esti_invoice where status = 'ISSUED'"
+            "from esti_invoice where status = 'ISSUED' "
+            # Stable order so a given statement always matches the same way.
+            "order by created_at, id"
         )
         return [
             {

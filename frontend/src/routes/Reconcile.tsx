@@ -34,11 +34,17 @@ const STATUS_TAG: Record<string, "gray" | "blue" | "green" | "red"> = {
   FAILED: "red",
 };
 
-const MATCH_TAG: Record<string, "green" | "teal" | "cyan" | "gray"> = {
+const MATCH_TAG: Record<string, "green" | "teal" | "cyan" | "magenta" | "gray"> = {
   ref_amount: "green",
   ref: "teal",
   amount: "cyan",
+  amount_ambiguous: "magenta",
   none: "gray",
+};
+
+/** Amber "ambiguous" reads better than the raw enum value. */
+const MATCH_LABEL: Record<string, string> = {
+  amount_ambiguous: "ambiguous",
 };
 
 type Line = {
@@ -48,6 +54,7 @@ type Line = {
   amountPaise: number;
   matchType: keyof typeof MATCH_TAG;
   matchedInvoiceRef: string | null;
+  candidateInvoiceRefs?: string[] | null;
 };
 
 export function Reconcile() {
@@ -252,14 +259,22 @@ export function Reconcile() {
       flex: 0.7,
       minWidth: 120,
       sortable: false,
-      renderCell: (p) => <StatusDot color={MATCH_TAG[p.row.matchType] ?? "gray"} label={p.row.matchType} />,
+      renderCell: (p) => (
+        <StatusDot
+          color={MATCH_TAG[p.row.matchType] ?? "gray"}
+          label={MATCH_LABEL[p.row.matchType] ?? p.row.matchType}
+        />
+      ),
     },
     {
       field: "matchedInvoiceRef",
       headerName: "Invoice",
       flex: 0.8,
       minWidth: 120,
-      renderCell: (p) => p.row.matchedInvoiceRef ?? "—",
+      renderCell: (p) =>
+        p.row.matchType === "amount_ambiguous" && p.row.candidateInvoiceRefs?.length
+          ? `${p.row.candidateInvoiceRefs.length} possible: ${p.row.candidateInvoiceRefs.join(", ")}`
+          : (p.row.matchedInvoiceRef ?? "—"),
     },
   ];
 

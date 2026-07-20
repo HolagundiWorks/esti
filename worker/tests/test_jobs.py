@@ -4,7 +4,7 @@ from esti_worker.jobs.pdf import (
     _feasibility_report_html,
     _inr,
 )
-from esti_worker.jobs.reconcile import _digits, _pick, _to_paise
+from esti_worker.jobs.reconcile import _digits, _pick, _to_paise, match_line
 from esti_worker.storage import backend_from_settings
 
 
@@ -52,6 +52,62 @@ def test_to_paise_parsing() -> None:
     assert _to_paise("₹ 1,000.50") == 100050
     assert _to_paise("") is None
     assert _to_paise(None) is None
+
+
+def test_to_paise_debits_are_negative() -> None:
+    # Debits must come out negative so the credit filter drops them, rather than
+    # being read as incoming payments.
+    assert _to_paise("(1,234.50)") == -123450  # accounting parentheses
+    assert _to_paise("1,234.50-") == -123450  # trailing minus
+    assert _to_paise("1,234.50 Dr") == -123450  # Dr suffix
+    assert _to_paise("1,234.50 Cr") == 123450  # credit stays positive
+    assert _to_paise("-500") == -50000
+
+
+_INVOICES = [
+    {"id": "a", "ref": "INV/2026-27/0007", "grand_total_paise": 118000, "net_receivable_paise": 106200},
+    {"id": "b", "ref": "INV/2026-27/0008", "grand_total_paise": 118000, "net_receivable_paise": 106200},
+    {"id": "c", "ref": "INV/2026-27/0009", "grand_total_paise": 500000, "net_receivable_paise": 450000},
+]
+
+
+def _by_ref(invs):
+    return {_digits(i["ref"]): i for i in invs}
+
+
+def test_match_reference_identifies_the_invoice() -> None:
+    mt, hit, _ = match_line(106200, "NEFT 2026270009 fee", _INVOICES, _by_ref(_INVOICES))
+    # ref wins even though the amount also equals invoice c's net.
+    assert mt == "ref_amount"
+    assert hit["id"] == "c"
+
+
+def test_match_reference_without_amount() -> None:
+    mt, hit, _ = match_line(99999, "ref 2026270007 partial", _INVOICES, _by_ref(_INVOICES))
+    assert mt == "ref"
+    assert hit["id"] == "a"
+
+
+def test_match_unique_amount() -> None:
+    mt, hit, _ = match_line(450000, "some narration", _INVOICES, _by_ref(_INVOICES))
+    assert mt == "amount"
+    assert hit["id"] == "c"
+
+
+def test_match_ambiguous_amount_binds_to_nothing() -> None:
+    # 106200 is the net receivable of both a and b — we cannot know which, so it
+    # must not auto-settle an arbitrary one.
+    mt, hit, candidates = match_line(106200, "no ref here", _INVOICES, _by_ref(_INVOICES))
+    assert mt == "amount_ambiguous"
+    assert hit is None
+    assert {c["id"] for c in candidates} == {"a", "b"}
+
+
+def test_match_none() -> None:
+    mt, hit, candidates = match_line(777, "unrelated", _INVOICES, _by_ref(_INVOICES))
+    assert mt == "none"
+    assert hit is None
+    assert candidates == []
 
 
 def test_pick_column_aliases() -> None:

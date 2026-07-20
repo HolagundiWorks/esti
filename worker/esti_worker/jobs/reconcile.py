@@ -45,19 +45,77 @@ def _pick(columns: list[str], aliases: tuple[str, ...]) -> str | None:
 
 
 def _to_paise(value: Any) -> int | None:
+    """Parse a statement amount to paise, preserving sign.
+
+    Debits must come out negative so the credit filter drops them. Indian bank
+    exports mark a debit in several ways — accounting parentheses `(1,234.50)`,
+    a trailing minus `1,234.50-`, or a `Dr` suffix — and stripping to digits
+    turned every one of them into a positive number that was then reconciled as
+    an incoming payment.
+    """
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
-    s = re.sub(r"[^0-9.\-]", "", str(value))
-    if s in ("", "-", "."):
+    raw = str(value).strip()
+    low = raw.lower()
+    negative = (
+        (raw.startswith("(") and raw.endswith(")"))
+        or raw.endswith("-")
+        or low.endswith(" dr")
+        or low.endswith("dr")
+    )
+    s = re.sub(r"[^0-9.]", "", raw)  # magnitude only; sign handled above
+    if s in ("", "."):
         return None
     try:
-        return round(float(s) * 100)
+        paise = round(float(s) * 100)
     except ValueError:
         return None
+    return -paise if negative else paise
 
 
 def _digits(s: str) -> str:
     return re.sub(r"\D", "", s)
+
+
+def match_line(
+    amount_paise: int,
+    description: str,
+    invoices: list[dict[str, Any]],
+    by_ref_digits: dict[str, dict[str, Any]],
+) -> tuple[str, dict[str, Any] | None, list[dict[str, Any]]]:
+    """Match one credit line to an invoice.
+
+    Returns (match_type, hit, amount_candidates).
+
+    A reference match identifies a specific invoice, so it wins outright. An
+    amount match only identifies an invoice when exactly one open invoice has
+    that total: two projects billed the same standard fee produce identical
+    receivables, and binding the receipt to whichever the database returned
+    first settled an arbitrary one. When several match, the type is
+    `amount_ambiguous` with no invoice bound, so a human resolves it rather than
+    the wrong project silently showing collected.
+    """
+    ref_hit = None
+    desc_digits = _digits(description)
+    for ref_digits, inv in by_ref_digits.items():
+        if len(ref_digits) >= 6 and ref_digits in desc_digits:
+            ref_hit = inv
+            break
+
+    amt_matches = [
+        inv
+        for inv in invoices
+        if amount_paise in (inv["grand_total_paise"], inv["net_receivable_paise"])
+    ]
+
+    if ref_hit:
+        exact = any(inv["id"] == ref_hit["id"] for inv in amt_matches)
+        return ("ref_amount" if exact else "ref"), ref_hit, amt_matches
+    if len(amt_matches) == 1:
+        return "amount", amt_matches[0], amt_matches
+    if len(amt_matches) > 1:
+        return "amount_ambiguous", None, amt_matches
+    return "none", None, []
 
 
 def reconcile_import(payload: dict[str, Any]) -> dict[str, Any]:
@@ -100,32 +158,9 @@ def reconcile_import(payload: dict[str, Any]) -> dict[str, Any]:
             date_val = None if date_col is None else str(rec[date_col])
             total_credit += amount_paise
 
-            # 1) reference match: an invoice ref's digits appear in the narration
-            ref_hit = None
-            desc_digits = _digits(description)
-            for ref_digits, inv in by_ref_digits.items():
-                if len(ref_digits) >= 6 and ref_digits in desc_digits:
-                    ref_hit = inv
-                    break
-            # 2) amount match: equals grand total or net receivable
-            amt_hit = next(
-                (
-                    inv
-                    for inv in invoices
-                    if amount_paise
-                    in (inv["grand_total_paise"], inv["net_receivable_paise"])
-                ),
-                None,
+            match_type, hit, candidates = match_line(
+                amount_paise, description, invoices, by_ref_digits
             )
-
-            if ref_hit and amt_hit and ref_hit["id"] == amt_hit["id"]:
-                match_type, hit = "ref_amount", ref_hit
-            elif ref_hit:
-                match_type, hit = "ref", ref_hit
-            elif amt_hit:
-                match_type, hit = "amount", amt_hit
-            else:
-                match_type, hit = "none", None
 
             if hit:
                 matched += 1
@@ -140,6 +175,13 @@ def reconcile_import(payload: dict[str, Any]) -> dict[str, Any]:
                     "matchType": match_type,
                     "matchedInvoiceId": hit["id"] if hit else None,
                     "matchedInvoiceRef": hit["ref"] if hit else None,
+                    # For an ambiguous amount, list the invoices it could be so a
+                    # human can pick — otherwise the line is a dead end.
+                    "candidateInvoiceRefs": (
+                        [inv["ref"] for inv in candidates]
+                        if match_type == "amount_ambiguous"
+                        else None
+                    ),
                 }
             )
 

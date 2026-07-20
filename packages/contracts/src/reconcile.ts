@@ -12,7 +12,14 @@ import { z } from "zod";
 export const ReconcileStatus = z.enum(["PENDING", "PROCESSING", "READY", "FAILED"]);
 export type ReconcileStatus = z.infer<typeof ReconcileStatus>;
 
-export const ReconcileMatchType = z.enum(["ref_amount", "ref", "amount", "none"]);
+export const ReconcileMatchType = z.enum([
+  "ref_amount",
+  "ref",
+  "amount",
+  /** Amount matched more than one open invoice — a human must pick which. */
+  "amount_ambiguous",
+  "none",
+]);
 export type ReconcileMatchType = z.infer<typeof ReconcileMatchType>;
 
 /** One parsed statement credit line + its match outcome. */
@@ -24,6 +31,8 @@ export const ReconcileLine = z.object({
   matchType: ReconcileMatchType,
   matchedInvoiceId: z.string().uuid().nullable(),
   matchedInvoiceRef: z.string().nullable(),
+  /** Candidate invoice refs when the amount matched several (amount_ambiguous). */
+  candidateInvoiceRefs: z.array(z.string()).nullable().optional(),
   /**
    * Set when this line's amount has been applied to its invoice. Makes settle
    * idempotent: re-running a batch skips lines already applied rather than
