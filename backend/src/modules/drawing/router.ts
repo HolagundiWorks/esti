@@ -10,6 +10,7 @@ import { z } from "zod";
 import { drawings } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { writeActivity } from "../../lib/activity.js";
+import { assertProjectAccess } from "../../lib/projectAccess.js";
 import { firmPayload } from "../../lib/firm.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { getObjectBuffer, getObjectText, presignedGet } from "../../lib/storage.js";
@@ -115,6 +116,10 @@ export const drawingRouter = router({
     .mutation(async ({ ctx, input }) => {
       const [before] = await ctx.db.select().from(drawings).where(eq(drawings.id, input.id));
       if (!before) throw new TRPCError({ code: "NOT_FOUND" });
+      // Drawing ids are not guessable in practice, but this is the module's
+      // first cross-project mutation, so scope it: staff outside a project
+      // should not be able to flip its QC state by id alone.
+      await assertProjectAccess(ctx.db, ctx.user, before.projectId);
       const [row] = await ctx.db
         .update(drawings)
         .set({

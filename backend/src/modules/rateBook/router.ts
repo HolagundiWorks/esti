@@ -1,8 +1,8 @@
 import { RateBookCreate, RateBookItemUpsert } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { estimates, rateBookItems, rateBooks } from "../../db/schema.js";
+import { estimateItems, estimates, rateBookItems, rateBooks } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { capabilityProcedure, router } from "../../trpc/trpc.js";
 
@@ -119,6 +119,39 @@ export const rateBookRouter = router({
   }),
 
   removeItem: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [item] = await ctx.db
+      .select({ id: rateBookItems.id, rateBookId: rateBookItems.rateBookId })
+      .from(rateBookItems)
+      .where(eq(rateBookItems.id, input.id));
+    if (!item) throw new TRPCError({ code: "NOT_FOUND", message: "Rate book item not found" });
+
+    // `upsertItem` refuses to write into a locked book; deleting out of one has
+    // to be refused for the same reason, or "locked" means very little.
+    const [book] = await ctx.db
+      .select({ locked: rateBooks.locked, name: rateBooks.name })
+      .from(rateBooks)
+      .where(eq(rateBooks.id, item.rateBookId));
+    if (book?.locked) {
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `"${book.name}" is locked — unlock it before removing items.`,
+      });
+    }
+
+    // esti_estimate_item.rate_book_item_id has no ON DELETE action, so deleting
+    // a referenced item raised a raw 23503 and surfaced as a 500. Say what is
+    // actually wrong instead.
+    const [used] = await ctx.db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(estimateItems)
+      .where(eq(estimateItems.rateBookItemId, input.id));
+    if (used?.n) {
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `This item is priced into ${used.n} estimate line${used.n === 1 ? "" : "s"} and cannot be deleted. Edit its rate instead, or remove those lines first.`,
+      });
+    }
+
     await ctx.db.delete(rateBookItems).where(eq(rateBookItems.id, input.id));
     return { ok: true };
   }),

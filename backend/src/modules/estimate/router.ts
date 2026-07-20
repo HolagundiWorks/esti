@@ -266,6 +266,22 @@ export const estimateRouter = router({
     await assertEstimateEditable(ctx.db, input.estimateId);
     const amountPaise = estimateItemAmountPaise(input.ratePaise, input.quantity);
     if (input.id) {
+      const [existing] = await ctx.db
+        .select({ unit: estimateItems.unit })
+        .from(estimateItems)
+        .where(and(eq(estimateItems.id, input.id), eq(estimateItems.estimateId, input.estimateId)));
+      if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
+      const lines = await ctx.db
+        .select({ id: estimateMeasurements.id })
+        .from(estimateMeasurements)
+        .where(eq(estimateMeasurements.estimateItemId, input.id));
+      const measured = lines.length > 0;
+
+      /**
+       * A measured item's quantity belongs to its lines. Writing the caller's
+       * `quantity` here let an edit that only meant to fix a description carry
+       * a stale figure and replace a measured 56.100 with 1.
+       */
       const [row] = await ctx.db
         .update(estimateItems)
         .set({
@@ -273,15 +289,47 @@ export const estimateRouter = router({
           itemCode: input.itemCode ?? null,
           description: input.description,
           unit: input.unit,
-          quantity: input.quantity,
+          ...(measured ? {} : { quantity: input.quantity, amountPaise }),
           ratePaise: input.ratePaise,
-          amountPaise,
           linkedItemId: input.linkedItemId ?? null,
           updatedAt: new Date(),
         })
         .where(and(eq(estimateItems.id, input.id), eq(estimateItems.estimateId, input.estimateId)))
         .returning();
       if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+
+      if (measured) {
+        /**
+         * Line quantities are derived from the item's unit at write time
+         * (shapeForUnit picks L / L*B / L*B*D), so changing the unit leaves
+         * every stored line derived under the old shape — an sqm item switched
+         * to cum kept 1 x 10 x 5 = 50 and printed 50 cum. Re-derive each line
+         * against the new unit, then recompute the item from them.
+         */
+        if (existing.unit !== input.unit) {
+          const shape = shapeForUnit(input.unit);
+          const full = await ctx.db
+            .select()
+            .from(estimateMeasurements)
+            .where(eq(estimateMeasurements.estimateItemId, input.id));
+          for (const l of full) {
+            // Imported lines carry the measurement book's figure verbatim; the
+            // book owns their unit, so they are left alone (and the import
+            // guard refuses a mismatched unit in the first place).
+            if (l.sourceMeasurementRowId) continue;
+            await ctx.db
+              .update(estimateMeasurements)
+              .set({ quantity: measurementQuantity(shape, l.nos, l.length, l.breadth, l.depth, 0) })
+              .where(eq(estimateMeasurements.id, l.id));
+          }
+        }
+        await recomputeItemFromMeasurements(ctx.db, input.id);
+        const [fresh] = await ctx.db
+          .select()
+          .from(estimateItems)
+          .where(eq(estimateItems.id, input.id));
+        return fresh!;
+      }
       return row;
     }
     const maxSort = await ctx.db

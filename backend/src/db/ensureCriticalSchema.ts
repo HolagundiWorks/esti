@@ -36,7 +36,7 @@ export async function ensureCriticalSchema(db: DB): Promise<void> {
       ADD COLUMN IF NOT EXISTS deleted_at timestamptz
   `);
 
-  // 0176_drawing_review — drawing QC / peer-review checkpoint (SOP-07/08).
+  // 0198_drawing_review — drawing QC / peer-review checkpoint (SOP-07/08).
   await db.execute(sql`
     ALTER TABLE esti_drawing
       ADD COLUMN IF NOT EXISTS review_status text NOT NULL DEFAULT 'PENDING_REVIEW',
@@ -45,14 +45,14 @@ export async function ensureCriticalSchema(db: DB): Promise<void> {
       ADD COLUMN IF NOT EXISTS review_note text
   `);
 
-  // 0177_lead_conflict_check — COA Regulations 1989 check on lead conversion (SOP-26).
+  // 0199_lead_conflict_check — COA Regulations 1989 check on lead conversion (SOP-26).
   await db.execute(sql`
     ALTER TABLE esti_lead
       ADD COLUMN IF NOT EXISTS conflict_check_done boolean NOT NULL DEFAULT false,
       ADD COLUMN IF NOT EXISTS conflict_check_notes text
   `);
 
-  // 0178_academy_sop_progress — LXOS Academy theory/practical tracking.
+  // 0200_academy_sop_progress — LXOS Academy theory/practical tracking.
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS esti_sop_progress (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -72,7 +72,7 @@ export async function ensureCriticalSchema(db: DB): Promise<void> {
       ON esti_sop_progress (user_id, sop_code)
   `);
 
-  // 0179_estimation — Rate Books + BOQ Estimates (consultancy-scoped costing).
+  // 0201_estimation — Rate Books + BOQ Estimates (consultancy-scoped costing).
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS esti_rate_book (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

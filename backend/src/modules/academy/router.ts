@@ -61,14 +61,25 @@ async function detectAuto(db: DB, userId: string, sopCode: string): Promise<Date
   return row?.createdAt ?? null;
 }
 
+/**
+ * Get or create this user's progress row for a module.
+ *
+ * Insert-first with onConflictDoNothing rather than select-then-insert: the
+ * panel opens 27 of these at once, so two concurrent loads raced the
+ * (user_id, sop_code) unique index and one came back a 500.
+ */
 async function ensureRow(db: DB, userId: string, sopCode: string): Promise<SopProgressRow> {
+  const [created] = await db
+    .insert(sopProgress)
+    .values({ userId, sopCode })
+    .onConflictDoNothing({ target: [sopProgress.userId, sopProgress.sopCode] })
+    .returning();
+  if (created) return created;
   const [existing] = await db
     .select()
     .from(sopProgress)
     .where(and(eq(sopProgress.userId, userId), eq(sopProgress.sopCode, sopCode)));
-  if (existing) return existing;
-  const [created] = await db.insert(sopProgress).values({ userId, sopCode }).returning();
-  return created!;
+  return existing!;
 }
 
 /** Runs AUTO detection (if not already satisfied) and stamps completion. */

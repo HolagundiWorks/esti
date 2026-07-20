@@ -233,7 +233,16 @@ export const leadsRouter = router({
         action: "CONVERT",
         actorId: ctx.user.id,
         before: { status: lead.status },
-        after: { status: "QUALIFIED", convertedProjectId: p!.id, convertedClientId: clientId },
+        after: {
+          status: "QUALIFIED",
+          convertedProjectId: p!.id,
+          convertedClientId: clientId,
+          // The conflict-of-interest attestation gates a COA-1989 obligation,
+          // so it belongs in the immutable audit trail — not only in a lead
+          // column that stays editable afterwards.
+          conflictCheckDone: true,
+          conflictCheckNotes: clean(input.conflictCheckNotes ?? null),
+        },
       });
 
       return { lead: updatedLead!, projectId: p!.id, clientId, createdClient };
