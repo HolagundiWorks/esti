@@ -42,6 +42,15 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
+# Bake NODE_ENV into the image rather than relying on the orchestrator to pass
+# it. Several protections key off it — the production-secret assertions, the
+# COOKIE_SECURE check, and the refusal to serve auth.bootstrap / self-register —
+# and the env schema defaults to "development", so a bare `docker run` of this
+# image without -e NODE_ENV would ship a production build with an open,
+# unauthenticated endpoint that mints an OWNER. compose.prod.yaml and deploy/
+# still set it; this is the belt to their braces.
+ENV NODE_ENV=production
+
 # node_modules from the builder contains the pnpm virtual store (.pnpm/) and
 # workspace symlinks. vendor/ must be present because @hcw/* symlinks point to it.
 COPY --from=builder /app/node_modules                    node_modules/

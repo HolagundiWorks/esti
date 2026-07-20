@@ -16,7 +16,6 @@ import { env } from "../../env.js";
 import { writeAudit } from "../../lib/audit.js";
 import { emailMatches, normalizeEmail } from "../../lib/email.js";
 import { licenseState } from "../../lib/plan.js";
-import { generateBackupCode, hashBackupCode } from "../../lib/backupCode.js";
 import { sendMail } from "../../lib/mail/transport.js";
 import { verifyTotp } from "../../lib/totp.js";
 import {
@@ -130,6 +129,10 @@ export const authRouter = router({
    * users (single-firm — see ARCHITECTURE ADR-03/ADR-04).
    */
   register: publicProcedure.input(RegisterInput).mutation(async ({ ctx, input }) => {
+    // Public procedure that can mint the first OWNER on an empty install, so it
+    // needs the same throttle as bootstrap rather than being the unthrottled
+    // way around it.
+    await enforceRateLimit("register-ip", ctx.ip, 5, 300);
     if (ctx.user?.isDemo) {
       throw new TRPCError({
         code: "FORBIDDEN",
@@ -146,7 +149,11 @@ export const authRouter = router({
       }
     }
     return ctx.db.transaction(async (tx) => {
-      await tx.execute(sql`SELECT pg_advisory_xact_lock(8347291)`);
+      // Same lock id as `bootstrap` on purpose: both decide "is this install
+      // empty, and may I create the first OWNER?". Two different ids let a
+      // concurrent bootstrap+register each see an empty install and each insert
+      // an owner, with the email unique constraint powerless to stop it.
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(8347292)`);
       const rows = await tx.select({ n: count() }).from(users);
       const isFirst = Number(rows[0]?.n ?? 0) === 0;
       if (!isFirst && ctx.user?.role !== "OWNER") {
@@ -455,37 +462,15 @@ export const authRouter = router({
   }),
 
   /**
-   * Offline account recovery (Community edition): reset a password using the
-   * one-time backup code printed at first-run — the only recovery path when
-   * there is no email/online. Consumes the code and issues a fresh one.
+   * `recoverWithBackupCode` removed 2026-07-20. It was Community edition's
+   * offline recovery, and its only issuer was the first-run seed deleted with
+   * that edition — so no account has ever held a code since, every call could
+   * only fail, and the /recover page advertised a route that could not work.
+   * Password recovery is `requestPasswordReset` / `resetPassword` over email.
+   *
+   * The all-NULL `esti_user.backup_code_hash` column is left in place; dropping
+   * it belongs in a deliberate cleanup migration.
    */
-  recoverWithBackupCode: publicProcedure
-    .input(z.object({ code: z.string().min(1).max(64), newPassword: z.string().min(8).max(200) }))
-    .mutation(async ({ ctx, input }) => {
-      await enforceRateLimit("recover-ip", ctx.ip, 5, 300);
-      const [u] = await ctx.db
-        .select()
-        .from(users)
-        .where(eq(users.backupCodeHash, hashBackupCode(input.code)))
-        .limit(1);
-      if (!u) throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid backup code" });
-      const nextCode = generateBackupCode();
-      await ctx.db
-        .update(users)
-        .set({
-          passwordHash: await hashPassword(input.newPassword),
-          mustChangePassword: false,
-          backupCodeHash: hashBackupCode(nextCode),
-        })
-        .where(eq(users.id, u.id));
-      await writeAudit(ctx.db, {
-        entity: "user",
-        entityId: u.id,
-        action: "BACKUP_RECOVERY",
-        actorId: u.id,
-      });
-      return { ok: true as const, backupCode: nextCode };
-    }),
 
   /** Wipe and re-seed the demo workspace. Only callable while logged in as a demo user. */
   resetDemo: publicProcedure.mutation(async ({ ctx }) => {

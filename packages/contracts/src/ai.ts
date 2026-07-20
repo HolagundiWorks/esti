@@ -143,13 +143,29 @@ export const AiSettings = z.object({
   // BYO-API (Enterprise) — an OpenAI-compatible cloud provider the firm supplies.
   /** Base URL ending in /v1, e.g. https://api.openai.com/v1 or an OpenRouter/vLLM endpoint. */
   cloudBaseUrl: z.string().max(300).optional(),
-  /** Secret API key — persisted but never returned by read APIs. */
-  cloudApiKey: z.string().max(400).optional(),
+  /**
+   * Secret API key — persisted but never returned by read APIs.
+   *
+   * This bound has to cover the value **as stored**, which is the sealed
+   * ciphertext (`enc:v1:` + base64 of IV + tag + body), roughly 4/3 of the
+   * plaintext plus 45 chars. A tighter bound here fails on read rather than on
+   * write: parseAiSettings falls back to DEFAULT_AI_SETTINGS, and the next boot
+   * writes those defaults back, destroying the firm's provider and key.
+   * MAX_CLOUD_API_KEY_CHARS is the limit applied to the plaintext on the way in.
+   */
+  cloudApiKey: z.string().max(4000).optional(),
   /** Cloud model id, e.g. gpt-4o-mini. */
   cloudModel: z.string().max(120).optional(),
   redactPii: z.boolean().default(true),
 });
 export type AiSettings = z.infer<typeof AiSettings>;
+
+/**
+ * Longest plaintext API key accepted. Generous — Azure/vLLM bearer tokens and
+ * JWT-style keys run long — while leaving ample headroom under the 4000-char
+ * stored bound once sealed.
+ */
+export const MAX_CLOUD_API_KEY_CHARS = 1024;
 
 /** AI settings with the cloud secret stripped + a configured flag — for read APIs. */
 export interface AiSettingsPublic extends Omit<AiSettings, "cloudApiKey"> {

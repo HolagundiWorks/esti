@@ -77,6 +77,9 @@ export interface UpsertInput {
  *  admin when the email is in `PLATFORM_ADMIN_EMAILS` (never revokes it). */
 export async function upsertAccount(input: UpsertInput): Promise<AccountView> {
   const email = input.email.toLowerCase();
+  // Safe to key off the email alone here: this path is reached only after
+  // Google has authenticated the address, so presenting it proves ownership.
+  // That is not true of password self-registration — see registerWithPassword.
   const grantAdmin = env.PLATFORM_ADMIN_EMAILS.includes(email);
 
   const [existing] = await db
@@ -120,12 +123,23 @@ export async function upsertAccount(input: UpsertInput): Promise<AccountView> {
   return view(created!);
 }
 
-/** Register a new account with email + password. Throws "email_taken" if used. */
+/**
+ * Register a new account with email + password. Throws "email_taken" if used.
+ *
+ * `allowAdminGrant` must be set ONLY by the closed admin-console bootstrap path
+ * — the one that refuses to run once any platform admin exists. Without it, a
+ * caller who reaches this function by another route (customer portal signup,
+ * product onboarding) cannot obtain admin no matter what email they present.
+ * The grant is deliberately not inferred from PLATFORM_ADMIN_EMAILS alone:
+ * that list is a configuration of who *may* be an admin, not authorisation for
+ * an unauthenticated stranger to become one.
+ */
 export async function registerWithPassword(input: {
   email: string;
   password: string;
   name?: string | null;
   profile?: AccountSignupProfile;
+  allowAdminGrant?: boolean;
 }): Promise<AccountView> {
   const email = input.email.toLowerCase();
   const displayName = input.profile?.fullName?.trim() || input.name?.trim() || null;
@@ -142,7 +156,10 @@ export async function registerWithPassword(input: {
     .limit(1);
 
   const passwordHash = await hashPassword(input.password);
-  const grantAdmin = env.PLATFORM_ADMIN_EMAILS.includes(email);
+  // Presenting an email in a self-service registration proves nothing about
+  // owning it, so being listed in PLATFORM_ADMIN_EMAILS is necessary but not
+  // sufficient — the caller must also be on the gated bootstrap path.
+  const grantAdmin = Boolean(input.allowAdminGrant) && env.PLATFORM_ADMIN_EMAILS.includes(email);
 
   // A passwordless, non-Google row is an account SHELL — created when someone
   // was invited into a company (inviteMember) or earned an AORMS ID from a

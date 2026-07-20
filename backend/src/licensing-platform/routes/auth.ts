@@ -648,9 +648,17 @@ export function registerAuthRoutes(app: FastifyInstance): void {
     // Admin-console self-signup is a one-time bootstrap: once a platform admin
     // exists it is closed. Customer sign-up on the user portal (`portal: true`)
     // and product onboarding (the onboard cookie) create ordinary accounts and
-    // are always open — they never grant admin (that's PLATFORM_ADMIN_EMAILS).
+    // are always open.
+    //
+    // `portal` and the onboard cookie both come from the request, so they must
+    // never be a way *around* that gate. Admin is therefore granted only on the
+    // gated bootstrap branch below — previously any caller could pass
+    // `portal: true` to skip the check and still be made an admin by
+    // PLATFORM_ADMIN_EMAILS, which is reachable for any listed address that has
+    // no credentials yet, including an invited shell account.
     const onboarding = Boolean(req.cookies?.[ONBOARD_COOKIE]);
-    if (!onboarding && !portal && (await hasPlatformAdmin())) {
+    const adminBootstrap = !onboarding && !portal;
+    if (adminBootstrap && (await hasPlatformAdmin())) {
       reply.code(403);
       return { error: "registration_closed" };
     }
@@ -661,6 +669,7 @@ export function registerAuthRoutes(app: FastifyInstance): void {
         password,
         name,
         profile: profileParsed?.success ? profileParsed.data : undefined,
+        allowAdminGrant: adminBootstrap,
       });
     } catch (e) {
       const taken = e instanceof Error && e.message === "email_taken";

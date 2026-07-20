@@ -14,6 +14,15 @@ function withOpenAiKey(row: typeof orgSettings.$inferSelect): typeof orgSettings
     try {
       s.cloudApiKey = openSecret(s.cloudApiKey);
     } catch {
+      // Almost always a rotated SESSION_SECRET. Report the key as absent so
+      // nothing calls a provider with garbage — but say so loudly: silence
+      // here reads downstream as "no key configured", and a later save would
+      // then persist that absence over still-recoverable ciphertext.
+      // eslint-disable-next-line no-console
+      console.warn(
+        "[ai] stored cloud API key could not be decrypted (SESSION_SECRET changed?) — " +
+          "treating as unset; the firm must re-enter it.",
+      );
       delete s.cloudApiKey;
     }
   }

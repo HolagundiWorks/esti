@@ -67,12 +67,6 @@ export const AUTH_PAGE_SEO = {
     description: "Set a new password for your AORMS-Studio workspace from your reset email link.",
     path: "/reset-password",
   },
-  recover: {
-    title: "Recover with backup code — AORMS",
-    description:
-      "Reset your workspace password with the one-time backup code from first-run setup (offline installs).",
-    path: "/recover",
-  },
   externalAccess: {
     title: "External portal sign-in — AORMS",
     description:

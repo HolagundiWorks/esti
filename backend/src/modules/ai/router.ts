@@ -2,6 +2,7 @@ import {
   AiGenerateInput,
   AiRunUpdate,
   AiSettings,
+  MAX_CLOUD_API_KEY_CHARS,
   cloudAiConfigError,
   parseAiSettings,
   toPublicAiSettings,
@@ -52,7 +53,30 @@ export const aiRouter = router({
     const org = await getOrgSettings(ctx.db);
     const prev = parseAiSettings(org.aiSettings);
 
+    if (input.cloudApiKey && input.cloudApiKey.length > MAX_CLOUD_API_KEY_CHARS) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `That API key is longer than ${MAX_CLOUD_API_KEY_CHARS} characters — check it was pasted correctly.`,
+      });
+    }
+
     // Preserve the stored cloud key when the form leaves it blank.
+    //
+    // `prev.cloudApiKey` is the OPENED key. If it could not be opened (a rotated
+    // SESSION_SECRET), getOrgSettings reports it absent — and blindly carrying
+    // that "absent" forward would destroy ciphertext that a restored secret
+    // could still recover. So only treat a blank submission as "keep" when
+    // there is genuinely nothing stored, and otherwise make the user re-enter.
+    const storedRaw = (org.aiSettings as { cloudApiKey?: unknown } | null)?.cloudApiKey;
+    const hasUnreadableKey = typeof storedRaw === "string" && !prev.cloudApiKey;
+    if (hasUnreadableKey && !input.cloudApiKey?.trim() && input.provider === "cloud") {
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message:
+          "The stored API key can no longer be decrypted (SESSION_SECRET changed). Re-enter the key to continue using a cloud provider.",
+      });
+    }
+
     const toStore = {
       ...input,
       cloudApiKey: input.cloudApiKey?.trim() ? input.cloudApiKey : prev.cloudApiKey,

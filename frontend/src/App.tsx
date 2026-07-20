@@ -66,7 +66,6 @@ import { Login } from "./routes/Login.js";
 import { ExternalLogin } from "./routes/ExternalLogin.js";
 import { ForcePasswordChange } from "./routes/ForcePasswordChange.js";
 import { ForceWorkspaceProfile } from "./routes/ForceWorkspaceProfile.js";
-import { RecoverWithBackupCode } from "./routes/RecoverWithBackupCode.js";
 import { ForgotPassword } from "./routes/ForgotPassword.js";
 import { ResetPassword } from "./routes/ResetPassword.js";
 
@@ -310,7 +309,6 @@ function AppShell() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/recover" element={<RecoverWithBackupCode />} />
         {publicMarketing ? (
           <>
             <Route path="/" element={<Landing />} />
