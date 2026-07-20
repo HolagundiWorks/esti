@@ -1,5 +1,6 @@
 import {
   Alert,
+  Box,
   Button,
   Checkbox,
   Dialog,
@@ -22,7 +23,9 @@ import {
   can,
   computeGst,
   computeTds194j,
+  derivePlaceOfSupply,
   formatINR,
+  placeOfSupplyMismatch,
 } from "@esti/contracts";
 import type { InvoiceStatus as InvoiceStatusT, PeriodFilterInput } from "@esti/contracts";
 import { useState } from "react";
@@ -51,9 +54,24 @@ export function Invoices() {
   const [open, setOpen] = useState(false);
   const [projectId, setProjectId] = useState("");
   const [taxableR, setTaxableR] = useState("");
-  const [inter, setInter] = useState(false);
+  /** null = follow the derived place of supply; a boolean is a deliberate override. */
+  const [interOverride, setInterOverride] = useState<boolean | null>(null);
   const [isAdvance, setIsAdvance] = useState(false);
   const [sac, setSac] = useState<string>(SAC_CODES[0]?.code ?? "998321");
+
+  /**
+   * Place of supply follows the project SITE (IGST Act s.12(3)(a)), not the
+   * client's address. Derived here so the operator sees the tax split before
+   * saving; the server derives it again and is authoritative.
+   */
+  const selectedProject = (projectsQ.data ?? []).find((p) => p.id === projectId);
+  const derivedPos = derivePlaceOfSupply({
+    firmState: firmQ.data?.state ?? null,
+    firmGstin: firmQ.data?.gstin ?? null,
+    projectState: (selectedProject as { state?: string | null } | undefined)?.state ?? null,
+  });
+  const inter = interOverride ?? derivedPos.interState;
+  const posWarning = interOverride === null ? null : placeOfSupplyMismatch(derivedPos, inter);
 
   const create = trpc.invoices.create.useMutation({
     meta: { errorTitle: "Couldn't create the invoice" },
@@ -63,6 +81,7 @@ export function Invoices() {
       setOpen(false);
       setTaxableR("");
       setProjectId("");
+      setInterOverride(null);
       setIsAdvance(false);
     },
   });
@@ -273,16 +292,33 @@ export function Invoices() {
                 ))}
               </TextField>
             )}
-            <FormControlLabel
-              control={
-                <Checkbox
-                  id="gi-inter"
-                  checked={inter}
-                  onChange={(e) => setInter(e.target.checked)}
-                />
-              }
-              label="Inter-state (IGST)"
-            />
+            <Box>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    id="gi-inter"
+                    checked={inter}
+                    onChange={(e) => setInterOverride(e.target.checked)}
+                  />
+                }
+                label="Inter-state (IGST)"
+              />
+              <Typography variant="body2" className="esti-label--secondary">
+                {derivedPos.basis === "SITE"
+                  ? `Place of supply: ${derivedPos.state} (project site) — ${
+                      derivedPos.interState ? "IGST" : "CGST + SGST"
+                    }.`
+                  : derivedPos.basis === "CLIENT"
+                    ? `No state on this project; using the client's ${derivedPos.state}. Set the project's state for the correct place of supply.`
+                    : "Set a state on the project to derive the place of supply."}
+              </Typography>
+              {posWarning && (
+                <Alert severity="warning" sx={{ mt: 1 }}>
+                  {posWarning} Architectural work on a site takes its place of supply from the
+                  site (IGST Act s.12(3)); override only if this fee is not tied to the property.
+                </Alert>
+              )}
+            </Box>
             <FormControlLabel
               control={
                 <Checkbox

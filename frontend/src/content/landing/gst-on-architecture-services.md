@@ -18,8 +18,10 @@ Architecture is a professional service, so **GST on architecture work** follows 
 
 Architectural and design services in India are taxed at the standard **18% GST** rate. The tax is split by place of supply:
 
-- **Intra-state** client (same state as your registered place of supply) ? **CGST 9% + SGST 9%**.
-- **Inter-state** client ? **IGST 18%**.
+- **Intra-state** — the project site is in your own state → **CGST 9% + SGST 9%**.
+- **Inter-state** — the project site is in another state → **IGST 18%**.
+
+For services relating to immovable property, the place of supply is the site's location (IGST Act s.12(3)), not the client's registered address.
 
 The most common invoicing error in a practice is applying CGST/SGST when IGST was due, or vice versa. It is easy to miss on a busy day and painful to unwind at filing.
 
@@ -56,7 +58,7 @@ A GST-correct invoice is only as good as the fee behind it. In AORMS, invoices a
 
 ### What is the GST rate on architecture services in India?
 
-Architectural and design services attract 18% GST � charged as CGST 9% + SGST 9% for an intra-state client, or IGST 18% for an inter-state client. AORMS applies the correct split automatically based on the client's place of supply. Confirm the current rate with your tax adviser.
+Architectural and design services attract 18% GST — charged as CGST 9% + SGST 9% when the project site is in your state, or IGST 18% when it is elsewhere. AORMS derives the split from the site's state (IGST Act s.12(3)), not the client's address. Confirm the current rate with your tax adviser.
 
 ### Do architects use an HSN code or a SAC code?
 

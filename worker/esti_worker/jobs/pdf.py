@@ -128,6 +128,18 @@ def _render_html(inv: dict[str, Any], firm: dict[str, Any]) -> str:
     elif inv.get("client_pan"):
         client_tax = f"<div>PAN: {_e(inv['client_pan'])}</div>"
 
+    # Rule 46(n): the place of supply, with the State name, is mandatory on an
+    # inter-state invoice — without it a GSTR-1 table 5/4B reconciliation is not
+    # possible. Shown on every tax invoice, since it is the field that explains
+    # why the tax was split as CGST+SGST or charged as IGST.
+    pos_line = ""
+    pos_state = inv.get("place_of_supply_state") or inv.get("project_state")
+    if pos_state and inv["document_kind"] == "TAX_INVOICE":
+        pos_line = (
+            f"<div><b>Place of supply</b> {_e(pos_state)}"
+            f"{' (inter-state)' if inv.get('inter_state') else ''}</div>"
+        )
+
     return f"""<!doctype html><html><head><meta charset="utf-8"><style>
       @page {{ size: A4; margin: 18mm; }}
       body {{ font-family: 'Helvetica Neue', Arial, sans-serif; color: #161616; font-size: 11px; }}
@@ -173,6 +185,7 @@ def _render_html(inv: dict[str, Any], firm: dict[str, Any]) -> str:
           <div><b>Invoice #</b> {_e(inv['ref'])}</div>
           <div><b>Date</b> {_e(inv.get('date_invoice') or '—')}</div>
           <div><b>Project</b> {_e(inv.get('project_ref'))}</div>
+          {pos_line}
         </div>
       </div>
 

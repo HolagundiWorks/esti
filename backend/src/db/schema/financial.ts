@@ -65,6 +65,13 @@ export const invoices = pgTable("esti_invoice", {
   documentKind: text("document_kind").notNull(),
   sac: text("sac"),
   interState: boolean("inter_state").notNull().default(false),
+  /**
+   * Place of supply (Rule 46(n)) — the state whose GST applies, derived from
+   * the project site under IGST Act s.12(3)(a) when the invoice is raised.
+   * Part of the frozen tax snapshot, so a later edit to the project or client
+   * cannot restate an issued document.
+   */
+  placeOfSupplyState: text("place_of_supply_state"),
   tdsApplicable: boolean("tds_applicable").notNull().default(true),
   /** Project OS — advance invoice; a PAID advance gates project activation (Slice K). */
   isAdvance: boolean("is_advance").notNull().default(false),

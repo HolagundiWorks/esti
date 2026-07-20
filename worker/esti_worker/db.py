@@ -66,6 +66,7 @@ def fetch_invoice_full(invoice_id: str) -> dict[str, Any] | None:
     sql = """
         select
           i.ref, i.document_kind, i.gst_system, i.sac, i.inter_state,
+          i.place_of_supply_state,
           i.taxable_paise, i.cgst_paise, i.sgst_paise, i.igst_paise,
           i.gst_total_paise, i.composition_levy_paise, i.tds_paise,
           i.grand_total_paise, i.net_receivable_paise, i.date_invoice, i.notes,

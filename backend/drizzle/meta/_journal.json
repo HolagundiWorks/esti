@@ -1443,6 +1443,13 @@
       "when": 1783650032000,
       "tag": "0206_estimation_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 206,
+      "version": "7",
+      "when": 1783650033000,
+      "tag": "0207_invoice_place_of_supply",
+      "breakpoints": true
     }
   ]
 }

@@ -2,19 +2,43 @@ import { z } from "zod";
 
 /** Indian financial year: 1 April – 31 March. Fixed, non-configurable. */
 
-/** FY label for a date, e.g. "2026-27" for any date 2026-04-01..2027-03-31. */
+/**
+ * IST offset in minutes (UTC+5:30). The product is India-only, so "which day
+ * is it" and "which financial year is it" are IST questions, not UTC ones.
+ *
+ * Reading the UTC calendar fields directly put the first 5½ hours of every day
+ * into the previous day — and the first 5½ hours of 1 April into the closing
+ * financial year, so invoices raised on the morning of 1 April drew a serial
+ * from an FY that had ended (Rule 46(b) requires the series to be unique per
+ * FY). India does not observe DST, so a fixed offset is exact.
+ */
+const IST_OFFSET_MIN = 5 * 60 + 30;
+
+/** The same instant expressed as IST calendar fields (via UTC getters). */
+function istParts(date: Date): Date {
+  return new Date(date.getTime() + IST_OFFSET_MIN * 60_000);
+}
+
+/** FY label for a date, e.g. "2026-27" for any date 2026-04-01..2027-03-31 IST. */
 export function financialYear(date: Date = new Date()): string {
-  const y = date.getUTCFullYear();
-  const m = date.getUTCMonth();
+  const ist = istParts(date);
+  const y = ist.getUTCFullYear();
+  const m = ist.getUTCMonth();
   const startYear = m >= 3 ? y : y - 1;
   const endShort = String((startYear + 1) % 100).padStart(2, "0");
   return `${startYear}-${endShort}`;
 }
 
-/** Start (inclusive) and end (exclusive) of the FY containing `date`, in UTC. */
+/** Today's date in IST as an ISO `YYYY-MM-DD` string. */
+export function istToday(date: Date = new Date()): string {
+  return istParts(date).toISOString().slice(0, 10);
+}
+
+/** Start (inclusive) and end (exclusive) of the FY containing `date`. */
 export function financialYearRange(date: Date = new Date()): { start: Date; end: Date } {
-  const y = date.getUTCFullYear();
-  const startYear = date.getUTCMonth() >= 3 ? y : y - 1;
+  const ist = istParts(date);
+  const y = ist.getUTCFullYear();
+  const startYear = ist.getUTCMonth() >= 3 ? y : y - 1;
   return {
     start: new Date(Date.UTC(startYear, 3, 1)),
     end: new Date(Date.UTC(startYear + 1, 3, 1)),

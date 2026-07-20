@@ -65,7 +65,7 @@ It should apply the correct CGST/SGST or IGST split by place of supply, put the 
 
 ### When do I charge CGST/SGST versus IGST?
 
-You charge CGST and SGST for an intra-state supply, where the client is in the same state as your registered place of supply, and IGST for an inter-state supply. AORMS applies the right heads based on the client and place of supply, so you do not have to decide it manually on each invoice.
+You charge CGST and SGST when the place of supply is in your own state, and IGST when it is in another state. For architectural and design work the place of supply is where the **project site** is, under IGST Act section 12(3) — not the client's registered address. AORMS derives the split from the project's site state so you do not have to decide it manually on each invoice, and warns you if you override it.
 
 ### How does the software handle TDS on professional fees?
 

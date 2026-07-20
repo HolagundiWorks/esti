@@ -372,9 +372,19 @@ export const InvoiceCreate = z.object({
   clientId: z.string().uuid().optional(),
   /** Defaults to the firm's active GST system on the server. */
   gstSystem: z.nativeEnum(GstSystem).optional(),
-  taxablePaise: z.number().int().nonnegative(),
-  interState: z.boolean().default(false),
-  /** Defaults to the firm's TDS declaration (Company settings) when omitted. */
+  taxablePaise: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  /**
+   * Override the derived place of supply. Omit it — the server derives
+   * inter-state from the project's site state under IGST Act s.12(3)(a).
+   * Supply it only for work not tied to immovable property, where the general
+   * s.12(2) recipient rule applies instead.
+   */
+  interState: z.boolean().optional(),
+  /**
+   * Overrides the firm's TDS declaration. Even when true, s.194J(B) only bites
+   * once this client's fees for the financial year exceed ₹30,000 — the server
+   * applies that threshold.
+   */
   tdsApplicable: z.boolean().optional(),
   sac: z.string().max(10).default("998322"),
   dateInvoice: z.string().date().optional(),
