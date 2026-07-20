@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { originDenial, parseAllowedOrigins } from "./origin.js";
+import { isMachineAuthRoute, originDenial, parseAllowedOrigins } from "./origin.js";
 
 const allowed = parseAllowedOrigins("http://localhost:5173, https://esti.example.com/path");
 
@@ -28,5 +28,33 @@ describe("origin protection", () => {
     // carry an Authorization header; they must not be 403'd.
     expect(originDenial("POST", undefined, allowed, true)).toBeNull();
     expect(originDenial("POST", "https://attacker.example", allowed, true)).toBeNull();
+  });
+});
+
+describe("isMachineAuthRoute", () => {
+  it("matches the bearer-authenticated machine routes", () => {
+    expect(isMachineAuthRoute("/platform/v1/validate")).toBe(true);
+    expect(isMachineAuthRoute("/platform/v1/activate?x=1")).toBe(true);
+    expect(isMachineAuthRoute("/api/sync/ingest")).toBe(true);
+  });
+
+  it("does NOT match cookie-authenticated routes", () => {
+    // These are the ones the Origin check defends. A stray Authorization
+    // header on any of them must not buy an exemption.
+    for (const url of [
+      "/trpc/auth.login",
+      "/trpc/estimates.importFromMeasurementBook",
+      "/upload/drawing",
+      "/files/pdf/x.pdf",
+      "/platform/auth/register",
+      "/platform/trpc/admin.dashboard.usage",
+    ]) {
+      expect(isMachineAuthRoute(url), url).toBe(false);
+    }
+  });
+
+  it("is not fooled by a machine path appearing later in the URL", () => {
+    expect(isMachineAuthRoute("/trpc/x?next=/platform/v1/validate")).toBe(false);
+    expect(isMachineAuthRoute("/evil/platform/v1/validate")).toBe(false);
   });
 });

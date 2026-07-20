@@ -10,7 +10,12 @@ import { runMigrations } from "./db/migrate.js";
 import { ensureCriticalSchema } from "./db/ensureCriticalSchema.js";
 import { env } from "./env.js";
 import { INPROC_WORKER, redis } from "./lib/redis.js";
-import { corsAllowOrigin, originDenial, parseAllowedOrigins } from "./lib/origin.js";
+import {
+  corsAllowOrigin,
+  isMachineAuthRoute,
+  originDenial,
+  parseAllowedOrigins,
+} from "./lib/origin.js";
 import {
   BUCKET,
   ensureBucketWithRetry,
@@ -85,7 +90,7 @@ app.addHook("onRequest", (req, reply, done) => {
     req.method,
     req.headers.origin,
     allowedOrigins,
-    Boolean(req.headers.authorization),
+    Boolean(req.headers.authorization) && isMachineAuthRoute(req.url),
   );
   if (denial) {
     void reply.code(403).send({ error: denial });
