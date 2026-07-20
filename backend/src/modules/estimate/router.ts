@@ -6,6 +6,7 @@ import {
   EstimateStatus,
   EstimateUpdateHeader,
   canTransitionEstimate,
+  clampListLimit,
   estimateLockedError,
   computeEstimateTotals,
   computeEstimateTotalsFromSubtotal,
@@ -24,6 +25,7 @@ import {
   estimates,
   measurementBooks,
   measurementRows,
+  rateBookItems,
   rateBooks,
 } from "../../db/schema.js";
 import { writeActivity } from "../../lib/activity.js";
@@ -106,13 +108,14 @@ async function recomputeItemFromMeasurements(
 
 export const estimateRouter = router({
   listByProject: manage
-    .input(z.object({ projectId: z.string().uuid() }))
+    .input(z.object({ projectId: z.string().uuid(), limit: z.number().int().optional() }))
     .query(async ({ ctx, input }) => {
       const rows = await ctx.db
         .select()
         .from(estimates)
         .where(eq(estimates.projectId, input.projectId))
-        .orderBy(desc(estimates.createdAt));
+        .orderBy(desc(estimates.createdAt))
+        .limit(clampListLimit(input.limit));
       // Scoped to this project's estimates. Without the WHERE this summed
       // every estimate item in the database on every call and then threw all
       // but a handful away — a sequential scan that grows with the whole firm.
@@ -264,6 +267,47 @@ export const estimateRouter = router({
 
   upsertItem: manage.input(EstimateItemUpsert).mutation(async ({ ctx, input }) => {
     await assertEstimateEditable(ctx.db, input.estimateId);
+
+    /**
+     * Provenance has to agree with the header. A rate-book item from a
+     * different book than the estimate is raised against gives the audit trail
+     * a rate basis the estimate contradicts — an estimate on "PWD SR 2024-25"
+     * carrying items sourced from "Bengaluru SR 2019". A linked item from
+     * another estimate is the same problem for the parent/child relationship.
+     */
+    if (input.rateBookItemId || input.linkedItemId) {
+      const [est] = await ctx.db
+        .select({ rateBookId: estimates.rateBookId })
+        .from(estimates)
+        .where(eq(estimates.id, input.estimateId));
+      if (!est) throw new TRPCError({ code: "NOT_FOUND", message: "Estimate not found" });
+
+      if (input.rateBookItemId) {
+        const [src] = await ctx.db
+          .select({ rateBookId: rateBookItems.rateBookId })
+          .from(rateBookItems)
+          .where(eq(rateBookItems.id, input.rateBookItemId));
+        if (!src || src.rateBookId !== est.rateBookId) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "That rate-book item belongs to a different rate book than this estimate.",
+          });
+        }
+      }
+      if (input.linkedItemId) {
+        const [linked] = await ctx.db
+          .select({ estimateId: estimateItems.estimateId })
+          .from(estimateItems)
+          .where(eq(estimateItems.id, input.linkedItemId));
+        if (!linked || linked.estimateId !== input.estimateId) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "The linked item belongs to a different estimate.",
+          });
+        }
+      }
+    }
+
     const amountPaise = estimateItemAmountPaise(input.ratePaise, input.quantity);
     if (input.id) {
       const [existing] = await ctx.db

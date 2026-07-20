@@ -1,4 +1,9 @@
-import { RateBookCreate, RateBookItemUpsert } from "@esti/contracts";
+import {
+  ProjectListParams,
+  RateBookCreate,
+  RateBookItemUpsert,
+  clampListLimit,
+} from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -10,9 +15,17 @@ import { capabilityProcedure, router } from "../../trpc/trpc.js";
 const manage = capabilityProcedure("fees:manage");
 
 export const rateBookRouter = router({
-  list: manage.query(async ({ ctx }) =>
-    ctx.db.select().from(rateBooks).orderBy(desc(rateBooks.createdAt)),
-  ),
+  // Bounded like every other list in the codebase — a CPWD schedule import runs
+  // to thousands of items, and an unbounded select would ship the lot.
+  list: manage
+    .input(ProjectListParams.optional())
+    .query(async ({ ctx, input }) =>
+      ctx.db
+        .select()
+        .from(rateBooks)
+        .orderBy(desc(rateBooks.createdAt))
+        .limit(clampListLimit(input?.limit)),
+    ),
 
   create: manage.input(RateBookCreate).mutation(async ({ ctx, input }) => {
     const [row] = await ctx.db
@@ -66,13 +79,14 @@ export const rateBookRouter = router({
   }),
 
   listItems: manage
-    .input(z.object({ rateBookId: z.string().uuid() }))
+    .input(z.object({ rateBookId: z.string().uuid(), limit: z.number().int().optional() }))
     .query(async ({ ctx, input }) =>
       ctx.db
         .select()
         .from(rateBookItems)
         .where(eq(rateBookItems.rateBookId, input.rateBookId))
-        .orderBy(asc(rateBookItems.sortOrder), asc(rateBookItems.createdAt)),
+        .orderBy(asc(rateBookItems.sortOrder), asc(rateBookItems.createdAt))
+        .limit(clampListLimit(input.limit)),
     ),
 
   upsertItem: manage.input(RateBookItemUpsert).mutation(async ({ ctx, input }) => {

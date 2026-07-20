@@ -137,9 +137,35 @@ export const academyRouter = router({
   curriculum: protectedProcedure.query(() => ({ parts: ACADEMY_PARTS, modules: ACADEMY_CURRICULUM })),
 
   myProgress: protectedProcedure.query(async ({ ctx }): Promise<AcademyModuleProgress[]> => {
+    // Create any missing rows in one statement and read them back in one more,
+    // instead of a select-then-insert per module. Rendering the panel used to
+    // cost ~60-100 round trips; it is now 2 plus whatever AUTO detection is
+    // genuinely outstanding.
+    await ctx.db
+      .insert(sopProgress)
+      .values(ACADEMY_CURRICULUM.map((m) => ({ userId: ctx.user.id, sopCode: m.code })))
+      .onConflictDoNothing({ target: [sopProgress.userId, sopProgress.sopCode] });
+    const rows = await ctx.db
+      .select()
+      .from(sopProgress)
+      .where(eq(sopProgress.userId, ctx.user.id));
+    const byCode = new Map(rows.map((r) => [r.sopCode, r]));
+
     const out: AcademyModuleProgress[] = [];
     for (const m of ACADEMY_CURRICULUM) {
-      out.push(toProgress(await evaluateCompletion(ctx.db, ctx.user.id, m.code)));
+      const row = byCode.get(m.code);
+      // Only modules that could still change need the completion pass: an
+      // AUTO module without a practical yet, or one whose theory+practical are
+      // both in but which has not been stamped complete.
+      const needsWork =
+        !row ||
+        (AUTO_SIGNALS[m.code] && !row.practicalAt) ||
+        (!row.completedAt && !!row.theoryReadAt && !!row.practicalAt);
+      out.push(
+        needsWork
+          ? toProgress(await evaluateCompletion(ctx.db, ctx.user.id, m.code))
+          : toProgress(row),
+      );
     }
     return out;
   }),

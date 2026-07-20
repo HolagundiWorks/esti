@@ -179,10 +179,20 @@ export type SyncMembershipInput = z.infer<typeof SyncMembershipInput>;
  * key the same way `sync-membership` does; a legacy product-wide key may omit it.
  */
 export const RecordGrowthInput = z.object({
-  publicId: z.string().min(1),
-  company: z.string().min(1).optional(),
+  publicId: z.string().min(1).max(120),
+  company: z.string().min(1).max(120).optional(),
   kind: z.string().min(1).max(80),
-  value: z.record(z.string(), z.unknown()).default({}),
+  /**
+   * Small metadata bag. Bounded because every event is stored verbatim on a
+   * person's permanent cross-firm record: unbounded, an authenticated node
+   * could park arbitrarily large JSON there, one blob per event, forever.
+   */
+  value: z
+    .record(z.string().max(80), z.unknown())
+    .default({})
+    .refine((v) => JSON.stringify(v).length <= 4000, {
+      message: "growth event metadata must serialise to 4000 characters or fewer",
+    }),
 });
 export type RecordGrowthInput = z.infer<typeof RecordGrowthInput>;
 
