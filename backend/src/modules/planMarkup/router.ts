@@ -110,7 +110,81 @@ export const planMarkupRouter = router({
         .from(planMarkupItems)
         .where(eq(planMarkupItems.setId, set.id))
         .orderBy(asc(planMarkupItems.createdAt));
-      return { set, calibration: calibration ?? null, items };
+
+      // Markups measured against a superseded calibration are stale: their
+      // stored lengths are out by the ratio and their areas by its square. Say
+      // how many rather than letting a wrong figure look settled.
+      const current = calibration?.unitsPerPoint ?? null;
+      const staleMarkupCount =
+        current == null
+          ? 0
+          : items.filter(
+              (i) => i.measuredUnitsPerPoint != null && i.measuredUnitsPerPoint !== current,
+            ).length;
+
+      return { set, calibration: calibration ?? null, items, staleMarkupCount };
+    }),
+
+  /**
+   * Re-measure markups against the sheet's current calibration.
+   *
+   * Deliberately explicit rather than automatic on re-calibration: restating
+   * quantities that may already be signed off is a decision for the user, and
+   * so is leaving them. Geometry is in sheet points and never changes, so this
+   * simply re-derives dimensions and area at the new scale.
+   */
+  remeasureAtCurrentScale: protectedProcedure
+    .input(z.object({ projectId: z.string().uuid(), drawingId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const set = await getOrCreateSet(ctx.db, input.projectId, input.drawingId);
+      const [calibration] = await ctx.db
+        .select()
+        .from(sheetCalibrations)
+        .where(
+          and(eq(sheetCalibrations.drawingId, input.drawingId), eq(sheetCalibrations.pageNo, 0)),
+        )
+        .limit(1);
+      if (!calibration?.unitsPerPoint) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Calibrate the sheet before re-measuring.",
+        });
+      }
+
+      const items = await ctx.db
+        .select()
+        .from(planMarkupItems)
+        .where(eq(planMarkupItems.setId, set.id));
+
+      let updated = 0;
+      for (const it of items) {
+        if (it.measuredUnitsPerPoint === calibration.unitsPerPoint) continue;
+        const dims = dimsFromGeometry(
+          it.geometry as UpsertPlanMarkupItemInput["geometry"],
+          calibration.unitsPerPoint,
+          // Re-derive from geometry; prior values were scale-dependent.
+          { lengthMm: null, breadthMm: null, heightMm: it.heightMm },
+        );
+        await ctx.db
+          .update(planMarkupItems)
+          .set({
+            lengthMm: dims.lengthMm,
+            breadthMm: dims.breadthMm,
+            areaMm2: dims.areaMm2,
+            measuredUnitsPerPoint: calibration.unitsPerPoint,
+          })
+          .where(eq(planMarkupItems.id, it.id));
+        updated += 1;
+      }
+
+      await writeAudit(ctx.db, {
+        entity: "plan_markup_set",
+        entityId: set.id,
+        action: "REMEASURE_AT_SCALE",
+        actorId: ctx.user.id,
+        after: { unitsPerPoint: calibration.unitsPerPoint, updated },
+      });
+      return { updated };
     }),
 
   upsertCalibration: protectedProcedure
@@ -207,6 +281,9 @@ export const planMarkupRouter = router({
         heightMm: dims.heightMm,
         // Explicit override wins (hand-entered area); otherwise from the shape.
         areaMm2: input.areaMm2 ?? dims.areaMm2,
+        // Record the scale this was measured at, so a later re-calibration can
+        // report it as stale instead of leaving a wrong figure looking settled.
+        measuredUnitsPerPoint: calibration?.unitsPerPoint ?? null,
         count: input.count ?? 1,
       };
 

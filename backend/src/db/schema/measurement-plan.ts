@@ -127,6 +127,12 @@ export const planMarkupItems = pgTable("esti_plan_markup_item", {
   heightMm: integer("height_mm"),
   /** Enclosed plan area in mm² for AREA markers (double — a 30x20 m slab exceeds int4). */
   areaMm2: doublePrecision("area_mm2"),
+  /**
+   * Sheet calibration this markup was measured at. When it differs from the
+   * sheet's current calibration the stored dimensions are stale — linear by the
+   * ratio, area by its square — and the app surfaces a re-measure prompt.
+   */
+  measuredUnitsPerPoint: doublePrecision("measured_units_per_point"),
   count: integer("count").notNull().default(1),
   measurementRowId: uuid("measurement_row_id").references(() => measurementRows.id),
   createdAt: createdAt(),

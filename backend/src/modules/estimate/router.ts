@@ -268,6 +268,27 @@ export const estimateRouter = router({
     const quantity = measurementQuantity(shape, input.nos, input.length, input.breadth, input.depth, input.directQuantity);
 
     if (input.id) {
+      /**
+       * Imported lines are derived data: their quantity is the measurement
+       * book's figure, and their dimensions do not necessarily reconstruct it —
+       * a polygon AREA row carries the enclosed area with no L or B at all.
+       * Re-deriving from dimensions here would silently rewrite 45.200 sqm to
+       * 0 on a save that changed nothing. Send them back to the book instead,
+       * where the measurement actually lives.
+       */
+      const [existing] = await ctx.db
+        .select({ sourceRow: estimateMeasurements.sourceMeasurementRowId })
+        .from(estimateMeasurements)
+        .where(eq(estimateMeasurements.id, input.id));
+      if (existing?.sourceRow) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "This line came from the measurement book, so its quantity is maintained there. " +
+            "Edit the measured row and send it to the estimate again, or remove this line to enter it by hand.",
+        });
+      }
+
       await ctx.db
         .update(estimateMeasurements)
         .set({

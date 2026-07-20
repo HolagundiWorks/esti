@@ -1429,6 +1429,13 @@
       "when": 1783650030000,
       "tag": "0204_measurement_book_pdf",
       "breakpoints": true
+    },
+    {
+      "idx": 204,
+      "version": "7",
+      "when": 1783650031000,
+      "tag": "0205_markup_measured_scale",
+      "breakpoints": true
     }
   ]
 }

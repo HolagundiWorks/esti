@@ -1,5 +1,6 @@
 import {
   Alert,
+  AlertTitle,
   Box,
   Button,
   MenuItem,
@@ -182,6 +183,14 @@ export function PlanReaderPanel({ projectId }: { projectId: string }) {
   const calibration = markupQ.data?.calibration ?? null;
   const items = markupQ.data?.items ?? [];
   const setId = markupQ.data?.set?.id;
+  const staleMarkupCount = markupQ.data?.staleMarkupCount ?? 0;
+
+  // Re-calibrating leaves earlier markups measured at the old scale. Offer the
+  // correction explicitly rather than restating signed-off numbers silently.
+  const remeasure = trpc.planMarkup.remeasureAtCurrentScale.useMutation({
+    meta: { errorTitle: "Couldn't re-measure at the current scale" },
+    onSuccess: () => utils.planMarkup.getForDrawing.invalidate({ projectId, drawingId }),
+  });
   const panActive = tool === "PAN" || spaceHeld;
 
   const viewBox = useMemo(() => {
@@ -621,6 +630,31 @@ export function PlanReaderPanel({ projectId }: { projectId: string }) {
           {measureHint ? ` · ${measureHint}` : ""}
           {draftMm != null ? ` · draft ${formatDimensionMm(draftMm)} m` : ""}
         </Typography>
+      )}
+
+      {staleMarkupCount > 0 && (
+        <Alert
+          severity="warning"
+          action={
+            <Button
+              size="small"
+              variant="contained"
+              disabled={remeasure.isPending}
+              onClick={() => remeasure.mutate({ projectId, drawingId })}
+            >
+              {remeasure.isPending ? "Re-measuring…" : `Re-measure ${staleMarkupCount}`}
+            </Button>
+          }
+        >
+          <AlertTitle>
+            {staleMarkupCount} markup{staleMarkupCount === 1 ? " was" : "s were"} measured at a
+            different scale
+          </AlertTitle>
+          The sheet has been re-calibrated since. Their lengths are out by the scale ratio and
+          their areas by its square, so any quantity already sent to the measurement book is wrong
+          until re-measured. Re-measuring re-derives them from the drawn shapes at the current
+          scale; nothing already sent to an estimate changes until you send it again.
+        </Alert>
       )}
       {!calibration && measureHint && (
         <Typography variant="body2" className="esti-label--secondary">
