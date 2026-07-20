@@ -51,6 +51,7 @@ import { ensureDemoPlatformAccount } from "../lib/demoPlatformSeed.js";
 import { ensureAiStudioEnabled } from "./seedAiStudio.js";
 import {
   clearStudioDemoRows,
+  countDanglingReferences,
   dayOffset,
   DEMO_LEADS,
   linkPhasesAndBilling,
@@ -59,6 +60,7 @@ import {
   seedDemoTeamRoster,
   seedDemoTakeoff,
   seedStudioGlanceAndLeads,
+  sweepDanglingReferences,
   upsertDemoFirm,
 } from "./demoStudioSeed.js";
 
@@ -70,42 +72,56 @@ const DEMO_EMAILS = [
   "contractor@demo.aorms.in",
 ];
 
+/**
+ * Delete the demo roots, then repair referential integrity generically.
+ *
+ * The wipe runs under `session_replication_role = 'replica'` because ~26 tables
+ * reference a project with NO ACTION, so an honest ordered delete would need a
+ * hand-maintained list of the whole dependency graph. Replica mode skips FK
+ * triggers — but it skips ON DELETE CASCADE and SET NULL with them, so the
+ * children the graph *would* have cleaned up are left dangling. They are
+ * invisible through the UI (queries join via the project) yet still reachable
+ * by id, which is how a queued PDF render found a measurement book whose
+ * project no longer existed.
+ *
+ * Rather than enumerate ~50 tables that would rot on the next migration, the
+ * sweep below reads the FK graph from the catalog and emulates what the
+ * database would have done. See sweepDanglingReferences.
+ */
 async function clearDemoWorkspace(principalId: string) {
+  let repaired = { total: 0, tables: 0 };
   await db.execute(rawSql`SET session_replication_role = 'replica'`);
   try {
     await clearStudioDemoRows(db, principalId);
-    // Replica mode disables FK triggers — deliberately, because not every table
-    // referencing a project cascades — but that also means ON DELETE CASCADE
-    // does NOT fire here. Anything project-scoped must be deleted explicitly or
-    // it outlives the wipe as an orphan (invisible in the UI, since every query
-    // joins through the project, but still reachable by id — a queued PDF job
-    // for an orphaned book fails with "not found").
-    await db.execute(rawSql`
-      DELETE FROM esti_measurement_book
-       WHERE project_id NOT IN (SELECT id FROM esti_projectoffice)
-          OR project_id IN (
-            SELECT id FROM esti_projectoffice WHERE created_by_id = ${principalId}
-          )
-    `);
-    await db.execute(rawSql`
-      DELETE FROM esti_estimate
-       WHERE project_id NOT IN (SELECT id FROM esti_projectoffice)
-          OR project_id IN (
-            SELECT id FROM esti_projectoffice WHERE created_by_id = ${principalId}
-          )
-    `);
-    await db.execute(rawSql`
-      DELETE FROM esti_rate_book WHERE name = 'Demo rate book (CPWD-style)'
-    `);
     await db.delete(projectOffices).where(eq(projectOffices.createdById, principalId));
     await db.delete(contractors).where(eq(contractors.createdById, principalId));
     await db.delete(teamMembers).where(inArray(teamMembers.email, DEMO_EMAILS));
     await db.delete(users).where(inArray(users.email, DEMO_EMAILS));
+
+    // Repair inside replica mode as well. With triggers on, deleting an
+    // orphaned parent is itself blocked by its own not-yet-orphaned children
+    // (deleting a stranded esti_transmittal trips esti_transmittal_item), so
+    // the sweep could never get started. With triggers off each pass strands
+    // the next level down and the loop walks the tree to the bottom.
+    repaired = await sweepDanglingReferences(db);
   } finally {
     await db.execute(rawSql`SET session_replication_role = 'origin'`);
   }
-  console.log("  cleared old demo workspace");
+
+  // Triggers are back on: prove the repair actually held rather than trusting it.
+  const remaining = await countDanglingReferences(db);
+  if (remaining > 0) {
+    throw new Error(
+      `demo wipe left ${remaining} dangling reference(s) after sweeping — refusing to seed on top of a broken graph`,
+    );
+  }
+  console.log(
+    repaired.total > 0
+      ? `  cleared old demo workspace (repaired ${repaired.total} dangling row(s) across ${repaired.tables} table(s))`
+      : "  cleared old demo workspace",
+  );
 }
+
 
 async function backfillStudioDemo(principalId: string, pwHash: string): Promise<void> {
   const memberIds = await seedDemoTeamRoster(db, principalId, pwHash);

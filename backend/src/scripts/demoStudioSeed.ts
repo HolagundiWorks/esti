@@ -3,7 +3,7 @@
  * phase-linked billing, and office activity. Consumed by seedDemo.ts.
  */
 import { GstSystem, computeGst } from "@esti/contracts";
-import { count, eq, inArray, ne } from "drizzle-orm";
+import { count, eq, inArray, ne, sql } from "drizzle-orm";
 import type { DB } from "../db/index.js";
 import {
   activities,
@@ -506,6 +506,106 @@ export async function seedDemoTakeoff(db: DB, projectId: string): Promise<void> 
       sortOrder: 20,
     },
   ]);
+}
+
+// ── Referential-integrity repair after a replica-mode wipe ──────────────────
+
+type ForeignKey = {
+  child_table: string;
+  child_col: string;
+  parent_table: string;
+  parent_col: string;
+  ondelete: string;
+};
+
+/** Every single-column FK in `public`, read from the catalog. */
+async function foreignKeys(db: DB): Promise<ForeignKey[]> {
+  const rows = await db.execute<ForeignKey>(sql`
+    SELECT c.relname::text            AS child_table,
+           ca.attname::text           AS child_col,
+           p.relname::text            AS parent_table,
+           pa.attname::text           AS parent_col,
+           con.confdeltype::text      AS ondelete
+      FROM pg_constraint con
+      JOIN pg_class     c  ON c.oid = con.conrelid
+      JOIN pg_class     p  ON p.oid = con.confrelid
+      JOIN pg_namespace n  ON n.oid = c.relnamespace
+      JOIN pg_attribute ca ON ca.attrelid = con.conrelid  AND ca.attnum = con.conkey[1]
+      JOIN pg_attribute pa ON pa.attrelid = con.confrelid AND pa.attnum = con.confkey[1]
+     WHERE con.contype = 'f'
+       AND n.nspname = 'public'
+       AND array_length(con.conkey, 1) = 1   -- composite FKs: none in this schema
+  `);
+  return rows as unknown as ForeignKey[];
+}
+
+/** SQL predicate matching child rows whose parent no longer exists. */
+function danglingPredicate(fk: ForeignKey): string {
+  // Identifiers come from the catalog, never user input, and are quoted.
+  const child = `"${fk.child_table}"."${fk.child_col}"`;
+  return `${child} IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM "${fk.parent_table}" WHERE "${fk.parent_table}"."${fk.parent_col}" = ${child}
+  )`;
+}
+
+/**
+ * Emulate the ON DELETE behaviour that a replica-mode wipe skipped.
+ *
+ * For each FK, find child rows whose parent is gone and apply what the database
+ * would have done:
+ *   - CASCADE / NO ACTION / RESTRICT -> delete the child. The parent was
+ *     removed deliberately, so the child is unreachable data.
+ *   - SET NULL / SET DEFAULT         -> null the reference, keeping the row.
+ *
+ * Repeats until a pass changes nothing, because deleting a child strands its
+ * own children in turn (project -> transmittal -> transmittal item). Reading
+ * the graph from the catalog instead of hard-coding ~50 tables means new tables
+ * and changed FK actions are handled without editing this function.
+ *
+ * MUST run while `session_replication_role = 'replica'`: with triggers on, the
+ * first delete of a stranded parent is blocked by its own not-yet-stranded
+ * children, so the sweep could never begin.
+ *
+ * Demo-seed only — a repair for a deliberate wipe, not something to point at
+ * production data.
+ */
+export async function sweepDanglingReferences(db: DB): Promise<{ total: number; tables: number }> {
+  const fks = await foreignKeys(db);
+  const touched = new Set<string>();
+  let total = 0;
+  // Ample for this schema's depth; exits as soon as a pass is clean, and the
+  // bound stops a pathological cycle spinning forever.
+  for (let pass = 0; pass < 20; pass += 1) {
+    let changedThisPass = 0;
+    for (const fk of fks) {
+      const statement =
+        fk.ondelete === "n" || fk.ondelete === "d"
+          ? `UPDATE "${fk.child_table}" SET "${fk.child_col}" = NULL WHERE ${danglingPredicate(fk)}`
+          : `DELETE FROM "${fk.child_table}" WHERE ${danglingPredicate(fk)}`;
+      const result = await db.execute(sql.raw(statement));
+      const n = Number((result as unknown as { count?: number }).count ?? 0);
+      if (n > 0) {
+        changedThisPass += n;
+        touched.add(fk.child_table);
+      }
+    }
+    total += changedThisPass;
+    if (changedThisPass === 0) break;
+  }
+  return { total, tables: touched.size };
+}
+
+/** Rows still pointing at a missing parent. Read-only; asserts the sweep held. */
+export async function countDanglingReferences(db: DB): Promise<number> {
+  const fks = await foreignKeys(db);
+  let total = 0;
+  for (const fk of fks) {
+    const res = await db.execute<{ n: number }>(
+      sql.raw(`SELECT count(*)::int AS n FROM "${fk.child_table}" WHERE ${danglingPredicate(fk)}`),
+    );
+    total += Number((res as unknown as { n: number }[])[0]?.n ?? 0);
+  }
+  return total;
 }
 
 export async function clearStudioDemoRows(db: DB, principalId: string): Promise<void> {
