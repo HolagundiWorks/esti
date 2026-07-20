@@ -1,7 +1,9 @@
 # AORMS-Consultancy — engineering consultancy operating model & system architecture
 
-> **Status:** Roadmap design draft (2026-07-12). **App:** **AORMS-Consultancy**
-> (slug `aorms-consultancy`, host `consultancy.aorms.in`, discipline **Engineering**).
+> **Status:** Phases 0–3 built (unverified); Phase 4 + verify/review outstanding —
+> see [autopilot roadmap P9](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md#p9--aorms-consultancy-engineering-app)
+> and the §9 audit. **App:** **AORMS-Consultancy** (slug `aorms-consultancy`, host
+> `consultancy.aorms.in`, discipline **Engineering**).
 >
 > **This document is the system-architecture draft.** The grounded, sourced operating
 > model it rests on — org hierarchy, sign-off chain, workflow, billing, risk, with
@@ -176,15 +178,25 @@ verbatim — engineering only adds the *fee-model + timesheet* front end.
 - **Surfaces** — `consultancy.aorms.in` + slug `aorms-consultancy` are already frozen in
   [`AORMS-SURFACE-URLS.md`](AORMS-SURFACE-URLS.md) and `frontend/src/lib/aorms-surface-urls.ts`.
 
-## 9. Phased rollout — **delivered 2026-07-12** (all five phases shipped; migrations 0183–0191)
+## 9. Phased rollout
 
-| Phase | Theme | Ships |
-| --- | --- | --- |
-| **0 — Living record** ✅ | The engagement spine | `engagements`, `disciplines`, `deliverables` register, transmittals (reuse), client portal (scoped) |
-| **1 — Reliance engine** ✅ | Governance | `reviewChains` (named serial sign-off + check categories + EoR), `technicalQueries`, issue gating |
-| **2 — Commercial** ✅ | Fee & time | `feeAgreements`/`feeStages`, `timesheets`/`rateCards`, `variations`, WIP/utilisation/realisation, stage invoicing |
-| **3 — Risk** ✅ | Defensibility | `riskRegister`, `insurance` (PI + reliance), compliance gates, EmOI input validation |
-| **4 — Intelligence** ✅ | Internal agent | precedent search, calc-lineage Q&A, capacity analytics |
+> **Status audit 2026-07-20 (code, not aspiration).** An earlier revision of
+> this section claimed all five phases shipped; that was wrong. Phases 0–3 are
+> **built** (migrations `0183`–`0197`, the `consultancy` router, engagement UI +
+> PDF, workspace-type routing). Phase 4 is **not built** — no precedent-search,
+> calc-lineage, or capacity-analytics code exists. And the built surface has
+> **no tests and no review**, which for the fee/variation/WIP money paths is the
+> real risk. See the [autopilot roadmap P9](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md#p9--aorms-consultancy-engineering-app),
+> where **P9.V (verify + review)** is the gate before this workspace ships to a
+> paying firm.
+
+| Phase | Theme | Ships | State |
+| --- | --- | --- | --- |
+| **0 — Living record** | The engagement spine | `engagements`, `disciplines`, `deliverables` register, transmittals (reuse), client portal (scoped) | ✅ built, unverified |
+| **1 — Reliance engine** | Governance | `reviewChains` (named serial sign-off + check categories + EoR), `technicalQueries`, issue gating | ✅ built, unverified |
+| **2 — Commercial** | Fee & time | `feeAgreements`/`feeStages`, `timesheets`/`rateCards`, `variations`, WIP/utilisation/realisation, stage invoicing | ✅ built, unverified |
+| **3 — Risk** | Defensibility | `riskRegister`, `insurance` (PI + reliance), compliance gates, EmOI input validation | ✅ built, unverified |
+| **4 — Intelligence** | Internal agent | precedent search, calc-lineage Q&A, capacity analytics | ⬜ not built |
 
 ## 10. Decisions (resolved 2026-07-12 — Phase 0 unblocked)
 
@@ -201,13 +213,14 @@ revisitable at the phase where it next bites.
 | **D5** | Market order | **India-first** — RSE/NBC/IS statutory path, GST/SAC/TDS money spine; FIDIC/IStructE vocabulary kept compatible (check categories map to both) | Mirrors AORMS-Studio's India-first correctness; the check-category model is international-portable by design. |
 | **D6** | BIM/model depth | **Reference-only** — deliverables reference model issues/extracts; no model-hosted data | Aligns with "report → model" as a *direction*, not a Phase-0 dependency. Revisit at Phase 4. |
 
-**Gate status:** all six resolved → **Phase 0 (Living record) is in build** as of 2026-07-12:
-`engagements` + `deliverables` register on the shared spine (contracts schemas,
-`esti_engagement` / `esti_deliverable` tables, tRPC namespaces).
+**Gate status:** all six resolved. Phases 0–3 were subsequently built on the
+shared spine (see the §9 audit); the next gate is verification/review, not more
+decisions.
 
 ---
 
-*Draft owner: platform. Update alongside
+*Owner: platform. Update alongside
 [`AORMS-CONSULTING-FRAMEWORKS.md`](AORMS-CONSULTING-FRAMEWORKS.md) and the nomenclature
-canon. This is a design draft, not a shipped spec — every table/namespace above is a
-proposal until built and migrated.*
+canon. Phases 0–3 of this design are built and migrated (see §9); Phase 4 and the
+verify/review gate are outstanding. Where a table or namespace below is not yet in
+the schema, treat it as a proposal.*

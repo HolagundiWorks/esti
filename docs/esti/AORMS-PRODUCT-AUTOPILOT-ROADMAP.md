@@ -43,6 +43,8 @@
 | ~~P5~~ | ~~Estimate desktop auth~~ — **cancelled 2026-07-19** (web-only) | — | ❌ | — |
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
 | [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | 🔄 | autopilot |
+| [P8](#p8--browser-takeoff-replaces-esticad) | Browser takeoff (replaces ESTICAD) | P1 | ✅ | autopilot |
+| [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | 🔄 built, unverified | autopilot |
 
 ---
 
@@ -227,6 +229,49 @@ quantity and amount update; re-sending updates in place; sqm→cum is refused.
 
 ---
 
+## P9 — AORMS-Consultancy (engineering app)
+
+**Goal:** a second workspace on the same spine for engineering consultancies
+(structural, MEP, civil) — engagements, a named sign-off/reliance chain, fee &
+time commercials, and a risk register. Design lives in
+[AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md](AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md)
+(architecture) and [AORMS-CONSULTANCY-CASE-STUDY.md](AORMS-CONSULTANCY-CASE-STUDY.md)
+(sourced operating model). One spine, app-scoped by `hlp_organization.workspace_type`
+(**STUDIO** | **CONSULTANCY**).
+
+> **Status audit 2026-07-20 — the design doc is wrong in both directions.** Its
+> header claims "all five phases shipped"; its footer calls itself "a design
+> draft… every table a proposal until built." Neither matches the code. What is
+> actually on `main`: **Phases 0–3 are built** (15 migrations `0183`–`0197`, a
+> ~1,200-line `consultancy` router with ~56 procedures, `ConsultancyEngagements.tsx`
+> / `ProjectEngagements.tsx`, engagement-register PDF, workspace-type routing in
+> the licensing platform). **Phase 4 does not exist** — no precedent search,
+> calc-lineage, or capacity-analytics code. And **none of it has a test or a
+> review**, in a module with fee stages, variations, WIP and rate cards — exactly
+> the money-critical surface where this session's reviews kept finding HIGH bugs.
+
+| # | Task | Status |
+|---|------|--------|
+| P9.0 | Living record — engagements, disciplines, deliverables register | ✅ built — `0183`, `esti_cons_engagement`/`_deliverable` |
+| P9.1 | Reliance engine — named serial sign-off, check categories, EoR, technical queries, issue gating | ✅ built — `0184`, `esti_cons_review_step`/`_comment`/`_tq`/`_reliance_letter` |
+| P9.2 | Commercial — fee agreements/stages, timesheets, rate cards, variations, WIP/realisation | ✅ built — `0186`–`0190`, `esti_cons_fee_stage`/`_timesheet`/`_rate_card`/`_variation` |
+| P9.3 | Risk — register, insurance (PI + reliance), compliance gates | ✅ built — `0191`, `esti_cons_risk`/`_insurance` |
+| P9.3b | Beyond the original plan — typed scope, engagement brief, SOP slices, CRS, field reports | ✅ built — `0192`–`0197` |
+| P9.4 | Intelligence — precedent search, calc-lineage Q&A, capacity analytics | ⬜ **not built** (doc claims shipped; no code exists) |
+| P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | ⬜ **not started** — zero tests, no review pass |
+| P9.M | Marketing/launch surface — `consultancy.aorms.in`, landing copy | 🔄 landing markdown exists; launch gated on P9.V |
+
+**Risk note.** Phases 0–3 shipping without a test or review is the same setup
+that produced the invoice/GST and estimation defects this session. Treat "built"
+as "code exists", not "correct" — **P9.V (verify + review) is the real gate**
+before this workspace is offered to a paying firm, above finishing P9.4.
+
+**Verify:** create a CONSULTANCY company → open an engagement → run a deliverable
+through its sign-off chain → raise a fee stage and a variation → issue is gated
+until the chain completes. (No automated coverage exists for any of this yet.)
+
+---
+
 ## Execution order
 
 ```
@@ -238,6 +283,9 @@ P0 (human landing) ──► P1 migration ──► P2 storage
                               └─► P7 billing
 
 P5 (Estimate desktop auth) — CANCELLED 2026-07-19, web-only
+
+P9 (AORMS-Consultancy) — second app on the shared spine; P0–3 built,
+   P9.V verify+review is the gate, P9.4 intelligence not built
 ```
 
 ---
@@ -261,6 +309,7 @@ P5 (Estimate desktop auth) — CANCELLED 2026-07-19, web-only
 
 | Date | Change |
 |------|--------|
+| 2026-07-20 | Added **P9 — AORMS-Consultancy** to the roadmap. Audited against code, not the design doc (which self-contradicts): Phases 0–3 are built (migrations `0183`–`0197`, ~1,200-line `consultancy` router, engagement UI + PDF, workspace-type routing); Phase 4 (intelligence) does not exist; the whole surface has zero tests and no review. Added P9.V (verify + review) as the real gate — this is the same money-critical-but-untested shape that produced the invoice/GST and estimation HIGH bugs this session. Also added the missing P8 row to the glance table. |
 | 2026-07-18 | Status audit vs code: P1/P2/P6 detail rows ticked (shipped but never checked off); P3 and P4 downgraded ✅→🔄 (BYO key unwired; desktop Manager + `ESTI_EDITION` still present); P5 marked blocked — `estimate/` app absent from repo. |
 | 2026-07-18 | P4.3/P4.4 shipped: Community edition code removed (`ESTI_EDITION`, `seedCommunity.ts`, `lanInstance.ts`, portal-login refusal); backup-code recovery kept via `lib/backupCode.ts`. P4.5 confirmed (no download page). Remaining P4: Manager teardown (P4.1 + P4.6). |
 | 2026-07-20 | P8.7 completed with a printable abstract PDF, reusing the worker render pipeline rather than adding a second one. Verifying it surfaced a **pre-existing demo-seed bug**: `clearDemoWorkspace` wipes under `session_replication_role = 'replica'`, which disables FK triggers — so `ON DELETE CASCADE` never fires and every forced re-seed orphaned project-scoped rows. Invisible in the UI (queries join through the project) but reachable by id, so a queued render failed with "not found". The wipe now removes project-scoped books/estimates explicitly and sweeps existing orphans. |
