@@ -50,9 +50,17 @@ function view(a: AccountRow): AccountView {
   };
 }
 
+/**
+ * Resolve the account behind a session. Returns null for SUSPENDED as well as
+ * DELETED: suspension previously blocked new sign-ins (`verifyPassword` returns
+ * `account_suspended`) but left existing sessions working, so suspending an
+ * account did nothing until its cookie happened to expire. Every caller is
+ * either session resolution or licence provisioning, and neither should act for
+ * a suspended account.
+ */
 export async function getAccountById(id: string): Promise<AccountView | null> {
   const [a] = await db.select().from(schema.accounts).where(eq(schema.accounts.id, id)).limit(1);
-  if (!a || a.status === "DELETED") return null;
+  if (!a || a.status === "DELETED" || a.status === "SUSPENDED") return null;
   return view(a);
 }
 
