@@ -8,7 +8,7 @@
  */
 import {
   CHECK_CATEGORY_RANK,
-  CHECK_CATEGORY_REQUIRED_STEPS,
+  missingReviewSteps,
   CONSULTANCY_SCOPE_TEMPLATES,
   CheckCategory,
   can,
@@ -92,11 +92,7 @@ function missingSteps(
   checkCategory: string,
   recorded: { kind: string }[],
 ): ReviewStepKind[] {
-  const required =
-    CHECK_CATEGORY_REQUIRED_STEPS[checkCategory as CheckCategory] ??
-    CHECK_CATEGORY_REQUIRED_STEPS.CAT1;
-  const have = new Set(recorded.map((s) => s.kind));
-  return required.filter((k) => !have.has(k));
+  return missingReviewSteps(checkCategory, recorded.map((s) => s.kind));
 }
 
 const engagementsRouter = router({

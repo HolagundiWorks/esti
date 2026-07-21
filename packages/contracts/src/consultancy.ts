@@ -491,6 +491,22 @@ export const CHECK_CATEGORY_RANK: Record<CheckCategory, number> = {
   CAT3: 3,
 };
 
+/**
+ * The review steps still outstanding before a deliverable of `checkCategory` may
+ * be ISSUED, given the `recordedKinds` already on it. Unknown categories fall back
+ * to the CAT1 chain (matching the DB default). Order follows the required chain.
+ */
+export function missingReviewSteps(
+  checkCategory: string,
+  recordedKinds: readonly string[],
+): ReviewStepKind[] {
+  const required =
+    CHECK_CATEGORY_REQUIRED_STEPS[checkCategory as CheckCategory] ??
+    CHECK_CATEGORY_REQUIRED_STEPS.CAT1;
+  const have = new Set(recordedKinds);
+  return required.filter((k) => !have.has(k));
+}
+
 export const ConsReviewStepCreate = z.object({
   deliverableId: z.string().uuid(),
   kind: ReviewStepKind,
