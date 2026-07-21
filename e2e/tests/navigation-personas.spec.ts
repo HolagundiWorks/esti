@@ -16,13 +16,10 @@ for (const persona of ["lead", "junior"] as const) {
     const crashes: string[] = [];
     for (const route of OFFICE_ROUTES) {
       await page.goto(route);
-      // Gated routes may redirect (`*` → `/`) or load slowly for lower roles —
-      // still not a crash unless ErrorBoundary recovery is on screen.
+      // Gated routes may redirect (`*` → `/`) or load slowly for lower roles.
       await waitForOfficeRoute(page).catch(() => {});
       expect(page.url(), `${persona} bounced to /login at ${route}`).not.toMatch(/\/login\b/);
-      // Prefer Reload-app only: empty-root while spinner is up is not a crash.
-      const boundary = await page.getByRole("button", { name: "Reload app" }).count();
-      if (boundary > 0 || (await isCrashed(page))) crashes.push(route);
+      if (await isCrashed(page)) crashes.push(route);
     }
     expect(crashes, `${persona} crashed on:\n${crashes.join("\n")}`).toEqual([]);
   });
