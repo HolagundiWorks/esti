@@ -114,7 +114,7 @@ describe("ConsEngagementCreate schema", () => {
 
 describe("ConsTimesheetCreate schema", () => {
   const base = {
-    engagementId: "11111111-1111-1111-1111-111111111111",
+    engagementId: "11111111-1111-4111-8111-111111111111",
     date: "2026-07-21",
     grade: "ENGINEER" as const,
     hours: 8,
@@ -139,14 +139,14 @@ describe("ConsTimesheetCreate schema", () => {
 describe("ConsFeeStageCreate & ConsVariationCreate schemas", () => {
   it("requires a label and non-negative integer paise on a fee stage", () => {
     const ok = ConsFeeStageCreate.safeParse({
-      engagementId: "11111111-1111-1111-1111-111111111111",
+      engagementId: "11111111-1111-4111-8111-111111111111",
       label: "Stage 3 — GA drawings",
       amountPaise: 2500000,
     });
     expect(ok.success).toBe(true);
     expect(
       ConsFeeStageCreate.safeParse({
-        engagementId: "11111111-1111-1111-1111-111111111111",
+        engagementId: "11111111-1111-4111-8111-111111111111",
         label: "",
         amountPaise: 1,
       }).success,
@@ -156,7 +156,7 @@ describe("ConsFeeStageCreate & ConsVariationCreate schemas", () => {
   it("rejects a negative variation amount", () => {
     expect(
       ConsVariationCreate.safeParse({
-        engagementId: "11111111-1111-1111-1111-111111111111",
+        engagementId: "11111111-1111-4111-8111-111111111111",
         code: "VO-001",
         title: "Revised wind loading",
         amountPaise: -100,

@@ -38,7 +38,7 @@ export function DashboardQuickActions() {
 
   // ── New project ───────────────────────────────────────────────────────────
   const [pTitle, setPTitle] = useState("");
-  const [pType, setPType] = useState<string>(ProjectType.options[0]);
+  const [pType, setPType] = useState<string>(ProjectType.options[0]!);
   const [pClient, setPClient] = useState("");
   const clientsQ = trpc.clients.list.useQuery({ limit: 200, offset: 0 }, { enabled: projOpen });
 
@@ -48,7 +48,7 @@ export function DashboardQuickActions() {
       void utils.projectOffice.list.invalidate();
       setProjOpen(false);
       setPTitle("");
-      setPType(ProjectType.options[0]);
+      setPType(ProjectType.options[0]!);
       setPClient("");
       navigate(`/projects/${row.id}`);
     },
@@ -58,7 +58,7 @@ export function DashboardQuickActions() {
   const [lName, setLName] = useState("");
   const [lPhone, setLPhone] = useState("");
   const [lEmail, setLEmail] = useState("");
-  const [lType, setLType] = useState<string>(ProjectType.options[0]);
+  const [lType, setLType] = useState<string>(ProjectType.options[0]!);
   const [lSource, setLSource] = useState<string>("WALK_IN");
 
   const createLead = trpc.leads.create.useMutation({

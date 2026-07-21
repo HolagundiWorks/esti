@@ -47,7 +47,7 @@ export function Projects() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [titleTouched, setTitleTouched] = useState(false);
-  const [projectType, setProjectType] = useState<string>(ProjectType.options[0]);
+  const [projectType, setProjectType] = useState<string>(ProjectType.options[0]!);
   const [clientId, setClientId] = useState("");
   const clientsQ = trpc.clients.list.useQuery({ limit: 200, offset: 0 });
   const titleMissing = !title.trim();

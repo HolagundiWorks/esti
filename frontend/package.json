@@ -19,9 +19,9 @@
     "@emotion/styled": "^11.14.1",
     "@esti/backend": "workspace:*",
     "@esti/contracts": "workspace:*",
-    "@hcw/ui-kit": "workspace:*",
     "@fontsource/open-sans": "^5.2.7",
     "@fontsource/urbanist": "^5.2.7",
+    "@hcw/ui-kit": "workspace:*",
     "@mui/icons-material": "^9.2.0",
     "@mui/material": "^9.2.0",
     "@mui/x-charts": "^9.8.0",
@@ -40,7 +40,7 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.0",
     "xlsx": "^0.18.5",
-    "zod": "^3.23.8",
+    "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

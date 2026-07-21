@@ -32,7 +32,7 @@ export function MasterPlanLibrary() {
   const { authorizedFetch } = useUploadAuth();
 
   const [name, setName] = useState("");
-  const [category, setCategory] = useState<string>(MasterPlanCategory.options[0]);
+  const [category, setCategory] = useState<string>(MasterPlanCategory.options[0]!);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

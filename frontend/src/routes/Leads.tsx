@@ -215,7 +215,7 @@ export function Leads() {
                   // if it matches a real ProjectType, else pick a valid default.
                   const carried = (ProjectType.options as readonly string[]).includes(l.projectType ?? "")
                     ? (l.projectType as string)
-                    : ProjectType.options[0];
+                    : ProjectType.options[0]!;
                   setConv({
                     projectTitle: l.projectType || l.clientName,
                     projectType: carried,

@@ -42,7 +42,7 @@
     "ioredis": "^5.4.1",
     "minio": "^8.0.1",
     "postgres": "^3.4.4",
-    "zod": "^3.23.8"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
