@@ -571,11 +571,25 @@ const reviewsRouter = router({
         message: `${REVIEW_STEP_LABEL[input.kind]} is already recorded for ${d.code}.`,
       });
 
-    if (input.kind === "CHECK" && d.originatedBy && d.originatedBy === ctx.user.id)
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "The independent check cannot be recorded by the deliverable's author.",
-      });
+    // On CAT2/CAT3 the check and the approval must be separate people — the
+    // higher rigour tiers require the sign-off to be independent of the check,
+    // not only of the author. CAT0/CAT1 let one senior both check and sign.
+    // Enforced whichever step is recorded second, so order can't defeat it.
+    const checkApproveMustDiffer = d.checkCategory === "CAT2" || d.checkCategory === "CAT3";
+
+    if (input.kind === "CHECK") {
+      if (d.originatedBy && d.originatedBy === ctx.user.id)
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "The independent check cannot be recorded by the deliverable's author.",
+        });
+      const approver = steps.find((s) => s.kind === "APPROVE");
+      if (checkApproveMustDiffer && approver?.userId === ctx.user.id)
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `On a ${d.checkCategory} deliverable the check must be independent of the approver.`,
+        });
+    }
     if (input.kind === "VERIFY") {
       const checker = steps.find((s) => s.kind === "CHECK");
       if ((d.originatedBy && d.originatedBy === ctx.user.id) || checker?.userId === ctx.user.id)
@@ -584,14 +598,22 @@ const reviewsRouter = router({
           message: "The proof check must be independent of both the author and the checker.",
         });
     }
-    // APPROVE is the signing act (Engineer of Record accepts responsibility) — an
-    // author may not approve their own work, or the "author ≠ reviewer" control
-    // has no arm on the one step that carries the professional signature.
-    if (input.kind === "APPROVE" && d.originatedBy && d.originatedBy === ctx.user.id)
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "The approval (EoR sign-off) cannot be recorded by the deliverable's author.",
-      });
+    // APPROVE is the signing act (Engineer of Record accepts responsibility). The
+    // author may never approve their own work; on CAT2/CAT3 the approver must also
+    // be a different person than the checker.
+    if (input.kind === "APPROVE") {
+      if (d.originatedBy && d.originatedBy === ctx.user.id)
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "The approval (EoR sign-off) cannot be recorded by the deliverable's author.",
+        });
+      const checker = steps.find((s) => s.kind === "CHECK");
+      if (checkApproveMustDiffer && checker?.userId === ctx.user.id)
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `On a ${d.checkCategory} deliverable the approval must be independent of the checker.`,
+        });
+    }
 
     const [row] = await ctx.db
       .insert(consReviewSteps)
