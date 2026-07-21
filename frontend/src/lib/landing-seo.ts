@@ -50,7 +50,7 @@ export const LANDING_FAQ = [
   {
     question: "What is the dual-tier AI architecture?",
     answer:
-      `Two agents: ${EOMS.name} (${EOMS.expansion}) is the ${EOMS.role.toLowerCase()} — it validates content from outside sources before it enters the firm. ${ESTI.name} (${ESTI.expansion}) is the ${ESTI.role.toLowerCase()} — it answers only from validated firm repositories. See the ${EOMS.name} + ${ESTI.name} section on this page.`,
+      `${EOMS.name} (${EOMS.expansion}) is the ${EOMS.role.toLowerCase()} — apps query it for authoritative codes and compliance. ${ESTI.name} (${ESTI.expansion}) is the ${ESTI.role.toLowerCase()} — it answers only from validated firm repositories. See the ${EOMS.name} + ${ESTI.name} section on this page.`,
   },
   {
     question: `Where is the ${AORMS_STUDIO.title} documentation?`,
@@ -148,7 +148,7 @@ export function injectLandingJsonLd(): void {
         url: "https://aorms.in/",
         description: LANDING_SEO.description,
         featureList:
-          "operational framework, design framework, collaboration, review and approval, audit and compliance, knowledge base, analytics dashboards, EOMS external AI agent, ESTI internal AI agent",
+          "operational framework, design framework, collaboration, review and approval, audit and compliance, knowledge base, analytics dashboards, EOMS knowledge bank, ESTI internal AI agent",
         audience: {
           "@type": "Audience",
           audienceType:

@@ -89,7 +89,8 @@ of scope**); **HCW**.
 
 ## 4. Rollout status
 
-The executable canon and the docs are updated; the token sweep is essentially complete.
+The executable canon, docs, and product-facing copy are updated. §5 follow-ups are done
+(2026-07-21).
 
 | Area | State |
 |---|---|
@@ -97,34 +98,29 @@ The executable canon and the docs are updated; the token sweep is essentially co
 | `docs/esti/AORMS-PLATFORM-NOMENCLATURE.md` | ✅ EOMS row + section rewritten as the knowledge bank; links to EOMS-ARCHITECTURE |
 | `docs/esti/EOMS-ARCHITECTURE.md` | ✅ Added — full EOMS design |
 | EOMS expansion string (code + docs) | ✅ "Emergent Object Management System" everywhere it appears |
-| `EmOI` → `EOMS` token sweep | ✅ ~30 files on `EOMS`; **4 files still reference `EmOI`** (see §5) |
+| `EmOI` → `EOMS` token sweep | ✅ Complete in live code/docs/marketing (historical SQL migration comments may still say EmOI) |
 | `emoi*` code identifiers | ✅ none remain |
-| `docs/esti/AORMS-BRANDING-KIT.md` | ⚠️ header still calls EOMS "external AI agent" — one-line update pending (§5) |
+| `docs/esti/AORMS-BRANDING-KIT.md` | ✅ Header reads EOMS as the knowledge bank |
+| Landing / SEO / `llms.txt` / index.html | ✅ EmOI removed; EOMS framed as knowledge bank |
+| `wiki-knowledge.generated.ts` + `eoms-repo` system prompt | ✅ Knowledge-bank framing |
 
 ---
 
-## 5. Remaining cleanup (follow-ups — not code, documented here)
+## 5. Follow-ups completed (2026-07-21)
 
-Small, low-risk edits to finish the rebrand. **This document is documentation only; these are
-tracked, not executed here.**
+Previously tracked as remaining cleanup; executed on branch `cursor/aorms-rebrand-followup-cc53`:
 
-1. **Last four `EmOI` mentions → `EOMS`** (mostly comments/prose):
-   - `CLAUDE.md`
-   - `worker/esti_worker/jobs/pdf_to_markdown.py`
-   - `packages/contracts/src/consultancy.ts` (the "EmOI input gate" comments)
-   - `packages/contracts/src/repo-portal.ts`
-   Confirm each mention is the external-agent concept before replacing (some are historical
-   references to the input-gate workflow, which is fine to keep as prose but should read
-   "EOMS").
-2. **AORMS-BRANDING-KIT.md** — change the header line *"EOMS — external AI agent"* to
-   *"EOMS — Emergent Object Management System (the knowledge bank)"* so the heritage doc matches
-   the canon.
-3. **Any UI copy** still framing EOMS as an "external agent / validation gate" rather than the
-   knowledge bank — audit `frontend/src` strings on the next design pass.
-4. **Generated content** (e.g. `wiki-knowledge.generated.ts`) — verify it reads EOMS as the
-   knowledge bank; it is hand-maintained now, so update in place when the copy is next revised.
+1. **Last `EmOI` mentions → `EOMS`** in `CLAUDE.md`, `worker/.../pdf_to_markdown.py`,
+   `packages/contracts/src/consultancy.ts`, `packages/contracts/src/repo-portal.ts`, plus
+   marketing leftovers (`index.html`, `llms.txt`, investor deck, blog feed).
+2. **AORMS-BRANDING-KIT.md** — header now *"EOMS — Emergent Object Management System (the knowledge bank)"*.
+3. **UI / SEO copy** — Landing dual-tier section + FAQ, `landing-seo.ts` featureList, and related
+   docs no longer call EOMS an "external agent".
+4. **`wiki-knowledge.generated.ts`** — EOMS sections rewritten as the knowledge bank; ESTI remains
+   the internal agent.
 
-None of these block anything; the canon and the product-facing marks are already correct.
+**Out of scope / intentional leftovers:** Drizzle migration SQL comments (`0180`, `0191`) keep
+historical EmOI wording — do not rewrite applied migrations.
 
 ---
 

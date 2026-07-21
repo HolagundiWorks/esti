@@ -2,11 +2,11 @@
 
 **Status:** Canonical · **Updated:** 2026-07-11
 
-The **Knowledge Bank portal** is the firm-facing surface where **EOMS** (external AI agent)
-ingests **outside reference material** — textbooks, codes, and long-form guides —
-rephrases it faithfully, writes summaries, and stores the result in a **governed
-library**. **ESTI** (internal AI agent) reads **published** library content when
-answering Ask ESTI questions.
+The **Knowledge Bank portal** is the firm-facing surface where **EOMS** (the
+knowledge bank intake layer) ingests **outside reference material** — textbooks,
+codes, and long-form guides — rephrases it faithfully, writes summaries, and
+stores the result in a **governed library**. **ESTI** (internal AI agent) reads
+**published** library content when answering Ask ESTI questions.
 
 Executable constants: `frontend/src/lib/product-nomenclature.ts` (`KNOWLEDGE_BANK_PORTAL`).
 

@@ -6,7 +6,7 @@
 > Management System** (platform for **AEC consulting firms**). **AORMS-Studio** = architecture app
 > in this repo (slug `aorms-studio`, Indian architecture practices). **AORMS-Consultancy** =
 > engineering app (slug `aorms-consultancy`, roadmap).
-> **EOMS** = external AI agent; **ESTI** = internal AI agent (live in **AORMS-Studio**).
+> **EOMS** = Emergent Object Management System (knowledge bank); **ESTI** = internal AI agent (live in **AORMS-Studio**).
 > **Portals:** staff workspace = **AORMS-Studio**; external = client / consultant / contractor / site portals; account hub = **AORMS account** + licensing console. Constants: `AORMS_PORTALS` in `frontend/src/lib/product-nomenclature.ts`.
 > Full rules: [AORMS-PLATFORM-NOMENCLATURE](AORMS-PLATFORM-NOMENCLATURE.md).
 

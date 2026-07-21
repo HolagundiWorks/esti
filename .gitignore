@@ -38,6 +38,8 @@ __pycache__/
 
 # data / volumes
 data/
+dump.rdb
+*.rdb
 # ...but backend/src/data holds committed generated SOURCE (CPWD rate-book seed),
 # not runtime volumes — keep it tracked so Docker builds have it.
 !backend/src/data/

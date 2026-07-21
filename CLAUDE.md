@@ -9,10 +9,10 @@ slugs `hived` and `aorms-architecture`, Indian architecture practices). **AORMS-
 
 **ESTI** (Embedded Studio Intelligence) is the **internal AI agent** in
 **AORMS-Studio**: Ask ESTI, the cognition engine, Studio Intelligence, ESTI Pulse.
-**EmOI** (Embedded Operational Intelligence) is the **external AI agent** on the
-AORMS platform — validates and gates content from outside sources.
+**EOMS** (Emergent Object Management System) is the **external knowledge bank** —
+a standalone API cataloging standard codebooks and building/compliance codes.
 Code identifiers (`@esti/*` packages, `esti_*` tables, repo name) keep the
-`esti` codename.
+`esti` codename. See [`docs/esti/AORMS-REBRANDING.md`](docs/esti/AORMS-REBRANDING.md).
 
 Monorepo (pnpm workspaces): `packages/contracts`, `backend` (Fastify + tRPC +
 Drizzle), `frontend` (React + Vite), plus a Python `worker`. Services run via
@@ -22,7 +22,7 @@ Docker Compose (`compose.yaml`).
 
 **Canonical doc:** [`docs/esti/AORMS-PLATFORM-NOMENCLATURE.md`](docs/esti/AORMS-PLATFORM-NOMENCLATURE.md).
 **Executable constants:** `frontend/src/lib/product-nomenclature.ts` — import
-`AORMS_PLATFORM`, `AORMS_APPS`, `AORMS_STUDIO`, `AORMS_CONSULTANCY`, `AORMS_PORTALS`, `PLATFORM_APPS`, `EMOI`, `ESTI` for user-facing copy; do
+`AORMS_PLATFORM`, `AORMS_APPS`, `AORMS_STUDIO`, `AORMS_CONSULTANCY`, `AORMS_PORTALS`, `PLATFORM_APPS`, `EOMS`, `ESTI` for user-facing copy; do
 not hard-code product strings in UI/SEO.
 
 | Name | Role |
@@ -30,7 +30,7 @@ not hard-code product strings in UI/SEO.
 | **AORMS** | Platform — *Accelerated Operational Resources Management System*; **AEC consulting firms only** (architecture + engineering); **not** solution delivery or construction PM |
 | **AORMS-Studio** | Shipped **architecture** app from this repo — Indian architecture consultancies; SPA at **`studio.aorms.in`** |
 | **AORMS-Consultancy** | **Engineering** consultancy app (roadmap) — structural, MEP, civil, multidisciplinary firms |
-| **EmOI** | **External AI agent** — dual-tier quality gate on outside sources |
+| **EOMS** | **Knowledge bank** (standalone API) — standard codebooks & compliance codes; apps query it |
 | **ESTI** | **Internal AI agent** in **AORMS-Studio** — Ask ESTI, Studio Intelligence, ESTI Pulse |
 | **`AORMS_PORTALS`** | Portal/surface UI labels — staff workspace, external portals, account hub |
 | **`aorms-studio`** | URL/wiki **slug** — legacy slugs `hived`, `aorms-architecture` redirect |
@@ -41,17 +41,18 @@ not hard-code product strings in UI/SEO.
 
 - *Architecture Office Resource Management System* → **AORMS** (platform) or **AORMS-Studio** (app)
 - **AORMS portal** / **AORMS-Architecture** / **HiveD** (staff workspace) → **AORMS-Studio** — client/consultant/**contractor** *portals* keep the word *portal*
+- **EmOI** / *Embedded Operational Intelligence* → **EOMS** (*Emergent Object Management System*, knowledge bank)
 - Pre-2026-07 multi-industry platform scope (risk, education, auditing) → **AEC only**
 
 **Public marketing surfaces:**
 
 | Path / host | Role |
 | --- | --- |
-| `/` · **aorms.in** | Platform landing — operational + design frameworks, EmOI; all path-based pages below |
+| `/` · **aorms.in** | Platform landing — operational + design frameworks, EOMS; all path-based pages below |
 | `/wiki` | Four-pillar wiki: HCW-UI · AORMS-Studio · AI core · Management |
 | `/access` | Client, consultant, contractor, site portal sign-in |
 | `/account` · `/company-account` | AORMS account & licensing hub |
-| `/libraries/knowledge-bank-portal` | Knowledge Bank portal (EmOI textbook library) |
+| `/libraries/knowledge-bank-portal` | Knowledge Bank portal (EOMS textbook library) |
 | **studio.aorms.in** · `/login` | **AORMS-Studio** workspace (architecture) |
 | **consultancy.aorms.in** · `/aorms-consultancy` | **AORMS-Consultancy** engineering marketing (roadmap) |
 | **admin.aorms.in** | Licensing console (operators only) |
