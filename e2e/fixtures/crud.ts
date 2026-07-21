@@ -69,10 +69,21 @@ export async function createInModule(
 
   await fillInputs();
 
-  const selects = dialog.locator("select");
-  for (let i = 0; i < (await selects.count()); i++) {
-    const oc = await selects.nth(i).locator("option").count().catch(() => 0);
-    if (oc > 1) await selects.nth(i).selectOption({ index: oc - 1 }).catch(() => {});
+  // MUI TextField select — native <select> is empty; open the listbox and pick
+  // the first real option (skip placeholder "Select a…").
+  const muiSelects = dialog.locator('[role="combobox"], [aria-haspopup="listbox"]');
+  for (let i = 0; i < (await muiSelects.count()); i++) {
+    const el = muiSelects.nth(i);
+    if (!(await el.isVisible().catch(() => false))) continue;
+    const current = ((await el.textContent().catch(() => "")) ?? "").trim();
+    if (current && !/select|choose|pick/i.test(current) && current !== "​") continue;
+    await el.click().catch(() => {});
+    const option = page.getByRole("option").filter({ hasNotText: /select|choose|pick/i }).nth(0);
+    if ((await option.count().catch(() => 0)) > 0) {
+      await option.click().catch(() => {});
+    } else {
+      await page.keyboard.press("Escape").catch(() => {});
+    }
   }
 
   // A select may have revealed a conditional required field (e.g. a cash voucher
@@ -89,7 +100,11 @@ export async function createInModule(
     }
   }
 
-  await dialog.getByRole("button", { name: opts.submit }).click().catch(() => {});
+  const submitBtn = dialog.getByRole("button", { name: opts.submit });
+  await expect(submitBtn, `submit "${opts.submit}" disabled on ${opts.route}`).toBeEnabled({
+    timeout: 8_000,
+  });
+  await submitBtn.click().catch(() => {});
 
   if (verify === "closed") {
     await expect(
