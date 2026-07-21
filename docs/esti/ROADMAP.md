@@ -34,11 +34,11 @@ are **not** current product state — see system state below.
 
 ## Next (product autopilot)
 
-1. **P9.V** — finish mutation/integration coverage + human fee UX review (active)
+1. **P9.V** — finish mutation/integration coverage + human fee UX review (active — see PR #14)
 2. **P9.4** — deepen consultancy intelligence (precedent / calc-lineage) after P9.V
 3. **P4.8** — human: replace stale social/campaign desktop copy
 4. **P7.2** — billing (blocked on Stripe vs manual invoice decision)
-5. **P10.8** — regenerate visual Playwright baselines after React 19 / branding
+5. **P10.8** — ✅ visual suite retargeted + linux baselines regenerated (2026-07-21)
 
 ## Change rule
 

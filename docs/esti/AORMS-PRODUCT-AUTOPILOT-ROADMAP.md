@@ -333,6 +333,7 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 
 | Date | Change |
 |------|--------|
+| 2026-07-21 | **P10.8 visual CI fixed:** `/design-system` gallery was removed in marketing consolidation but visual tests still targeted it (scroll timeouts + landing-as-gallery diffs). Suite now asserts landing hero only; linux baseline regenerated in Playwright `v1.49.0-jammy`; `landing-visit` health/record toasts marked `silent` so preview-without-backend stays clean. |
 | 2026-07-21 | Autopilot go: shipped **precedentSearch** + **deliverableLineage** (pure rank/lineage helpers + tRPC + Find precedents UI in Ask intelligence). P9.4 advanced. |
 | 2026-07-21 | Autopilot continue: wired `mayIssueDeliverable` + deliverable/variation lifecycle helpers into the consultancy router; marked **P2.5 ✅** (project file archive reclaim already shipped); P9.4 corrected to partial (intelligence ask + EOMS pack review exist). Contracts tests 267. |
 | 2026-07-21 | **P10 hygiene/rebrand/deps landed on main** (inproc/PMC/schema drift, docs, e2e CI, major deps, EmOI→EOMS). **P9.V started:** extracted pure money + sign-off helpers into contracts, wired into the consultancy router, expanded unit tests. Glance: P4 → code-done; P9 → P9.V in progress. P4 device-session tables noted dropped via `0211`. |
