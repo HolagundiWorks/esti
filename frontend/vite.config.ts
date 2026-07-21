@@ -31,6 +31,18 @@ export default defineConfig({
     },
   },
   resolve: {
+    // The vendored @hcw/* kits (built against React 18) ship their own
+    // node_modules; without deduping, the app's React 19 and the kit's React
+    // resolve to two copies → "Invalid hook call" at runtime. Force a single
+    // copy of React and the MUI/Emotion runtime the kit shares with the app.
+    dedupe: [
+      "react",
+      "react-dom",
+      "@mui/material",
+      "@mui/system",
+      "@emotion/react",
+      "@emotion/styled",
+    ],
     alias: [
       // Vendored workspace kits import "zod" but their dist files live under
       // vendor/ — outside frontend/ — so Rollup can't resolve "zod" from that
