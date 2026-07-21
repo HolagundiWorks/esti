@@ -1,9 +1,12 @@
 import { expect, test } from "@playwright/test";
 
 /**
- * Visual regression — the design-system gallery is the snapshot surface
- * (debt D2c). Public pages only (no auth): the /design-system specimens in all
- * three colour schemes, plus the marketing hero.
+ * Visual regression — public marketing surface only.
+ *
+ * The HCW-UI-Kit `/design-system` gallery was removed in the 2026-07 marketing
+ * consolidation (single landing at `/`). Snapshots therefore cover the landing
+ * hero — the one remaining public specimen the visual job can assert without
+ * auth or a backend.
  *
  * Baselines are committed per-platform (`*-visual-{win32,linux}.png`). CI runs
  * the `visual` project inside the pinned Playwright image
@@ -11,9 +14,9 @@ import { expect, test } from "@playwright/test";
  * so it matches the committed `-linux` baselines exactly. Regenerate after any
  * intended visual change:
  *   local:  pnpm exec playwright test visual-regression --update-snapshots
- *   linux:  docker run --rm --add-host=host.docker.internal:host-gateway \
+ *   linux:  docker run --rm --network host \
  *             -v "$PWD/e2e:/work" -w /work mcr.microsoft.com/playwright:v1.49.0-jammy \
- *             bash -lc 'npm ci && AORMS_BASE_URL=http://host.docker.internal:5173 \
+ *             bash -lc 'npm ci && AORMS_BASE_URL=http://127.0.0.1:5173 \
  *               npx playwright test visual-regression --update-snapshots'
  *   (bump the image tag AND regenerate together.)
  * Deterministic rendering: CSS animations disabled per-assertion and
@@ -29,41 +32,15 @@ const SHOT = {
   maxDiffPixelRatio: 0.02,
 };
 
-test.describe("design-system gallery", () => {
-  test("layer map + tokens (top of page)", async ({ page }) => {
-    await page.goto("/design-system");
-    await page.waitForLoadState("networkidle");
-    await expect(page).toHaveScreenshot("ds-top-light.png", SHOT);
-  });
-
-  test("scheme specimens — light · dark · high contrast", async ({ page }) => {
-    await page.goto("/design-system");
-    await page.waitForLoadState("networkidle");
-    const section = page.locator("section", { has: page.locator("#schemes") });
-    await section.scrollIntoViewIfNeeded();
-
-    await expect(section).toHaveScreenshot("ds-scheme-light.png", SHOT);
-
-    await page.getByRole("button", { name: "Dark" }).click();
-    await expect(section).toHaveScreenshot("ds-scheme-dark.png", SHOT);
-
-    await page.getByRole("button", { name: "High Contrast" }).click();
-    await expect(section).toHaveScreenshot("ds-scheme-high-contrast.png", SHOT);
-  });
-
-  test("primitives specimens (StatusDot · Avatar · orbs)", async ({ page }) => {
-    await page.goto("/design-system");
-    await page.waitForLoadState("networkidle");
-    const section = page.locator("section", { has: page.locator("#components") });
-    await section.scrollIntoViewIfNeeded();
-    await expect(section).toHaveScreenshot("ds-primitives.png", SHOT);
-  });
-});
-
 test.describe("marketing", () => {
   test("landing hero", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
+    // Brand mark must be present — guards against a blank/error shell.
+    await expect(page.getByText("AORMS").first()).toBeVisible();
+    // Public pages must not surface API/offline toasts into the snapshot
+    // (visual CI runs without a backend).
+    await expect(page.getByText("Something went wrong")).toHaveCount(0);
     await expect(page).toHaveScreenshot("landing-hero.png", SHOT);
   });
 });

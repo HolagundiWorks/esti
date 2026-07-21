@@ -27,32 +27,37 @@ export default defineConfig({
   projects: [
     // Logs in once and saves the session so the button crawler can reuse it.
     { name: "setup", testMatch: /auth\.setup\.ts$/ },
-    // Auth / navigation / PDF specs sign in fresh themselves.
-    {
-      name: "office",
-      testMatch: /(auth|navigation.*|pdf)\.spec\.ts$/,
-      use: { ...devices["Desktop Chrome"] },
-    },
-    // The button crawler + CRUD item-entry specs reuse the saved session.
+    // Session-consuming buttons finish before office re-logins the principal
+    // (auth.login revokes prior sessions). office depends on setup only so a
+    // flaky buttons/crud case cannot skip the auth/nav suite.
     {
       name: "buttons",
       testMatch: /buttons\.spec\.ts$/,
       dependencies: ["setup"],
       use: { ...devices["Desktop Chrome"], storageState: ".auth/principal.json" },
     },
+    // CRUD signs in per-file (see beforeEach) so office re-logins cannot revoke
+    // a shared storageState mid-suite.
     {
       name: "crud",
       testMatch: /crud.*\.spec\.ts$/,
       dependencies: ["setup"],
-      use: { ...devices["Desktop Chrome"], storageState: ".auth/principal.json" },
+      use: { ...devices["Desktop Chrome"] },
+    },
+    // Auth / navigation / PDF specs sign in fresh themselves.
+    {
+      name: "office",
+      testMatch: /(auth|navigation.*|pdf)\.spec\.ts$/,
+      dependencies: ["setup"],
+      use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "accessibility",
       testMatch: /accessibility\.spec\.ts$/,
+      dependencies: ["office"],
       use: { ...devices["Desktop Chrome"] },
     },
-    // Visual regression over the public design-system gallery (no auth).
-    // First run: pnpm exec playwright test visual-regression --update-snapshots
+    // Visual regression (public marketing; no auth). Independent of session.
     {
       name: "visual",
       testMatch: /visual-regression\.spec\.ts$/,

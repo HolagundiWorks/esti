@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { loginAs } from "../fixtures/auth.js";
 import { createInModule } from "../fixtures/crud.js";
 
 /**
@@ -6,6 +7,10 @@ import { createInModule } from "../fixtures/crud.js";
  * (the CRM "archive a record" path; clients are soft-disabled, not hard-deleted).
  * The row's status flips Active → Deactivated.
  */
+test.beforeEach(async ({ page }) => {
+  await loginAs(page, "principal");
+});
+
 test("client — create then deactivate (archive)", async ({ page }) => {
   test.setTimeout(60_000);
   const name = `E2E archive ${Date.now()}`;
@@ -21,6 +26,8 @@ test("client — create then deactivate (archive)", async ({ page }) => {
   await expect(row, "created client not found").toBeVisible({ timeout: 10_000 });
   await expect(row, "new client should start Active").toContainText("Active");
 
-  await row.getByRole("button", { name: /deactivate/i }).click();
+  // Deactivate lives in the row ⋯ menu (RowActionsMenu), not as a stage button.
+  await row.getByRole("button", { name: /row actions/i }).click();
+  await page.getByRole("menuitem", { name: /deactivate/i }).click();
   await expect(row, "client was not archived").toContainText("Deactivated", { timeout: 10_000 });
 });

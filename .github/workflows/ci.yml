@@ -57,7 +57,7 @@ jobs:
         run: |
           pnpm --filter @esti/frontend build
           pnpm --filter @esti/frontend exec vite preview --host 0.0.0.0 --port 5173 &
-          npx --yes wait-on -t 90000 http://localhost:5173/design-system
+          npx --yes wait-on -t 90000 http://localhost:5173/
           cd e2e && npm ci
           AORMS_BASE_URL=http://localhost:5173 npx playwright test visual-regression
       - uses: actions/upload-artifact@v4
@@ -81,6 +81,9 @@ jobs:
       - name: Boot the stack (db · redis · minio · backend · worker · frontend)
         # Ollama is intentionally left out — AI features are not exercised by the
         # suite and its image/model pull would dominate the job.
+        # ESTI_RELAX_AUTH_LIMITS: e2e reuses one runner IP for many persona logins.
+        env:
+          ESTI_RELAX_AUTH_LIMITS: "true"
         run: docker compose up -d --build db redis minio backend worker frontend
       - name: Wait for backend + frontend
         run: |

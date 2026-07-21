@@ -44,12 +44,20 @@ for (const route of OFFICE_ROUTES) {
     test.setTimeout(120_000);
     await page.goto(route);
     await page.waitForLoadState("networkidle").catch(() => {});
+    await expect(page.getByLabel(/^Loading /i)).toHaveCount(0, { timeout: 30_000 });
     // The saved session should keep us out of the login screen.
     expect(page.url(), "session lost — bounced to /login").not.toMatch(/\/login\b/);
 
     const buttons = page.locator("button:visible:not([disabled])");
-    const count = Math.min(await buttons.count().catch(() => 0), 25);
+    // Studio home has a dense dock/footer — keep the crawl bounded.
+    const count = Math.min(await buttons.count().catch(() => 0), route === "/" ? 12 : 25);
     let crashedOn: string | null = null;
+
+    const backOnRoute = () => {
+      const path = new URL(page.url()).pathname.replace(/\/$/, "") || "/";
+      const want = route.replace(/\/$/, "") || "/";
+      return path === want || path.startsWith(`${want}/`);
+    };
 
     for (let i = 0; i < count && !crashedOn; i++) {
       const button = buttons.nth(i);
@@ -63,14 +71,15 @@ for (const route of OFFICE_ROUTES) {
       await page.keyboard.press("Escape").catch(() => {});
 
       const crashed = await page
-        .getByText(/something went wrong|unexpected error|application error/i)
+        .getByRole("button", { name: "Reload app" })
         .count()
         .catch(() => 0);
       if (crashed > 0) crashedOn = label.slice(0, 50);
 
-      if (route !== "/" && !page.url().includes(route)) {
+      if (!backOnRoute()) {
         await page.goto(route).catch(() => {});
         await page.waitForLoadState("networkidle").catch(() => {});
+        await expect(page.getByLabel(/^Loading /i)).toHaveCount(0, { timeout: 30_000 }).catch(() => {});
       }
     }
 

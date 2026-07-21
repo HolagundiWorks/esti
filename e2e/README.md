@@ -6,9 +6,10 @@ every screen, every safe button, and PDF generation.** Standalone npm package
 
 ## Prerequisites
 
-The app must be running and reachable. By default it targets the dev demo build
-(persona login) on `http://localhost:5173` — the `esti-frontend` container. Point
-elsewhere with `AORMS_BASE_URL`.
+The app must be running and reachable. By default it targets the demo build on
+`http://localhost:5173` (seeded with `pnpm seed:demo`). Point elsewhere with
+`AORMS_BASE_URL`. Demo users sign in with email + password (`demo1234` unless
+`SEED_DEMO_PASSWORD` is set) — there is no persona picker on `/login`.
 
 ```bash
 cd e2e
@@ -31,10 +32,10 @@ AORMS_BASE_URL=https://app.example.com npm test   # another environment
 
 | Spec | "Tests…" |
 |---|---|
-| `tests/auth.spec.ts` | **All logins** — each of the 5 demo personas (principal/lead/site/junior/client) signs in. |
+| `tests/auth.spec.ts` | **All logins** — staff personas via `/login` + Open workspace; client via `/access`. |
 | `tests/navigation.spec.ts` | **Every screen** — visits each route in `utils/routes.ts` and asserts it renders (no crash fallback, no bounce to /login). |
-| `tests/navigation-personas.spec.ts` | **Every role** — Project Lead + Jr Architect sweep every office route crash-free (role-gated screens may redirect, never blow up); Client + Site Supervisor reach their portal cleanly. |
-| `tests/buttons.spec.ts` | **Every button** — on each screen (one test per route, reuses the saved session), clicks every visible *non-destructive* button and asserts the UI never crashes. Destructive/outbound labels are skipped (see the `SKIP` regex). |
+| `tests/navigation-personas.spec.ts` | **Every role** — Project Lead + Jr Architect sweep every office route crash-free (role-gated screens may redirect, never blow up); Client reaches the portal via `/access`. |
+| `tests/buttons.spec.ts` | **Every button** — on each screen (one test per route, reuses the saved session from setup — runs *before* office re-logins that revoke that session), clicks every visible *non-destructive* button and asserts the UI never crashes. Destructive/outbound labels are skipped (see the `SKIP` regex). |
 | `tests/crud.spec.ts` | **Each item entered** — a real create round-trip per module (clients, leads, consultants, contractors, contracts, invoices, proposals, letters, office expenses): opens the New-X modal, fills it via `fixtures/crud.ts`, submits, and verifies either the `E2E …`-stamped record lands in the list or (for auto-numbered docs) the modal closes cleanly. |
 | `tests/crud-lifecycle.spec.ts` | **CRM archive** — create a client → search → Deactivate (status flips Active → Deactivated). |
 | `tests/pdf.spec.ts` | **PDF generation** — asserts each PDF-owning screen exposes a generated-PDF artifact and that Regenerate is safe. |
@@ -47,10 +48,9 @@ AORMS_BASE_URL=https://app.example.com npm test   # another environment
   crawler deliberately *skips* submit/create/delete so it stays safe; targeted
   CRUD specs assert the create round-trip per module).
 - **Per-persona access:** the `loginAs(page, persona)` fixture takes any of the 5
-  personas — duplicate the nav sweep per persona to assert role-gated screens.
-- **Selectors:** Carbon renders semantic roles; prefer `getByRole` /
-  `getByLabel` over CSS. The crawler is a safety net; per-flow specs are the
-  precise coverage.
+  seeded demo emails — duplicate the nav sweep per persona to assert role-gated screens.
+- **Selectors:** prefer `getByRole` / `getByLabel` over CSS. The crawler is a
+  safety net; per-flow specs are the precise coverage.
 
 ## Notes
 

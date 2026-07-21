@@ -114,6 +114,11 @@ const Env = z.object({
   DEMO_MASTER_PASSWORD: z.string().default("aorms-demo-admin"),
   /** When false, skip the automatic IST midnight demo re-seed. */
   DEMO_MIDNIGHT_RESET: envBool(true),
+  /**
+   * When true, skip login / bootstrap IP rate limits. CI e2e reuses one runner
+   * IP for dozens of persona logins; production must leave this false.
+   */
+  ESTI_RELAX_AUTH_LIMITS: envBool(),
   /** Optional shared secret for external uptime probes (`X-Readyz-Token` header). */
   READYZ_PROBE_TOKEN: z.string().default(""),
   /** Optional GitHub token to raise the unauthenticated 60/hr release-API limit. */
