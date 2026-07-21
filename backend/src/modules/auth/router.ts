@@ -15,7 +15,6 @@ import { firm, orgSettings, users } from "../../db/schema.js";
 import { env } from "../../env.js";
 import { writeAudit } from "../../lib/audit.js";
 import { emailMatches, normalizeEmail } from "../../lib/email.js";
-import { licenseState } from "../../lib/plan.js";
 import { sendMail } from "../../lib/mail/transport.js";
 import { verifyTotp } from "../../lib/totp.js";
 import {
@@ -437,27 +436,6 @@ export const authRouter = router({
       /** Effective storage quota in bytes (5 GiB base + purchased add-ons). */
       storageQuotaBytes: DEFAULT_STORAGE_BYTES + Math.max(0, settings.storagePurchasedBytes),
       storageUsedBytes: settings.storageBytesUsed,
-    };
-  }),
-
-  /**
-   * Server-authoritative runtime signal. `managed` = a licence token or hub is
-   * configured. AORMS is web-only (2026-07-19), so `desktop`/`mode` are fixed.
-   */
-  runtime: publicProcedure.query(async ({ ctx }) => {
-    const state = await licenseState(ctx.db);
-    return {
-      managed: state.managed,
-      /** @deprecated Desktop apps removed 2026-07-19. Always false / "cloud". */
-      desktop: false as const,
-      mode: "cloud" as const,
-      /** @deprecated Editions removed 2026-07 (single product). Always STANDARD. */
-      edition: "STANDARD" as const,
-      /**
-       * @deprecated Community edition removed 2026-07. Always false.
-       * Retained so existing frontend branches don't break until cleaned up.
-       */
-      community: false as const,
     };
   }),
 
