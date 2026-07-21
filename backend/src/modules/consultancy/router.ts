@@ -23,7 +23,10 @@ import {
   rankPrecedentEngagements,
   buildDeliverableLineage,
   buildCapacityOutlook,
+  buildMdrDeliverableCode,
   capacityOutlookAlerts,
+  isValidMdrDeliverableCode,
+  nextMdrSequence,
   CONSULTANCY_SCOPE_TEMPLATES,
   can,
   ConsBriefSet,
@@ -357,19 +360,87 @@ const deliverablesRouter = router({
     ),
 
   create: manage.input(ConsDeliverableCreate).mutation(async ({ ctx, input }) => {
+    const [eng] = await ctx.db
+      .select({ id: consEngagements.id, code: consEngagements.code })
+      .from(consEngagements)
+      .where(eq(consEngagements.id, input.engagementId));
+    if (!eng) throw new TRPCError({ code: "NOT_FOUND", message: "Engagement not found." });
+    const jobRoot = (eng.code ?? "").trim().toUpperCase();
+    if (!jobRoot) {
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: "This engagement has no job number — reopen or recreate it before registering deliverables.",
+      });
+    }
+
+    const siblings = await ctx.db
+      .select({ code: consDeliverables.code })
+      .from(consDeliverables)
+      .where(eq(consDeliverables.engagementId, input.engagementId));
+    const existingCodes = siblings.map((s) => s.code);
+
+    let code: string;
+    if (input.docType) {
+      const seq = nextMdrSequence(existingCodes, jobRoot, input.docType);
+      code = buildMdrDeliverableCode({ jobRoot, docType: input.docType, sequence: seq });
+    } else {
+      const candidate = (input.code ?? "").trim().toUpperCase();
+      if (!isValidMdrDeliverableCode(candidate, jobRoot)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Register code must follow MDR form ${jobRoot}-TYPE-NNN (e.g. ${jobRoot}-CAL-001). Revision stays metadata.`,
+        });
+      }
+      code = candidate;
+    }
+
+    if (existingCodes.some((c) => c.toUpperCase() === code)) {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: `${code} is already on this engagement's register.`,
+      });
+    }
+
+    const { docType: _docType, code: _ignored, ...rest } = input;
     const [row] = await ctx.db
       .insert(consDeliverables)
       // The author is the chain's implicit ORIGINATE step (checker ≠ author).
-      .values({ ...input, originatedBy: ctx.user.id })
+      .values({ ...rest, code, originatedBy: ctx.user.id })
       .returning();
     await writeAudit(ctx.db, { entity: "cons_deliverable", entityId: row!.id, action: "CREATE", actorId: ctx.user.id, after: row });
     return row!;
   }),
 
   update: manage.input(ConsDeliverableUpdate).mutation(async ({ ctx, input }) => {
-    const { id, status, ...rest } = input;
+    const { id, status, docType: _docType, ...rest } = input;
     const [d] = await ctx.db.select().from(consDeliverables).where(eq(consDeliverables.id, id));
     if (!d) throw new TRPCError({ code: "NOT_FOUND" });
+
+    if (rest.code != null) {
+      const [eng] = await ctx.db
+        .select({ code: consEngagements.code })
+        .from(consEngagements)
+        .where(eq(consEngagements.id, d.engagementId));
+      const jobRoot = (eng?.code ?? "").trim().toUpperCase();
+      const candidate = rest.code.trim().toUpperCase();
+      if (!jobRoot || !isValidMdrDeliverableCode(candidate, jobRoot)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Register code must follow MDR form ${jobRoot || "C-YY-NNN"}-TYPE-NNN.`,
+        });
+      }
+      const siblings = await ctx.db
+        .select({ id: consDeliverables.id, code: consDeliverables.code })
+        .from(consDeliverables)
+        .where(eq(consDeliverables.engagementId, d.engagementId));
+      if (siblings.some((s) => s.id !== id && s.code.toUpperCase() === candidate)) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `${candidate} is already on this engagement's register.`,
+        });
+      }
+      rest.code = candidate;
+    }
 
     const bodyEdits = (Object.keys(rest) as (keyof typeof rest)[]).filter(
       (k) => rest[k] !== undefined,

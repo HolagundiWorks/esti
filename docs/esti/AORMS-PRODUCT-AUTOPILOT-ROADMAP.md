@@ -335,6 +335,7 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 
 | Date | Change |
 |------|--------|
+| 2026-07-21 | Autopilot: **MDR deliverable numbering** — `buildMdrDeliverableCode` / `nextMdrSequence` / validation; create allocates `{job}-{TYPE}-{seq}`; UI doc-type picker with preview; duplicate/wrong-root rejected. |
 | 2026-07-21 | Autopilot: **P9.V issue-gate coverage** — router tests for open CRS comments and RECEIVED input packs blocking ISSUED (sign-off chain already covered). |
 | 2026-07-21 | Autopilot: **P9.4 Ask digest trust boundary** — `formatConsultancyDigest` (pure): VALIDATED packs only as working assumptions, RECEIVED as holds (no source text), REJECTED omitted; capacity alerts folded into Ask grounding; unit tests. |
 | 2026-07-21 | Autopilot: **P9.4 capacity analytics** — `buildCapacityOutlook` / `capacityOutlookAlerts` + `consultancy.analytics.capacityOutlook`; engagement rail shows TIGHT/OVER alerts from trailing timesheets × rate-card capacity. |
