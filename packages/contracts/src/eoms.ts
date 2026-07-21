@@ -34,8 +34,8 @@ export const EomsRule = z
     clause_id: z.string(),
     type: z.enum(["limit", "requirement", "ratio", "option", "definition", "rate"]).default("requirement"),
     severity: z.enum(["mandatory", "recommended"]).default("mandatory"),
-    condition: z.record(z.unknown()).nullable().optional(),
-    effect: z.record(z.unknown()).nullable().optional(),
+    condition: z.record(z.string(), z.unknown()).nullable().optional(),
+    effect: z.record(z.string(), z.unknown()).nullable().optional(),
     text: z.string().nullable().optional(),
     applicability: z.array(EomsApplicability).default([]),
     provenance: EomsProvenance.nullable().optional(),
@@ -87,7 +87,7 @@ export const EomsRulesResponse = z
   .object({
     version_id: z.string(),
     count: z.number().int(),
-    filters: z.record(z.string()).default({}),
+    filters: z.record(z.string(), z.string()).default({}),
     results: z.array(EomsRule).default([]),
   })
   .passthrough();
