@@ -33,14 +33,11 @@ export async function createInModule(
 
   await page.goto(opts.route);
   await page.waitForLoadState("networkidle").catch(() => {});
-  // Full navigation remounts the SPA — wait out the auth spinner + dock CTAs.
+  // Full navigation remounts the SPA — wait out the auth spinner.
   await expect(page.getByLabel(/^Loading /i)).toHaveCount(0, { timeout: 30_000 });
-  await expect(
-    page.getByRole("button", { name: opts.open }).or(page.getByRole("toolbar", { name: /screen actions/i })),
-  ).toBeVisible({ timeout: 20_000 });
 
   const newBtn = page.getByRole("button", { name: opts.open }).first();
-  await expect(newBtn, `no "${opts.open}" button on ${opts.route}`).toBeVisible({ timeout: 10_000 });
+  await expect(newBtn, `no "${opts.open}" button on ${opts.route}`).toBeVisible({ timeout: 20_000 });
   await newBtn.click();
 
   const dialog = page.getByRole("dialog").first();
