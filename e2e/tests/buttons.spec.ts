@@ -44,6 +44,7 @@ for (const route of OFFICE_ROUTES) {
     test.setTimeout(120_000);
     await page.goto(route);
     await page.waitForLoadState("networkidle").catch(() => {});
+    await expect(page.getByLabel(/^Loading /i)).toHaveCount(0, { timeout: 30_000 });
     // The saved session should keep us out of the login screen.
     expect(page.url(), "session lost — bounced to /login").not.toMatch(/\/login\b/);
 
