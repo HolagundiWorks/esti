@@ -261,6 +261,44 @@ describe("consultancy P9.V — issue gate + BILLABLE fire", () => {
     expect(updates).toHaveLength(0);
   });
 
+  it("refuses ISSUED when CRS comments are still OPEN", async () => {
+    const { db, updates } = makeDb({
+      "esti_cons_deliverable": [deliverable()],
+      "esti_cons_review_step": [
+        { kind: "CHECK", userId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb" },
+        { kind: "APPROVE", userId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc" },
+      ],
+      "esti_cons_review_comment": [{ reviewer: "Ravi", status: "OPEN" }],
+      "esti_cons_input_pack": [],
+    });
+    await expect(
+      caller("SENIOR", db).deliverables.update({ id: DEL, status: "ISSUED" }),
+    ).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      message: expect.stringContaining("review comment"),
+    });
+    expect(updates).toHaveLength(0);
+  });
+
+  it("refuses ISSUED when an input pack is still RECEIVED", async () => {
+    const { db, updates } = makeDb({
+      "esti_cons_deliverable": [deliverable()],
+      "esti_cons_review_step": [
+        { kind: "CHECK", userId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb" },
+        { kind: "APPROVE", userId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc" },
+      ],
+      "esti_cons_review_comment": [],
+      "esti_cons_input_pack": [{ title: "Geotech draft", status: "RECEIVED", engagementId: ENG }],
+    });
+    await expect(
+      caller("SENIOR", db).deliverables.update({ id: DEL, status: "ISSUED" }),
+    ).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      message: expect.stringContaining("input pack"),
+    });
+    expect(updates).toHaveLength(0);
+  });
+
   it("issues and flips linked PENDING fee stages to BILLABLE", async () => {
     const { db, updates } = makeDb({
       "esti_cons_deliverable": [deliverable()],
