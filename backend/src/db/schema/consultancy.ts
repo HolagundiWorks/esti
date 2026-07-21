@@ -5,7 +5,7 @@
  * `esti_engagement` belongs to AORMS-Studio's architect↔consultant collaboration
  * model (collaboration.ts) — the engineering-consultancy spine uses `esti_cons_*`.
  */
-import { bigint, boolean, createdAt, date, doublePrecision, id, jsonb, pgTable, text, timestamp, uniqueIndex, updatedAt, uuid } from "./_helpers.js";
+import { bigint, boolean, createdAt, date, doublePrecision, id, integer, jsonb, pgTable, text, timestamp, uniqueIndex, updatedAt, uuid } from "./_helpers.js";
 import { clients, users } from "./org-auth.js";
 import { projectOffices } from "./project.js";
 import { invoices } from "./financial.js";
@@ -34,6 +34,42 @@ export const consEngagements = pgTable("esti_cons_engagement", {
   pdfStatus: text("pdf_status"), // PENDING | PROCESSING | READY | FAILED
   pdfKey: text("pdf_key"),
   notes: text("notes"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/**
+ * SOP §2 intake — enquiry register before a job number exists.
+ * Go/no-go scorecard lives on the same row; convert allocates C-YY-NNN.
+ */
+export const consEnquiries = pgTable("esti_cons_enquiry", {
+  id: id(),
+  ref: text("ref").notNull().unique(),
+  title: text("title").notNull(),
+  clientName: text("client_name").notNull(),
+  contactName: text("contact_name"),
+  phone: text("phone"),
+  email: text("email"),
+  source: text("source"),
+  siteLocation: text("site_location"),
+  consultancyType: text("consultancy_type"),
+  leadDiscipline: text("lead_discipline").notNull(),
+  model: text("model"),
+  status: text("status").notNull().default("RECEIVED"),
+  capacityFit: integer("capacity_fit"),
+  feeAttractiveness: integer("fee_attractiveness"),
+  risk: integer("risk"),
+  strategicFit: integer("strategic_fit"),
+  conflictCheckDone: boolean("conflict_check_done").notNull().default(false),
+  decisionNote: text("decision_note"),
+  decidedBy: uuid("decided_by").references(() => users.id, { onDelete: "set null" }),
+  decidedByName: text("decided_by_name"),
+  decidedAt: timestamp("decided_at", { withTimezone: true }),
+  convertedEngagementId: uuid("converted_engagement_id").references(() => consEngagements.id, {
+    onDelete: "set null",
+  }),
+  notes: text("notes"),
+  createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

@@ -94,6 +94,10 @@ const ConsultancyEngagements = lazyRoute(
   () => import("./routes/ConsultancyEngagements.js"),
   "ConsultancyEngagements",
 );
+const ConsultancyEnquiries = lazyRoute(
+  () => import("./routes/ConsultancyEnquiries.js"),
+  "ConsultancyEnquiries",
+);
 const Contracts = lazyRoute(() => import("./routes/Contracts.js"), "Contracts");
 const DocumentsRegister = lazyRoute(() => import("./routes/DocumentsRegister.js"), "DocumentsRegister");
 const Letters = lazyRoute(() => import("./routes/Letters.js"), "Letters");
@@ -253,7 +257,7 @@ function AppWorkspace() {
   if (surface === "consultancy") {
     if (user && isStaffRole(user.role)) {
       if (pathname === "/" || pathname === AORMS_CONSULTANCY.marketingPath)
-        return <Navigate to="/consultancy/engagements" replace />;
+        return <Navigate to="/consultancy/enquiries" replace />;
       // Fall through to the authenticated app router below.
     } else {
       if (pathname === "/" || pathname === AORMS_CONSULTANCY.marketingPath)
@@ -572,7 +576,8 @@ function AppWorkspace() {
                 {/* AORMS-Consultancy Phase 0 preview — engineering engagement spine
                     (not in the Studio sidebar; direct URL until the consultancy
                     surface ships its own workspace shell). */}
-                <Route path="/consultancy" element={<Navigate to="/consultancy/engagements" replace />} />
+                <Route path="/consultancy" element={<Navigate to="/consultancy/enquiries" replace />} />
+                <Route path="/consultancy/enquiries" element={<ConsultancyEnquiries />} />
                 <Route path="/consultancy/engagements" element={<ConsultancyEngagements />} />
                 {hrEnabled && can(user.role, "hr:manage") && (
                   <Route path="/finance/payroll" element={<Payroll />} />

@@ -32,14 +32,24 @@ import {
   ConsBriefSet,
   ConsPhaseCreate,
   ConsultancyType,
+  EngagementModel,
+  EngineeringDiscipline,
   ConsDeliverableCreate,
   ConsDeliverableUpdate,
   ConsIssueTransmittalCreate,
   ConsEngagementCreate,
   ConsEngagementUpdate,
+  ConsEnquiryCreate,
+  ConsEnquiryScore,
+  ConsEnquiryDecide,
+  ConsEnquiryConvert,
+  canAdvanceEnquiryStatus,
+  canConvertEnquiry,
+  canDecideGoNoGo,
   canRecordIssueTransmittal,
   issueClassToTransmittalPurpose,
   canRaiseFeeStageStudioInvoice,
+  goNoGoRecommendation,
   ConsAnalyticsPeriod,
   ConsCapacityOutlookInput,
   ConsFeeStageCreate,
@@ -76,6 +86,7 @@ import {
   clients,
   consDeliverables,
   consEngagements,
+  consEnquiries,
   consFeeStages,
   consFieldReports,
   consInputPacks,
@@ -119,6 +130,32 @@ const costApprove = capabilityProcedure("cost:approve");
 
 /** Whether the caller may see rupee figures (fee position, rates, WIP). */
 const seesMoney = (role: string | null | undefined) => can(role, "fees:manage");
+
+/** Allocate next job number C-YY-NNN (SOP §2 — job register). */
+async function allocateEngagementJobCode(db: DB): Promise<string> {
+  const yy = String(new Date().getFullYear()).slice(2);
+  const existing = await db.select({ code: consEngagements.code }).from(consEngagements);
+  const serial =
+    existing
+      .map((r) => /^C-\d{2}-(\d{3})$/.exec(r.code ?? "")?.[1])
+      .filter(Boolean)
+      .map(Number)
+      .reduce((m, n) => Math.max(m, n!), 0) + 1;
+  return `C-${yy}-${String(serial).padStart(3, "0")}`;
+}
+
+/** Allocate next enquiry ref EQ-YY-NNN. */
+async function allocateEnquiryRef(db: DB): Promise<string> {
+  const yy = String(new Date().getFullYear()).slice(2);
+  const existing = await db.select({ ref: consEnquiries.ref }).from(consEnquiries);
+  const serial =
+    existing
+      .map((r) => /^EQ-\d{2}-(\d{3})$/.exec(r.ref)?.[1])
+      .filter(Boolean)
+      .map(Number)
+      .reduce((m, n) => Math.max(m, n!), 0) + 1;
+  return `EQ-${yy}-${String(serial).padStart(3, "0")}`;
+}
 
 /** Steps still missing before this deliverable may be ISSUED. */
 function missingSteps(
@@ -346,15 +383,7 @@ const engagementsRouter = router({
     if (!seesMoney(ctx.user.role)) input = { ...input, feeTotalPaise: undefined };
     // Job number (SOP §2): C-YY-serial, allocated at creation — the root the
     // timesheet bookings and document numbers hang off.
-    const yy = String(new Date().getFullYear()).slice(2);
-    const existing = await ctx.db.select({ code: consEngagements.code }).from(consEngagements);
-    const serial =
-      existing
-        .map((r) => /^C-\d{2}-(\d{3})$/.exec(r.code ?? "")?.[1])
-        .filter(Boolean)
-        .map(Number)
-        .reduce((m, n) => Math.max(m, n!), 0) + 1;
-    const code = `C-${yy}-${String(serial).padStart(3, "0")}`;
+    const code = await allocateEngagementJobCode(ctx.db);
     const [row] = await ctx.db
       .insert(consEngagements)
       .values({ ...input, code })
@@ -2007,8 +2036,302 @@ const intelligenceRouter = router({
     }),
 });
 
+/**
+ * SOP §2 — enquiry register + go/no-go scorecard.
+ * Convert (GO → WON) allocates the job number and opens an engagement.
+ */
+const enquiriesRouter = router({
+  list: protectedProcedure.query(({ ctx }) =>
+    ctx.db.select().from(consEnquiries).orderBy(desc(consEnquiries.createdAt)),
+  ),
+
+  byId: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [row] = await ctx.db.select().from(consEnquiries).where(eq(consEnquiries.id, input.id));
+      if (!row) return null;
+      return {
+        ...row,
+        recommendation:
+          row.capacityFit != null &&
+          row.feeAttractiveness != null &&
+          row.risk != null &&
+          row.strategicFit != null
+            ? goNoGoRecommendation({
+                capacityFit: row.capacityFit,
+                feeAttractiveness: row.feeAttractiveness,
+                risk: row.risk,
+                strategicFit: row.strategicFit,
+                conflictCheckDone: row.conflictCheckDone,
+              })
+            : null,
+      };
+    }),
+
+  create: manage.input(ConsEnquiryCreate).mutation(async ({ ctx, input }) => {
+    const ref = await allocateEnquiryRef(ctx.db);
+    const [row] = await ctx.db
+      .insert(consEnquiries)
+      .values({
+        ref,
+        title: input.title,
+        clientName: input.clientName,
+        contactName: input.contactName ?? null,
+        phone: input.phone ?? null,
+        email: input.email || null,
+        source: input.source ?? null,
+        siteLocation: input.siteLocation ?? null,
+        consultancyType: input.consultancyType ?? null,
+        leadDiscipline: input.leadDiscipline,
+        model: input.model ?? null,
+        notes: input.notes ?? null,
+        createdBy: ctx.user.id,
+      })
+      .returning();
+    await writeAudit(ctx.db, {
+      entity: "cons_enquiry",
+      entityId: row!.id,
+      action: "CREATE",
+      actorId: ctx.user.id,
+      after: row,
+    });
+    return row!;
+  }),
+
+  /** Soft status advances (RECEIVED → UNDER_REVIEW, early LOST, etc.). */
+  setStatus: manage
+    .input(z.object({ id: z.string().uuid(), status: z.enum(["UNDER_REVIEW", "LOST"]) }))
+    .mutation(async ({ ctx, input }) => {
+      const [row] = await ctx.db.select().from(consEnquiries).where(eq(consEnquiries.id, input.id));
+      if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+      if (!canAdvanceEnquiryStatus(row.status, input.status))
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: `Cannot move enquiry from ${row.status} to ${input.status}.`,
+        });
+      const [updated] = await ctx.db
+        .update(consEnquiries)
+        .set({ status: input.status, updatedAt: new Date() })
+        .where(eq(consEnquiries.id, input.id))
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "cons_enquiry",
+        entityId: input.id,
+        action: "UPDATE",
+        actorId: ctx.user.id,
+        before: { status: row.status },
+        after: { status: input.status },
+      });
+      return updated!;
+    }),
+
+  /** Record / update the go/no-go scorecard (does not decide). */
+  score: manage.input(ConsEnquiryScore).mutation(async ({ ctx, input }) => {
+    const { id, ...score } = input;
+    const [row] = await ctx.db.select().from(consEnquiries).where(eq(consEnquiries.id, id));
+    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    if (row.status === "WON" || row.status === "NO_GO" || row.status === "LOST")
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `Enquiry is ${row.status} — the scorecard is frozen.`,
+      });
+    const nextStatus =
+      row.status === "RECEIVED" && canAdvanceEnquiryStatus(row.status, "UNDER_REVIEW")
+        ? "UNDER_REVIEW"
+        : row.status;
+    const [updated] = await ctx.db
+      .update(consEnquiries)
+      .set({
+        capacityFit: score.capacityFit,
+        feeAttractiveness: score.feeAttractiveness,
+        risk: score.risk,
+        strategicFit: score.strategicFit,
+        conflictCheckDone: score.conflictCheckDone,
+        decisionNote: score.decisionNote ?? row.decisionNote,
+        status: nextStatus,
+        updatedAt: new Date(),
+      })
+      .where(eq(consEnquiries.id, id))
+      .returning();
+    await writeAudit(ctx.db, {
+      entity: "cons_enquiry",
+      entityId: id,
+      action: "UPDATE",
+      actorId: ctx.user.id,
+      after: updated,
+    });
+    return {
+      ...updated!,
+      recommendation: goNoGoRecommendation(score),
+    };
+  }),
+
+  /** Panel decision — requires a complete scorecard + conflict check. */
+  decide: manage.input(ConsEnquiryDecide).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db.select().from(consEnquiries).where(eq(consEnquiries.id, input.id));
+    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    if (!canAdvanceEnquiryStatus(row.status, input.decision))
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `Cannot decide ${input.decision} from ${row.status} — start review and score first.`,
+      });
+    const gate = canDecideGoNoGo(row);
+    if (!gate.ok)
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: gate.reason });
+    const [updated] = await ctx.db
+      .update(consEnquiries)
+      .set({
+        status: input.decision,
+        decisionNote: input.decisionNote ?? row.decisionNote,
+        decidedBy: ctx.user.id,
+        decidedByName: ctx.user.fullName,
+        decidedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(consEnquiries.id, input.id))
+      .returning();
+    await writeAudit(ctx.db, {
+      entity: "cons_enquiry",
+      entityId: input.id,
+      action: "UPDATE",
+      actorId: ctx.user.id,
+      after: updated,
+    });
+    return updated!;
+  }),
+
+  /**
+   * Convert a GO enquiry into an engagement (job number allocated).
+   * Marks the enquiry WON and links convertedEngagementId.
+   */
+  convertToEngagement: manage.input(ConsEnquiryConvert).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db.select().from(consEnquiries).where(eq(consEnquiries.id, input.id));
+    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    const gate = canConvertEnquiry(row);
+    if (!gate.ok)
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: gate.reason });
+
+    let feeTotalPaise = input.feeTotalPaise;
+    if (!seesMoney(ctx.user.role)) feeTotalPaise = undefined;
+
+    const model: EngagementModel =
+      input.model ??
+      (EngagementModel.options.includes(row.model as EngagementModel)
+        ? (row.model as EngagementModel)
+        : "FULL_DESIGN");
+    const consultancyType: ConsultancyType | undefined =
+      input.consultancyType ??
+      (row.consultancyType &&
+      ConsultancyType.options.includes(row.consultancyType as ConsultancyType)
+        ? (row.consultancyType as ConsultancyType)
+        : undefined);
+    const leadDiscipline: EngineeringDiscipline =
+      input.leadDiscipline ??
+      (EngineeringDiscipline.options.includes(row.leadDiscipline as EngineeringDiscipline)
+        ? (row.leadDiscipline as EngineeringDiscipline)
+        : "STRUCTURAL");
+    const title = input.title?.trim() || row.title;
+    const code = await allocateEngagementJobCode(ctx.db);
+
+    const result = await ctx.db.transaction(async (tx) => {
+      const [eng] = await tx
+        .insert(consEngagements)
+        .values({
+          code,
+          title,
+          clientId: input.clientId ?? null,
+          projectId: input.projectId ?? null,
+          model,
+          consultancyType: consultancyType ?? null,
+          leadDiscipline,
+          feeModel: input.feeModel ?? null,
+          feeTotalPaise: feeTotalPaise ?? null,
+          relianceScope: input.relianceScope ?? null,
+          stage: input.stage ?? "Kickoff",
+          notes:
+            input.notes ??
+            [
+              `Converted from enquiry ${row.ref}`,
+              row.clientName ? `Client (enquiry): ${row.clientName}` : null,
+              row.siteLocation ? `Site: ${row.siteLocation}` : null,
+              row.decisionNote ? `Go/no-go note: ${row.decisionNote}` : null,
+            ]
+              .filter(Boolean)
+              .join("\n"),
+        })
+        .returning();
+
+      if (consultancyType) {
+        const template = CONSULTANCY_SCOPE_TEMPLATES[consultancyType as ConsultancyType];
+        if (template) {
+          await tx.insert(consPhases).values(
+            template.map((p, i) => ({
+              engagementId: eng!.id,
+              seq: i,
+              name: p.name,
+              scope: [...p.scope],
+            })),
+          );
+        }
+      }
+
+      const [enq] = await tx
+        .update(consEnquiries)
+        .set({
+          status: "WON",
+          convertedEngagementId: eng!.id,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(consEnquiries.id, input.id), eq(consEnquiries.status, "GO")))
+        .returning();
+      if (!enq)
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Enquiry is no longer Go — refresh and try again.",
+        });
+      return { engagement: eng!, enquiry: enq };
+    });
+
+    await writeAudit(ctx.db, {
+      entity: "cons_engagement",
+      entityId: result.engagement.id,
+      action: "CREATE",
+      actorId: ctx.user.id,
+      after: result.engagement,
+    });
+    await writeAudit(ctx.db, {
+      entity: "cons_enquiry",
+      entityId: input.id,
+      action: "UPDATE",
+      actorId: ctx.user.id,
+      after: { status: "WON", convertedEngagementId: result.engagement.id, code },
+    });
+    return result;
+  }),
+
+  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db.select().from(consEnquiries).where(eq(consEnquiries.id, input.id));
+    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    if (row.status === "WON" || row.convertedEngagementId)
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: "Won enquiries cannot be deleted — they are the job-number trail.",
+      });
+    await ctx.db.delete(consEnquiries).where(eq(consEnquiries.id, input.id));
+    await writeAudit(ctx.db, {
+      entity: "cons_enquiry",
+      entityId: input.id,
+      action: "DELETE",
+      actorId: ctx.user.id,
+      before: row,
+    });
+    return { ok: true };
+  }),
+});
+
 export const consultancyRouter = router({
   engagements: engagementsRouter,
+  enquiries: enquiriesRouter,
   deliverables: deliverablesRouter,
   reviews: reviewsRouter,
   tqs: tqsRouter,
