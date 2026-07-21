@@ -393,6 +393,8 @@ export type ConsEngagementCreate = z.infer<typeof ConsEngagementCreate>;
 export const ConsEngagementUpdate = ConsEngagementCreate.partial().extend({
   id: z.string().uuid(),
   status: ConsEngagementStatus.optional(),
+  litigationHold: z.boolean().optional(),
+  retentionNote: z.string().max(4000).optional(),
 });
 export type ConsEngagementUpdate = z.infer<typeof ConsEngagementUpdate>;
 
@@ -1817,4 +1819,110 @@ export function buildDeliverableLineage(args: {
     `Calcs: ${calcLine}`,
   ].join("\n");
   return { summary, missingSteps: missing, chainComplete: missing.length === 0 };
+}
+
+
+// ── SOP closeout registers (lessons · NC/CAPA · MoM · WIP · contract review) ─
+
+export const ConsLessonStatus = z.enum(["DRAFT", "PUBLISHED"]);
+export type ConsLessonStatus = z.infer<typeof ConsLessonStatus>;
+
+export const ConsLessonCreate = z.object({
+  engagementId: z.string().uuid(),
+  category: z.string().trim().min(1).max(80).default("GENERAL"),
+  title: z.string().trim().min(1).max(300),
+  body: z.string().trim().min(1).max(8000),
+  recommendation: z.string().trim().max(4000).optional(),
+});
+export type ConsLessonCreate = z.infer<typeof ConsLessonCreate>;
+
+export const ConsNcSeverity = z.enum(["MINOR", "MAJOR", "CRITICAL"]);
+export type ConsNcSeverity = z.infer<typeof ConsNcSeverity>;
+
+export const ConsNcStatus = z.enum(["OPEN", "IN_PROGRESS", "CLOSED"]);
+export type ConsNcStatus = z.infer<typeof ConsNcStatus>;
+
+export const CONS_NC_STATUS_TAG: Record<ConsNcStatus, TagColor> = {
+  OPEN: "red",
+  IN_PROGRESS: "teal",
+  CLOSED: "green",
+};
+
+export const ConsNcCreate = z.object({
+  engagementId: z.string().uuid(),
+  fieldReportId: z.string().uuid().optional(),
+  code: z.string().trim().min(1).max(40),
+  title: z.string().trim().min(1).max(300),
+  description: z.string().trim().max(8000).optional(),
+  severity: ConsNcSeverity.default("MINOR"),
+  responsibleParty: z.string().trim().max(200).optional(),
+  correctiveAction: z.string().trim().max(4000).optional(),
+  preventiveAction: z.string().trim().max(4000).optional(),
+  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+});
+export type ConsNcCreate = z.infer<typeof ConsNcCreate>;
+
+export const ConsNcClose = z.object({
+  id: z.string().uuid(),
+  correctiveAction: z.string().trim().min(1).max(4000).optional(),
+  preventiveAction: z.string().trim().max(4000).optional(),
+});
+export type ConsNcClose = z.infer<typeof ConsNcClose>;
+
+export const ConsMomStatus = z.enum(["DRAFT", "ISSUED"]);
+export type ConsMomStatus = z.infer<typeof ConsMomStatus>;
+
+export const ConsMomCreate = z.object({
+  engagementId: z.string().uuid(),
+  title: z.string().trim().min(1).max(300),
+  meetingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  attendees: z.string().trim().max(2000).optional(),
+  minutes: z.string().trim().max(16000).optional(),
+});
+export type ConsMomCreate = z.infer<typeof ConsMomCreate>;
+
+export const ConsWipDecision = z.enum(["BILL", "HOLD", "WRITE_OFF"]);
+export type ConsWipDecision = z.infer<typeof ConsWipDecision>;
+
+export const ConsWipReviewCreate = z.object({
+  engagementId: z.string().uuid(),
+  periodStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  periodEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  wipPaise: z.number().int().nonnegative().default(0),
+  decision: ConsWipDecision.default("HOLD"),
+  notes: z.string().trim().max(4000).optional(),
+});
+export type ConsWipReviewCreate = z.infer<typeof ConsWipReviewCreate>;
+
+export const ConsContractReviewDecision = z.enum(["PENDING", "APPROVED", "REJECTED"]);
+export type ConsContractReviewDecision = z.infer<typeof ConsContractReviewDecision>;
+
+export const ConsContractReviewCreate = z.object({
+  engagementId: z.string().uuid(),
+  reviewDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  requirementsDefined: z.boolean().default(false),
+  capabilityConfirmed: z.boolean().default(false),
+  conflictChecked: z.boolean().default(false),
+  proposalVsContractOk: z.boolean().default(false),
+  decision: ConsContractReviewDecision.default("PENDING"),
+  notes: z.string().trim().max(4000).optional(),
+});
+export type ConsContractReviewCreate = z.infer<typeof ConsContractReviewCreate>;
+
+/** ISO 9001 §8.2.3 gate — all checklist boxes before APPROVED. */
+export function canApproveContractReview(row: {
+  requirementsDefined: boolean;
+  capabilityConfirmed: boolean;
+  conflictChecked: boolean;
+  proposalVsContractOk: boolean;
+}): { ok: true } | { ok: false; reason: string } {
+  if (!row.requirementsDefined)
+    return { ok: false, reason: "Requirements (incl. unstated + statutory) must be confirmed." };
+  if (!row.capabilityConfirmed)
+    return { ok: false, reason: "Capability to deliver must be confirmed." };
+  if (!row.conflictChecked)
+    return { ok: false, reason: "Conflict-of-interest check must be recorded." };
+  if (!row.proposalVsContractOk)
+    return { ok: false, reason: "Proposal-vs-contract differences must be resolved." };
+  return { ok: true };
 }

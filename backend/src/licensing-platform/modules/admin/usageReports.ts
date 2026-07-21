@@ -62,3 +62,56 @@ export function aggregateUsageReports(rows: readonly UsageReportRow[]): {
     reports,
   };
 }
+
+/** CSV escape for India manual invoice export. */
+export function csvEscape(value: string | number | null | undefined): string {
+  const s = value == null ? "" : String(value);
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+export function usageReportsToCsv(
+  rows: ReadonlyArray<{
+    periodStart: string;
+    orgName: string;
+    productCode: string;
+    storageUsedBytes: number;
+    storageQuotaBytes: number;
+    storagePurchasedBytes: number;
+    aiTokensThisMonth: number;
+    reportedAt: Date | string | null;
+    billedAt: Date | string | null;
+    billedBy: string | null;
+    billingNote: string | null;
+  }>,
+): string {
+  const header = [
+    "period_start",
+    "org_name",
+    "product_code",
+    "storage_used_bytes",
+    "storage_quota_bytes",
+    "storage_purchased_bytes",
+    "ai_tokens_this_month",
+    "reported_at",
+    "billed_at",
+    "billed_by",
+    "billing_note",
+  ].join(",");
+  const lines = rows.map((r) =>
+    [
+      csvEscape(r.periodStart),
+      csvEscape(r.orgName),
+      csvEscape(r.productCode),
+      csvEscape(r.storageUsedBytes),
+      csvEscape(r.storageQuotaBytes),
+      csvEscape(r.storagePurchasedBytes),
+      csvEscape(r.aiTokensThisMonth),
+      csvEscape(r.reportedAt ? new Date(r.reportedAt).toISOString() : ""),
+      csvEscape(r.billedAt ? new Date(r.billedAt).toISOString() : ""),
+      csvEscape(r.billedBy),
+      csvEscape(r.billingNote),
+    ].join(","),
+  );
+  return [header, ...lines].join("\n");
+}

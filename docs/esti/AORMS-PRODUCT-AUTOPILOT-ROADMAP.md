@@ -42,7 +42,7 @@
 | [P4](#p4--remove-community--all-desktop-apps) | Remove Community + **all** desktop apps | P1 | ✅ code done; P4.8 marketing copy human-pending | autopilot |
 | ~~P5~~ | ~~Estimate desktop auth~~ — **cancelled 2026-07-19** (web-only) | — | ❌ | — |
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
-| [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | 🔄 P7.1 multi-tenant reports ✅; P7.2 blocked | autopilot |
+| [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | ✅ P7.1+P7.2 manual CSV; P7.3 deferred | autopilot |
 | [P8](#p8--browser-takeoff-replaces-esticad) | Browser takeoff (replaces ESTICAD) | P1 | ✅ | autopilot |
 | [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | 🔄 P9.V human fee UX; P9.4 ✅ | autopilot |
 | [P10](#p10--2026-07-21-hygiene--rebrand--deps) | Hygiene · rebrand · deps (landed) | P0 | ✅ | autopilot |
@@ -184,16 +184,15 @@ surviving consumer is the **self-hosted VPS installer** (`deploy/`).
 | # | Task | Status |
 |---|------|--------|
 | P7.1 | Usage dashboard — storage GB-month, AI tokens | ✅ 2026-07-19 — `admin.dashboard.usage` + "Metered usage" panel; **2026-07-21** multi-tenant via `hlp_usage_report` + `POST /v1/report-usage` |
-| P7.2 | Stripe / invoice hook (or manual export for India) | ⬜ blocked on a business decision: Stripe vs manual invoice export |
-| P7.3 | Suspend on payment failure | ⬜ follows P7.2 (`licenceStatus = SUSPENDED` already exists to flip) |
+| P7.2 | Manual India invoice export (Stripe deferred) | ✅ 2026-07-21 — `admin.usageReports` list / exportCsv / markBilled; Usage billing tab; `billed_*` on `hlp_usage_report` |
+| P7.3 | Suspend on payment failure | ⬜ follows real payment events (`licenceStatus = SUSPENDED` already exists to flip) |
 
-**Scope note (P7.1).** Product nodes upsert monthly snapshots into `hlp_usage_report`
+**Scope note (P7).** Product nodes upsert monthly snapshots into `hlp_usage_report`
 (`POST /v1/report-usage`, product API key). The platform-admin dashboard aggregates
-current-month rows across licensed orgs; the co-located `esti_orgsettings` singleton
-remains the fallback (and self-reports when an ACTIVE license exists on this install).
-True invoicing (P7.2) still needs the Stripe vs manual-export decision.
+current-month rows; operators bill offline via **Usage billing** (CSV export + mark
+billed). Stripe remains a future option — not required for India GST invoicing.
 
-**Verify:** platform-admin console → Dashboard → "Metered usage — this workspace".
+**Verify:** platform-admin → Usage billing → Export CSV → Mark billed.
 
 ---
 
@@ -299,7 +298,7 @@ P0 (human landing) ──► P1 migration ──► P2 storage
                               ├─► P3 AI key
                               ├─► P4 remove community + ALL desktop  (✅ code; P4.8 human)
                               ├─► P6 SEO content
-                              └─► P7 billing (P7.2 blocked on Stripe vs manual)
+                              └─► P7 billing (P7.2 manual CSV ✅; P7.3 deferred)
 
 P5 (Estimate desktop auth) — CANCELLED 2026-07-19, web-only
 

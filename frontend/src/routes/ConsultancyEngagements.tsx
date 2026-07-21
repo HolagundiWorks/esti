@@ -71,6 +71,7 @@ import {
 } from "@esti/contracts";
 import { useScreenActions, type DockAction } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
+import { EngagementCloseoutPanels } from "../components/consultancy/EngagementCloseoutPanels.js";
 import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
@@ -2004,6 +2005,12 @@ export function ConsultancyEngagements() {
                   </Stack>
                 )}
               </Box>
+
+              <EngagementCloseoutPanels
+                detail={detail}
+                canFees={detail.feePosition != null}
+                onInvalidate={invalidate}
+              />
             </Stack>
           )}
         </Grid>

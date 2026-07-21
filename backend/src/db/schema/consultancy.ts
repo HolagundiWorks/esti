@@ -34,6 +34,9 @@ export const consEngagements = pgTable("esti_cons_engagement", {
   pdfStatus: text("pdf_status"), // PENDING | PROCESSING | READY | FAILED
   pdfKey: text("pdf_key"),
   notes: text("notes"),
+  /** Retention / litigation hold — suspends archival destruction (SOP §9). */
+  litigationHold: boolean("litigation_hold").notNull().default(false),
+  retentionNote: text("retention_note"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
@@ -388,6 +391,101 @@ export const consTqs = pgTable("esti_cons_tq", {
   raisedBy: uuid("raised_by").references(() => users.id, { onDelete: "set null" }),
   answeredAt: timestamp("answered_at", { withTimezone: true }),
   closedAt: timestamp("closed_at", { withTimezone: true }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+
+/** SOP closeout — lessons learned (feeds go/no-go and fee benchmarks). */
+export const consLessons = pgTable("esti_cons_lesson", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  category: text("category").notNull().default("GENERAL"),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  recommendation: text("recommendation"),
+  status: text("status").notNull().default("DRAFT"),
+  authorId: uuid("author_id").references(() => users.id, { onDelete: "set null" }),
+  authorName: text("author_name").notNull(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** SOP closeout — NC/CAPA register (nonconformity + corrective/preventive action). */
+export const consNcs = pgTable("esti_cons_nc", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  fieldReportId: uuid("field_report_id").references(() => consFieldReports.id, {
+    onDelete: "set null",
+  }),
+  code: text("code").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  severity: text("severity").notNull().default("MINOR"),
+  responsibleParty: text("responsible_party"),
+  correctiveAction: text("corrective_action"),
+  preventiveAction: text("preventive_action"),
+  dueDate: date("due_date"),
+  status: text("status").notNull().default("OPEN"),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** SOP closeout — engagement MoM register (consultancy-native minutes). */
+export const consMoms = pgTable("esti_cons_mom", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  ref: text("ref").notNull(),
+  title: text("title").notNull(),
+  meetingDate: date("meeting_date").notNull(),
+  attendees: text("attendees"),
+  minutes: text("minutes"),
+  status: text("status").notNull().default("DRAFT"),
+  authorId: uuid("author_id").references(() => users.id, { onDelete: "set null" }),
+  authorName: text("author_name").notNull(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** SOP closeout — monthly WIP review decision (bill / hold / write-off). */
+export const consWipReviews = pgTable("esti_cons_wip_review", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  periodStart: date("period_start").notNull(),
+  periodEnd: date("period_end").notNull(),
+  wipPaise: bigint("wip_paise", { mode: "number" }).notNull().default(0),
+  decision: text("decision").notNull().default("HOLD"),
+  notes: text("notes"),
+  reviewedBy: uuid("reviewed_by").references(() => users.id, { onDelete: "set null" }),
+  reviewedByName: text("reviewed_by_name").notNull(),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: createdAt(),
+});
+
+/** SOP §8.2.3 — contract review checklist before signature / LOA. */
+export const consContractReviews = pgTable("esti_cons_contract_review", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  reviewDate: date("review_date").notNull(),
+  requirementsDefined: boolean("requirements_defined").notNull().default(false),
+  capabilityConfirmed: boolean("capability_confirmed").notNull().default(false),
+  conflictChecked: boolean("conflict_checked").notNull().default(false),
+  proposalVsContractOk: boolean("proposal_vs_contract_ok").notNull().default(false),
+  decision: text("decision").notNull().default("PENDING"),
+  notes: text("notes"),
+  reviewerId: uuid("reviewer_id").references(() => users.id, { onDelete: "set null" }),
+  reviewerName: text("reviewer_name").notNull(),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

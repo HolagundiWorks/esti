@@ -29,6 +29,7 @@ import {
   canDecideGoNoGo,
   canRecordIssueTransmittal,
   canRaiseFeeStageStudioInvoice,
+  canApproveContractReview,
   feeStageFinancialsLocked,
   goNoGoRecommendation,
   isValidMdrDeliverableCode,
@@ -807,5 +808,26 @@ describe("enquiry go/no-go (SOP §2)", () => {
       ok: false,
     });
     expect(canConvertEnquiry({ status: "GO", convertedEngagementId: null })).toEqual({ ok: true });
+  });
+});
+
+describe("contract review gate (SOP §8.2.3)", () => {
+  it("blocks APPROVED until every checklist box is set", () => {
+    expect(
+      canApproveContractReview({
+        requirementsDefined: true,
+        capabilityConfirmed: true,
+        conflictChecked: true,
+        proposalVsContractOk: false,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(
+      canApproveContractReview({
+        requirementsDefined: true,
+        capabilityConfirmed: true,
+        conflictChecked: true,
+        proposalVsContractOk: true,
+      }),
+    ).toEqual({ ok: true });
   });
 });

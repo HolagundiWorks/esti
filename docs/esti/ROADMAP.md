@@ -36,8 +36,8 @@ are **not** current product state — see system state below.
 ## Next (product autopilot)
 
 1. **P9.V** — human fee UX review (mutation wiring tests landed; pure helpers + router stubs green)
-2. **P9 SOP** — ✅ transmittal ack; ✅ fee-stage invoices; ✅ enquiry go/no-go; next: lessons / NC-CAPA
-3. **P7.2** — billing (blocked on Stripe vs manual invoice decision); P7.1 multi-tenant reports ✅
+2. **P9 SOP** — ✅ closeout registers (lessons · NC/CAPA · MoM · WIP review · contract review · litigation hold) + prior slices (transmittal ack · fee-stage invoices · enquiry go/no-go)
+3. **P7.2** — ✅ manual India usage CSV export + mark-billed (Stripe deferred); P7.1 multi-tenant reports ✅; P7.3 suspend-on-failure still follows real payment events
 4. **P4.8** — human: replace stale social/campaign desktop copy
 5. **P10.8** — ✅ visual suite retargeted + linux baselines regenerated (2026-07-21)
 
