@@ -29,7 +29,19 @@ vi.mock("../../lib/sync/publish.js", () => ({
   publishEntity: vi.fn(async () => undefined),
 }));
 
+vi.mock("../../lib/createInvoice.js", () => ({
+  createStudioInvoice: vi.fn(async () => ({
+    id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    ref: "INV-0001",
+    status: "ISSUED",
+    documentKind: "TAX_INVOICE",
+    netReceivablePaise: 118_00,
+    pdfStatus: "PENDING",
+  })),
+}));
+
 import { consultancyRouter } from "./router.js";
+import { createStudioInvoice } from "../../lib/createInvoice.js";
 
 const ENG = "11111111-1111-4111-8111-111111111111";
 const ENG_B = "22222222-2222-4222-8222-222222222222";
@@ -166,6 +178,7 @@ function feeStage(overrides: Record<string, unknown> = {}) {
     billableAt: new Date(),
     invoicedAt: null,
     invoiceDue: null,
+    invoiceId: null,
     paidAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -211,27 +224,79 @@ function variation(overrides: Record<string, unknown> = {}) {
 }
 
 describe("consultancy P9.V — fee stage advances + locks", () => {
-  it("markInvoiced only from BILLABLE", async () => {
-    const { db } = makeDb({ "esti_cons_fee_stage": [feeStage({ status: "PENDING" })] });
+  function engagement(overrides: Record<string, unknown> = {}) {
+    return {
+      id: ENG,
+      code: "C-26-001",
+      title: "Tower structure",
+      clientId: CLIENT,
+      projectId: PROJ,
+      model: "DESIGN",
+      leadDiscipline: "STRUCTURAL",
+      status: "ACTIVE",
+      ...overrides,
+    };
+  }
+
+  it("markInvoiced only from BILLABLE and raises a Studio invoice", async () => {
+    vi.mocked(createStudioInvoice).mockClear();
+    const { db } = makeDb({
+      "esti_cons_fee_stage": [feeStage({ status: "PENDING" })],
+      "esti_cons_engagement": [engagement()],
+    });
     await expect(caller("PARTNER", db).feeStages.markInvoiced({ id: FEE })).rejects.toMatchObject({
       code: "PRECONDITION_FAILED",
     });
+    expect(createStudioInvoice).not.toHaveBeenCalled();
 
-    const ok = makeDb({ "esti_cons_fee_stage": [feeStage({ status: "BILLABLE" })] });
+    const ok = makeDb({
+      "esti_cons_fee_stage": [feeStage({ status: "BILLABLE" })],
+      "esti_cons_engagement": [engagement()],
+    });
     const row = await caller("PARTNER", ok.db).feeStages.markInvoiced({ id: FEE, dueInDays: 15 });
     expect(row.status).toBe("INVOICED");
-    expect(ok.updates).toHaveLength(1);
+    expect(row.invoiceId).toBe("cccccccc-cccc-4ccc-8ccc-cccccccccccc");
+    expect(createStudioInvoice).toHaveBeenCalledOnce();
+    expect(ok.updates.some((u) => u.table === "esti_cons_fee_stage")).toBe(true);
   });
 
-  it("markPaid only from INVOICED", async () => {
+  it("markInvoiced refuses without a linked Studio project", async () => {
+    const { db } = makeDb({
+      "esti_cons_fee_stage": [feeStage({ status: "BILLABLE" })],
+      "esti_cons_engagement": [engagement({ projectId: null })],
+    });
+    await expect(caller("PARTNER", db).feeStages.markInvoiced({ id: FEE })).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      message: expect.stringContaining("Studio project"),
+    });
+  });
+
+  it("markPaid only from INVOICED and syncs linked Studio invoice", async () => {
+    const INV = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
     const { db } = makeDb({ "esti_cons_fee_stage": [feeStage({ status: "BILLABLE" })] });
     await expect(caller("PARTNER", db).feeStages.markPaid({ id: FEE })).rejects.toMatchObject({
       code: "PRECONDITION_FAILED",
     });
 
-    const ok = makeDb({ "esti_cons_fee_stage": [feeStage({ status: "INVOICED" })] });
+    const ok = makeDb({
+      "esti_cons_fee_stage": [feeStage({ status: "INVOICED", invoiceId: INV })],
+      "esti_invoice": [
+        {
+          id: INV,
+          status: "ISSUED",
+          netReceivablePaise: 118_00,
+          paidPaise: 0,
+        },
+      ],
+    });
     const row = await caller("PARTNER", ok.db).feeStages.markPaid({ id: FEE });
     expect(row.status).toBe("PAID");
+    expect(
+      ok.updates.some(
+        (u) =>
+          u.table === "esti_invoice" && (u.set as { status?: string }).status === "PAID",
+      ),
+    ).toBe(true);
   });
 
   it("refuses amount edits and deletes once INVOICED/PAID", async () => {

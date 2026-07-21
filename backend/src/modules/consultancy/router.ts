@@ -39,6 +39,7 @@ import {
   ConsEngagementUpdate,
   canRecordIssueTransmittal,
   issueClassToTransmittalPurpose,
+  canRaiseFeeStageStudioInvoice,
   ConsAnalyticsPeriod,
   ConsCapacityOutlookInput,
   ConsFeeStageCreate,
@@ -89,6 +90,7 @@ import {
   consTimesheets,
   consTqs,
   consVariations,
+  invoices,
   transmittalItems,
   transmittals,
 } from "../../db/schema.js";
@@ -98,6 +100,7 @@ import {
 } from "../../lib/ai/consultancy-intelligence.js";
 import type { DB } from "../../db/index.js";
 import { writeAudit } from "../../lib/audit.js";
+import { createStudioInvoice } from "../../lib/createInvoice.js";
 import { firmPayload } from "../../lib/firm.js";
 import { nextRef } from "../../lib/numbering.js";
 import { enqueueJob } from "../../lib/redis.js";
@@ -231,6 +234,22 @@ const engagementsRouter = router({
         ? await ctx.db.select().from(transmittals).where(inArray(transmittals.id, trnIds))
         : [];
       const trnById = new Map(issueTrns.map((t) => [t.id, t]));
+      const invIds = feeStages
+        .map((f) => f.invoiceId)
+        .filter((id): id is string => Boolean(id));
+      const studioInvs = invIds.length
+        ? await ctx.db
+            .select({
+              id: invoices.id,
+              ref: invoices.ref,
+              status: invoices.status,
+              pdfStatus: invoices.pdfStatus,
+              netReceivablePaise: invoices.netReceivablePaise,
+            })
+            .from(invoices)
+            .where(inArray(invoices.id, invIds))
+        : [];
+      const invById = new Map(studioInvs.map((i) => [i.id, i]));
       return {
         ...row,
         // Redact rupee figures for non-finance callers (money = L2+).
@@ -256,7 +275,23 @@ const engagementsRouter = router({
           };
         }),
         tqs,
-        feeStages: money ? feeStages : [],
+        feeStages: money
+          ? feeStages.map((f) => {
+              const inv = f.invoiceId ? invById.get(f.invoiceId) : undefined;
+              return {
+                ...f,
+                studioInvoice: inv
+                  ? {
+                      id: inv.id,
+                      ref: inv.ref,
+                      status: inv.status,
+                      pdfStatus: inv.pdfStatus,
+                      netReceivablePaise: inv.netReceivablePaise,
+                    }
+                  : null,
+              };
+            })
+          : [],
         variations: money
           ? variations
           : variations.map((v) => ({ ...v, amountPaise: null })),
@@ -916,33 +951,76 @@ const feeStagesRouter = router({
     return row;
   }),
 
-  /** Record the invoice raised for a BILLABLE stage; payment terms start the dunning clock. */
+  /** Raise a Studio tax invoice for a BILLABLE stage; payment terms start the dunning clock. */
   markInvoiced: feesManage
     .input(z.object({ id: z.string().uuid(), dueInDays: z.number().int().min(0).max(180).default(30) }))
     .mutation(async ({ ctx, input }) => {
       const [stage] = await ctx.db.select().from(consFeeStages).where(eq(consFeeStages.id, input.id));
       if (!stage) throw new TRPCError({ code: "NOT_FOUND" });
-      if (!canAdvanceFeeStage(stage.status, "INVOICED"))
-        throw new TRPCError({
-          code: "PRECONDITION_FAILED",
-          message:
-            stage.status === "INVOICED" || stage.status === "PAID"
-              ? `This stage is already ${stage.status.toLowerCase()}.`
-              : "The stage is not billable yet — it turns billable when its linked deliverable is issued.",
-        });
+      const [eng] = await ctx.db
+        .select()
+        .from(consEngagements)
+        .where(eq(consEngagements.id, stage.engagementId));
+      if (!eng) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const gate = canRaiseFeeStageStudioInvoice({
+        stageStatus: stage.status,
+        engagementProjectId: eng.projectId,
+        existingInvoiceId: stage.invoiceId,
+      });
+      if (!gate.ok)
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: gate.reason });
+
       const invoiceDue = new Date(Date.now() + input.dueInDays * 86400000)
         .toISOString()
         .slice(0, 10);
+      const jobLabel = eng.code ?? eng.title;
+      const notes = `Consultancy fee stage — ${jobLabel}: ${stage.label}`;
+
+      // Raise the ISSUED Studio tax invoice first (serial + PDF). Then lock the
+      // fee stage to it. A rare race that loses the BILLABLE claim leaves a
+      // valid orphan invoice — safer than rolling back a consumed INV serial.
+      const invoice = await createStudioInvoice(ctx.db, {
+        input: {
+          projectId: eng.projectId!,
+          clientId: eng.clientId ?? undefined,
+          taxablePaise: stage.amountPaise,
+          sac: "998322",
+          notes,
+          isAdvance: false,
+        },
+        actor: { id: ctx.user.id, fullName: ctx.user.fullName },
+        requestId: ctx.requestId,
+        issue: true,
+      });
       const [row] = await ctx.db
         .update(consFeeStages)
-        .set({ status: "INVOICED", invoicedAt: new Date(), invoiceDue, updatedAt: new Date() })
-        .where(eq(consFeeStages.id, input.id))
+        .set({
+          status: "INVOICED",
+          invoicedAt: new Date(),
+          invoiceDue,
+          invoiceId: invoice.id,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(consFeeStages.id, input.id), eq(consFeeStages.status, "BILLABLE")))
         .returning();
-      await writeAudit(ctx.db, { entity: "cons_fee_stage", entityId: input.id, action: "UPDATE", actorId: ctx.user.id, after: row });
-      return row!;
+      if (!row)
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: `Studio invoice ${invoice.ref} was raised, but this stage is no longer billable — link or cancel the invoice manually.`,
+        });
+
+      await writeAudit(ctx.db, {
+        entity: "cons_fee_stage",
+        entityId: input.id,
+        action: "UPDATE",
+        actorId: ctx.user.id,
+        after: { ...row, invoiceRef: invoice.ref },
+      });
+      return row;
     }),
 
-  /** Record payment received — closes the stage's dunning clock. */
+  /** Record payment received — closes the stage's dunning clock and syncs the Studio invoice. */
   markPaid: feesManage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const [stage] = await ctx.db.select().from(consFeeStages).where(eq(consFeeStages.id, input.id));
     if (!stage) throw new TRPCError({ code: "NOT_FOUND" });
@@ -954,13 +1032,60 @@ const feeStagesRouter = router({
             ? "This stage is already paid."
             : "Only invoiced stages can be marked paid.",
       });
-    const [row] = await ctx.db
-      .update(consFeeStages)
-      .set({ status: "PAID", paidAt: new Date(), updatedAt: new Date() })
-      .where(eq(consFeeStages.id, input.id))
-      .returning();
-    await writeAudit(ctx.db, { entity: "cons_fee_stage", entityId: input.id, action: "UPDATE", actorId: ctx.user.id, after: row });
-    return row!;
+
+    const result = await ctx.db.transaction(async (tx) => {
+      const [row] = await tx
+        .update(consFeeStages)
+        .set({ status: "PAID", paidAt: new Date(), updatedAt: new Date() })
+        .where(and(eq(consFeeStages.id, input.id), eq(consFeeStages.status, "INVOICED")))
+        .returning();
+      if (!row)
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "This stage is no longer invoiced — refresh and try again.",
+        });
+
+      if (stage.invoiceId) {
+        const [inv] = await tx.select().from(invoices).where(eq(invoices.id, stage.invoiceId));
+        if (inv && inv.status === "ISSUED") {
+          const [paidInv] = await tx
+            .update(invoices)
+            .set({
+              status: "PAID",
+              paidPaise: inv.netReceivablePaise,
+              updatedAt: new Date(),
+            })
+            .where(eq(invoices.id, inv.id))
+            .returning();
+          await writeAudit(tx, {
+            entity: "invoice",
+            entityId: inv.id,
+            action: "STATUS",
+            actorId: ctx.user.id,
+            before: { status: inv.status },
+            after: { status: "PAID", paidPaise: paidInv?.paidPaise },
+          });
+          return { stage: row, invoiceId: inv.id };
+        }
+        if (inv && inv.status === "CANCELLED")
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message:
+              "The linked Studio invoice was cancelled — raise a replacement invoice before marking paid.",
+          });
+      }
+      return { stage: row, invoiceId: stage.invoiceId };
+    });
+
+    if (result.invoiceId) await publishEntity(ctx.db, "invoice", result.invoiceId);
+    await writeAudit(ctx.db, {
+      entity: "cons_fee_stage",
+      entityId: input.id,
+      action: "UPDATE",
+      actorId: ctx.user.id,
+      after: result.stage,
+    });
+    return result.stage;
   }),
 
   remove: feesManage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
