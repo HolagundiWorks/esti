@@ -81,6 +81,9 @@ jobs:
       - name: Boot the stack (db · redis · minio · backend · worker · frontend)
         # Ollama is intentionally left out — AI features are not exercised by the
         # suite and its image/model pull would dominate the job.
+        # ESTI_RELAX_AUTH_LIMITS: e2e reuses one runner IP for many persona logins.
+        env:
+          ESTI_RELAX_AUTH_LIMITS: "true"
         run: docker compose up -d --build db redis minio backend worker frontend
       - name: Wait for backend + frontend
         run: |

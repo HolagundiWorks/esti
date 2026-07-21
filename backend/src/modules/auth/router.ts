@@ -68,7 +68,9 @@ export const authRouter = router({
         message: "Bootstrap is disabled in production — use the install seed.",
       });
     }
-    await enforceRateLimit("bootstrap-ip", ctx.ip, 5, 300);
+    if (!env.ESTI_RELAX_AUTH_LIMITS) {
+      await enforceRateLimit("bootstrap-ip", ctx.ip, 5, 300);
+    }
     const email = normalizeEmail(input.email);
     const owner = await ctx.db.transaction(async (tx) => {
       // Serialize against a concurrent bootstrap, then refuse if already set up.
@@ -131,7 +133,9 @@ export const authRouter = router({
     // Public procedure that can mint the first OWNER on an empty install, so it
     // needs the same throttle as bootstrap rather than being the unthrottled
     // way around it.
-    await enforceRateLimit("register-ip", ctx.ip, 5, 300);
+    if (!env.ESTI_RELAX_AUTH_LIMITS) {
+      await enforceRateLimit("register-ip", ctx.ip, 5, 300);
+    }
     if (ctx.user?.isDemo) {
       throw new TRPCError({
         code: "FORBIDDEN",
@@ -189,8 +193,10 @@ export const authRouter = router({
   resolveEmail: publicProcedure
     .input(z.object({ email: z.string().email() }))
     .query(async ({ ctx, input }) => {
-      await enforceRateLimit("resolve-email-ip", ctx.ip, 30, 60);
-      await enforceRateLimit("resolve-email-addr", normalizeEmail(input.email), 30, 300);
+      if (!env.ESTI_RELAX_AUTH_LIMITS) {
+        await enforceRateLimit("resolve-email-ip", ctx.ip, 30, 60);
+        await enforceRateLimit("resolve-email-addr", normalizeEmail(input.email), 30, 300);
+      }
       const [f] = await ctx.db.select({ companyName: firm.companyName }).from(firm).limit(1);
       const firmName = f?.companyName ?? "Workspace";
       const rows = await ctx.db.select({ n: count() }).from(users);
@@ -205,8 +211,11 @@ export const authRouter = router({
   login: publicProcedure.input(Credentials).mutation(async ({ ctx, input }) => {
     const email = normalizeEmail(input.email);
     // Throttle brute-force: cap attempts per IP and per targeted email.
-    await enforceRateLimit("login-ip", ctx.ip, 10, 60);
-    await enforceRateLimit("login-email", email, 10, 300);
+    // ESTI_RELAX_AUTH_LIMITS skips this for CI e2e (many persona logins / one IP).
+    if (!env.ESTI_RELAX_AUTH_LIMITS) {
+      await enforceRateLimit("login-ip", ctx.ip, 10, 60);
+      await enforceRateLimit("login-email", email, 10, 300);
+    }
 
     let u: typeof users.$inferSelect | undefined;
 

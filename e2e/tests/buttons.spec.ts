@@ -63,7 +63,7 @@ for (const route of OFFICE_ROUTES) {
       await page.keyboard.press("Escape").catch(() => {});
 
       const crashed = await page
-        .getByText(/something went wrong|unexpected error|application error/i)
+        .getByRole("button", { name: "Reload app" })
         .count()
         .catch(() => 0);
       if (crashed > 0) crashedOn = label.slice(0, 50);

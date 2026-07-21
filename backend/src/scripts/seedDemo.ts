@@ -43,6 +43,7 @@ import {
   transmittals,
   users,
 } from "../db/schema.js";
+import { emailMatches } from "../lib/email.js";
 import { getOrgSettings } from "../lib/settings.js";
 import { nextRef } from "../lib/numbering.js";
 import { firmGstSystem } from "../lib/firm.js";
@@ -127,6 +128,7 @@ async function backfillStudioDemo(principalId: string, pwHash: string): Promise<
   const memberIds = await seedDemoTeamRoster(db, principalId, pwHash);
   await upsertDemoFirm(db);
   await ensureDemoPlatformAccount(DEMO_PASSWORD);
+  await ensureDemoClientPortalUser(pwHash);
   const projectRows = await db
     .select({ id: projectOffices.id })
     .from(projectOffices)
@@ -136,6 +138,64 @@ async function backfillStudioDemo(principalId: string, pwHash: string): Promise<
   await patchDemoApprovalSignals(db, projectIds, principalId);
   await rebalanceDemoTaskAssignees(db);
   if (projectIds[0]) await seedDemoTakeoff(db, projectIds[0]);
+}
+
+/**
+ * Kapoor Family CRM row + CLIENT portal login (`client@demo.aorms.in`).
+ * Idempotent — safe on backfill when the CRM row already exists.
+ */
+async function ensureDemoClientPortalUser(pwHash: string): Promise<void> {
+  const portalEmail = "client@demo.aorms.in";
+
+  let [kapoor] = await db
+    .select({ id: clients.id, name: clients.name })
+    .from(clients)
+    .where(eq(clients.email, portalEmail))
+    .limit(1);
+  if (!kapoor) {
+    const [created] = await db
+      .insert(clients)
+      .values({
+        name: "Kapoor Family",
+        kind: "INDIVIDUAL",
+        city: "Bengaluru",
+        state: "Karnataka",
+        email: portalEmail,
+        phone: "+91 99000 44444",
+      })
+      .returning({ id: clients.id, name: clients.name });
+    kapoor = created;
+  }
+  if (!kapoor) return;
+
+  const [existingUser] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(emailMatches(users.email, portalEmail))
+    .limit(1);
+  if (existingUser) {
+    await db
+      .update(users)
+      .set({
+        passwordHash: pwHash,
+        isDemo: true,
+        role: "CLIENT",
+        clientId: kapoor.id,
+        disabled: false,
+        fullName: kapoor.name,
+      })
+      .where(eq(users.id, existingUser.id));
+    return;
+  }
+
+  await db.insert(users).values({
+    email: portalEmail,
+    fullName: kapoor.name,
+    role: "CLIENT",
+    clientId: kapoor.id,
+    passwordHash: pwHash,
+    isDemo: true,
+  });
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -196,6 +256,9 @@ async function main() {
     { name: "Meghana Foundation Trust",                  kind: "COMPANY",    city: "Bengaluru", state: "Karnataka",     email: "office@meghanatrust.in",     phone: "+91 80471 99005" },
     { name: "Tanvi Desai",                               kind: "INDIVIDUAL", city: "Belagavi",  state: "Karnataka",     email: "tanvi.desai@example.in",     phone: "+91 98450 99006" },
   ]).returning();
+
+  // Client portal login for Kapoor Family (docs/esti/DEMO-AND-HR-MODE.md).
+  await ensureDemoClientPortalUser(pwHash);
 
   // ── Consultants ───────────────────────────────────────────────────────────
   const consultantRows = await db.insert(consultants).values([
@@ -525,6 +588,7 @@ async function main() {
   console.log("✓ seeded demo workspace (Studio Intelligence tuned)");
   console.log(`    principal: ${principalEmail} / ${DEMO_PASSWORD}`);
   console.log(`    team logins: lead@ · site@ · junior@ · accounts@demo.aorms.in (same password)`);
+  console.log(`    client portal: client@demo.aorms.in / ${DEMO_PASSWORD} (sign in at /access)`);
   console.log(`    ${projectDefs.length} projects · ${clientRows.length} clients · ${DEMO_LEADS.length} leads`);
 }
 

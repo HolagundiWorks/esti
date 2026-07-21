@@ -27,13 +27,8 @@ export default defineConfig({
   projects: [
     // Logs in once and saves the session so the button crawler can reuse it.
     { name: "setup", testMatch: /auth\.setup\.ts$/ },
-    // Auth / navigation / PDF specs sign in fresh themselves.
-    {
-      name: "office",
-      testMatch: /(auth|navigation.*|pdf)\.spec\.ts$/,
-      use: { ...devices["Desktop Chrome"] },
-    },
-    // The button crawler + CRUD item-entry specs reuse the saved session.
+    // Session-consuming projects MUST finish before `office` re-logins the
+    // principal — auth.login revokes all prior sessions for that user.
     {
       name: "buttons",
       testMatch: /buttons\.spec\.ts$/,
@@ -43,15 +38,23 @@ export default defineConfig({
     {
       name: "crud",
       testMatch: /crud.*\.spec\.ts$/,
-      dependencies: ["setup"],
+      dependencies: ["buttons"],
       use: { ...devices["Desktop Chrome"], storageState: ".auth/principal.json" },
+    },
+    // Auth / navigation / PDF specs sign in fresh themselves.
+    {
+      name: "office",
+      testMatch: /(auth|navigation.*|pdf)\.spec\.ts$/,
+      dependencies: ["crud"],
+      use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "accessibility",
       testMatch: /accessibility\.spec\.ts$/,
+      dependencies: ["office"],
       use: { ...devices["Desktop Chrome"] },
     },
-    // Visual regression over the public design-system gallery (no auth).
+    // Visual regression (public marketing; no auth). Independent of session.
     // First run: pnpm exec playwright test visual-regression --update-snapshots
     {
       name: "visual",

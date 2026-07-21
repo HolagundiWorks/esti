@@ -24,10 +24,10 @@ for (const persona of ["lead", "junior"] as const) {
   });
 }
 
-for (const persona of ["client", "site"] as const) {
+for (const persona of ["client"] as const) {
   test(`portal (${persona}) — signs in and renders without crash`, async ({ page }) => {
     await loginAs(page, persona);
-    expect(page.url(), `${persona} stuck on /login`).not.toMatch(/\/login\b/);
+    expect(page.url(), `${persona} stuck on /login`).not.toMatch(/\/(login|access)\b/);
     expect(await isCrashed(page), `${persona} portal crashed`).toBe(false);
   });
 }

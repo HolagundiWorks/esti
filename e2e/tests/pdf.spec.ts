@@ -37,7 +37,7 @@ test("PDF generation — artifacts available + regeneration is safe", async ({ p
       await regen.click().catch(() => {});
       await page.waitForTimeout(1500);
       const crashed = await page
-        .getByText(/something went wrong|unexpected error/i)
+        .getByRole("button", { name: "Reload app" })
         .count()
         .catch(() => 0);
       expect(crashed, `${screen}: regenerate crashed the UI`).toBe(0);
