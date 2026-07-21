@@ -70,6 +70,7 @@ import {
 } from "@esti/contracts";
 import { useScreenActions, type DockAction } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
+import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -1374,6 +1375,7 @@ export function ConsultancyEngagements() {
                           <TableCell align="right">Amount</TableCell>
                           <TableCell>Billing trigger</TableCell>
                           <TableCell>Status</TableCell>
+                          <TableCell>Studio invoice</TableCell>
                           <TableCell align="right" />
                         </TableRow>
                       </TableHead>
@@ -1415,14 +1417,32 @@ export function ConsultancyEngagements() {
                                   )}
                                 </Stack>
                               </TableCell>
+                              <TableCell>
+                                {f.studioInvoice ? (
+                                  <Stack spacing={0.5} sx={{ alignItems: "flex-start" }}>
+                                    <span className="esti-label esti-label--secondary">
+                                      {f.studioInvoice.ref} · {f.studioInvoice.status}
+                                    </span>
+                                    <InvoicePdfCell
+                                      invoiceId={f.studioInvoice.id}
+                                      initialStatus={f.studioInvoice.pdfStatus}
+                                    />
+                                  </Stack>
+                                ) : (
+                                  <span className="esti-label esti-label--secondary">—</span>
+                                )}
+                              </TableCell>
                               <TableCell align="right">
                                 <RowActionsMenu
                                   actions={[
                                     ...(f.status === "BILLABLE"
                                       ? [
                                           {
-                                            label: "Mark invoiced (30-day terms)",
-                                            disabled: markInvoiced.isPending,
+                                            label: detail.projectId
+                                              ? "Raise Studio invoice (30-day terms)"
+                                              : "Raise Studio invoice (link Studio project first)",
+                                            disabled:
+                                              !detail.projectId || markInvoiced.isPending,
                                             onClick: () => markInvoiced.mutate({ id: f.id }),
                                           },
                                         ]

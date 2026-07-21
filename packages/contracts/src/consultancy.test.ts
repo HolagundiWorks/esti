@@ -25,6 +25,7 @@ import {
   buildMdrDeliverableCode,
   capacityOutlookAlerts,
   canRecordIssueTransmittal,
+  canRaiseFeeStageStudioInvoice,
   feeStageFinancialsLocked,
   isValidMdrDeliverableCode,
   issueClassToTransmittalPurpose,
@@ -704,6 +705,39 @@ describe("issue transmittal gate (SOP §3)", () => {
         deliverableStatus: "ISSUED",
         existingTransmittalId: null,
         engagementProjectId: "proj",
+      }),
+    ).toEqual({ ok: true });
+  });
+});
+
+describe("fee-stage Studio invoice gate (SOP §8)", () => {
+  it("requires BILLABLE + Studio project + no existing invoice", () => {
+    expect(
+      canRaiseFeeStageStudioInvoice({
+        stageStatus: "PENDING",
+        engagementProjectId: "proj",
+        existingInvoiceId: null,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(
+      canRaiseFeeStageStudioInvoice({
+        stageStatus: "BILLABLE",
+        engagementProjectId: null,
+        existingInvoiceId: null,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(
+      canRaiseFeeStageStudioInvoice({
+        stageStatus: "BILLABLE",
+        engagementProjectId: "proj",
+        existingInvoiceId: "inv",
+      }),
+    ).toMatchObject({ ok: false });
+    expect(
+      canRaiseFeeStageStudioInvoice({
+        stageStatus: "BILLABLE",
+        engagementProjectId: "proj",
+        existingInvoiceId: null,
       }),
     ).toEqual({ ok: true });
   });

@@ -8,6 +8,7 @@
 import { bigint, boolean, createdAt, date, doublePrecision, id, jsonb, pgTable, text, timestamp, uniqueIndex, updatedAt, uuid } from "./_helpers.js";
 import { clients, users } from "./org-auth.js";
 import { projectOffices } from "./project.js";
+import { invoices } from "./financial.js";
 
 export const consEngagements = pgTable("esti_cons_engagement", {
   id: id(),
@@ -95,6 +96,8 @@ export const consFeeStages = pgTable("esti_cons_fee_stage", {
   invoicedAt: timestamp("invoiced_at", { withTimezone: true }),
   /** Payment terms — the dunning ladder (SOP §8) runs off this. */
   invoiceDue: date("invoice_due"),
+  /** Studio tax invoice raised for this stage (SOP §8 milestone invoicing). */
+  invoiceId: uuid("invoice_id").references(() => invoices.id, { onDelete: "set null" }),
   paidAt: timestamp("paid_at", { withTimezone: true }),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
