@@ -91,6 +91,7 @@ import { systemRouter } from "../modules/system/router.js";
 import { academyRouter } from "../modules/academy/router.js";
 import { rateBookRouter } from "../modules/rateBook/router.js";
 import { estimateRouter } from "../modules/estimate/router.js";
+import { eomsRouter } from "../modules/eoms/router.js";
 import { publicProcedure, router } from "./trpc.js";
 
 export const appRouter = router({
@@ -211,6 +212,7 @@ export const appRouter = router({
   academy: academyRouter,
   rateBooks: rateBookRouter,
   estimates: estimateRouter,
+  eoms: eomsRouter,
 });
 
 /** Exported type only — the SPA imports this for end-to-end type safety. */

@@ -69,6 +69,10 @@ services:
       # `llama3.2:1b` would not match it, so the health check fails and the AI
       # gateway silently falls back to canned template output.
       OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
+      # EOMS compliance Knowledge Bank — a separate LOCAL service (the desktop
+      # companion, default :8756) running on the HOST. Reach it via the host
+      # gateway (see extra_hosts). Empty disables the integration (reads degrade).
+      EOMS_API_URL: ${EOMS_API_URL:-http://host.docker.internal:8756}
       # First-run owner (consumed by `pnpm --filter @esti/backend seed`).
       SEED_OWNER_EMAIL: ${SEED_OWNER_EMAIL:-owner@hcw.in}
       SEED_OWNER_PASSWORD: ${SEED_OWNER_PASSWORD:-ChangeMe123}
@@ -96,6 +100,11 @@ services:
       - ./packages/contracts/src:/app/esti/packages/contracts/src
       - ./vendor:/app/esti/vendor
     ports: ["4000:4000"]
+    # Reach the host (where the EOMS desktop companion listens on :8756). Under
+    # Docker Engine `host.docker.internal` is not automatic — map it to the host
+    # gateway so EOMS_API_URL=http://host.docker.internal:8756 resolves.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       db:
         condition: service_started
