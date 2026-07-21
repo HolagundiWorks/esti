@@ -3,11 +3,12 @@ import {
   ManifestRequest,
   RecordGrowthInput,
   RefreshInput,
+  ReportUsageInput,
   SyncMembershipInput,
   ValidateInput,
   VerifyIdentityInput,
 } from "@esti/contracts";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { db, schema } from "../db/client.js";
 import { loadSigningKey } from "../env.js";
@@ -18,6 +19,8 @@ import { orgIdFromHandle } from "../modules/auth/tenant.js";
 import { latestManifest } from "../modules/components/service.js";
 import { activate, editionForKey, entitlement, refresh, validate } from "../modules/licenseApi/service.js";
 import { recordGrowth } from "../modules/portable/service.js";
+import { upsertUsageReport } from "../modules/admin/upsertUsageReport.js";
+import { usagePeriodStart } from "../modules/admin/usageReports.js";
 
 interface ProductAuth {
   productId: string;
@@ -357,5 +360,72 @@ export function registerV1Routes(app: FastifyInstance): void {
       return { error: "no_release" };
     }
     return { manifest, signed: signManifest(manifest, signingKey) };
+  });
+
+  // P7 — product node reports metered usage for a licensed org (monthly upsert).
+  app.post("/v1/report-usage", async (req, reply) => {
+    const auth = await authProduct(req);
+    if (!auth) {
+      reply.code(401);
+      return { error: "unauthorized" };
+    }
+    const parsed = ReportUsageInput.safeParse(req.body);
+    if (!parsed.success) {
+      reply.code(400);
+      return { error: "invalid_input" };
+    }
+
+    let orgId = auth.orgId;
+    if (parsed.data.company) {
+      const resolved = await orgIdFromHandle(parsed.data.company);
+      if (!resolved) {
+        reply.code(404);
+        return { error: "company_not_found" };
+      }
+      if (auth.orgId && auth.orgId !== resolved) {
+        reply.code(403);
+        return { error: "org_mismatch" };
+      }
+      orgId = resolved;
+    }
+    if (!orgId) {
+      reply.code(400);
+      return { error: "company_required" };
+    }
+
+    const [license] = await db
+      .select({ id: schema.licenses.id })
+      .from(schema.licenses)
+      .where(
+        and(
+          eq(schema.licenses.orgId, orgId),
+          eq(schema.licenses.productId, auth.productId),
+          sql`${schema.licenses.status} in ('ACTIVE', 'TRIAL')`,
+        ),
+      )
+      .limit(1);
+    if (!license) {
+      reply.code(404);
+      return { error: "license_not_found" };
+    }
+
+    const periodStart = parsed.data.periodStart ?? usagePeriodStart();
+    const row = await upsertUsageReport({
+      orgId,
+      productId: auth.productId,
+      periodStart,
+      storageUsedBytes: parsed.data.storageUsedBytes,
+      storageQuotaBytes: parsed.data.storageQuotaBytes,
+      storagePurchasedBytes: parsed.data.storagePurchasedBytes,
+      aiTokensThisMonth: parsed.data.aiTokensThisMonth,
+    });
+    return {
+      ok: true,
+      id: row.id,
+      orgId: row.orgId,
+      productId: row.productId,
+      periodStart: row.periodStart,
+      reportedAt: row.reportedAt,
+    };
   });
 }

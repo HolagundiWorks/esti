@@ -36,9 +36,9 @@ are **not** current product state — see system state below.
 ## Next (product autopilot)
 
 1. **P9.V** — human fee UX review (mutation wiring tests landed; pure helpers + router stubs green)
-2. **P9.4** — ✅ intelligence code-complete; **MDR numbering** shipped (stack tip)
-3. **P4.8** — human: replace stale social/campaign desktop copy
-4. **P7.2** — billing (blocked on Stripe vs manual invoice decision)
+2. **P9.4 / MDR** — ✅ intelligence + MDR numbering on the PR stack
+3. **P7.2** — billing (blocked on Stripe vs manual invoice decision); P7.1 multi-tenant reports ✅
+4. **P4.8** — human: replace stale social/campaign desktop copy
 5. **P10.8** — ✅ visual suite retargeted + linux baselines regenerated (2026-07-21)
 
 ## Change rule

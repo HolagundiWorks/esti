@@ -4,6 +4,8 @@ import { db, schema } from "../../db/client.js";
 import { orgSettings } from "../../../db/schema.js";
 import { platformAdminProcedure, router } from "../../trpc/trpc.js";
 import { pendingRequestCount } from "../request/service.js";
+import { aggregateUsageReports, usagePeriodStart } from "./usageReports.js";
+import { upsertUsageReport } from "./upsertUsageReport.js";
 
 const LICENSE_STATUSES = ["ACTIVE", "TRIAL", "SUSPENDED", "REVOKED", "EXPIRED"] as const;
 
@@ -96,15 +98,33 @@ export const dashboardRouter = router({
   }),
 
   /**
-   * P7.1 — metered usage for the workspace running on this install.
+   * P7.1+ — metered usage for the platform-admin dashboard.
    *
-   * `esti_orgsettings` is a singleton (one install = one firm), and the hlp_
-   * tables share its database, so this reads the workspace counters directly.
-   * There is no per-tenant usage here: aggregating usage across every licensed
-   * org needs installs to report into a platform-side usage table first.
+   * Prefers aggregated `hlp_usage_report` rows for the current UTC month
+   * (multi-tenant). Falls back to the co-located `esti_orgsettings` singleton
+   * when no nodes have reported yet, and self-reports that singleton into
+   * `hlp_usage_report` when a matching ACTIVE license exists on this install.
    */
   usage: platformAdminProcedure.query(async () => {
-    const [row] = await db
+    const periodStart = usagePeriodStart();
+    const reportRows = await db
+      .select({
+        orgId: schema.usageReports.orgId,
+        orgName: schema.organizations.name,
+        productCode: schema.products.code,
+        periodStart: schema.usageReports.periodStart,
+        storageUsedBytes: schema.usageReports.storageUsedBytes,
+        storageQuotaBytes: schema.usageReports.storageQuotaBytes,
+        storagePurchasedBytes: schema.usageReports.storagePurchasedBytes,
+        aiTokensThisMonth: schema.usageReports.aiTokensThisMonth,
+        reportedAt: schema.usageReports.reportedAt,
+      })
+      .from(schema.usageReports)
+      .innerJoin(schema.organizations, eq(schema.organizations.id, schema.usageReports.orgId))
+      .innerJoin(schema.products, eq(schema.products.id, schema.usageReports.productId))
+      .where(eq(schema.usageReports.periodStart, periodStart));
+
+    const [local] = await db
       .select({
         storageBytesUsed: orgSettings.storageBytesUsed,
         storagePurchasedBytes: orgSettings.storagePurchasedBytes,
@@ -114,23 +134,112 @@ export const dashboardRouter = router({
       })
       .from(orgSettings)
       .limit(1);
-    if (!row) return null;
 
-    // The hosted-AI counter resets lazily on the next generation, so a stored
-    // total from an earlier month is already spent — report it as 0.
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const tokensCurrent =
-      row.aiTokensMonthStart && row.aiTokensMonthStart >= monthStart ? row.aiTokensThisMonth : 0;
+    const localTokens =
+      local?.aiTokensMonthStart && local.aiTokensMonthStart >= monthStart
+        ? local.aiTokensThisMonth
+        : 0;
+    const localPurchased = Math.max(0, local?.storagePurchasedBytes ?? 0);
+    const localUsage = local
+      ? {
+          storageUsedBytes: local.storageBytesUsed,
+          storageQuotaBytes: DEFAULT_STORAGE_BYTES + localPurchased,
+          storagePurchasedBytes: localPurchased,
+          aiTokensThisMonth: localTokens,
+          aiTokensMonthStart: local.aiTokensMonthStart,
+          licenceStatus: local.licenceStatus,
+        }
+      : null;
 
-    const purchased = Math.max(0, row.storagePurchasedBytes);
+    // Self-report this install when we have a local counter and an ACTIVE license
+    // for a product on some org — keeps the table warm on single-box hubs.
+    if (localUsage && reportRows.length === 0) {
+      const [lic] = await db
+        .select({
+          orgId: schema.licenses.orgId,
+          productId: schema.licenses.productId,
+        })
+        .from(schema.licenses)
+        .where(sql`${schema.licenses.status} in ('ACTIVE', 'TRIAL')`)
+        .limit(1);
+      if (lic) {
+        await upsertUsageReport({
+          orgId: lic.orgId,
+          productId: lic.productId,
+          periodStart,
+          storageUsedBytes: localUsage.storageUsedBytes,
+          storageQuotaBytes: localUsage.storageQuotaBytes,
+          storagePurchasedBytes: localUsage.storagePurchasedBytes,
+          aiTokensThisMonth: localUsage.aiTokensThisMonth,
+        });
+        // Re-read so the response includes the just-written row.
+        const refreshed = await db
+          .select({
+            orgId: schema.usageReports.orgId,
+            orgName: schema.organizations.name,
+            productCode: schema.products.code,
+            periodStart: schema.usageReports.periodStart,
+            storageUsedBytes: schema.usageReports.storageUsedBytes,
+            storageQuotaBytes: schema.usageReports.storageQuotaBytes,
+            storagePurchasedBytes: schema.usageReports.storagePurchasedBytes,
+            aiTokensThisMonth: schema.usageReports.aiTokensThisMonth,
+            reportedAt: schema.usageReports.reportedAt,
+          })
+          .from(schema.usageReports)
+          .innerJoin(schema.organizations, eq(schema.organizations.id, schema.usageReports.orgId))
+          .innerJoin(schema.products, eq(schema.products.id, schema.usageReports.productId))
+          .where(eq(schema.usageReports.periodStart, periodStart));
+        if (refreshed.length > 0) {
+          const agg = aggregateUsageReports(refreshed);
+          return {
+            source: "reports" as const,
+            periodStart,
+            storageUsedBytes: agg.storageUsedBytes,
+            storageQuotaBytes: agg.storageQuotaBytes,
+            storagePurchasedBytes: agg.storagePurchasedBytes,
+            aiTokensThisMonth: agg.aiTokensThisMonth,
+            aiTokensMonthStart: localUsage.aiTokensMonthStart,
+            licenceStatus: localUsage.licenceStatus,
+            reportedOrgCount: agg.reportedOrgCount,
+            reports: agg.reports,
+            local: localUsage,
+          };
+        }
+      }
+    }
+
+    if (reportRows.length > 0) {
+      const agg = aggregateUsageReports(reportRows);
+      return {
+        source: "reports" as const,
+        periodStart,
+        storageUsedBytes: agg.storageUsedBytes,
+        storageQuotaBytes: agg.storageQuotaBytes,
+        storagePurchasedBytes: agg.storagePurchasedBytes,
+        aiTokensThisMonth: agg.aiTokensThisMonth,
+        aiTokensMonthStart: localUsage?.aiTokensMonthStart ?? null,
+        licenceStatus: localUsage?.licenceStatus ?? null,
+        reportedOrgCount: agg.reportedOrgCount,
+        reports: agg.reports,
+        local: localUsage,
+      };
+    }
+
+    if (!localUsage) return null;
     return {
-      storageUsedBytes: row.storageBytesUsed,
-      storageQuotaBytes: DEFAULT_STORAGE_BYTES + purchased,
-      storagePurchasedBytes: purchased,
-      aiTokensThisMonth: tokensCurrent,
-      aiTokensMonthStart: row.aiTokensMonthStart,
-      licenceStatus: row.licenceStatus,
+      source: "local" as const,
+      periodStart,
+      storageUsedBytes: localUsage.storageUsedBytes,
+      storageQuotaBytes: localUsage.storageQuotaBytes,
+      storagePurchasedBytes: localUsage.storagePurchasedBytes,
+      aiTokensThisMonth: localUsage.aiTokensThisMonth,
+      aiTokensMonthStart: localUsage.aiTokensMonthStart,
+      licenceStatus: localUsage.licenceStatus,
+      reportedOrgCount: 0,
+      reports: [] as ReturnType<typeof aggregateUsageReports>["reports"],
+      local: localUsage,
     };
   }),
 });

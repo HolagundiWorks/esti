@@ -2,7 +2,9 @@
 // hlp_-prefixed. Kept OUT of the schema/index.ts barrel — its `accounts`/`licenses`
 // const names collide with ESTI's; the licensing modules import tables from here directly.
 import {
+  bigint,
   boolean,
+  date,
   index,
   integer,
   jsonb,
@@ -316,6 +318,42 @@ export const apiKeys = pgTable(
     createdAt,
   },
   (t) => ({ keyHashIdx: uniqueIndex("hlp_api_key_hash_idx").on(t.keyHash) }),
+);
+
+/**
+ * P7 — metered usage snapshot reported by a product node for one licensed org
+ * in one calendar month. The platform-admin dashboard aggregates these rows
+ * across tenants; the co-located singleton `esti_orgsettings` remains the
+ * fallback when no reports exist yet.
+ */
+export const usageReports = pgTable(
+  "hlp_usage_report",
+  {
+    id: text("id").primaryKey(),
+    orgId: text("org_id")
+      .notNull()
+      .references(() => organizations.id),
+    productId: text("product_id")
+      .notNull()
+      .references(() => products.id),
+    /** First calendar day of the reported month (UTC date). */
+    periodStart: date("period_start").notNull(),
+    storageUsedBytes: bigint("storage_used_bytes", { mode: "number" }).notNull().default(0),
+    storageQuotaBytes: bigint("storage_quota_bytes", { mode: "number" }).notNull().default(0),
+    storagePurchasedBytes: bigint("storage_purchased_bytes", { mode: "number" })
+      .notNull()
+      .default(0),
+    aiTokensThisMonth: integer("ai_tokens_this_month").notNull().default(0),
+    reportedAt: timestamp("reported_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    orgProductPeriodIdx: uniqueIndex("hlp_usage_report_org_product_period_idx").on(
+      t.orgId,
+      t.productId,
+      t.periodStart,
+    ),
+    periodIdx: index("hlp_usage_report_period_idx").on(t.periodStart),
+  }),
 );
 
 /**
