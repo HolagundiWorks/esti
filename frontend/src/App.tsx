@@ -206,6 +206,11 @@ function AppShell() {
   );
   if (legacyTarget) return <LegacyHostRedirect target={legacyTarget} />;
 
+  return <AppWorkspace />;
+}
+
+function AppWorkspace() {
+  const { pathname } = useLocation();
   const { user, isLoading } = useAuth();
   const surface = detectSurface(window.location.hostname);
   const publicMarketing = PUBLIC_SITE && (surface === "platform" || surface === "unknown");

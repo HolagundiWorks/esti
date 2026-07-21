@@ -1,4 +1,3 @@
-import { TRPCError } from "@trpc/server";
 import { and, desc, eq, ne } from "drizzle-orm";
 import { STANDARD_LICENCE_LABEL, STANDARD_PLAN_CODE } from "@esti/contracts";
 import { sendMail } from "../../../lib/mail/transport.js";
