@@ -221,7 +221,7 @@ Procedural artifacts:
 | SOP element | Status | In AORMS-Consultancy today / gap |
 | --- | --- | --- |
 | Job number as the spine | ✅ | Job codes auto-allocated at creation (C-YY-serial, backfilled); shown across the workspace *(2026-07-12)* |
-| Enquiry register + go/no-go | 🔲 | No pre-engagement pipeline (Studio has leads; consultancy enters at engagement) |
+| Enquiry register + go/no-go | ✅ | `esti_cons_enquiry` register (`EQ-YY-NNN`); scorecard + conflict check gate GO/NO_GO; convert allocates job `C-YY-NNN` and opens engagement *(2026-07-21)* |
 | Contract review checkpoint | 🔶 | Reliance scope + fee model recorded; **no §8.2.3-style review checklist gate** |
 | PEP/PQP at setup | 🔶 | Typed scope phases + brief cover much of it; no formal per-engagement quality plan |
 | Field-based doc numbering | ✅ | MDR `{job}-{TYPE}-{seq}` (e.g. `C-26-001-CAL-001`); doc type on create; revision/status stay metadata *(2026-07-21)* |
@@ -246,9 +246,10 @@ Procedural artifacts:
 
 **Reading of the map:** the *governance core* the SOPs exist to protect — the register,
 the named chain, gated issue, stage billing, WIP — is built. Highest-value remaining
-slices, in rough order: **enquiry/go-no-go pipeline**, and **lessons / NC-CAPA**.
+slices, in rough order: **lessons / NC-CAPA**.
 (Document numbering, two-track revisions, TQ due-dates, timesheet approval, CRS,
-field reports, **transmittal acknowledgment**, and **milestone Studio invoices** are already in.)
+field reports, **transmittal acknowledgment**, **milestone Studio invoices**, and
+**enquiry go/no-go** are already in.)
 
 ---
 

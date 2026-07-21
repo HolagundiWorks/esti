@@ -334,6 +334,7 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 | Date | Change |
 |------|--------|
 | 2026-07-21 | Autopilot: **P7 platform usage reporting** — `hlp_usage_report` (migration `0213`), `POST /v1/report-usage`, admin dashboard aggregates current-month reports (local singleton fallback + self-report). |
+| 2026-07-21 | Autopilot: **Enquiry register + go/no-go** — `esti_cons_enquiry` (migration `0216`), scorecard + decide + convert→engagement (job code); `/consultancy/enquiries` intake UI.
 | 2026-07-21 | Autopilot: **Fee-stage ↔ Studio invoice** — `markInvoiced` raises an ISSUED tax invoice via shared `createStudioInvoice` (GST/TDS/POS), links `esti_cons_fee_stage.invoice_id` (migration `0215`); `markPaid` syncs invoice PAID; engagement UI shows ref + PDF cell. |
 | 2026-07-21 | Autopilot: **Transmittal acknowledgment + MDR issue link** — `esti_transmittal` ack fields + `transmittals.acknowledge`; client portal stamps ack; consultancy `recordIssueTransmittal` creates Studio TRN from issued deliverable and back-references on MDR; migration `0214`. |
 | 2026-07-21 | Autopilot: **MDR deliverable numbering** — `buildMdrDeliverableCode` / `nextMdrSequence` / validation; create allocates `{job}-{TYPE}-{seq}`; UI doc-type picker with preview; duplicate/wrong-root rejected. |

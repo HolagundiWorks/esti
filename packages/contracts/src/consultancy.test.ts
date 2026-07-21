@@ -24,9 +24,13 @@ import {
   buildDeliverableLineage,
   buildMdrDeliverableCode,
   capacityOutlookAlerts,
+  canAdvanceEnquiryStatus,
+  canConvertEnquiry,
+  canDecideGoNoGo,
   canRecordIssueTransmittal,
   canRaiseFeeStageStudioInvoice,
   feeStageFinancialsLocked,
+  goNoGoRecommendation,
   isValidMdrDeliverableCode,
   issueClassToTransmittalPurpose,
   mayIssueDeliverable,
@@ -740,5 +744,68 @@ describe("fee-stage Studio invoice gate (SOP §8)", () => {
         existingInvoiceId: null,
       }),
     ).toEqual({ ok: true });
+  });
+});
+
+
+describe("enquiry go/no-go (SOP §2)", () => {
+  it("advances through the intake status machine", () => {
+    expect(canAdvanceEnquiryStatus("RECEIVED", "UNDER_REVIEW")).toBe(true);
+    expect(canAdvanceEnquiryStatus("UNDER_REVIEW", "GO")).toBe(true);
+    expect(canAdvanceEnquiryStatus("GO", "WON")).toBe(true);
+    expect(canAdvanceEnquiryStatus("NO_GO", "GO")).toBe(false);
+    expect(canAdvanceEnquiryStatus("WON", "LOST")).toBe(false);
+  });
+
+  it("requires a complete scorecard + conflict check before deciding", () => {
+    expect(
+      canDecideGoNoGo({
+        capacityFit: 4,
+        feeAttractiveness: 4,
+        risk: 2,
+        strategicFit: 3,
+        conflictCheckDone: false,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(
+      canDecideGoNoGo({
+        capacityFit: 4,
+        feeAttractiveness: 4,
+        risk: 2,
+        strategicFit: 3,
+        conflictCheckDone: true,
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("recommends GO when average desirability is healthy", () => {
+    expect(
+      goNoGoRecommendation({
+        capacityFit: 4,
+        feeAttractiveness: 4,
+        risk: 2,
+        strategicFit: 4,
+        conflictCheckDone: true,
+      }),
+    ).toBe("GO");
+    expect(
+      goNoGoRecommendation({
+        capacityFit: 2,
+        feeAttractiveness: 2,
+        risk: 5,
+        strategicFit: 2,
+        conflictCheckDone: true,
+      }),
+    ).toBe("NO_GO");
+  });
+
+  it("only converts from GO", () => {
+    expect(canConvertEnquiry({ status: "UNDER_REVIEW", convertedEngagementId: null })).toMatchObject({
+      ok: false,
+    });
+    expect(canConvertEnquiry({ status: "GO", convertedEngagementId: "eng" })).toMatchObject({
+      ok: false,
+    });
+    expect(canConvertEnquiry({ status: "GO", convertedEngagementId: null })).toEqual({ ok: true });
   });
 });

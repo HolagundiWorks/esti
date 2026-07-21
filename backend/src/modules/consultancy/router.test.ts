@@ -804,3 +804,69 @@ describe("consultancy SOP — issue transmittal (MDR back-reference)", () => {
     ).toBe(true);
   });
 });
+
+
+describe("consultancy SOP — enquiry go/no-go", () => {
+  const ENQ = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+
+  function enquiry(overrides: Record<string, unknown> = {}) {
+    return {
+      id: ENQ,
+      ref: "EQ-26-001",
+      title: "Tower peer review",
+      clientName: "Acme",
+      status: "RECEIVED",
+      capacityFit: null,
+      feeAttractiveness: null,
+      risk: null,
+      strategicFit: null,
+      conflictCheckDone: false,
+      decisionNote: null,
+      convertedEngagementId: null,
+      leadDiscipline: "STRUCTURAL",
+      consultancyType: "STRUCTURAL",
+      model: "PEER_REVIEW",
+      ...overrides,
+    };
+  }
+
+  it("refuses GO without a scored scorecard", async () => {
+    const { db } = makeDb({
+      "esti_cons_enquiry": [enquiry({ status: "UNDER_REVIEW" })],
+    });
+    await expect(
+      caller("PARTNER", db).enquiries.decide({ id: ENQ, decision: "GO" }),
+    ).rejects.toMatchObject({ code: "PRECONDITION_FAILED", message: expect.stringContaining("scorecard") });
+  });
+
+  it("converts GO into an engagement with a job code", async () => {
+    const ok = makeDb(
+      {
+        "esti_cons_enquiry": [
+          enquiry({
+            status: "GO",
+            capacityFit: 4,
+            feeAttractiveness: 4,
+            risk: 2,
+            strategicFit: 4,
+            conflictCheckDone: true,
+          }),
+        ],
+        "esti_cons_engagement": [],
+      },
+      {
+        insertReturning: (table, values) => {
+          if (table === "esti_cons_engagement") {
+            return [{ id: ENG, code: "C-26-001", ...(values as object) }];
+          }
+          return [{ id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee", ...(values as object) }];
+        },
+      },
+    );
+    const result = await caller("PARTNER", ok.db).enquiries.convertToEngagement({ id: ENQ });
+    expect(result.engagement.code).toMatch(/^C-\d{2}-\d{3}$/);
+    expect(result.enquiry.status).toBe("WON");
+    expect(result.enquiry.convertedEngagementId).toBe(ENG);
+    expect(ok.inserts.some((i) => i.table === "esti_cons_engagement")).toBe(true);
+  });
+});

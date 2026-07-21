@@ -20,7 +20,8 @@ import {
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import {
   CHECK_CATEGORY_LABEL,
   CHECK_CATEGORY_REQUIRED_STEPS,
@@ -91,8 +92,13 @@ const MDR_DOC_TYPES = MdrDocType.options;
  */
 export function ConsultancyEngagements() {
   const utils = trpc.useUtils();
+  const [searchParams] = useSearchParams();
   const listQ = trpc.consultancy.engagements.list.useQuery();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  useEffect(() => {
+    const id = searchParams.get("id");
+    if (id) setSelectedId(id);
+  }, [searchParams]);
   const detailQ = trpc.consultancy.engagements.get.useQuery(
     { id: selectedId ?? "" },
     {
@@ -690,6 +696,16 @@ export function ConsultancyEngagements() {
             )}
           </Stack>
         ) : undefined
+      }
+      actions={
+        <Stack spacing={1} sx={{ width: 1 }}>
+          <Button component={RouterLink} to="/consultancy/enquiries" size="small" variant="outlined" fullWidth>
+            Enquiries
+          </Button>
+          <Button component={RouterLink} to="/consultancy/engagements" size="small" variant="contained" fullWidth>
+            Engagements
+          </Button>
+        </Stack>
       }
     >
       <PageBreadcrumb items={[{ label: "Consultancy" }, { label: "Engagements" }]} />

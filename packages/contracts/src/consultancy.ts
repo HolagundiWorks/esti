@@ -396,6 +396,165 @@ export const ConsEngagementUpdate = ConsEngagementCreate.partial().extend({
 });
 export type ConsEngagementUpdate = z.infer<typeof ConsEngagementUpdate>;
 
+// ── SOP §2 — enquiry register + go/no-go ─────────────────────────────────────
+
+/**
+ * Pre-engagement pipeline. Job number is allocated only on convert (WON).
+ * GO = pursue / propose; convert after LOA stamps WON and creates the engagement.
+ */
+export const ConsEnquiryStatus = z.enum([
+  "RECEIVED",
+  "UNDER_REVIEW",
+  "GO",
+  "NO_GO",
+  "WON",
+  "LOST",
+]);
+export type ConsEnquiryStatus = z.infer<typeof ConsEnquiryStatus>;
+
+export const CONS_ENQUIRY_STATUS_LABEL: Record<ConsEnquiryStatus, string> = {
+  RECEIVED: "Received",
+  UNDER_REVIEW: "Under review",
+  GO: "Go",
+  NO_GO: "No-go",
+  WON: "Won (job opened)",
+  LOST: "Lost",
+};
+
+export const CONS_ENQUIRY_STATUS_TAG: Record<ConsEnquiryStatus, TagColor> = {
+  RECEIVED: "gray",
+  UNDER_REVIEW: "teal",
+  GO: "green",
+  NO_GO: "red",
+  WON: "green",
+  LOST: "gray",
+};
+
+export const ENQUIRY_STATUS_TRANSITIONS: Record<
+  ConsEnquiryStatus,
+  readonly ConsEnquiryStatus[]
+> = {
+  RECEIVED: ["UNDER_REVIEW", "LOST"],
+  UNDER_REVIEW: ["GO", "NO_GO", "LOST"],
+  GO: ["WON", "LOST"],
+  NO_GO: [],
+  WON: [],
+  LOST: [],
+};
+
+export function canAdvanceEnquiryStatus(
+  from: ConsEnquiryStatus | string,
+  to: ConsEnquiryStatus | string,
+): boolean {
+  const allowed = ENQUIRY_STATUS_TRANSITIONS[from as ConsEnquiryStatus];
+  return !!allowed && allowed.includes(to as ConsEnquiryStatus);
+}
+
+const Score1to5 = z.number().int().min(1).max(5);
+
+export const ConsGoNoGoScorecard = z.object({
+  capacityFit: Score1to5,
+  feeAttractiveness: Score1to5,
+  /** Higher = more risk (inverse desirability). */
+  risk: Score1to5,
+  strategicFit: Score1to5,
+  conflictCheckDone: z.boolean(),
+  decisionNote: z.string().trim().max(4000).optional(),
+});
+export type ConsGoNoGoScorecard = z.infer<typeof ConsGoNoGoScorecard>;
+
+/**
+ * Soft recommendation from the scorecard (panel still decides).
+ * Risk is inverted so high risk lowers the average.
+ */
+export function goNoGoRecommendation(score: ConsGoNoGoScorecard): "GO" | "NO_GO" {
+  if (!score.conflictCheckDone) return "NO_GO";
+  const avg =
+    (score.capacityFit +
+      score.feeAttractiveness +
+      (6 - score.risk) +
+      score.strategicFit) /
+    4;
+  return avg >= 3 ? "GO" : "NO_GO";
+}
+
+/** Scorecard must be complete + conflict checked before GO / NO_GO. */
+export function canDecideGoNoGo(row: {
+  capacityFit: number | null | undefined;
+  feeAttractiveness: number | null | undefined;
+  risk: number | null | undefined;
+  strategicFit: number | null | undefined;
+  conflictCheckDone: boolean | null | undefined;
+}): { ok: true } | { ok: false; reason: string } {
+  if (
+    row.capacityFit == null ||
+    row.feeAttractiveness == null ||
+    row.risk == null ||
+    row.strategicFit == null
+  )
+    return { ok: false, reason: "Complete the go/no-go scorecard before deciding." };
+  if (!row.conflictCheckDone)
+    return { ok: false, reason: "Conflict-of-interest check must be recorded before deciding." };
+  return { ok: true };
+}
+
+export function canConvertEnquiry(row: {
+  status: string;
+  convertedEngagementId: string | null | undefined;
+}): { ok: true } | { ok: false; reason: string } {
+  if (row.convertedEngagementId)
+    return { ok: false, reason: "This enquiry already opened a job." };
+  if (row.status !== "GO")
+    return {
+      ok: false,
+      reason: "Only a Go decision can convert to a job — complete go/no-go first.",
+    };
+  return { ok: true };
+}
+
+export const ConsEnquiryCreate = z.object({
+  title: z.string().trim().min(1).max(300),
+  clientName: z.string().trim().min(1).max(200),
+  contactName: z.string().trim().max(200).optional(),
+  phone: z.string().trim().max(40).optional(),
+  email: z.string().trim().max(200).optional(),
+  source: z.string().trim().max(80).optional(),
+  siteLocation: z.string().trim().max(300).optional(),
+  consultancyType: ConsultancyType.optional(),
+  leadDiscipline: EngineeringDiscipline,
+  model: EngagementModel.optional(),
+  notes: z.string().trim().max(8000).optional(),
+});
+export type ConsEnquiryCreate = z.infer<typeof ConsEnquiryCreate>;
+
+export const ConsEnquiryScore = ConsGoNoGoScorecard.extend({
+  id: z.string().uuid(),
+});
+export type ConsEnquiryScore = z.infer<typeof ConsEnquiryScore>;
+
+export const ConsEnquiryDecide = z.object({
+  id: z.string().uuid(),
+  decision: z.enum(["GO", "NO_GO"]),
+  decisionNote: z.string().trim().max(4000).optional(),
+});
+export type ConsEnquiryDecide = z.infer<typeof ConsEnquiryDecide>;
+
+export const ConsEnquiryConvert = z.object({
+  id: z.string().uuid(),
+  clientId: z.string().uuid().optional(),
+  projectId: z.string().uuid().optional(),
+  title: z.string().trim().min(1).max(300).optional(),
+  model: EngagementModel.optional(),
+  consultancyType: ConsultancyType.optional(),
+  leadDiscipline: EngineeringDiscipline.optional(),
+  feeModel: FeeModel.optional(),
+  feeTotalPaise: z.number().int().nonnegative().optional(),
+  relianceScope: z.string().max(4000).optional(),
+  stage: z.string().max(120).optional(),
+  notes: z.string().max(8000).optional(),
+});
+export type ConsEnquiryConvert = z.infer<typeof ConsEnquiryConvert>;
+
 // ── SOP §7 — site field reports (G711 anatomy) ──────────────────────────────
 
 export const ConsFieldReportCreate = z.object({
