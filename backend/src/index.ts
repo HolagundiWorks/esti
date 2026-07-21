@@ -79,8 +79,10 @@ app.setErrorHandler((err, _req, reply) => {
     return reply.code(413).send({ error: err.message });
   }
   app.log.error(err);
-  const status = typeof err.statusCode === "number" ? err.statusCode : 500;
-  return reply.code(status).send({ error: status === 500 ? "internal error" : err.message });
+  const e = err as { statusCode?: unknown; message?: unknown };
+  const status = typeof e.statusCode === "number" ? e.statusCode : 500;
+  const message = typeof e.message === "string" ? e.message : "internal error";
+  return reply.code(status).send({ error: status === 500 ? "internal error" : message });
 });
 
 const allowedOrigins = parseAllowedOrigins(env.ALLOWED_ORIGINS);
