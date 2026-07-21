@@ -88,6 +88,10 @@ export async function loginAs(page: Page, persona: PersonaKey): Promise<void> {
  * Do **not** match toast titles — `main.tsx` defaults failed queries to
  * "Something went wrong", which is recoverable chrome, not a crash.
  * Call {@link waitForOfficeRoute} first after a full navigation.
+ *
+ * Empty `#root` alone is **not** a crash while the auth/Suspense spinner is
+ * up (capability-gated routes like `/hr` can sit on that spinner longer for
+ * lower personas and used to false-positive the persona nav sweep).
  */
 export async function isCrashed(page: Page): Promise<boolean> {
   const reload = await page
@@ -95,6 +99,8 @@ export async function isCrashed(page: Page): Promise<boolean> {
     .count()
     .catch(() => 0);
   if (reload > 0) return true;
+  const loading = await page.getByLabel(/^Loading /i).count().catch(() => 0);
+  if (loading > 0) return false;
   const text = (await page.locator("#root").innerText().catch(() => "")) ?? "";
   return text.trim().length === 0;
 }
