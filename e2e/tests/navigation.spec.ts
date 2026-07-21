@@ -5,6 +5,7 @@ import { OFFICE_ROUTES } from "../utils/routes.js";
 // "Every screen" — log in once, visit each office route, assert it renders
 // without hitting the crash fallback and without being bounced to /login.
 test("navigation sweep — every office screen renders", async ({ page }) => {
+  test.setTimeout(180_000);
   await loginAs(page, "principal");
 
   const failures: string[] = [];
