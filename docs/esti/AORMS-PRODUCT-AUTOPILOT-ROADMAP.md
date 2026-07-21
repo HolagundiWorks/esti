@@ -308,7 +308,7 @@ P8 browser takeoff — ✅
 P9 (AORMS-Consultancy) — Phases 0–3 built; **P9.V verify+review ACTIVE**;
    P9.4 intelligence after P9.V
 
-P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines open)
+P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 ```
 
 ---
