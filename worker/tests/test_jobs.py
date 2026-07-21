@@ -76,9 +76,17 @@ def _by_ref(invs):
 
 
 def test_match_reference_identifies_the_invoice() -> None:
-    mt, hit, _ = match_line(106200, "NEFT 2026270009 fee", _INVOICES, _by_ref(_INVOICES))
-    # ref wins even though the amount also equals invoice c's net.
+    # Amount matches invoice c's net receivable AND the narration carries its ref.
+    mt, hit, _ = match_line(450000, "NEFT 2026270009 fee", _INVOICES, _by_ref(_INVOICES))
     assert mt == "ref_amount"
+    assert hit["id"] == "c"
+
+
+def test_match_reference_wins_over_unrelated_amount() -> None:
+    # Narration points at c, but the credit amount equals a/b's net — still bind
+    # to the referenced invoice (type is plain `ref`, not `ref_amount`).
+    mt, hit, _ = match_line(106200, "NEFT 2026270009 fee", _INVOICES, _by_ref(_INVOICES))
+    assert mt == "ref"
     assert hit["id"] == "c"
 
 

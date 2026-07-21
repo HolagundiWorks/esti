@@ -58,7 +58,8 @@ def _to_paise(value: Any) -> int | None:
     raw = str(value).strip()
     low = raw.lower()
     negative = (
-        (raw.startswith("(") and raw.endswith(")"))
+        raw.startswith("-")
+        or (raw.startswith("(") and raw.endswith(")"))
         or raw.endswith("-")
         or low.endswith(" dr")
         or low.endswith("dr")
