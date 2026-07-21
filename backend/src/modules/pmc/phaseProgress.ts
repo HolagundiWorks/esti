@@ -4,7 +4,6 @@ import { asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "../../db/index.js";
 import { phaseProgress, phases } from "../../db/schema.js";
-import { assertProjectPmcEnabled } from "../../lib/settings.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 const manage = capabilityProcedure("write");
@@ -33,9 +32,7 @@ export async function ensureLiveStagesForPhase(db: DB, phaseId: string, phaseCod
 export const phaseProgressRouter = router({
   listByProject: protectedProcedure
     .input(z.object({ projectId: z.string().uuid() }))
-    .query(async ({ ctx, input }) => {
-      await assertProjectPmcEnabled(ctx.db, input.projectId);
-      const phaseRows = await ctx.db
+    .query(async ({ ctx, input }) => {      const phaseRows = await ctx.db
         .select()
         .from(phases)
         .where(eq(phases.projectId, input.projectId))
@@ -67,9 +64,7 @@ export const phaseProgressRouter = router({
       return rows;
     }),
 
-  update: manage.input(PhaseProgressUpdate).mutation(async ({ ctx, input }) => {
-    await assertProjectPmcEnabled(ctx.db, input.projectId);
-    const [joined] = await ctx.db
+  update: manage.input(PhaseProgressUpdate).mutation(async ({ ctx, input }) => {    const [joined] = await ctx.db
       .select({
         id: phaseProgress.id,
         projectId: phases.projectId,

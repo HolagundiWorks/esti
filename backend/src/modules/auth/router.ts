@@ -15,7 +15,6 @@ import { firm, orgSettings, users } from "../../db/schema.js";
 import { env } from "../../env.js";
 import { writeAudit } from "../../lib/audit.js";
 import { emailMatches, normalizeEmail } from "../../lib/email.js";
-import { licenseState } from "../../lib/plan.js";
 import { sendMail } from "../../lib/mail/transport.js";
 import { verifyTotp } from "../../lib/totp.js";
 import {
@@ -441,35 +440,11 @@ export const authRouter = router({
   }),
 
   /**
-   * Server-authoritative runtime signal. `managed` = a licence token or hub is
-   * configured. AORMS is web-only (2026-07-19), so `desktop`/`mode` are fixed.
-   */
-  runtime: publicProcedure.query(async ({ ctx }) => {
-    const state = await licenseState(ctx.db);
-    return {
-      managed: state.managed,
-      /** @deprecated Desktop apps removed 2026-07-19. Always false / "cloud". */
-      desktop: false as const,
-      mode: "cloud" as const,
-      /** @deprecated Editions removed 2026-07 (single product). Always STANDARD. */
-      edition: "STANDARD" as const,
-      /**
-       * @deprecated Community edition removed 2026-07. Always false.
-       * Retained so existing frontend branches don't break until cleaned up.
-       */
-      community: false as const,
-    };
-  }),
-
-  /**
    * `recoverWithBackupCode` removed 2026-07-20. It was Community edition's
    * offline recovery, and its only issuer was the first-run seed deleted with
-   * that edition — so no account has ever held a code since, every call could
-   * only fail, and the /recover page advertised a route that could not work.
-   * Password recovery is `requestPasswordReset` / `resetPassword` over email.
-   *
-   * The all-NULL `esti_user.backup_code_hash` column is left in place; dropping
-   * it belongs in a deliberate cleanup migration.
+   * that edition — so no account has ever held a code since. Password recovery
+   * is `requestPasswordReset` / `resetPassword` over email. The all-NULL
+   * `esti_user.backup_code_hash` column was dropped in migration 0211.
    */
 
   /** Wipe and re-seed the demo workspace. Only callable while logged in as a demo user. */

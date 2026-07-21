@@ -22,16 +22,6 @@ const Env = z.object({
   REDIS_URL: z.string().default("redis://localhost:6379"),
   WORKER_JOB_STREAM: z.string().default("esti:jobs"),
   /**
-   * Job dispatch backend. "redis" (default, VPS) enqueues to Redis Streams for
-   * the Python worker; "inproc" (desktop) runs an in-process stub runner.
-   */
-  WORKER_MODE: z.enum(["redis", "inproc"]).default("redis"),
-  /**
-   * Product edition. COMMUNITY = the free, offline, LAN-only appliance: no
-   * licence, no online/hub, no AI, no external portals, a single admin + 3 staff.
-   * STANDARD (default) = the licensed Lite/Pro product with those surfaces.
-   */
-  /**
    * Deployment role (Phase B hybrid). "node" (default) = a firm's local/office
    * install: holds office data + drafts, derives its plan from a license, pushes
    * finalized records to the hub. "hub" = the central vendor VPS: the licensing

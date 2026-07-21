@@ -4,9 +4,9 @@
 > spine**, **Rate Books**, and **Rate Analysis** were **removed** in the teardown — the
 > estimation / BOQ / BBS / rate-book requirements below are **historical**. The
 > authoritative record of what exists today is
-> [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state"; the active
-> rebuild is [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
-> [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
+> [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state". The shipped
+> estimation surface is firm **Rate Books** pricing a project **Estimation** tab (priced
+> BOQ + measurement book) — see [NAVIGATION.md](NAVIGATION.md) § Estimation.
 
 **Status:** Approved implementation baseline · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-07-10
 
@@ -179,10 +179,9 @@ accounting systems.
   lifecycle is rebuilding as the CMS.)*
 - ~~Rate book / SOR, BOQ, BBS, and the component-based **Estimation OS** (design-stage
   estimate, IFC→code mapping + auto-BOQ, rate analysis, frozen/versioned estimates,
-  contractor work packages + running bills)~~ — **removed** 2026-06-28 and being rebuilt
-  ground-up on the Construction Knowledge Bank. Spec:
-  [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) +
-  [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md).
+  contractor work packages + running bills)~~ — **removed** 2026-06-28. Estimation now
+  ships as the narrower Rate Books + project Estimation tab (see
+  [NAVIGATION.md](NAVIGATION.md) § Estimation).
 - ~~**ESTICAD companion** (Phase 13)~~ — **dropped 2026-07-19**. The native
   desktop CAD companion is retired with every other desktop app; the `companion`
   tRPC namespace, device-token auth, CAD AI draft kinds, and `esticad://` deep
@@ -197,13 +196,11 @@ All money is integer paise and formatted through shared `formatINR` utilities.
 
 ## Item Library, AI, And Administration
 
-- The former Resources area is now the **Item Library** (the former Knowledge Bank
-  screen, `KnowledgeBank.tsx`) and is the governed,
-  versioned source for specification and procurement standards. *(Rate Books and
-  structural BBS templates were **removed**; the reference foundation is being rebuilt
-  as the Construction Knowledge Bank — Material/Labour/Item libraries, item-mapped
-  Specifications, and consumption Recipes. See
-  [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md).)*
+- The former Resources / Knowledge Bank screen was removed (2026-07-09); the surviving
+  reference surface is the **Specification catalogue** (Library → Specification), the
+  governed, versioned source for specification and procurement standards. *(Rate Books,
+  the Item Library UI, and structural BBS templates were removed in the same teardown;
+  pricing now lives in the narrower Rate Books + project Estimation tab.)*
 - Specification standards carry project tags, reusable clauses,
   approved alternatives, units, and purchase-order wording.
 - The Item Library expands to searchable templates; closure lessons learned live

@@ -23,8 +23,6 @@ export const orgSettings = pgTable("esti_orgsettings", {
   // so pre-collapse rows stay valid; reads are coerced via asPlan() to LITE|PRO.
   plan: text("plan", { enum: ["LITE", "CORE", "ENTERPRISE", "PRO"] }).notNull().default("LITE"),
   hrEnabled: boolean("hr_enabled").notNull().default(true),
-  /** PMC module — construction coordination, site registers, progress reports. */
-  pmcEnabled: boolean("pmc_enabled").notNull().default(false),
   /** Owner-configured alert thresholds — see EscalationSettings in @esti/contracts. */
   escalationSettings: jsonb("escalation_settings")
     .notNull()
@@ -182,8 +180,6 @@ export const users = pgTable("esti_user", {
   mustCompleteWorkspaceProfile: boolean("must_complete_workspace_profile")
     .notNull()
     .default(false),
-  // Community edition: hashed one-time backup recovery code (offline reset).
-  backupCodeHash: text("backup_code_hash"),
   // Portal users (role CLIENT) are scoped to a single client record.
   clientId: uuid("client_id"),
   // Collaborator users (role CONSULTANT + this set) are scoped to a consultant.
@@ -224,11 +220,6 @@ export const sessions = pgTable("esti_session", {
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: createdAt(),
 });
-
-// NOTE: the physical `esti_device_session` table (ESTICAD device bearer tokens)
-// is intentionally left in the database. ESTICAD was dropped 2026-07-19 and the
-// mapping removed here, but the table is not dropped by this change — do that in
-// a deliberate cleanup migration once you have confirmed no install needs the rows.
 
 export const clients = pgTable("esti_client", {
   id: id(),

@@ -48,8 +48,6 @@ export const projectOffices = pgTable("esti_projectoffice", {
   filesArchivedBytes: bigint("files_archived_bytes", { mode: "number" }).notNull().default(0),
   /** The phase currently in progress; previous phases are considered complete. */
   currentPhaseId: uuid("current_phase_id"),
-  /** When true (and firm PMC on), project shows PMC tab and site-admin features. */
-  pmcEnabled: boolean("pmc_enabled").notNull().default(false),
   /** Typical slab thickness (mm) — column/wall height deduction. */
   slabThicknessMm: integer("slab_thickness_mm").notNull().default(150),
   /** Typical beam depth (mm) — column/wall height deduction. */

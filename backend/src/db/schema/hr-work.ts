@@ -182,21 +182,6 @@ export const timesheets = pgTable("esti_timesheet", {
   updatedAt: updatedAt(),
 });
 
-/** @deprecated Removed from product — use attendance register instead. */
-export const dailyUpdates = pgTable("esti_daily_update", {
-  id: id(),
-  teamMemberId: uuid("team_member_id")
-    .notNull()
-    .references(() => teamMembers.id, { onDelete: "cascade" }),
-  updateDate: date("update_date").notNull(),
-  completed: text("completed"),
-  inProgress: text("in_progress"),
-  blockers: text("blockers"),
-  createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
-  createdAt: createdAt(),
-  updatedAt: updatedAt(),
-});
-
 /** Daily staff attendance — present / absent / half-day / WFH (architecture office register). */
 export const attendance = pgTable(
   "esti_attendance",

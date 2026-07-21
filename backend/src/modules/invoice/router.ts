@@ -23,7 +23,7 @@ import { requireInvoiceScope } from "../../lib/projectScope.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { publishEntity } from "../../lib/sync/publish.js";
 import { presignedGet, removeObject } from "../../lib/storage.js";
-import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
+import { capabilityProcedure, router } from "../../trpc/trpc.js";
 import { invoicePeriodWhere } from "../../lib/periodFilter.js";
 
 const manageInvoice = capabilityProcedure("invoice:manage");

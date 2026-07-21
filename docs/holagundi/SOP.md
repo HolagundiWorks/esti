@@ -288,7 +288,7 @@ SOP below hangs off. Percentages are the *default* fee allocation per phase
 | **Steps** | 1. Add the vendor to the directory with category, contact, GSTIN/PAN. 2. Record each price point — material, unit, rate, effective date, source (manual/quote/invoice) — into that vendor's pricing history so rate trends are visible over time, not re-negotiated from scratch each project. 3. Rate the vendor (quality/reliability/pricing) after each transaction. |
 | **Records** | Vendor directory, pricing history, quote comparisons |
 | **AORMS module** | Third Parties → Vendors (`/vendors`) · ✅; formal purchase orders — Project → Purchase Orders tab · ✅ (link lines to the specification catalogue or add ad-hoc lines, DRAFT→ISSUED→RECEIVED/CANCELLED) |
-| **Note** | The vendor pricing/quote backend (`materialId` on `esti_vendor_price`/`esti_vendor_quote_line`) has a schema/code mismatch left over from the 2026-07-09 Knowledge Bank teardown — recording a vendor price may error until that's fixed. Flagged in [DOC-CODE-DRIFT-2026-07.md](../esti/DOC-CODE-DRIFT-2026-07.md). 🚧 |
+| **Note** | The vendor pricing/quote `materialId` schema/code mismatch from the 2026-07-09 teardown was fixed (`efa1e1fa`); recording vendor prices and quotes works. ✅ |
 
 ---
 

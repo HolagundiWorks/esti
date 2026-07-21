@@ -9,7 +9,7 @@ import { db } from "./db/index.js";
 import { runMigrations } from "./db/migrate.js";
 import { ensureCriticalSchema } from "./db/ensureCriticalSchema.js";
 import { env } from "./env.js";
-import { INPROC_WORKER, redis } from "./lib/redis.js";
+import { redis } from "./lib/redis.js";
 import {
   corsAllowOrigin,
   isMachineAuthRoute,
@@ -318,19 +318,16 @@ app.get("/health", async () => {
   return releaseSummary(info);
 });
 
-// Liveness probe — checks only the backing services this deployment actually uses:
-// DB always; Redis only when a real worker queue is wired (not desktop inproc);
-// object storage via the active driver (S3 bucket or local fs root).
+// Liveness probe — checks the backing services this deployment uses:
+// DB, Redis (Python worker job stream), and object storage via the active
+// driver (S3 bucket or local fs root).
 app.get("/readyz", async (req, reply) => {
   if (!readyzAllowed(req)) {
     return reply.code(403).send({ error: "forbidden" });
   }
-  const checks = { db: false, redis: true, storage: false };
+  const checks = { db: false, redis: false, storage: false };
   try { await db.execute(sql`SELECT 1`); checks.db = true; } catch { /* intentional */ }
-  if (!INPROC_WORKER) {
-    checks.redis = false;
-    try { await redis.ping(); checks.redis = true; } catch { /* intentional */ }
-  }
+  try { await redis.ping(); checks.redis = true; } catch { /* intentional */ }
   try { checks.storage = await storageHealthy(); } catch { /* intentional */ }
   const ok = checks.db && checks.redis && checks.storage;
   return reply.code(ok ? 200 : 503).send({ ok, checks });

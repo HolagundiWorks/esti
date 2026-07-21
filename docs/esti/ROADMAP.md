@@ -16,13 +16,6 @@ current product state — see system state below.
 | [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md) | Glass-rail + marketing shell rollout |
 | [PRD.md](PRD.md) | Requirements (cross-check against System state above) |
 
-## Active rebuilds
-
-| Area | Doc |
-| --- | --- |
-| Cost Management System | [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) |
-| Construction Knowledge Bank | [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) |
-
 ## Platform apps (2026-07-11)
 
 | App | Status |

@@ -120,7 +120,6 @@ export const ProjectOfficeCreate = z.object({
   siteAreaSqm: z.number().nonnegative().nullish(),
   contractValuePaise: z.number().int().nonnegative().default(0),
   dateStart: z.string().date().nullish(),
-  pmcEnabled: z.boolean().optional(),
 });
 export type ProjectOfficeCreate = z.infer<typeof ProjectOfficeCreate>;
 

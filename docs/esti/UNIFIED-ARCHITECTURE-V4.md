@@ -9,10 +9,9 @@
 > [AORMS-DEVELOPMENT-SPEC.md](AORMS-DEVELOPMENT-SPEC.md).
 > Naming: [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md).
 >
-> ⚠️ **Known stale (2026-07-09):** `a9cd072` removed the Knowledge Bank (`kb.*`) and CMS
-> (`cms.*`) entirely — the "System state" and pillar-4 sections below still describe
-> them as Live/Rebuilding. See [DOC-CODE-DRIFT-2026-07.md](DOC-CODE-DRIFT-2026-07.md) §3.
-> Not yet reconciled.
+> **Reconciled 2026-07-21:** `a9cd072` removed the Knowledge Bank (`kb.*`) and CMS
+> (`cms.*`) entirely; the "System state" and pillar-4 sections below now describe the
+> shipped estimation surface (Rate Books + project Estimation tab + plan takeoff).
 >
 > Future agents read this **first**. The "System state" section below is the
 > **authoritative record of what exists today** — where any other doc (ROADMAP, PRD,
@@ -68,17 +67,16 @@
 - **RIE / compliance engine** — bylaw nav, site assessments, BBMP calculator. *(GST / TDS /
   permit / COA compliance stay live; only the bylaw/RIE engine was retired.)*
 
-**Rebuilding** (the active increment — a ground-up replacement of the removed cost/estimation
-stack on a cleaner model):
-1. **Construction Knowledge Bank** (`kb`) — the reference foundation. **Live:** Material /
-   Labour / Item libraries, item-mapped Specifications, consumption Recipes, CSV import/export.
-   **Planned:** Brand layer, Vendor rates, Formula + Derivation engines.
-   Canonical: [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md).
-2. **Cost Management System** (`cms`) — the unified project cost lifecycle: Element spine
-   (EL-001 permanent identity), Estimate, BOQ, Final Estimation Set (Documents), Site
-   Measurement Book, Work Orders, Contractor Bill Certification, Material Intelligence,
-   Cost Dashboard. **CMS-1 + CMS-2 live**; CMS-3–8 planned.
-   Canonical: [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
+**Estimation & takeoff** (shipped 2026-07 — the deliberately narrow replacement for the
+removed Estimation OS / Construction Cost spine. The `kb.*` / `cms.*` rebuild that briefly
+followed the teardown was itself removed 2026-07-09; only the spec catalogue survived):
+1. **Rate Books** (`rateBooks`) — firm-level, versioned item-code / unit / rate sets
+   (Library → Rate Books), gated to `fees:manage`.
+2. **Estimation** (`estimates`) — a project's priced BOQ against one rate book, with a
+   per-item measurement book and a contingency/GST rollup (the project **Estimation** tab).
+3. **Plan measurement / takeoff** (`measurement`, `planMarkup`) — browser sheet
+   calibration + markup; quantities push into an estimate via
+   `estimate.importFromMeasurementBook`. Canonical: [NAVIGATION.md](NAVIGATION.md) § Estimation.
 
 ## What AORMS is
 
@@ -111,17 +109,17 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 
 | Pillar | What it is | Primary live namespaces / routes | Status |
 |---|---|---|---|
-| **1. Ask OS** | Conversational + cognition layer — ask the office anything, AI-assisted decisions, AI Studio, public "Ask ESTI" | `ai.*` (`ai.run`, `ai.generateCad`), `dashboard` cognition/Action Center, `companion`, public `marketing.askEsti` | ◐ |
+| **1. Ask OS** | Conversational + cognition layer — ask the office anything, AI-assisted decisions, AI Studio, public "Ask ESTI" | `ai.*` (`ai.generate`), `dashboard` cognition/Action Center, public `marketing.askEsti` | ◐ |
 | **2. Project OS** | The project as the unit of work — two heads: **Consultancy** (design) and **Project Management** (construction) | `projectOffice`, `phases`, `projectBrief`, `drawings`, `transmittals`, `approvals`, `permits`, `proposals` (absorbed `feeProposals`, migration 0116), `invoices`; `ProjectDetail.tsx` | ✅ |
 | **3. Task OS** | Everyone's work surface — tasks (billable/work-type/difficulty dimensions), assignments, workload, attendance, ASPRF | `team`, `assignments`, `workload`, `attendance`, `aspRf`, `rewards`; `Work.tsx` hub | ◐ |
-| **4. Cost Management System** | Architect cost control from estimate to certified bill — unified CMS on the Construction Knowledge Bank foundation | `kb.*` (Construction Knowledge Bank — live); `cms.*` (CMS-1+2 live: Element spine, Estimate, BOQ, Final Estimation Set; CMS-3–8 planned). Office costing (`accounts`, `expenses`, `purchaseOrders`) stays live | ◐ |
+| **4. Estimation & cost** | Design-stage cost — a priced BOQ from firm rate books, plus office costing | `rateBooks`, `estimates`, `measurement`, `planMarkup` (project Estimation tab + browser plan takeoff); office costing (`accounts`, `expenses`, `purchaseOrders`) | ✅ |
 | **5. Portals** | External collaborators on the same OS, scoped + mobile-first | `portal` (client), `collab` (consultant), `contractorPortal` (token-scoped site coordination / view-only project access); `Portal.tsx`, `CollaboratorPortal.tsx`, `ContractorPortal.tsx` | ◐ |
 | **6. AI/ML/LLM extraction & decision support** | The intelligence under the pillars — takeoff/CAD extraction, reconciliation matching, cognition, risk notes | `reconcile` + worker (`dxf_to_svg`, `reconcile_import` via `pandas`), cognition engine (ESTICAD takeoff and `ai.generateCad` retired 2026-07-19) | ◐ |
 
 ## Per-pillar: implemented vs needs-mapping vs needs-creation
 
 ### 1. Ask OS — ◐
-- **Implemented:** AI Studio + agent (`ai.run`), CAD draft generation (`ai.generateCad`, `esti_ai_run.source`), dashboard cognition engine + Action Center, public "Ask ESTI" corner (`marketing.askEsti`). Backend AI lives behind `@hcw/aorms-ai-kit` (prompts + Ollama SDK). Gated to Pro.
+- **Implemented:** AI Studio + agent (`ai.generate`), dashboard cognition engine + Action Center, public "Ask ESTI" corner (`marketing.askEsti`). Backend AI lives behind `@hcw/aorms-ai-kit` (prompts + Ollama SDK).
 - **Needs mapping:** a single "ask the office" entry that spans projects, tasks, and cost data — today cognition is dashboard-scoped and AI Studio is its own route.
 - **Needs creation:** office-wide retrieval/decision surface that reads across all pillars; per-pillar AI affordances (e.g. "explain this deviation", "draft this letter") as first-class actions.
 
@@ -141,13 +139,10 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 - **Live:** PMC + site delivery (`pmc`, `constructionSchedule`, `snags`, `siteInstructions`,
   `progressReports`, `phaseProgress`), office cash book + expenses (`accounts`, `expenses`),
   purchase orders (`purchaseOrders`).
-- **Rebuilding (active increment):** **Construction Knowledge Bank** (`kb`) is the new
-  foundation (libraries + specifications + recipes live; brands / vendor rates / formula /
-  derivation engine planned), then the **Cost Management System** (`cms`) on top of it
-  (Element spine + Estimate + BOQ + Final Set live as CMS-1/2; Measurement, Work Orders,
-  Bill Certification planned as CMS-3–8). Canonical:
-  [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
-  [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
+- **Shipped estimation:** firm **Rate Books** (`rateBooks`) price a project's
+  **Estimation** tab (`estimates`) — a priced BOQ with a per-item measurement book and a
+  contingency/GST rollup — plus browser plan measurement/takeoff (`measurement`,
+  `planMarkup`). Canonical: [NAVIGATION.md](NAVIGATION.md) § Estimation.
 
 ### 5. Portals — ◐
 - **Implemented (AORMS-Studio):** Client portal (`portal`), Consultant portal (`collab`), Contractor portal (`contractorPortal`, stub rebuild), Site portal (`SitePortal` — mobile-first site inspections). All use `ExternalPortalShell` + HCW-UI-Kit (`GlassRail`), mobile-first.
@@ -162,7 +157,7 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 
 1. **This doc** — the six pillars + the **System state** (what's live / removed / rebuilding). Authoritative on current state.
 2. [NAVIGATION.md](NAVIGATION.md) — the canonical sidebar / module placement (Canonical V3, consultancy-only).
-3. [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) + [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) — the active rebuild (cost/estimation domain).
+3. [NAVIGATION.md](NAVIGATION.md) § Estimation — the shipped cost/estimation surface (Rate Books + project Estimation tab + plan takeoff).
 4. [ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) — the two gates.
 5. [HCW-UI-KIT.md](HCW-UI-KIT.md) — the UI law for the whole product, including the landing page.
 6. [ARCHITECTURE.md](ARCHITECTURE.md) — stack/system; `CLAUDE.md` — the module map + conventions.

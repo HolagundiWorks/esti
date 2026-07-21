@@ -67,6 +67,49 @@ jobs:
           path: e2e/test-results/
           retention-days: 7
 
+  e2e:
+    name: End-to-end (full stack + demo seed)
+    runs-on: ubuntu-latest
+    # Heavy (builds the stack + boots every service) — gate to pull requests so
+    # ordinary branch pushes stay fast. The `visual` job still runs everywhere.
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - name: Boot the stack (db · redis · minio · backend · worker · frontend)
+        # Ollama is intentionally left out — AI features are not exercised by the
+        # suite and its image/model pull would dominate the job.
+        run: docker compose up -d --build db redis minio backend worker frontend
+      - name: Wait for backend + frontend
+        run: |
+          npx --yes wait-on -t 180000 http://localhost:4000/health http://localhost:5173
+      - name: Seed the demo workspace (5 personas + demo data)
+        run: docker compose exec -T backend pnpm --filter @esti/backend seed:demo
+      - name: Install Playwright (chromium)
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Run the full e2e suite
+        working-directory: e2e
+        env:
+          CI: "true"
+          AORMS_BASE_URL: http://localhost:5173
+        run: npx playwright test
+      - name: Dump backend logs on failure
+        if: failure()
+        run: docker compose logs --no-color --tail=200 backend worker || true
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-report
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+          retention-days: 7
+
   python:
     name: Python worker
     runs-on: ubuntu-latest

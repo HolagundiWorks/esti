@@ -1464,6 +1464,20 @@
       "when": 1783650035000,
       "tag": "0209_cons_reliance_revoke",
       "breakpoints": true
+    },
+    {
+      "idx": 209,
+      "version": "7",
+      "when": 1783650036000,
+      "tag": "0210_drop_pmc_enabled",
+      "breakpoints": true
+    },
+    {
+      "idx": 210,
+      "version": "7",
+      "when": 1783650037000,
+      "tag": "0211_drop_legacy_tables",
+      "breakpoints": true
     }
   ]
 }

@@ -29,7 +29,7 @@ New here? Read in this order:
 0. [AORMS-PLATFORM-NOMENCLATURE](AORMS-PLATFORM-NOMENCLATURE.md) — platform vs **AORMS-Studio** naming
 0b. [AORMS-CONSULTING-FRAMEWORKS](AORMS-CONSULTING-FRAMEWORKS.md) — philosophy + architecture/engineering operational frameworks
 1. [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) — north-star **and live system state for AORMS-Studio**
-2. [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) + [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) — the active rebuild (the old Estimation OS + Construction Cost spine + Rate Books were torn down 2026-06-28; the CMS is the unified replacement built on the Knowledge Bank foundation).
+2. [NAVIGATION](NAVIGATION.md) § Estimation — the shipped estimation surface: firm **Rate Books** (Library) price a project's **Estimation** tab (priced BOQ + measurement book + contingency/GST). The old Estimation OS, Construction Cost spine, and the CMS/Knowledge-Bank rebuild were removed (2026-06/07).
 3. [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS](PLANS-AND-TIERS.md) — role capabilities + **one standard licence** (storage, AI usage; no tiers or trials).
 4. [HCW-UI-KIT](HCW-UI-KIT.md) — **the canonical, layered design system** (`@hcw/ui-kit`), used everywhere including the landing page. [HCW-UI-UX-PRINCIPLES](HCW-UI-UX-PRINCIPLES.md) — UX laws and review checklist. [AORMS-BRANDING-KIT](AORMS-BRANDING-KIT.md) is brand heritage. `@carbon/react` was removed (2026-07).
 5. [NAVIGATION](NAVIGATION.md) — **the canonical navigation IA** (Canonical V3: Studio Intelligence · Projects · Tasks · AI Studio · Library · Studio · Third Parties · Office · Finance · LXOS · Admin).
@@ -52,8 +52,6 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | [AORMS-PRODUCT-AUTOPILOT-ROADMAP](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md) | Product pivot implementation queue |
 | [AORMS-UI-AUTOPILOT-ROADMAP](AORMS-UI-AUTOPILOT-ROADMAP.md) | Glass-rail + marketing shell rollout |
 | [HCW-UI-KIT](HCW-UI-KIT.md) | **Canonical layered design system** (`@hcw/ui-kit`) |
-| [CONSTRUCTION-KNOWLEDGE-BANK](CONSTRUCTION-KNOWLEDGE-BANK.md) | Construction-intelligence reference layer (rebuild foundation) |
-| [COST-MANAGEMENT-SYSTEM](COST-MANAGEMENT-SYSTEM.md) | **Active build** — unified CMS |
 | [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) | L1–L5 access ladder and capability matrices |
 | [PRODUCT-VISION](PRODUCT-VISION.md) | Product purpose, users, and boundaries |
 | [STABILITY-CHARTER](STABILITY-CHARTER.md) | Long-term scope discipline |
@@ -66,7 +64,7 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | [DEMO-AND-HR-MODE](DEMO-AND-HR-MODE.md) | Demo account set and midnight IST reset |
 | [INDIA-PROFILE](INDIA-PROFILE.md) | INR, FY, GST, TDS, COA constants |
 | [LICENSE-NOTICE](LICENSE-NOTICE.md) | Ownership and distribution policy |
-| [DOC-CODE-DRIFT-2026-07](DOC-CODE-DRIFT-2026-07.md) | **Known-stale** — NAVIGATION/ACCESS-HIERARCHY/UNIFIED-ARCHITECTURE-V4 items not yet reconciled to code, logged 2026-07-09 |
+| [DOC-CODE-DRIFT-2026-07](DOC-CODE-DRIFT-2026-07.md) | **Closed** — 2026-07 doc↔code drift punch-list; all items reconciled 2026-07-21 (kept as a closure log) |
 
 Build and runtime instructions: [DEVELOPMENT.md](../../DEVELOPMENT.md) · [INSTALL.md](../../INSTALL.md).
 

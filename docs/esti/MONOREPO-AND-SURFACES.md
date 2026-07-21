@@ -67,8 +67,7 @@ not in the request path of daily work. That earns a subdomain.
 ### Estimate app → cancelled
 The standalone C++ desktop and its `.aormsest` interchange are retired; nothing
 replaces them as a separate surface. Quantities now come from **browser takeoff**
-inside Cost Management. Active cost work:
-[COST-MANAGEMENT-SYSTEM.md](./COST-MANAGEMENT-SYSTEM.md).
+inside the project **Estimation** tab. See [NAVIGATION.md](./NAVIGATION.md) § Estimation.
 
 ```
         ┌──────────────────────── one monorepo ─────────────────────────┐
@@ -128,4 +127,4 @@ state DSRs.
 - **ESE** — **retired** (no `ese/` package in this monorepo).
 - **Estimate app** — not in this monorepo; cloud-only at aorms.in.
 
-See [COST-MANAGEMENT-SYSTEM.md](./COST-MANAGEMENT-SYSTEM.md) for the active CMS rebuild.
+See [NAVIGATION.md](./NAVIGATION.md) § Estimation for the shipped estimation surface.

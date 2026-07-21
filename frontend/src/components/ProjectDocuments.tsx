@@ -22,7 +22,6 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import Add from "@mui/icons-material/Add";
 import Delete from "@mui/icons-material/Delete";
 import Share from "@mui/icons-material/Share";
-import { formatINR } from "@esti/contracts";
 import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { pdfPollInterval } from "../lib/pdfUi.js";

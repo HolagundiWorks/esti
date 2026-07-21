@@ -5,11 +5,11 @@
 > This document is the single source of truth for role-based access control across all AORMS modules. Code changes to permissions must be reflected here first.
 > **Implementation source:** [`packages/contracts/src/permissions.ts`](../../packages/contracts/src/permissions.ts). Supersedes the former `ACCESS-MODEL.md` (moved to `deprecated_review/`, 2026-06-25).
 >
-> ⚠️ **Known stale (2026-07-09):** §6/§11's Project Detail tab list (Invoices tab,
-> Costing/BOQ/Estimates tab, Fee proposal tab) does not match `ProjectDetail.tsx` — see
-> [DOC-CODE-DRIFT-2026-07.md](DOC-CODE-DRIFT-2026-07.md) §2. The capability ranks
-> themselves are still the implementation source of truth; the tab names need a
-> reconciliation pass.
+> **Note:** the authoritative Project Detail tab list is [NAVIGATION.md](NAVIGATION.md)
+> § 2 Projects (source: `ProjectDetail.tsx`). Invoices (`/invoices`, `invoice:manage`)
+> and Proposals (`/office/proposals`, `fees:manage`) are **top-level routes, not project
+> tabs**; the project's cost surface is the **Estimation** tab (`fees:manage`). The
+> capability ranks below remain the implementation source of truth.
 
 ---
 
@@ -130,9 +130,7 @@ Minimum rank required per capability (defined in `packages/contracts/src/permiss
 | Drawings & transmittals | ✅ | ✅ | ✅ | ✅ | view |
 | Tasks | ✅ | ✅ | ✅ | ✅ | own only |
 | Approvals | ✅ | ✅ | ✅ | ✅ | — |
-| **Invoices tab** | ✅ | ✅ | — | — | — |
-| **Costing / BOQ / Estimates** | ✅ | ✅ | — | — | — |
-| **Fee proposal** | ✅ | ✅ | — | — | — |
+| **Estimation (BOQ)** tab (`fees:manage`) | ✅ | ✅ | — | — | — |
 | Site inspections | ✅ | ✅ | ✅ | ✅ | — |
 | Documents / specs | ✅ | ✅ | ✅ | ✅ | view |
 | Project settings (team, consultants) | ✅ | ✅ | ✅ | — | — |
@@ -254,7 +252,10 @@ Backend check: `if (!ctx.user.isSystemAdmin) throw new TRPCError({ code: 'FORBID
 
 ### Project detail tab gating
 
-Tabs rendered in `ProjectDetail.tsx`. Gate using `can(user.role, 'invoice:manage')` for Invoices / Costing / Fee proposal tabs. These tabs should not appear in the tab strip at all for L3–L5 — not just be disabled.
+Tabs rendered in `ProjectDetail.tsx`. The project **Estimation** tab is gated with
+`can(user.role, 'fees:manage')` and should not appear in the tab strip at all for L3–L5 —
+not just be disabled. Invoices and Proposals are separate top-level routes (`/invoices`,
+`/office/proposals`), not project tabs.
 
 ### ASPRF cards on dashboard
 
