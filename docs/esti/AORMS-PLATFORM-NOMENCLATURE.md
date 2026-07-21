@@ -122,6 +122,10 @@ and published. Every AORMS app — and the native tools (AiADT, Construction OS)
 **EOMS over its API** for authoritative codes and compliance data; nothing unvalidated is
 stored as truth.
 
+Full design: **[EOMS-ARCHITECTURE.md](EOMS-ARCHITECTURE.md)** — the object model, the
+continuous-learning ingestion pipeline, the API surface, and how esti / AiADT / Construction OS
+consume it.
+
 ---
 
 ## ESTI — internal AI agent
