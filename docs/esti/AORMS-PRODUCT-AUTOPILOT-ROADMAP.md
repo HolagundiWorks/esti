@@ -334,6 +334,7 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 | Date | Change |
 |------|--------|
 | 2026-07-21 | Autopilot: **P7 platform usage reporting** — `hlp_usage_report` (migration `0213`), `POST /v1/report-usage`, admin dashboard aggregates current-month reports (local singleton fallback + self-report). |
+| 2026-07-21 | Autopilot: **Transmittal acknowledgment + MDR issue link** — `esti_transmittal` ack fields + `transmittals.acknowledge`; client portal stamps ack; consultancy `recordIssueTransmittal` creates Studio TRN from issued deliverable and back-references on MDR; migration `0214`. |
 | 2026-07-21 | Autopilot: **MDR deliverable numbering** — `buildMdrDeliverableCode` / `nextMdrSequence` / validation; create allocates `{job}-{TYPE}-{seq}`; UI doc-type picker with preview; duplicate/wrong-root rejected. |
 | 2026-07-21 | Autopilot: **P9.V issue-gate coverage** — router tests for open CRS comments and RECEIVED input packs blocking ISSUED (sign-off chain already covered). |
 | 2026-07-21 | Autopilot: **P9.4 Ask digest trust boundary** — `formatConsultancyDigest` (pure): VALIDATED packs only as working assumptions, RECEIVED as holds (no source text), REJECTED omitted; capacity alerts folded into Ask grounding; unit tests. |

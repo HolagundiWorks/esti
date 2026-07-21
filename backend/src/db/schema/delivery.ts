@@ -81,6 +81,10 @@ export const transmittals = pgTable("esti_transmittal", {
   channel: text("channel").notNull(),
   dateIssued: date("date_issued"),
   notes: text("notes"),
+  /** Receiver acknowledgment (SOP §3) — one-way; stamped by staff or client portal. */
+  acknowledgedAt: timestamp("acknowledged_at", { withTimezone: true }),
+  acknowledgedBy: text("acknowledged_by"),
+  acknowledgmentNote: text("acknowledgment_note"),
   pdfKey: text("pdf_key"),
   pdfStatus: text("pdf_status").notNull().default("NONE"),
   createdById: uuid("created_by_id"),

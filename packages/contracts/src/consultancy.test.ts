@@ -24,8 +24,10 @@ import {
   buildDeliverableLineage,
   buildMdrDeliverableCode,
   capacityOutlookAlerts,
+  canRecordIssueTransmittal,
   feeStageFinancialsLocked,
   isValidMdrDeliverableCode,
+  issueClassToTransmittalPurpose,
   mayIssueDeliverable,
   missingReviewSteps,
   nextMdrSequence,
@@ -665,5 +667,44 @@ describe("MDR deliverable numbering", () => {
       ),
     ).toBe(4);
     expect(nextMdrSequence([], "C-26-001", "DRAWING")).toBe(1);
+  });
+});
+
+describe("issue transmittal gate (SOP §3)", () => {
+  it("maps issue class onto Studio transmittal purpose", () => {
+    expect(issueClassToTransmittalPurpose("FOR_INFORMATION")).toBe("FOR_INFORMATION");
+    expect(issueClassToTransmittalPurpose("FOR_APPROVAL")).toBe("FOR_APPROVAL");
+    expect(issueClassToTransmittalPurpose("FOR_CONSTRUCTION")).toBe("FOR_CONSTRUCTION");
+  });
+
+  it("requires ISSUED + linked Studio project + no existing TRN", () => {
+    expect(
+      canRecordIssueTransmittal({
+        deliverableStatus: "DRAFT",
+        existingTransmittalId: null,
+        engagementProjectId: "proj",
+      }),
+    ).toMatchObject({ ok: false });
+    expect(
+      canRecordIssueTransmittal({
+        deliverableStatus: "ISSUED",
+        existingTransmittalId: "trn",
+        engagementProjectId: "proj",
+      }),
+    ).toMatchObject({ ok: false });
+    expect(
+      canRecordIssueTransmittal({
+        deliverableStatus: "ISSUED",
+        existingTransmittalId: null,
+        engagementProjectId: null,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(
+      canRecordIssueTransmittal({
+        deliverableStatus: "ISSUED",
+        existingTransmittalId: null,
+        engagementProjectId: "proj",
+      }),
+    ).toEqual({ ok: true });
   });
 });

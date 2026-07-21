@@ -1,8 +1,9 @@
 import { z } from "zod";
 
 /**
- * Drawing transmittals — a formal record of drawings issued to a recipient,
- * with a cover-sheet PDF listing each drawing, revision and copies.
+ * Drawing / deliverable transmittals — a formal record of documents issued to a
+ * recipient, with a cover-sheet PDF and a one-way receiver acknowledgment
+ * (SOP §3 Transmittal Register).
  */
 export const TRANSMITTAL_PURPOSES = {
   FOR_APPROVAL: "For approval",
@@ -47,3 +48,31 @@ export const TransmittalCreate = z.object({
   items: z.array(TransmittalItemInput).min(1),
 });
 export type TransmittalCreate = z.infer<typeof TransmittalCreate>;
+
+/** Staff or portal stamp that the receiver acknowledged receipt. One-way. */
+export const TransmittalAcknowledge = z.object({
+  id: z.string().uuid(),
+  acknowledgedBy: z.string().trim().min(1).max(200),
+  note: z.string().trim().max(1000).optional(),
+});
+export type TransmittalAcknowledge = z.infer<typeof TransmittalAcknowledge>;
+
+export function isTransmittalAcknowledged(row: {
+  acknowledgedAt: string | Date | null | undefined;
+}): boolean {
+  return row.acknowledgedAt != null;
+}
+
+/**
+ * Pure gate for stamping acknowledgment — issued (has date) and not yet acked.
+ */
+export function canAcknowledgeTransmittal(row: {
+  dateIssued: string | Date | null | undefined;
+  acknowledgedAt: string | Date | null | undefined;
+}): { ok: true } | { ok: false; reason: string } {
+  if (!row.dateIssued)
+    return { ok: false, reason: "Only issued transmittals can be acknowledged." };
+  if (isTransmittalAcknowledged(row))
+    return { ok: false, reason: "This transmittal is already acknowledged." };
+  return { ok: true };
+}

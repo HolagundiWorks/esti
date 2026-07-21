@@ -21,6 +21,14 @@ vi.mock("../../lib/audit.js", () => ({
   writeAudit: vi.fn(async () => undefined),
 }));
 
+vi.mock("../../lib/numbering.js", () => ({
+  nextRef: vi.fn(async () => ({ ref: "TRN-0001", seq: 1 })),
+}));
+
+vi.mock("../../lib/sync/publish.js", () => ({
+  publishEntity: vi.fn(async () => undefined),
+}));
+
 import { consultancyRouter } from "./router.js";
 
 const ENG = "11111111-1111-4111-8111-111111111111";
@@ -30,6 +38,9 @@ const DEL_B = "44444444-4444-4444-8444-444444444444";
 const FEE = "55555555-5555-4555-8555-555555555555";
 const VAR = "66666666-6666-4666-8666-666666666666";
 const SHEET = "77777777-7777-4777-8777-777777777777";
+const CLIENT = "88888888-8888-4888-8888-888888888888";
+const PROJ = "99999999-9999-4999-8999-999999999999";
+const TRN = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 /** Matches `testUser()` default id — used as originatedBy / timesheet owner. */
 const ACTOR = "00000000-0000-0000-0000-000000000001";
 
@@ -109,15 +120,19 @@ function makeDb(tables: RowsByTable, opts: StubOpts = {}) {
   api.insert = (table: unknown) => {
     const name = tableName(table);
     return {
-      values: (values: unknown) => ({
-        returning: async () => {
-          inserts.push({ table: name, values });
-          if (opts.insertReturning) return opts.insertReturning(name, values);
-          const row = { id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", ...(values as object) };
-          return [row];
-        },
-        onConflictDoUpdate: () => Promise.resolve(undefined),
-      }),
+      values: (values: unknown) => {
+        inserts.push({ table: name, values });
+        return {
+          returning: async () => {
+            if (opts.insertReturning) return opts.insertReturning(name, values);
+            const row = { id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", ...(values as object) };
+            return [row];
+          },
+          onConflictDoUpdate: () => Promise.resolve(undefined),
+          then: (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) =>
+            Promise.resolve(undefined).then(resolve, reject),
+        };
+      },
     };
   };
 
@@ -170,6 +185,7 @@ function deliverable(overrides: Record<string, unknown> = {}) {
     checkCategory: "CAT1",
     status: "DRAFT",
     issuedAt: null,
+    transmittalId: null,
     originatedBy: ACTOR,
     notes: null,
     createdAt: new Date(),
@@ -649,5 +665,77 @@ describe("consultancy P9.4 — calc package lineage", () => {
       ok: true,
     });
     expect(ok.deletes).toContain("esti_cons_calc_package");
+  });
+});
+
+describe("consultancy SOP — issue transmittal (MDR back-reference)", () => {
+  function engagement(overrides: Record<string, unknown> = {}) {
+    return {
+      id: ENG,
+      code: "C-26-001",
+      title: "Tower structure",
+      clientId: CLIENT,
+      projectId: PROJ,
+      model: "DESIGN",
+      leadDiscipline: "STRUCTURAL",
+      status: "ACTIVE",
+      ...overrides,
+    };
+  }
+
+  it("refuses when deliverable is not ISSUED", async () => {
+    const { db } = makeDb({
+      "esti_cons_deliverable": [deliverable({ status: "DRAFT" })],
+      "esti_cons_engagement": [engagement()],
+    });
+    await expect(
+      caller("ASSOCIATE", db).deliverables.recordIssueTransmittal({ deliverableId: DEL }),
+    ).rejects.toMatchObject({ code: "PRECONDITION_FAILED", message: expect.stringContaining("issue first") });
+  });
+
+  it("refuses when engagement has no Studio project", async () => {
+    const { db } = makeDb({
+      "esti_cons_deliverable": [deliverable({ status: "ISSUED", issuedAt: new Date() })],
+      "esti_cons_engagement": [engagement({ projectId: null })],
+    });
+    await expect(
+      caller("ASSOCIATE", db).deliverables.recordIssueTransmittal({ deliverableId: DEL }),
+    ).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      message: expect.stringContaining("Studio project"),
+    });
+  });
+
+  it("creates Studio TRN and links the deliverable", async () => {
+    const ok = makeDb(
+      {
+        "esti_cons_deliverable": [deliverable({ status: "ISSUED", issuedAt: new Date() })],
+        "esti_cons_engagement": [engagement()],
+        "esti_client": [{ id: CLIENT, name: "Acme Developers" }],
+      },
+      {
+        insertReturning: (table, values) => {
+          if (table === "esti_transmittal") {
+            return [{ id: TRN, ref: "TRN-0001", ...(values as object) }];
+          }
+          return [{ id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", ...(values as object) }];
+        },
+      },
+    );
+    const result = await caller("ASSOCIATE", ok.db).deliverables.recordIssueTransmittal({
+      deliverableId: DEL,
+    });
+    expect(result.transmittal.ref).toBe("TRN-0001");
+    expect(result.transmittal.purpose).toBe("FOR_CONSTRUCTION");
+    expect(result.transmittal.recipient).toBe("Acme Developers");
+    expect(ok.inserts.some((i) => i.table === "esti_transmittal")).toBe(true);
+    expect(ok.inserts.some((i) => i.table === "esti_transmittal_item")).toBe(true);
+    expect(
+      ok.updates.some(
+        (u) =>
+          u.table === "esti_cons_deliverable" &&
+          (u.set as { transmittalId?: string }).transmittalId === TRN,
+      ),
+    ).toBe(true);
   });
 });
