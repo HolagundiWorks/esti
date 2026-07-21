@@ -91,7 +91,7 @@ firms on the same **`AORMS-{Name}`** pattern.
 
 **ESTI = Embedded Studio Intelligence** — the **internal AI agent** in
 **AORMS-Studio** (ESTI AI, Ask ESTI, the cognition engine, ESTI Pulse).
-**EOMS = External Operations Management System** — the **external AI agent** on the
+**EOMS = Emergent Object Management System** — the **external AI agent** on the
 AORMS platform (validates and gates content from outside sources). The codebase is delivered as a single monorepo (pnpm:
 `packages/contracts`, `backend`, `frontend`, Python `worker`) gated two ways that
 are orthogonal: **`can(role, capability)`** by *person*

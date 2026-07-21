@@ -17,7 +17,7 @@ Executable constants: `frontend/src/lib/product-nomenclature.ts`.
 | **AORMS** | **Accelerated Operational Resources Management System** — the **platform** | **AEC consulting firms** — architecture and engineering practices that advise clients; not solution delivery or construction PM |
 | **AORMS-Studio** | **Architecture app** — shipped workspace (slug `aorms-studio`) | Indian architecture & interior design consultancies |
 | **AORMS-Consultancy** | **Engineering app** — roadmap workspace (slug `aorms-consultancy`) | Structural, MEP, civil, and multidisciplinary engineering consultancies |
-| **EOMS** | **External AI agent** — *External Operations Management System* | Validates, enriches, and gates content from **outside sources** before it enters the firm knowledge base |
+| **EOMS** | **Knowledge bank** (standalone API, separate repo) — *Emergent Object Management System* | The continuously-learning catalog of standard codebooks, building & compliance codes; AORMS apps query its API to retrieve authoritative code/data |
 | **ESTI** | **Internal AI agent** — *Embedded Studio Intelligence* | Answers only from **validated firm repositories** — Ask ESTI, Studio Intelligence, ESTI Pulse (live in **AORMS-Studio**) |
 | **`esti` (codename)** | Repo name, `@esti/*` packages, `esti_*` DB tables | Engineering only — do not expose in marketing |
 
@@ -105,16 +105,22 @@ Frozen host map: [AORMS-SURFACE-URLS.md](AORMS-SURFACE-URLS.md).
 
 ---
 
-## EOMS — external AI agent
+## EOMS — the knowledge bank
 
-**EOMS** — *External Operations Management System* — is the **external AI agent** on the
-AORMS platform:
+**EOMS** — *Emergent Object Management System* — is AORMS's **continuously-learning
+knowledge bank**, delivered as a standalone **API in its own repository** (not part of
+the `esti` monorepo). It ingests, catalogs, and serves the codified knowledge every AEC
+practice depends on:
 
-- Fetches and validates content from **outside sources**
-- Enriches and gates inbound material before it enters the firm knowledge base
-- Quality layer on outbound model calls — no unvalidated external content stored as truth
+- **Standard codebooks** — IS / NBC / Eurocode and the like
+- **Building compliance** — development-control rules, zonal and bye-law regulations
+- **Other compliance codes** — fire, structural, MEP, environmental standards
 
-Every AORMS app uses **EOMS** for external intelligence intake.
+Content is stored **catalogued** so a specific code, clause, or dataset can be **retrieved**
+on demand. EOMS **learns continuously** as new editions and sources are ingested, validated,
+and published. Every AORMS app — and the native tools (AiADT, Construction OS) — query
+**EOMS over its API** for authoritative codes and compliance data; nothing unvalidated is
+stored as truth.
 
 ---
 

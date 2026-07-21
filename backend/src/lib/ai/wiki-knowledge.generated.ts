@@ -18,7 +18,7 @@ AORMS intelligence is split into **two agents**. **Do not conflate them in copy 
 
 | Agent | Name | Role |
 | --- | --- | --- |
-| **External** | **EOMS** ? External Operations Management System | Validates, enriches, and gates content from **outside sources** |
+| **External** | **EOMS** ? Emergent Object Management System | Validates, enriches, and gates content from **outside sources** |
 | **Internal** | **ESTI** ? Embedded Studio Intelligence | Answers only from **validated firm repositories** (live in **AORMS-Studio**) |
 
 ## Governing rule

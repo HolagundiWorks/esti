@@ -119,7 +119,7 @@ export const PLATFORM_APPS = [
     bullets: [
       "Engagement & deliverable frameworks",
       "Serial review & sign-off chains",
-      "EOMS · external AI agent · governed intake",
+      "EOMS · knowledge bank · codes & compliance on tap",
     ],
     workspaceSlug: AORMS_CONSULTANCY.slug,
     href: AORMS_CONSULTANCY.landingHref,
@@ -227,11 +227,19 @@ export const KNOWLEDGE_BANK_PORTAL = {
 /** @deprecated Use KNOWLEDGE_BANK_PORTAL — kept for transitional imports. */
 export const REPO_PORTAL = KNOWLEDGE_BANK_PORTAL;
 
-/** External AI agent — validates and gates outbound / external-source intelligence. */
+/**
+ * EOMS — the continuously-learning knowledge bank. A standalone API in its own
+ * repository (not the `esti` monorepo) that catalogs standard codebooks and
+ * building/compliance codes; AORMS apps and the native tools query it to
+ * retrieve authoritative code and data.
+ */
 export const EOMS = {
   name: "EOMS",
-  expansion: "External Operations Management System",
-  role: "External AI agent",
+  expansion: "Emergent Object Management System",
+  role: "Knowledge bank (standalone API)",
+  /** Lives in a separate repository, consumed over its API. */
+  external: true,
+  hosts: ["Standard codebooks", "Building compliance", "Other compliance codes"] as const,
   summary:
-    "External AI agent — fetches, validates, enriches, and gates content from outside sources before it enters the firm knowledge base.",
+    "The continuously-learning knowledge bank — a standalone API that ingests, catalogs, and serves standard codebooks and building/compliance codes so a specific code or dataset can be retrieved on demand. AORMS apps and the native tools query EOMS; ESTI answers only from the firm's own validated repositories.",
 } as const;
