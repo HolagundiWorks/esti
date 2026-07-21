@@ -109,6 +109,26 @@ export const CONS_DELIVERABLE_STATUS_TAG: Record<DeliverableStatus, TagColor> = 
 };
 
 /**
+ * Forward-only deliverable lifecycle. A revision does NOT flow ISSUED→DRAFT here
+ * — that path is `startRevision`, which clears the sign-off chain so fresh checks
+ * are re-required.
+ */
+export const DELIVERABLE_TRANSITIONS: Record<DeliverableStatus, readonly DeliverableStatus[]> = {
+  DRAFT: ["ISSUED", "WITHDRAWN"],
+  ISSUED: ["SUPERSEDED", "WITHDRAWN"],
+  SUPERSEDED: [],
+  WITHDRAWN: [],
+};
+
+export function canTransitionDeliverable(
+  from: DeliverableStatus | string,
+  to: DeliverableStatus | string,
+): boolean {
+  const allowed = DELIVERABLE_TRANSITIONS[from as DeliverableStatus];
+  return !!allowed && allowed.includes(to as DeliverableStatus);
+}
+
+/**
  * Consultancy types — the Indian consultancy market's actual patterns. Unlike
  * architecture (one COA stage ladder for every practice), consultancy work is
  * TYPED: each type has its own scope-of-work shape and its own phases. The
@@ -491,6 +511,17 @@ export const CHECK_CATEGORY_RANK: Record<CheckCategory, number> = {
   CAT3: 3,
 };
 
+/** Check category may be raised but never lowered (liability decision). */
+export function canRaiseCheckCategory(
+  from: CheckCategory | string,
+  to: CheckCategory | string,
+): boolean {
+  const a = CHECK_CATEGORY_RANK[from as CheckCategory];
+  const b = CHECK_CATEGORY_RANK[to as CheckCategory];
+  if (a === undefined || b === undefined) return false;
+  return b >= a;
+}
+
 /**
  * The review steps still outstanding before a deliverable of `checkCategory` may
  * be ISSUED, given the `recordedKinds` already on it. Unknown categories fall back
@@ -505,6 +536,74 @@ export function missingReviewSteps(
     CHECK_CATEGORY_REQUIRED_STEPS.CAT1;
   const have = new Set(recordedKinds);
   return required.filter((k) => !have.has(k));
+}
+
+/**
+ * Independence rules for recording a sign-off step (case study §3.1).
+ * Returns a human-readable refusal reason, or `null` when the act is allowed.
+ *
+ * - CHECK ≠ author; on CAT2/CAT3 also ≠ existing approver
+ * - APPROVE ≠ author; on CAT2/CAT3 also ≠ checker
+ * - VERIFY ≠ author and ≠ checker
+ */
+export function reviewStepIndependenceError(args: {
+  kind: ReviewStepKind;
+  checkCategory: string;
+  actorUserId: string;
+  originatedBy: string | null | undefined;
+  recorded: readonly { kind: string; userId: string | null | undefined }[];
+}): string | null {
+  const { kind, checkCategory, actorUserId, originatedBy, recorded } = args;
+  const checkApproveMustDiffer = checkCategory === "CAT2" || checkCategory === "CAT3";
+  const checker = recorded.find((s) => s.kind === "CHECK");
+  const approver = recorded.find((s) => s.kind === "APPROVE");
+
+  if (kind === "CHECK") {
+    if (originatedBy && originatedBy === actorUserId)
+      return "The independent check cannot be recorded by the deliverable's author.";
+    if (checkApproveMustDiffer && approver?.userId === actorUserId)
+      return `On a ${checkCategory} deliverable the check must be independent of the approver.`;
+  }
+  if (kind === "VERIFY") {
+    if ((originatedBy && originatedBy === actorUserId) || checker?.userId === actorUserId)
+      return "The proof check must be independent of both the author and the checker.";
+  }
+  if (kind === "APPROVE") {
+    if (originatedBy && originatedBy === actorUserId)
+      return "The approval (EoR sign-off) cannot be recorded by the deliverable's author.";
+    if (checkApproveMustDiffer && checker?.userId === actorUserId)
+      return `On a ${checkCategory} deliverable the approval must be independent of the checker.`;
+  }
+  return null;
+}
+
+/**
+ * Whether a deliverable may be ISSUED given its sign-off progress and hold points.
+ * Pure gate — the router still runs this inside a transaction with the status flip.
+ */
+export function mayIssueDeliverable(args: {
+  checkCategory: string;
+  recordedKinds: readonly string[];
+  openCrsCount: number;
+  receivedInputPackCount: number;
+}): { ok: true } | { ok: false; reason: string } {
+  const missing = missingReviewSteps(args.checkCategory, args.recordedKinds);
+  if (missing.length > 0)
+    return {
+      ok: false,
+      reason: `Sign-off incomplete — still need: ${missing.join(", ")}.`,
+    };
+  if (args.openCrsCount > 0)
+    return {
+      ok: false,
+      reason: `${args.openCrsCount} open comment-response sheet item(s) must be closed before issue.`,
+    };
+  if (args.receivedInputPackCount > 0)
+    return {
+      ok: false,
+      reason: `${args.receivedInputPackCount} input pack(s) are still unvalidated hold points.`,
+    };
+  return { ok: true };
 }
 
 export const ConsReviewStepCreate = z.object({
@@ -578,6 +677,105 @@ export const CONS_FEE_STAGE_STATUS_TAG: Record<FeeStageStatus, TagColor> = {
   INVOICED: "teal",
   PAID: "green",
 };
+
+/** Allowed single-step advances on the fee-stage lifecycle. */
+export const FEE_STAGE_TRANSITIONS: Record<FeeStageStatus, readonly FeeStageStatus[]> = {
+  PENDING: ["BILLABLE"],
+  BILLABLE: ["INVOICED"],
+  INVOICED: ["PAID"],
+  PAID: [],
+};
+
+/** Once invoiced (or paid), amount / deliverable link must not change. */
+export function feeStageFinancialsLocked(status: FeeStageStatus | string): boolean {
+  return status === "INVOICED" || status === "PAID";
+}
+
+export function canAdvanceFeeStage(
+  from: FeeStageStatus | string,
+  to: FeeStageStatus | string,
+): boolean {
+  const allowed = FEE_STAGE_TRANSITIONS[from as FeeStageStatus];
+  return !!allowed && allowed.includes(to as FeeStageStatus);
+}
+
+/** Chargeout at log time — rate × hours, rounded to integer paise. */
+export function timesheetValuePaise(ratePaise: number, hours: number): number {
+  return Math.round(ratePaise * hours);
+}
+
+export type FeeStageAmountRow = {
+  amountPaise: number | null | undefined;
+  status: FeeStageStatus | string;
+};
+
+export type TimesheetValueRow = {
+  hours: number | null | undefined;
+  valuePaise: number | null | undefined;
+  status?: string | null;
+};
+
+export type FeePosition = {
+  agreedPaise: number;
+  stagedPaise: number;
+  billablePaise: number;
+  invoicedPaise: number;
+  paidPaise: number;
+  outstandingPaise: number;
+  hoursBooked: number;
+  pendingApproval: number;
+  timeValuePaise: number;
+  wipPaise: number;
+};
+
+/**
+ * Engagement fee position (case study §5.2).
+ * - `invoicedPaise` = INVOICED ∪ PAID (invoiced-ever)
+ * - `outstandingPaise` = INVOICED only (receivables)
+ * - `wipPaise` = max(0, timeValue − invoiced-ever)
+ */
+export function computeFeePosition(args: {
+  agreedPaise: number | null | undefined;
+  stages: readonly FeeStageAmountRow[];
+  timesheets: readonly TimesheetValueRow[];
+}): FeePosition {
+  const sum = (rows: readonly FeeStageAmountRow[]) =>
+    rows.reduce((a, s) => a + (s.amountPaise ?? 0), 0);
+  const invoicedPaise = sum(
+    args.stages.filter((s) => s.status === "INVOICED" || s.status === "PAID"),
+  );
+  const timeValuePaise = args.timesheets.reduce((a, t) => a + (t.valuePaise ?? 0), 0);
+  return {
+    agreedPaise: args.agreedPaise ?? 0,
+    stagedPaise: sum(args.stages),
+    billablePaise: sum(args.stages.filter((s) => s.status === "BILLABLE")),
+    invoicedPaise,
+    paidPaise: sum(args.stages.filter((s) => s.status === "PAID")),
+    outstandingPaise: sum(args.stages.filter((s) => s.status === "INVOICED")),
+    hoursBooked: args.timesheets.reduce((a, t) => a + (t.hours ?? 0), 0),
+    pendingApproval: args.timesheets.filter((t) => t.status === "SUBMITTED").length,
+    timeValuePaise,
+    wipPaise: Math.max(0, timeValuePaise - invoicedPaise),
+  };
+}
+
+/**
+ * Firm WIP: per-engagement floor-then-sum (not a firm-level floor).
+ * Each engagement contributes max(0, its timeValue − its invoiced-ever).
+ */
+export function sumFirmWip(
+  perEngagement: readonly { timeValuePaise: number; invoicedPaise: number }[],
+): number {
+  return perEngagement.reduce(
+    (a, e) => a + Math.max(0, e.timeValuePaise - e.invoicedPaise),
+    0,
+  );
+}
+
+/** Realisation ratio; null when no time has been valued. */
+export function realisationRatio(invoicedPaise: number, timeValuePaise: number): number | null {
+  return timeValuePaise > 0 ? invoicedPaise / timeValuePaise : null;
+}
 
 /** SOP §8 — timesheet entries are approved weekly (named act). */
 export const TimesheetStatus = z.enum(["SUBMITTED", "APPROVED"]);
@@ -837,6 +1035,16 @@ export const VARIATION_STATUS_LABEL: Record<VariationStatus, string> = {
   REJECTED: "Rejected",
 };
 
+/** Only a proposed variation may be approved or rejected. */
+export function canDecideVariation(status: VariationStatus | string): boolean {
+  return status === "PROPOSED";
+}
+
+/** An approved variation owns a BILLABLE fee stage — delete is refused. */
+export function variationDeletionBlocked(status: VariationStatus | string): boolean {
+  return status === "APPROVED";
+}
+
 export const CONS_VARIATION_STATUS_TAG: Record<VariationStatus, TagColor> = {
   PROPOSED: "teal",
   APPROVED: "green",
@@ -855,3 +1063,147 @@ export const ConsVariationCreate = z.object({
   notes: z.string().max(4000).optional(),
 });
 export type ConsVariationCreate = z.infer<typeof ConsVariationCreate>;
+
+// ── Phase 4 — intelligence helpers (pure; router supplies the rows) ─────────
+
+/** Tokenise a free-text query for precedent scoring (lowercase word stems ≥3 chars). */
+export function tokenizePrecedentQuery(query: string): string[] {
+  return query
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 3);
+}
+
+export type PrecedentCandidate = {
+  id: string;
+  title: string;
+  consultancyType?: string | null;
+  model?: string | null;
+  stage?: string | null;
+  status?: string | null;
+  brief?: Record<string, unknown> | null;
+  deliverableTitles?: readonly string[];
+};
+
+export type PrecedentHit = {
+  id: string;
+  score: number;
+  reasons: string[];
+};
+
+/**
+ * Rank past engagements as precedents for a free-text query (type, model, title,
+ * brief values, deliverable titles). Deterministic — no LLM. Higher score first.
+ */
+export function rankPrecedentEngagements(
+  query: string,
+  candidates: readonly PrecedentCandidate[],
+  limit = 8,
+): PrecedentHit[] {
+  const tokens = tokenizePrecedentQuery(query);
+  if (tokens.length === 0) return [];
+
+  const hits: PrecedentHit[] = [];
+  for (const c of candidates) {
+    const reasons: string[] = [];
+    let score = 0;
+    const title = c.title.toLowerCase();
+    const type = (c.consultancyType ?? "").toLowerCase();
+    const model = (c.model ?? "").toLowerCase();
+    const stage = (c.stage ?? "").toLowerCase();
+    const briefBlob = c.brief
+      ? Object.values(c.brief)
+          .map((v) => String(v).toLowerCase())
+          .join(" ")
+      : "";
+    const delivBlob = (c.deliverableTitles ?? []).join(" ").toLowerCase();
+
+    for (const t of tokens) {
+      if (type === t || type.includes(t)) {
+        score += 5;
+        reasons.push(`type:${c.consultancyType}`);
+      }
+      if (model === t || model.includes(t)) {
+        score += 3;
+        reasons.push(`model:${c.model}`);
+      }
+      if (title.includes(t)) {
+        score += 2;
+        reasons.push(`title`);
+      }
+      if (stage.includes(t)) {
+        score += 1;
+        reasons.push(`stage:${c.stage}`);
+      }
+      if (briefBlob.includes(t)) {
+        score += 2;
+        reasons.push(`brief`);
+      }
+      if (delivBlob.includes(t)) {
+        score += 2;
+        reasons.push(`deliverable`);
+      }
+    }
+    if (score > 0) {
+      hits.push({
+        id: c.id,
+        score,
+        reasons: [...new Set(reasons)].slice(0, 6),
+      });
+    }
+  }
+  return hits.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id)).slice(0, limit);
+}
+
+export type DeliverableLineageStep = {
+  kind: string;
+  userName: string | null | undefined;
+  recordedAt?: string | Date | null;
+};
+
+export type DeliverableLineageFee = {
+  label: string;
+  status: string;
+  amountPaise: number | null | undefined;
+};
+
+/**
+ * Deterministic sign-off / billing lineage for one deliverable — the calc-lineage
+ * stand-in until a full calc-package model exists. Pure; no LLM.
+ */
+export function buildDeliverableLineage(args: {
+  code: string;
+  title: string;
+  status: string;
+  checkCategory: string;
+  revision: string | null | undefined;
+  steps: readonly DeliverableLineageStep[];
+  feeStages: readonly DeliverableLineageFee[];
+}): {
+  summary: string;
+  missingSteps: ReviewStepKind[];
+  chainComplete: boolean;
+} {
+  const missing = missingReviewSteps(
+    args.checkCategory,
+    args.steps.map((s) => s.kind),
+  );
+  const chain =
+    args.steps.length === 0
+      ? "no steps recorded"
+      : args.steps.map((s) => `${s.kind}:${s.userName ?? "?"}`).join(" → ");
+  const fees =
+    args.feeStages.length === 0
+      ? "no linked fee stages"
+      : args.feeStages
+          .map((f) => `${f.label} [${f.status}]`)
+          .join("; ");
+  const summary = [
+    `${args.code} "${args.title}" rev ${args.revision ?? "—"} · ${args.checkCategory} · ${args.status}`,
+    `Chain: ${chain}`,
+    missing.length ? `Outstanding: ${missing.join(", ")}` : "Chain complete for issue",
+    `Fees: ${fees}`,
+  ].join("\n");
+  return { summary, missingSteps: missing, chainComplete: missing.length === 0 };
+}

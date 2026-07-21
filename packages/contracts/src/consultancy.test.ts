@@ -14,8 +14,22 @@ import {
   EngineeringDiscipline,
   FEE_STAGE_STATUS_LABEL,
   FeeStageStatus,
+  canAdvanceFeeStage,
+  canDecideVariation,
+  canRaiseCheckCategory,
+  canTransitionDeliverable,
+  computeFeePosition,
+  buildDeliverableLineage,
+  feeStageFinancialsLocked,
+  mayIssueDeliverable,
   missingReviewSteps,
+  rankPrecedentEngagements,
+  realisationRatio,
   relianceLetterStatus,
+  reviewStepIndependenceError,
+  sumFirmWip,
+  timesheetValuePaise,
+  variationDeletionBlocked,
 } from "./consultancy.js";
 
 describe("missingReviewSteps", () => {
@@ -192,5 +206,314 @@ describe("template + label completeness", () => {
   it("exposes at least the core engineering disciplines", () => {
     expect(EngineeringDiscipline.options).toContain("STRUCTURAL");
     expect(EngineeringDiscipline.options.length).toBeGreaterThan(1);
+  });
+});
+
+describe("computeFeePosition", () => {
+  const stages = [
+    { amountPaise: 100_000, status: "PENDING" },
+    { amountPaise: 200_000, status: "BILLABLE" },
+    { amountPaise: 300_000, status: "INVOICED" },
+    { amountPaise: 400_000, status: "PAID" },
+  ];
+  const timesheets = [
+    { hours: 2, valuePaise: 50_000, status: "APPROVED" },
+    { hours: 1.5, valuePaise: 30_000, status: "SUBMITTED" },
+  ];
+
+  it("splits invoiced-ever vs outstanding receivables and floors WIP", () => {
+    const pos = computeFeePosition({ agreedPaise: 1_000_000, stages, timesheets });
+    expect(pos.agreedPaise).toBe(1_000_000);
+    expect(pos.stagedPaise).toBe(1_000_000);
+    expect(pos.billablePaise).toBe(200_000);
+    expect(pos.invoicedPaise).toBe(700_000); // INVOICED ∪ PAID
+    expect(pos.paidPaise).toBe(400_000);
+    expect(pos.outstandingPaise).toBe(300_000); // INVOICED only
+    expect(pos.hoursBooked).toBe(3.5);
+    expect(pos.pendingApproval).toBe(1);
+    expect(pos.timeValuePaise).toBe(80_000);
+    // timeValue < invoiced → WIP floors at 0
+    expect(pos.wipPaise).toBe(0);
+  });
+
+  it("reports positive WIP when time value exceeds invoiced-ever", () => {
+    const pos = computeFeePosition({
+      agreedPaise: 0,
+      stages: [{ amountPaise: 10_000, status: "INVOICED" }],
+      timesheets: [{ hours: 10, valuePaise: 50_000, status: "APPROVED" }],
+    });
+    expect(pos.wipPaise).toBe(40_000);
+  });
+});
+
+describe("sumFirmWip + realisationRatio", () => {
+  it("sums per-engagement floors (not a firm-level floor)", () => {
+    // Eng A over-invoiced (−), Eng B under-invoiced (+) — firm WIP is B only.
+    expect(
+      sumFirmWip([
+        { timeValuePaise: 10_000, invoicedPaise: 50_000 },
+        { timeValuePaise: 80_000, invoicedPaise: 20_000 },
+      ]),
+    ).toBe(60_000);
+  });
+
+  it("returns null realisation when no time has been valued", () => {
+    expect(realisationRatio(100, 0)).toBeNull();
+    expect(realisationRatio(50, 100)).toBe(0.5);
+  });
+});
+
+describe("fee stage lifecycle helpers", () => {
+  it("advances PENDING→BILLABLE→INVOICED→PAID only", () => {
+    expect(canAdvanceFeeStage("PENDING", "BILLABLE")).toBe(true);
+    expect(canAdvanceFeeStage("BILLABLE", "INVOICED")).toBe(true);
+    expect(canAdvanceFeeStage("INVOICED", "PAID")).toBe(true);
+    expect(canAdvanceFeeStage("PENDING", "INVOICED")).toBe(false);
+    expect(canAdvanceFeeStage("PAID", "INVOICED")).toBe(false);
+    expect(canAdvanceFeeStage("BILLABLE", "PENDING")).toBe(false);
+  });
+
+  it("locks financials once invoiced or paid", () => {
+    expect(feeStageFinancialsLocked("PENDING")).toBe(false);
+    expect(feeStageFinancialsLocked("BILLABLE")).toBe(false);
+    expect(feeStageFinancialsLocked("INVOICED")).toBe(true);
+    expect(feeStageFinancialsLocked("PAID")).toBe(true);
+  });
+
+  it("rounds timesheet value to integer paise", () => {
+    expect(timesheetValuePaise(150_000, 1.5)).toBe(225_000);
+    expect(timesheetValuePaise(100_000, 0.333)).toBe(33_300);
+  });
+});
+
+describe("reviewStepIndependenceError", () => {
+  const author = "u-author";
+  const checker = "u-checker";
+  const approver = "u-approver";
+
+  it("refuses author self-check / self-approve on any category", () => {
+    expect(
+      reviewStepIndependenceError({
+        kind: "CHECK",
+        checkCategory: "CAT1",
+        actorUserId: author,
+        originatedBy: author,
+        recorded: [],
+      }),
+    ).toMatch(/author/);
+    expect(
+      reviewStepIndependenceError({
+        kind: "APPROVE",
+        checkCategory: "CAT0",
+        actorUserId: author,
+        originatedBy: author,
+        recorded: [],
+      }),
+    ).toMatch(/author/);
+  });
+
+  it("on CAT1 allows one senior to both check and approve", () => {
+    expect(
+      reviewStepIndependenceError({
+        kind: "APPROVE",
+        checkCategory: "CAT1",
+        actorUserId: checker,
+        originatedBy: author,
+        recorded: [{ kind: "CHECK", userId: checker }],
+      }),
+    ).toBeNull();
+  });
+
+  it("on CAT2/CAT3 requires check ≠ approve", () => {
+    expect(
+      reviewStepIndependenceError({
+        kind: "APPROVE",
+        checkCategory: "CAT2",
+        actorUserId: checker,
+        originatedBy: author,
+        recorded: [{ kind: "CHECK", userId: checker }],
+      }),
+    ).toMatch(/independent of the checker/);
+    expect(
+      reviewStepIndependenceError({
+        kind: "CHECK",
+        checkCategory: "CAT3",
+        actorUserId: approver,
+        originatedBy: author,
+        recorded: [{ kind: "APPROVE", userId: approver }],
+      }),
+    ).toMatch(/independent of the approver/);
+  });
+
+  it("requires VERIFY independent of author and checker", () => {
+    expect(
+      reviewStepIndependenceError({
+        kind: "VERIFY",
+        checkCategory: "CAT3",
+        actorUserId: author,
+        originatedBy: author,
+        recorded: [{ kind: "CHECK", userId: checker }],
+      }),
+    ).toMatch(/author and the checker/);
+    expect(
+      reviewStepIndependenceError({
+        kind: "VERIFY",
+        checkCategory: "CAT3",
+        actorUserId: checker,
+        originatedBy: author,
+        recorded: [{ kind: "CHECK", userId: checker }],
+      }),
+    ).toMatch(/author and the checker/);
+    expect(
+      reviewStepIndependenceError({
+        kind: "VERIFY",
+        checkCategory: "CAT3",
+        actorUserId: "u-verifier",
+        originatedBy: author,
+        recorded: [
+          { kind: "CHECK", userId: checker },
+          { kind: "APPROVE", userId: approver },
+        ],
+      }),
+    ).toBeNull();
+  });
+});
+
+describe("mayIssueDeliverable", () => {
+  it("blocks on incomplete chain, open CRS, or unvalidated packs", () => {
+    expect(
+      mayIssueDeliverable({
+        checkCategory: "CAT1",
+        recordedKinds: ["CHECK"],
+        openCrsCount: 0,
+        receivedInputPackCount: 0,
+      }).ok,
+    ).toBe(false);
+    expect(
+      mayIssueDeliverable({
+        checkCategory: "CAT1",
+        recordedKinds: ["CHECK", "APPROVE"],
+        openCrsCount: 2,
+        receivedInputPackCount: 0,
+      }).ok,
+    ).toBe(false);
+    expect(
+      mayIssueDeliverable({
+        checkCategory: "CAT1",
+        recordedKinds: ["CHECK", "APPROVE"],
+        openCrsCount: 0,
+        receivedInputPackCount: 1,
+      }).ok,
+    ).toBe(false);
+  });
+
+  it("allows issue when the chain is complete and hold points are clear", () => {
+    expect(
+      mayIssueDeliverable({
+        checkCategory: "CAT3",
+        recordedKinds: ["CHECK", "APPROVE", "VERIFY"],
+        openCrsCount: 0,
+        receivedInputPackCount: 0,
+      }),
+    ).toEqual({ ok: true });
+  });
+});
+
+describe("deliverable + variation lifecycle helpers", () => {
+  it("only allows forward deliverable transitions", () => {
+    expect(canTransitionDeliverable("DRAFT", "ISSUED")).toBe(true);
+    expect(canTransitionDeliverable("DRAFT", "WITHDRAWN")).toBe(true);
+    expect(canTransitionDeliverable("ISSUED", "DRAFT")).toBe(false);
+    expect(canTransitionDeliverable("ISSUED", "SUPERSEDED")).toBe(true);
+    expect(canTransitionDeliverable("WITHDRAWN", "DRAFT")).toBe(false);
+  });
+
+  it("allows raising check category but not lowering it", () => {
+    expect(canRaiseCheckCategory("CAT1", "CAT3")).toBe(true);
+    expect(canRaiseCheckCategory("CAT2", "CAT2")).toBe(true);
+    expect(canRaiseCheckCategory("CAT3", "CAT1")).toBe(false);
+  });
+
+  it("gates variation decide/delete on status", () => {
+    expect(canDecideVariation("PROPOSED")).toBe(true);
+    expect(canDecideVariation("APPROVED")).toBe(false);
+    expect(variationDeletionBlocked("APPROVED")).toBe(true);
+    expect(variationDeletionBlocked("PROPOSED")).toBe(false);
+  });
+});
+
+describe("rankPrecedentEngagements", () => {
+  const pool = [
+    {
+      id: "e1",
+      title: "Tower A structural peer review",
+      consultancyType: "STRUCTURAL",
+      model: "PEER_REVIEW",
+      brief: { storeys: 40, seismic: "Zone III" },
+      deliverableTitles: ["Foundation GA", "Core walls"],
+    },
+    {
+      id: "e2",
+      title: "Campus HVAC design assist",
+      consultancyType: "HVAC",
+      model: "DESIGN_ASSIST",
+      brief: { tonnage: 1200 },
+      deliverableTitles: ["Chiller schedule"],
+    },
+    {
+      id: "e3",
+      title: "PEB warehouse full design",
+      consultancyType: "PEB",
+      model: "FULL_DESIGN",
+      deliverableTitles: ["Frame GA"],
+    },
+  ];
+
+  it("ranks structural peer-review hits above unrelated HVAC", () => {
+    const hits = rankPrecedentEngagements("structural peer review Zone III", pool);
+    expect(hits[0]?.id).toBe("e1");
+    expect(hits[0]!.score).toBeGreaterThan(hits.find((h) => h.id === "e2")?.score ?? 0);
+  });
+
+  it("returns empty for tiny tokens", () => {
+    expect(rankPrecedentEngagements("a to", pool)).toEqual([]);
+  });
+});
+
+describe("buildDeliverableLineage", () => {
+  it("reports outstanding VERIFY on CAT3 and lists fee stages", () => {
+    const lin = buildDeliverableLineage({
+      code: "S-01",
+      title: "Core walls",
+      status: "DRAFT",
+      checkCategory: "CAT3",
+      revision: "P01",
+      steps: [
+        { kind: "CHECK", userName: "Asha" },
+        { kind: "APPROVE", userName: "Ravi" },
+      ],
+      feeStages: [{ label: "IFC issue", status: "PENDING", amountPaise: 100_000 }],
+    });
+    expect(lin.chainComplete).toBe(false);
+    expect(lin.missingSteps).toEqual(["VERIFY"]);
+    expect(lin.summary).toContain("Outstanding: VERIFY");
+    expect(lin.summary).toContain("IFC issue [PENDING]");
+  });
+
+  it("marks the chain complete when all steps are present", () => {
+    const lin = buildDeliverableLineage({
+      code: "S-01",
+      title: "Core walls",
+      status: "ISSUED",
+      checkCategory: "CAT1",
+      revision: "C01",
+      steps: [
+        { kind: "CHECK", userName: "Asha" },
+        { kind: "APPROVE", userName: "Ravi" },
+      ],
+      feeStages: [],
+    });
+    expect(lin.chainComplete).toBe(true);
+    expect(lin.summary).toContain("Chain complete");
   });
 });

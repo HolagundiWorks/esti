@@ -263,10 +263,20 @@ export function ConsultancyEngagements() {
   const [askOpen, setAskOpen] = useState(false);
   const [askQuestion, setAskQuestion] = useState("");
   const [askAnswer, setAskAnswer] = useState<string | null>(null);
+  const [precedentQ, setPrecedentQ] = useState("");
   const ask = trpc.consultancy.intelligence.ask.useMutation({
     meta: { errorTitle: "Couldn't reach the intelligence agent" },
     onSuccess: (res) => setAskAnswer(res.answer),
   });
+  const precedentsQ = trpc.consultancy.intelligence.precedentSearch.useQuery(
+    { query: precedentQ.trim() },
+    { enabled: askOpen && precedentQ.trim().length >= 2 },
+  );
+  const [lineageFor, setLineageFor] = useState<string | null>(null);
+  const lineageQ = trpc.consultancy.intelligence.deliverableLineage.useQuery(
+    { deliverableId: lineageFor! },
+    { enabled: !!lineageFor },
+  );
   const [eomsFor, setEomsFor] = useState<string | null>(null);
   const [eomsText, setEomsText] = useState<string | null>(null);
   const eomsReview = trpc.consultancy.inputPacks.eomsReview.useMutation({
@@ -543,6 +553,7 @@ export function ConsultancyEngagements() {
                   onClick: () => {
                     setAskQuestion("");
                     setAskAnswer(null);
+                    setPrecedentQ("");
                     setAskOpen(true);
                   },
                 },
@@ -1102,6 +1113,10 @@ export function ConsultancyEngagements() {
                                   setCrsResponse("");
                                   setCrsFor(d.id);
                                 },
+                              },
+                              {
+                                label: "Sign-off lineage",
+                                onClick: () => setLineageFor(d.id),
                               },
                               ...(d.status === "DRAFT"
                                 ? [
@@ -1810,6 +1825,42 @@ export function ConsultancyEngagements() {
                 AI-generated from the record — verify against the register before relying on it.
               </span>
             )}
+            <TextField
+              id="cons-precedent"
+              label="Find precedents"
+              placeholder="e.g. structural peer review Zone III"
+              value={precedentQ}
+              onChange={(e) => setPrecedentQ(e.target.value)}
+              helperText="Deterministic match on type, model, title, brief, deliverables — no LLM"
+            />
+            {precedentsQ.isFetching && (
+              <span className="esti-label esti-label--secondary">Searching engagements…</span>
+            )}
+            {(precedentsQ.data ?? []).length > 0 && (
+              <Stack spacing={1}>
+                {precedentsQ.data!.map((h) => (
+                  <Box key={h.id} sx={{ p: 1.5, border: 1, borderColor: "divider" }}>
+                    <Typography variant="subtitle2" component="p">
+                      {h.title}
+                    </Typography>
+                    <span className="esti-label esti-label--secondary">
+                      {[h.consultancyType, h.model, h.stage, h.status]
+                        .filter(Boolean)
+                        .join(" · ")}
+                      {` · score ${h.score}`}
+                      {h.reasons.length ? ` · ${h.reasons.join(", ")}` : ""}
+                    </span>
+                  </Box>
+                ))}
+              </Stack>
+            )}
+            {precedentQ.trim().length >= 2 &&
+              !precedentsQ.isFetching &&
+              (precedentsQ.data?.length ?? 0) === 0 && (
+                <span className="esti-label esti-label--secondary">
+                  No precedent engagements matched that query.
+                </span>
+              )}
           </Stack>
         </DialogContent>
         <DialogActions>
@@ -1821,6 +1872,32 @@ export function ConsultancyEngagements() {
           >
             Ask
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Deterministic deliverable lineage (sign-off + fee stages). */}
+      <Dialog open={!!lineageFor} onClose={() => setLineageFor(null)} fullWidth maxWidth="sm">
+        <DialogTitle>Sign-off lineage</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1.5} sx={{ mt: 1 }}>
+            {lineageQ.isLoading && (
+              <span className="esti-label esti-label--secondary">Loading lineage…</span>
+            )}
+            {lineageQ.data && (
+              <Box sx={{ p: 1.5, border: 1, borderColor: "divider", whiteSpace: "pre-wrap" }}>
+                <Typography variant="body2" component="p">
+                  {lineageQ.data.summary}
+                </Typography>
+              </Box>
+            )}
+            <span className="esti-label esti-label--secondary">
+              Deterministic register walk — not an AI answer. Verify against the chain before
+              relying on it.
+            </span>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setLineageFor(null)}>Close</Button>
         </DialogActions>
       </Dialog>
 

@@ -39,12 +39,13 @@
 | [P1](#p1--licence--migration-active) | ACTIVE licence · retire tier enums | P0 | ✅ | autopilot |
 | [P2](#p2--storage-metering-5gb-default) | Storage metering · 5 GB default | P0 | ✅ | autopilot |
 | [P3](#p3--ai-meter--byo-api-key) | AI usage meter · BYO API key | P1 | ✅ | autopilot |
-| [P4](#p4--remove-community--all-desktop-apps) | Remove Community + **all** desktop apps | P1 | 🔄 code done; marketing copy pending | autopilot |
+| [P4](#p4--remove-community--all-desktop-apps) | Remove Community + **all** desktop apps | P1 | ✅ code done; P4.8 marketing copy human-pending | autopilot |
 | ~~P5~~ | ~~Estimate desktop auth~~ — **cancelled 2026-07-19** (web-only) | — | ❌ | — |
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
 | [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | 🔄 | autopilot |
 | [P8](#p8--browser-takeoff-replaces-esticad) | Browser takeoff (replaces ESTICAD) | P1 | ✅ | autopilot |
-| [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | 🔄 built, unverified | autopilot |
+| [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | 🔄 P9.V in progress | autopilot |
+| [P10](#p10--2026-07-21-hygiene--rebrand--deps) | Hygiene · rebrand · deps (landed) | P0 | ✅ | autopilot |
 
 ---
 
@@ -93,7 +94,7 @@
 | P2.2 | Enforce `withinStorage` on upload routes | ✅ `lib/storageQuota.ts` + upload routes |
 | P2.3 | Company → Storage usage bar + buy add-on hook | ✅ `CompanyAdminPanel.tsx` + `storagePurchasedBytes` |
 | P2.4 | Remove `planAllows` storage tier differences | ✅ shim always-true (`lib/plan.ts`) |
-| P2.5 | Archive closed project → reclaim space (existing flow) | ⬜ |
+| P2.5 | Archive closed project → reclaim space (existing flow) | ✅ `projectArchive` + `ArchivedProjects.tsx` (export → archive files → reclaim; restore from bundle) |
 
 **Verify:** New signup shows 5 GB; upload blocks at quota with clear error.
 
@@ -128,8 +129,8 @@
 | P4.5 | Download page | ✅ `/download` redirects to `/` — permanent, nothing to download |
 | P4.6 | Remove `env.DESKTOP` / `IS_DESKTOP` + desktop-token plumbing | ✅ 2026-07-19 — `api-base.ts` collapsed to same-origin; `auth.runtime.desktop`/`mode` kept as deprecated constants so stale clients still parse |
 | P4.7 | Purge desktop install/download plumbing: `deploy/fetch-installers.sh`, `VITE_*_DOWNLOAD_URL`, `INSTALLER_REPO`, `@tauri-apps/api`, `frontend/public/manager.html` | ✅ 2026-07-19 |
-| P4.8 | Correct docs + published marketing copy claiming a desktop app | 🔄 docs done; **LinkedIn/Instagram campaigns bannered STALE, not rewritten** — replacement copy needs a pricing/positioning decision |
-| P4.9 | **Drop ESTICAD** (native CAD companion) | ✅ 2026-07-19 — `companion` namespace, device-token auth, `ai.generateCad` + CAD draft kinds, `drawings.setScale`, `esticad://` links, Connected Devices panel all removed |
+| P4.8 | Correct docs + published marketing copy claiming a desktop app | 🔄 docs done; **LinkedIn/Instagram campaigns bannered STALE, not rewritten** — replacement copy needs a pricing/positioning decision (human) |
+| P4.9 | **Drop ESTICAD** (native CAD companion) | ✅ 2026-07-19 — companion namespace + device-token auth removed; tables dropped 2026-07-21 (`0211`) |
 
 **✅ Resolved 2026-07-19 — browser takeoff.** The ban is **lifted**: measuring in
 the browser is now the supported (and only) takeoff path. Note the charter had
@@ -138,10 +139,9 @@ already drifted from the code — on-canvas calibrate/measure shipped in
 forbade it. What was actually missing was the last hop, measurement book →
 estimate, now shipped as `estimates.importFromMeasurementBook`. See P8.
 
-**Data left in place (not dropped):** the `esti_device_session` table and the
-ESTICAD columns on `esti_measurement`. Both are inert without their writer;
-removing them needs a deliberate migration once you have confirmed no install
-still needs the rows.
+**Data left in place (not dropped):** ~~the `esti_device_session` table and the
+ESTICAD columns on `esti_measurement`~~ — **dropped 2026-07-21** in migration
+`0211_drop_legacy_tables.sql` (hygiene pass). `backup_code_hash` dropped with it.
 
 **Behaviour changes shipped with P4.6** (deliberate, both desktop-only paths):
 `bootstrap` and self-`register` are now unconditionally refused in production
@@ -257,8 +257,8 @@ time commercials, and a risk register. Design lives in
 | P9.2 | Commercial — fee agreements/stages, timesheets, rate cards, variations, WIP/realisation | ✅ built — `0186`–`0190`, `esti_cons_fee_stage`/`_timesheet`/`_rate_card`/`_variation` |
 | P9.3 | Risk — register, insurance (PI + reliance), compliance gates | ✅ built — `0191`, `esti_cons_risk`/`_insurance` |
 | P9.3b | Beyond the original plan — typed scope, engagement brief, SOP slices, CRS, field reports | ✅ built — `0192`–`0197` |
-| P9.4 | Intelligence — precedent search, calc-lineage Q&A, capacity analytics | ⬜ **not built** (doc claims shipped; no code exists) |
-| P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | ⬜ **not started** — zero tests, no review pass |
+| P9.4 | Intelligence — firm-record Q&A + EOMS input-pack review; precedent search; deliverable lineage | 🔄 **in progress** — `ask` + `eomsReview` + **`precedentSearch`** + **`deliverableLineage`** (deterministic); deeper calc-package model still open |
+| P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | 🔄 **in progress 2026-07-21** — pure money/sign-off/lifecycle helpers wired + unit-tested; still open: mutation/integration tests + human fee UX review |
 | P9.M | Marketing/launch surface — `consultancy.aorms.in`, landing copy | 🔄 landing markdown exists; launch gated on P9.V |
 
 **Risk note.** Phases 0–3 shipping without a test or review is the same setup
@@ -268,7 +268,26 @@ before this workspace is offered to a paying firm, above finishing P9.4.
 
 **Verify:** create a CONSULTANCY company → open an engagement → run a deliverable
 through its sign-off chain → raise a fee stage and a variation → issue is gated
-until the chain completes. (No automated coverage exists for any of this yet.)
+until the chain completes. Automated coverage now exists for the pure money +
+sign-off helpers; end-to-end mutation coverage is still outstanding.
+
+---
+
+## P10 — 2026-07-21 hygiene · rebrand · deps
+
+Landed on `main` as a batch of merged PRs (branches deleted). Not a product
+feature — keeps the spine honest before P9.V / P7 continue.
+
+| # | Task | Status |
+|---|------|--------|
+| P10.1 | Remove dead `WORKER_MODE=inproc` / desktop worker stub | ✅ |
+| P10.2 | Remove `pmcEnabled` flag; site supervision always-on | ✅ + migration `0210` |
+| P10.3 | Drop Construction-Cost / orphan schema drift + device sessions | ✅ + migration `0211` |
+| P10.4 | Reconcile stale docs; retire DOC-CODE-DRIFT; consultancy contract tests | ✅ |
+| P10.5 | Full Playwright e2e job on pull requests | ✅ (PR-gated in `esti-ci`) |
+| P10.6 | Major dependency upgrades + audit high+ → 0 | ✅ |
+| P10.7 | EmOI → EOMS knowledge-bank rebrand follow-ups (`AORMS-REBRANDING.md` §5) | ✅ |
+| P10.8 | Visual Playwright baselines after React 19 / branding | ⬜ regenerate snapshots |
 
 ---
 
@@ -278,14 +297,18 @@ until the chain completes. (No automated coverage exists for any of this yet.)
 P0 (human landing) ──► P1 migration ──► P2 storage
                               │
                               ├─► P3 AI key
-                              ├─► P4 remove community + ALL desktop
+                              ├─► P4 remove community + ALL desktop  (✅ code; P4.8 human)
                               ├─► P6 SEO content
-                              └─► P7 billing
+                              └─► P7 billing (P7.2 blocked on Stripe vs manual)
 
 P5 (Estimate desktop auth) — CANCELLED 2026-07-19, web-only
 
-P9 (AORMS-Consultancy) — second app on the shared spine; P0–3 built,
-   P9.V verify+review is the gate, P9.4 intelligence not built
+P8 browser takeoff — ✅
+
+P9 (AORMS-Consultancy) — Phases 0–3 built; **P9.V verify+review ACTIVE**;
+   P9.4 intelligence after P9.V
+
+P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines open)
 ```
 
 ---
@@ -298,9 +321,10 @@ P9 (AORMS-Consultancy) — second app on the shared spine; P0–3 built,
 | Plans (legacy code) | `packages/contracts/src/plans.ts` |
 | Landing shell | `frontend/src/components/landing/MarketingShell.tsx` |
 | Landing route | `frontend/src/routes/Landing.tsx` |
-| Desktop (deleting — P4.1) | `desktop/`, `.github/workflows/desktop.yml`, `deploy/fetch-installers.sh` |
-| In-browser estimating (replaces the cancelled desktop app) | `backend/src/modules/estimate/`, `backend/src/modules/rateBook/`, `frontend/src/components/ProjectEstimates.tsx` |
+| In-browser estimating | `backend/src/modules/estimate/`, `backend/src/modules/rateBook/`, `frontend/src/components/ProjectEstimates.tsx` |
+| Consultancy spine | `backend/src/modules/consultancy/router.ts`, `packages/contracts/src/consultancy.ts` (+ `.test.ts`) |
 | Firm AI settings | `backend/src/modules/firm/`, `Company.tsx` |
+| Rebrand canon | [AORMS-REBRANDING.md](AORMS-REBRANDING.md) |
 | UI rail/stage autopilot | [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md) |
 
 ---
@@ -309,6 +333,9 @@ P9 (AORMS-Consultancy) — second app on the shared spine; P0–3 built,
 
 | Date | Change |
 |------|--------|
+| 2026-07-21 | Autopilot go: shipped **precedentSearch** + **deliverableLineage** (pure rank/lineage helpers + tRPC + Find precedents UI in Ask intelligence). P9.4 advanced. |
+| 2026-07-21 | Autopilot continue: wired `mayIssueDeliverable` + deliverable/variation lifecycle helpers into the consultancy router; marked **P2.5 ✅** (project file archive reclaim already shipped); P9.4 corrected to partial (intelligence ask + EOMS pack review exist). Contracts tests 267. |
+| 2026-07-21 | **P10 hygiene/rebrand/deps landed on main** (inproc/PMC/schema drift, docs, e2e CI, major deps, EmOI→EOMS). **P9.V started:** extracted pure money + sign-off helpers into contracts, wired into the consultancy router, expanded unit tests. Glance: P4 → code-done; P9 → P9.V in progress. P4 device-session tables noted dropped via `0211`. |
 | 2026-07-20 | Added **P9 — AORMS-Consultancy** to the roadmap. Audited against code, not the design doc (which self-contradicts): Phases 0–3 are built (migrations `0183`–`0197`, ~1,200-line `consultancy` router, engagement UI + PDF, workspace-type routing); Phase 4 (intelligence) does not exist; the whole surface has zero tests and no review. Added P9.V (verify + review) as the real gate — this is the same money-critical-but-untested shape that produced the invoice/GST and estimation HIGH bugs this session. Also added the missing P8 row to the glance table. |
 | 2026-07-18 | Status audit vs code: P1/P2/P6 detail rows ticked (shipped but never checked off); P3 and P4 downgraded ✅→🔄 (BYO key unwired; desktop Manager + `ESTI_EDITION` still present); P5 marked blocked — `estimate/` app absent from repo. |
 | 2026-07-18 | P4.3/P4.4 shipped: Community edition code removed (`ESTI_EDITION`, `seedCommunity.ts`, `lanInstance.ts`, portal-login refusal); backup-code recovery kept via `lib/backupCode.ts`. P4.5 confirmed (no download page). Remaining P4: Manager teardown (P4.1 + P4.6). |

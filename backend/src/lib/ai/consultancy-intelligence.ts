@@ -57,7 +57,10 @@ export async function buildConsultancyDigest(db: DB, includeMoney: boolean): Pro
       .filter((s) => s.engagementId === e.id)
       .reduce((a, s) => a + (s.valuePaise ?? 0), 0);
     const inv = stages
-      .filter((s) => s.engagementId === e.id && s.status === "INVOICED")
+      .filter(
+        (s) =>
+          s.engagementId === e.id && (s.status === "INVOICED" || s.status === "PAID"),
+      )
       .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
     lines.push(
       `ENGAGEMENT "${e.title}" — ${e.model}${e.consultancyType ? ` (${e.consultancyType} consultancy)` : ""}, stage ${e.stage ?? "-"}, status ${e.status}.` +
