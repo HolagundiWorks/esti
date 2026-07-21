@@ -2,7 +2,7 @@
 
 AORMS stands for Accelerated Operational Resources Management System — a platform for AEC consulting firms (architecture and engineering practices that advise clients).
 
-AORMS is NOT solution delivery software and NOT construction project management. It provides an operational framework (how the office runs) and a design framework (how engagements are structured) on one spine, with two AI agents: **EmOI** (external) and **ESTI** (internal).
+AORMS is NOT solution delivery software and NOT construction project management. It provides an operational framework (how the office runs) and a design framework (how engagements are structured) on one spine, with **EOMS** (external knowledge bank) and **ESTI** (internal AI agent).
 
 Two apps on one platform:
 - **AORMS-Studio** — architecture consultancy app for Indian architecture and design consultancies (shipping)
@@ -19,7 +19,7 @@ AORMS-Studio capabilities:
 - Drawing register, transmittals and client approval workflows
 - COA fee proposals and GST invoicing with reconciliation
 - Studio Intelligence dashboard and Ask ESTI (BYO API key supported)
-- **EmOI** — external AI agent (validates outside sources); **ESTI** — internal AI agent (answers from firm repositories)
+- **EOMS** — Emergent Object Management System (knowledge bank of codes & compliance); **ESTI** — internal AI agent (answers from firm repositories)
 - Official user documentation at aorms.in/wiki
 - Cloud browser workspace at studio.aorms.in — one standard licence, unlimited users, 5 GB included storage
 

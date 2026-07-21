@@ -12,7 +12,8 @@
 >
 > **Product:** **AORMS** (**Accelerated Operational Resources Management System**) —
 > the platform for AEC consulting firms. **AORMS-Studio** — architecture app (`aorms-studio`).
-> **EOMS** — external AI agent; **ESTI** — internal AI agent (live in **AORMS-Studio**).
+> **EOMS** — Emergent Object Management System (the knowledge bank);
+> **ESTI** — internal AI agent (live in **AORMS-Studio**).
 > Code identifiers keep the `esti` codename; the platform mark is **AORMS**.
 
 ---

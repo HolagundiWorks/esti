@@ -54,7 +54,7 @@ North-star capabilities:
 - **Operational framework** — intake, process standards, rollout, adoption
 - **Design framework** — engagement methodologies, deliverable models, templates
 - Collaborative workspace (documents, channels, reviews)
-- Dual-tier AI / **EOMS** (external validation gate + internal RAG firewall)
+- Dual-tier AI / **EOMS** (knowledge bank) + **ESTI** (internal RAG)
 - Audit & compliance reporting
 - Knowledge base with semantic search
 - Analytics & operational dashboards

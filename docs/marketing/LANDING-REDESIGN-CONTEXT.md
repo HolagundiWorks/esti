@@ -26,7 +26,7 @@ The home route (`/`) presents **AORMS Development Documentation** — Version 1.
 pre-release architecture and technical specification:
 
 - Mission: consolidate consulting workflows (5–7 tools → one AI-enhanced platform)
-- **EOMS** (external AI agent) + **ESTI** (internal AI agent)
+- **EOMS** (knowledge bank) + **ESTI** (internal AI agent)
 - Feature modules, stack, roadmap
 - Target: **AEC consulting firms** 5–500 people — architecture and engineering practices
 

@@ -14,12 +14,12 @@ Public URL: https://aorms.in/wiki
 
 ### AI core ? EOMS and ESTI (aorms.in/wiki/ai-core)
 
-AORMS intelligence is split into **two agents**. **Do not conflate them in copy or configuration.**
+AORMS intelligence is split into **two tiers**. **Do not conflate them in copy or configuration.**
 
-| Agent | Name | Role |
+| Tier | Name | Role |
 | --- | --- | --- |
-| **External** | **EOMS** ? Emergent Object Management System | Validates, enriches, and gates content from **outside sources** |
-| **Internal** | **ESTI** ? Embedded Studio Intelligence | Answers only from **validated firm repositories** (live in **AORMS-Studio**) |
+| **External knowledge bank** | **EOMS** — Emergent Object Management System | Catalog of **standard codebooks and compliance codes** (standalone API) |
+| **Internal agent** | **ESTI** — Embedded Studio Intelligence | Answers only from **validated firm repositories** (live in **AORMS-Studio**) |
 
 ## Governing rule
 
@@ -27,15 +27,15 @@ AORMS intelligence is split into **two agents**. **Do not conflate them in copy 
 
 Deterministic systems create business truth. LLMs explain business truth ? they must not invent scores, predict delays directly, calculate financial state, or create unsupported recommendations.
 
-## EOMS ? external AI agent
+## EOMS — knowledge bank
 
 North-star capabilities:
 
-- **External validation gate** ? outbound model calls and inbound external content pass a quality/safety gate
-- **Enrichment & storage** ? validated external material enters the firm knowledge base (see **Knowledge Bank portal** at \`/libraries/knowledge-bank-portal\`)
-- **Workflow intelligence** ? operational signals from governed external intake
+- **Codes & compliance catalog** — standard codebooks and building/compliance codes, edition-versioned
+- **API retrieval** — AORMS apps and native tools query EOMS for authoritative code/data on demand
+- **Firm intake** — Knowledge Bank portal at \`/libraries/knowledge-bank-portal\` processes textbooks before publish to ESTI
 
-EOMS is platform-wide ? every AORMS app uses the external agent for outside intelligence.
+EOMS is platform-wide — every AORMS app can query the knowledge bank for outside standards.
 
 ## ESTI ? internal AI agent
 
@@ -98,7 +98,7 @@ The backend AI gateway supports Ollama for on-prem inference. Cloud deployments 
 | **Status** | Roadmap |
 | **Slug** | \`aorms-consultancy\` |
 | **Discipline** | Engineering |
-| **Intelligence** | **EOMS** external AI agent + **ESTI** internal AI agent when engineering app ships |
+| **Intelligence** | **EOMS** knowledge bank + **ESTI** internal AI agent when engineering app ships |
 
 ## What it shares with AORMS-Studio
 
@@ -107,13 +107,13 @@ Both apps run on the same AORMS platform spine:
 - Operational framework — intake, process standards, review chains, audit trails
 - Design framework — engagement methodologies, deliverable models, versioned templates
 - Collaboration, approval workflows, knowledge base, analytics
-- EOMS dual-tier AI — **EOMS** external agent + **ESTI** internal agent
+- Dual-tier AI — **EOMS** knowledge bank + **ESTI** internal agent
 
 ## What differs from AORMS-Studio
 
 - Discipline-specific deliverable models (calculations, reports, peer review, sign-off chains)
 - Engineering engagement templates — not architecture fee proposals or drawing registers
-- No **ESTI** (internal agent) at launch — **AORMS-Consultancy** ships **EOMS** (external agent) first; internal-agent profile follows
+- No **ESTI** (internal agent) at launch — **AORMS-Consultancy** uses **EOMS** (knowledge bank) first; internal-agent profile follows
 
 ## Platform context
 
@@ -137,7 +137,7 @@ Both apps run on the same AORMS platform spine:
 | **App URL** | [studio.aorms.in](https://studio.aorms.in) |
 | **Audience** | Registered architects, interior designers, solo practitioners, mid-sized firms |
 | **Licence** | One standard licence — unlimited users, clients, projects; 5 GB included storage |
-| **Intelligence** | **ESTI** (internal AI agent) · **EOMS** (external AI agent) on the platform |
+| **Intelligence** | **ESTI** (internal AI agent) · **EOMS** (knowledge bank) on the platform |
 
 ## What the workspace covers
 
@@ -867,7 +867,7 @@ This wiki is organised in **four domains**:
 | --- | --- |
 | **[HCW-UI](hcw-ui-kit)** | The layered design system (\`@hcw/ui-kit\`) ? flat, soft, and glass surfaces; Rail ? Stage ? Dock |
 | **[AORMS-Studio](aorms-studio)** | The shipped architecture advisory workspace ? projects, fees, revisions, drawings, portals |
-| **[AI core](ai-core)** | **EOMS** external AI agent + **ESTI** internal AI agent ? cognition engine, Ask ESTI |
+| **[AI core](ai-core)** | **EOMS** knowledge bank + **ESTI** internal AI agent — cognition engine, Ask ESTI |
 | **[Management](management)** | Finance, billing, HR, licensing, team performance, operational framework |
 
 **AORMS** (**Accelerated Operational Resources Management System**) is the platform for **AEC consulting firms**. Two apps share one spine: **AORMS-Studio** (architecture ? shipping from this repository) and **AORMS-Consultancy** (engineering ? roadmap).

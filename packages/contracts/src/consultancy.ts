@@ -775,10 +775,10 @@ export function relianceLetterStatus(
 }
 
 /**
- * EmOI input gate (architecture §1.3): external inputs are recorded and
+ * EOMS input gate (architecture §1.3): external inputs are recorded and
  * validated before they become working assumptions. An unvalidated pack is a
  * HOLD POINT — deliverables on the engagement cannot be issued past it.
- * (Named manual validation now; EmOI-assisted validation rides with Phase 4.)
+ * (Named manual validation now; EOMS-assisted validation rides with Phase 4.)
  */
 export const InputPackKind = z.enum(["ARCHITECT_PACK", "GEOTECH", "CODE", "BRIEF", "OTHER"]);
 export type InputPackKind = z.infer<typeof InputPackKind>;

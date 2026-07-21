@@ -90,7 +90,7 @@ const FAQ = [
   },
   {
     q: "What is the difference between EOMS and ESTI?",
-    a: `${EOMS.name} is the external agent — it validates and gates content from outside sources before it enters your knowledge base. ${ESTI.name} is the internal agent that answers from what has been validated.`,
+    a: `${EOMS.name} is the external knowledge bank — standard codebooks and compliance codes on tap via its API. ${ESTI.name} is the internal agent that answers only from your firm's validated repositories.`,
   },
   {
     q: "Which app ships today?",
@@ -302,26 +302,26 @@ export function Landing() {
           <Box id="ai" component="section" sx={{ py: { xs: 6, md: 9 } }}>
             <SectionHead
               eyebrow="Dual-tier AI"
-              title="Two agents. One governed knowledge base."
-              lead="Nothing reaches your firm library unvalidated, and nothing is answered from anything but validated firm knowledge."
+              title="Knowledge bank outside. Firm agent inside."
+              lead="Codes and compliance come from EOMS. Answers come only from what your firm has validated."
             />
             <Grid container spacing={3}>
-              {[EOMS, ESTI].map((agent) => (
-                <Grid key={agent.name} size={{ xs: 12, md: 6 }}>
+              {[EOMS, ESTI].map((tier) => (
+                <Grid key={tier.name} size={{ xs: 12, md: 6 }}>
                   <Surface layer="soft" sx={{ p: 3, height: "100%" }}>
                     <Stack direction="row" spacing={1.5} sx={{ alignItems: "baseline" }}>
                       <Typography variant="h5" component="h3" sx={{ fontWeight: 800 }}>
-                        {agent.name}
+                        {tier.name}
                       </Typography>
                       <Typography variant="overline" color="primary">
-                        {agent.role}
+                        {tier.role}
                       </Typography>
                     </Stack>
                     <Typography variant="caption" color="text.disabled" component="p" sx={{ mt: 0.5 }}>
-                      {agent.expansion}
+                      {tier.expansion}
                     </Typography>
                     <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
-                      {agent.summary}
+                      {tier.summary}
                     </Typography>
                   </Surface>
                 </Grid>

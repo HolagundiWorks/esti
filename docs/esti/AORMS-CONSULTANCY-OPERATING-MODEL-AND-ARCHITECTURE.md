@@ -150,8 +150,8 @@ verbatim — engineering only adds the *fee-model + timesheet* front end.
 
 ## 7. Dual-tier AI
 
-- **EOMS (external agent)** — the intake firewall: fetches, validates, enriches, and
-  **gates** codes, standards, architect packs, geotech reports, and third-party models
+- **EOMS (knowledge bank)** — the external catalog and intake path: codes, standards,
+  architect packs, geotech reports, and third-party models are recorded and validated
   before they enter the firm knowledge base or become `InputPack` assumptions.
 - **Internal agent (ESTI-equivalent, roadmap)** — answers only from validated firm
   repositories: **precedent search** (past engagements as governed patterns), **calc-lineage

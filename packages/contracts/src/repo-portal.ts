@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** Knowledge Bank portal — EmOI intake → validated firm library → ESTI RAG. */
+/** Knowledge Bank portal — EOMS intake → validated firm library → ESTI RAG. */
 export const RepoSourceStatus = z.enum([
   "DRAFT",
   "PROCESSING",
@@ -39,7 +39,7 @@ export const REPO_TEXTBOOK_MAX_BYTES = 50 * 1024 * 1024;
 
 export const REPO_SOURCE_STATUS_LABEL: Record<RepoSourceStatus, string> = {
   DRAFT: "Draft",
-  PROCESSING: "EmOI processing",
+  PROCESSING: "EOMS processing",
   REVIEW: "Ready for review",
   PUBLISHED: "Published to ESTI",
   FAILED: "Processing failed",
@@ -62,7 +62,7 @@ export const HCW_MARKDOWN_TOOL = {
   summary: "PDF to Markdown/CSV desktop app (pymupdf4llm) — offline alternative for large textbooks.",
 } as const;
 
-/** Normalize plain pasted text into markdown paragraphs for EmOI ingest. */
+/** Normalize plain pasted text into markdown paragraphs for EOMS ingest. */
 export function normalizePlainToMarkdown(text: string): string {
   const t = text.trim();
   if (!t) return t;
@@ -76,7 +76,7 @@ export function normalizePlainToMarkdown(text: string): string {
     .join("\n\n");
 }
 
-/** Canonical ingest body for EmOI — prefers converted markdown. */
+/** Canonical ingest body for EOMS — prefers converted markdown. */
 export function repoIngestMarkdown(source: {
   markdownText?: string | null;
   rawText?: string | null;
