@@ -7,9 +7,11 @@ import {
   doublePrecision,
   id,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   updatedAt,
   uuid,
 } from "./_helpers.js";
@@ -352,5 +354,79 @@ export const siteVisits = pgTable("esti_site_visit", {
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
+
+/**
+ * Studio pre-construction R&O — project risk register.
+ * See docs/esti/AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md.
+ */
+export const projectRisks = pgTable("esti_project_risk", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  likelihood: integer("likelihood").notNull().default(3),
+  impact: integer("impact").notNull().default(3),
+  owner: text("owner"),
+  response: text("response").notNull().default("REDUCE"),
+  mitigation: text("mitigation"),
+  residualLikelihood: integer("residual_likelihood"),
+  residualImpact: integer("residual_impact"),
+  status: text("status").notNull().default("OPEN"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Studio pre-construction R&O — opportunity register. */
+export const projectOpportunities = pgTable("esti_project_opportunity", {
+  id: id(),
+  projectId: uuid("project_id")
+    .notNull()
+    .references(() => projectOffices.id, { onDelete: "cascade" }),
+  linkedRiskId: uuid("linked_risk_id").references(() => projectRisks.id, {
+    onDelete: "set null",
+  }),
+  title: text("title").notNull(),
+  source: text("source").notNull().default("WORKSHOP"),
+  area: text("area").notNull().default("DESIGN"),
+  probability: integer("probability").notNull().default(3),
+  impact: integer("impact").notNull().default(3),
+  response: text("response").notNull().default("ENHANCE"),
+  owner: text("owner"),
+  actionPlan: text("action_plan"),
+  dueDate: date("due_date"),
+  valueNote: text("value_note"),
+  estimatedValuePaise: bigint("estimated_value_paise", { mode: "number" }),
+  status: text("status").notNull().default("OPEN"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Studio design-stage phase gates (not construction readiness). */
+export const projectPhaseGates = pgTable(
+  "esti_project_phase_gate",
+  {
+    id: id(),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projectOffices.id, { onDelete: "cascade" }),
+    phaseId: uuid("phase_id").references(() => phases.id, { onDelete: "set null" }),
+    gateKey: text("gate_key").notNull(),
+    checklist: jsonb("checklist").$type<Record<string, boolean>>().notNull().default({}),
+    decision: text("decision").notNull().default("PENDING"),
+    notes: text("notes"),
+    decidedBy: uuid("decided_by").references(() => users.id, { onDelete: "set null" }),
+    decidedByName: text("decided_by_name"),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => ({
+    projectGateUidx: uniqueIndex("esti_project_phase_gate_project_gate_uidx").on(
+      t.projectId,
+      t.gateKey,
+    ),
+  }),
+);
 
 export type ProjectOfficeRow = typeof projectOffices.$inferSelect;

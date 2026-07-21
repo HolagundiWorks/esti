@@ -3,13 +3,20 @@
 **Status:** Product law · **Updated:** 2026-07-21  
 **Source brief:** Pre-Construction (Planning & Design) R&O framework (stakeholder input).
 
-AORMS serves **AEC consulting firms** (architecture + engineering). It does **not**
-run construction PM, contractor delivery, CPM programmes, or tender packages.
+AORMS serves **AEC consulting firms** (architecture + engineering) across
+**AORMS-Studio** and **AORMS-Consultancy**. It does **not** run construction PM,
+contractor delivery, CPM programmes, or tender packages.
 This doc maps the pre-construction R&O brief onto what we **adopt**, **adapt**,
 and **refuse** so agents do not reintroduce the 2026-06 consultancy-only teardown.
 
+| Surface | R&O home |
+| --- | --- |
+| **AORMS-Studio** | Project → Brief → **R&O** — `esti_project_risk` · `esti_project_opportunity` · `esti_project_phase_gate` (`projectPrecon` tRPC) |
+| **AORMS-Consultancy** | Engagement detail — `esti_cons_risk` · `esti_cons_opportunity` · `esti_cons_phase_gate` |
+
 Canonical SOP map: [AORMS-CONSULTANCY-SOP-CASE-STUDY.md](AORMS-CONSULTANCY-SOP-CASE-STUDY.md).  
 Operating model: [AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md](AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md).
+Studio IA: [NAVIGATION.md](NAVIGATION.md).
 
 ---
 
@@ -17,17 +24,17 @@ Operating model: [AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md](AORMS-C
 
 | Brief area | AORMS home | Notes |
 | --- | --- | --- |
-| Business case / feasibility | Enquiry go/no-go · Project DNA | Scorecard before job number; Studio risk/feasibility read-model |
+| Business case / feasibility | Enquiry go/no-go · Project DNA · Studio R&O | Scorecard before job number; Studio risk/opportunity registers + DNA |
 | Stakeholder alignment | Clients · consultants · contractors portals | No unified “stakeholder register” yet — CRM + portals |
-| Site / geotech inputs | Input packs (`GEOTECH`, brief) · site visits | Validate before issue; observe, don’t inspect for liability |
+| Site / geotech inputs | Input packs (`GEOTECH`, brief) · site visits · Studio assessment | Validate before issue; observe, don’t inspect for liability |
 | Planning & approvals | Permits · approvals · project brief | Studio project surfaces |
-| Design management | MDR · sign-off chain · CRS · calc packages | Reliance engine |
+| Design management | MDR · sign-off chain · CRS · calc packages · Studio drawings | Reliance engine + Studio drawings/approvals |
 | Cost estimation | Rate books · project Estimation BOQ | Consultancy fee stages separate from BOQ |
 | Contract strategy | Contract review checklist (§8.2.3) · proposals | Before LOA |
-| Risk register | `esti_cons_risk` (AVOID/REDUCE/TRANSFER/ACCEPT) | Already matches brief response types |
-| Opportunity register | `esti_cons_opportunity` | **Shipped with this framework** |
-| Phase gate (go/no-go) | `esti_cons_phase_gate` | Design-stage gates — **not** construction readiness |
-| Lessons / continuous improvement | Lessons · NC/CAPA · MoM | Closeout registers |
+| Risk register | Consultancy `esti_cons_risk` · Studio `esti_project_risk` | Avoid/Reduce/Transfer/Accept on both apps |
+| Opportunity register | Consultancy + Studio opportunity tables | Exploit/Enhance/Share/Accept |
+| Phase gate (go/no-go) | Consultancy + Studio phase gates | Design-stage gates — **not** construction readiness |
+| Lessons / continuous improvement | Lessons · NC/CAPA · MoM · Studio project lessons | Closeout + Studio lessons |
 | Digital engineering (thin) | Drawings · measurement/takeoff · calc lineage · EOMS | No BIM Execution Plan module yet |
 
 ---
