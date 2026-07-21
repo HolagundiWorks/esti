@@ -629,10 +629,15 @@ export const ConsRateCardSet = z.object({
 export type ConsRateCardSet = z.infer<typeof ConsRateCardSet>;
 
 /** Period input for firm analytics (ISO dates, inclusive). */
-export const ConsAnalyticsPeriod = z.object({
-  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-});
+export const ConsAnalyticsPeriod = z
+  .object({
+    from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  })
+  .refine((p) => p.from <= p.to, {
+    message: "The period's start must be on or before its end.",
+    path: ["to"],
+  });
 export type ConsAnalyticsPeriod = z.infer<typeof ConsAnalyticsPeriod>;
 
 // ── Phase 3 — the defensibility layer (risk, PI, input gate) ────────────────
@@ -659,7 +664,7 @@ export const RISK_RESPONSE_LABEL: Record<RiskResponse, string> = {
 
 const riskScore = z.number().int().min(1).max(5);
 
-export const ConsRiskCreate = z.object({
+const ConsRiskFields = z.object({
   /** Omit for a practice-level risk. */
   engagementId: z.string().uuid().optional(),
   title: z.string().min(1).max(300),
@@ -673,9 +678,22 @@ export const ConsRiskCreate = z.object({
   residualLikelihood: riskScore.optional(),
   residualImpact: riskScore.optional(),
 });
+
+// Controls reduce risk; residual above inherent is a data error. (Update
+// enforces the same invariant server-side against the stored inherent scores,
+// since a partial update may change only one side.)
+export const ConsRiskCreate = ConsRiskFields.refine(
+  (r) =>
+    (r.residualLikelihood ?? r.likelihood) <= r.likelihood &&
+    (r.residualImpact ?? r.impact) <= r.impact,
+  {
+    message: "Residual score cannot exceed the inherent score.",
+    path: ["residualLikelihood"],
+  },
+);
 export type ConsRiskCreate = z.infer<typeof ConsRiskCreate>;
 
-export const ConsRiskUpdate = ConsRiskCreate.omit({ engagementId: true })
+export const ConsRiskUpdate = ConsRiskFields.omit({ engagementId: true })
   .partial()
   .extend({ id: z.string().uuid(), status: RiskStatus.optional() });
 export type ConsRiskUpdate = z.infer<typeof ConsRiskUpdate>;

@@ -42,7 +42,7 @@ import {
   ReviewStepKind,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, gte, inArray, isNull, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, lte, ne } from "drizzle-orm";
 import { z } from "zod";
 import {
   consDeliverables,
@@ -835,11 +835,20 @@ const timesheetsRouter = router({
 
   /** Log hours — value is snapshotted at the grade rate then in force. */
   log: manage.input(ConsTimesheetCreate).mutation(async ({ ctx, input }) => {
+    if (input.deliverableId)
+      await assertDeliverableInEngagement(ctx.db, input.deliverableId, input.engagementId);
     const [rate] = await ctx.db
       .select()
       .from(consRateCards)
       .where(eq(consRateCards.grade, input.grade));
-    const valuePaise = Math.round((rate?.ratePaise ?? 0) * input.hours);
+    // Without a rate the booking is worth ₹0, silently inflating realisation and
+    // dropping the hours out of the per-grade view. Require the rate first.
+    if (!rate || !rate.ratePaise)
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `No rate card is set for grade ${input.grade} — set the rate card before logging billable time.`,
+      });
+    const valuePaise = Math.round(rate.ratePaise * input.hours);
     const [row] = await ctx.db
       .insert(consTimesheets)
       .values({
@@ -859,6 +868,15 @@ const timesheetsRouter = router({
   }),
 
   remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [sheet] = await ctx.db.select().from(consTimesheets).where(eq(consTimesheets.id, input.id));
+    if (!sheet) throw new TRPCError({ code: "NOT_FOUND" });
+    // An approved entry is billable WIP on the fee position — deleting it erases
+    // recorded time value. Correct it by re-logging, not by silent deletion.
+    if (sheet.status === "APPROVED")
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: "This entry is approved and counted as WIP — it cannot be deleted.",
+      });
     await ctx.db.delete(consTimesheets).where(eq(consTimesheets.id, input.id));
     await writeAudit(ctx.db, { entity: "cons_timesheet", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
     return { ok: true };
@@ -875,11 +893,15 @@ const timesheetsRouter = router({
     .mutation(async ({ ctx, input }) => {
       if (!input.ids?.length && !input.engagementId)
         throw new TRPCError({ code: "BAD_REQUEST", message: "Pass entry ids or an engagementId." });
+      // Approval is an independent act — you cannot approve your own hours into
+      // billable WIP. Own entries are excluded from the batch.
+      const notOwn = ne(consTimesheets.userId, ctx.user.id);
       const where = input.ids?.length
-        ? and(inArray(consTimesheets.id, input.ids), eq(consTimesheets.status, "SUBMITTED"))
+        ? and(inArray(consTimesheets.id, input.ids), eq(consTimesheets.status, "SUBMITTED"), notOwn)
         : and(
             eq(consTimesheets.engagementId, input.engagementId!),
             eq(consTimesheets.status, "SUBMITTED"),
+            notOwn,
           );
       const rows = await ctx.db
         .update(consTimesheets)
@@ -1090,17 +1112,38 @@ const risksRouter = router({
 
   update: manage.input(ConsRiskUpdate).mutation(async ({ ctx, input }) => {
     const { id, ...rest } = input;
+    const [existing] = await ctx.db.select().from(consRisks).where(eq(consRisks.id, id));
+    if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
+    // A partial update may touch only one score; enforce residual ≤ inherent
+    // against the effective values so the heat-map can't be silently corrupted.
+    const likelihood = rest.likelihood ?? existing.likelihood ?? 1;
+    const impact = rest.impact ?? existing.impact ?? 1;
+    const resLik = rest.residualLikelihood ?? existing.residualLikelihood ?? likelihood;
+    const resImp = rest.residualImpact ?? existing.residualImpact ?? impact;
+    if (resLik > likelihood || resImp > impact)
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Residual score cannot exceed the inherent score.",
+      });
     const [row] = await ctx.db
       .update(consRisks)
       .set({ ...rest, updatedAt: new Date() })
       .where(eq(consRisks.id, id))
       .returning();
-    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
     await writeAudit(ctx.db, { entity: "cons_risk", entityId: id, action: "UPDATE", actorId: ctx.user.id, after: row });
     return row;
   }),
 
   remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [risk] = await ctx.db.select().from(consRisks).where(eq(consRisks.id, input.id));
+    if (!risk) throw new TRPCError({ code: "NOT_FOUND" });
+    // Once a risk has been managed (mitigated/closed) its mitigation history is
+    // part of the liability / PI-defence record — close it, don't delete it.
+    if (risk.status !== "OPEN")
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `This risk is ${risk.status.toLowerCase()} and is part of the liability record — it cannot be deleted.`,
+      });
     await ctx.db.delete(consRisks).where(eq(consRisks.id, input.id));
     await writeAudit(ctx.db, { entity: "cons_risk", entityId: input.id, action: "DELETE", actorId: ctx.user.id });
     return { ok: true };
@@ -1358,7 +1401,9 @@ const intelligenceRouter = router({
   ask: protectedProcedure
     .input(z.object({ question: z.string().min(3).max(2000) }))
     .mutation(async ({ ctx, input }) => {
-      const res = await askConsultancyIntelligence(ctx.db, input.question);
+      // Role-aware: non-finance callers get a money-free digest, so the agent
+      // can't be used to read fees the direct reads redact for them.
+      const res = await askConsultancyIntelligence(ctx.db, input.question, seesMoney(ctx.user.role));
       await writeAudit(ctx.db, {
         entity: "cons_intelligence",
         action: "ASK",
