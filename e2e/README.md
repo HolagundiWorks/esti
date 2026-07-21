@@ -6,9 +6,10 @@ every screen, every safe button, and PDF generation.** Standalone npm package
 
 ## Prerequisites
 
-The app must be running and reachable. By default it targets the dev demo build
-(persona login) on `http://localhost:5173` — the `esti-frontend` container. Point
-elsewhere with `AORMS_BASE_URL`.
+The app must be running and reachable. By default it targets the demo build on
+`http://localhost:5173` (seeded with `pnpm seed:demo`). Point elsewhere with
+`AORMS_BASE_URL`. Demo users sign in with email + password (`demo1234` unless
+`SEED_DEMO_PASSWORD` is set) — there is no persona picker on `/login`.
 
 ```bash
 cd e2e

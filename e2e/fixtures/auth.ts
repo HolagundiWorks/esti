@@ -1,30 +1,44 @@
 import { type Page, expect } from "@playwright/test";
 
 /**
- * The five demo personas exposed by the public/demo build's persona picker
- * (frontend/src/routes/Login.tsx). Each `match` is a unique substring of the
- * persona button label "<label> - <role>".
+ * Demo personas seeded by `pnpm seed:demo` (see docs/esti/DEMO-AND-HR-MODE.md).
+ * Login is email + password — the old "Choose a demo role" persona picker was
+ * removed with the marketing/login consolidation.
  */
 export const PERSONAS = {
-  principal: { email: "principal@demo.aorms.in", match: /Principal/i, portal: false },
-  lead: { email: "lead@demo.aorms.in", match: /Project Lead/i, portal: false },
-  site: { email: "site@demo.aorms.in", match: /Site Supervisor/i, portal: false },
-  junior: { email: "junior@demo.aorms.in", match: /Jr Architect/i, portal: false },
-  client: { email: "client@demo.aorms.in", match: /Client/i, portal: true },
+  principal: { email: "principal@demo.aorms.in", portal: false },
+  lead: { email: "lead@demo.aorms.in", portal: false },
+  site: { email: "site@demo.aorms.in", portal: false },
+  junior: { email: "junior@demo.aorms.in", portal: false },
+  client: { email: "client@demo.aorms.in", portal: true },
 } as const;
 export type PersonaKey = keyof typeof PERSONAS;
 
-/** Sign in via the demo persona picker; resolves once the picker is gone (the
- *  SPA has navigated into the authenticated shell). */
+/** Default demo password (`SEED_DEMO_PASSWORD`, compose default `demo1234`). */
+export const DEMO_PASSWORD = process.env.SEED_DEMO_PASSWORD ?? "demo1234";
+
+/**
+ * Sign in via the email/password form on `/login`. After credentials succeed the
+ * page may show "Choose where to go" — click **Open workspace** to enter the
+ * staff/portal shell. Resolves once `/login` is left.
+ */
 export async function loginAs(page: Page, persona: PersonaKey): Promise<void> {
   const p = PERSONAS[persona];
-  // The persona picker is the /login route (the demo build's "/" is the public
-  // landing page with differently-labelled marketing cards).
   await page.goto("/login");
-  const button = page.getByRole("button", { name: p.match });
-  await expect(button.first()).toBeVisible({ timeout: 15_000 });
-  await button.first().click();
-  await expect(page.getByText("Choose a demo role")).toHaveCount(0, { timeout: 20_000 });
+  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible({
+    timeout: 15_000,
+  });
+  await page.locator("#email").fill(p.email);
+  await page.locator("#password").fill(DEMO_PASSWORD);
+  await page.getByRole("button", { name: "Sign in" }).click();
+
+  // Post-auth chooser (workspace / account / company) — staff and client both
+  // get "Open workspace" as the primary entry into the product shell.
+  const openWorkspace = page.getByRole("button", { name: "Open workspace" });
+  await expect(openWorkspace).toBeVisible({ timeout: 20_000 });
+  await openWorkspace.click();
+
+  await expect(page).not.toHaveURL(/\/login\b/, { timeout: 20_000 });
   await page.waitForLoadState("networkidle").catch(() => {});
 }
 
