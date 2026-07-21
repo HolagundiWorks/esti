@@ -44,7 +44,7 @@
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
 | [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | 🔄 | autopilot |
 | [P8](#p8--browser-takeoff-replaces-esticad) | Browser takeoff (replaces ESTICAD) | P1 | ✅ | autopilot |
-| [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | 🔄 P9.V in progress | autopilot |
+| [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | 🔄 P9.V human fee UX; P9.4 ✅ | autopilot |
 | [P10](#p10--2026-07-21-hygiene--rebrand--deps) | Hygiene · rebrand · deps (landed) | P0 | ✅ | autopilot |
 
 ---
@@ -257,7 +257,7 @@ time commercials, and a risk register. Design lives in
 | P9.2 | Commercial — fee agreements/stages, timesheets, rate cards, variations, WIP/realisation | ✅ built — `0186`–`0190`, `esti_cons_fee_stage`/`_timesheet`/`_rate_card`/`_variation` |
 | P9.3 | Risk — register, insurance (PI + reliance), compliance gates | ✅ built — `0191`, `esti_cons_risk`/`_insurance` |
 | P9.3b | Beyond the original plan — typed scope, engagement brief, SOP slices, CRS, field reports | ✅ built — `0192`–`0197` |
-| P9.4 | Intelligence — firm-record Q&A + EOMS input-pack review; precedent search; deliverable lineage | 🔄 **in progress** — `ask` + `eomsReview` + **`precedentSearch`** + **`deliverableLineage`** + **`calcPackages`** + **EOMS compliance UI** + **`analytics.capacityOutlook`**; remaining polish/ask UX |
+| P9.4 | Intelligence — firm-record Q&A + EOMS input-pack review; precedent search; deliverable lineage | ✅ **code-complete 2026-07-21** — `ask` + `eomsReview` + **`precedentSearch`** + **`deliverableLineage`** + **`calcPackages`** + **EOMS compliance UI** + **`analytics.capacityOutlook`** + Ask digest trust boundary (validated packs + capacity alerts) |
 | P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | 🔄 **in progress 2026-07-21** — pure helpers + **mutation wiring tests** (`backend/src/modules/consultancy/router.test.ts`); still open: human fee UX review |
 | P9.M | Marketing/launch surface — `consultancy.aorms.in`, landing copy | 🔄 landing markdown exists; launch gated on P9.V |
 
@@ -335,6 +335,7 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 
 | Date | Change |
 |------|--------|
+| 2026-07-21 | Autopilot: **P9.4 Ask digest trust boundary** — `formatConsultancyDigest` (pure): VALIDATED packs only as working assumptions, RECEIVED as holds (no source text), REJECTED omitted; capacity alerts folded into Ask grounding; unit tests. |
 | 2026-07-21 | Autopilot: **P9.4 capacity analytics** — `buildCapacityOutlook` / `capacityOutlookAlerts` + `consultancy.analytics.capacityOutlook`; engagement rail shows TIGHT/OVER alerts from trailing timesheets × rate-card capacity. |
 | 2026-07-21 | Autopilot: **P9.4 EOMS compliance UI** — `EomsCompliancePanel` on Knowledge Bank portal (`eoms.status` / sources / resolve / rules); fail-safe offline state. |
 | 2026-07-21 | Autopilot: **P9.4 calc-package lineage** — `esti_cons_calc_package` (migration `0212`), `consultancy.calcPackages` CRUD + status advances, engagement detail + lineage summary, contracts helpers/tests. D4: track only, no in-app engine. |
