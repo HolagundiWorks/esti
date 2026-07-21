@@ -1,13 +1,17 @@
 import { test } from "@playwright/test";
+import { loginAs } from "../fixtures/auth.js";
 import { createInModule } from "../fixtures/crud.js";
 
 /**
  * "Each item entered" — a real create round-trip per module: open the New-X
  * modal, fill it, submit, and verify the create (token lands in the list, or for
- * auto-numbered/project-scoped docs the modal closes cleanly). Reuses the saved
- * session (crud project). Created records carry an "E2E …" name + timestamp so
- * they're identifiable in the demo DB.
+ * auto-numbered/project-scoped docs the modal closes cleanly). Created records
+ * carry an "E2E …" name + timestamp so they're identifiable in the demo DB.
  */
+test.beforeEach(async ({ page }) => {
+  await loginAs(page, "principal");
+});
+
 const STAMP = Date.now();
 
 type Verify = "token" | "closed";

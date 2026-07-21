@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { loginAs, isCrashed } from "../fixtures/auth.js";
+import { loginAs, isCrashed, waitForOfficeRoute } from "../fixtures/auth.js";
 
 /** High-traffic routes for automated WCAG checks (critical + serious only). */
 const AXE_ROUTES = ["/", "/projects", "/search", "/tasks", "/office/ai-studio"] as const;
@@ -13,7 +13,7 @@ test.describe("accessibility — axe", () => {
   for (const route of AXE_ROUTES) {
     test(`no critical/serious violations on ${route}`, async ({ page }) => {
       await page.goto(route);
-      await page.waitForLoadState("networkidle").catch(() => {});
+      await waitForOfficeRoute(page);
       expect(await isCrashed(page), `${route} crashed before axe could run`).toBe(false);
 
       const results = await new AxeBuilder({ page })
