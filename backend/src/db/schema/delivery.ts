@@ -161,34 +161,3 @@ export const drawings = pgTable("esti_drawing", {
   updatedAt: updatedAt(),
 });
 
-/** Calibrated measurements taken on a drawing — the project's takeoff lines. */
-export const measurements = pgTable("esti_measurement", {
-  id: id(),
-  drawingId: uuid("drawing_id")
-    .notNull()
-    .references(() => drawings.id),
-  projectId: uuid("project_id")
-    .notNull()
-    .references(() => projectOffices.id),
-  label: text("label").notNull(),
-  kind: text("kind").notNull().default("LINEAR"),
-  vbLength: doublePrecision("vb_length").notNull().default(0),
-  realLength: doublePrecision("real_length").notNull().default(0),
-  unit: text("unit").notNull(),
-  elementTypeId: text("element_type_id"),
-  elementCategory: text("element_category"),
-  heightMm: integer("height_mm"),
-  itemCount: integer("item_count").notNull().default(1),
-  boqQty: doublePrecision("boq_qty"),
-  boqUnit: text("boq_unit"),
-  boqDescription: text("boq_description"),
-  /** Origin client — legacy web rows use WEB; ESTICAD rows use ESTICAD. */
-  source: text("source").notNull().default("WEB"),
-  /** Points, polylines, polygons in drawing world units (ESTICAD). */
-  worldGeometry: jsonb("world_geometry"),
-  /** Stable ESTICAD entity IDs tied to the measurement. */
-  entityRefs: jsonb("entity_refs"),
-  scaleWorldUnits: text("scale_world_units"),
-  createdByClient: text("created_by_client"),
-  createdAt: createdAt(),
-});

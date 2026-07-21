@@ -442,12 +442,9 @@ export const authRouter = router({
   /**
    * `recoverWithBackupCode` removed 2026-07-20. It was Community edition's
    * offline recovery, and its only issuer was the first-run seed deleted with
-   * that edition — so no account has ever held a code since, every call could
-   * only fail, and the /recover page advertised a route that could not work.
-   * Password recovery is `requestPasswordReset` / `resetPassword` over email.
-   *
-   * The all-NULL `esti_user.backup_code_hash` column is left in place; dropping
-   * it belongs in a deliberate cleanup migration.
+   * that edition — so no account has ever held a code since. Password recovery
+   * is `requestPasswordReset` / `resetPassword` over email. The all-NULL
+   * `esti_user.backup_code_hash` column was dropped in migration 0211.
    */
 
   /** Wipe and re-seed the demo workspace. Only callable while logged in as a demo user. */
