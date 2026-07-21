@@ -1007,6 +1007,63 @@ export const ConsInputPackCreate = z.object({
 });
 export type ConsInputPackCreate = z.infer<typeof ConsInputPackCreate>;
 
+// ── Phase 4 / P9.4 — CalculationPackage lineage (architecture D4) ─────────────
+
+/**
+ * Reproducible calc trail — inputs, assumptions, code refs, outputs. The firm's
+ * tools compute; AORMS only governs what was computed and relied on.
+ */
+export const CalcPackageStatus = z.enum(["DRAFT", "CURRENT", "SUPERSEDED"]);
+export type CalcPackageStatus = z.infer<typeof CalcPackageStatus>;
+
+export const CALC_PACKAGE_STATUS_LABEL: Record<CalcPackageStatus, string> = {
+  DRAFT: "Draft",
+  CURRENT: "Current",
+  SUPERSEDED: "Superseded",
+};
+
+export const CONS_CALC_PACKAGE_STATUS_TAG: Record<CalcPackageStatus, TagColor> = {
+  DRAFT: "blue",
+  CURRENT: "green",
+  SUPERSEDED: "gray",
+};
+
+/** Allowed status advances for a calc package (no revive from SUPERSEDED). */
+export function canAdvanceCalcPackage(
+  from: CalcPackageStatus | string,
+  to: CalcPackageStatus | string,
+): boolean {
+  if (from === to) return false;
+  if (from === "DRAFT" && (to === "CURRENT" || to === "SUPERSEDED")) return true;
+  if (from === "CURRENT" && to === "SUPERSEDED") return true;
+  return false;
+}
+
+export const ConsCalcPackageCreate = z.object({
+  engagementId: z.string().uuid(),
+  /** Optional link to the issuable deliverable this calc supports. */
+  deliverableId: z.string().uuid().optional(),
+  /** Optional link to the validated InputPack whose assumptions feed this calc. */
+  inputPackId: z.string().uuid().optional(),
+  code: z.string().min(1).max(80),
+  title: z.string().min(1).max(300),
+  revision: z.string().min(1).max(12).default("P01"),
+  softwareTool: z.string().max(120).optional(),
+  codeRefs: z.string().max(4000).optional(),
+  assumptions: z.string().max(8000).optional(),
+  inputsSummary: z.string().max(8000).optional(),
+  outputsSummary: z.string().max(8000).optional(),
+  note: z.string().max(2000).optional(),
+});
+export type ConsCalcPackageCreate = z.infer<typeof ConsCalcPackageCreate>;
+
+export const ConsCalcPackageUpdate = ConsCalcPackageCreate.omit({ engagementId: true })
+  .partial()
+  .extend({
+    id: z.string().uuid(),
+  });
+export type ConsCalcPackageUpdate = z.infer<typeof ConsCalcPackageUpdate>;
+
 /** A timesheet entry — hours booked to engagement (× deliverable) at a grade. */
 export const ConsTimesheetCreate = z.object({
   engagementId: z.string().uuid(),
@@ -1168,9 +1225,16 @@ export type DeliverableLineageFee = {
   amountPaise: number | null | undefined;
 };
 
+export type DeliverableLineageCalc = {
+  code: string;
+  title: string;
+  status: string;
+  revision: string | null | undefined;
+};
+
 /**
- * Deterministic sign-off / billing lineage for one deliverable — the calc-lineage
- * stand-in until a full calc-package model exists. Pure; no LLM.
+ * Deterministic sign-off / billing / calc lineage for one deliverable.
+ * Pure; no LLM. Calc packages are the D4 trail (inputs → assumptions → outputs).
  */
 export function buildDeliverableLineage(args: {
   code: string;
@@ -1180,6 +1244,7 @@ export function buildDeliverableLineage(args: {
   revision: string | null | undefined;
   steps: readonly DeliverableLineageStep[];
   feeStages: readonly DeliverableLineageFee[];
+  calcPackages?: readonly DeliverableLineageCalc[];
 }): {
   summary: string;
   missingSteps: ReviewStepKind[];
@@ -1199,11 +1264,17 @@ export function buildDeliverableLineage(args: {
       : args.feeStages
           .map((f) => `${f.label} [${f.status}]`)
           .join("; ");
+  const calcs = args.calcPackages ?? [];
+  const calcLine =
+    calcs.length === 0
+      ? "no calc packages"
+      : calcs.map((c) => `${c.code} rev ${c.revision ?? "—"} [${c.status}]`).join("; ");
   const summary = [
     `${args.code} "${args.title}" rev ${args.revision ?? "—"} · ${args.checkCategory} · ${args.status}`,
     `Chain: ${chain}`,
     missing.length ? `Outstanding: ${missing.join(", ")}` : "Chain complete for issue",
     `Fees: ${fees}`,
+    `Calcs: ${calcLine}`,
   ].join("\n");
   return { summary, missingSteps: missing, chainComplete: missing.length === 0 };
 }

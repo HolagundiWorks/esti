@@ -35,8 +35,13 @@ are **not** current product state — see system state below.
 
 ## Next (product autopilot)
 
+<<<<<<< HEAD
 1. **P9.V** — human fee UX review (mutation wiring tests landed; pure helpers + router stubs green)
 2. **P9.4** — deepen consultancy intelligence (calc-package model); optional: surface `eoms.*` compliance reads in UI after P9.V
+=======
+1. **P9.V** — finish mutation/integration coverage + human fee UX review (active)
+2. **P9.4** — calc-package lineage shipped; optional: surface `eoms.*` compliance reads; capacity analytics after P9.V
+>>>>>>> b002423f (feat(consultancy): P9.4 CalculationPackage lineage (D4))
 3. **P4.8** — human: replace stale social/campaign desktop copy
 4. **P7.2** — billing (blocked on Stripe vs manual invoice decision)
 5. **P10.8** — ✅ visual suite retargeted + linux baselines regenerated (2026-07-21)
