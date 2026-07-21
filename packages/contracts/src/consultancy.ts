@@ -1063,3 +1063,147 @@ export const ConsVariationCreate = z.object({
   notes: z.string().max(4000).optional(),
 });
 export type ConsVariationCreate = z.infer<typeof ConsVariationCreate>;
+
+// ── Phase 4 — intelligence helpers (pure; router supplies the rows) ─────────
+
+/** Tokenise a free-text query for precedent scoring (lowercase word stems ≥3 chars). */
+export function tokenizePrecedentQuery(query: string): string[] {
+  return query
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 3);
+}
+
+export type PrecedentCandidate = {
+  id: string;
+  title: string;
+  consultancyType?: string | null;
+  model?: string | null;
+  stage?: string | null;
+  status?: string | null;
+  brief?: Record<string, unknown> | null;
+  deliverableTitles?: readonly string[];
+};
+
+export type PrecedentHit = {
+  id: string;
+  score: number;
+  reasons: string[];
+};
+
+/**
+ * Rank past engagements as precedents for a free-text query (type, model, title,
+ * brief values, deliverable titles). Deterministic — no LLM. Higher score first.
+ */
+export function rankPrecedentEngagements(
+  query: string,
+  candidates: readonly PrecedentCandidate[],
+  limit = 8,
+): PrecedentHit[] {
+  const tokens = tokenizePrecedentQuery(query);
+  if (tokens.length === 0) return [];
+
+  const hits: PrecedentHit[] = [];
+  for (const c of candidates) {
+    const reasons: string[] = [];
+    let score = 0;
+    const title = c.title.toLowerCase();
+    const type = (c.consultancyType ?? "").toLowerCase();
+    const model = (c.model ?? "").toLowerCase();
+    const stage = (c.stage ?? "").toLowerCase();
+    const briefBlob = c.brief
+      ? Object.values(c.brief)
+          .map((v) => String(v).toLowerCase())
+          .join(" ")
+      : "";
+    const delivBlob = (c.deliverableTitles ?? []).join(" ").toLowerCase();
+
+    for (const t of tokens) {
+      if (type === t || type.includes(t)) {
+        score += 5;
+        reasons.push(`type:${c.consultancyType}`);
+      }
+      if (model === t || model.includes(t)) {
+        score += 3;
+        reasons.push(`model:${c.model}`);
+      }
+      if (title.includes(t)) {
+        score += 2;
+        reasons.push(`title`);
+      }
+      if (stage.includes(t)) {
+        score += 1;
+        reasons.push(`stage:${c.stage}`);
+      }
+      if (briefBlob.includes(t)) {
+        score += 2;
+        reasons.push(`brief`);
+      }
+      if (delivBlob.includes(t)) {
+        score += 2;
+        reasons.push(`deliverable`);
+      }
+    }
+    if (score > 0) {
+      hits.push({
+        id: c.id,
+        score,
+        reasons: [...new Set(reasons)].slice(0, 6),
+      });
+    }
+  }
+  return hits.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id)).slice(0, limit);
+}
+
+export type DeliverableLineageStep = {
+  kind: string;
+  userName: string | null | undefined;
+  recordedAt?: string | Date | null;
+};
+
+export type DeliverableLineageFee = {
+  label: string;
+  status: string;
+  amountPaise: number | null | undefined;
+};
+
+/**
+ * Deterministic sign-off / billing lineage for one deliverable — the calc-lineage
+ * stand-in until a full calc-package model exists. Pure; no LLM.
+ */
+export function buildDeliverableLineage(args: {
+  code: string;
+  title: string;
+  status: string;
+  checkCategory: string;
+  revision: string | null | undefined;
+  steps: readonly DeliverableLineageStep[];
+  feeStages: readonly DeliverableLineageFee[];
+}): {
+  summary: string;
+  missingSteps: ReviewStepKind[];
+  chainComplete: boolean;
+} {
+  const missing = missingReviewSteps(
+    args.checkCategory,
+    args.steps.map((s) => s.kind),
+  );
+  const chain =
+    args.steps.length === 0
+      ? "no steps recorded"
+      : args.steps.map((s) => `${s.kind}:${s.userName ?? "?"}`).join(" → ");
+  const fees =
+    args.feeStages.length === 0
+      ? "no linked fee stages"
+      : args.feeStages
+          .map((f) => `${f.label} [${f.status}]`)
+          .join("; ");
+  const summary = [
+    `${args.code} "${args.title}" rev ${args.revision ?? "—"} · ${args.checkCategory} · ${args.status}`,
+    `Chain: ${chain}`,
+    missing.length ? `Outstanding: ${missing.join(", ")}` : "Chain complete for issue",
+    `Fees: ${fees}`,
+  ].join("\n");
+  return { summary, missingSteps: missing, chainComplete: missing.length === 0 };
+}

@@ -20,6 +20,8 @@ import {
   timesheetValuePaise,
   sumFirmWip,
   realisationRatio,
+  rankPrecedentEngagements,
+  buildDeliverableLineage,
   CONSULTANCY_SCOPE_TEMPLATES,
   can,
   ConsBriefSet,
@@ -1411,6 +1413,84 @@ const intelligenceRouter = router({
         after: { question: input.question, provider: res.provider, model: res.model },
       });
       return res;
+    }),
+
+  /**
+   * Deterministic precedent search over past engagements (no LLM). Scores type,
+   * model, title, brief, and deliverable titles against the query tokens.
+   */
+  precedentSearch: protectedProcedure
+    .input(z.object({ query: z.string().min(2).max(200), limit: z.number().int().min(1).max(20).default(8) }))
+    .query(async ({ ctx, input }) => {
+      const engagements = await ctx.db.select().from(consEngagements);
+      const deliverables = await ctx.db.select().from(consDeliverables);
+      const candidates = engagements.map((e) => ({
+        id: e.id,
+        title: e.title,
+        consultancyType: e.consultancyType,
+        model: e.model,
+        stage: e.stage,
+        status: e.status,
+        brief: (e.brief as Record<string, unknown> | null) ?? null,
+        deliverableTitles: deliverables
+          .filter((d) => d.engagementId === e.id)
+          .map((d) => d.title),
+      }));
+      const hits = rankPrecedentEngagements(input.query, candidates, input.limit);
+      const byId = new Map(engagements.map((e) => [e.id, e]));
+      return hits.map((h) => {
+        const e = byId.get(h.id)!;
+        return {
+          id: e.id,
+          title: e.title,
+          consultancyType: e.consultancyType,
+          model: e.model,
+          stage: e.stage,
+          status: e.status,
+          score: h.score,
+          reasons: h.reasons,
+        };
+      });
+    }),
+
+  /** Deterministic sign-off / fee lineage for one deliverable (calc-lineage stand-in). */
+  deliverableLineage: protectedProcedure
+    .input(z.object({ deliverableId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [d] = await ctx.db
+        .select()
+        .from(consDeliverables)
+        .where(eq(consDeliverables.id, input.deliverableId));
+      if (!d) throw new TRPCError({ code: "NOT_FOUND" });
+      const steps = await ctx.db
+        .select()
+        .from(consReviewSteps)
+        .where(eq(consReviewSteps.deliverableId, d.id));
+      const feeStages = await ctx.db
+        .select()
+        .from(consFeeStages)
+        .where(eq(consFeeStages.deliverableId, d.id));
+      const money = seesMoney(ctx.user.role);
+      const lineage = buildDeliverableLineage({
+        code: d.code,
+        title: d.title,
+        status: d.status,
+        checkCategory: d.checkCategory,
+        revision: d.revision,
+        steps,
+        feeStages: money
+          ? feeStages
+          : feeStages.map((f) => ({ ...f, amountPaise: null })),
+      });
+      return {
+        deliverableId: d.id,
+        engagementId: d.engagementId,
+        ...lineage,
+        feeStages: money
+          ? feeStages
+          : feeStages.map((f) => ({ ...f, amountPaise: null })),
+        steps,
+      };
     }),
 });
 

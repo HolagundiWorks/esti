@@ -257,8 +257,8 @@ time commercials, and a risk register. Design lives in
 | P9.2 | Commercial — fee agreements/stages, timesheets, rate cards, variations, WIP/realisation | ✅ built — `0186`–`0190`, `esti_cons_fee_stage`/`_timesheet`/`_rate_card`/`_variation` |
 | P9.3 | Risk — register, insurance (PI + reliance), compliance gates | ✅ built — `0191`, `esti_cons_risk`/`_insurance` |
 | P9.3b | Beyond the original plan — typed scope, engagement brief, SOP slices, CRS, field reports | ✅ built — `0192`–`0197` |
-| P9.4 | Intelligence — firm-record Q&A + EOMS input-pack review; precedent/calc-lineage deeper search | 🔄 **partial** — `consultancy.intelligence.ask` + `eomsReviewInputPack` + `buildConsultancyDigest` ship; dedicated precedent search / calc-lineage index still open |
-| P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | 🔄 **in progress 2026-07-21** — pure helpers for fee position / WIP / fee-stage + deliverable transitions / review independence / issue gate / variation locks, wired into router + unit-tested (267 contracts tests). Still open: mutation/integration tests + human fee UX review |
+| P9.4 | Intelligence — firm-record Q&A + EOMS input-pack review; precedent search; deliverable lineage | 🔄 **in progress** — `ask` + `eomsReview` + **`precedentSearch`** + **`deliverableLineage`** (deterministic); deeper calc-package model still open |
+| P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | 🔄 **in progress 2026-07-21** — pure money/sign-off/lifecycle helpers wired + unit-tested; still open: mutation/integration tests + human fee UX review |
 | P9.M | Marketing/launch surface — `consultancy.aorms.in`, landing copy | 🔄 landing markdown exists; launch gated on P9.V |
 
 **Risk note.** Phases 0–3 shipping without a test or review is the same setup
@@ -333,6 +333,7 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines open)
 
 | Date | Change |
 |------|--------|
+| 2026-07-21 | Autopilot go: shipped **precedentSearch** + **deliverableLineage** (pure rank/lineage helpers + tRPC + Find precedents UI in Ask intelligence). P9.4 advanced. |
 | 2026-07-21 | Autopilot continue: wired `mayIssueDeliverable` + deliverable/variation lifecycle helpers into the consultancy router; marked **P2.5 ✅** (project file archive reclaim already shipped); P9.4 corrected to partial (intelligence ask + EOMS pack review exist). Contracts tests 267. |
 | 2026-07-21 | **P10 hygiene/rebrand/deps landed on main** (inproc/PMC/schema drift, docs, e2e CI, major deps, EmOI→EOMS). **P9.V started:** extracted pure money + sign-off helpers into contracts, wired into the consultancy router, expanded unit tests. Glance: P4 → code-done; P9 → P9.V in progress. P4 device-session tables noted dropped via `0211`. |
 | 2026-07-20 | Added **P9 — AORMS-Consultancy** to the roadmap. Audited against code, not the design doc (which self-contradicts): Phases 0–3 are built (migrations `0183`–`0197`, ~1,200-line `consultancy` router, engagement UI + PDF, workspace-type routing); Phase 4 (intelligence) does not exist; the whole surface has zero tests and no review. Added P9.V (verify + review) as the real gate — this is the same money-critical-but-untested shape that produced the invoice/GST and estimation HIGH bugs this session. Also added the missing P8 row to the glance table. |

@@ -19,9 +19,11 @@ import {
   canRaiseCheckCategory,
   canTransitionDeliverable,
   computeFeePosition,
+  buildDeliverableLineage,
   feeStageFinancialsLocked,
   mayIssueDeliverable,
   missingReviewSteps,
+  rankPrecedentEngagements,
   realisationRatio,
   relianceLetterStatus,
   reviewStepIndependenceError,
@@ -437,5 +439,81 @@ describe("deliverable + variation lifecycle helpers", () => {
     expect(canDecideVariation("APPROVED")).toBe(false);
     expect(variationDeletionBlocked("APPROVED")).toBe(true);
     expect(variationDeletionBlocked("PROPOSED")).toBe(false);
+  });
+});
+
+describe("rankPrecedentEngagements", () => {
+  const pool = [
+    {
+      id: "e1",
+      title: "Tower A structural peer review",
+      consultancyType: "STRUCTURAL",
+      model: "PEER_REVIEW",
+      brief: { storeys: 40, seismic: "Zone III" },
+      deliverableTitles: ["Foundation GA", "Core walls"],
+    },
+    {
+      id: "e2",
+      title: "Campus HVAC design assist",
+      consultancyType: "HVAC",
+      model: "DESIGN_ASSIST",
+      brief: { tonnage: 1200 },
+      deliverableTitles: ["Chiller schedule"],
+    },
+    {
+      id: "e3",
+      title: "PEB warehouse full design",
+      consultancyType: "PEB",
+      model: "FULL_DESIGN",
+      deliverableTitles: ["Frame GA"],
+    },
+  ];
+
+  it("ranks structural peer-review hits above unrelated HVAC", () => {
+    const hits = rankPrecedentEngagements("structural peer review Zone III", pool);
+    expect(hits[0]?.id).toBe("e1");
+    expect(hits[0]!.score).toBeGreaterThan(hits.find((h) => h.id === "e2")?.score ?? 0);
+  });
+
+  it("returns empty for tiny tokens", () => {
+    expect(rankPrecedentEngagements("a to", pool)).toEqual([]);
+  });
+});
+
+describe("buildDeliverableLineage", () => {
+  it("reports outstanding VERIFY on CAT3 and lists fee stages", () => {
+    const lin = buildDeliverableLineage({
+      code: "S-01",
+      title: "Core walls",
+      status: "DRAFT",
+      checkCategory: "CAT3",
+      revision: "P01",
+      steps: [
+        { kind: "CHECK", userName: "Asha" },
+        { kind: "APPROVE", userName: "Ravi" },
+      ],
+      feeStages: [{ label: "IFC issue", status: "PENDING", amountPaise: 100_000 }],
+    });
+    expect(lin.chainComplete).toBe(false);
+    expect(lin.missingSteps).toEqual(["VERIFY"]);
+    expect(lin.summary).toContain("Outstanding: VERIFY");
+    expect(lin.summary).toContain("IFC issue [PENDING]");
+  });
+
+  it("marks the chain complete when all steps are present", () => {
+    const lin = buildDeliverableLineage({
+      code: "S-01",
+      title: "Core walls",
+      status: "ISSUED",
+      checkCategory: "CAT1",
+      revision: "C01",
+      steps: [
+        { kind: "CHECK", userName: "Asha" },
+        { kind: "APPROVE", userName: "Ravi" },
+      ],
+      feeStages: [],
+    });
+    expect(lin.chainComplete).toBe(true);
+    expect(lin.summary).toContain("Chain complete");
   });
 });
