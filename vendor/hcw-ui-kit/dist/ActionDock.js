@@ -5,8 +5,11 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
  * the dock renders them in three fixed zones for muscle memory:
  *
  *   LEFT   = exit / destroy   (Delete · Discard · Cancel)      — red tone
- *   CENTER = generate         (Add · Create · New)             — orange (primary)
- *   RIGHT  = commit           (Save · Edit · Save changes)     — orange (primary)
+ *   CENTER = generate         (Add · Create · New)             — primary (bold ink)
+ *   RIGHT  = commit           (Save · Edit · Save changes)     — primary (bold ink)
+ *
+ * Primary uses coal ink (not Radiant Orange text): accent is fill/active only and
+ * orange-on-glass fails WCAG AA (~2.8:1). Hierarchy is fontWeight 700.
  *
  * Buttons are flat pill at rest and lift to liquid-glass capsule on hover (Layer 3) — only
  * text-entry wells use neumorphic inset depth. The dock tray itself is ACTION_DOCK_TRAY
@@ -53,8 +56,7 @@ export function useDockActions() {
 function toneColor(tone = "default") {
     if (tone === "danger")
         return colors.supportError;
-    if (tone === "primary")
-        return colors.accent;
+    // Primary + default: bold/regular ink — never accent-as-text (AA on glass tray).
     return colors.ink;
 }
 function DockButton({ action, tabIndex, innerRef, }) {
