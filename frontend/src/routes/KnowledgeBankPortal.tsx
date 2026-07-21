@@ -29,6 +29,7 @@ import {
 } from "@esti/contracts";
 import { EOMS, KNOWLEDGE_BANK_PORTAL } from "../lib/product-nomenclature.js";
 import { DataState } from "../components/DataState.js";
+import { EomsCompliancePanel } from "../components/EomsCompliancePanel.js";
 import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
@@ -278,6 +279,8 @@ export function KnowledgeBankPortal() {
       <PageBreadcrumb items={[{ label: "Library" }, { label: KNOWLEDGE_BANK_PORTAL.title }]} />
       <Stack spacing={2} sx={{ height: "100%", minHeight: 0 }}>
         {error && <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>}
+
+        <EomsCompliancePanel />
 
         <Box sx={{ flex: "0 0 auto", minHeight: 240 }}>
           <DataState

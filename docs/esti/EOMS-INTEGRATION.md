@@ -89,8 +89,9 @@ out of EOMS.
 
 ## 4. Who consumes it (now and next)
 
-- **Now:** the `eoms.*` tRPC surface is live for any esti feature — a compliance screen can call
-  `eoms.resolve` / `eoms.rules` and show "EOMS not connected" when it's down.
+- **Now:** the `eoms.*` tRPC surface is live; the Knowledge Bank portal shows
+  `EomsCompliancePanel` (`status` / sources / resolve / rules) with an offline
+  state when the companion is down.
 - **Next (per [EOMS-ARCHITECTURE.md](EOMS-ARCHITECTURE.md) migration):** the compliance module
   (`esti_compliance_*`) reads through EOMS instead of local tables; **ESTI** answers cite EOMS
   clauses (edition + provenance); **AiADT** takeoffs get a code/compliance overlay by resolving
