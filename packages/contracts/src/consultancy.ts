@@ -446,10 +446,126 @@ export const ConsPhaseCreate = z.object({
 });
 export type ConsPhaseCreate = z.infer<typeof ConsPhaseCreate>;
 
-export const ConsDeliverableCreate = z.object({
+// ── MDR document numbering (SOP §3) ──────────────────────────────────────────
+/**
+ * Field-based register numbers hang off the engagement job root (`C-YY-NNN`).
+ * Shape: `{jobRoot}-{DOC_TYPE}-{seq}` e.g. `C-26-001-CAL-001`.
+ * Revision and issue status are metadata — never part of the number.
+ */
+export const MdrDocType = z.enum([
+  "DRAWING",
+  "CALCULATION",
+  "REPORT",
+  "SCHEDULE",
+  "SPECIFICATION",
+  "CERTIFICATE",
+  "NOTE",
+]);
+export type MdrDocType = z.infer<typeof MdrDocType>;
+
+export const MDR_DOC_TYPE_LABEL: Record<MdrDocType, string> = {
+  DRAWING: "Drawing",
+  CALCULATION: "Calculation",
+  REPORT: "Report",
+  SCHEDULE: "Schedule",
+  SPECIFICATION: "Specification",
+  CERTIFICATE: "Certificate",
+  NOTE: "Note / memo",
+};
+
+/** Compact type token embedded in the register number. */
+export const MDR_DOC_TYPE_CODE: Record<MdrDocType, string> = {
+  DRAWING: "DRW",
+  CALCULATION: "CAL",
+  REPORT: "RPT",
+  SCHEDULE: "SCH",
+  SPECIFICATION: "SPC",
+  CERTIFICATE: "CRT",
+  NOTE: "NTE",
+};
+
+export const MDR_DOC_TYPE_FROM_CODE: Record<string, MdrDocType> = Object.fromEntries(
+  (Object.entries(MDR_DOC_TYPE_CODE) as [MdrDocType, string][]).map(([k, v]) => [v, k]),
+) as Record<string, MdrDocType>;
+
+/** Engagement job number allocated at creation (SOP §2). */
+export const ENGAGEMENT_JOB_CODE_RE = /^C-\d{2}-\d{3}$/;
+
+/** Full MDR deliverable number: job root + type token + 3-digit sequence. */
+export const MDR_DELIVERABLE_CODE_RE = /^(C-\d{2}-\d{3})-([A-Z]{2,4})-(\d{3})$/;
+
+export type ParsedMdrDeliverableCode = {
+  jobRoot: string;
+  docTypeCode: string;
+  docType: MdrDocType | null;
+  sequence: number;
+};
+
+export function parseMdrDeliverableCode(code: string): ParsedMdrDeliverableCode | null {
+  const m = MDR_DELIVERABLE_CODE_RE.exec(code.trim().toUpperCase());
+  if (!m) return null;
+  const jobRoot = m[1]!;
+  const docTypeCode = m[2]!;
+  const sequence = Number(m[3]);
+  return {
+    jobRoot,
+    docTypeCode,
+    docType: MDR_DOC_TYPE_FROM_CODE[docTypeCode] ?? null,
+    sequence,
+  };
+}
+
+export function buildMdrDeliverableCode(args: {
+  jobRoot: string;
+  docType: MdrDocType;
+  sequence: number;
+}): string {
+  const root = args.jobRoot.trim().toUpperCase();
+  if (!ENGAGEMENT_JOB_CODE_RE.test(root)) {
+    throw new Error(`Invalid engagement job root "${args.jobRoot}" — expected C-YY-NNN.`);
+  }
+  if (!Number.isInteger(args.sequence) || args.sequence < 1 || args.sequence > 999) {
+    throw new Error("MDR sequence must be an integer from 1 to 999.");
+  }
+  return `${root}-${MDR_DOC_TYPE_CODE[args.docType]}-${String(args.sequence).padStart(3, "0")}`;
+}
+
+/**
+ * True when `code` is a well-formed MDR number for this job root and a known
+ * document type. Rejects revision/status tokens (P01, C01, FI…) in the number.
+ */
+export function isValidMdrDeliverableCode(code: string, jobRoot: string): boolean {
+  const parsed = parseMdrDeliverableCode(code);
+  if (!parsed || !parsed.docType) return false;
+  return parsed.jobRoot === jobRoot.trim().toUpperCase();
+}
+
+/** Next free sequence for a job root + document type among existing codes. */
+export function nextMdrSequence(
+  existingCodes: readonly string[],
+  jobRoot: string,
+  docType: MdrDocType,
+): number {
+  const typeCode = MDR_DOC_TYPE_CODE[docType];
+  const root = jobRoot.trim().toUpperCase();
+  let max = 0;
+  for (const c of existingCodes) {
+    const p = parseMdrDeliverableCode(c);
+    if (!p || p.jobRoot !== root || p.docTypeCode !== typeCode) continue;
+    if (p.sequence > max) max = p.sequence;
+  }
+  return max + 1;
+}
+
+const ConsDeliverableFields = z.object({
   engagementId: z.string().uuid(),
-  /** Document number on the register, e.g. C-26-001-CAL-001. */
-  code: z.string().min(1).max(80),
+  /**
+   * Preferred: MDR document type — server allocates `{job}-{TYPE}-{seq}`.
+   * When omitted, `code` must be a valid MDR number for the engagement.
+   */
+  docType: MdrDocType.optional(),
+  /** Manual / legacy register code — must match MDR convention when provided alone. */
+  code: z.string().min(1).max(80).optional(),
   title: z.string().min(1).max(300),
   discipline: EngineeringDiscipline,
   /** Two-track convention (SOP §3): P01, P02… preliminary · C01, C02… contractual. */
@@ -458,9 +574,17 @@ export const ConsDeliverableCreate = z.object({
   checkCategory: CheckCategory.default("CAT1"),
   notes: z.string().max(8000).optional(),
 });
+
+export const ConsDeliverableCreate = ConsDeliverableFields.refine(
+  (d) => Boolean(d.docType || d.code),
+  {
+    message: "Provide a document type (preferred) or an MDR register code.",
+    path: ["docType"],
+  },
+);
 export type ConsDeliverableCreate = z.infer<typeof ConsDeliverableCreate>;
 
-export const ConsDeliverableUpdate = ConsDeliverableCreate.omit({ engagementId: true })
+export const ConsDeliverableUpdate = ConsDeliverableFields.omit({ engagementId: true })
   .partial()
   .extend({
     id: z.string().uuid(),

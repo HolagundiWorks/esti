@@ -57,12 +57,16 @@ import {
   InputPackStatus,
   CalcPackageStatus,
   IssueClass,
+  MDR_DOC_TYPE_LABEL,
+  MdrDocType,
   REVIEW_STEP_LABEL,
   RiskStatus,
   ReviewStepKind,
   TqStatus,
   VariationStatus,
+  buildMdrDeliverableCode,
   formatINR,
+  nextMdrSequence,
 } from "@esti/contracts";
 import { useScreenActions, type DockAction } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
@@ -76,6 +80,7 @@ const MODELS = EngagementModel.options;
 const DISCIPLINES = EngineeringDiscipline.options;
 const ISSUE_CLASSES = IssueClass.options;
 const CHECK_CATEGORIES = CheckCategory.options;
+const MDR_DOC_TYPES = MdrDocType.options;
 
 /**
  * AORMS-Consultancy — Phase 0 "Living record" workspace (preview): engineering
@@ -489,7 +494,7 @@ export function ConsultancyEngagements() {
 
   // New-deliverable dialog state.
   const [delOpen, setDelOpen] = useState(false);
-  const [delCode, setDelCode] = useState("");
+  const [delDocType, setDelDocType] = useState<MdrDocType>("CALCULATION");
   const [delTitle, setDelTitle] = useState("");
   const [delDiscipline, setDelDiscipline] = useState<EngineeringDiscipline>("STRUCTURAL");
   const [delRevision, setDelRevision] = useState("A");
@@ -525,8 +530,8 @@ export function ConsultancyEngagements() {
                   label: "Add deliverable",
                   icon: <AddIcon />,
                   onClick: () => {
-                    // SOP: document numbers hang off the job number.
-                    setDelCode(detail?.code ? `${detail.code}-` : "");
+                    // SOP: document numbers hang off the job number; type picks the MDR slot.
+                    setDelDocType("CALCULATION");
                     setDelTitle("");
                     setDelRevision("P01");
                     setDelOpen(true);
@@ -3211,19 +3216,45 @@ export function ConsultancyEngagements() {
         </DialogActions>
       </Dialog>
 
-      {/* New deliverable */}
+      {/* New deliverable — MDR number allocated from job root + document type. */}
       <Dialog open={delOpen} onClose={() => setDelOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Add deliverable</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
-              id="cons-del-code"
-              label="Register code"
-              placeholder="e.g. STR-CAL-001"
-              value={delCode}
-              onChange={(e) => setDelCode(e.target.value)}
+              id="cons-del-doc-type"
+              select
+              label="Document type"
+              value={delDocType}
+              onChange={(e) => setDelDocType(e.target.value as MdrDocType)}
+              helperText={
+                detail?.code
+                  ? (() => {
+                      try {
+                        const preview = buildMdrDeliverableCode({
+                          jobRoot: detail.code,
+                          docType: delDocType,
+                          sequence: nextMdrSequence(
+                            (detail.deliverables ?? []).map((d) => d.code),
+                            detail.code,
+                            delDocType,
+                          ),
+                        });
+                        return `Register number will be ${preview} (revision stays metadata)`;
+                      } catch {
+                        return "Job number required to allocate an MDR register code";
+                      }
+                    })()
+                  : "Select an engagement with a job number first"
+              }
               autoFocus
-            />
+            >
+              {MDR_DOC_TYPES.map((t) => (
+                <MenuItem key={t} value={t}>
+                  {MDR_DOC_TYPE_LABEL[t]}
+                </MenuItem>
+              ))}
+            </TextField>
             <TextField
               id="cons-del-title"
               label="Title"
@@ -3288,16 +3319,16 @@ export function ConsultancyEngagements() {
           <Button
             variant="contained"
             disabled={
-              !delCode.trim() || !delTitle.trim() || !selectedId || createDeliverable.isPending
+              !delTitle.trim() || !selectedId || !detail?.code || createDeliverable.isPending
             }
             onClick={() =>
               selectedId &&
               createDeliverable.mutate({
                 engagementId: selectedId,
-                code: delCode.trim(),
+                docType: delDocType,
                 title: delTitle.trim(),
                 discipline: delDiscipline,
-                revision: delRevision.trim() || "A",
+                revision: delRevision.trim() || "P01",
                 issueClass: delIssueClass,
                 checkCategory: delCheckCategory,
               })

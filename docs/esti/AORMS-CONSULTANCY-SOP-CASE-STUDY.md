@@ -224,7 +224,7 @@ Procedural artifacts:
 | Enquiry register + go/no-go | 🔲 | No pre-engagement pipeline (Studio has leads; consultancy enters at engagement) |
 | Contract review checkpoint | 🔶 | Reliance scope + fee model recorded; **no §8.2.3-style review checklist gate** |
 | PEP/PQP at setup | 🔶 | Typed scope phases + brief cover much of it; no formal per-engagement quality plan |
-| Field-based doc numbering | 🔶 | Free-text register codes (STR-CAL-001); **no enforced numbering convention / originator-type-discipline fields** |
+| Field-based doc numbering | ✅ | MDR `{job}-{TYPE}-{seq}` (e.g. `C-26-001-CAL-001`); doc type on create; revision/status stay metadata *(2026-07-21)* |
 | Two-track revisions (P/C) | ✅ | P01/C01 convention; new deliverables default P01; **Start revision** bumps the track and resets the sign-off chain *(2026-07-12)* |
 | Master Document Register | ✅ | The deliverable register (per engagement) with status + issue metadata |
 | Transmittals + acknowledgment | 🔶 | Issue is recorded + gated; **reuse Studio's `transmittals` for the form/acknowledgment step** |

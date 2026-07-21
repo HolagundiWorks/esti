@@ -528,6 +528,62 @@ describe("consultancy P9.V — portal / capability scoping", () => {
   });
 });
 
+describe("consultancy MDR deliverable numbering", () => {
+  it("allocates the next CAL sequence from docType", async () => {
+    const { db, inserts } = makeDb({
+      "esti_cons_engagement": [{ id: ENG, code: "C-26-001" }],
+      "esti_cons_deliverable": [deliverable({ code: "C-26-001-CAL-001" })],
+    });
+    const row = await caller("SENIOR", db).deliverables.create({
+      engagementId: ENG,
+      docType: "CALCULATION",
+      title: "Pile cap",
+      discipline: "STRUCTURAL",
+      revision: "P01",
+      issueClass: "FOR_INFORMATION",
+      checkCategory: "CAT1",
+    });
+    expect(row.code).toBe("C-26-001-CAL-002");
+    expect(inserts.some((i) => i.table === "esti_cons_deliverable")).toBe(true);
+  });
+
+  it("rejects a free-text code that breaks the job root", async () => {
+    const { db } = makeDb({
+      "esti_cons_engagement": [{ id: ENG, code: "C-26-001" }],
+      "esti_cons_deliverable": [],
+    });
+    await expect(
+      caller("SENIOR", db).deliverables.create({
+        engagementId: ENG,
+        code: "STR-CAL-001",
+        title: "Bad root",
+        discipline: "STRUCTURAL",
+        revision: "P01",
+        issueClass: "FOR_INFORMATION",
+        checkCategory: "CAT1",
+      }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST", message: expect.stringContaining("MDR") });
+  });
+
+  it("rejects a duplicate MDR code on the same engagement", async () => {
+    const { db } = makeDb({
+      "esti_cons_engagement": [{ id: ENG, code: "C-26-001" }],
+      "esti_cons_deliverable": [deliverable({ code: "C-26-001-CAL-001" })],
+    });
+    await expect(
+      caller("SENIOR", db).deliverables.create({
+        engagementId: ENG,
+        code: "C-26-001-CAL-001",
+        title: "Dup",
+        discipline: "STRUCTURAL",
+        revision: "P01",
+        issueClass: "FOR_INFORMATION",
+        checkCategory: "CAT1",
+      }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+  });
+});
+
 const CALC = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 
 function calcPackage(overrides: Record<string, unknown> = {}) {

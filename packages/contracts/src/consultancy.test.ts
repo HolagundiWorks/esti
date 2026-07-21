@@ -22,10 +22,14 @@ import {
   computeFeePosition,
   buildCapacityOutlook,
   buildDeliverableLineage,
+  buildMdrDeliverableCode,
   capacityOutlookAlerts,
   feeStageFinancialsLocked,
+  isValidMdrDeliverableCode,
   mayIssueDeliverable,
   missingReviewSteps,
+  nextMdrSequence,
+  parseMdrDeliverableCode,
   rankPrecedentEngagements,
   realisationRatio,
   relianceLetterStatus,
@@ -625,5 +629,41 @@ describe("capacityOutlookAlerts", () => {
     expect(alerts).toHaveLength(1);
     expect(alerts[0]).toMatch(/Structural/i);
     expect(alerts[0]).toMatch(/over-committed/i);
+  });
+});
+
+describe("MDR deliverable numbering", () => {
+  it("builds and parses C-YY-NNN-TYPE-seq codes", () => {
+    const code = buildMdrDeliverableCode({
+      jobRoot: "C-26-001",
+      docType: "CALCULATION",
+      sequence: 1,
+    });
+    expect(code).toBe("C-26-001-CAL-001");
+    expect(parseMdrDeliverableCode(code)).toEqual({
+      jobRoot: "C-26-001",
+      docTypeCode: "CAL",
+      docType: "CALCULATION",
+      sequence: 1,
+    });
+  });
+
+  it("rejects revision/status tokens and wrong job roots", () => {
+    expect(isValidMdrDeliverableCode("C-26-001-CAL-001", "C-26-001")).toBe(true);
+    expect(isValidMdrDeliverableCode("C-26-001-P01-001", "C-26-001")).toBe(false);
+    expect(isValidMdrDeliverableCode("C-26-001-CAL-001", "C-26-002")).toBe(false);
+    expect(isValidMdrDeliverableCode("STR-CAL-001", "C-26-001")).toBe(false);
+    expect(parseMdrDeliverableCode("C-26-001-CAL-P01")).toBeNull();
+  });
+
+  it("allocates the next free sequence per job + type", () => {
+    expect(
+      nextMdrSequence(
+        ["C-26-001-CAL-001", "C-26-001-CAL-003", "C-26-001-DRW-002", "C-26-002-CAL-009"],
+        "C-26-001",
+        "CALCULATION",
+      ),
+    ).toBe(4);
+    expect(nextMdrSequence([], "C-26-001", "DRAWING")).toBe(1);
   });
 });
