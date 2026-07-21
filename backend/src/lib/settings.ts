@@ -53,24 +53,3 @@ export async function requireHrEnabled(db: DB): Promise<void> {
     throw new TRPCError({ code: "FORBIDDEN", message: "Team & HR module is disabled" });
 }
 
-/** Guard PMC module paths — reject if firm PMC is toggled off. */
-export async function requirePmcEnabled(db: DB): Promise<void> {
-  const s = await getOrgSettings(db);
-  if (!s.pmcEnabled)
-    throw new TRPCError({ code: "FORBIDDEN", message: "PMC module is disabled" });
-}
-
-/** Ensure project has PMC enabled (firm PMC must also be on). */
-export async function assertProjectPmcEnabled(db: DB, projectId: string): Promise<void> {
-  await requirePmcEnabled(db);
-  const { projectOffices } = await import("../db/schema.js");
-  const { eq } = await import("drizzle-orm");
-  const [row] = await db
-    .select({ pmcEnabled: projectOffices.pmcEnabled })
-    .from(projectOffices)
-    .where(eq(projectOffices.id, projectId))
-    .limit(1);
-  if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Project not found" });
-  if (!row.pmcEnabled)
-    throw new TRPCError({ code: "FORBIDDEN", message: "PMC is not enabled for this project" });
-}

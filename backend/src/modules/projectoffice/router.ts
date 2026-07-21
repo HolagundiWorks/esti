@@ -37,7 +37,6 @@ import { writeActivity } from "../../lib/activity.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
 import { assertNotFixedPlan, assertQuota } from "../../lib/plan.js";
-import { getOrgSettings } from "../../lib/settings.js";
 import { assertProjectAccess } from "../../lib/projectAccess.js";
 import { protectedProcedure, router } from "../../trpc/trpc.js";
 import {
@@ -124,7 +123,6 @@ export const projectOfficeRouter = router({
   create: protectedProcedure.input(ProjectOfficeCreate).mutation(async ({ ctx, input }) => {
     // Lite ships 5 fixed projects — no new projects, only fill in the existing.
     await assertNotFixedPlan(ctx.db);
-    const org = await getOrgSettings(ctx.db);
     // Plan quota: count only live projects (archived ones don't take a slot).
     const cRows = await ctx.db
       .select({ count: sql<number>`count(*)::int` })
@@ -152,7 +150,6 @@ export const projectOfficeRouter = router({
           siteAreaSqm: input.siteAreaSqm ?? null,
           contractValuePaise: input.contractValuePaise,
           dateStart: input.dateStart ?? null,
-          pmcEnabled: org.pmcEnabled && (input.pmcEnabled ?? false),
           createdById: ctx.user.id,
         })
         .returning();
@@ -231,7 +228,6 @@ export const projectOfficeRouter = router({
         jurisdiction: Jurisdiction,
         dateStart: z.string().nullish(),
         contractValuePaise: z.number().int().nonnegative().optional(),
-        pmcEnabled: z.boolean().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -241,14 +237,7 @@ export const projectOfficeRouter = router({
       // A status change through the edit form must still obey the state machine —
       // the form normally re-sends the unchanged status, but never trust that.
       await assertLegalTransition(ctx.db, input.id, before.status as ProjectStatus, input.status);
-      const org = await getOrgSettings(ctx.db);
-      if (input.pmcEnabled !== undefined && input.pmcEnabled && !org.pmcEnabled) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Enable the PMC module in Company settings first",
-        });
-      }
-    const row = await ctx.db.transaction(async (tx) => {
+      const row = await ctx.db.transaction(async (tx) => {
         const [updated] = await tx
           .update(projectOffices)
           .set({
@@ -259,7 +248,6 @@ export const projectOfficeRouter = router({
             jurisdiction: input.jurisdiction,
             dateStart: input.dateStart ?? null,
             ...(input.contractValuePaise !== undefined ? { contractValuePaise: input.contractValuePaise } : {}),
-            ...(input.pmcEnabled !== undefined ? { pmcEnabled: input.pmcEnabled } : {}),
             updatedAt: new Date(),
           })
           .where(eq(projectOffices.id, input.id))

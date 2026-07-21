@@ -5,7 +5,6 @@ import { z } from "zod";
 import { progressReports, snags } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
-import { assertProjectPmcEnabled } from "../../lib/settings.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -14,18 +13,14 @@ const manage = capabilityProcedure("write");
 export const progressReportsRouter = router({
   listByProject: protectedProcedure
     .input(z.object({ projectId: z.string().uuid() }))
-    .query(async ({ ctx, input }) => {
-      await assertProjectPmcEnabled(ctx.db, input.projectId);
-      return ctx.db
+    .query(async ({ ctx, input }) => {      return ctx.db
         .select()
         .from(progressReports)
         .where(eq(progressReports.projectId, input.projectId))
         .orderBy(desc(progressReports.periodEnd));
     }),
 
-  createDraft: manage.input(ProgressReportCreate).mutation(async ({ ctx, input }) => {
-    await assertProjectPmcEnabled(ctx.db, input.projectId);
-    const openSnags = await ctx.db
+  createDraft: manage.input(ProgressReportCreate).mutation(async ({ ctx, input }) => {    const openSnags = await ctx.db
       .select({ id: snags.id })
       .from(snags)
       .where(and(eq(snags.projectId, input.projectId), ne(snags.status, "CLOSED")));
@@ -54,9 +49,7 @@ export const progressReportsRouter = router({
     return row!;
   }),
 
-  update: manage.input(ProgressReportUpdate).mutation(async ({ ctx, input }) => {
-    await assertProjectPmcEnabled(ctx.db, input.projectId);
-    const [before] = await ctx.db
+  update: manage.input(ProgressReportUpdate).mutation(async ({ ctx, input }) => {    const [before] = await ctx.db
       .select()
       .from(progressReports)
       .where(eq(progressReports.id, input.id));
@@ -82,9 +75,7 @@ export const progressReportsRouter = router({
 
   generatePdf: manage
     .input(z.object({ id: z.string().uuid(), projectId: z.string().uuid() }))
-    .mutation(async ({ ctx, input }) => {
-      await assertProjectPmcEnabled(ctx.db, input.projectId);
-      const [row] = await ctx.db
+    .mutation(async ({ ctx, input }) => {      const [row] = await ctx.db
         .select()
         .from(progressReports)
         .where(eq(progressReports.id, input.id));

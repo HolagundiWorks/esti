@@ -7,10 +7,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControlLabel,
   MenuItem,
   Stack,
-  Switch,
   Table,
   TableBody,
   TableCell,
@@ -21,14 +19,12 @@ import {
   Typography,
 } from "@mui/material";
 import {
-  Jurisdiction,
   PROJECT_STATUS_LABEL,
   PROJECT_STATUS_TAG,
   PROJECT_TRANSITIONS,
-  ProjectType,
   type ProjectStatus,
 } from "@esti/contracts";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DeleteOutlined from "@mui/icons-material/DeleteOutlined";
 import SaveOutlined from "@mui/icons-material/SaveOutlined";
@@ -59,8 +55,6 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
     { id: projectId },
     { enabled: !!projectId },
   );
-  const settingsQ = trpc.settings.get.useQuery();
-  const firmPmcEnabled = settingsQ.data?.pmcEnabled ?? false;
   const logsQ = trpc.projectOffice.logs.useQuery(
     { projectId },
     { enabled: !!projectId },
@@ -79,23 +73,7 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   });
   const [revBudgetDraft, setRevBudgetDraft] = useState<Record<string, string>>({});
 
-  const [pmcEnabled, setPmcEnabled] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    const p = projectQ.data;
-    if (p) setPmcEnabled((p as { pmcEnabled?: boolean }).pmcEnabled ?? false);
-  }, [projectQ.data]);
-
-  const update = trpc.projectOffice.update.useMutation({
-    meta: { errorTitle: "Couldn't update the project" },
-    onSuccess: () => {
-      utils.projectOffice.byId.invalidate({ id: projectId });
-      utils.projectOffice.list.invalidate();
-      setMsg("Project updated");
-      pushToast({ kind: "success", title: "Project updated" });
-    },
-  });
 
   const [statusDraft, setStatusDraft] = useState<ProjectStatus | "">("");
   const updateStatus = trpc.projectOffice.updateStatus.useMutation({
@@ -136,8 +114,6 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
   }
 
   const p = projectQ.data;
-  const savedPmc = (p as { pmcEnabled?: boolean } | undefined)?.pmcEnabled ?? false;
-  const pmcDirty = firmPmcEnabled && pmcEnabled !== savedPmc;
 
   useScreenActions(
     [
@@ -167,42 +143,11 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
               },
             },
           ]
-        : pmcDirty
-          ? [
-              {
-                id: "save-pmc",
-                zone: "right" as const,
-                tone: "primary" as const,
-                label: update.isPending ? "Saving…" : "Save PMC",
-                icon: <SaveOutlined />,
-                disabled: update.isPending || !p,
-                onClick: () => {
-                  if (!p) return;
-                  update.mutate({
-                    id: projectId,
-                    title: p.title,
-                    status: p.status as ProjectStatus,
-                    projectType: p.projectType as (typeof ProjectType.options)[number],
-                    workType: ((p as { workType?: string }).workType ?? "ARCHITECTURE") as
-                      | "ARCHITECTURE"
-                      | "INTERIOR"
-                      | "LANDSCAPE"
-                      | "MISC",
-                    jurisdiction: p.jurisdiction as (typeof Jurisdiction.options)[number],
-                    dateStart: p.dateStart ?? null,
-                    pmcEnabled,
-                  });
-                },
-              },
-            ]
-          : []),
+        : []),
     ],
     [
       canProjectDelete,
       statusDraft,
-      pmcDirty,
-      pmcEnabled,
-      update.isPending,
       updateStatus.isPending,
       p,
       projectId,
@@ -279,31 +224,6 @@ export function ProjectSettings({ projectId }: { projectId: string }) {
 
       <ProjectFloorsPanel projectId={projectId} />
       <ProjectStructuralDefaultsPanel projectId={projectId} />
-
-      {firmPmcEnabled && (
-      <Box sx={{ maxWidth: 640, p: 2, mt: 2 }}>
-        <Stack spacing={2}>
-          <Typography variant="subtitle1" component="h4">
-            PMC
-          </Typography>
-          <FormControlLabel
-            control={
-              <Switch
-                id="ps-pmc"
-                checked={pmcEnabled}
-                onChange={(e) => setPmcEnabled(e.target.checked)}
-              />
-            }
-            label="PMC on this project"
-          />
-          {pmcDirty && (
-            <Typography variant="caption" color="text.secondary">
-              Use the Action Dock (bottom) to save the PMC setting.
-            </Typography>
-          )}
-        </Stack>
-      </Box>
-      )}
 
       <Box sx={{ maxWidth: 760, p: 2, mt: 2 }}>
         <Stack spacing={2}>

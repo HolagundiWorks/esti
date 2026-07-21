@@ -188,7 +188,6 @@ export const leadsRouter = router({
           siteAddress: lead.siteLocation,
           status: "ENQUIRY",
           leadId: lead.id,
-          pmcEnabled: false,
           createdById: ctx.user.id,
         })
         .returning();

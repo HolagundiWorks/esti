@@ -2,10 +2,8 @@ import {
   Alert,
   Box,
   Button,
-  FormControlLabel,
   LinearProgress,
   Stack,
-  Switch,
   Table,
   TableBody,
   TableCell,
@@ -37,14 +35,6 @@ export function CompanyAdminPanel() {
   const utils = trpc.useUtils();
   const settingsQ = trpc.settings.get.useQuery();
   const hrStatusQ = trpc.settings.hrModuleStatus.useQuery();
-
-  const setPmc = trpc.settings.setPmcEnabled.useMutation({
-    meta: { errorTitle: "Couldn't update the PMC module setting" },
-    onSuccess: () => {
-      utils.settings.get.invalidate();
-      setMsg("PMC module setting updated.");
-    },
-  });
 
   const setWellness = trpc.settings.setWellness.useMutation({
     meta: { errorTitle: "Couldn't update the break schedule" },
@@ -147,30 +137,6 @@ export function CompanyAdminPanel() {
                 </Box>
               </Stack>
             )}
-          </Stack>
-        </Box>
-
-        <Box className="esti-form-panel--wide">
-          <Stack spacing={2}>
-            <Typography variant="subtitle1" component="h3">
-              PMC module
-            </Typography>
-            <Typography variant="body2">
-              Project management for site coordination — construction inbox, snag register, site
-              instructions, and monthly progress reports. Enable per project in Project settings.
-            </Typography>
-            <FormControlLabel
-              control={
-                <Switch
-                  id="pmc-toggle"
-                  checked={settingsQ.data?.pmcEnabled ?? false}
-                  disabled={!isOwner || setPmc.isPending || settingsQ.isLoading}
-                  onChange={(e) => setPmc.mutate({ pmcEnabled: e.target.checked })}
-                />
-              }
-              label="Enable PMC module"
-            />
-            {!isOwner && <Typography variant="body2">Only the owner can change this.</Typography>}
           </Stack>
         </Box>
 

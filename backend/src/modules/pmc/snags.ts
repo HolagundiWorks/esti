@@ -5,7 +5,6 @@ import { z } from "zod";
 import { snags } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { nextRef } from "../../lib/numbering.js";
-import { assertProjectPmcEnabled } from "../../lib/settings.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
 const manage = capabilityProcedure("write");
@@ -13,18 +12,14 @@ const manage = capabilityProcedure("write");
 export const snagsRouter = router({
   listByProject: protectedProcedure
     .input(z.object({ projectId: z.string().uuid() }))
-    .query(async ({ ctx, input }) => {
-      await assertProjectPmcEnabled(ctx.db, input.projectId);
-      return ctx.db
+    .query(async ({ ctx, input }) => {      return ctx.db
         .select()
         .from(snags)
         .where(eq(snags.projectId, input.projectId))
         .orderBy(asc(snags.dueDate), asc(snags.createdAt));
     }),
 
-  create: manage.input(SnagCreate).mutation(async ({ ctx, input }) => {
-    await assertProjectPmcEnabled(ctx.db, input.projectId);
-    const { ref } = await nextRef(ctx.db, "snag", "SNG");
+  create: manage.input(SnagCreate).mutation(async ({ ctx, input }) => {    const { ref } = await nextRef(ctx.db, "snag", "SNG");
     const [row] = await ctx.db
       .insert(snags)
       .values({
@@ -47,9 +42,7 @@ export const snagsRouter = router({
     return row!;
   }),
 
-  update: manage.input(SnagUpdate).mutation(async ({ ctx, input }) => {
-    await assertProjectPmcEnabled(ctx.db, input.projectId);
-    const [before] = await ctx.db.select().from(snags).where(eq(snags.id, input.id));
+  update: manage.input(SnagUpdate).mutation(async ({ ctx, input }) => {    const [before] = await ctx.db.select().from(snags).where(eq(snags.id, input.id));
     if (!before || before.projectId !== input.projectId) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
@@ -82,9 +75,7 @@ export const snagsRouter = router({
 
   remove: manage
     .input(z.object({ id: z.string().uuid(), projectId: z.string().uuid() }))
-    .mutation(async ({ ctx, input }) => {
-      await assertProjectPmcEnabled(ctx.db, input.projectId);
-      const [before] = await ctx.db.select().from(snags).where(eq(snags.id, input.id));
+    .mutation(async ({ ctx, input }) => {      const [before] = await ctx.db.select().from(snags).where(eq(snags.id, input.id));
       if (!before || before.projectId !== input.projectId) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }

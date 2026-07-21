@@ -23,8 +23,6 @@ export const orgSettings = pgTable("esti_orgsettings", {
   // so pre-collapse rows stay valid; reads are coerced via asPlan() to LITE|PRO.
   plan: text("plan", { enum: ["LITE", "CORE", "ENTERPRISE", "PRO"] }).notNull().default("LITE"),
   hrEnabled: boolean("hr_enabled").notNull().default(true),
-  /** PMC module — construction coordination, site registers, progress reports. */
-  pmcEnabled: boolean("pmc_enabled").notNull().default(false),
   /** Owner-configured alert thresholds — see EscalationSettings in @esti/contracts. */
   escalationSettings: jsonb("escalation_settings")
     .notNull()

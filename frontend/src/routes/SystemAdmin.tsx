@@ -11,7 +11,6 @@ import type { SvgIconComponent } from "@mui/icons-material";
 import Apps from "@mui/icons-material/Apps";
 import Business from "@mui/icons-material/Business";
 import BarChart from "@mui/icons-material/BarChart";
-import Construction from "@mui/icons-material/Construction";
 import AccountBalance from "@mui/icons-material/AccountBalance";
 import Settings from "@mui/icons-material/Settings";
 import Task from "@mui/icons-material/Task";
@@ -81,7 +80,6 @@ export function SystemAdmin() {
   };
 
   const setHr = trpc.settings.setHrEnabled.useMutation({ meta: { errorTitle: "Couldn't update the HR setting" }, onSuccess: invalidate });
-  const setPmc = trpc.settings.setPmcEnabled.useMutation({ meta: { errorTitle: "Couldn't update the PMC setting" }, onSuccess: invalidate });
   const setModule = trpc.settings.setModuleEnabled.useMutation({ meta: { errorTitle: "Couldn't update the module setting" }, onSuccess: invalidate });
 
   if (settingsQ.isLoading) {
@@ -107,14 +105,6 @@ export function SystemAdmin() {
       enabled: s.hrEnabled,
       loading: setHr.isPending,
       onToggle: (checked) => setHr.mutate({ hrEnabled: checked }),
-    },
-    {
-      icon: Construction,
-      title: "PMC / Construction",
-      description: "Site coordination hub, RFI / submittal / NCR tracking, construction schedules (CPM/Gantt), and progress reporting. Enable when the firm has active construction-stage commissions.",
-      enabled: s.pmcEnabled,
-      loading: setPmc.isPending,
-      onToggle: (checked) => setPmc.mutate({ pmcEnabled: checked }),
     },
     {
       icon: AccountBalance,
@@ -151,7 +141,7 @@ export function SystemAdmin() {
     {
       icon: Task,
       title: "Knowledge Bank",
-      description: "Rate books, rate analysis, components, specification catalogue, parametric studies, and lessons. Core reference module — always enabled.",
+      description: "Specification catalogue, compliance and standards libraries, master plans, and lessons learned. Core reference module — always enabled.",
       enabled: true,
       loading: false,
       onToggle: () => undefined,
@@ -166,8 +156,8 @@ export function SystemAdmin() {
     },
     {
       icon: Settings,
-      title: "Contractor Bid Portal",
-      description: "Magic-link bid submission for contractors. Active as long as at least one tender has an open bid round.",
+      title: "Contractor Portal",
+      description: "Scoped contractor access to assigned projects and site surfaces. Active when contractor portal logins are provisioned.",
       enabled: true,
       loading: false,
       onToggle: () => undefined,
@@ -180,11 +170,11 @@ export function SystemAdmin() {
       description="Installation-level controls: module toggles and data management. Visible only to system administrators."
     >
       <PageBreadcrumb items={[{ label: "Admin" }, { label: "System" }]} />
-      {(setHr.error || setPmc.error || setModule.error) && (
+      {(setHr.error || setModule.error) && (
         <Alert severity="error">
           <strong>Could not update module</strong>
           {" — "}
-          {(setHr.error ?? setPmc.error ?? setModule.error)?.message}
+          {(setHr.error ?? setModule.error)?.message}
         </Alert>
       )}
 
