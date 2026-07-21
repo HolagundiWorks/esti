@@ -31,7 +31,7 @@ export const SyncIngestBody = z.object({
   entity: SyncEntity,
   entityId: z.string().min(1),
   op: SyncOp.default("UPSERT"),
-  payload: z.record(z.unknown()).default({}),
+  payload: z.record(z.string(), z.unknown()).default({}),
   fileKeys: z.array(z.string()).default([]),
 });
 export type SyncIngestBody = z.infer<typeof SyncIngestBody>;

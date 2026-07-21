@@ -40,7 +40,7 @@ describe("ProjectOfficeCreate validates projectType", () => {
 
 describe("LeadConvert validates projectType (lead → draft project)", () => {
   const base = {
-    id: "00000000-0000-0000-0000-000000000001",
+    id: "00000000-0000-4000-8000-000000000001",
     projectTitle: "Converted lead",
     projectType: "Commercial Architecture",
     conflictCheckDone: true,

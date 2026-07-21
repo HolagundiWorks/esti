@@ -72,7 +72,7 @@ export type MigrationManifest = z.infer<typeof MigrationManifest>;
  */
 export const MigrationBundle = z.object({
   manifest: MigrationManifest,
-  tables: z.record(z.array(z.record(z.string(), z.unknown()))),
+  tables: z.record(z.string(), z.array(z.record(z.string(), z.unknown()))),
 });
 export type MigrationBundle = z.infer<typeof MigrationBundle>;
 

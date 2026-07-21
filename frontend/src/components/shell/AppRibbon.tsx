@@ -99,7 +99,7 @@ const focusMenuExtras = (onEnter: () => void, onLeave: () => void, labelledBy: s
 function useRibbonMenu() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [mode, setMode] = useState<OpenMode>("hover");
-  const closeTimer = useRef<ReturnType<typeof setTimeout>>();
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const cancelClose = useCallback(() => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
