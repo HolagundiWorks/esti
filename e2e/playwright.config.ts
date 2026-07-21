@@ -27,9 +27,9 @@ export default defineConfig({
   projects: [
     // Logs in once and saves the session so the button crawler can reuse it.
     { name: "setup", testMatch: /auth\.setup\.ts$/ },
-    // Session-consuming projects finish before `office` re-logins the principal
-    // (auth.login revokes prior sessions). office depends on buttons only so a
-    // flaky crud case cannot skip the auth/nav suite.
+    // Session-consuming buttons finish before office re-logins the principal
+    // (auth.login revokes prior sessions). office depends on setup only so a
+    // flaky buttons/crud case cannot skip the auth/nav suite.
     {
       name: "buttons",
       testMatch: /buttons\.spec\.ts$/,
@@ -48,7 +48,7 @@ export default defineConfig({
     {
       name: "office",
       testMatch: /(auth|navigation.*|pdf)\.spec\.ts$/,
-      dependencies: ["buttons"],
+      dependencies: ["setup"],
       use: { ...devices["Desktop Chrome"] },
     },
     {
