@@ -31,11 +31,12 @@ are **not** current product state — see system state below.
 | Legacy cleanup | Removed `WORKER_MODE=inproc`, PMC flag, schema drift (Construction-Cost orphans, device sessions); docs reconciled; full Playwright e2e job on PRs |
 | Deps | Major upgrades (drizzle 0.45, Fastify 5, zod 4, React 19, vite 8, …); audit high+ **0** |
 | Rebrand | EmOI → **EOMS** knowledge-bank framing (`AORMS-REBRANDING.md` §5 done) |
+| EOMS API | Local compliance Knowledge Bank client wired (`eoms.*` tRPC, fail-safe) — see [EOMS-INTEGRATION.md](EOMS-INTEGRATION.md) |
 
 ## Next (product autopilot)
 
-1. **P9.V** — finish mutation/integration coverage + human fee UX review (active — see PR #14)
-2. **P9.4** — deepen consultancy intelligence (precedent / calc-lineage) after P9.V
+1. **P9.V** — human fee UX review (mutation wiring tests landed; pure helpers + router stubs green)
+2. **P9.4** — deepen consultancy intelligence (calc-package model); optional: surface `eoms.*` compliance reads in UI after P9.V
 3. **P4.8** — human: replace stale social/campaign desktop copy
 4. **P7.2** — billing (blocked on Stripe vs manual invoice decision)
 5. **P10.8** — ✅ visual suite retargeted + linux baselines regenerated (2026-07-21)
