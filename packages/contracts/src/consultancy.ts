@@ -507,6 +507,74 @@ export function missingReviewSteps(
   return required.filter((k) => !have.has(k));
 }
 
+/**
+ * Independence rules for recording a sign-off step (case study §3.1).
+ * Returns a human-readable refusal reason, or `null` when the act is allowed.
+ *
+ * - CHECK ≠ author; on CAT2/CAT3 also ≠ existing approver
+ * - APPROVE ≠ author; on CAT2/CAT3 also ≠ checker
+ * - VERIFY ≠ author and ≠ checker
+ */
+export function reviewStepIndependenceError(args: {
+  kind: ReviewStepKind;
+  checkCategory: string;
+  actorUserId: string;
+  originatedBy: string | null | undefined;
+  recorded: readonly { kind: string; userId: string | null | undefined }[];
+}): string | null {
+  const { kind, checkCategory, actorUserId, originatedBy, recorded } = args;
+  const checkApproveMustDiffer = checkCategory === "CAT2" || checkCategory === "CAT3";
+  const checker = recorded.find((s) => s.kind === "CHECK");
+  const approver = recorded.find((s) => s.kind === "APPROVE");
+
+  if (kind === "CHECK") {
+    if (originatedBy && originatedBy === actorUserId)
+      return "The independent check cannot be recorded by the deliverable's author.";
+    if (checkApproveMustDiffer && approver?.userId === actorUserId)
+      return `On a ${checkCategory} deliverable the check must be independent of the approver.`;
+  }
+  if (kind === "VERIFY") {
+    if ((originatedBy && originatedBy === actorUserId) || checker?.userId === actorUserId)
+      return "The proof check must be independent of both the author and the checker.";
+  }
+  if (kind === "APPROVE") {
+    if (originatedBy && originatedBy === actorUserId)
+      return "The approval (EoR sign-off) cannot be recorded by the deliverable's author.";
+    if (checkApproveMustDiffer && checker?.userId === actorUserId)
+      return `On a ${checkCategory} deliverable the approval must be independent of the checker.`;
+  }
+  return null;
+}
+
+/**
+ * Whether a deliverable may be ISSUED given its sign-off progress and hold points.
+ * Pure gate — the router still runs this inside a transaction with the status flip.
+ */
+export function mayIssueDeliverable(args: {
+  checkCategory: string;
+  recordedKinds: readonly string[];
+  openCrsCount: number;
+  receivedInputPackCount: number;
+}): { ok: true } | { ok: false; reason: string } {
+  const missing = missingReviewSteps(args.checkCategory, args.recordedKinds);
+  if (missing.length > 0)
+    return {
+      ok: false,
+      reason: `Sign-off incomplete — still need: ${missing.join(", ")}.`,
+    };
+  if (args.openCrsCount > 0)
+    return {
+      ok: false,
+      reason: `${args.openCrsCount} open comment-response sheet item(s) must be closed before issue.`,
+    };
+  if (args.receivedInputPackCount > 0)
+    return {
+      ok: false,
+      reason: `${args.receivedInputPackCount} input pack(s) are still unvalidated hold points.`,
+    };
+  return { ok: true };
+}
+
 export const ConsReviewStepCreate = z.object({
   deliverableId: z.string().uuid(),
   kind: ReviewStepKind,
@@ -578,6 +646,105 @@ export const CONS_FEE_STAGE_STATUS_TAG: Record<FeeStageStatus, TagColor> = {
   INVOICED: "teal",
   PAID: "green",
 };
+
+/** Allowed single-step advances on the fee-stage lifecycle. */
+export const FEE_STAGE_TRANSITIONS: Record<FeeStageStatus, readonly FeeStageStatus[]> = {
+  PENDING: ["BILLABLE"],
+  BILLABLE: ["INVOICED"],
+  INVOICED: ["PAID"],
+  PAID: [],
+};
+
+/** Once invoiced (or paid), amount / deliverable link must not change. */
+export function feeStageFinancialsLocked(status: FeeStageStatus | string): boolean {
+  return status === "INVOICED" || status === "PAID";
+}
+
+export function canAdvanceFeeStage(
+  from: FeeStageStatus | string,
+  to: FeeStageStatus | string,
+): boolean {
+  const allowed = FEE_STAGE_TRANSITIONS[from as FeeStageStatus];
+  return !!allowed && allowed.includes(to as FeeStageStatus);
+}
+
+/** Chargeout at log time — rate × hours, rounded to integer paise. */
+export function timesheetValuePaise(ratePaise: number, hours: number): number {
+  return Math.round(ratePaise * hours);
+}
+
+export type FeeStageAmountRow = {
+  amountPaise: number | null | undefined;
+  status: FeeStageStatus | string;
+};
+
+export type TimesheetValueRow = {
+  hours: number | null | undefined;
+  valuePaise: number | null | undefined;
+  status?: string | null;
+};
+
+export type FeePosition = {
+  agreedPaise: number;
+  stagedPaise: number;
+  billablePaise: number;
+  invoicedPaise: number;
+  paidPaise: number;
+  outstandingPaise: number;
+  hoursBooked: number;
+  pendingApproval: number;
+  timeValuePaise: number;
+  wipPaise: number;
+};
+
+/**
+ * Engagement fee position (case study §5.2).
+ * - `invoicedPaise` = INVOICED ∪ PAID (invoiced-ever)
+ * - `outstandingPaise` = INVOICED only (receivables)
+ * - `wipPaise` = max(0, timeValue − invoiced-ever)
+ */
+export function computeFeePosition(args: {
+  agreedPaise: number | null | undefined;
+  stages: readonly FeeStageAmountRow[];
+  timesheets: readonly TimesheetValueRow[];
+}): FeePosition {
+  const sum = (rows: readonly FeeStageAmountRow[]) =>
+    rows.reduce((a, s) => a + (s.amountPaise ?? 0), 0);
+  const invoicedPaise = sum(
+    args.stages.filter((s) => s.status === "INVOICED" || s.status === "PAID"),
+  );
+  const timeValuePaise = args.timesheets.reduce((a, t) => a + (t.valuePaise ?? 0), 0);
+  return {
+    agreedPaise: args.agreedPaise ?? 0,
+    stagedPaise: sum(args.stages),
+    billablePaise: sum(args.stages.filter((s) => s.status === "BILLABLE")),
+    invoicedPaise,
+    paidPaise: sum(args.stages.filter((s) => s.status === "PAID")),
+    outstandingPaise: sum(args.stages.filter((s) => s.status === "INVOICED")),
+    hoursBooked: args.timesheets.reduce((a, t) => a + (t.hours ?? 0), 0),
+    pendingApproval: args.timesheets.filter((t) => t.status === "SUBMITTED").length,
+    timeValuePaise,
+    wipPaise: Math.max(0, timeValuePaise - invoicedPaise),
+  };
+}
+
+/**
+ * Firm WIP: per-engagement floor-then-sum (not a firm-level floor).
+ * Each engagement contributes max(0, its timeValue − its invoiced-ever).
+ */
+export function sumFirmWip(
+  perEngagement: readonly { timeValuePaise: number; invoicedPaise: number }[],
+): number {
+  return perEngagement.reduce(
+    (a, e) => a + Math.max(0, e.timeValuePaise - e.invoicedPaise),
+    0,
+  );
+}
+
+/** Realisation ratio; null when no time has been valued. */
+export function realisationRatio(invoicedPaise: number, timeValuePaise: number): number | null {
+  return timeValuePaise > 0 ? invoicedPaise / timeValuePaise : null;
+}
 
 /** SOP §8 — timesheet entries are approved weekly (named act). */
 export const TimesheetStatus = z.enum(["SUBMITTED", "APPROVED"]);

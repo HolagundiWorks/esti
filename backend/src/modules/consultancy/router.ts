@@ -9,6 +9,13 @@
 import {
   CHECK_CATEGORY_RANK,
   missingReviewSteps,
+  reviewStepIndependenceError,
+  computeFeePosition,
+  feeStageFinancialsLocked,
+  canAdvanceFeeStage,
+  timesheetValuePaise,
+  sumFirmWip,
+  realisationRatio,
   CONSULTANCY_SCOPE_TEMPLATES,
   CheckCategory,
   can,
@@ -181,33 +188,14 @@ const engagementsRouter = router({
         .from(consTimesheets)
         .where(eq(consTimesheets.engagementId, input.id))
         .orderBy(desc(consTimesheets.date), desc(consTimesheets.createdAt));
-      // "Invoiced" totals include PAID (invoiced-ever); outstanding is unpaid only.
-      const invoicedPaise = feeStages
-        .filter((s) => s.status === "INVOICED" || s.status === "PAID")
-        .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
-      const timeValuePaise = timesheets.reduce((a, t) => a + (t.valuePaise ?? 0), 0);
       // Fee position — agreed vs staged vs billable vs invoiced, plus time
       // booked and WIP (time value performed but not yet invoiced; case study §5.2).
-      const paidPaise = feeStages
-        .filter((s) => s.status === "PAID")
-        .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
-      const feePosition = {
-        agreedPaise: row.feeTotalPaise ?? 0,
-        stagedPaise: feeStages.reduce((a, s) => a + (s.amountPaise ?? 0), 0),
-        billablePaise: feeStages
-          .filter((s) => s.status === "BILLABLE")
-          .reduce((a, s) => a + (s.amountPaise ?? 0), 0),
-        invoicedPaise,
-        paidPaise,
-        /** Invoiced but not yet paid — the receivables the dunning ladder chases. */
-        outstandingPaise: feeStages
-          .filter((s) => s.status === "INVOICED")
-          .reduce((a, s) => a + (s.amountPaise ?? 0), 0),
-        hoursBooked: timesheets.reduce((a, t) => a + (t.hours ?? 0), 0),
-        pendingApproval: timesheets.filter((t) => t.status === "SUBMITTED").length,
-        timeValuePaise,
-        wipPaise: Math.max(0, timeValuePaise - invoicedPaise),
-      };
+      // Pure helper lives in @esti/contracts so P9.V can unit-test the money math.
+      const feePosition = computeFeePosition({
+        agreedPaise: row.feeTotalPaise,
+        stages: feeStages,
+        timesheets,
+      });
       return {
         ...row,
         // Redact rupee figures for non-finance callers (money = L2+).
@@ -574,49 +562,17 @@ const reviewsRouter = router({
         message: `${REVIEW_STEP_LABEL[input.kind]} is already recorded for ${d.code}.`,
       });
 
-    // On CAT2/CAT3 the check and the approval must be separate people — the
-    // higher rigour tiers require the sign-off to be independent of the check,
-    // not only of the author. CAT0/CAT1 let one senior both check and sign.
-    // Enforced whichever step is recorded second, so order can't defeat it.
-    const checkApproveMustDiffer = d.checkCategory === "CAT2" || d.checkCategory === "CAT3";
-
-    if (input.kind === "CHECK") {
-      if (d.originatedBy && d.originatedBy === ctx.user.id)
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "The independent check cannot be recorded by the deliverable's author.",
-        });
-      const approver = steps.find((s) => s.kind === "APPROVE");
-      if (checkApproveMustDiffer && approver?.userId === ctx.user.id)
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: `On a ${d.checkCategory} deliverable the check must be independent of the approver.`,
-        });
-    }
-    if (input.kind === "VERIFY") {
-      const checker = steps.find((s) => s.kind === "CHECK");
-      if ((d.originatedBy && d.originatedBy === ctx.user.id) || checker?.userId === ctx.user.id)
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "The proof check must be independent of both the author and the checker.",
-        });
-    }
-    // APPROVE is the signing act (Engineer of Record accepts responsibility). The
-    // author may never approve their own work; on CAT2/CAT3 the approver must also
-    // be a different person than the checker.
-    if (input.kind === "APPROVE") {
-      if (d.originatedBy && d.originatedBy === ctx.user.id)
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "The approval (EoR sign-off) cannot be recorded by the deliverable's author.",
-        });
-      const checker = steps.find((s) => s.kind === "CHECK");
-      if (checkApproveMustDiffer && checker?.userId === ctx.user.id)
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: `On a ${d.checkCategory} deliverable the approval must be independent of the checker.`,
-        });
-    }
+    // Independence rules (author ≠ checker ≠ approver on CAT2/CAT3, etc.) —
+    // pure helper so P9.V can unit-test the liability path without a DB.
+    const independenceError = reviewStepIndependenceError({
+      kind: input.kind,
+      checkCategory: d.checkCategory,
+      actorUserId: ctx.user.id,
+      originatedBy: d.originatedBy,
+      recorded: steps,
+    });
+    if (independenceError)
+      throw new TRPCError({ code: "FORBIDDEN", message: independenceError });
 
     const [row] = await ctx.db
       .insert(consReviewSteps)
@@ -724,14 +680,12 @@ const feeStagesRouter = router({
     const { id, ...rest } = input;
     const [existing] = await ctx.db.select().from(consFeeStages).where(eq(consFeeStages.id, id));
     if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
-    // Amount and deliverable link are frozen once the stage leaves PENDING — an
-    // INVOICED/PAID stage must keep matching the invoice actually raised and the
-    // cash received. Only PENDING/BILLABLE stages (not yet on an invoice) may be
-    // repriced or relinked; the label stays editable in any state.
+    // Amount and deliverable link are frozen once invoiced/paid — pure lock
+    // helper so P9.V can unit-test without a DB. Label stays editable always.
     const financialChange =
       (rest.amountPaise !== undefined && rest.amountPaise !== existing.amountPaise) ||
       (rest.deliverableId !== undefined && rest.deliverableId !== existing.deliverableId);
-    if (financialChange && existing.status !== "PENDING" && existing.status !== "BILLABLE")
+    if (financialChange && feeStageFinancialsLocked(existing.status))
       throw new TRPCError({
         code: "PRECONDITION_FAILED",
         message: `Stage is ${existing.status.toLowerCase()} — its amount and linked deliverable are locked. Raise a credit note / adjustment instead of editing a billed stage.`,
@@ -754,7 +708,7 @@ const feeStagesRouter = router({
     .mutation(async ({ ctx, input }) => {
       const [stage] = await ctx.db.select().from(consFeeStages).where(eq(consFeeStages.id, input.id));
       if (!stage) throw new TRPCError({ code: "NOT_FOUND" });
-      if (stage.status !== "BILLABLE")
+      if (!canAdvanceFeeStage(stage.status, "INVOICED"))
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
           message:
@@ -778,7 +732,7 @@ const feeStagesRouter = router({
   markPaid: feesManage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const [stage] = await ctx.db.select().from(consFeeStages).where(eq(consFeeStages.id, input.id));
     if (!stage) throw new TRPCError({ code: "NOT_FOUND" });
-    if (stage.status !== "INVOICED")
+    if (!canAdvanceFeeStage(stage.status, "PAID"))
       throw new TRPCError({
         code: "PRECONDITION_FAILED",
         message:
@@ -798,9 +752,7 @@ const feeStagesRouter = router({
   remove: feesManage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const [stage] = await ctx.db.select().from(consFeeStages).where(eq(consFeeStages.id, input.id));
     if (!stage) throw new TRPCError({ code: "NOT_FOUND" });
-    // A billed or paid stage is a financial record — deleting it silently erases
-    // a receivable or a payment. Only un-invoiced stages may be discarded.
-    if (stage.status === "INVOICED" || stage.status === "PAID")
+    if (feeStageFinancialsLocked(stage.status))
       throw new TRPCError({
         code: "PRECONDITION_FAILED",
         message: `Stage is ${stage.status.toLowerCase()} — it cannot be deleted. Reverse the invoice / record an adjustment instead.`,
@@ -873,7 +825,7 @@ const timesheetsRouter = router({
         code: "PRECONDITION_FAILED",
         message: `No rate card is set for grade ${input.grade} — set the rate card before logging billable time.`,
       });
-    const valuePaise = Math.round(rate.ratePaise * input.hours);
+    const valuePaise = timesheetValuePaise(rate.ratePaise, input.hours);
     const [row] = await ctx.db
       .insert(consTimesheets)
       .values({
@@ -1073,44 +1025,38 @@ const analyticsRouter = router({
       .filter((g) => g.hours > 0 || g.capacityHours > 0);
 
     const hoursBooked = sheets.reduce((a, s) => a + (s.hours ?? 0), 0);
-    const timeValuePaise = sheets.reduce((a, s) => a + (s.valuePaise ?? 0), 0);
-    // Invoiced-ever includes PAID; outstanding (unpaid) is the INVOICED remainder.
-    const invoicedPaise = stages
-      .filter((s) => s.status === "INVOICED" || s.status === "PAID")
-      .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
-    const outstandingPaise = stages
-      .filter((s) => s.status === "INVOICED")
-      .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
-    const billablePaise = stages
-      .filter((s) => s.status === "BILLABLE")
-      .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
-
+    const periodPosition = computeFeePosition({
+      agreedPaise: 0,
+      stages,
+      timesheets: sheets,
+    });
     // WIP per engagement (all-time; floored at zero), summed across the firm.
     const allSheets = await ctx.db.select().from(consTimesheets);
     const engIds = [...new Set(allSheets.map((s) => s.engagementId))];
-    let wipPaise = 0;
-    for (const id of engIds) {
-      const tv = allSheets
-        .filter((s) => s.engagementId === id)
-        .reduce((a, s) => a + (s.valuePaise ?? 0), 0);
-      const inv = stages
-        .filter(
-          (s) =>
-            s.engagementId === id && (s.status === "INVOICED" || s.status === "PAID"),
-        )
-        .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
-      wipPaise += Math.max(0, tv - inv);
-    }
+    const wipPaise = sumFirmWip(
+      engIds.map((id) => {
+        const tv = allSheets
+          .filter((s) => s.engagementId === id)
+          .reduce((a, s) => a + (s.valuePaise ?? 0), 0);
+        const inv = stages
+          .filter(
+            (s) =>
+              s.engagementId === id && (s.status === "INVOICED" || s.status === "PAID"),
+          )
+          .reduce((a, s) => a + (s.amountPaise ?? 0), 0);
+        return { timeValuePaise: tv, invoicedPaise: inv };
+      }),
+    );
 
     return {
       period: input,
       hoursBooked,
-      timeValuePaise,
-      billablePaise,
-      invoicedPaise,
-      outstandingPaise,
+      timeValuePaise: periodPosition.timeValuePaise,
+      billablePaise: periodPosition.billablePaise,
+      invoicedPaise: periodPosition.invoicedPaise,
+      outstandingPaise: periodPosition.outstandingPaise,
       wipPaise,
-      realisation: timeValuePaise > 0 ? invoicedPaise / timeValuePaise : null,
+      realisation: realisationRatio(periodPosition.invoicedPaise, periodPosition.timeValuePaise),
       byGrade,
     };
   }),
