@@ -12,22 +12,22 @@ export const WIKI_PRODUCT_KNOWLEDGE = `\
 
 Public URL: https://aorms.in/wiki
 
-### AI core ? EmOI and ESTI (aorms.in/wiki/ai-core)
+### AI core ? EOMS and ESTI (aorms.in/wiki/ai-core)
 
 AORMS intelligence is split into **two agents**. **Do not conflate them in copy or configuration.**
 
 | Agent | Name | Role |
 | --- | --- | --- |
-| **External** | **EmOI** ? Embedded Operational Intelligence | Validates, enriches, and gates content from **outside sources** |
+| **External** | **EOMS** ? External Operations Management System | Validates, enriches, and gates content from **outside sources** |
 | **Internal** | **ESTI** ? Embedded Studio Intelligence | Answers only from **validated firm repositories** (live in **AORMS-Studio**) |
 
 ## Governing rule
 
-> **EmOI** handles the outside world. **ESTI** handles what the firm already knows.
+> **EOMS** handles the outside world. **ESTI** handles what the firm already knows.
 
 Deterministic systems create business truth. LLMs explain business truth ? they must not invent scores, predict delays directly, calculate financial state, or create unsupported recommendations.
 
-## EmOI ? external AI agent
+## EOMS ? external AI agent
 
 North-star capabilities:
 
@@ -35,7 +35,7 @@ North-star capabilities:
 - **Enrichment & storage** ? validated external material enters the firm knowledge base (see **Knowledge Bank portal** at \`/libraries/knowledge-bank-portal\`)
 - **Workflow intelligence** ? operational signals from governed external intake
 
-EmOI is platform-wide ? every AORMS app uses the external agent for outside intelligence.
+EOMS is platform-wide ? every AORMS app uses the external agent for outside intelligence.
 
 ## ESTI ? internal AI agent
 
@@ -63,7 +63,7 @@ Key tables: \`esti_cognition_event\`, \`esti_cognition_behavior_profile\`, \`est
 - Firm AI settings ? model provider, API keys, feature toggles (owner/admin)
 - Ask ESTI ? user-level key optional for BYO inference
 - Wiki content syncs to ESTI product knowledge on build (\`sync-wiki-knowledge.mjs\`)
-- **Knowledge Bank portal** ? EmOI-processed textbooks publish into ESTI agent context (\`knowledgeBankPortal\` tRPC)
+- **Knowledge Bank portal** ? EOMS-processed textbooks publish into ESTI agent context (\`knowledgeBankPortal\` tRPC)
 
 ## Where to go next
 
@@ -77,7 +77,7 @@ Key tables: \`esti_cognition_event\`, \`esti_cognition_behavior_profile\`, \`est
 
 ### Can ESTI fetch from the open web?
 
-No. **EmOI** handles external sources. **ESTI** answers from validated firm repositories only.
+No. **EOMS** handles external sources. **ESTI** answers from validated firm repositories only.
 
 ### Does the AI write invoices or change drawings?
 
@@ -98,7 +98,7 @@ The backend AI gateway supports Ollama for on-prem inference. Cloud deployments 
 | **Status** | Roadmap |
 | **Slug** | \`aorms-consultancy\` |
 | **Discipline** | Engineering |
-| **Intelligence** | **EmOI** external AI agent + **ESTI** internal AI agent when engineering app ships |
+| **Intelligence** | **EOMS** external AI agent + **ESTI** internal AI agent when engineering app ships |
 
 ## What it shares with AORMS-Studio
 
@@ -107,13 +107,13 @@ Both apps run on the same AORMS platform spine:
 - Operational framework — intake, process standards, review chains, audit trails
 - Design framework — engagement methodologies, deliverable models, versioned templates
 - Collaboration, approval workflows, knowledge base, analytics
-- EmOI dual-tier AI — **EmOI** external agent + **ESTI** internal agent
+- EOMS dual-tier AI — **EOMS** external agent + **ESTI** internal agent
 
 ## What differs from AORMS-Studio
 
 - Discipline-specific deliverable models (calculations, reports, peer review, sign-off chains)
 - Engineering engagement templates — not architecture fee proposals or drawing registers
-- No **ESTI** (internal agent) at launch — **AORMS-Consultancy** ships **EmOI** (external agent) first; internal-agent profile follows
+- No **ESTI** (internal agent) at launch — **AORMS-Consultancy** ships **EOMS** (external agent) first; internal-agent profile follows
 
 ## Platform context
 
@@ -137,7 +137,7 @@ Both apps run on the same AORMS platform spine:
 | **App URL** | [studio.aorms.in](https://studio.aorms.in) |
 | **Audience** | Registered architects, interior designers, solo practitioners, mid-sized firms |
 | **Licence** | One standard licence — unlimited users, clients, projects; 5 GB included storage |
-| **Intelligence** | **ESTI** (internal AI agent) · **EmOI** (external AI agent) on the platform |
+| **Intelligence** | **ESTI** (internal AI agent) · **EOMS** (external AI agent) on the platform |
 
 ## What the workspace covers
 
@@ -380,7 +380,7 @@ See [Finance and billing](finance-and-billing) for step-by-step guides.
 
 | Layer | Management scope |
 | --- | --- |
-| **AORMS platform** | Frameworks, EmOI + ESTI agents, **AORMS-Consultancy** engineering app (roadmap) |
+| **AORMS platform** | Frameworks, EOMS + ESTI agents, **AORMS-Consultancy** engineering app (roadmap) |
 | **AORMS-Studio** | Indian consultancy finance, HR, team, and office modules listed above |
 
 ## Frequently asked questions
@@ -651,28 +651,28 @@ Company owners manage their organisation in the **account portal**. Platform ope
 
 ---
 
-### Knowledge Bank portal — EmOI textbook library (aorms.in/wiki/knowledge-bank-portal)
+### Knowledge Bank portal — EOMS textbook library (aorms.in/wiki/knowledge-bank-portal)
 
 The **Knowledge Bank portal** (\`/libraries/knowledge-bank-portal\`) is where firm staff bring **external
 textbooks and reference material** into AORMS. PDFs convert to **Markdown** (same
 [pymupdf4llm](https://github.com/HolagundiWorks/hcw-markdown-tool) pipeline as **HCW Markdown Tool**);
-**EmOI** processes the markdown; **ESTI** reads only **published** library content.
+**EOMS** processes the markdown; **ESTI** reads only **published** library content.
 
 ## Workflow
 
 1. **Add source** — title, author, category, and text (paste or upload PDF / \`.txt\` / \`.md\`).
 2. **Markdown** — PDFs convert in the worker; pasted text is normalised to markdown.
-3. **Process with EmOI** — rephrase + section summaries (faithful to source; no invented facts).
+3. **Process with EOMS** — rephrase + section summaries (faithful to source; no invented facts).
 4. **Review** — read generated sections.
 5. **Publish to ESTI** — library enters Ask ESTI context with citations.
 
 ## Who can use it
 
-Staff with **write** capability (L4+). AI must be enabled on the firm plan for live EmOI inference.
+Staff with **write** capability (L4+). AI must be enabled on the firm plan for live EOMS inference.
 
 ## Related
 
-- [AI core](ai-core) — EmOI vs ESTI
+- [AI core](ai-core) — EOMS vs ESTI
 - [How to use AORMS — Library](how-to-use-aorms#library)
 
 ---
@@ -867,7 +867,7 @@ This wiki is organised in **four domains**:
 | --- | --- |
 | **[HCW-UI](hcw-ui-kit)** | The layered design system (\`@hcw/ui-kit\`) ? flat, soft, and glass surfaces; Rail ? Stage ? Dock |
 | **[AORMS-Studio](aorms-studio)** | The shipped architecture advisory workspace ? projects, fees, revisions, drawings, portals |
-| **[AI core](ai-core)** | **EmOI** external AI agent + **ESTI** internal AI agent ? cognition engine, Ask ESTI |
+| **[AI core](ai-core)** | **EOMS** external AI agent + **ESTI** internal AI agent ? cognition engine, Ask ESTI |
 | **[Management](management)** | Finance, billing, HR, licensing, team performance, operational framework |
 
 **AORMS** (**Accelerated Operational Resources Management System**) is the platform for **AEC consulting firms**. Two apps share one spine: **AORMS-Studio** (architecture ? shipping from this repository) and **AORMS-Consultancy** (engineering ? roadmap).

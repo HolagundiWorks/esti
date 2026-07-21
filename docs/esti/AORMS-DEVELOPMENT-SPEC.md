@@ -36,7 +36,7 @@ accelerates optimization, and enables knowledge-driven decision-making.
 
 - **Custom framework deployment** — analyse office workflows → tailored process frameworks in days
 - **Two AEC apps** — **AORMS-Studio** (architecture) and **AORMS-Consultancy** (engineering) on one platform spine
-- **Two AI agents** — **EmOI** (external) validates outside sources; **ESTI** (internal) answers from firm repositories
+- **Two AI agents** — **EOMS** (external) validates outside sources; **ESTI** (internal) answers from firm repositories
 - **Unified collaboration surface** — communication, revision, review, audit logs in one system
 
 ### Target user

@@ -4,21 +4,21 @@ import { ollamaBaseUrlFromEnv, ollamaModelFromEnv } from "./ollama-config.js";
 import { getOrgSettings } from "../settings.js";
 import type { DB } from "../../db/index.js";
 
-export type EmOiRepoSection = {
+export type EomsRepoSection = {
   title: string;
   summary: string;
   rephrased: string;
 };
 
-export type EmOiRepoResult = {
+export type EomsRepoResult = {
   executiveSummary: string;
-  sections: EmOiRepoSection[];
+  sections: EomsRepoSection[];
   provider: string;
   model: string;
 };
 
-const EMOI_REPO_SYSTEM = [
-  "You are EmOI (Embedded Operational Intelligence) — the external AI agent on AORMS.",
+const EOMS_REPO_SYSTEM = [
+  "You are EOMS (External Operations Management System) — the external AI agent on AORMS.",
   "Your job is to ingest markdown converted from external textbooks or reference material, rephrase it in clear professional language, and write accurate summaries.",
   "Rules:",
   "- Do NOT invent facts, codes, numbers, or citations not present in the source.",
@@ -47,7 +47,7 @@ function splitIntoChunks(rawText: string): string[] {
   return chunks.slice(0, MAX_CHUNKS);
 }
 
-function parseEmOiJson(text: string): EmOiRepoResult | null {
+function parseEomsJson(text: string): EomsRepoResult | null {
   const trimmed = text.trim();
   const jsonStart = trimmed.indexOf("{");
   const jsonEnd = trimmed.lastIndexOf("}");
@@ -69,14 +69,14 @@ function parseEmOiJson(text: string): EmOiRepoResult | null {
       executiveSummary: (parsed.executiveSummary ?? sections[0]!.summary).trim(),
       sections,
       provider: "parsed",
-      model: "emoi",
+      model: "eoms",
     };
   } catch {
     return null;
   }
 }
 
-function mockEmOiResult(rawText: string, title: string): EmOiRepoResult {
+function mockEomsResult(rawText: string, title: string): EomsRepoResult {
   const chunks = splitIntoChunks(rawText);
   const sections = chunks.map((chunk, i) => {
     const firstLine = chunk.split("\n")[0]?.slice(0, 80) ?? `Section ${i + 1}`;
@@ -88,14 +88,14 @@ function mockEmOiResult(rawText: string, title: string): EmOiRepoResult {
     };
   });
   return {
-    executiveSummary: `Reference summary for "${title}": ${sections.length} section(s) prepared for firm review (mock — enable AI for EmOI rephrasing).`,
+    executiveSummary: `Reference summary for "${title}": ${sections.length} section(s) prepared for firm review (mock — enable AI for EOMS rephrasing).`,
     sections,
     provider: "mock",
     model: "template",
   };
 }
 
-async function callEmOiChat(
+async function callEomsChat(
   settings: AiSettings,
   userPrompt: string,
 ): Promise<{ text: string; provider: string; model: string }> {
@@ -118,7 +118,7 @@ async function callEmOiChat(
       body: JSON.stringify({
         model: settings.cloudModel.trim(),
         messages: [
-          { role: "system", content: EMOI_REPO_SYSTEM },
+          { role: "system", content: EOMS_REPO_SYSTEM },
           { role: "user", content: userPrompt },
         ],
         temperature: 0.15,
@@ -141,26 +141,26 @@ async function callEmOiChat(
   const { text } = await callOllamaChat({
     baseUrl,
     model,
-    system: EMOI_REPO_SYSTEM,
+    system: EOMS_REPO_SYSTEM,
     user: userPrompt,
   });
   return { text, provider: "ollama", model };
 }
 
-/** Run EmOI on textbook raw text — rephrase + summarise into library sections. */
-export async function runEmOiRepoProcessing(
+/** Run EOMS on textbook raw text — rephrase + summarise into library sections. */
+export async function runEomsRepoProcessing(
   db: DB,
   opts: { title: string; author?: string | null; rawText: string },
-): Promise<EmOiRepoResult> {
+): Promise<EomsRepoResult> {
   const org = await getOrgSettings(db);
   const settings = parseAiSettings(org.aiSettings);
 
   if (!settings.enabled || settings.provider === "mock") {
-    return mockEmOiResult(opts.rawText, opts.title);
+    return mockEomsResult(opts.rawText, opts.title);
   }
 
   const chunks = splitIntoChunks(opts.rawText);
-  const allSections: EmOiRepoSection[] = [];
+  const allSections: EomsRepoSection[] = [];
   let executiveSummary = "";
   let provider = "ollama";
   let model = settings.model || ollamaModelFromEnv();
@@ -181,10 +181,10 @@ export async function runEmOiRepoProcessing(
       .join("\n");
 
     try {
-      const { text, provider: p, model: m } = await callEmOiChat(settings, userPrompt);
+      const { text, provider: p, model: m } = await callEomsChat(settings, userPrompt);
       provider = p;
       model = m;
-      const parsed = parseEmOiJson(text);
+      const parsed = parseEomsJson(text);
       if (parsed) {
         if (!executiveSummary) executiveSummary = parsed.executiveSummary;
         allSections.push(...parsed.sections);
@@ -196,14 +196,14 @@ export async function runEmOiRepoProcessing(
         });
       }
     } catch {
-      const fallback = mockEmOiResult(chunk, opts.title);
+      const fallback = mockEomsResult(chunk, opts.title);
       if (!executiveSummary) executiveSummary = fallback.executiveSummary;
       allSections.push(...fallback.sections);
     }
   }
 
   if (!allSections.length) {
-    return mockEmOiResult(opts.rawText, opts.title);
+    return mockEomsResult(opts.rawText, opts.title);
   }
 
   return {

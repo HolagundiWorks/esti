@@ -1,8 +1,8 @@
-# Knowledge Bank portal — EmOI textbook library
+# Knowledge Bank portal — EOMS textbook library
 
 **Status:** Canonical · **Updated:** 2026-07-11
 
-The **Knowledge Bank portal** is the firm-facing surface where **EmOI** (external AI agent)
+The **Knowledge Bank portal** is the firm-facing surface where **EOMS** (external AI agent)
 ingests **outside reference material** — textbooks, codes, and long-form guides —
 rephrases it faithfully, writes summaries, and stores the result in a **governed
 library**. **ESTI** (internal AI agent) reads **published** library content when
@@ -18,14 +18,14 @@ Executable constants: `frontend/src/lib/product-nomenclature.ts` (`KNOWLEDGE_BAN
 External textbook (PDF / paste / .txt / .md)
   → HCW Markdown Tool pipeline (pymupdf4llm — worker job for PDFs)
   → Markdown
-  → EmOI (validate · rephrase · summarise)
+  → EOMS (validate · rephrase · summarise)
   → Review (firm staff)
   → Publish
   → ESTI agent context (Ask ESTI · citations)
 ```
 
-**Governing rule:** EmOI handles the outside world. ESTI never sees raw external
-text — only **published**, EmOI-processed sections.
+**Governing rule:** EOMS handles the outside world. ESTI never sees raw external
+text — only **published**, EOMS-processed sections.
 
 Offline PDF conversion: [HCW Markdown Tool](https://github.com/HolagundiWorks/hcw-markdown-tool).
 
@@ -45,8 +45,8 @@ Offline PDF conversion: [HCW Markdown Tool](https://github.com/HolagundiWorks/hc
 
 | Status | Meaning |
 | --- | --- |
-| `DRAFT` | Markdown attached; ready for EmOI |
-| `PROCESSING` | EmOI running |
+| `DRAFT` | Markdown attached; ready for EOMS |
+| `PROCESSING` | EOMS running |
 | `REVIEW` | Sections generated; awaiting publish |
 | `PUBLISHED` | In ESTI knowledge context |
 | `FAILED` | Processing error (see `process_error`) |
@@ -60,7 +60,7 @@ PDF conversion uses `convert_status`: `PROCESSING` → `READY` | `FAILED`.
 Migrations `0180_repo_portal.sql`, `0181_repo_markdown.sql`:
 
 - `esti_repo_source` — textbook metadata + markdown + executive summary
-- `esti_repo_section` — EmOI-generated title · summary · rephrased body
+- `esti_repo_section` — EOMS-generated title · summary · rephrased body
 
 Table prefix `esti_repo_*` is an internal codename; the product name is **Knowledge Bank portal**.
 
@@ -93,5 +93,5 @@ depends on Postgres, Redis, and MinIO (already configured).
 
 ## Related docs
 
-- [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md) — EmOI vs ESTI
+- [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md) — EOMS vs ESTI
 - Wiki: [knowledge-bank-portal](../frontend/src/content/wiki/knowledge-bank-portal.md)

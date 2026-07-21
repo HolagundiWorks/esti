@@ -6,7 +6,7 @@
 > Management System** (platform for **AEC consulting firms**). **AORMS-Studio** = architecture app
 > in this repo (slug `aorms-studio`, Indian architecture practices). **AORMS-Consultancy** =
 > engineering app (slug `aorms-consultancy`, roadmap).
-> **EmOI** = external AI agent; **ESTI** = internal AI agent (live in **AORMS-Studio**).
+> **EOMS** = external AI agent; **ESTI** = internal AI agent (live in **AORMS-Studio**).
 > **Portals:** staff workspace = **AORMS-Studio**; external = client / consultant / contractor / site portals; account hub = **AORMS account** + licensing console. Constants: `AORMS_PORTALS` in `frontend/src/lib/product-nomenclature.ts`.
 > Full rules: [AORMS-PLATFORM-NOMENCLATURE](AORMS-PLATFORM-NOMENCLATURE.md).
 
@@ -19,7 +19,7 @@ landing at `/`). **Landing redesign brief:**
 [../marketing/LANDING-REDESIGN-CONTEXT.md](../marketing/LANDING-REDESIGN-CONTEXT.md).
 
 **Public user documentation:** [aorms.in/wiki](https://aorms.in/wiki) — central wiki
-in four domains: **HCW-UI**, **AORMS-Studio**, **AI core** (EmOI + ESTI), and
+in four domains: **HCW-UI**, **AORMS-Studio**, **AI core** (EOMS + ESTI), and
 **Management**.
 
 ## Read first
@@ -41,7 +41,7 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 
 | Document | Authority |
 | --- | --- |
-| [AORMS-PLATFORM-NOMENCLATURE](AORMS-PLATFORM-NOMENCLATURE.md) | **Naming** — platform vs AORMS-Studio vs EmOI vs ESTI |
+| [AORMS-PLATFORM-NOMENCLATURE](AORMS-PLATFORM-NOMENCLATURE.md) | **Naming** — platform vs AORMS-Studio vs EOMS vs ESTI |
 | [AORMS-CONSULTING-FRAMEWORKS](AORMS-CONSULTING-FRAMEWORKS.md) | **Philosophy + operational frameworks** — architecture vs engineering consultancies |
 | [AORMS-DEVELOPMENT-SPEC](AORMS-DEVELOPMENT-SPEC.md) | **Platform north-star** — pre-release architecture (landing `/`) |
 | [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) | **Read first for code** — AORMS-Studio system state |

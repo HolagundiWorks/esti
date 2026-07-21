@@ -1,5 +1,5 @@
 /** SEO for /login — AORMS-Studio marketing + sign-in (canonical vertical entry page). */
-import { AORMS_STUDIO, AORMS_PLATFORM, EMOI, ESTI } from "./product-nomenclature.js";
+import { AORMS_STUDIO, AORMS_PLATFORM, EOMS, ESTI } from "./product-nomenclature.js";
 
 const BASE = "https://aorms.in/";
 const LEGACY_SLUGS = AORMS_STUDIO.legacySlugs.join(", ");
@@ -62,7 +62,7 @@ export const ARCHITECTURE_LANDING_FAQ = [
   {
     question: "What is the relationship to AORMS platform?",
     answer:
-      `AORMS (${AORMS_PLATFORM.expansion}) is the platform for AEC consulting firms — ${EMOI.name} (${EMOI.role.toLowerCase()}) and ${ESTI.name} (${ESTI.role.toLowerCase()} in ${AORMS_STUDIO.title}). ${AORMS_STUDIO.title} is the shipping architecture app for Indian architecture practices.`,
+      `AORMS (${AORMS_PLATFORM.expansion}) is the platform for AEC consulting firms — ${EOMS.name} (${EOMS.role.toLowerCase()}) and ${ESTI.name} (${ESTI.role.toLowerCase()} in ${AORMS_STUDIO.title}). ${AORMS_STUDIO.title} is the shipping architecture app for Indian architecture practices.`,
   },
 ] as const;
 

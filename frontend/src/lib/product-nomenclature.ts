@@ -119,7 +119,7 @@ export const PLATFORM_APPS = [
     bullets: [
       "Engagement & deliverable frameworks",
       "Serial review & sign-off chains",
-      "EmOI · external AI agent · governed intake",
+      "EOMS · external AI agent · governed intake",
     ],
     workspaceSlug: AORMS_CONSULTANCY.slug,
     href: AORMS_CONSULTANCY.landingHref,
@@ -215,22 +215,22 @@ export const ESTI = {
   workspace: AORMS_STUDIO.slug,
 } as const;
 
-/** Knowledge Bank portal — EmOI textbook intake → validated firm library → ESTI RAG. */
+/** Knowledge Bank portal — EOMS textbook intake → validated firm library → ESTI RAG. */
 export const KNOWLEDGE_BANK_PORTAL = {
   title: "Knowledge Bank portal",
   route: "/libraries/knowledge-bank-portal",
   url: platformPageUrl("knowledgeBank"),
   summary:
-    "Governed reference library: HCW Markdown Tool converts PDFs to markdown; EmOI rephrases and summarises; published sections are available to ESTI (Ask ESTI).",
+    "Governed reference library: HCW Markdown Tool converts PDFs to markdown; EOMS rephrases and summarises; published sections are available to ESTI (Ask ESTI).",
 } as const;
 
 /** @deprecated Use KNOWLEDGE_BANK_PORTAL — kept for transitional imports. */
 export const REPO_PORTAL = KNOWLEDGE_BANK_PORTAL;
 
 /** External AI agent — validates and gates outbound / external-source intelligence. */
-export const EMOI = {
-  name: "EmOI",
-  expansion: "Embedded Operational Intelligence",
+export const EOMS = {
+  name: "EOMS",
+  expansion: "External Operations Management System",
   role: "External AI agent",
   summary:
     "External AI agent — fetches, validates, enriches, and gates content from outside sources before it enters the firm knowledge base.",

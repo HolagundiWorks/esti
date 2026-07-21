@@ -27,7 +27,7 @@ import {
   type RepoSourceCategory,
   type RepoSourceStatus,
 } from "@esti/contracts";
-import { EMOI, KNOWLEDGE_BANK_PORTAL } from "../lib/product-nomenclature.js";
+import { EOMS, KNOWLEDGE_BANK_PORTAL } from "../lib/product-nomenclature.js";
 import { DataState } from "../components/DataState.js";
 import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
@@ -66,7 +66,7 @@ export function KnowledgeBankPortal() {
 
   const create = trpc.knowledgeBankPortal.create.useMutation({ meta: { errorTitle: "Couldn't create the document" }, onSuccess: inv });
   const remove = trpc.knowledgeBankPortal.remove.useMutation({ meta: { errorTitle: "Couldn't delete the document" }, onSuccess: inv });
-  const processEmoi = trpc.knowledgeBankPortal.processWithEmoi.useMutation({ meta: { errorTitle: "Couldn't process the document with EmOI" }, onSuccess: inv });
+  const processEoms = trpc.knowledgeBankPortal.processWithEoms.useMutation({ meta: { errorTitle: "Couldn't process the document with EOMS" }, onSuccess: inv });
   const publish = trpc.knowledgeBankPortal.publish.useMutation({ meta: { errorTitle: "Couldn't publish the document" }, onSuccess: inv });
   const unpublish = trpc.knowledgeBankPortal.unpublish.useMutation({ meta: { errorTitle: "Couldn't unpublish the document" }, onSuccess: inv });
   const update = trpc.knowledgeBankPortal.update.useMutation({ meta: { errorTitle: "Couldn't update the document" }, onSuccess: inv });
@@ -94,7 +94,7 @@ export function KnowledgeBankPortal() {
   const [editDirty, setEditDirty] = useState(false);
 
   useEffect(() => {
-    document.title = `${KNOWLEDGE_BANK_PORTAL.title} — ${EMOI.name}`;
+    document.title = `${KNOWLEDGE_BANK_PORTAL.title} — ${EOMS.name}`;
   }, []);
 
   useEffect(() => {
@@ -148,17 +148,17 @@ export function KnowledgeBankPortal() {
 
   const ingestLen = (detailQ.data?.markdownText ?? detailQ.data?.rawText ?? "").length;
 
-  const runEmoi = useCallback(() => {
+  const runEoms = useCallback(() => {
     if (!selectedId) return;
     setError(null);
-    processEmoi.mutate(
+    processEoms.mutate(
       { id: selectedId },
       {
         onSuccess: () => utils.knowledgeBankPortal.get.invalidate({ id: selectedId }),
         onError: (e) => setError(e.message),
       },
     );
-  }, [processEmoi, selectedId, utils.knowledgeBankPortal.get]);
+  }, [processEoms, selectedId, utils.knowledgeBankPortal.get]);
 
   const commitPublish = useCallback(() => {
     if (!selectedId) return;
@@ -183,14 +183,14 @@ export function KnowledgeBankPortal() {
           },
           ...(selectedId && detailQ.data?.status === "DRAFT"
             ? [{
-                id: "kb-emoi",
+                id: "kb-eoms",
                 zone: "right" as const,
                 tone: "primary" as const,
-                label: `Run ${EMOI.name}`,
+                label: `Run ${EOMS.name}`,
                 icon: <AutoStoriesOutlinedIcon />,
-                onClick: runEmoi,
+                onClick: runEoms,
                 disabled:
-                  processEmoi.isPending
+                  processEoms.isPending
                   || detailQ.data?.convertStatus === "PROCESSING"
                   || ingestLen < 200,
               }]
@@ -211,10 +211,10 @@ export function KnowledgeBankPortal() {
       selectedId,
       detailQ.data?.status,
       detailQ.data?.convertStatus,
-      processEmoi.isPending,
+      processEoms.isPending,
       publish.isPending,
       ingestLen,
-      runEmoi,
+      runEoms,
       commitPublish,
     ],
   );
@@ -271,7 +271,7 @@ export function KnowledgeBankPortal() {
           <Link href={HCW_MARKDOWN_TOOL.repoUrl} target="_blank" rel="noreferrer">
             {HCW_MARKDOWN_TOOL.name}
           </Link>
-          ; {EMOI.name} ingests the markdown before publish to <strong>ESTI</strong>.
+          ; {EOMS.name} ingests the markdown before publish to <strong>ESTI</strong>.
         </Typography>
       }
     >
@@ -286,7 +286,7 @@ export function KnowledgeBankPortal() {
             columnCount={1}
             empty={{
               title: "No reference sources",
-              description: `Add a textbook. PDFs become Markdown, then ${EMOI.name} rephrases and summarises before you publish to ESTI.`,
+              description: `Add a textbook. PDFs become Markdown, then ${EOMS.name} rephrases and summarises before you publish to ESTI.`,
             }}
           >
             <DataGrid
@@ -390,7 +390,7 @@ export function KnowledgeBankPortal() {
                       </Button>
                     )}
                   </Stack>
-                  {/* “Run EmOI” lives in the ActionDock (RIGHT — commit); no inline duplicate. */}
+                  {/* “Run EOMS” lives in the ActionDock (RIGHT — commit); no inline duplicate. */}
                 </Stack>
               )}
 
@@ -456,7 +456,7 @@ export function KnowledgeBankPortal() {
               fullWidth
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
-              helperText="Paste textbook content — stored as markdown for EmOI (minimum 200 characters)."
+              helperText="Paste textbook content — stored as markdown for EOMS (minimum 200 characters)."
             />
           </Stack>
         </DialogContent>

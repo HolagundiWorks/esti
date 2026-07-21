@@ -29,7 +29,7 @@ import {
   PLATFORM_FRAMEWORKS,
   PLATFORM_APPS,
   AORMS_STUDIO,
-  EMOI,
+  EOMS,
   ESTI,
   HUMAN_CENTRIC_WORKS,
 } from "../lib/product-nomenclature.js";
@@ -89,8 +89,8 @@ const FAQ = [
     a: `No. ${ESTI.name} answers only from your validated firm repositories, running on your server — no external API keys required.`,
   },
   {
-    q: "What is the difference between EmOI and ESTI?",
-    a: `${EMOI.name} is the external agent — it validates and gates content from outside sources before it enters your knowledge base. ${ESTI.name} is the internal agent that answers from what has been validated.`,
+    q: "What is the difference between EOMS and ESTI?",
+    a: `${EOMS.name} is the external agent — it validates and gates content from outside sources before it enters your knowledge base. ${ESTI.name} is the internal agent that answers from what has been validated.`,
   },
   {
     q: "Which app ships today?",
@@ -306,7 +306,7 @@ export function Landing() {
               lead="Nothing reaches your firm library unvalidated, and nothing is answered from anything but validated firm knowledge."
             />
             <Grid container spacing={3}>
-              {[EMOI, ESTI].map((agent) => (
+              {[EOMS, ESTI].map((agent) => (
                 <Grid key={agent.name} size={{ xs: 12, md: 6 }}>
                   <Surface layer="soft" sx={{ p: 3, height: "100%" }}>
                     <Stack direction="row" spacing={1.5} sx={{ alignItems: "baseline" }}>

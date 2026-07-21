@@ -232,7 +232,7 @@ export const consRelianceLetters = pgTable("esti_cons_reliance_letter", {
 });
 
 /**
- * Phase 3 — EmOI input gate: external inputs recorded and validated before
+ * Phase 3 — EOMS input gate: external inputs recorded and validated before
  * they become working assumptions. RECEIVED packs are a hold point — the
  * engagement's deliverables cannot be issued past them.
  */

@@ -57,7 +57,7 @@ Every AORMS consulting office runs two layers (see `PLATFORM_FRAMEWORKS` in code
 | **Operational** | How does the **office** run? | Intake, standards, review chains, audit, HR rhythm, billing cadence, adoption |
 | **Design** | How is each **engagement** structured? | Methodologies, deliverable models, templates, staged advisory patterns |
 
-The **platform** owns the spine (tenant, permissions, collaboration, EmOI gate, analytics).
+The **platform** owns the spine (tenant, permissions, collaboration, EOMS gate, analytics).
 Each **app** owns discipline-specific design frameworks and workspace modules.
 
 **Philosophy:** **Operations** and **engagement design** are separate problems. Conflating them
@@ -66,7 +66,7 @@ is why generic tools fail consultancies.
 ### 1.4 Deterministic truth; intelligence explains
 
 Office health, priorities, ASPRF scores, and revision signals come from **auditable rules** and
-recorded events. LLMs (**ESTI** in Studio, **EmOI** platform-wide) **explain and draft** —
+recorded events. LLMs (**ESTI** in Studio, **EOMS** platform-wide) **explain and draft** —
 they do not invent operational fact.
 
 Evidence:
@@ -82,10 +82,10 @@ not an oracle.
 
 | Agent | Tier | Role |
 | --- | --- | --- |
-| **EmOI** | External | Validates content **entering** the firm from outside (codes, uploads, client packs) |
+| **EOMS** | External | Validates content **entering** the firm from outside (codes, uploads, client packs) |
 | **ESTI** | Internal | Answers only from **validated** firm repositories (Studio today) |
 
-Data path: `External → EmOI (validate) → Repository → Internal agent (RAG) → Output`
+Data path: `External → EOMS (validate) → Repository → Internal agent (RAG) → Output`
 
 **Philosophy:** **Trust is engineered.** Nothing raw from the internet becomes “firm truth”
 without passing the external gate.
@@ -139,10 +139,10 @@ the **design framework** and module emphasis.
 ┌─────────────────────────────────────────────────────────────────┐
 │  INTAKE → QUALIFY → ENGAGE → PRODUCE → REVIEW → ISSUE → CLOSE   │
 │       ↑                    ↑         ↑                          │
-│   Operational          Design      EmOI gate                    │
+│   Operational          Design      EOMS gate                    │
 │   standards            framework   (external in)                │
 │       ↓                    ↓         ↓                          │
-│   OFFICE RHYTHM · AUDIT · KNOWLEDGE · ANALYTICS · ESTI/EmOI     │
+│   OFFICE RHYTHM · AUDIT · KNOWLEDGE · ANALYTICS · ESTI/EOMS     │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -301,11 +301,11 @@ How an engineering engagement is **structured** — the “design” layer for e
 | Step | Intent | Outcome in AORMS |
 | --- | --- | --- |
 | A1 Scope boundary | What is in/out; reliance on architect pack | Engagement record |
-| A2 Input validation | External codes, briefs via **EmOI** gate | EmOI-validated intake |
+| A2 Input validation | External codes, briefs via **EOMS** gate | EOMS-validated intake |
 | A3 Commercial | Fee basis (lump, %, hours cap) | Proposals (shared spine) |
 | A4 Team & discipline | Lead discipline, checker assignment | Assignments |
 
-**Operational rule:** **No calculation without validated inputs** — external packs pass EmOI
+**Operational rule:** **No calculation without validated inputs** — external packs pass EOMS
 before they become working assumptions.
 
 #### Phase B — Deliverable production
@@ -345,7 +345,7 @@ before they become working assumptions.
 | Step | Intent | Outcome in AORMS |
 | --- | --- | --- |
 | E1 Office standards | NBC, IS codes, office detail library | Standards library |
-| E2 EmOI external corpus | Validated code snippets enter repo | EmOI + knowledge bank |
+| E2 EOMS external corpus | Validated code snippets enter repo | EOMS + knowledge bank |
 | E3 Precedent search | Past projects as governed patterns | Semantic search (internal agent) |
 | E4 Audit export | Review chain + issue log for QA | Compliance reporting |
 
@@ -381,7 +381,7 @@ consultancies defend professional duty — not slide decks and email threads.
 | **Site role** | Architect supervision | Technical site support (scoped) |
 | **Out of scope** | Construction PM, tendering | Contractor execution, fabrication PM |
 
-Both share: **proposals, projects, tasks, transmittals, approvals, portals, EmOI, audit,
+Both share: **proposals, projects, tasks, transmittals, approvals, portals, EOMS, audit,
 knowledge library, rail · stage · dock UX**.
 
 ---

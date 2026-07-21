@@ -267,11 +267,11 @@ export function ConsultancyEngagements() {
     meta: { errorTitle: "Couldn't reach the intelligence agent" },
     onSuccess: (res) => setAskAnswer(res.answer),
   });
-  const [emoiFor, setEmoiFor] = useState<string | null>(null);
-  const [emoiText, setEmoiText] = useState<string | null>(null);
-  const emoiReview = trpc.consultancy.inputPacks.emoiReview.useMutation({
-    meta: { errorTitle: "Couldn't run the EmOI review" },
-    onSuccess: (res) => setEmoiText(res.recommendation),
+  const [eomsFor, setEomsFor] = useState<string | null>(null);
+  const [eomsText, setEomsText] = useState<string | null>(null);
+  const eomsReview = trpc.consultancy.inputPacks.eomsReview.useMutation({
+    meta: { errorTitle: "Couldn't run the EOMS review" },
+    onSuccess: (res) => setEomsText(res.recommendation),
   });
 
   // SOP §7 — site field reports (G711 anatomy).
@@ -463,7 +463,7 @@ export function ConsultancyEngagements() {
   const anyDialogOpen =
     engOpen || delOpen || tqOpen || feeOpen || timeOpen || ratesOpen || voOpen ||
     packOpen || riskOpen || relOpen || askOpen || phaseOpen || briefOpen || frOpen ||
-    !!crsFor || !!emoiFor || !!tqAnswerFor || !!tqCloseFor;
+    !!crsFor || !!eomsFor || !!tqAnswerFor || !!tqCloseFor;
   useScreenActions(
     anyDialogOpen
       ? []
@@ -920,7 +920,7 @@ export function ConsultancyEngagements() {
                 )}
               </Box>
 
-              {/* EmOI input gate — unvalidated packs hold issue on the whole engagement. */}
+              {/* EOMS input gate — unvalidated packs hold issue on the whole engagement. */}
               <Box>
                 <Stack direction="row" spacing={1} sx={{ alignItems: "baseline" }}>
                   <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600 }} className="esti-grow">
@@ -965,12 +965,12 @@ export function ConsultancyEngagements() {
                             ...(p.status === "RECEIVED"
                               ? [
                                   {
-                                    label: "EmOI review",
-                                    disabled: emoiReview.isPending,
+                                    label: "EOMS review",
+                                    disabled: eomsReview.isPending,
                                     onClick: () => {
-                                      setEmoiText(null);
-                                      setEmoiFor(p.title);
-                                      emoiReview.mutate({ id: p.id });
+                                      setEomsText(null);
+                                      setEomsFor(p.title);
+                                      eomsReview.mutate({ id: p.id });
                                     },
                                   },
                                   {
@@ -1159,13 +1159,15 @@ export function ConsultancyEngagements() {
                   Fee position
                 </Typography>
                 <span className="esti-label esti-label--secondary">
-                  {detail.feeModel
-                    ? `${FEE_MODEL_LABEL[detail.feeModel as FeeModel] ?? detail.feeModel} · agreed ${formatINR(detail.feePosition.agreedPaise)}`
-                    : "No fee model recorded"}
-                  {` · staged ${formatINR(detail.feePosition.stagedPaise)} · billable ${formatINR(detail.feePosition.billablePaise)} · invoiced ${formatINR(detail.feePosition.invoicedPaise)} · paid ${formatINR(detail.feePosition.paidPaise)}`}
-                  {detail.feePosition.outstandingPaise > 0
-                    ? ` · outstanding ${formatINR(detail.feePosition.outstandingPaise)}`
-                    : ""}
+                  {detail.feePosition
+                    ? (detail.feeModel
+                        ? `${FEE_MODEL_LABEL[detail.feeModel as FeeModel] ?? detail.feeModel} · agreed ${formatINR(detail.feePosition.agreedPaise)}`
+                        : "No fee model recorded") +
+                      ` · staged ${formatINR(detail.feePosition.stagedPaise)} · billable ${formatINR(detail.feePosition.billablePaise)} · invoiced ${formatINR(detail.feePosition.invoicedPaise)} · paid ${formatINR(detail.feePosition.paidPaise)}` +
+                      (detail.feePosition.outstandingPaise > 0
+                        ? ` · outstanding ${formatINR(detail.feePosition.outstandingPaise)}`
+                        : "")
+                    : "Fee position is visible to finance roles only."}
                 </span>
                 {detail.feeStages.length > 0 && (
                   <TableContainer sx={{ mt: 1 }}>
@@ -1416,7 +1418,7 @@ export function ConsultancyEngagements() {
                   <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600, mb: 0.5 }} className="esti-grow">
                     Time
                   </Typography>
-                  {detail.feePosition.pendingApproval > 0 && (
+                  {detail.feePosition && detail.feePosition.pendingApproval > 0 && (
                     <Button
                       size="small"
                       variant="text"
@@ -1429,12 +1431,14 @@ export function ConsultancyEngagements() {
                     </Button>
                   )}
                 </Stack>
-                <span className="esti-label esti-label--secondary">
-                  {`${detail.feePosition.hoursBooked}h booked · value ${formatINR(detail.feePosition.timeValuePaise)} · WIP ${formatINR(detail.feePosition.wipPaise)}`}
-                  {detail.feePosition.pendingApproval > 0
-                    ? ` · ${detail.feePosition.pendingApproval} pending approval`
-                    : ""}
-                </span>
+                {detail.feePosition && (
+                  <span className="esti-label esti-label--secondary">
+                    {`${detail.feePosition.hoursBooked}h booked · value ${formatINR(detail.feePosition.timeValuePaise)} · WIP ${formatINR(detail.feePosition.wipPaise)}`}
+                    {detail.feePosition.pendingApproval > 0
+                      ? ` · ${detail.feePosition.pendingApproval} pending approval`
+                      : ""}
+                  </span>
+                )}
                 {detail.timesheets.length > 0 && (
                   <TableContainer sx={{ mt: 1 }}>
                     <Table size="small" aria-label="Timesheet entries">
@@ -1820,20 +1824,20 @@ export function ConsultancyEngagements() {
         </DialogActions>
       </Dialog>
 
-      {/* EmOI review recommendation */}
-      <Dialog open={!!emoiFor} onClose={() => setEmoiFor(null)} fullWidth maxWidth="sm">
-        <DialogTitle>EmOI review — {emoiFor}</DialogTitle>
+      {/* EOMS review recommendation */}
+      <Dialog open={!!eomsFor} onClose={() => setEomsFor(null)} fullWidth maxWidth="sm">
+        <DialogTitle>EOMS review — {eomsFor}</DialogTitle>
         <DialogContent>
           <Stack spacing={1.5} sx={{ mt: 1 }}>
-            {emoiReview.isPending && (
+            {eomsReview.isPending && (
               <span className="esti-label esti-label--secondary">
-                EmOI is drafting the validation checklist…
+                EOMS is drafting the validation checklist…
               </span>
             )}
-            {emoiText && (
+            {eomsText && (
               <Box sx={{ p: 1.5, border: 1, borderColor: "divider", whiteSpace: "pre-wrap" }}>
                 <Typography variant="body2" component="p">
-                  {emoiText}
+                  {eomsText}
                 </Typography>
               </Box>
             )}
@@ -1844,7 +1848,7 @@ export function ConsultancyEngagements() {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEmoiFor(null)}>Close</Button>
+          <Button onClick={() => setEomsFor(null)}>Close</Button>
         </DialogActions>
       </Dialog>
 
@@ -2393,8 +2397,8 @@ export function ConsultancyEngagements() {
           <Button
             variant="contained"
             disabled={
-              !relBeneficiary.trim() || !relPurpose.trim() || !relIssuedOn || !selectedId ||
-              createReliance.isPending
+              !relBeneficiary.trim() || !relPurpose.trim() || !relIssuedOn || !relExpiresOn ||
+              !selectedId || createReliance.isPending
             }
             onClick={() =>
               selectedId &&
@@ -2403,7 +2407,7 @@ export function ConsultancyEngagements() {
                 beneficiary: relBeneficiary.trim(),
                 purpose: relPurpose.trim(),
                 issuedOn: relIssuedOn,
-                expiresOn: relExpiresOn || undefined,
+                expiresOn: relExpiresOn,
               })
             }
           >

@@ -51,7 +51,7 @@ export async function loadPublishedRepoKnowledge(
   }
 
   const block = parts.length
-    ? `## Validated reference library (Knowledge Bank portal — EmOI-processed textbooks)\n${parts.join("\n")}`
+    ? `## Validated reference library (Knowledge Bank portal — EOMS-processed textbooks)\n${parts.join("\n")}`
     : "";
 
   return { block, sources: refs };

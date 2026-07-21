@@ -3,22 +3,22 @@ import {
   AORMS_CONSULTANCY,
   AORMS_PLATFORM,
   AORMS_STUDIO,
-  EMOI,
+  EOMS,
   ESTI,
 } from "./product-nomenclature.js";
 
 export const LANDING_SEO = {
   title: `AORMS | ${AORMS_PLATFORM.expansion}`,
   description:
-    "Operational and design frameworks for AEC consulting firms — architecture and engineering consultancies on one spine with EmOI intelligence. Not solution delivery. Not construction project management.",
+    "Operational and design frameworks for AEC consulting firms — architecture and engineering consultancies on one spine with EOMS intelligence. Not solution delivery. Not construction project management.",
   keywords:
-    "AORMS, EmOI, AEC consulting, architecture consultancy software, engineering consultancy software, operational framework, design framework, AORMS-Studio, AORMS-Consultancy, workflow consolidation",
+    "AORMS, EOMS, AEC consulting, architecture consultancy software, engineering consultancy software, operational framework, design framework, AORMS-Studio, AORMS-Consultancy, workflow consolidation",
   ogTitle: `AORMS — ${AORMS_PLATFORM.heroHeadline[0]} ${AORMS_PLATFORM.heroHeadline[1]}`,
   ogDescription:
     "Accelerated Operational Resources Management System: operational and design frameworks for AEC consulting firms. Two apps — AORMS-Studio (architecture) and AORMS-Consultancy (engineering). One spine.",
   twitterTitle: "AORMS — frameworks for AEC consultancies",
   twitterDescription:
-    `Operational + design frameworks for architecture and engineering consultancies. EmOI dual-tier intelligence. ${AORMS_STUDIO.title} shipping for Indian architecture practices; ${AORMS_CONSULTANCY.title} on the roadmap.`,
+    `Operational + design frameworks for architecture and engineering consultancies. EOMS dual-tier intelligence. ${AORMS_STUDIO.title} shipping for Indian architecture practices; ${AORMS_CONSULTANCY.title} on the roadmap.`,
   headline: `${AORMS_PLATFORM.heroHeadline[0]} ${AORMS_PLATFORM.heroHeadline[1]}`,
   footerBlurb: `${AORMS_PLATFORM.name} (${AORMS_PLATFORM.expansion}).`,
   canonical: "https://aorms.in/",
@@ -30,7 +30,7 @@ export const LANDING_FAQ = [
   {
     question: "What is AORMS?",
     answer:
-      `AORMS (Accelerated Operational Resources Management System) is a pre-release platform for AEC consulting firms — architecture and engineering practices that advise clients. It combines an operational framework and a design framework on one spine, with ${EMOI.name} as the ${EMOI.role.toLowerCase()} and ${ESTI.name} as the ${ESTI.role.toLowerCase()} in ${AORMS_STUDIO.title}. We are not in solution delivery or construction project management.`,
+      `AORMS (Accelerated Operational Resources Management System) is a pre-release platform for AEC consulting firms — architecture and engineering practices that advise clients. It combines an operational framework and a design framework on one spine, with ${EOMS.name} as the ${EOMS.role.toLowerCase()} and ${ESTI.name} as the ${ESTI.role.toLowerCase()} in ${AORMS_STUDIO.title}. We are not in solution delivery or construction project management.`,
   },
   {
     question: "Who is the platform for?",
@@ -40,7 +40,7 @@ export const LANDING_FAQ = [
   {
     question: "What are AORMS-Studio and AORMS-Consultancy?",
     answer:
-      `${AORMS_STUDIO.title} is the architecture consultancy app — Indian architecture and design practices (live at ${AORMS_STUDIO.appUrl.replace(/^https:\/\//, "")}). ${AORMS_CONSULTANCY.title} is the engineering consultancy app — structural, MEP, civil, and multidisciplinary firms (roadmap). Both share the same AORMS platform spine, ${EMOI.name} (${EMOI.role.toLowerCase()}), and an internal-agent profile per app.`,
+      `${AORMS_STUDIO.title} is the architecture consultancy app — Indian architecture and design practices (live at ${AORMS_STUDIO.appUrl.replace(/^https:\/\//, "")}). ${AORMS_CONSULTANCY.title} is the engineering consultancy app — structural, MEP, civil, and multidisciplinary firms (roadmap). Both share the same AORMS platform spine, ${EOMS.name} (${EOMS.role.toLowerCase()}), and an internal-agent profile per app.`,
   },
   {
     question: "What are the operational and design frameworks?",
@@ -50,7 +50,7 @@ export const LANDING_FAQ = [
   {
     question: "What is the dual-tier AI architecture?",
     answer:
-      `Two agents: ${EMOI.name} (${EMOI.expansion}) is the ${EMOI.role.toLowerCase()} — it validates content from outside sources before it enters the firm. ${ESTI.name} (${ESTI.expansion}) is the ${ESTI.role.toLowerCase()} — it answers only from validated firm repositories. See the ${EMOI.name} + ${ESTI.name} section on this page.`,
+      `Two agents: ${EOMS.name} (${EOMS.expansion}) is the ${EOMS.role.toLowerCase()} — it validates content from outside sources before it enters the firm. ${ESTI.name} (${ESTI.expansion}) is the ${ESTI.role.toLowerCase()} — it answers only from validated firm repositories. See the ${EOMS.name} + ${ESTI.name} section on this page.`,
   },
   {
     question: `Where is the ${AORMS_STUDIO.title} documentation?`,
@@ -58,9 +58,9 @@ export const LANDING_FAQ = [
       `The ${AORMS_STUDIO.title} user guide lives at aorms.in/wiki — getting started, finance, workflows, and account setup for Indian architecture practices.`,
   },
   {
-    question: "What is EmOI?",
+    question: "What is EOMS?",
     answer:
-      `${EMOI.name} (${EMOI.expansion}) is the ${EMOI.role.toLowerCase()} on the AORMS platform — ${EMOI.summary}`,
+      `${EOMS.name} (${EOMS.expansion}) is the ${EOMS.role.toLowerCase()} on the AORMS platform — ${EOMS.summary}`,
   },
   {
     question: "What is ESTI?",
@@ -138,8 +138,8 @@ export function injectLandingJsonLd(): void {
           AORMS_PLATFORM.expansion,
           AORMS_STUDIO.title,
           AORMS_CONSULTANCY.title,
-          EMOI.name,
-          EMOI.expansion,
+          EOMS.name,
+          EOMS.expansion,
           ESTI.name,
           ESTI.expansion,
         ],
@@ -148,7 +148,7 @@ export function injectLandingJsonLd(): void {
         url: "https://aorms.in/",
         description: LANDING_SEO.description,
         featureList:
-          "operational framework, design framework, collaboration, review and approval, audit and compliance, knowledge base, analytics dashboards, EmOI external AI agent, ESTI internal AI agent",
+          "operational framework, design framework, collaboration, review and approval, audit and compliance, knowledge base, analytics dashboards, EOMS external AI agent, ESTI internal AI agent",
         audience: {
           "@type": "Audience",
           audienceType:

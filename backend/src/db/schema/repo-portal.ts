@@ -1,7 +1,7 @@
 import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { users } from "./org-auth.js";
 
-/** External textbook / reference source awaiting EmOI processing. */
+/** External textbook / reference source awaiting EOMS processing. */
 export const repoSources = pgTable("esti_repo_source", {
   id: uuid("id").primaryKey().defaultRandom(),
   title: text("title").notNull(),
@@ -23,7 +23,7 @@ export const repoSources = pgTable("esti_repo_source", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-/** EmOI-generated section — summary + rephrased body; ESTI reads published sources only. */
+/** EOMS-generated section — summary + rephrased body; ESTI reads published sources only. */
 export const repoSections = pgTable("esti_repo_section", {
   id: uuid("id").primaryKey().defaultRandom(),
   sourceId: uuid("source_id")

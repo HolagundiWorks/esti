@@ -109,7 +109,7 @@ Route `/office/ai-studio` — plan-gated, rank ≥ 60. Not a ribbon item.
 | Compliance Library | ✅ | `/libraries/compliance` |
 | Master Plan Library | ✅ | `/libraries/master-plans` |
 | Standards Library | ✅ | `/libraries/standards` |
-| Knowledge Bank portal | ✅ | `/libraries/knowledge-bank-portal` (staff L4+, EmOI intake) |
+| Knowledge Bank portal | ✅ | `/libraries/knowledge-bank-portal` (staff L4+, EOMS intake) |
 
 ## 6. Studio (Teams menu)
 | Module | Status | Where |

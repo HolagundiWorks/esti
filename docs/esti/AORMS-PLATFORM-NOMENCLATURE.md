@@ -17,7 +17,7 @@ Executable constants: `frontend/src/lib/product-nomenclature.ts`.
 | **AORMS** | **Accelerated Operational Resources Management System** — the **platform** | **AEC consulting firms** — architecture and engineering practices that advise clients; not solution delivery or construction PM |
 | **AORMS-Studio** | **Architecture app** — shipped workspace (slug `aorms-studio`) | Indian architecture & interior design consultancies |
 | **AORMS-Consultancy** | **Engineering app** — roadmap workspace (slug `aorms-consultancy`) | Structural, MEP, civil, and multidisciplinary engineering consultancies |
-| **EmOI** | **External AI agent** — *Embedded Operational Intelligence* | Validates, enriches, and gates content from **outside sources** before it enters the firm knowledge base |
+| **EOMS** | **External AI agent** — *External Operations Management System* | Validates, enriches, and gates content from **outside sources** before it enters the firm knowledge base |
 | **ESTI** | **Internal AI agent** — *Embedded Studio Intelligence* | Answers only from **validated firm repositories** — Ask ESTI, Studio Intelligence, ESTI Pulse (live in **AORMS-Studio**) |
 | **`esti` (codename)** | Repo name, `@esti/*` packages, `esti_*` DB tables | Engineering only — do not expose in marketing |
 
@@ -54,7 +54,7 @@ North-star capabilities:
 - **Operational framework** — intake, process standards, rollout, adoption
 - **Design framework** — engagement methodologies, deliverable models, templates
 - Collaborative workspace (documents, channels, reviews)
-- Dual-tier AI / **EmOI** (external validation gate + internal RAG firewall)
+- Dual-tier AI / **EOMS** (external validation gate + internal RAG firewall)
 - Audit & compliance reporting
 - Knowledge base with semantic search
 - Analytics & operational dashboards
@@ -78,7 +78,7 @@ called “AORMS portal”, **AORMS-Architecture**, or **HiveD**.
 
 The **engineering consultancy app** — structural, MEP, civil, and multidisciplinary firms
 advising on built-environment projects. Shares the same AORMS platform primitives (tenant,
-permissions, workflow engine, EmOI) but ships as a separate workspace profile.
+permissions, workflow engine, EOMS) but ships as a separate workspace profile.
 
 ---
 
@@ -89,7 +89,7 @@ Executable labels: `AORMS_PORTALS` in `frontend/src/lib/product-nomenclature.ts`
 | Surface | Display name | URL / route | Notes |
 | --- | --- | --- | --- |
 | **Staff workspace** | **AORMS-Studio** | `studio.aorms.in` · `/login` | Architecture app today |
-| **Knowledge Bank portal** | Knowledge Bank portal | `/libraries/knowledge-bank-portal` | EmOI textbook intake → ESTI RAG |
+| **Knowledge Bank portal** | Knowledge Bank portal | `/libraries/knowledge-bank-portal` | EOMS textbook intake → ESTI RAG |
 | **Wiki** | AORMS Wiki | `/wiki/*` on **aorms.in** | Public documentation |
 | **External portals** | External portals | `/access` | Client, consultant, contractor, site sign-in |
 | **Client portal** | Client portal | external session | Scoped to client projects |
@@ -105,16 +105,16 @@ Frozen host map: [AORMS-SURFACE-URLS.md](AORMS-SURFACE-URLS.md).
 
 ---
 
-## EmOI — external AI agent
+## EOMS — external AI agent
 
-**EmOI** — *Embedded Operational Intelligence* — is the **external AI agent** on the
+**EOMS** — *External Operations Management System* — is the **external AI agent** on the
 AORMS platform:
 
 - Fetches and validates content from **outside sources**
 - Enriches and gates inbound material before it enters the firm knowledge base
 - Quality layer on outbound model calls — no unvalidated external content stored as truth
 
-Every AORMS app uses **EmOI** for external intelligence intake.
+Every AORMS app uses **EOMS** for external intelligence intake.
 
 ---
 
@@ -133,14 +133,14 @@ in marketing copy until that ships.
 
 ### Agent split (governing rule)
 
-> **EmOI** handles the outside world. **ESTI** handles what the firm already knows.
+> **EOMS** handles the outside world. **ESTI** handles what the firm already knows.
 
 No unvalidated content enters the knowledge base. Every internal answer cites approved sources.
 
 ### Knowledge Bank portal
 
 Staff route **`/libraries/knowledge-bank-portal`** — PDFs convert to Markdown (HCW Markdown Tool
-pipeline); **EmOI** rephrases and summarises; **publish** promotes sections into the validated
+pipeline); **EOMS** rephrases and summarises; **publish** promotes sections into the validated
 library **ESTI** uses. See [KNOWLEDGE-BANK-PORTAL.md](KNOWLEDGE-BANK-PORTAL.md).
 
 ---

@@ -28,9 +28,9 @@
    approvals, portals, proposals/invoices, libraries, audit, dashboard, and the
    **rail · stage · dock** HCW-UI-Kit UX. Engineering-specific behaviour is **additive**.
 2. **Deterministic truth; intelligence explains.** Sign-off state, fee state, and issue
-   state are deterministic records. AI (EmOI/ESTI-equivalent) explains and validates — it
+   state are deterministic records. AI (EOMS/ESTI-equivalent) explains and validates — it
    never *is* the record.
-3. **Dual-tier intelligence firewall.** **EmOI** gates external inputs (codes, standards,
+3. **Dual-tier intelligence firewall.** **EOMS** gates external inputs (codes, standards,
    architect packs, geotech reports) before they become working assumptions; the internal
    agent answers only from **validated firm repositories**.
 4. **Depth encodes importance.** Same HCW three-layer material system (flat / soft / glass);
@@ -54,7 +54,7 @@
 | Work & people | `tasks`/`work`, `assignments`, `team`, `workload`, `attendance` | `timesheets`, `rateCards`, discipline capacity |
 | Deliverables & issue | `transmittals`, `drawings`, `approvals`, `comments`, `activity` | `deliverables`, `calcPackages`, `reviewChains`, `technicalQueries` |
 | Commercial | `proposals`, `invoices`, `reconcile`, `reports`, `accounts`, `expenses`, `purchaseOrders` | `feeAgreements`/`feeStages`, `variations`, WIP/realisation analytics |
-| Knowledge | `standards`, `compliance`, `masterPlans`, `knowledgeBank`, `specCatalog` | Codes/standards intake via EmOI; precedent search |
+| Knowledge | `standards`, `compliance`, `masterPlans`, `knowledgeBank`, `specCatalog` | Codes/standards intake via EOMS; precedent search |
 | Site | `siteVisits`, `inspections`, `progressReports`, `snags`, `siteInstructions` | Scoped technical supervision, submittal review |
 | Governance | `dashboard`, `notifications`, `portal`, `consultants` | `riskRegister`, `insurance` (PI), sign-off gates |
 
@@ -96,7 +96,7 @@ tRPC namespace is `consultancy.*` for the same reason):
 - **TechnicalQuery (TQ/RFI)** — direction, status, **closure evidence**, and a
   **scope-impact flag** that can spawn a Variation.
 - **InputPack / Assumption** — external inputs (architect pack, geotech report, code
-  clause) **validated through EmOI** before becoming working assumptions; carries
+  clause) **validated through EOMS** before becoming working assumptions; carries
   **hold-point** gating.
 - **FeeAgreement / FeeStage** — fee **model** (case study §5.1), stage values, and the mapping of
   stages to deliverable issues; drives milestone invoicing.
@@ -150,7 +150,7 @@ verbatim — engineering only adds the *fee-model + timesheet* front end.
 
 ## 7. Dual-tier AI
 
-- **EmOI (external agent)** — the intake firewall: fetches, validates, enriches, and
+- **EOMS (external agent)** — the intake firewall: fetches, validates, enriches, and
   **gates** codes, standards, architect packs, geotech reports, and third-party models
   before they enter the firm knowledge base or become `InputPack` assumptions.
 - **Internal agent (ESTI-equivalent, roadmap)** — answers only from validated firm
@@ -195,7 +195,7 @@ verbatim — engineering only adds the *fee-model + timesheet* front end.
 | **0 — Living record** | The engagement spine | `engagements`, `disciplines`, `deliverables` register, transmittals (reuse), client portal (scoped) | ✅ built, unverified |
 | **1 — Reliance engine** | Governance | `reviewChains` (named serial sign-off + check categories + EoR), `technicalQueries`, issue gating | ✅ built, unverified |
 | **2 — Commercial** | Fee & time | `feeAgreements`/`feeStages`, `timesheets`/`rateCards`, `variations`, WIP/utilisation/realisation, stage invoicing | ✅ built, unverified |
-| **3 — Risk** | Defensibility | `riskRegister`, `insurance` (PI + reliance), compliance gates, EmOI input validation | ✅ built, unverified |
+| **3 — Risk** | Defensibility | `riskRegister`, `insurance` (PI + reliance), compliance gates, EOMS input validation | ✅ built, unverified |
 | **4 — Intelligence** | Internal agent | precedent search, calc-lineage Q&A, capacity analytics | ⬜ not built |
 
 ## 10. Decisions (resolved 2026-07-12 — Phase 0 unblocked)

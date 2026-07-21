@@ -409,7 +409,7 @@ drive the architecture in
 | Utilisation/realisation/WIP (§5.3) | **Timesheets + rate cards** → WIP / utilisation / realisation analytics |
 | PI, caps, NCC, reliance (§6.1–6.4) | **Insurance (PI) tracking + reliance-letter log**; appointment terms captured |
 | Risk register inherent vs residual (§6.5) | **Risk-register module** with response + residual |
-| Codes enter once, validated (§6.6) | **EmOI-gated** standards/codes intake; reuse `standards`/`compliance` libraries |
+| Codes enter once, validated (§6.6) | **EOMS-gated** standards/codes intake; reuse `standards`/`compliance` libraries |
 | India RSE + stability certificate + RERA 5-yr (§1, §3.5, §6.7) | India statutory sign-off + **paise/GST/SAC/TDS** money spine (shared with Studio) |
 
 **One-line thesis (matches the frameworks doc):** *reliance is engineered* — peer review,

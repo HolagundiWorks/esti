@@ -2,13 +2,13 @@
 
 **The canonical UX authority for every AI surface on the AORMS platform** — how
 **ESTI** (internal agent in AORMS-Studio: *Ask ESTI · Studio Intelligence · ESTI
-Pulse · the cognition engine*) and **EmOI** (external quality gate) present work to
+Pulse · the cognition engine*) and **EOMS** (external quality gate) present work to
 the human. Companion to **[HCW-UI-UX-PRINCIPLES.md](HCW-UI-UX-PRINCIPLES.md)** (general
 UX law): where that governs *chrome and screens*, this governs *how an autonomous
 agent reports, asks, and defers to human judgment*.
 
 **Adopted:** 2026-07-12 · **Applies to:** ESTI (Studio Intelligence, Ask ESTI, ESTI
-Pulse, AI Studio, the Overview AI-recommendation rail), EmOI surfaces, and every
+Pulse, AI Studio, the Overview AI-recommendation rail), EOMS surfaces, and every
 future AI feature built on `@hcw/ui-kit`.
 
 > **Scope boundary.** This document is about the UX of the AI *product* (ESTI) —
@@ -315,7 +315,7 @@ The product that wins is not the one with the best model. It is the one with the
 |---|---|
 | General UX law | [HCW-UI-UX-PRINCIPLES.md](HCW-UI-UX-PRINCIPLES.md) |
 | Layers · spatial model · primitives | [HCW-UI-KIT.md](HCW-UI-KIT.md) |
-| Nomenclature (ESTI · EmOI · AORMS) | [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md) |
+| Nomenclature (ESTI · EOMS · AORMS) | [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md) |
 | Navigation / IA | [NAVIGATION.md](NAVIGATION.md) |
 | AI *coding-agent* rules (not this) | [12-AI-AGENT-RULEBOOK.md](../hcw-kit/12-AI-AGENT-RULEBOOK.md) |
 | Measurable UX checklists | [07-UX-REVIEW-CHECKLISTS.md](../hcw-kit/07-UX-REVIEW-CHECKLISTS.md) |

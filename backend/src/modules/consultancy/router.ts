@@ -66,7 +66,7 @@ import {
 } from "../../db/schema.js";
 import {
   askConsultancyIntelligence,
-  emoiReviewInputPack,
+  eomsReviewInputPack,
 } from "../../lib/ai/consultancy-intelligence.js";
 import type { DB } from "../../db/index.js";
 import { writeAudit } from "../../lib/audit.js";
@@ -1310,10 +1310,10 @@ const inputPacksRouter = router({
   }),
 
   /**
-   * EmOI-assisted review (Phase 4) — a validation checklist recommendation for
+   * EOMS-assisted review (Phase 4) — a validation checklist recommendation for
    * the named human validator. The recommendation never validates anything.
    */
-  emoiReview: protectedProcedure
+  eomsReview: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const [pack] = await ctx.db.select().from(consInputPacks).where(eq(consInputPacks.id, input.id));
@@ -1322,7 +1322,7 @@ const inputPacksRouter = router({
         .select({ title: consEngagements.title })
         .from(consEngagements)
         .where(eq(consEngagements.id, pack.engagementId));
-      return emoiReviewInputPack(
+      return eomsReviewInputPack(
         ctx.db,
         { title: pack.title, kind: pack.kind, source: pack.source },
         eng?.title ?? "engagement",

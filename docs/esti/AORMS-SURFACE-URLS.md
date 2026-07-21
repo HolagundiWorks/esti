@@ -33,7 +33,7 @@ Same SPA bundle; no dedicated host.
 | `/access` | External portals | Client, consultant, contractor, site sign-in |
 | `/account` | Personal account | Identity + licence hub |
 | `/company-account` | Company account | Firm owners |
-| `/libraries/knowledge-bank-portal` | Knowledge Bank portal | Staff L4+, EmOI intake |
+| `/libraries/knowledge-bank-portal` | Knowledge Bank portal | Staff L4+, EOMS intake |
 | `/aorms-consultancy` | Consultancy marketing | Path alias; canonical host `consultancy.aorms.in` |
 | `/about`, `/legal`, `/investors`, SEO landings | Marketing | Public pages |
 

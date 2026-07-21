@@ -3,7 +3,7 @@ import { desc, eq, asc } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { repoSections, repoSources } from "../../db/schema.js";
-import { runEmOiRepoProcessing } from "../../lib/ai/emoi-repo.js";
+import { runEomsRepoProcessing } from "../../lib/ai/eoms-repo.js";
 import { writeAudit } from "../../lib/audit.js";
 import { demoBlocksAiDraft, DEMO_AI_DRAFT_MESSAGE } from "../../lib/demo-policy.js";
 import { assertPlanFeature } from "../../lib/plan.js";
@@ -114,8 +114,8 @@ export const knowledgeBankPortalRouter = router({
     return { ok: true };
   }),
 
-  /** EmOI — rephrase source text and build reviewable library sections. */
-  processWithEmoi: manage.input(idInput).mutation(async ({ ctx, input }) => {
+  /** EOMS — rephrase source text and build reviewable library sections. */
+  processWithEoms: manage.input(idInput).mutation(async ({ ctx, input }) => {
     await assertPlanFeature(ctx.db, "ai");
     if (demoBlocksAiDraft(ctx.user)) {
       throw new TRPCError({ code: "FORBIDDEN", message: DEMO_AI_DRAFT_MESSAGE });
@@ -133,7 +133,7 @@ export const knowledgeBankPortalRouter = router({
     if (!markdown || markdown.length < 200) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Add at least 200 characters of source markdown before running EmOI.",
+        message: "Add at least 200 characters of source markdown before running EOMS.",
       });
     }
 
@@ -143,7 +143,7 @@ export const knowledgeBankPortalRouter = router({
       .where(eq(repoSources.id, input.id));
 
     try {
-      const result = await runEmOiRepoProcessing(ctx.db, {
+      const result = await runEomsRepoProcessing(ctx.db, {
         title: src.title,
         author: src.author,
         rawText: markdown,
@@ -177,14 +177,14 @@ export const knowledgeBankPortalRouter = router({
       await writeAudit(ctx.db, {
         entity: "repo_source",
         entityId: input.id,
-        action: "EMOi_PROCESS",
+        action: "EOMS_PROCESS",
         actorId: ctx.user.id,
         after: { sectionCount: result.sections.length, provider: result.provider },
       });
 
       return row!;
     } catch (err) {
-      const message = err instanceof Error ? err.message : "EmOI processing failed";
+      const message = err instanceof Error ? err.message : "EOMS processing failed";
       await ctx.db
         .update(repoSources)
         .set({ status: "FAILED", processError: message, updatedAt: new Date() })
@@ -199,7 +199,7 @@ export const knowledgeBankPortalRouter = router({
     if (src.status !== "REVIEW" && src.status !== "PUBLISHED") {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Run EmOI processing and review sections before publishing.",
+        message: "Run EOMS processing and review sections before publishing.",
       });
     }
     const [row] = await ctx.db

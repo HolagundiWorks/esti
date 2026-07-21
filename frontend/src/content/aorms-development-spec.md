@@ -35,7 +35,7 @@ AORMS consolidates fragmented consulting workflows into a single, AI-enhanced pl
 
 ### Key Differentiators
 - **Custom Framework Deployment** ù Analysis of existing office workflows ? tailored process frameworks in days
-- **Two AI agents** ù **EmOI** (external AI agent) validates outside sources; **ESTI** (internal AI agent) answers from firm repositories ù prevents hallucination and compliance drift
+- **Two AI agents** ù **EOMS** (external AI agent) validates outside sources; **ESTI** (internal AI agent) answers from firm repositories ù prevents hallucination and compliance drift
 - **Two AEC apps** ù **AORMS-Studio** (architecture, shipping) and **AORMS-Consultancy** (engineering, roadmap) on one platform spine
 - **Unified Collaboration Surface** ù Communication, revision, review, audit logs in one system
 
@@ -1564,7 +1564,7 @@ jobs:
 
 ## Conclusion
 
-AORMS is positioned as the **operational spine for AEC consulting firms** ù consolidating fragmentation, accelerating optimization, and ensuring compliance through **EmOI** (external AI agent) and **ESTI** (internal AI agent).
+AORMS is positioned as the **operational spine for AEC consulting firms** ù consolidating fragmentation, accelerating optimization, and ensuring compliance through **EOMS** (external AI agent) and **ESTI** (internal AI agent).
 
 **Key Architectural Principles:**
 1. **Multi-tenant by default** ù Isolation, customization, scalability
