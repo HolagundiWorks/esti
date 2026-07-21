@@ -34,13 +34,8 @@ are **not** current product state — see system state below.
 
 ## Next (product autopilot)
 
-<<<<<<< HEAD
 1. **P9.V** — human fee UX review (mutation wiring tests landed; pure helpers + router stubs green)
 2. **P9.4** — deepen consultancy intelligence (calc-package model) after P9.V
-=======
-1. **P9.V** — finish mutation/integration coverage + human fee UX review (active — see PR #14)
-2. **P9.4** — deepen consultancy intelligence (precedent / calc-lineage) after P9.V
->>>>>>> 9362d9e2 (docs: changelog + ROADMAP next queue for P10.8 close-out)
 3. **P4.8** — human: replace stale social/campaign desktop copy
 4. **P7.2** — billing (blocked on Stripe vs manual invoice decision)
 5. **P10.8** — ✅ visual suite retargeted + linux baselines regenerated (2026-07-21)
