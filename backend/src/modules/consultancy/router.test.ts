@@ -30,7 +30,8 @@ const DEL_B = "44444444-4444-4444-8444-444444444444";
 const FEE = "55555555-5555-4555-8555-555555555555";
 const VAR = "66666666-6666-4666-8666-666666666666";
 const SHEET = "77777777-7777-4777-8777-777777777777";
-const ACTOR = "00000000-0000-4000-8000-000000000001";
+/** Matches `testUser()` default id — used as originatedBy / timesheet owner. */
+const ACTOR = "00000000-0000-0000-0000-000000000001";
 
 type RowsByTable = Record<string, unknown[]>;
 
@@ -414,6 +415,55 @@ describe("consultancy P9.V — timesheets", () => {
       engagementId: ENG,
     });
     expect(partner[0]?.valuePaise).toBe(50_000);
+  });
+});
+
+describe("consultancy P9.V — review-step independence", () => {
+  it("refuses author self-check and duplicate kinds; allows independent CHECK", async () => {
+    const authored = makeDb({
+      "esti_cons_deliverable": [deliverable({ originatedBy: ACTOR, status: "DRAFT" })],
+      "esti_cons_review_step": [],
+    });
+    await expect(
+      caller("SENIOR", authored.db).reviews.record({ deliverableId: DEL, kind: "CHECK" }),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: expect.stringContaining("author"),
+    });
+
+    const otherAuthor = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+    const dup = makeDb({
+      "esti_cons_deliverable": [deliverable({ originatedBy: otherAuthor, status: "DRAFT" })],
+      "esti_cons_review_step": [{ kind: "CHECK", userId: ACTOR }],
+    });
+    await expect(
+      caller("SENIOR", dup.db).reviews.record({ deliverableId: DEL, kind: "CHECK" }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+
+    const ok = makeDb({
+      "esti_cons_deliverable": [deliverable({ originatedBy: otherAuthor, status: "DRAFT" })],
+      "esti_cons_review_step": [],
+    });
+    const row = await caller("SENIOR", ok.db).reviews.record({
+      deliverableId: DEL,
+      kind: "CHECK",
+    });
+    expect(row.kind).toBe("CHECK");
+    expect(row.userId).toBe(ACTOR);
+    expect(ok.inserts.some((i) => i.table === "esti_cons_review_step")).toBe(true);
+  });
+
+  it("refuses sign-off on already-issued deliverables", async () => {
+    const { db } = makeDb({
+      "esti_cons_deliverable": [deliverable({ status: "ISSUED", originatedBy: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb" })],
+      "esti_cons_review_step": [],
+    });
+    await expect(
+      caller("SENIOR", db).reviews.record({ deliverableId: DEL, kind: "APPROVE" }),
+    ).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      message: expect.stringContaining("drafts"),
+    });
   });
 });
 
