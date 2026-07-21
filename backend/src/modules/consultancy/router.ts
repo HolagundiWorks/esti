@@ -7,17 +7,20 @@
  * Design: docs/esti/AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md.
  */
 import {
-  CHECK_CATEGORY_RANK,
   missingReviewSteps,
   reviewStepIndependenceError,
+  mayIssueDeliverable,
   computeFeePosition,
   feeStageFinancialsLocked,
   canAdvanceFeeStage,
+  canRaiseCheckCategory,
+  canTransitionDeliverable,
+  canDecideVariation,
+  variationDeletionBlocked,
   timesheetValuePaise,
   sumFirmWip,
   realisationRatio,
   CONSULTANCY_SCOPE_TEMPLATES,
-  CheckCategory,
   can,
   ConsBriefSet,
   ConsPhaseCreate,
@@ -327,19 +330,6 @@ const engagementsRouter = router({
   }),
 });
 
-/**
- * Forward-only deliverable lifecycle. A revision does NOT flow ISSUED→DRAFT here
- * — that path is `startRevision`, which clears the sign-off chain so fresh checks
- * are re-required. Allowing a plain update to revert ISSUED→DRAFT would let the
- * body be edited and the deliverable re-issued on the stale chain.
- */
-const DELIVERABLE_TRANSITIONS: Record<string, readonly string[]> = {
-  DRAFT: ["ISSUED", "WITHDRAWN"],
-  ISSUED: ["SUPERSEDED", "WITHDRAWN"],
-  SUPERSEDED: [],
-  WITHDRAWN: [],
-};
-
 const deliverablesRouter = router({
   listByEngagement: protectedProcedure
     .input(z.object({ engagementId: z.string().uuid() }))
@@ -380,10 +370,7 @@ const deliverablesRouter = router({
       });
 
     // Check category may be raised (more rigour) but never lowered.
-    if (
-      rest.checkCategory &&
-      CHECK_CATEGORY_RANK[rest.checkCategory] < CHECK_CATEGORY_RANK[d.checkCategory as CheckCategory]
-    )
+    if (rest.checkCategory && !canRaiseCheckCategory(d.checkCategory, rest.checkCategory))
       throw new TRPCError({
         code: "FORBIDDEN",
         message: `Check category cannot be downgraded from ${d.checkCategory} to ${rest.checkCategory} — a lower category means less review.`,
@@ -391,8 +378,7 @@ const deliverablesRouter = router({
 
     // Forward-only status machine (blocks ISSUED→DRAFT reverts and re-issue).
     if (status && status !== d.status) {
-      const allowed = DELIVERABLE_TRANSITIONS[d.status] ?? [];
-      if (!allowed.includes(status))
+      if (!canTransitionDeliverable(d.status, status))
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
           message: `${d.code}: cannot move from ${d.status} to ${status}.`,
@@ -410,39 +396,51 @@ const deliverablesRouter = router({
           .select()
           .from(consReviewSteps)
           .where(eq(consReviewSteps.deliverableId, id));
-        const missing = missingSteps(d.checkCategory, steps);
-        if (missing.length > 0)
-          throw new TRPCError({
-            code: "PRECONDITION_FAILED",
-            message: `Cannot issue ${d.code}: the ${d.checkCategory} sign-off chain is incomplete — missing ${missing
-              .map((k) => REVIEW_STEP_LABEL[k].toLowerCase())
-              .join(", ")}.`,
-          });
         const openComments = await tx
           .select({ reviewer: consReviewComments.reviewer })
           .from(consReviewComments)
           .where(
             and(eq(consReviewComments.deliverableId, id), eq(consReviewComments.status, "OPEN")),
           );
-        if (openComments.length > 0)
-          throw new TRPCError({
-            code: "PRECONDITION_FAILED",
-            message: `Cannot issue ${d.code}: ${openComments.length} review comment${openComments.length > 1 ? "s" : ""} open on the CRS — respond and close them first.`,
-          });
         const held = await tx
           .select({ title: consInputPacks.title })
           .from(consInputPacks)
           .where(
             and(eq(consInputPacks.engagementId, d.engagementId), eq(consInputPacks.status, "RECEIVED")),
           );
-        if (held.length > 0)
+        const missing = missingSteps(d.checkCategory, steps);
+        const gate = mayIssueDeliverable({
+          checkCategory: d.checkCategory,
+          recordedKinds: steps.map((s) => s.kind),
+          openCrsCount: openComments.length,
+          receivedInputPackCount: held.length,
+        });
+        if (!gate.ok) {
+          if (missing.length > 0)
+            throw new TRPCError({
+              code: "PRECONDITION_FAILED",
+              message: `Cannot issue ${d.code}: the ${d.checkCategory} sign-off chain is incomplete — missing ${missing
+                .map((k) => REVIEW_STEP_LABEL[k].toLowerCase())
+                .join(", ")}.`,
+            });
+          if (openComments.length > 0)
+            throw new TRPCError({
+              code: "PRECONDITION_FAILED",
+              message: `Cannot issue ${d.code}: ${openComments.length} review comment${openComments.length > 1 ? "s" : ""} open on the CRS — respond and close them first.`,
+            });
+          if (held.length > 0)
+            throw new TRPCError({
+              code: "PRECONDITION_FAILED",
+              message: `Cannot issue ${d.code}: ${held.length} input pack${held.length > 1 ? "s" : ""} awaiting validation (${held
+                .map((h) => h.title)
+                .slice(0, 3)
+                .join(", ")}) — validate or reject them first.`,
+            });
           throw new TRPCError({
             code: "PRECONDITION_FAILED",
-            message: `Cannot issue ${d.code}: ${held.length} input pack${held.length > 1 ? "s" : ""} awaiting validation (${held
-              .map((h) => h.title)
-              .slice(0, 3)
-              .join(", ")}) — validate or reject them first.`,
+            message: `Cannot issue ${d.code}: ${gate.reason}`,
           });
+        }
         const [row] = await tx
           .update(consDeliverables)
           .set({ ...rest, status, issuedAt: new Date(), updatedAt: new Date() })
@@ -955,7 +953,7 @@ const variationsRouter = router({
   reject: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
     const [v] = await ctx.db.select().from(consVariations).where(eq(consVariations.id, input.id));
     if (!v) throw new TRPCError({ code: "NOT_FOUND" });
-    if (v.status !== "PROPOSED")
+    if (!canDecideVariation(v.status))
       throw new TRPCError({
         code: "PRECONDITION_FAILED",
         message: `${v.code} is already ${v.status.toLowerCase()}.`,
@@ -974,7 +972,7 @@ const variationsRouter = router({
     if (!v) throw new TRPCError({ code: "NOT_FOUND" });
     // An approved variation owns a BILLABLE fee stage; deleting it would leave
     // that stage billing with no variation behind it. Reject it first.
-    if (v.status === "APPROVED")
+    if (variationDeletionBlocked(v.status))
       throw new TRPCError({
         code: "PRECONDITION_FAILED",
         message: `${v.code} is approved and carries a billable fee stage — it cannot be deleted.`,

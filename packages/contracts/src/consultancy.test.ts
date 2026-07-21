@@ -15,6 +15,9 @@ import {
   FEE_STAGE_STATUS_LABEL,
   FeeStageStatus,
   canAdvanceFeeStage,
+  canDecideVariation,
+  canRaiseCheckCategory,
+  canTransitionDeliverable,
   computeFeePosition,
   feeStageFinancialsLocked,
   mayIssueDeliverable,
@@ -24,6 +27,7 @@ import {
   reviewStepIndependenceError,
   sumFirmWip,
   timesheetValuePaise,
+  variationDeletionBlocked,
 } from "./consultancy.js";
 
 describe("missingReviewSteps", () => {
@@ -410,5 +414,28 @@ describe("mayIssueDeliverable", () => {
         receivedInputPackCount: 0,
       }),
     ).toEqual({ ok: true });
+  });
+});
+
+describe("deliverable + variation lifecycle helpers", () => {
+  it("only allows forward deliverable transitions", () => {
+    expect(canTransitionDeliverable("DRAFT", "ISSUED")).toBe(true);
+    expect(canTransitionDeliverable("DRAFT", "WITHDRAWN")).toBe(true);
+    expect(canTransitionDeliverable("ISSUED", "DRAFT")).toBe(false);
+    expect(canTransitionDeliverable("ISSUED", "SUPERSEDED")).toBe(true);
+    expect(canTransitionDeliverable("WITHDRAWN", "DRAFT")).toBe(false);
+  });
+
+  it("allows raising check category but not lowering it", () => {
+    expect(canRaiseCheckCategory("CAT1", "CAT3")).toBe(true);
+    expect(canRaiseCheckCategory("CAT2", "CAT2")).toBe(true);
+    expect(canRaiseCheckCategory("CAT3", "CAT1")).toBe(false);
+  });
+
+  it("gates variation decide/delete on status", () => {
+    expect(canDecideVariation("PROPOSED")).toBe(true);
+    expect(canDecideVariation("APPROVED")).toBe(false);
+    expect(variationDeletionBlocked("APPROVED")).toBe(true);
+    expect(variationDeletionBlocked("PROPOSED")).toBe(false);
   });
 });

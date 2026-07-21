@@ -109,6 +109,26 @@ export const CONS_DELIVERABLE_STATUS_TAG: Record<DeliverableStatus, TagColor> = 
 };
 
 /**
+ * Forward-only deliverable lifecycle. A revision does NOT flow ISSUED→DRAFT here
+ * — that path is `startRevision`, which clears the sign-off chain so fresh checks
+ * are re-required.
+ */
+export const DELIVERABLE_TRANSITIONS: Record<DeliverableStatus, readonly DeliverableStatus[]> = {
+  DRAFT: ["ISSUED", "WITHDRAWN"],
+  ISSUED: ["SUPERSEDED", "WITHDRAWN"],
+  SUPERSEDED: [],
+  WITHDRAWN: [],
+};
+
+export function canTransitionDeliverable(
+  from: DeliverableStatus | string,
+  to: DeliverableStatus | string,
+): boolean {
+  const allowed = DELIVERABLE_TRANSITIONS[from as DeliverableStatus];
+  return !!allowed && allowed.includes(to as DeliverableStatus);
+}
+
+/**
  * Consultancy types — the Indian consultancy market's actual patterns. Unlike
  * architecture (one COA stage ladder for every practice), consultancy work is
  * TYPED: each type has its own scope-of-work shape and its own phases. The
@@ -490,6 +510,17 @@ export const CHECK_CATEGORY_RANK: Record<CheckCategory, number> = {
   CAT2: 2,
   CAT3: 3,
 };
+
+/** Check category may be raised but never lowered (liability decision). */
+export function canRaiseCheckCategory(
+  from: CheckCategory | string,
+  to: CheckCategory | string,
+): boolean {
+  const a = CHECK_CATEGORY_RANK[from as CheckCategory];
+  const b = CHECK_CATEGORY_RANK[to as CheckCategory];
+  if (a === undefined || b === undefined) return false;
+  return b >= a;
+}
 
 /**
  * The review steps still outstanding before a deliverable of `checkCategory` may
@@ -1003,6 +1034,16 @@ export const VARIATION_STATUS_LABEL: Record<VariationStatus, string> = {
   APPROVED: "Approved",
   REJECTED: "Rejected",
 };
+
+/** Only a proposed variation may be approved or rejected. */
+export function canDecideVariation(status: VariationStatus | string): boolean {
+  return status === "PROPOSED";
+}
+
+/** An approved variation owns a BILLABLE fee stage — delete is refused. */
+export function variationDeletionBlocked(status: VariationStatus | string): boolean {
+  return status === "APPROVED";
+}
 
 export const CONS_VARIATION_STATUS_TAG: Record<VariationStatus, TagColor> = {
   PROPOSED: "teal",
