@@ -236,6 +236,8 @@ Procedural artifacts:
 | Site visit reports (G711-style) | ✅ | Numbered field reports per engagement: weather, personnel, work observed, observations, NCs, instructions, next visit; author snapshotted *(2026-07-12)* |
 | Timesheets weekly + approval | ✅ | SUBMITTED→APPROVED, named approver, approve-all per engagement *(2026-07-12)* |
 | Monthly WIP review | ✅ | Bill / hold / write-off decisions recorded on `esti_cons_wip_review` (fees:manage); live WIP still in analytics *(2026-07-21)* |
+| Opportunity register | ✅ | Pre-con R&O — `esti_cons_opportunity` (Exploit/Enhance/Share/Accept); score + priority *(2026-07-21)* — [framework](AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md) |
+| Design phase gates | ✅ | Concept → Schematic → Detailed → Issue readiness checklists; GO gated on complete checklist *(2026-07-21)* |
 | Milestone invoicing | ✅ | BILLABLE on issue → **Raise Studio invoice** (ISSUED tax doc + PDF) → PAID syncs linked `esti_invoice`; payment terms + overdue on the fee position *(2026-07-21)* |
 | Dunning ladder | ✅ | Payment terms on invoicing (default 30d); overdue days flagged red; outstanding tracked on the fee position *(2026-07-12)* |
 | Resource forecast meeting | 🔲 | Capacity per grade exists (utilisation); no forward staffing forecast |

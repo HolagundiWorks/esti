@@ -1003,3 +1003,35 @@ describe("consultancy SOP — closeout registers", () => {
     });
   });
 });
+
+describe("consultancy pre-con — opportunity + phase gate", () => {
+  it("creates an opportunity on the engagement", async () => {
+    const { inserts, db } = makeDb({});
+    const row = await caller("PARTNER", db).opportunities.create({
+      engagementId: ENG,
+      title: "Prefabricate connection details",
+      area: "BUILDABILITY",
+      source: "DESIGN_REVIEW",
+      probability: 4,
+      impact: 4,
+      response: "ENHANCE",
+    });
+    expect(row.title).toContain("Prefabricate");
+    expect(inserts.some((i) => i.table === "esti_cons_opportunity")).toBe(true);
+  });
+
+  it("refuses GO on a phase gate with an incomplete checklist", async () => {
+    const { db } = makeDb({});
+    await expect(
+      caller("PARTNER", db).phaseGates.upsert({
+        engagementId: ENG,
+        gateKey: "CONCEPT",
+        checklist: { scopeDefined: true },
+        decision: "GO",
+      }),
+    ).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      message: expect.stringContaining("GO blocked"),
+    });
+  });
+});

@@ -13,6 +13,7 @@ are **not** current product state — see system state below.
 | [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) | **System state** — modules live vs removed |
 | [NAVIGATION.md](NAVIGATION.md) | Canonical sidebar IA |
 | [AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md) | **Active product implementation queue** |
+| [AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md](AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md) | Pre-con R&O brief → consultancy scope (adopt / adapt / refuse) |
 | [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md) | Glass-rail + marketing shell (U0–U6 ✅) |
 | [AORMS-REBRANDING.md](AORMS-REBRANDING.md) | EmOI → EOMS / knowledge-bank nomenclature |
 | [PRD.md](PRD.md) | Requirements (cross-check against System state above) |

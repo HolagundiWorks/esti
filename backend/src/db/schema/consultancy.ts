@@ -489,3 +489,59 @@ export const consContractReviews = pgTable("esti_cons_contract_review", {
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
+
+/**
+ * Pre-construction R&O — opportunity register (consultancy scope).
+ * Pair with `consRisks`; see docs/esti/AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md.
+ */
+export const consOpportunities = pgTable("esti_cons_opportunity", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  linkedRiskId: uuid("linked_risk_id").references(() => consRisks.id, { onDelete: "set null" }),
+  title: text("title").notNull(),
+  source: text("source").notNull().default("WORKSHOP"),
+  area: text("area").notNull().default("DESIGN"),
+  probability: integer("probability").notNull().default(3),
+  impact: integer("impact").notNull().default(3),
+  response: text("response").notNull().default("ENHANCE"),
+  owner: text("owner"),
+  actionPlan: text("action_plan"),
+  dueDate: date("due_date"),
+  valueNote: text("value_note"),
+  estimatedValuePaise: bigint("estimated_value_paise", { mode: "number" }),
+  status: text("status").notNull().default("OPEN"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/**
+ * Design-stage phase gates (go / hold / no-go) — not construction readiness.
+ * Checklist keys from CONSULTANCY_PHASE_GATE_CHECKLIST in contracts.
+ */
+export const consPhaseGates = pgTable(
+  "esti_cons_phase_gate",
+  {
+    id: id(),
+    engagementId: uuid("engagement_id")
+      .notNull()
+      .references(() => consEngagements.id, { onDelete: "cascade" }),
+    phaseId: uuid("phase_id").references(() => consPhases.id, { onDelete: "set null" }),
+    gateKey: text("gate_key").notNull(),
+    checklist: jsonb("checklist").$type<Record<string, boolean>>().notNull().default({}),
+    decision: text("decision").notNull().default("PENDING"),
+    notes: text("notes"),
+    decidedBy: uuid("decided_by").references(() => users.id, { onDelete: "set null" }),
+    decidedByName: text("decided_by_name"),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => ({
+    engagementGateUidx: uniqueIndex("esti_cons_phase_gate_engagement_gate_uidx").on(
+      t.engagementId,
+      t.gateKey,
+    ),
+  }),
+);

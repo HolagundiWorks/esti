@@ -96,7 +96,9 @@ import {
   consLessons,
   consMoms,
   consNcs,
+  consOpportunities,
   consPhases,
+  consPhaseGates,
   consRateCards,
   consRelianceLetters,
   consReviewComments,
@@ -130,6 +132,7 @@ import {
   ncsRouter,
   wipReviewsRouter,
 } from "./closeout.js";
+import { opportunitiesRouter, phaseGatesRouter } from "./precon.js";
 
 const manage = capabilityProcedure("write");
 // Money is L2+ in this firm's permission model ("ASSOCIATE: no invoices/fees").
@@ -268,7 +271,8 @@ const engagementsRouter = router({
         .from(consTimesheets)
         .where(eq(consTimesheets.engagementId, input.id))
         .orderBy(desc(consTimesheets.date), desc(consTimesheets.createdAt));
-      const [lessons, ncs, moms, wipReviews, contractReviews] = await Promise.all([
+      const [lessons, ncs, moms, wipReviews, contractReviews, opportunities, phaseGates] =
+        await Promise.all([
         ctx.db
           .select()
           .from(consLessons)
@@ -296,6 +300,16 @@ const engagementsRouter = router({
           .from(consContractReviews)
           .where(eq(consContractReviews.engagementId, input.id))
           .orderBy(desc(consContractReviews.reviewDate)),
+        ctx.db
+          .select()
+          .from(consOpportunities)
+          .where(eq(consOpportunities.engagementId, input.id))
+          .orderBy(desc(consOpportunities.createdAt)),
+        ctx.db
+          .select()
+          .from(consPhaseGates)
+          .where(eq(consPhaseGates.engagementId, input.id))
+          .orderBy(asc(consPhaseGates.gateKey)),
       ]);
       // Fee position — agreed vs staged vs billable vs invoiced, plus time
       // booked and WIP (time value performed but not yet invoiced; case study §5.2).
@@ -392,6 +406,8 @@ const engagementsRouter = router({
         moms,
         wipReviews: money ? wipReviews : [],
         contractReviews,
+        opportunities,
+        phaseGates,
         // Built-in PDF export — download URL once the worker has rendered it.
         pdfUrl:
           row.pdfStatus === "READY" && row.pdfKey
@@ -2400,4 +2416,6 @@ export const consultancyRouter = router({
   moms: momsRouter,
   wipReviews: wipReviewsRouter,
   contractReviews: contractReviewsRouter,
+  opportunities: opportunitiesRouter,
+  phaseGates: phaseGatesRouter,
 });

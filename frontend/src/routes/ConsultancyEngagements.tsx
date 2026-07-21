@@ -72,6 +72,7 @@ import {
 import { useScreenActions, type DockAction } from "@hcw/ui-kit";
 import { DataState } from "../components/DataState.js";
 import { EngagementCloseoutPanels } from "../components/consultancy/EngagementCloseoutPanels.js";
+import { EngagementPreconPanels } from "../components/consultancy/EngagementPreconPanels.js";
 import { InvoicePdfCell } from "../components/InvoicePdfCell.js";
 import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
@@ -2005,6 +2006,13 @@ export function ConsultancyEngagements() {
                   </Stack>
                 )}
               </Box>
+
+              <EngagementPreconPanels
+                engagementId={detail.id}
+                opportunities={detail.opportunities ?? []}
+                phaseGates={detail.phaseGates ?? []}
+                onInvalidate={invalidate}
+              />
 
               <EngagementCloseoutPanels
                 detail={detail}
