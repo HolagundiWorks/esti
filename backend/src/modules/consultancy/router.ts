@@ -27,6 +27,7 @@ import {
   ConsInsuranceSet,
   ConsRateCardSet,
   ConsRelianceLetterCreate,
+  ConsRelianceLetterRevoke,
   ConsReviewCommentClose,
   ConsReviewCommentCreate,
   ConsReviewStepCreate,
@@ -39,6 +40,8 @@ import {
   ConsVariationCreate,
   DELIVERABLE_STATUS_LABEL,
   REVIEW_STEP_LABEL,
+  istToday,
+  relianceLetterStatus,
   ReviewStepKind,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
@@ -227,7 +230,11 @@ const engagementsRouter = router({
           : variations.map((v) => ({ ...v, amountPaise: null })),
         risks,
         inputPacks,
-        relianceLetters,
+        // Derive LIVE / EXPIRED / REVOKED so the register and UI read consistently.
+        relianceLetters: relianceLetters.map((l) => ({
+          ...l,
+          status: relianceLetterStatus(l, istToday()),
+        })),
         phases,
         fieldReports,
         timesheets: money
@@ -1219,14 +1226,45 @@ const relianceLettersRouter = router({
     return row!;
   }),
 
+  /**
+   * Withdraw a live reliance letter (partner act). The row is never deleted —
+   * it is stamped REVOKED with who, when and why, so the beneficiary-facing
+   * record and the audit trail both survive. One-way: to reinstate, issue a new
+   * letter.
+   */
+  revoke: costApprove.input(ConsRelianceLetterRevoke).mutation(async ({ ctx, input }) => {
+    const [letter] = await ctx.db
+      .select()
+      .from(consRelianceLetters)
+      .where(eq(consRelianceLetters.id, input.id));
+    if (!letter) throw new TRPCError({ code: "NOT_FOUND" });
+    if (letter.revokedAt)
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: "This reliance letter is already revoked.",
+      });
+    const [row] = await ctx.db
+      .update(consRelianceLetters)
+      .set({
+        revokedAt: new Date(),
+        revokedBy: ctx.user.id,
+        revokedByName: ctx.user.fullName,
+        revokeReason: input.reason,
+      })
+      .where(eq(consRelianceLetters.id, input.id))
+      .returning();
+    await writeAudit(ctx.db, { entity: "cons_reliance_letter", entityId: input.id, action: "REVOKE", actorId: ctx.user.id, after: row });
+    return row!;
+  }),
+
   remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async () => {
     // A reliance letter is a legal instrument issued to a beneficiary; it is not
-    // silently deletable. To correct one, issue a superseding letter (and set its
-    // expiry) so the audit trail survives.
+    // deletable. Withdraw it with `revoke` (which preserves the record), or issue
+    // a superseding letter.
     throw new TRPCError({
       code: "FORBIDDEN",
       message:
-        "Reliance letters cannot be deleted — issue a superseding letter or set an expiry date instead.",
+        "Reliance letters cannot be deleted — revoke the letter (it stays on record) or issue a superseding one.",
     });
   }),
 });

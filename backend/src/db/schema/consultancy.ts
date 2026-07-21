@@ -220,8 +220,14 @@ export const consRelianceLetters = pgTable("esti_cons_reliance_letter", {
   beneficiary: text("beneficiary").notNull(),
   purpose: text("purpose").notNull(),
   issuedOn: date("issued_on").notNull(),
+  /** Every letter is time-boxed (required at issue via the contract). */
   expiresOn: date("expires_on"),
   notes: text("notes"),
+  /** Active withdrawal — the row is never deleted, only stamped REVOKED. */
+  revokedAt: timestamp("revoked_at"),
+  revokedBy: uuid("revoked_by").references(() => users.id, { onDelete: "set null" }),
+  revokedByName: text("revoked_by_name"),
+  revokeReason: text("revoke_reason"),
   createdAt: createdAt(),
 });
 

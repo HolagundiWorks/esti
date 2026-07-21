@@ -713,15 +713,50 @@ export const ConsInsuranceSet = z.object({
 export type ConsInsuranceSet = z.infer<typeof ConsInsuranceSet>;
 
 /** Reliance letter — a named third party allowed to rely (case study §6.4). */
-export const ConsRelianceLetterCreate = z.object({
-  engagementId: z.string().uuid(),
-  beneficiary: z.string().min(1).max(300),
-  purpose: z.string().min(1).max(1000),
-  issuedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  expiresOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  notes: z.string().max(2000).optional(),
-});
+export const ConsRelianceLetterCreate = z
+  .object({
+    engagementId: z.string().uuid(),
+    beneficiary: z.string().min(1).max(300),
+    purpose: z.string().min(1).max(1000),
+    issuedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    /** Required — every reliance letter is time-boxed and must end after it starts. */
+    expiresOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    notes: z.string().max(2000).optional(),
+  })
+  .refine((r) => r.expiresOn > r.issuedOn, {
+    message: "The expiry date must be after the issue date.",
+    path: ["expiresOn"],
+  });
 export type ConsRelianceLetterCreate = z.infer<typeof ConsRelianceLetterCreate>;
+
+/** Withdraw a live reliance letter — a dated, reasoned, one-way act. */
+export const ConsRelianceLetterRevoke = z.object({
+  id: z.string().uuid(),
+  reason: z.string().min(1).max(2000),
+});
+export type ConsRelianceLetterRevoke = z.infer<typeof ConsRelianceLetterRevoke>;
+
+export const RelianceLetterStatus = z.enum(["LIVE", "EXPIRED", "REVOKED"]);
+export type RelianceLetterStatus = z.infer<typeof RelianceLetterStatus>;
+
+export const RELIANCE_STATUS_TAG: Record<RelianceLetterStatus, TagColor> = {
+  LIVE: "green",
+  EXPIRED: "gray",
+  REVOKED: "red",
+};
+
+/**
+ * Effective status of a reliance letter. Revocation is a hard fact; otherwise
+ * an expiry in the past reads as EXPIRED, else LIVE. `today` is an IST YYYY-MM-DD.
+ */
+export function relianceLetterStatus(
+  letter: { revokedAt?: Date | string | null; expiresOn?: string | null },
+  today: string,
+): RelianceLetterStatus {
+  if (letter.revokedAt) return "REVOKED";
+  if (letter.expiresOn && letter.expiresOn < today) return "EXPIRED";
+  return "LIVE";
+}
 
 /**
  * EmOI input gate (architecture §1.3): external inputs are recorded and
