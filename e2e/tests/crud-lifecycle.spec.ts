@@ -21,6 +21,8 @@ test("client — create then deactivate (archive)", async ({ page }) => {
   await expect(row, "created client not found").toBeVisible({ timeout: 10_000 });
   await expect(row, "new client should start Active").toContainText("Active");
 
-  await row.getByRole("button", { name: /deactivate/i }).click();
+  // Deactivate lives in the row ⋯ menu (RowActionsMenu), not as a stage button.
+  await row.getByRole("button", { name: /row actions/i }).click();
+  await page.getByRole("menuitem", { name: /deactivate/i }).click();
   await expect(row, "client was not archived").toContainText("Deactivated", { timeout: 10_000 });
 });

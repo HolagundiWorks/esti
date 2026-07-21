@@ -27,8 +27,9 @@ export default defineConfig({
   projects: [
     // Logs in once and saves the session so the button crawler can reuse it.
     { name: "setup", testMatch: /auth\.setup\.ts$/ },
-    // Session-consuming projects MUST finish before `office` re-logins the
-    // principal — auth.login revokes all prior sessions for that user.
+    // Session-consuming projects finish before `office` re-logins the principal
+    // (auth.login revokes prior sessions). office depends on buttons only so a
+    // flaky crud case cannot skip the auth/nav suite.
     {
       name: "buttons",
       testMatch: /buttons\.spec\.ts$/,
@@ -45,7 +46,7 @@ export default defineConfig({
     {
       name: "office",
       testMatch: /(auth|navigation.*|pdf)\.spec\.ts$/,
-      dependencies: ["crud"],
+      dependencies: ["buttons"],
       use: { ...devices["Desktop Chrome"] },
     },
     {
@@ -55,7 +56,6 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
     // Visual regression (public marketing; no auth). Independent of session.
-    // First run: pnpm exec playwright test visual-regression --update-snapshots
     {
       name: "visual",
       testMatch: /visual-regression\.spec\.ts$/,
