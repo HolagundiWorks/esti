@@ -227,7 +227,7 @@ Procedural artifacts:
 | Field-based doc numbering | ✅ | MDR `{job}-{TYPE}-{seq}` (e.g. `C-26-001-CAL-001`); doc type on create; revision/status stay metadata *(2026-07-21)* |
 | Two-track revisions (P/C) | ✅ | P01/C01 convention; new deliverables default P01; **Start revision** bumps the track and resets the sign-off chain *(2026-07-12)* |
 | Master Document Register | ✅ | The deliverable register (per engagement) with status + issue metadata |
-| Transmittals + acknowledgment | 🔶 | Issue is recorded + gated; **reuse Studio's `transmittals` for the form/acknowledgment step** |
+| Transmittals + acknowledgment | ✅ | Studio `transmittals` carry one-way receiver ack (staff or client portal); issued consultancy deliverables can **Record issue transmittal** (requires linked Studio project) and show TRN ref + ack on the MDR *(2026-07-21)* |
 | Self-check → IDC → check → approve | 🔶 | CHECK/APPROVE/VERIFY chain enforced (checker ≠ author); **no IDC/squad-check step or check-print/CRS records** |
 | Comment resolution sheet | ✅ | Reviewer comments per deliverable+revision; response required to close; **open lines block issue** *(2026-07-12)* |
 | Status codes on issue | 🔶 | FI/FA/FC issue classes; not the full S1–S4/A-code ladder |
@@ -246,10 +246,10 @@ Procedural artifacts:
 
 **Reading of the map:** the *governance core* the SOPs exist to protect — the register,
 the named chain, gated issue, stage billing, WIP — is built. Highest-value remaining
-slices, in rough order: **transmittal acknowledgment**, **invoice + paid/overdue
-lifecycle on fee stages**, **enquiry/go-no-go pipeline**, and **lessons / NC-CAPA**.
-(Document numbering, two-track revisions, TQ due-dates, timesheet approval, CRS, and
-field reports are already in.)
+slices, in rough order: **invoice + paid/overdue lifecycle on fee stages**
+(invoice-doc generation via Studio `invoices`), **enquiry/go-no-go pipeline**, and
+**lessons / NC-CAPA**. (Document numbering, two-track revisions, TQ due-dates,
+timesheet approval, CRS, field reports, and **transmittal acknowledgment** are already in.)
 
 ---
 

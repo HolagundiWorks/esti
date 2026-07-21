@@ -592,6 +592,55 @@ export const ConsDeliverableUpdate = ConsDeliverableFields.omit({ engagementId: 
   });
 export type ConsDeliverableUpdate = z.infer<typeof ConsDeliverableUpdate>;
 
+/**
+ * Record the Studio issue transmittal for an ISSUED deliverable (SOP §3 —
+ * every issue carries a form; MDR back-references the transmittal).
+ * Requires the engagement to be linked to a Studio project.
+ */
+export const ConsIssueTransmittalCreate = z.object({
+  deliverableId: z.string().uuid(),
+  recipient: z.string().trim().min(1).max(200).optional(),
+  channel: z
+    .enum(["EMAIL", "PRINT", "PORTAL", "COURIER", "HAND"])
+    .default("PORTAL"),
+  notes: z.string().trim().max(1000).optional(),
+});
+export type ConsIssueTransmittalCreate = z.infer<typeof ConsIssueTransmittalCreate>;
+
+/** Map consultancy issue class → Studio transmittal purpose (shared vocabulary). */
+export function issueClassToTransmittalPurpose(
+  issueClass: IssueClass,
+): "FOR_INFORMATION" | "FOR_APPROVAL" | "FOR_CONSTRUCTION" {
+  return issueClass;
+}
+
+/**
+ * Pure gate: may create + link a Studio issue transmittal for this deliverable.
+ */
+export function canRecordIssueTransmittal(args: {
+  deliverableStatus: string;
+  existingTransmittalId: string | null | undefined;
+  engagementProjectId: string | null | undefined;
+}): { ok: true } | { ok: false; reason: string } {
+  if (args.deliverableStatus !== "ISSUED")
+    return {
+      ok: false,
+      reason: "Only issued deliverables get an issue transmittal — issue first.",
+    };
+  if (args.existingTransmittalId)
+    return {
+      ok: false,
+      reason: "This deliverable already has an issue transmittal on the MDR.",
+    };
+  if (!args.engagementProjectId)
+    return {
+      ok: false,
+      reason:
+        "Link this engagement to a Studio project before recording an issue transmittal.",
+    };
+  return { ok: true };
+}
+
 // ── Phase 1 — the reliance engine ────────────────────────────────────────────
 
 /**

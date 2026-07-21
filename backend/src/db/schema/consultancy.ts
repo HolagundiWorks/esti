@@ -50,6 +50,8 @@ export const consDeliverables = pgTable("esti_cons_deliverable", {
   checkCategory: text("check_category").notNull().default("CAT1"), // CheckCategory
   status: text("status").notNull().default("DRAFT"), // DeliverableStatus
   issuedAt: timestamp("issued_at", { withTimezone: true }),
+  /** Studio issue transmittal (SOP §3 MDR back-reference). */
+  transmittalId: uuid("transmittal_id"),
   /** The author — the sign-off chain's implicit ORIGINATE step (checker ≠ author). */
   originatedBy: uuid("originated_by").references(() => users.id, { onDelete: "set null" }),
   notes: text("notes"),

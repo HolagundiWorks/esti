@@ -338,6 +338,44 @@ export function Portal() {
     { field: "purpose", headerName: "Purpose", flex: 2, minWidth: 160 },
     { field: "channel", headerName: "Channel", flex: 1, minWidth: 110 },
     { field: "dateIssued", headerName: "Issued", flex: 1, minWidth: 110, valueGetter: (v) => v ?? "—" },
+    {
+      field: "ack",
+      headerName: "Acknowledgment",
+      flex: 1.2,
+      minWidth: 140,
+      sortable: false,
+      renderCell: (p) =>
+        p.row.acknowledgedAt
+          ? `Ack · ${p.row.acknowledgedBy ?? "you"}`
+          : "Awaiting",
+    },
+    {
+      field: "acknowledge",
+      headerName: "",
+      width: 200,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) =>
+        p.row.acknowledgedAt ? (
+          "—"
+        ) : (
+          <RowActionsMenu
+            actions={[
+              {
+                label: "Acknowledge receipt",
+                disabled: acknowledge.isPending,
+                onClick: () =>
+                  acknowledge.mutate({
+                    projectId: openId!,
+                    objectType: "transmittal",
+                    objectId: p.row.id,
+                    subject: `Transmittal ${p.row.ref}`,
+                  }),
+              },
+            ]}
+          />
+        ),
+    },
   ];
 
   const submissionCols: GridColDef[] = [
@@ -614,7 +652,7 @@ export function Portal() {
               <Section title="Transmittals">
                 <DataGrid
                   rows={d.transmittals}
-                  getRowId={(r) => r.ref}
+                  getRowId={(r) => r.id}
                   columns={transmittalCols}
                   disableRowSelectionOnClick
                   autoHeight

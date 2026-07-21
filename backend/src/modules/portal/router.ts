@@ -1,5 +1,6 @@
 import {
   ClientImpactResponseInput,
+  canAcknowledgeTransmittal,
   parseAiSettings,
   parseMomRevisionSuggestions,
   PortalAcknowledgeInput,
@@ -129,14 +130,17 @@ export const portalRouter = router({
         .where(and(eq(drawings.projectId, input.projectId), eq(drawings.status, "READY")))
         .orderBy(desc(drawings.createdAt));
 
-      // Drawing transmittals that have actually been issued to the client.
+      // Drawing / deliverable transmittals that have actually been issued to the client.
       const transmittalRows = await ctx.db
         .select({
+          id: transmittals.id,
           ref: transmittals.ref,
           recipient: transmittals.recipient,
           purpose: transmittals.purpose,
           channel: transmittals.channel,
           dateIssued: transmittals.dateIssued,
+          acknowledgedAt: transmittals.acknowledgedAt,
+          acknowledgedBy: transmittals.acknowledgedBy,
         })
         .from(transmittals)
         .where(and(eq(transmittals.projectId, input.projectId), isNotNull(transmittals.dateIssued)))
@@ -497,11 +501,35 @@ export const portalRouter = router({
       return { ok: true as const };
     }),
 
-  /** Acknowledge a specific shared object (drawing, approval, phase, etc.). */
+  /** Acknowledge a specific shared object (drawing, approval, phase, transmittal, etc.). */
   acknowledge: clientProcedure
     .input(PortalAcknowledgeInput)
     .mutation(async ({ ctx, input }) => {
       await assertOwnedProject(ctx, input.projectId);
+
+      // Transmittal acknowledgments also stamp the register row (SOP §3).
+      if (input.objectType === "transmittal" && input.objectId) {
+        const [row] = await ctx.db
+          .select()
+          .from(transmittals)
+          .where(
+            and(eq(transmittals.id, input.objectId), eq(transmittals.projectId, input.projectId)),
+          );
+        if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Transmittal not found." });
+        const gate = canAcknowledgeTransmittal(row);
+        if (!gate.ok)
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: gate.reason });
+        await ctx.db
+          .update(transmittals)
+          .set({
+            acknowledgedAt: new Date(),
+            acknowledgedBy: ctx.user.fullName,
+            acknowledgmentNote: input.subject,
+            updatedAt: new Date(),
+          })
+          .where(eq(transmittals.id, row.id));
+      }
+
       return insertSubmission(ctx, {
         projectId: input.projectId,
         kind: "ACKNOWLEDGEMENT",

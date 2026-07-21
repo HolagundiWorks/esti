@@ -1,4 +1,4 @@
-import { ProjectCursorListParams, TransmittalCreate, clampListLimit } from "@esti/contracts";
+import { ProjectCursorListParams, TransmittalAcknowledge, TransmittalCreate, canAcknowledgeTransmittal, clampListLimit } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -88,6 +88,37 @@ export const transmittalRouter = router({
       after: row,
     });
     return row;
+  }),
+
+  /**
+   * Stamp receiver acknowledgment (SOP §3). One-way — staff records on behalf
+   * of the recipient, or the client portal stamps the same fields.
+   */
+  acknowledge: protectedProcedure.input(TransmittalAcknowledge).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db.select().from(transmittals).where(eq(transmittals.id, input.id));
+    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    const gate = canAcknowledgeTransmittal(row);
+    if (!gate.ok)
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: gate.reason });
+    const [updated] = await ctx.db
+      .update(transmittals)
+      .set({
+        acknowledgedAt: new Date(),
+        acknowledgedBy: input.acknowledgedBy,
+        acknowledgmentNote: input.note ?? null,
+        updatedAt: new Date(),
+      })
+      .where(eq(transmittals.id, input.id))
+      .returning();
+    await writeAudit(ctx.db, {
+      entity: "transmittal",
+      entityId: input.id,
+      action: "UPDATE",
+      actorId: ctx.user.id,
+      before: row,
+      after: updated,
+    });
+    return updated!;
   }),
 
   generatePdf: protectedProcedure

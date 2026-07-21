@@ -355,6 +355,10 @@ export function ConsultancyEngagements() {
     meta: { errorTitle: "Couldn't start the revision" },
     onSuccess: invalidate,
   });
+  const recordIssueTransmittal = trpc.consultancy.deliverables.recordIssueTransmittal.useMutation({
+    meta: { errorTitle: "Couldn't record the issue transmittal" },
+    onSuccess: invalidate,
+  });
 
   // Built-in PDF export.
   const exportPdf = trpc.consultancy.engagements.exportPdf.useMutation({
@@ -1166,13 +1170,14 @@ export function ConsultancyEngagements() {
                       <TableCell>Check</TableCell>
                       <TableCell>Sign-off</TableCell>
                       <TableCell>Status</TableCell>
+                      <TableCell>Transmittal</TableCell>
                       <TableCell align="right" />
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {detail.deliverables.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={9}>
+                        <TableCell colSpan={10}>
                           <span className="esti-label esti-label--secondary">
                             Empty register — add the first deliverable package.
                           </span>
@@ -1232,6 +1237,25 @@ export function ConsultancyEngagements() {
                             map={CONS_DELIVERABLE_STATUS_TAG}
                           />
                         </TableCell>
+                        <TableCell>
+                          {d.issueTransmittal ? (
+                            <span
+                              className="esti-label esti-label--secondary"
+                              title={
+                                d.issueTransmittal.acknowledgedAt
+                                  ? `Acknowledged by ${d.issueTransmittal.acknowledgedBy ?? "receiver"}`
+                                  : "Awaiting receiver acknowledgment"
+                              }
+                            >
+                              {d.issueTransmittal.ref}
+                              {d.issueTransmittal.acknowledgedAt ? " · ack" : " · awaiting"}
+                            </span>
+                          ) : d.status === "ISSUED" ? (
+                            <span className="esti-label esti-label--secondary">—</span>
+                          ) : (
+                            "—"
+                          )}
+                        </TableCell>
                         <TableCell align="right">
                           <RowActionsMenu
                             actions={[
@@ -1271,6 +1295,21 @@ export function ConsultancyEngagements() {
                                 : []),
                               ...(d.status === "ISSUED"
                                 ? [
+                                    ...(!d.issueTransmittal
+                                      ? [
+                                          {
+                                            label: detail.projectId
+                                              ? "Record issue transmittal"
+                                              : "Record issue transmittal (link Studio project first)",
+                                            disabled:
+                                              !detail.projectId || recordIssueTransmittal.isPending,
+                                            onClick: () =>
+                                              recordIssueTransmittal.mutate({
+                                                deliverableId: d.id,
+                                              }),
+                                          },
+                                        ]
+                                      : []),
                                     {
                                       label: "Start revision (resets sign-off)",
                                       disabled: startRevision.isPending,

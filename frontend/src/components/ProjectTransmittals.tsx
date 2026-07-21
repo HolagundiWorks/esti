@@ -23,6 +23,7 @@ import { useState } from "react";
 import { trpc } from "../lib/trpc.js";
 import { pdfPollInterval } from "../lib/pdfUi.js";
 import { PdfActionButtons } from "./PdfActionButtons.js";
+import { RowActionsMenu } from "./RowActionsMenu.js";
 
 function TransmittalPdfCell({
   id,
@@ -79,6 +80,9 @@ export function ProjectTransmittals({ projectId }: { projectId: string }) {
     notes: "",
   });
   const [picked, setPicked] = useState<Record<string, number>>({}); // drawingId -> copies
+  const [ackFor, setAckFor] = useState<{ id: string; ref: string } | null>(null);
+  const [ackBy, setAckBy] = useState("");
+  const [ackNote, setAckNote] = useState("");
 
   const create = trpc.transmittals.create.useMutation({
     meta: { errorTitle: "Couldn't create the transmittal" },
@@ -93,6 +97,16 @@ export function ProjectTransmittals({ projectId }: { projectId: string }) {
         notes: "",
       });
       setPicked({});
+    },
+  });
+
+  const acknowledge = trpc.transmittals.acknowledge.useMutation({
+    meta: { errorTitle: "Couldn't record acknowledgment" },
+    onSuccess: () => {
+      utils.transmittals.listByProject.invalidate({ projectId });
+      setAckFor(null);
+      setAckBy("");
+      setAckNote("");
     },
   });
 
@@ -120,6 +134,18 @@ export function ProjectTransmittals({ projectId }: { projectId: string }) {
       renderCell: (p) => p.row.dateIssued ?? "—",
     },
     {
+      field: "ack",
+      headerName: "Acknowledgment",
+      flex: 1.1,
+      minWidth: 140,
+      renderCell: (p) =>
+        p.row.acknowledgedAt
+          ? `Ack · ${p.row.acknowledgedBy ?? "receiver"}`
+          : p.row.dateIssued
+            ? "Awaiting"
+            : "—",
+    },
+    {
       field: "pdf",
       headerName: "PDF",
       sortable: false,
@@ -127,6 +153,28 @@ export function ProjectTransmittals({ projectId }: { projectId: string }) {
       flex: 1.2,
       minWidth: 200,
       renderCell: (p) => <TransmittalPdfCell id={p.row.id} initialStatus={p.row.pdfStatus} />,
+    },
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      filterable: false,
+      width: 56,
+      renderCell: (p) =>
+        p.row.dateIssued && !p.row.acknowledgedAt ? (
+          <RowActionsMenu
+            actions={[
+              {
+                label: "Record acknowledgment",
+                onClick: () => {
+                  setAckFor({ id: p.row.id, ref: p.row.ref });
+                  setAckBy(p.row.recipient ?? "");
+                  setAckNote("");
+                },
+              },
+            ]}
+          />
+        ) : null,
     },
   ];
 
@@ -152,7 +200,7 @@ export function ProjectTransmittals({ projectId }: { projectId: string }) {
           Issued transmittals
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Drawing issue records with cover-sheet PDFs
+          Issue records with cover-sheet PDFs and receiver acknowledgment
         </Typography>
         <DataGrid
           rows={listQ.data?.rows ?? []}
@@ -295,6 +343,52 @@ export function ProjectTransmittals({ projectId }: { projectId: string }) {
             }
           >
             {create.isPending ? "Creating…" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        aria-labelledby="project-transmittals-ack-title"
+        open={!!ackFor}
+        onClose={() => setAckFor(null)}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle id="project-transmittals-ack-title">
+          Acknowledge {ackFor?.ref ?? "transmittal"}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Acknowledged by"
+              value={ackBy}
+              onChange={(e) => setAckBy(e.target.value)}
+              autoFocus
+            />
+            <TextField
+              label="Note (optional)"
+              value={ackNote}
+              onChange={(e) => setAckNote(e.target.value)}
+              multiline
+              rows={2}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="inherit" onClick={() => setAckFor(null)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!ackBy.trim() || !ackFor || acknowledge.isPending}
+            onClick={() =>
+              ackFor &&
+              acknowledge.mutate({
+                id: ackFor.id,
+                acknowledgedBy: ackBy.trim(),
+                note: ackNote.trim() || undefined,
+              })
+            }
+          >
+            Record acknowledgment
           </Button>
         </DialogActions>
       </Dialog>

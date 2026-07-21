@@ -34,8 +34,11 @@ import {
   ConsultancyType,
   ConsDeliverableCreate,
   ConsDeliverableUpdate,
+  ConsIssueTransmittalCreate,
   ConsEngagementCreate,
   ConsEngagementUpdate,
+  canRecordIssueTransmittal,
+  issueClassToTransmittalPurpose,
   ConsAnalyticsPeriod,
   ConsCapacityOutlookInput,
   ConsFeeStageCreate,
@@ -69,6 +72,7 @@ import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, gte, inArray, isNull, lte, ne } from "drizzle-orm";
 import { z } from "zod";
 import {
+  clients,
   consDeliverables,
   consEngagements,
   consFeeStages,
@@ -85,6 +89,8 @@ import {
   consTimesheets,
   consTqs,
   consVariations,
+  transmittalItems,
+  transmittals,
 } from "../../db/schema.js";
 import {
   askConsultancyIntelligence,
@@ -93,7 +99,9 @@ import {
 import type { DB } from "../../db/index.js";
 import { writeAudit } from "../../lib/audit.js";
 import { firmPayload } from "../../lib/firm.js";
+import { nextRef } from "../../lib/numbering.js";
 import { enqueueJob } from "../../lib/redis.js";
+import { publishEntity } from "../../lib/sync/publish.js";
 import { presignedGet } from "../../lib/storage.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
 
@@ -216,17 +224,37 @@ const engagementsRouter = router({
         stages: feeStages,
         timesheets,
       });
+      const trnIds = deliverables
+        .map((d) => d.transmittalId)
+        .filter((id): id is string => Boolean(id));
+      const issueTrns = trnIds.length
+        ? await ctx.db.select().from(transmittals).where(inArray(transmittals.id, trnIds))
+        : [];
+      const trnById = new Map(issueTrns.map((t) => [t.id, t]));
       return {
         ...row,
         // Redact rupee figures for non-finance callers (money = L2+).
         feeTotalPaise: money ? row.feeTotalPaise : null,
-        deliverables: deliverables.map((d) => ({
-          ...d,
-          chain: steps.filter((s) => s.deliverableId === d.id),
-          missing: d.status === "DRAFT" ? missingSteps(d.checkCategory, steps.filter((s) => s.deliverableId === d.id)) : [],
-          crs: crs.filter((c) => c.deliverableId === d.id),
-          crsOpen: crs.filter((c) => c.deliverableId === d.id && c.status === "OPEN").length,
-        })),
+        deliverables: deliverables.map((d) => {
+          const trn = d.transmittalId ? trnById.get(d.transmittalId) : undefined;
+          return {
+            ...d,
+            chain: steps.filter((s) => s.deliverableId === d.id),
+            missing: d.status === "DRAFT" ? missingSteps(d.checkCategory, steps.filter((s) => s.deliverableId === d.id)) : [],
+            crs: crs.filter((c) => c.deliverableId === d.id),
+            crsOpen: crs.filter((c) => c.deliverableId === d.id && c.status === "OPEN").length,
+            issueTransmittal: trn
+              ? {
+                  id: trn.id,
+                  ref: trn.ref,
+                  recipient: trn.recipient,
+                  dateIssued: trn.dateIssued,
+                  acknowledgedAt: trn.acknowledgedAt,
+                  acknowledgedBy: trn.acknowledgedBy,
+                }
+              : null,
+          };
+        }),
         tqs,
         feeStages: money ? feeStages : [],
         variations: money
@@ -590,7 +618,14 @@ const deliverablesRouter = router({
       await ctx.db.delete(consReviewSteps).where(eq(consReviewSteps.deliverableId, input.id));
       const [row] = await ctx.db
         .update(consDeliverables)
-        .set({ status: "DRAFT", revision: next, issuedAt: null, updatedAt: new Date() })
+        .set({
+          status: "DRAFT",
+          revision: next,
+          issuedAt: null,
+          // New revision needs a fresh issue transmittal (prior TRN stays on the old issue record via audit).
+          transmittalId: null,
+          updatedAt: new Date(),
+        })
         .where(eq(consDeliverables.id, input.id))
         .returning();
       await writeAudit(ctx.db, {
@@ -602,6 +637,101 @@ const deliverablesRouter = router({
         after: { revision: next, status: "DRAFT" },
       });
       return row!;
+    }),
+
+  /**
+   * Create a Studio issue transmittal for an ISSUED deliverable and back-reference
+   * it on the MDR (SOP §3). Requires engagement.projectId.
+   */
+  recordIssueTransmittal: manage
+    .input(ConsIssueTransmittalCreate)
+    .mutation(async ({ ctx, input }) => {
+      const [d] = await ctx.db
+        .select()
+        .from(consDeliverables)
+        .where(eq(consDeliverables.id, input.deliverableId));
+      if (!d) throw new TRPCError({ code: "NOT_FOUND" });
+      const [eng] = await ctx.db
+        .select()
+        .from(consEngagements)
+        .where(eq(consEngagements.id, d.engagementId));
+      if (!eng) throw new TRPCError({ code: "NOT_FOUND" });
+      const gate = canRecordIssueTransmittal({
+        deliverableStatus: d.status,
+        existingTransmittalId: d.transmittalId,
+        engagementProjectId: eng.projectId,
+      });
+      if (!gate.ok)
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: gate.reason });
+
+      let recipient = input.recipient?.trim() ?? "";
+      if (!recipient && eng.clientId) {
+        const [client] = await ctx.db
+          .select({ name: clients.name })
+          .from(clients)
+          .where(eq(clients.id, eng.clientId));
+        recipient = client?.name ?? "";
+      }
+      if (!recipient)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Recipient is required — set a client on the engagement or pass recipient.",
+        });
+
+      const purpose = issueClassToTransmittalPurpose(
+        d.issueClass as "FOR_INFORMATION" | "FOR_APPROVAL" | "FOR_CONSTRUCTION",
+      );
+      const issuedOn = (d.issuedAt ?? new Date()).toISOString().slice(0, 10);
+      const { ref } = await nextRef(ctx.db, "transmittal", "TRN");
+
+      const result = await ctx.db.transaction(async (tx) => {
+        const [t] = await tx
+          .insert(transmittals)
+          .values({
+            ref,
+            projectId: eng.projectId!,
+            recipient,
+            purpose,
+            channel: input.channel,
+            dateIssued: issuedOn,
+            notes:
+              input.notes ??
+              `Issue of ${d.code} rev ${d.revision} — ${eng.code ?? eng.title}`,
+            createdById: ctx.user.id,
+          })
+          .returning();
+        await tx.insert(transmittalItems).values({
+          transmittalId: t!.id,
+          drawingId: null,
+          drawingRef: d.code,
+          title: d.title,
+          rev: d.revision,
+          copies: 1,
+        });
+        const [updated] = await tx
+          .update(consDeliverables)
+          .set({ transmittalId: t!.id, updatedAt: new Date() })
+          .where(eq(consDeliverables.id, d.id))
+          .returning();
+        return { transmittal: t!, deliverable: updated! };
+      });
+
+      await publishEntity(ctx.db, "transmittal", result.transmittal.id);
+      await writeAudit(ctx.db, {
+        entity: "transmittal",
+        entityId: result.transmittal.id,
+        action: "CREATE",
+        actorId: ctx.user.id,
+        after: result.transmittal,
+      });
+      await writeAudit(ctx.db, {
+        entity: "cons_deliverable",
+        entityId: d.id,
+        action: "UPDATE",
+        actorId: ctx.user.id,
+        after: { transmittalId: result.transmittal.id, transmittalRef: result.transmittal.ref },
+      });
+      return result;
     }),
 });
 
