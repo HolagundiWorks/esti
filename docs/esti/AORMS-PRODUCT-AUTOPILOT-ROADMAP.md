@@ -287,7 +287,7 @@ feature — keeps the spine honest before P9.V / P7 continue.
 | P10.5 | Full Playwright e2e job on pull requests | ✅ (PR-gated in `esti-ci`) |
 | P10.6 | Major dependency upgrades + audit high+ → 0 | ✅ |
 | P10.7 | EmOI → EOMS knowledge-bank rebrand follow-ups (`AORMS-REBRANDING.md` §5) | ✅ |
-| P10.8 | Visual Playwright baselines after React 19 / branding | ⬜ regenerate snapshots |
+| P10.8 | Visual Playwright baselines after React 19 / branding | ✅ **fixed 2026-07-21** — suite retargeted to landing (design-system gallery removed in marketing consolidation); linux hero baseline regenerated; visit-counter toasts silenced without a backend |
 
 ---
 

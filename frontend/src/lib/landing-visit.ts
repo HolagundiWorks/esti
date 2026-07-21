@@ -10,12 +10,16 @@ const SESSION_KEY = "esti-landing-visit-recorded";
 export function useLandingVisitCounter() {
   const utils = trpc.useUtils();
   const attemptedRef = useRef(false);
+  // Public marketing page — backend may be absent (visual CI, static preview).
+  // Never toast on failure; the counter is optional chrome.
   const health = trpc.health.useQuery(undefined, {
     staleTime: 60_000,
     retry: false,
     refetchOnWindowFocus: false,
+    meta: { silent: true },
   });
   const record = trpc.recordLandingVisit.useMutation({
+    meta: { silent: true },
     onSuccess: (data) => {
       utils.health.setData(undefined, (prev) =>
         prev ? { ...prev, landingVisits: data.visits } : prev,
