@@ -245,10 +245,11 @@ Procedural artifacts:
 | Internal audit / management review | 🔲 | Out of app scope for now (the registers above are their evidence base) |
 
 **Reading of the map:** the *governance core* the SOPs exist to protect — the register,
-the named chain, gated issue, stage billing, WIP — is built. The highest-value next
-slices, in rough order: **engagement/job + document numbering conventions**, **two-track
-revisions**, **TQ due-dates (SLA)**, **timesheet approval**, **invoice + paid/overdue
-lifecycle on fee stages**, **CRS on submissions**, and **field reports**.
+the named chain, gated issue, stage billing, WIP — is built. Highest-value remaining
+slices, in rough order: **transmittal acknowledgment**, **invoice + paid/overdue
+lifecycle on fee stages**, **enquiry/go-no-go pipeline**, and **lessons / NC-CAPA**.
+(Document numbering, two-track revisions, TQ due-dates, timesheet approval, CRS, and
+field reports are already in.)
 
 ---
 

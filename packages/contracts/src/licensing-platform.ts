@@ -196,6 +196,26 @@ export const RecordGrowthInput = z.object({
 });
 export type RecordGrowthInput = z.infer<typeof RecordGrowthInput>;
 
+/**
+ * P7 — a product node reports metered usage for one licensed org in the
+ * current (or specified) calendar month. Upserts `hlp_usage_report`.
+ * `company` is required for product-wide keys; org-bound keys may omit it
+ * (the key's org is used).
+ */
+export const ReportUsageInput = z.object({
+  company: z.string().min(1).max(120).optional(),
+  /** First day of the month (YYYY-MM-DD). Defaults to the current UTC month. */
+  periodStart: z
+    .string()
+    .regex(/^\d{4}-\d{2}-01$/)
+    .optional(),
+  storageUsedBytes: z.number().int().nonnegative(),
+  storageQuotaBytes: z.number().int().nonnegative(),
+  storagePurchasedBytes: z.number().int().nonnegative().default(0),
+  aiTokensThisMonth: z.number().int().nonnegative().default(0),
+});
+export type ReportUsageInput = z.infer<typeof ReportUsageInput>;
+
 // --- Desktop component manifest (Manager ⇄ hub) ---
 //
 // The desktop Manager ships as a thin bootstrapper; the actual app is pulled

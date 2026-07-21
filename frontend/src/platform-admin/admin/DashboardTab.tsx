@@ -132,7 +132,9 @@ export default function DashboardTab({ onGoTo }: { onGoTo: (section: "licenses" 
       {usage && (
         <Box>
           <Typography variant="h6" component="h3" sx={{ mb: 1 }}>
-            Metered usage — this workspace
+            {usage.source === "reports"
+              ? `Metered usage — ${usage.reportedOrgCount} org${usage.reportedOrgCount === 1 ? "" : "s"} reported`
+              : "Metered usage — this workspace"}
           </Typography>
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -168,11 +170,22 @@ export default function DashboardTab({ onGoTo }: { onGoTo: (section: "licenses" 
                   BYO-API calls are billed by your provider and excluded here.
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Metering since {fmtDate(usage.aiTokensMonthStart)}
+                  {usage.source === "reports"
+                    ? `Period ${usage.periodStart}`
+                    : `Metering since ${fmtDate(usage.aiTokensMonthStart)}`}
                 </Typography>
               </Paper>
             </Grid>
           </Grid>
+          {usage.source === "reports" && usage.reports.length > 1 && (
+            <Stack spacing={0.5} sx={{ mt: 1.5 }}>
+              {usage.reports.slice(0, 8).map((r) => (
+                <Typography key={`${r.orgId}-${r.productCode}`} variant="body2" color="text.secondary">
+                  {`${r.orgName}: ${fmtBytes(r.storageUsedBytes)} · ${r.aiTokensThisMonth.toLocaleString()} tokens`}
+                </Typography>
+              ))}
+            </Stack>
+          )}
         </Box>
       )}
 

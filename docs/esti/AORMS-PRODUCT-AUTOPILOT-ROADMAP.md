@@ -42,7 +42,7 @@
 | [P4](#p4--remove-community--all-desktop-apps) | Remove Community + **all** desktop apps | P1 | ✅ code done; P4.8 marketing copy human-pending | autopilot |
 | ~~P5~~ | ~~Estimate desktop auth~~ — **cancelled 2026-07-19** (web-only) | — | ❌ | — |
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
-| [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | 🔄 | autopilot |
+| [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | 🔄 P7.1 multi-tenant reports ✅; P7.2 blocked | autopilot |
 | [P8](#p8--browser-takeoff-replaces-esticad) | Browser takeoff (replaces ESTICAD) | P1 | ✅ | autopilot |
 | [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | 🔄 P9.V human fee UX; P9.4 ✅ | autopilot |
 | [P10](#p10--2026-07-21-hygiene--rebrand--deps) | Hygiene · rebrand · deps (landed) | P0 | ✅ | autopilot |
@@ -183,17 +183,15 @@ surviving consumer is the **self-hosted VPS installer** (`deploy/`).
 
 | # | Task | Status |
 |---|------|--------|
-| P7.1 | Usage dashboard — storage GB-month, AI tokens | ✅ 2026-07-19 — `admin.dashboard.usage` + "Metered usage" panel on the platform-admin dashboard |
+| P7.1 | Usage dashboard — storage GB-month, AI tokens | ✅ 2026-07-19 — `admin.dashboard.usage` + "Metered usage" panel; **2026-07-21** multi-tenant via `hlp_usage_report` + `POST /v1/report-usage` |
 | P7.2 | Stripe / invoice hook (or manual export for India) | ⬜ blocked on a business decision: Stripe vs manual invoice export |
 | P7.3 | Suspend on payment failure | ⬜ follows P7.2 (`licenceStatus = SUSPENDED` already exists to flip) |
 
-**Scope note (P7.1).** `esti_orgsettings` is a **singleton** — one install = one
-firm — and the `hlp_` licensing tables share that database, so the dashboard
-reads workspace counters directly (`backend/src/licensing-platform/modules/admin/dashboard.ts`).
-It therefore reports usage for **the workspace on this install**, not per-tenant
-usage across every licensed org. True multi-tenant billing needs installs to
-report into a platform-side usage table (no such table or reporting endpoint
-exists today) — that is a prerequisite for P7.2, not a detail of it.
+**Scope note (P7.1).** Product nodes upsert monthly snapshots into `hlp_usage_report`
+(`POST /v1/report-usage`, product API key). The platform-admin dashboard aggregates
+current-month rows across licensed orgs; the co-located `esti_orgsettings` singleton
+remains the fallback (and self-reports when an ACTIVE license exists on this install).
+True invoicing (P7.2) still needs the Stripe vs manual-export decision.
 
 **Verify:** platform-admin console → Dashboard → "Metered usage — this workspace".
 
@@ -335,6 +333,7 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 
 | Date | Change |
 |------|--------|
+| 2026-07-21 | Autopilot: **P7 platform usage reporting** — `hlp_usage_report` (migration `0213`), `POST /v1/report-usage`, admin dashboard aggregates current-month reports (local singleton fallback + self-report). |
 | 2026-07-21 | Autopilot: **MDR deliverable numbering** — `buildMdrDeliverableCode` / `nextMdrSequence` / validation; create allocates `{job}-{TYPE}-{seq}`; UI doc-type picker with preview; duplicate/wrong-root rejected. |
 | 2026-07-21 | Autopilot: **P9.V issue-gate coverage** — router tests for open CRS comments and RECEIVED input packs blocking ISSUED (sign-off chain already covered). |
 | 2026-07-21 | Autopilot: **P9.4 Ask digest trust boundary** — `formatConsultancyDigest` (pure): VALIDATED packs only as working assumptions, RECEIVED as holds (no source text), REJECTED omitted; capacity alerts folded into Ask grounding; unit tests. |
