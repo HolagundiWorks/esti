@@ -1,25 +1,16 @@
 import { PeriodFilterInput, ProjectListParams, clampListLimit } from "@esti/contracts";
 import {
-  GstSystem,
   InvoiceCreate,
   InvoiceStatus,
-  computeGst,
-  computeTds194j,
-  derivePlaceOfSupply,
-  financialYearRange,
-  tds194jApplies,
-  type PlaceOfSupply,
 } from "@esti/contracts";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import type { DB } from "../../db/index.js";
-import { clients, invoices, projectOffices } from "../../db/schema.js";
+import { invoices, projectOffices } from "../../db/schema.js";
 import { writeAudit } from "../../lib/audit.js";
 import { writeActivity } from "../../lib/activity.js";
-import { firmPayload, getFirm } from "../../lib/firm.js";
-import { nextRef } from "../../lib/numbering.js";
-import { requireInvoiceScope } from "../../lib/projectScope.js";
+import { createStudioInvoice } from "../../lib/createInvoice.js";
+import { firmPayload } from "../../lib/firm.js";
 import { enqueueJob } from "../../lib/redis.js";
 import { publishEntity } from "../../lib/sync/publish.js";
 import { presignedGet, removeObject } from "../../lib/storage.js";
@@ -35,52 +26,6 @@ const manageInvoice = capabilityProcedure("invoice:manage");
  * firm-wide revenue, GST, TDS and a presigned PDF of any invoice by id.
  */
 const readInvoice = capabilityProcedure("invoice:manage");
-
-/** Fee value (excluding GST) already invoiced to a client this financial year. */
-async function clientFyTaxablePaise(db: DB, clientId: string): Promise<number> {
-  const { start, end } = financialYearRange();
-  const [row] = await db
-    .select({ total: sql<number>`coalesce(sum(${invoices.taxablePaise}), 0)::bigint` })
-    .from(invoices)
-    .where(
-      and(
-        eq(invoices.clientId, clientId),
-        // Cancelled invoices never became income, so they do not count toward
-        // the s.194J aggregate.
-        inArray(invoices.status, ["DRAFT", "ISSUED", "PAID"]),
-        gte(invoices.createdAt, start),
-        lt(invoices.createdAt, end),
-      ),
-    );
-  return Number(row?.total ?? 0);
-}
-
-/** Place of supply for a new invoice, from the site state (s.12(3)(a)). */
-async function derivePlaceOfSupplyForInvoice(
-  db: DB,
-  firm: { state?: string | null; gstin?: string | null },
-  input: { projectId: string; clientId?: string | null },
-): Promise<PlaceOfSupply> {
-  const [project] = await db
-    .select({ state: projectOffices.state })
-    .from(projectOffices)
-    .where(eq(projectOffices.id, input.projectId));
-  const client = input.clientId
-    ? (
-        await db
-          .select({ state: clients.state, gstin: clients.gstin })
-          .from(clients)
-          .where(eq(clients.id, input.clientId))
-      )[0]
-    : undefined;
-  return derivePlaceOfSupply({
-    firmState: firm.state ?? null,
-    firmGstin: firm.gstin ?? null,
-    projectState: project?.state ?? null,
-    clientState: client?.state ?? null,
-    clientGstin: client?.gstin ?? null,
-  });
-}
 
 export const invoiceRouter = router({
   listByProject: readInvoice
@@ -290,85 +235,10 @@ export const invoiceRouter = router({
     }),
 
   create: manageInvoice.input(InvoiceCreate).mutation(async ({ ctx, input }) => {
-    await requireInvoiceScope(ctx.db, input);
-    const firm = await getFirm(ctx.db);
-    const system = input.gstSystem ?? (firm.gstType as GstSystem);
-    // SAC applies only to a regular GST tax invoice; drop it otherwise.
-    const sac = system === GstSystem.REGULAR ? (input.sac ?? null) : null;
-    /**
-     * Place of supply (IGST Act s.12(3)(a)): architectural work relates to
-     * immovable property, so the supply happens where the SITE is. Derived
-     * from the project's state, with the caller able to override for work not
-     * tied to a property — but the derivation is the default, because
-     * `interState` used to be an unchecked checkbox defaulting to false, which
-     * silently booked CGST+SGST on every out-of-state project.
-     */
-    const pos = await derivePlaceOfSupplyForInvoice(ctx.db, firm, input);
-    const interState = input.interState ?? pos.interState;
-
-    /**
-     * TDS u/s 194J(B): no deduction until this client's fees for the financial
-     * year exceed ₹30,000. The firm-wide default flag says whether the firm
-     * deducts at all; the threshold decides whether it bites yet. Previously
-     * the flag alone applied 10% to a first ₹10,000 invoice that no client
-     * would actually deduct against, leaving a permanent phantom shortfall.
-     */
-    const firmDeducts = input.tdsApplicable ?? firm.tdsApplicableDefault;
-    const priorTaxablePaise = input.clientId
-      ? await clientFyTaxablePaise(ctx.db, input.clientId)
-      : 0;
-    const tdsCheck = tds194jApplies({ priorTaxablePaise, taxablePaise: input.taxablePaise });
-    const tdsApplicable = firmDeducts && tdsCheck.applies;
-
-    const g = computeGst(system, input.taxablePaise, interState);
-    const tdsPaise = tdsApplicable ? computeTds194j(input.taxablePaise) : 0;
-    const netReceivablePaise = g.grandTotal - tdsPaise;
-    const { ref } = await nextRef(ctx.db, "invoice", "INV");
-
-    const [row] = await ctx.db
-      .insert(invoices)
-      .values({
-        ref,
-        projectId: input.projectId,
-        phaseId: input.phaseId ?? null,
-        clientId: input.clientId ?? null,
-        gstSystem: system,
-        documentKind: g.documentKind,
-        sac,
-        interState,
-        placeOfSupplyState: pos.state,
-        tdsApplicable,
-        taxablePaise: g.taxable,
-        cgstPaise: g.cgst,
-        sgstPaise: g.sgst,
-        igstPaise: g.igst,
-        gstTotalPaise: g.gstTotal,
-        compositionLevyPaise: g.compositionLevy,
-        tdsPaise,
-        grandTotalPaise: g.grandTotal,
-        netReceivablePaise,
-        isAdvance: input.isAdvance,
-        dateInvoice: input.dateInvoice ?? null,
-        notes: input.notes ?? null,
-      })
-      .returning();
-    await writeAudit(ctx.db, {
-      entity: "invoice",
-      entityId: row!.id,
-      action: "CREATE",
-      actorId: ctx.user.id,
-      after: row,
+    return createStudioInvoice(ctx.db, {
+      input,
+      actor: { id: ctx.user.id, fullName: ctx.user.fullName },
+      requestId: ctx.requestId,
     });
-    await writeActivity(ctx.db, {
-      projectId: row!.projectId,
-      objectType: "invoice",
-      objectId: row!.id,
-      eventType: "invoice.created",
-      actorId: ctx.user.id,
-      actorName: ctx.user.fullName,
-      summary: `Invoice ${row!.ref} created`,
-      metadata: { ref: row!.ref, status: row!.status, taxablePaise: row!.taxablePaise },
-    });
-    return row!;
   }),
 });

@@ -236,7 +236,7 @@ Procedural artifacts:
 | Site visit reports (G711-style) | ✅ | Numbered field reports per engagement: weather, personnel, work observed, observations, NCs, instructions, next visit; author snapshotted *(2026-07-12)* |
 | Timesheets weekly + approval | ✅ | SUBMITTED→APPROVED, named approver, approve-all per engagement *(2026-07-12)* |
 | Monthly WIP review | 🔶 | WIP computed live in analytics; the *meeting cadence* + bill/hold/write-off decisions unrecorded |
-| Milestone invoicing | 🔶 | BILLABLE on issue → INVOICED with payment terms → PAID; invoice-doc generation via Studio `invoices` still open |
+| Milestone invoicing | ✅ | BILLABLE on issue → **Raise Studio invoice** (ISSUED tax doc + PDF) → PAID syncs linked `esti_invoice`; payment terms + overdue on the fee position *(2026-07-21)* |
 | Dunning ladder | ✅ | Payment terms on invoicing (default 30d); overdue days flagged red; outstanding tracked on the fee position *(2026-07-12)* |
 | Resource forecast meeting | 🔲 | Capacity per grade exists (utilisation); no forward staffing forecast |
 | Retention policy + litigation hold | 🔲 | Records are immutable in DB; no retention/archival policy layer |
@@ -246,10 +246,9 @@ Procedural artifacts:
 
 **Reading of the map:** the *governance core* the SOPs exist to protect — the register,
 the named chain, gated issue, stage billing, WIP — is built. Highest-value remaining
-slices, in rough order: **invoice + paid/overdue lifecycle on fee stages**
-(invoice-doc generation via Studio `invoices`), **enquiry/go-no-go pipeline**, and
-**lessons / NC-CAPA**. (Document numbering, two-track revisions, TQ due-dates,
-timesheet approval, CRS, field reports, and **transmittal acknowledgment** are already in.)
+slices, in rough order: **enquiry/go-no-go pipeline**, and **lessons / NC-CAPA**.
+(Document numbering, two-track revisions, TQ due-dates, timesheet approval, CRS,
+field reports, **transmittal acknowledgment**, and **milestone Studio invoices** are already in.)
 
 ---
 

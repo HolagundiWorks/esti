@@ -872,6 +872,34 @@ export function canAdvanceFeeStage(
   return !!allowed && allowed.includes(to as FeeStageStatus);
 }
 
+/**
+ * Pure gate for raising a Studio tax invoice from a BILLABLE fee stage
+ * (SOP §8 milestone invoicing). Requires a linked Studio project on the engagement.
+ */
+export function canRaiseFeeStageStudioInvoice(args: {
+  stageStatus: string;
+  engagementProjectId: string | null | undefined;
+  existingInvoiceId: string | null | undefined;
+}): { ok: true } | { ok: false; reason: string } {
+  if (!canAdvanceFeeStage(args.stageStatus, "INVOICED"))
+    return {
+      ok: false,
+      reason:
+        args.stageStatus === "INVOICED" || args.stageStatus === "PAID"
+          ? `This stage is already ${args.stageStatus.toLowerCase()}.`
+          : "The stage is not billable yet — it turns billable when its linked deliverable is issued.",
+    };
+  if (args.existingInvoiceId)
+    return { ok: false, reason: "This stage already has a Studio invoice." };
+  if (!args.engagementProjectId)
+    return {
+      ok: false,
+      reason:
+        "Link this engagement to a Studio project before raising a Studio invoice.",
+    };
+  return { ok: true };
+}
+
 /** Chargeout at log time — rate × hours, rounded to integer paise. */
 export function timesheetValuePaise(ratePaise: number, hours: number): number {
   return Math.round(ratePaise * hours);
