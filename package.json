@@ -19,6 +19,12 @@
     "seed:demo": "pnpm --filter @esti/backend seed:demo",
     "licenses": "node scripts/licenses.mjs"
   },
+  "pnpm": {
+    "overrides": {
+      "brace-expansion": ">=5.0.7",
+      "esbuild": ">=0.25.0"
+    }
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.1.1",
