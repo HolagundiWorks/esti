@@ -21,6 +21,7 @@ const base: Env = {
   SMTP_FROM: "AORMS <hi@aorms.in>",
   BETA_REQUEST_NOTIFY_TO: "hi@aorms.in",
   DEMO_MASTER_PASSWORD: "prod-demo-master-not-default",
+  ESTI_RELAX_AUTH_LIMITS: false,
 };
 
 describe("assertProductionSecrets", () => {

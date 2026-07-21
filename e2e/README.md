@@ -32,10 +32,10 @@ AORMS_BASE_URL=https://app.example.com npm test   # another environment
 
 | Spec | "Tests…" |
 |---|---|
-| `tests/auth.spec.ts` | **All logins** — each of the 5 demo personas (principal/lead/site/junior/client) signs in. |
+| `tests/auth.spec.ts` | **All logins** — staff personas via `/login` + Open workspace; client via `/access`. |
 | `tests/navigation.spec.ts` | **Every screen** — visits each route in `utils/routes.ts` and asserts it renders (no crash fallback, no bounce to /login). |
-| `tests/navigation-personas.spec.ts` | **Every role** — Project Lead + Jr Architect sweep every office route crash-free (role-gated screens may redirect, never blow up); Client + Site Supervisor reach their portal cleanly. |
-| `tests/buttons.spec.ts` | **Every button** — on each screen (one test per route, reuses the saved session), clicks every visible *non-destructive* button and asserts the UI never crashes. Destructive/outbound labels are skipped (see the `SKIP` regex). |
+| `tests/navigation-personas.spec.ts` | **Every role** — Project Lead + Jr Architect sweep every office route crash-free (role-gated screens may redirect, never blow up); Client reaches the portal via `/access`. |
+| `tests/buttons.spec.ts` | **Every button** — on each screen (one test per route, reuses the saved session from setup — runs *before* office re-logins that revoke that session), clicks every visible *non-destructive* button and asserts the UI never crashes. Destructive/outbound labels are skipped (see the `SKIP` regex). |
 | `tests/crud.spec.ts` | **Each item entered** — a real create round-trip per module (clients, leads, consultants, contractors, contracts, invoices, proposals, letters, office expenses): opens the New-X modal, fills it via `fixtures/crud.ts`, submits, and verifies either the `E2E …`-stamped record lands in the list or (for auto-numbered docs) the modal closes cleanly. |
 | `tests/crud-lifecycle.spec.ts` | **CRM archive** — create a client → search → Deactivate (status flips Active → Deactivated). |
 | `tests/pdf.spec.ts` | **PDF generation** — asserts each PDF-owning screen exposes a generated-PDF artifact and that Regenerate is safe. |

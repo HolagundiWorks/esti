@@ -89,6 +89,8 @@ services:
       # Unified individual accounts (Phase 34): workspace login accepts local
       # platform accounts in-process. Off by default; set true to exercise it.
       ESTI_UNIFIED_ACCOUNTS: ${ESTI_UNIFIED_ACCOUNTS:-true}
+      # CI e2e sets true — one runner IP signs in many personas in one suite.
+      ESTI_RELAX_AUTH_LIMITS: ${ESTI_RELAX_AUTH_LIMITS:-false}
       SEED_DEMO_PASSWORD: ${SEED_DEMO_PASSWORD:-demo1234}
       DEMO_MASTER_PASSWORD: ${DEMO_MASTER_PASSWORD:-aorms-demo-admin}
       DEMO_MIDNIGHT_RESET: ${DEMO_MIDNIGHT_RESET:-true}
