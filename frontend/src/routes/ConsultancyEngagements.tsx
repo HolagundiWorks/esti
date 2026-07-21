@@ -1943,7 +1943,7 @@ export function ConsultancyEngagements() {
               multiline
               rows={2}
               autoFocus
-              helperText="Answers only from the firm record — engagements, chains, TQs, fees, risks, input packs"
+              helperText="Answers only from the firm record — validated input packs are working assumptions; unvalidated packs appear as holds. Capacity alerts included when load is tight."
             />
             {ask.isPending && (
               <span className="esti-label esti-label--secondary">

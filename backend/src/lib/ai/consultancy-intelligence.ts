@@ -1,13 +1,17 @@
 /**
  * AORMS-Consultancy Phase 4 — the internal agent. Answers ONLY from the
  * validated firm record (engagements, registers, sign-off chains, TQs, fees,
- * risks, input packs) — deterministic truth; intelligence explains. Also
- * provides EOMS-assisted input-pack review: a validation recommendation the
- * named human validator acts on (the recommendation never validates).
+ * risks, validated input packs) — deterministic truth; intelligence explains.
+ * Also provides EOMS-assisted input-pack review: a validation recommendation
+ * the named human validator acts on (the recommendation never validates).
  */
 import { callOllamaChat } from "@hcw/aorms-ai-kit/ollama";
-import { parseAiSettings } from "@esti/contracts";
-import { gte } from "drizzle-orm";
+import {
+  buildCapacityOutlook,
+  capacityOutlookAlerts,
+  parseAiSettings,
+} from "@esti/contracts";
+import { and, gte, lte } from "drizzle-orm";
 import type { DB } from "../../db/index.js";
 import {
   consDeliverables,
@@ -26,34 +30,147 @@ import { ollamaBaseUrlFromEnv, ollamaModelFromEnv } from "./ollama-config.js";
 
 const INR = (paise: number | null | undefined) => `₹${((paise ?? 0) / 100).toLocaleString("en-IN")}`;
 
+/** Plain rows the digest formatter accepts — kept free of Drizzle types for unit tests. */
+export type DigestEngagement = {
+  id: string;
+  title: string;
+  model: string;
+  consultancyType: string | null;
+  stage: string | null;
+  status: string;
+  feeModel: string | null;
+  feeTotalPaise: number | null;
+  leadDiscipline: string;
+  brief: unknown;
+};
+
+export type DigestDeliverable = {
+  id: string;
+  engagementId: string;
+  code: string;
+  title: string;
+  revision: string;
+  checkCategory: string;
+  status: string;
+};
+
+export type DigestStep = {
+  deliverableId: string;
+  kind: string;
+  userName: string;
+};
+
+export type DigestTq = {
+  engagementId: string;
+  code: string;
+  status: string;
+  scopeImpact: boolean | null;
+  question: string;
+};
+
+export type DigestVariation = {
+  engagementId: string;
+  code: string;
+  title: string;
+  amountPaise: number | null;
+  status: string;
+};
+
+export type DigestRisk = {
+  engagementId: string | null;
+  title: string;
+  likelihood: number | null;
+  impact: number | null;
+  residualLikelihood: number | null;
+  residualImpact: number | null;
+  status: string;
+  owner: string | null;
+};
+
+export type DigestInputPack = {
+  engagementId: string;
+  title: string;
+  kind: string;
+  status: string;
+  validatedByName: string | null;
+  /** Never included in the digest for unvalidated packs (trust boundary). */
+  source?: string | null;
+};
+
+export type DigestFeeStage = {
+  engagementId: string;
+  status: string;
+  amountPaise: number | null;
+};
+
+export type DigestTimesheet = {
+  engagementId: string;
+  date: string;
+  grade: string;
+  hours: number | null;
+  valuePaise: number | null;
+};
+
+export type DigestRateCard = {
+  grade: string;
+  ratePaise: number;
+  capacityHoursWeek: number | null;
+};
+
+export type ConsultancyDigestInput = {
+  includeMoney: boolean;
+  /** Inclusive UTC "today" (YYYY-MM-DD) for capacity outlook + 30d hours. */
+  asOf: string;
+  engagements: readonly DigestEngagement[];
+  deliverables: readonly DigestDeliverable[];
+  steps: readonly DigestStep[];
+  tqs: readonly DigestTq[];
+  stages: readonly DigestFeeStage[];
+  variations: readonly DigestVariation[];
+  risks: readonly DigestRisk[];
+  packs: readonly DigestInputPack[];
+  rates: readonly DigestRateCard[];
+  /** Sheets used for 30d hours (finance value) and capacity trailing load. */
+  sheets: readonly DigestTimesheet[];
+};
+
 /**
- * A compact plain-text digest of the firm record — the ONLY ground the agent
- * may answer from. Capped so small local models stay coherent.
+ * Pure firm-record digest — the ONLY ground the agent may answer from.
+ * Capped so small local models stay coherent.
+ *
+ * Trust boundary: only **VALIDATED** input packs are working assumptions.
+ * **RECEIVED** packs appear as hold points (title/kind/status only — no source).
+ * **REJECTED** packs are omitted.
  *
  * `includeMoney` mirrors the fee:manage read gate: when false (non-finance
  * caller) every rupee figure is dropped, so the agent can't be used as a side
  * channel around the money redaction on the direct reads.
  */
-export async function buildConsultancyDigest(db: DB, includeMoney: boolean): Promise<string> {
-  const engagements = await db.select().from(consEngagements);
-  const deliverables = await db.select().from(consDeliverables);
-  const steps = await db.select().from(consReviewSteps);
-  const tqs = await db.select().from(consTqs);
-  const stages = await db.select().from(consFeeStages);
-  const variations = await db.select().from(consVariations);
-  const risks = await db.select().from(consRisks);
-  const packs = await db.select().from(consInputPacks);
-  const rates = await db.select().from(consRateCards);
-  const since = new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10);
-  const sheets = await db
-    .select()
-    .from(consTimesheets)
-    .where(gte(consTimesheets.date, since));
+export function formatConsultancyDigest(input: ConsultancyDigestInput): string {
+  const {
+    includeMoney,
+    asOf,
+    engagements,
+    deliverables,
+    steps,
+    tqs,
+    stages,
+    variations,
+    risks,
+    packs,
+    rates,
+    sheets,
+  } = input;
+
+  const since30Date = new Date(`${asOf}T00:00:00Z`);
+  since30Date.setUTCDate(since30Date.getUTCDate() - 29);
+  const since30 = since30Date.toISOString().slice(0, 10);
+  const sheets30 = sheets.filter((s) => s.date >= since30 && s.date <= asOf);
 
   const lines: string[] = [];
   for (const e of engagements) {
     const ds = deliverables.filter((d) => d.engagementId === e.id);
-    const tv = sheets
+    const tv = sheets30
       .filter((s) => s.engagementId === e.id)
       .reduce((a, s) => a + (s.valuePaise ?? 0), 0);
     const inv = stages
@@ -85,15 +202,15 @@ export async function buildConsultancyDigest(db: DB, includeMoney: boolean): Pro
         `  DELIVERABLE ${d.code} "${d.title}" rev ${d.revision} ${d.checkCategory} — ${d.status}${chain ? ` (chain: ${chain})` : ""}`,
       );
     }
-    for (const t of tqs.filter((t) => t.engagementId === e.id))
+    for (const t of tqs.filter((tq) => tq.engagementId === e.id))
       lines.push(
         `  TQ ${t.code} — ${t.status}${t.scopeImpact ? " [scope impact]" : ""}: ${t.question.slice(0, 120)}`,
       );
-    for (const v of variations.filter((v) => v.engagementId === e.id))
+    for (const v of variations.filter((vr) => vr.engagementId === e.id))
       lines.push(
         `  VARIATION ${v.code} "${v.title}"${includeMoney ? ` ${INR(v.amountPaise)}` : ""} — ${v.status}`,
       );
-    for (const r of risks.filter((r) => r.engagementId === e.id))
+    for (const r of risks.filter((rk) => rk.engagementId === e.id))
       lines.push(
         `  RISK "${r.title}" inherent ${r.likelihood}x${r.impact}=${(r.likelihood ?? 0) * (r.impact ?? 0)}` +
           (r.residualLikelihood != null
@@ -101,10 +218,19 @@ export async function buildConsultancyDigest(db: DB, includeMoney: boolean): Pro
             : "") +
           ` — ${r.status}${r.owner ? `, owner ${r.owner}` : ""}`,
       );
-    for (const p of packs.filter((p) => p.engagementId === e.id))
+
+    const engPacks = packs.filter((p) => p.engagementId === e.id);
+    for (const p of engPacks.filter((pk) => pk.status === "VALIDATED")) {
       lines.push(
-        `  INPUT PACK "${p.title}" (${p.kind}) — ${p.status}${p.validatedByName ? ` by ${p.validatedByName}` : ""}`,
+        `  INPUT PACK "${p.title}" (${p.kind}) — VALIDATED${p.validatedByName ? ` by ${p.validatedByName}` : ""} (working assumption)`,
       );
+    }
+    for (const p of engPacks.filter((pk) => pk.status === "RECEIVED")) {
+      // Hold point only — never echo source / free-text from an unvalidated pack.
+      lines.push(
+        `  INPUT PACK HOLD "${p.title}" (${p.kind}) — RECEIVED (not yet a working assumption)`,
+      );
+    }
   }
   // Rate card is chargeout data — finance-only. Hours (workload) stay visible.
   if (includeMoney && rates.length) {
@@ -114,14 +240,79 @@ export async function buildConsultancyDigest(db: DB, includeMoney: boolean): Pro
         .join("; ")}`,
     );
   }
-  if (sheets.length) {
+  if (sheets30.length) {
     const byGrade = new Map<string, number>();
-    for (const s of sheets) byGrade.set(s.grade, (byGrade.get(s.grade) ?? 0) + (s.hours ?? 0));
+    for (const s of sheets30) byGrade.set(s.grade, (byGrade.get(s.grade) ?? 0) + (s.hours ?? 0));
     lines.push(
       `HOURS (last 30d): ${[...byGrade.entries()].map(([g, h]) => `${g} ${h}h`).join("; ") || "none"}`,
     );
   }
+
+  const firmCapacityHoursWeek = rates.reduce(
+    (a, r) => a + (r.capacityHoursWeek ?? 0),
+    0,
+  );
+  const capacityRows = buildCapacityOutlook({
+    asOf,
+    horizonMonths: 3,
+    firmCapacityHoursWeek,
+    sheets: sheets.map((s) => ({
+      date: s.date,
+      hours: s.hours ?? 0,
+      engagementId: s.engagementId,
+    })),
+    engagements: engagements.map((e) => ({
+      id: e.id,
+      leadDiscipline: e.leadDiscipline,
+      status: e.status,
+    })),
+  });
+  const alerts = capacityOutlookAlerts(capacityRows);
+  if (alerts.length) {
+    lines.push(`CAPACITY ALERTS: ${alerts.join("; ")}`);
+  }
+
   return lines.join("\n").slice(0, 7000);
+}
+
+/**
+ * A compact plain-text digest of the firm record — the ONLY ground the agent
+ * may answer from. Loads from DB then formats via {@link formatConsultancyDigest}.
+ */
+export async function buildConsultancyDigest(db: DB, includeMoney: boolean): Promise<string> {
+  const asOf = new Date().toISOString().slice(0, 10);
+  const lookback = new Date(`${asOf}T00:00:00Z`);
+  lookback.setUTCDate(lookback.getUTCDate() - 100);
+  const from = lookback.toISOString().slice(0, 10);
+
+  const engagements = await db.select().from(consEngagements);
+  const deliverables = await db.select().from(consDeliverables);
+  const steps = await db.select().from(consReviewSteps);
+  const tqs = await db.select().from(consTqs);
+  const stages = await db.select().from(consFeeStages);
+  const variations = await db.select().from(consVariations);
+  const risks = await db.select().from(consRisks);
+  const packs = await db.select().from(consInputPacks);
+  const rates = await db.select().from(consRateCards);
+  const sheets = await db
+    .select()
+    .from(consTimesheets)
+    .where(and(gte(consTimesheets.date, from), lte(consTimesheets.date, asOf)));
+
+  return formatConsultancyDigest({
+    includeMoney,
+    asOf,
+    engagements,
+    deliverables,
+    steps,
+    tqs,
+    stages,
+    variations,
+    risks,
+    packs,
+    rates,
+    sheets,
+  });
 }
 
 const ASK_SYSTEM = [
@@ -131,7 +322,9 @@ const ASK_SYSTEM = [
   "1. Mention ONLY items (deliverables, TQs, variations, risks, people) whose codes or names appear VERBATIM in the FIRM RECORD. Never invent or extrapolate items.",
   "2. Quote ONLY ₹ amounts that appear in the record. Never compute new money figures. If the record shows no ₹ amounts, do not state any.",
   "3. Attribute sign-off steps ONLY where the record shows a chain entry for that exact deliverable. Report a deliverable's status exactly as the record states it — never call it issued or its chain complete unless the record says so.",
-  "4. If the record does not contain the answer, say exactly that.",
+  "4. Treat INPUT PACK lines marked VALIDATED as working assumptions. Treat INPUT PACK HOLD lines as not yet usable assumptions — do not invent their contents.",
+  "5. If CAPACITY ALERTS appear, you may cite them verbatim; do not invent new capacity percentages.",
+  "6. If the record does not contain the answer, say exactly that.",
   "Be concise; cite codes. You explain the record; you never change it.",
 ].join("\n");
 
