@@ -35,7 +35,16 @@ type ToastMeta = { silent?: boolean; errorTitle?: string };
 
 function toErrorToast(error: unknown, meta?: ToastMeta) {
   if (meta?.silent) return;
+  // Network / empty-body parse failures (backend down, vite preview without
+  // proxy target) are noise on public marketing pages — don't toast them.
   const message = error instanceof Error ? error.message : "Unexpected error";
+  if (
+    /ECONNREFUSED|Failed to fetch|NetworkError|Unexpected end of JSON|body stream is locked/i.test(
+      message,
+    )
+  ) {
+    return;
+  }
   pushToast({
     kind: "error",
     title: meta?.errorTitle ?? "Something went wrong",
