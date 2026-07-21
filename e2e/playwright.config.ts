@@ -36,11 +36,13 @@ export default defineConfig({
       dependencies: ["setup"],
       use: { ...devices["Desktop Chrome"], storageState: ".auth/principal.json" },
     },
+    // CRUD signs in per-file (see beforeEach) so office re-logins cannot revoke
+    // a shared storageState mid-suite.
     {
       name: "crud",
       testMatch: /crud.*\.spec\.ts$/,
-      dependencies: ["buttons"],
-      use: { ...devices["Desktop Chrome"], storageState: ".auth/principal.json" },
+      dependencies: ["setup"],
+      use: { ...devices["Desktop Chrome"] },
     },
     // Auth / navigation / PDF specs sign in fresh themselves.
     {

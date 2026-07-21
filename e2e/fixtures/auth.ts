@@ -21,7 +21,7 @@ export type PersonaKey = keyof typeof PERSONAS;
 export const DEMO_PASSWORD = process.env.SEED_DEMO_PASSWORD ?? "demo1234";
 
 /** Wait until auth spinner is gone and a signed-in shell is on screen. */
-async function waitForSignedInShell(page: Page, portal: boolean): Promise<void> {
+export async function waitForSignedInShell(page: Page, portal = false): Promise<void> {
   await expect(page).not.toHaveURL(/\/(login|access)\b/, { timeout: 20_000 });
   // App.tsx shows a full-viewport CircularProgress while auth.me is pending.
   await expect(page.getByLabel(/^Loading /i)).toHaveCount(0, { timeout: 30_000 });
@@ -35,6 +35,18 @@ async function waitForSignedInShell(page: Page, portal: boolean): Promise<void> 
       page.locator(".esti-app-shell2, .esti-app-footer").first(),
     ).toBeVisible({ timeout: 30_000 });
   }
+  await page.waitForLoadState("networkidle").catch(() => {});
+}
+
+/**
+ * After a full `page.goto` the SPA remounts and auth.me shows a blank spinner.
+ * Call this before crash/axe assertions so we don't false-positive on loading.
+ */
+export async function waitForOfficeRoute(page: Page): Promise<void> {
+  await expect(page.getByLabel(/^Loading /i)).toHaveCount(0, { timeout: 30_000 });
+  await expect(
+    page.locator(".esti-app-shell2, .esti-app-footer").first(),
+  ).toBeVisible({ timeout: 30_000 });
   await page.waitForLoadState("networkidle").catch(() => {});
 }
 
@@ -75,6 +87,7 @@ export async function loginAs(page: Page, persona: PersonaKey): Promise<void> {
  * True when the top-level ErrorBoundary recovery UI is showing.
  * Do **not** match toast titles — `main.tsx` defaults failed queries to
  * "Something went wrong", which is recoverable chrome, not a crash.
+ * Call {@link waitForOfficeRoute} first after a full navigation.
  */
 export async function isCrashed(page: Page): Promise<boolean> {
   const reload = await page

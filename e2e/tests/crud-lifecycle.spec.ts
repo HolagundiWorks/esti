@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { loginAs } from "../fixtures/auth.js";
 import { createInModule } from "../fixtures/crud.js";
 
 /**
@@ -6,6 +7,10 @@ import { createInModule } from "../fixtures/crud.js";
  * (the CRM "archive a record" path; clients are soft-disabled, not hard-deleted).
  * The row's status flips Active → Deactivated.
  */
+test.beforeEach(async ({ page }) => {
+  await loginAs(page, "principal");
+});
+
 test("client — create then deactivate (archive)", async ({ page }) => {
   test.setTimeout(60_000);
   const name = `E2E archive ${Date.now()}`;
