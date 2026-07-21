@@ -48,10 +48,9 @@ AORMS_BASE_URL=https://app.example.com npm test   # another environment
   crawler deliberately *skips* submit/create/delete so it stays safe; targeted
   CRUD specs assert the create round-trip per module).
 - **Per-persona access:** the `loginAs(page, persona)` fixture takes any of the 5
-  personas — duplicate the nav sweep per persona to assert role-gated screens.
-- **Selectors:** Carbon renders semantic roles; prefer `getByRole` /
-  `getByLabel` over CSS. The crawler is a safety net; per-flow specs are the
-  precise coverage.
+  seeded demo emails — duplicate the nav sweep per persona to assert role-gated screens.
+- **Selectors:** prefer `getByRole` / `getByLabel` over CSS. The crawler is a
+  safety net; per-flow specs are the precise coverage.
 
 ## Notes
 
