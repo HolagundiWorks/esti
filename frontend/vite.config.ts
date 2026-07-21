@@ -102,4 +102,10 @@ export default defineConfig({
       "/platform/": { target: proxyTarget, changeOrigin: true },
     },
   },
+  // Visual CI serves `vite preview` with no backend. An empty proxy map stops
+  // preview from inheriting server.proxy (which would ECONNREFUSED :4000 and
+  // paint error toasts into landing screenshots).
+  preview: {
+    proxy: {},
+  },
 });

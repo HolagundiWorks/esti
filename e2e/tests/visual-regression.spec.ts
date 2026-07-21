@@ -38,6 +38,9 @@ test.describe("marketing", () => {
     await page.waitForLoadState("networkidle");
     // Brand mark must be present — guards against a blank/error shell.
     await expect(page.getByText("AORMS").first()).toBeVisible();
+    // Public pages must not surface API/offline toasts into the snapshot
+    // (visual CI runs without a backend).
+    await expect(page.getByText("Something went wrong")).toHaveCount(0);
     await expect(page).toHaveScreenshot("landing-hero.png", SHOT);
   });
 });
