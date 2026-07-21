@@ -258,7 +258,7 @@ time commercials, and a risk register. Design lives in
 | P9.3 | Risk — register, insurance (PI + reliance), compliance gates | ✅ built — `0191`, `esti_cons_risk`/`_insurance` |
 | P9.3b | Beyond the original plan — typed scope, engagement brief, SOP slices, CRS, field reports | ✅ built — `0192`–`0197` |
 | P9.4 | Intelligence — firm-record Q&A + EOMS input-pack review; precedent search; deliverable lineage | ✅ **code-complete 2026-07-21** — `ask` + `eomsReview` + **`precedentSearch`** + **`deliverableLineage`** + **`calcPackages`** + **EOMS compliance UI** + **`analytics.capacityOutlook`** + Ask digest trust boundary (validated packs + capacity alerts) |
-| P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | 🔄 **in progress 2026-07-21** — pure helpers + **mutation wiring tests** (`backend/src/modules/consultancy/router.test.ts`); still open: human fee UX review |
+| P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | 🔄 **in progress 2026-07-21** — pure helpers + **mutation wiring tests** (incl. issue gates for open CRS + RECEIVED input packs); still open: human fee UX review |
 | P9.M | Marketing/launch surface — `consultancy.aorms.in`, landing copy | 🔄 landing markdown exists; launch gated on P9.V |
 
 **Risk note.** Phases 0–3 shipping without a test or review is the same setup
@@ -335,6 +335,7 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 
 | Date | Change |
 |------|--------|
+| 2026-07-21 | Autopilot: **P9.V issue-gate coverage** — router tests for open CRS comments and RECEIVED input packs blocking ISSUED (sign-off chain already covered). |
 | 2026-07-21 | Autopilot: **P9.4 Ask digest trust boundary** — `formatConsultancyDigest` (pure): VALIDATED packs only as working assumptions, RECEIVED as holds (no source text), REJECTED omitted; capacity alerts folded into Ask grounding; unit tests. |
 | 2026-07-21 | Autopilot: **P9.4 capacity analytics** — `buildCapacityOutlook` / `capacityOutlookAlerts` + `consultancy.analytics.capacityOutlook`; engagement rail shows TIGHT/OVER alerts from trailing timesheets × rate-card capacity. |
 | 2026-07-21 | Autopilot: **P9.4 EOMS compliance UI** — `EomsCompliancePanel` on Knowledge Bank portal (`eoms.status` / sources / resolve / rules); fail-safe offline state. |
