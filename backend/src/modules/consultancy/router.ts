@@ -36,6 +36,9 @@ import {
   ConsFeeStageUpdate,
   ConsFieldReportCreate,
   ConsInputPackCreate,
+  ConsCalcPackageCreate,
+  ConsCalcPackageUpdate,
+  canAdvanceCalcPackage,
   ConsInsuranceSet,
   ConsRateCardSet,
   ConsRelianceLetterCreate,
@@ -65,6 +68,7 @@ import {
   consFeeStages,
   consFieldReports,
   consInputPacks,
+  consCalcPackages,
   consInsurance,
   consPhases,
   consRateCards,
@@ -173,6 +177,11 @@ const engagementsRouter = router({
         .from(consInputPacks)
         .where(eq(consInputPacks.engagementId, input.id))
         .orderBy(asc(consInputPacks.createdAt));
+      const calcPackages = await ctx.db
+        .select()
+        .from(consCalcPackages)
+        .where(eq(consCalcPackages.engagementId, input.id))
+        .orderBy(asc(consCalcPackages.code));
       const relianceLetters = await ctx.db
         .select()
         .from(consRelianceLetters)
@@ -219,6 +228,7 @@ const engagementsRouter = router({
           : variations.map((v) => ({ ...v, amountPaise: null })),
         risks,
         inputPacks,
+        calcPackages,
         // Derive LIVE / EXPIRED / REVOKED so the register and UI read consistently.
         relianceLetters: relianceLetters.map((l) => ({
           ...l,
@@ -1272,6 +1282,118 @@ const inputPacksRouter = router({
     }),
 });
 
+/**
+ * P9.4 / D4 — CalculationPackage lineage. Record what was computed (tool,
+ * code refs, assumptions, I/O summaries); no in-app calculation engine.
+ */
+const calcPackagesRouter = router({
+  record: manage.input(ConsCalcPackageCreate).mutation(async ({ ctx, input }) => {
+    const [row] = await ctx.db
+      .insert(consCalcPackages)
+      .values({
+        ...input,
+        preparedBy: ctx.user.id,
+        preparedByName: ctx.user.fullName,
+      })
+      .returning();
+    await writeAudit(ctx.db, {
+      entity: "cons_calc_package",
+      entityId: row!.id,
+      action: "CREATE",
+      actorId: ctx.user.id,
+      after: row,
+    });
+    return row!;
+  }),
+
+  update: manage.input(ConsCalcPackageUpdate).mutation(async ({ ctx, input }) => {
+    const { id, ...patch } = input;
+    const [row] = await ctx.db
+      .update(consCalcPackages)
+      .set({ ...patch, updatedAt: new Date() })
+      .where(eq(consCalcPackages.id, id))
+      .returning();
+    if (!row) throw new TRPCError({ code: "NOT_FOUND" });
+    await writeAudit(ctx.db, {
+      entity: "cons_calc_package",
+      entityId: id,
+      action: "UPDATE",
+      actorId: ctx.user.id,
+      after: row,
+    });
+    return row;
+  }),
+
+  setStatus: manage
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        status: z.enum(["DRAFT", "CURRENT", "SUPERSEDED"]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [pack] = await ctx.db
+        .select()
+        .from(consCalcPackages)
+        .where(eq(consCalcPackages.id, input.id));
+      if (!pack) throw new TRPCError({ code: "NOT_FOUND" });
+      if (!canAdvanceCalcPackage(pack.status, input.status)) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: `Cannot move ${pack.code} from ${pack.status} to ${input.status}.`,
+        });
+      }
+      // Promoting to CURRENT supersedes any other CURRENT package on the same deliverable.
+      if (input.status === "CURRENT" && pack.deliverableId) {
+        await ctx.db
+          .update(consCalcPackages)
+          .set({ status: "SUPERSEDED", updatedAt: new Date() })
+          .where(
+            and(
+              eq(consCalcPackages.deliverableId, pack.deliverableId),
+              eq(consCalcPackages.status, "CURRENT"),
+              ne(consCalcPackages.id, pack.id),
+            ),
+          );
+      }
+      const [row] = await ctx.db
+        .update(consCalcPackages)
+        .set({ status: input.status, updatedAt: new Date() })
+        .where(eq(consCalcPackages.id, input.id))
+        .returning();
+      await writeAudit(ctx.db, {
+        entity: "cons_calc_package",
+        entityId: input.id,
+        action: "UPDATE",
+        actorId: ctx.user.id,
+        after: row,
+      });
+      return row!;
+    }),
+
+  remove: manage.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
+    const [pack] = await ctx.db
+      .select()
+      .from(consCalcPackages)
+      .where(eq(consCalcPackages.id, input.id));
+    if (!pack) throw new TRPCError({ code: "NOT_FOUND" });
+    if (pack.status === "CURRENT") {
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: `${pack.code} is CURRENT — supersede it before deleting.`,
+      });
+    }
+    await ctx.db.delete(consCalcPackages).where(eq(consCalcPackages.id, input.id));
+    await writeAudit(ctx.db, {
+      entity: "cons_calc_package",
+      entityId: input.id,
+      action: "DELETE",
+      actorId: ctx.user.id,
+    });
+    return { ok: true };
+  }),
+});
+
 const phasesRouter = router({
   /** Add a custom phase beyond the seeded template. */
   add: manage.input(ConsPhaseCreate).mutation(async ({ ctx, input }) => {
@@ -1453,7 +1575,7 @@ const intelligenceRouter = router({
       });
     }),
 
-  /** Deterministic sign-off / fee lineage for one deliverable (calc-lineage stand-in). */
+  /** Deterministic sign-off / fee / calc lineage for one deliverable. */
   deliverableLineage: protectedProcedure
     .input(z.object({ deliverableId: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
@@ -1470,6 +1592,11 @@ const intelligenceRouter = router({
         .select()
         .from(consFeeStages)
         .where(eq(consFeeStages.deliverableId, d.id));
+      const calcPackages = await ctx.db
+        .select()
+        .from(consCalcPackages)
+        .where(eq(consCalcPackages.deliverableId, d.id))
+        .orderBy(asc(consCalcPackages.code));
       const money = seesMoney(ctx.user.role);
       const lineage = buildDeliverableLineage({
         code: d.code,
@@ -1481,6 +1608,7 @@ const intelligenceRouter = router({
         feeStages: money
           ? feeStages
           : feeStages.map((f) => ({ ...f, amountPaise: null })),
+        calcPackages,
       });
       return {
         deliverableId: d.id,
@@ -1490,6 +1618,7 @@ const intelligenceRouter = router({
           ? feeStages
           : feeStages.map((f) => ({ ...f, amountPaise: null })),
         steps,
+        calcPackages,
       };
     }),
 });
@@ -1508,6 +1637,7 @@ export const consultancyRouter = router({
   insurance: insuranceRouter,
   relianceLetters: relianceLettersRouter,
   inputPacks: inputPacksRouter,
+  calcPackages: calcPackagesRouter,
   phases: phasesRouter,
   crs: crsRouter,
   fieldReports: fieldReportsRouter,

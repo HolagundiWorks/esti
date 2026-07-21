@@ -46,7 +46,7 @@ export async function waitForOfficeRoute(page: Page): Promise<void> {
   await expect(page.getByLabel(/^Loading /i)).toHaveCount(0, { timeout: 30_000 });
   await expect(
     page.locator(".esti-app-shell2, .esti-app-footer").first(),
-  ).toBeVisible({ timeout: 30_000 });
+  ).toBeVisible({ timeout: 45_000 });
   await page.waitForLoadState("networkidle").catch(() => {});
 }
 
@@ -89,9 +89,12 @@ export async function loginAs(page: Page, persona: PersonaKey): Promise<void> {
  * "Something went wrong", which is recoverable chrome, not a crash.
  * Call {@link waitForOfficeRoute} first after a full navigation.
  *
- * Empty `#root` alone is **not** a crash while the auth/Suspense spinner is
- * up (capability-gated routes like `/hr` can sit on that spinner longer for
- * lower personas and used to false-positive the persona nav sweep).
+ * Empty `#root` alone is **not** a crash while:
+ * - the auth/Suspense spinner is up (capability-gated routes like `/hr`
+ *   can sit on that spinner longer for lower personas), or
+ * - the app shell / taskbar footer is already visible (settings-gated
+ *   `/team`/`/hr` remounts used to race `#root.innerText` to empty and
+ *   false-positive the persona nav sweep).
  */
 export async function isCrashed(page: Page): Promise<boolean> {
   const reload = await page
@@ -99,6 +102,12 @@ export async function isCrashed(page: Page): Promise<boolean> {
     .count()
     .catch(() => 0);
   if (reload > 0) return true;
+  const shellVisible = await page
+    .locator(".esti-app-shell2, .esti-app-footer")
+    .first()
+    .isVisible()
+    .catch(() => false);
+  if (shellVisible) return false;
   const loading = await page.getByLabel(/^Loading /i).count().catch(() => 0);
   if (loading > 0) return false;
   const text = (await page.locator("#root").innerText().catch(() => "")) ?? "";

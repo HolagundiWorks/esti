@@ -1478,6 +1478,13 @@
       "when": 1783650037000,
       "tag": "0211_drop_legacy_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 211,
+      "version": "7",
+      "when": 1783650038000,
+      "tag": "0212_cons_calc_packages",
+      "breakpoints": true
     }
   ]
 }

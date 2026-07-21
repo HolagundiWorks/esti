@@ -33,6 +33,7 @@ import {
   CONSULTANCY_TYPE_LABEL,
   CONS_CRS_STATUS_TAG,
   CONS_INPUT_PACK_STATUS_TAG,
+  CONS_CALC_PACKAGE_STATUS_TAG,
   CONS_PHASE_STATUS_TAG,
   CONS_RISK_STATUS_TAG,
   CONS_TQ_STATUS_TAG,
@@ -54,6 +55,7 @@ import {
   ISSUE_CLASS_LABEL,
   InputPackKind,
   InputPackStatus,
+  CalcPackageStatus,
   IssueClass,
   REVIEW_STEP_LABEL,
   RiskStatus,
@@ -230,6 +232,21 @@ export function ConsultancyEngagements() {
   });
   const removePack = trpc.consultancy.inputPacks.remove.useMutation({
     meta: { errorTitle: "Couldn't delete the input pack" },
+    onSuccess: invalidate,
+  });
+  const recordCalc = trpc.consultancy.calcPackages.record.useMutation({
+    meta: { errorTitle: "Couldn't record the calc package" },
+    onSuccess: () => {
+      invalidate();
+      setCalcOpen(false);
+    },
+  });
+  const setCalcStatus = trpc.consultancy.calcPackages.setStatus.useMutation({
+    meta: { errorTitle: "Couldn't update the calc package" },
+    onSuccess: invalidate,
+  });
+  const removeCalc = trpc.consultancy.calcPackages.remove.useMutation({
+    meta: { errorTitle: "Couldn't delete the calc package" },
     onSuccess: invalidate,
   });
   const createRisk = trpc.consultancy.risks.create.useMutation({
@@ -423,6 +440,14 @@ export function ConsultancyEngagements() {
   const [packTitle, setPackTitle] = useState("");
   const [packKind, setPackKind] = useState<InputPackKind>("ARCHITECT_PACK");
   const [packSource, setPackSource] = useState("");
+  const [calcOpen, setCalcOpen] = useState(false);
+  const [calcCode, setCalcCode] = useState("");
+  const [calcTitle, setCalcTitle] = useState("");
+  const [calcRevision, setCalcRevision] = useState("P01");
+  const [calcTool, setCalcTool] = useState("");
+  const [calcCodeRefs, setCalcCodeRefs] = useState("");
+  const [calcDeliverableId, setCalcDeliverableId] = useState("");
+  const [calcAssumptions, setCalcAssumptions] = useState("");
   const [riskOpen, setRiskOpen] = useState(false);
   const [riskTitle, setRiskTitle] = useState("");
   const [riskL, setRiskL] = useState("3");
@@ -1003,6 +1028,88 @@ export function ConsultancyEngagements() {
                               danger: true,
                               disabled: removePack.isPending,
                               onClick: () => removePack.mutate({ id: p.id }),
+                            },
+                          ]}
+                        />
+                      </Stack>
+                    ))}
+                  </Stack>
+                )}
+              </Box>
+
+              {/* P9.4 / D4 — calc lineage (tools compute; AORMS records the trail). */}
+              <Box>
+                <Stack direction="row" spacing={1} sx={{ alignItems: "baseline" }}>
+                  <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600 }} className="esti-grow">
+                    Calc packages
+                  </Typography>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => {
+                      setCalcCode(detail.code ? `${detail.code}-CALC-` : "CALC-");
+                      setCalcTitle("");
+                      setCalcRevision("P01");
+                      setCalcTool("");
+                      setCalcCodeRefs("");
+                      setCalcDeliverableId("");
+                      setCalcAssumptions("");
+                      setCalcOpen(true);
+                    }}
+                  >
+                    Record calc
+                  </Button>
+                </Stack>
+                {(detail.calcPackages ?? []).length === 0 ? (
+                  <span className="esti-label esti-label--secondary">
+                    No calc packages — record software, code refs and assumptions so issue can cite
+                    a reproducible trail (no in-app calculation engine).
+                  </span>
+                ) : (
+                  <Stack spacing={0.5} sx={{ mt: 0.5 }}>
+                    {(detail.calcPackages ?? []).map((c) => (
+                      <Stack key={c.id} direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                        <StatusTag
+                          value={c.status as CalcPackageStatus}
+                          map={CONS_CALC_PACKAGE_STATUS_TAG}
+                          label={`${c.code} · ${c.title} · rev ${c.revision}${
+                            c.softwareTool ? ` · ${c.softwareTool}` : ""
+                          }${c.preparedByName ? ` · ${c.preparedByName}` : ""}`}
+                        />
+                        <Box className="esti-grow" />
+                        <RowActionsMenu
+                          actions={[
+                            ...(c.status === "DRAFT"
+                              ? [
+                                  {
+                                    label: "Mark current",
+                                    disabled: setCalcStatus.isPending,
+                                    onClick: () =>
+                                      setCalcStatus.mutate({ id: c.id, status: "CURRENT" }),
+                                  },
+                                  {
+                                    label: "Supersede",
+                                    disabled: setCalcStatus.isPending,
+                                    onClick: () =>
+                                      setCalcStatus.mutate({ id: c.id, status: "SUPERSEDED" }),
+                                  },
+                                ]
+                              : []),
+                            ...(c.status === "CURRENT"
+                              ? [
+                                  {
+                                    label: "Supersede",
+                                    disabled: setCalcStatus.isPending,
+                                    onClick: () =>
+                                      setCalcStatus.mutate({ id: c.id, status: "SUPERSEDED" }),
+                                  },
+                                ]
+                              : []),
+                            {
+                              label: "Delete",
+                              danger: true,
+                              disabled: c.status === "CURRENT" || removeCalc.isPending,
+                              onClick: () => removeCalc.mutate({ id: c.id }),
                             },
                           ]}
                         />
@@ -2321,6 +2428,100 @@ export function ConsultancyEngagements() {
                 title: packTitle.trim(),
                 kind: packKind,
                 source: packSource.trim() || undefined,
+              })
+            }
+          >
+            Record
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Record calc package (P9.4 / D4 lineage) */}
+      <Dialog open={calcOpen} onClose={() => setCalcOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Record calc package</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="cons-calc-code"
+              label="Code"
+              placeholder="e.g. CALC-01"
+              value={calcCode}
+              onChange={(e) => setCalcCode(e.target.value)}
+              autoFocus
+            />
+            <TextField
+              id="cons-calc-title"
+              label="Title"
+              placeholder="e.g. Core wall design — Zone III"
+              value={calcTitle}
+              onChange={(e) => setCalcTitle(e.target.value)}
+            />
+            <TextField
+              id="cons-calc-revision"
+              label="Revision"
+              value={calcRevision}
+              onChange={(e) => setCalcRevision(e.target.value)}
+            />
+            <TextField
+              id="cons-calc-tool"
+              label="Software / tool (optional)"
+              placeholder="e.g. ETABS 21 · spreadsheet"
+              value={calcTool}
+              onChange={(e) => setCalcTool(e.target.value)}
+            />
+            <TextField
+              id="cons-calc-deliverable"
+              select
+              label="Linked deliverable (optional)"
+              value={calcDeliverableId}
+              onChange={(e) => setCalcDeliverableId(e.target.value)}
+            >
+              <MenuItem value="">None</MenuItem>
+              {(detail?.deliverables ?? []).map((d) => (
+                <MenuItem key={d.id} value={d.id}>
+                  {d.code} — {d.title}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="cons-calc-code-refs"
+              label="Code references (optional)"
+              placeholder="e.g. IS 456:2000 §38 · NBC 2016 Part 6"
+              value={calcCodeRefs}
+              onChange={(e) => setCalcCodeRefs(e.target.value)}
+              multiline
+              minRows={2}
+            />
+            <TextField
+              id="cons-calc-assumptions"
+              label="Assumptions (optional)"
+              placeholder="SBC, seismic zone, load combinations…"
+              value={calcAssumptions}
+              onChange={(e) => setCalcAssumptions(e.target.value)}
+              multiline
+              minRows={2}
+              helperText="Lineage only — the firm's tools compute; AORMS records what was relied on"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCalcOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={
+              !calcCode.trim() || !calcTitle.trim() || !selectedId || recordCalc.isPending
+            }
+            onClick={() =>
+              selectedId &&
+              recordCalc.mutate({
+                engagementId: selectedId,
+                code: calcCode.trim(),
+                title: calcTitle.trim(),
+                revision: calcRevision.trim() || "P01",
+                softwareTool: calcTool.trim() || undefined,
+                codeRefs: calcCodeRefs.trim() || undefined,
+                assumptions: calcAssumptions.trim() || undefined,
+                deliverableId: calcDeliverableId || undefined,
               })
             }
           >

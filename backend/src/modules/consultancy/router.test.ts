@@ -489,3 +489,71 @@ describe("consultancy P9.V — portal / capability scoping", () => {
     });
   });
 });
+
+const CALC = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+
+function calcPackage(overrides: Record<string, unknown> = {}) {
+  return {
+    id: CALC,
+    engagementId: ENG,
+    deliverableId: DEL,
+    inputPackId: null,
+    code: "CALC-01",
+    title: "Core wall design",
+    revision: "P01",
+    status: "DRAFT",
+    softwareTool: "ETABS",
+    codeRefs: "IS 456",
+    assumptions: "Zone III",
+    inputsSummary: null,
+    outputsSummary: null,
+    preparedBy: ACTOR,
+    preparedByName: "Test User",
+    note: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  };
+}
+
+describe("consultancy P9.4 — calc package lineage", () => {
+  it("setStatus refuses illegal advances (SUPERSEDED → CURRENT)", async () => {
+    const { db } = makeDb({
+      "esti_cons_calc_package": [calcPackage({ status: "SUPERSEDED" })],
+    });
+    await expect(
+      caller("ASSOCIATE", db).calcPackages.setStatus({ id: CALC, status: "CURRENT" }),
+    ).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      message: expect.stringContaining("SUPERSEDED"),
+    });
+  });
+
+  it("DRAFT → CURRENT records the advance", async () => {
+    const ok = makeDb({ "esti_cons_calc_package": [calcPackage({ status: "DRAFT" })] });
+    const row = await caller("ASSOCIATE", ok.db).calcPackages.setStatus({
+      id: CALC,
+      status: "CURRENT",
+    });
+    expect(row.status).toBe("CURRENT");
+    expect(ok.updates.some((u) => u.table === "esti_cons_calc_package")).toBe(true);
+  });
+
+  it("refuses deleting a CURRENT package", async () => {
+    const { db } = makeDb({
+      "esti_cons_calc_package": [calcPackage({ status: "CURRENT" })],
+    });
+    await expect(caller("ASSOCIATE", db).calcPackages.remove({ id: CALC })).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      message: expect.stringContaining("CURRENT"),
+    });
+  });
+
+  it("deletes a DRAFT package", async () => {
+    const ok = makeDb({ "esti_cons_calc_package": [calcPackage({ status: "DRAFT" })] });
+    await expect(caller("ASSOCIATE", ok.db).calcPackages.remove({ id: CALC })).resolves.toEqual({
+      ok: true,
+    });
+    expect(ok.deletes).toContain("esti_cons_calc_package");
+  });
+});

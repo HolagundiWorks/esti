@@ -17,7 +17,13 @@ for (const persona of ["lead", "junior"] as const) {
     for (const route of OFFICE_ROUTES) {
       await page.goto(route);
       // Gated routes may redirect (`*` → `/`) or load slowly for lower roles.
-      await waitForOfficeRoute(page).catch(() => {});
+      await waitForOfficeRoute(page).catch(async () => {
+        await page
+          .locator(".esti-app-shell2, .esti-app-footer")
+          .first()
+          .waitFor({ state: "visible", timeout: 15_000 })
+          .catch(() => {});
+      });
       expect(page.url(), `${persona} bounced to /login at ${route}`).not.toMatch(/\/login\b/);
       if (await isCrashed(page)) crashes.push(route);
     }

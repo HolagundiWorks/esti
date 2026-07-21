@@ -15,6 +15,7 @@ import {
   FEE_STAGE_STATUS_LABEL,
   FeeStageStatus,
   canAdvanceFeeStage,
+  canAdvanceCalcPackage,
   canDecideVariation,
   canRaiseCheckCategory,
   canTransitionDeliverable,
@@ -512,8 +513,22 @@ describe("buildDeliverableLineage", () => {
         { kind: "APPROVE", userName: "Ravi" },
       ],
       feeStages: [],
+      calcPackages: [
+        { code: "CALC-01", title: "Wall design", status: "CURRENT", revision: "P02" },
+      ],
     });
     expect(lin.chainComplete).toBe(true);
     expect(lin.summary).toContain("Chain complete");
+    expect(lin.summary).toContain("CALC-01 rev P02 [CURRENT]");
+  });
+});
+
+describe("canAdvanceCalcPackage", () => {
+  it("allows DRAFT → CURRENT / SUPERSEDED and CURRENT → SUPERSEDED only", () => {
+    expect(canAdvanceCalcPackage("DRAFT", "CURRENT")).toBe(true);
+    expect(canAdvanceCalcPackage("DRAFT", "SUPERSEDED")).toBe(true);
+    expect(canAdvanceCalcPackage("CURRENT", "SUPERSEDED")).toBe(true);
+    expect(canAdvanceCalcPackage("SUPERSEDED", "CURRENT")).toBe(false);
+    expect(canAdvanceCalcPackage("CURRENT", "DRAFT")).toBe(false);
   });
 });

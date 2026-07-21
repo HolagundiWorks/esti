@@ -11,7 +11,13 @@ test("navigation sweep — every office screen renders", async ({ page }) => {
   const failures: string[] = [];
   for (const route of OFFICE_ROUTES) {
     await page.goto(route);
-    await waitForOfficeRoute(page).catch(() => {});
+    await waitForOfficeRoute(page).catch(async () => {
+      await page
+        .locator(".esti-app-shell2, .esti-app-footer")
+        .first()
+        .waitFor({ state: "visible", timeout: 15_000 })
+        .catch(() => {});
+    });
     if (/\/login\b/.test(page.url())) {
       failures.push(`${route} (redirected to login)`);
       continue;

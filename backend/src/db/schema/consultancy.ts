@@ -254,6 +254,38 @@ export const consInputPacks = pgTable("esti_cons_input_pack", {
 });
 
 /**
+ * Phase 4 / P9.4 — CalculationPackage lineage (architecture D4).
+ * The firm's tools compute; AORMS records inputs, assumptions, code refs and
+ * outputs so issue/reliance can cite a reproducible trail. No in-app engine.
+ */
+export const consCalcPackages = pgTable("esti_cons_calc_package", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  deliverableId: uuid("deliverable_id").references(() => consDeliverables.id, {
+    onDelete: "set null",
+  }),
+  inputPackId: uuid("input_pack_id").references(() => consInputPacks.id, {
+    onDelete: "set null",
+  }),
+  code: text("code").notNull(),
+  title: text("title").notNull(),
+  revision: text("revision").notNull().default("P01"),
+  status: text("status").notNull().default("DRAFT"), // CalcPackageStatus
+  softwareTool: text("software_tool"),
+  codeRefs: text("code_refs"),
+  assumptions: text("assumptions"),
+  inputsSummary: text("inputs_summary"),
+  outputsSummary: text("outputs_summary"),
+  preparedBy: uuid("prepared_by").references(() => users.id, { onDelete: "set null" }),
+  preparedByName: text("prepared_by_name"),
+  note: text("note"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/**
  * SOP §4 — comment resolution sheet (CRS): review comments per deliverable
  * submission. No revision issues while a line is OPEN; the closed sheet with
  * responses is the review record.
