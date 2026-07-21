@@ -870,3 +870,136 @@ describe("consultancy SOP — enquiry go/no-go", () => {
     expect(ok.inserts.some((i) => i.table === "esti_cons_engagement")).toBe(true);
   });
 });
+
+describe("consultancy SOP — closeout registers", () => {
+  const LESSON = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+  const NC = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+
+  it("refuses APPROVED contract review until the checklist is complete", async () => {
+    const { db } = makeDb({});
+    await expect(
+      caller("PARTNER", db).contractReviews.create({
+        engagementId: ENG,
+        reviewDate: "2026-07-21",
+        requirementsDefined: true,
+        capabilityConfirmed: true,
+        conflictChecked: true,
+        proposalVsContractOk: false,
+        decision: "APPROVED",
+      }),
+    ).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      message: expect.stringContaining("Proposal-vs-contract"),
+    });
+  });
+
+  it("records an APPROVED contract review when all boxes are set", async () => {
+    const { inserts, db } = makeDb({});
+    const row = await caller("PARTNER", db).contractReviews.create({
+      engagementId: ENG,
+      reviewDate: "2026-07-21",
+      requirementsDefined: true,
+      capabilityConfirmed: true,
+      conflictChecked: true,
+      proposalVsContractOk: true,
+      decision: "APPROVED",
+    });
+    expect(row.decision).toBe("APPROVED");
+    expect(inserts.some((i) => i.table === "esti_cons_contract_review")).toBe(true);
+  });
+
+  it("publishes a draft lesson", async () => {
+    const { db, updates } = makeDb({
+      "esti_cons_lesson": [
+        {
+          id: LESSON,
+          engagementId: ENG,
+          category: "GENERAL",
+          title: "Late input packs",
+          body: "Hold issue until validated.",
+          status: "DRAFT",
+          authorName: "A",
+        },
+      ],
+    });
+    const row = await caller("PARTNER", db).lessons.publish({ id: LESSON });
+    expect(row.status).toBe("PUBLISHED");
+    expect(updates.some((u) => u.table === "esti_cons_lesson")).toBe(true);
+  });
+
+  it("closes an NC with CAPA and refuses deleting closed NCs", async () => {
+    const open = makeDb({
+      "esti_cons_nc": [
+        {
+          id: NC,
+          engagementId: ENG,
+          code: "NC-001",
+          title: "Missing cover",
+          severity: "MINOR",
+          status: "OPEN",
+          correctiveAction: null,
+          preventiveAction: null,
+        },
+      ],
+    });
+    const closed = await caller("PARTNER", open.db).ncs.close({
+      id: NC,
+      correctiveAction: "Add cover sheet",
+      preventiveAction: "Template check",
+    });
+    expect(closed.status).toBe("CLOSED");
+
+    const locked = makeDb({
+      "esti_cons_nc": [
+        {
+          id: NC,
+          engagementId: ENG,
+          code: "NC-001",
+          title: "Missing cover",
+          severity: "MINOR",
+          status: "CLOSED",
+        },
+      ],
+    });
+    await expect(caller("PARTNER", locked.db).ncs.remove({ id: NC })).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      message: expect.stringContaining("Closed NCs"),
+    });
+  });
+
+  it("issues a MoM and refuses deleting issued minutes", async () => {
+    const draft = makeDb({
+      "esti_cons_mom": [
+        {
+          id: LESSON,
+          engagementId: ENG,
+          ref: "MOM-001",
+          title: "Kickoff",
+          meetingDate: "2026-07-21",
+          status: "DRAFT",
+          authorName: "A",
+        },
+      ],
+    });
+    const issued = await caller("PARTNER", draft.db).moms.issue({ id: LESSON });
+    expect(issued.status).toBe("ISSUED");
+
+    const locked = makeDb({
+      "esti_cons_mom": [
+        {
+          id: LESSON,
+          engagementId: ENG,
+          ref: "MOM-001",
+          title: "Kickoff",
+          meetingDate: "2026-07-21",
+          status: "ISSUED",
+          authorName: "A",
+        },
+      ],
+    });
+    await expect(caller("PARTNER", locked.db).moms.remove({ id: LESSON })).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      message: expect.stringContaining("Issued MoMs"),
+    });
+  });
+});

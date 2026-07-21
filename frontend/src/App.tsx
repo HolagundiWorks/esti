@@ -525,7 +525,7 @@ function AppWorkspace() {
               {licenseBlocked && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                   <AlertTitle>Workspace licence required</AlertTitle>
-                  Your licence is missing or expired — changes are blocked until it is activated. Open Company account → Licence to activate a key.
+                  Your licence is missing, expired, or suspended — changes are blocked until it is activated or reinstated. Open Company account → Licence.
                 </Alert>
               )}
               <Routes>

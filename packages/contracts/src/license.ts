@@ -41,7 +41,7 @@ export const LicensePayload = z.object({
 export type LicensePayload = z.infer<typeof LicensePayload>;
 
 /** Effective license state on an install, surfaced to the gate + UI. */
-export const LicenseStatus = z.enum(["VALID", "GRACE", "EXPIRED", "UNLICENSED"]);
+export const LicenseStatus = z.enum(["VALID", "GRACE", "EXPIRED", "UNLICENSED", "SUSPENDED"]);
 export type LicenseStatus = z.infer<typeof LicenseStatus>;
 
 /** Resolved effective seat caps (after applying license overrides to plan defaults). */

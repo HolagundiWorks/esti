@@ -42,7 +42,7 @@
 | [P4](#p4--remove-community--all-desktop-apps) | Remove Community + **all** desktop apps | P1 | ✅ code done; P4.8 marketing copy human-pending | autopilot |
 | ~~P5~~ | ~~Estimate desktop auth~~ — **cancelled 2026-07-19** (web-only) | — | ❌ | — |
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
-| [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | ✅ P7.1+P7.2 manual CSV; P7.3 deferred | autopilot |
+| [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | ✅ P7.1–P7.3 manual India path | autopilot |
 | [P8](#p8--browser-takeoff-replaces-esticad) | Browser takeoff (replaces ESTICAD) | P1 | ✅ | autopilot |
 | [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | 🔄 P9.V human fee UX; P9.4 ✅ | autopilot |
 | [P10](#p10--2026-07-21-hygiene--rebrand--deps) | Hygiene · rebrand · deps (landed) | P0 | ✅ | autopilot |
@@ -185,14 +185,14 @@ surviving consumer is the **self-hosted VPS installer** (`deploy/`).
 |---|------|--------|
 | P7.1 | Usage dashboard — storage GB-month, AI tokens | ✅ 2026-07-19 — `admin.dashboard.usage` + "Metered usage" panel; **2026-07-21** multi-tenant via `hlp_usage_report` + `POST /v1/report-usage` |
 | P7.2 | Manual India invoice export (Stripe deferred) | ✅ 2026-07-21 — `admin.usageReports` list / exportCsv / markBilled; Usage billing tab; `billed_*` on `hlp_usage_report` |
-| P7.3 | Suspend on payment failure | ⬜ follows real payment events (`licenceStatus = SUSPENDED` already exists to flip) |
+| P7.3 | Suspend on non-payment (manual) | ✅ 2026-07-21 — Usage billing → Suspend for non-payment; node honours `licence_status=SUSPENDED` + refresh stamps from panel 403; Stripe auto-suspend still deferred |
 
 **Scope note (P7).** Product nodes upsert monthly snapshots into `hlp_usage_report`
 (`POST /v1/report-usage`, product API key). The platform-admin dashboard aggregates
 current-month rows; operators bill offline via **Usage billing** (CSV export + mark
-billed). Stripe remains a future option — not required for India GST invoicing.
+billed) and may **suspend for non-payment**. Stripe remains a future option.
 
-**Verify:** platform-admin → Usage billing → Export CSV → Mark billed.
+**Verify:** platform-admin → Usage billing → Export CSV → Mark billed → Suspend for non-payment → node refresh blocks writes.
 
 ---
 
@@ -298,7 +298,7 @@ P0 (human landing) ──► P1 migration ──► P2 storage
                               ├─► P3 AI key
                               ├─► P4 remove community + ALL desktop  (✅ code; P4.8 human)
                               ├─► P6 SEO content
-                              └─► P7 billing (P7.2 manual CSV ✅; P7.3 deferred)
+                              └─► P7 billing (P7.1–P7.3 manual India ✅)
 
 P5 (Estimate desktop auth) — CANCELLED 2026-07-19, web-only
 
@@ -337,6 +337,7 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 | 2026-07-21 | Autopilot: **Fee-stage ↔ Studio invoice** — `markInvoiced` raises an ISSUED tax invoice via shared `createStudioInvoice` (GST/TDS/POS), links `esti_cons_fee_stage.invoice_id` (migration `0215`); `markPaid` syncs invoice PAID; engagement UI shows ref + PDF cell. |
 | 2026-07-21 | Autopilot: **Transmittal acknowledgment + MDR issue link** — `esti_transmittal` ack fields + `transmittals.acknowledge`; client portal stamps ack; consultancy `recordIssueTransmittal` creates Studio TRN from issued deliverable and back-references on MDR; migration `0214`. |
 | 2026-07-21 | Autopilot: **MDR deliverable numbering** — `buildMdrDeliverableCode` / `nextMdrSequence` / validation; create allocates `{job}-{TYPE}-{seq}`; UI doc-type picker with preview; duplicate/wrong-root rejected. |
+| 2026-07-21 | Autopilot: **P7.3 manual suspend-for-non-payment** — `admin.usageReports.suspendForNonPayment`; product node `licenseState` blocks on `licence_status=SUSPENDED`; refresh/activate stamp ACTIVE/SUSPENDED from panel; panel refresh interval when `ESTI_LICENSE_API_URL` set. Closeout router tests (contract review gate, lessons, NC/CAPA, MoM). Stripe auto-suspend still deferred. |
 | 2026-07-21 | Autopilot: **P9 SOP closeout + P7.2 manual billing** — migration `0217` (lessons · NC/CAPA · MoM · WIP review · contract review · litigation hold; `hlp_usage_report.billed_*`); `consultancy.lessons|ncs|moms|wipReviews|contractReviews`; engagement UI panels; `admin.usageReports` CSV export + mark-billed + Usage billing tab. Stripe deferred; P7.3 still follows payment events. |
 | 2026-07-21 | Autopilot: **P9.V issue-gate coverage** — router tests for open CRS comments and RECEIVED input packs blocking ISSUED (sign-off chain already covered). |
 | 2026-07-21 | Autopilot: **P9.4 Ask digest trust boundary** — `formatConsultancyDigest` (pure): VALIDATED packs only as working assumptions, RECEIVED as holds (no source text), REJECTED omitted; capacity alerts folded into Ask grounding; unit tests. |

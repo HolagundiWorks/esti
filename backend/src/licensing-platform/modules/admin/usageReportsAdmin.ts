@@ -3,9 +3,10 @@
  * Stripe stays out of scope; operators export CSV and stamp billed_*.
  */
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, isNotNull, isNull, type SQL } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "../../db/client.js";
+import { newId } from "../../lib/ids.js";
 import { platformAdminProcedure, router } from "../../trpc/trpc.js";
 import { usagePeriodStart, usageReportsToCsv } from "./usageReports.js";
 
@@ -130,5 +131,77 @@ export const usageReportsRouter = router({
         .returning({ id: schema.usageReports.id });
       if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Usage report not found." });
       return { ok: true as const };
+    }),
+
+  /**
+   * P7.3 — manual India path: suspend the org's product licence for non-payment.
+   * Stripe auto-suspend stays deferred; operators bill offline then suspend here.
+   * Product nodes pick this up on the next `/v1/refresh` (stamps local licence_status).
+   */
+  suspendForNonPayment: platformAdminProcedure
+    .input(
+      z.object({
+        usageReportId: z.string().min(1),
+        note: z.string().trim().max(2000).optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const [report] = await db
+        .select({
+          id: schema.usageReports.id,
+          orgId: schema.usageReports.orgId,
+          productId: schema.usageReports.productId,
+          periodStart: schema.usageReports.periodStart,
+        })
+        .from(schema.usageReports)
+        .where(eq(schema.usageReports.id, input.usageReportId))
+        .limit(1);
+      if (!report) throw new TRPCError({ code: "NOT_FOUND", message: "Usage report not found." });
+
+      const licenses = await db
+        .select({ id: schema.licenses.id, status: schema.licenses.status })
+        .from(schema.licenses)
+        .where(
+          and(
+            eq(schema.licenses.orgId, report.orgId),
+            eq(schema.licenses.productId, report.productId),
+            inArray(schema.licenses.status, ["ACTIVE", "TRIAL"]),
+          ),
+        );
+      if (licenses.length === 0) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "No ACTIVE/TRIAL licence for this org+product to suspend.",
+        });
+      }
+
+      const ids = licenses.map((l) => l.id);
+      await db
+        .update(schema.licenses)
+        .set({ status: "SUSPENDED", updatedAt: new Date() })
+        .where(inArray(schema.licenses.id, ids));
+
+      const note =
+        input.note?.trim() ||
+        `Non-payment suspend (usage ${report.periodStart})`;
+      for (const id of ids) {
+        await db.insert(schema.licenseEvents).values({
+          id: newId("evt"),
+          licenseId: id,
+          type: "SUSPEND",
+          actor: ctx.account.email,
+          meta: { reason: "non_payment", usageReportId: report.id, note },
+        });
+      }
+
+      // Stamp the usage row so the billing tab shows why it was suspended.
+      await db
+        .update(schema.usageReports)
+        .set({
+          billingNote: note,
+        })
+        .where(eq(schema.usageReports.id, report.id));
+
+      return { ok: true as const, suspendedLicenseIds: ids };
     }),
 });

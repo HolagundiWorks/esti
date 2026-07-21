@@ -181,7 +181,9 @@ try {
 } catch (err) {
   app.log.warn(err, "license state check failed");
 }
-if (env.ESTI_ROLE === "node" && env.ESTI_HUB_URL) {
+// Refresh when a hub or central license panel is configured (P7.3 needs the
+// panel path so SUSPENDED propagates onto `licence_status`).
+if (env.ESTI_ROLE === "node" && (env.ESTI_HUB_URL || env.ESTI_LICENSE_API_URL)) {
   const refreshTick = async () => {
     try {
       app.log.info({ refreshed: await refreshNow(db) }, "license refresh");
@@ -193,16 +195,18 @@ if (env.ESTI_ROLE === "node" && env.ESTI_HUB_URL) {
   setInterval(() => void refreshTick(), env.LICENSE_REFRESH_HOURS * 3600_000).unref();
 
   // Drain the publish outbox to the hub on boot + periodically (best-effort).
-  const drainTick = async () => {
-    try {
-      const r = await drainOutbox(db);
-      if (r.sent || r.failed) app.log.info(r, "sync outbox drained");
-    } catch (err) {
-      app.log.warn(err, "sync outbox drain failed");
-    }
-  };
-  void drainTick();
-  setInterval(() => void drainTick(), 60_000).unref();
+  if (env.ESTI_HUB_URL) {
+    const drainTick = async () => {
+      try {
+        const r = await drainOutbox(db);
+        if (r.sent || r.failed) app.log.info(r, "sync outbox drained");
+      } catch (err) {
+        app.log.warn(err, "sync outbox drain failed");
+      }
+    };
+    void drainTick();
+    setInterval(() => void drainTick(), 60_000).unref();
+  }
 }
 
 // ESTI Pulse — best-effort standup scheduler (server-local time). Checks every

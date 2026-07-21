@@ -18,6 +18,7 @@ const STATUS_TAG: Record<LicenseStatus, "green" | "teal" | "red" | "gray"> = {
   GRACE: "teal",
   EXPIRED: "red",
   UNLICENSED: "gray",
+  SUSPENDED: "red",
 };
 
 const STATUS_LABEL: Record<LicenseStatus, string> = {
@@ -25,6 +26,7 @@ const STATUS_LABEL: Record<LicenseStatus, string> = {
   GRACE: "Grace period",
   EXPIRED: "Expired",
   UNLICENSED: "Not activated",
+  SUSPENDED: "Suspended",
 };
 
 const cap = (n: number | null) => (n === null ? "Unlimited" : String(n));
@@ -101,6 +103,13 @@ export function LicensePanel() {
           <Alert severity="error">
             <AlertTitle>Licence expired</AlertTitle>
             Writes are blocked until the licence is renewed. Activate a current key below.
+          </Alert>
+        )}
+        {status === "SUSPENDED" && (
+          <Alert severity="error">
+            <AlertTitle>Licence suspended</AlertTitle>
+            Billing hold — writes are blocked until the operator reinstates the licence.
+            Refresh after payment clears, or contact support.
           </Alert>
         )}
 

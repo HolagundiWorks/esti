@@ -67,7 +67,13 @@ export async function activate(db: DB, key: string): Promise<LicenseView> {
     const licenseToken = await activateViaPanel(key, installId);
     await db
       .update(orgSettings)
-      .set({ licenseToken, installId, licenseCheckedAt: new Date(), updatedAt: new Date() })
+      .set({
+        licenseToken,
+        installId,
+        licenceStatus: "ACTIVE",
+        licenseCheckedAt: new Date(),
+        updatedAt: new Date(),
+      })
       .where(eq(orgSettings.id, row.id));
     return toLicenseView(await licenseState(db));
   }
@@ -83,6 +89,7 @@ export async function activate(db: DB, key: string): Promise<LicenseView> {
       licenseToken: grant.licenseToken,
       syncToken: grant.syncToken,
       installId: grant.installId,
+      licenceStatus: "ACTIVE",
       licenseCheckedAt: new Date(),
       updatedAt: new Date(),
     })
@@ -138,11 +145,37 @@ export async function refreshNow(db: DB): Promise<boolean> {
         body: JSON.stringify({ token: row.licenseToken, deviceId: row.installId }),
         signal: AbortSignal.timeout(30_000),
       });
-      if (!res.ok) return false;
-      const data = JSON.parse(await res.text()) as { licenseToken: string };
+      const text = await res.text();
+      if (!res.ok) {
+        // P7.3 — panel refuses suspended/revoked licences; stamp local hold so
+        // writes stop even while the cached token is still within offline TTL.
+        let reason = "";
+        try {
+          reason = (JSON.parse(text) as { error?: string }).error ?? "";
+        } catch {
+          /* keep empty */
+        }
+        if (reason === "suspended" || reason === "revoked") {
+          await db
+            .update(orgSettings)
+            .set({
+              licenceStatus: "SUSPENDED",
+              licenseCheckedAt: new Date(),
+              updatedAt: new Date(),
+            })
+            .where(eq(orgSettings.id, row.id));
+        }
+        return false;
+      }
+      const data = JSON.parse(text) as { licenseToken: string };
       await db
         .update(orgSettings)
-        .set({ licenseToken: data.licenseToken, licenseCheckedAt: new Date(), updatedAt: new Date() })
+        .set({
+          licenseToken: data.licenseToken,
+          licenceStatus: "ACTIVE",
+          licenseCheckedAt: new Date(),
+          updatedAt: new Date(),
+        })
         .where(eq(orgSettings.id, row.id));
       return true;
     } catch {
@@ -159,7 +192,12 @@ export async function refreshNow(db: DB): Promise<boolean> {
     });
     await db
       .update(orgSettings)
-      .set({ licenseToken: res.licenseToken, licenseCheckedAt: new Date(), updatedAt: new Date() })
+      .set({
+        licenseToken: res.licenseToken,
+        licenceStatus: "ACTIVE",
+        licenseCheckedAt: new Date(),
+        updatedAt: new Date(),
+      })
       .where(eq(orgSettings.id, row.id));
     return true;
   } catch {

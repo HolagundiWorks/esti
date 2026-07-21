@@ -54,6 +54,8 @@ export default function UsageReportsTab() {
   const [menu, setMenu] = useState<{ anchor: HTMLElement; row: Rows[number] } | null>(null);
   const [noteFor, setNoteFor] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [suspendFor, setSuspendFor] = useState<string | null>(null);
+  const [suspendNote, setSuspendNote] = useState("");
 
   async function load() {
     setError(null);
@@ -97,6 +99,22 @@ export default function UsageReportsTab() {
   async function markUnbilled(id: string) {
     await trpc.admin.usageReports.markUnbilled.mutate({ id });
     await load();
+  }
+
+  async function suspendForNonPayment() {
+    if (!suspendFor) return;
+    setError(null);
+    try {
+      await trpc.admin.usageReports.suspendForNonPayment.mutate({
+        usageReportId: suspendFor,
+        note: suspendNote.trim() || undefined,
+      });
+      setSuspendFor(null);
+      setSuspendNote("");
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    }
   }
 
   const columns: GridColDef<Rows[number]>[] = [
@@ -217,6 +235,17 @@ export default function UsageReportsTab() {
             Clear billed mark
           </MenuItem>
         )}
+        {menu && (
+          <MenuItem
+            onClick={() => {
+              setSuspendFor(menu.row.id);
+              setSuspendNote(`Non-payment — ${menu.row.orgName} · ${menu.row.periodStart}`);
+              setMenu(null);
+            }}
+          >
+            Suspend for non-payment…
+          </MenuItem>
+        )}
       </Menu>
 
       <Dialog open={!!noteFor} onClose={() => setNoteFor(null)} fullWidth maxWidth="xs">
@@ -235,6 +264,30 @@ export default function UsageReportsTab() {
           <Button onClick={() => setNoteFor(null)}>Cancel</Button>
           <Button variant="contained" onClick={() => void markBilled()}>
             Mark billed
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={!!suspendFor} onClose={() => setSuspendFor(null)} fullWidth maxWidth="xs">
+        <DialogTitle>Suspend for non-payment</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>
+            Sets the org&apos;s product licence to SUSPENDED. The workspace blocks writes on its
+            next licence refresh. Reinstate from Licences when payment clears.
+          </Typography>
+          <TextField
+            fullWidth
+            label="Note"
+            value={suspendNote}
+            onChange={(e) => setSuspendNote(e.target.value)}
+            multiline
+            minRows={2}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSuspendFor(null)}>Cancel</Button>
+          <Button color="warning" variant="contained" onClick={() => void suspendForNonPayment()}>
+            Suspend licence
           </Button>
         </DialogActions>
       </Dialog>
