@@ -364,6 +364,7 @@ export function ConsultancyEngagements() {
     return { from: from.toISOString().slice(0, 10), to: to.toISOString().slice(0, 10) };
   });
   const analyticsQ = trpc.consultancy.analytics.summary.useQuery(analyticsPeriod);
+  const capacityQ = trpc.consultancy.analytics.capacityOutlook.useQuery({ horizonMonths: 3 });
 
   // Phase 2 slice 2 — rate card + timesheets.
   const rateCardQ = trpc.consultancy.rateCards.list.useQuery();
@@ -608,38 +609,67 @@ export function ConsultancyEngagements() {
   const detail = detailQ.data;
 
   const a = analyticsQ.data;
+  const capacity = capacityQ.data;
+  const showCommercial =
+    !!a && (a.hoursBooked > 0 || a.invoicedPaise > 0);
+  const showCapacity = !!capacity && capacity.alerts.length > 0;
+  const showAside = showCommercial || showCapacity || !!insuranceQ.data;
 
   return (
     <RailLayout
       title="Engagements"
       description="AORMS-Consultancy · engineering workspace (preview)"
       aside={
-        a && (a.hoursBooked > 0 || a.invoicedPaise > 0) ? (
+        showAside ? (
           <Stack spacing={0.75}>
-            <span className="esti-label">Commercial health · 30 days</span>
-            <span className="esti-label esti-label--secondary">
-              {`${a.hoursBooked}h · value ${formatINR(a.timeValuePaise)}`}
-            </span>
-            <span className="esti-label esti-label--secondary">
-              {`WIP ${formatINR(a.wipPaise)} · billable ${formatINR(a.billablePaise)}`}
-            </span>
-            <span className="esti-label esti-label--secondary">
-              {`Invoiced ${formatINR(a.invoicedPaise)}${
-                a.realisation != null ? ` · realisation ${Math.round(a.realisation * 100)}%` : ""
-              }`}
-            </span>
-            {a.byGrade
-              .filter((g) => g.utilisation != null)
-              .map((g) => (
-                <span key={g.grade} className="esti-label esti-label--secondary">
-                  {`${CONS_GRADE_LABEL[g.grade as ConsGrade] ?? g.grade}: ${Math.round(
-                    (g.utilisation ?? 0) * 100,
-                  )}% utilised`}
+            {showCommercial && a && (
+              <>
+                <span className="esti-label">Commercial health · 30 days</span>
+                <span className="esti-label esti-label--secondary">
+                  {`${a.hoursBooked}h · value ${formatINR(a.timeValuePaise)}`}
                 </span>
-              ))}
+                <span className="esti-label esti-label--secondary">
+                  {`WIP ${formatINR(a.wipPaise)} · billable ${formatINR(a.billablePaise)}`}
+                </span>
+                <span className="esti-label esti-label--secondary">
+                  {`Invoiced ${formatINR(a.invoicedPaise)}${
+                    a.realisation != null ? ` · realisation ${Math.round(a.realisation * 100)}%` : ""
+                  }`}
+                </span>
+                {a.byGrade
+                  .filter((g) => g.utilisation != null)
+                  .map((g) => (
+                    <span key={g.grade} className="esti-label esti-label--secondary">
+                      {`${CONS_GRADE_LABEL[g.grade as ConsGrade] ?? g.grade}: ${Math.round(
+                        (g.utilisation ?? 0) * 100,
+                      )}% utilised`}
+                    </span>
+                  ))}
+              </>
+            )}
+            {showCapacity && capacity && (
+              <>
+                <span
+                  className="esti-label"
+                  style={showCommercial ? { marginTop: 8 } : undefined}
+                >
+                  Capacity outlook · {capacity.horizonMonths} mo
+                </span>
+                {capacity.alerts.map((alert) => (
+                  <span key={alert} className="esti-label esti-label--secondary">
+                    {alert}
+                  </span>
+                ))}
+              </>
+            )}
             {insuranceQ.data && (
               <>
-                <span className="esti-label" style={{ marginTop: 8 }}>PI cover</span>
+                <span
+                  className="esti-label"
+                  style={showCommercial || showCapacity ? { marginTop: 8 } : undefined}
+                >
+                  PI cover
+                </span>
                 <span className="esti-label esti-label--secondary">
                   {`${insuranceQ.data.insurer} · ${insuranceQ.data.policyNo}`}
                 </span>

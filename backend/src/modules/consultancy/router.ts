@@ -22,6 +22,8 @@ import {
   realisationRatio,
   rankPrecedentEngagements,
   buildDeliverableLineage,
+  buildCapacityOutlook,
+  capacityOutlookAlerts,
   CONSULTANCY_SCOPE_TEMPLATES,
   can,
   ConsBriefSet,
@@ -32,6 +34,7 @@ import {
   ConsEngagementCreate,
   ConsEngagementUpdate,
   ConsAnalyticsPeriod,
+  ConsCapacityOutlookInput,
   ConsFeeStageCreate,
   ConsFeeStageUpdate,
   ConsFieldReportCreate,
@@ -1070,6 +1073,61 @@ const analyticsRouter = router({
       byGrade,
     };
   }),
+
+  /**
+   * P9.4 capacity outlook — trailing timesheet run-rate by engagement lead
+   * discipline vs firm weekly capacity (rate cards). Pure projection; no LLM.
+   */
+  capacityOutlook: feesManage
+    .input(ConsCapacityOutlookInput.optional())
+    .query(async ({ ctx, input }) => {
+      const asOf = input?.asOf ?? new Date().toISOString().slice(0, 10);
+      const horizonMonths = input?.horizonMonths ?? 3;
+
+      const rates = await ctx.db.select().from(consRateCards);
+      const firmCapacityHoursWeek = rates.reduce(
+        (a, r) => a + (r.capacityHoursWeek ?? 0),
+        0,
+      );
+
+      const engagements = await ctx.db
+        .select({
+          id: consEngagements.id,
+          leadDiscipline: consEngagements.leadDiscipline,
+          status: consEngagements.status,
+        })
+        .from(consEngagements);
+
+      // Enough history for trailing 28d + prior-month actuals in the horizon window.
+      const lookback = new Date(`${asOf}T00:00:00Z`);
+      lookback.setUTCDate(lookback.getUTCDate() - 100);
+      const from = lookback.toISOString().slice(0, 10);
+
+      const sheets = await ctx.db
+        .select({
+          date: consTimesheets.date,
+          hours: consTimesheets.hours,
+          engagementId: consTimesheets.engagementId,
+        })
+        .from(consTimesheets)
+        .where(and(gte(consTimesheets.date, from), lte(consTimesheets.date, asOf)));
+
+      const rows = buildCapacityOutlook({
+        asOf,
+        horizonMonths,
+        firmCapacityHoursWeek,
+        sheets,
+        engagements,
+      });
+
+      return {
+        asOf,
+        horizonMonths,
+        firmCapacityHoursWeek,
+        rows,
+        alerts: capacityOutlookAlerts(rows),
+      };
+    }),
 });
 
 const risksRouter = router({

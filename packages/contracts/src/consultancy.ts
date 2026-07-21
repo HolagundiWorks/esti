@@ -854,6 +854,186 @@ export const ConsAnalyticsPeriod = z
   });
 export type ConsAnalyticsPeriod = z.infer<typeof ConsAnalyticsPeriod>;
 
+/** How many forward calendar months the capacity outlook covers (incl. current). */
+export const ConsCapacityHorizonMonths = z.number().int().min(1).max(12).default(3);
+export type ConsCapacityHorizonMonths = z.infer<typeof ConsCapacityHorizonMonths>;
+
+/** Optional input for `consultancy.analytics.capacityOutlook`. */
+export const ConsCapacityOutlookInput = z.object({
+  /** Inclusive UTC "today" (YYYY-MM-DD). Defaults to server today when omitted. */
+  asOf: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  horizonMonths: z.number().int().min(1).max(12).optional(),
+});
+export type ConsCapacityOutlookInput = z.infer<typeof ConsCapacityOutlookInput>;
+
+export type CapacityLoadStatus = "OK" | "TIGHT" | "OVER";
+
+export type CapacityOutlookRow = {
+  /** YYYY-MM */
+  month: string;
+  discipline: EngineeringDiscipline;
+  /** Projected or recorded hours for the discipline in this month. */
+  hours: number;
+  /** Firm weekly capacity × weeks in month × discipline share of trailing load. */
+  capacityHours: number;
+  /** hours ÷ capacityHours (null when capacity is 0). */
+  load: number | null;
+  status: CapacityLoadStatus;
+};
+
+function yyyyMm(d: Date): string {
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
+function weeksInMonth(yyyyMmKey: string): number {
+  const [y, m] = yyyyMmKey.split("-").map(Number);
+  const days = new Date(Date.UTC(y!, m!, 0)).getUTCDate();
+  return days / 7;
+}
+
+function monthKeysFrom(anchor: Date, count: number): string[] {
+  const keys: string[] = [];
+  for (let i = 0; i < count; i++) {
+    keys.push(yyyyMm(new Date(Date.UTC(anchor.getUTCFullYear(), anchor.getUTCMonth() + i, 1))));
+  }
+  return keys;
+}
+
+function loadStatus(load: number | null): CapacityLoadStatus {
+  if (load == null) return "OK";
+  if (load >= 1.05) return "OVER";
+  if (load >= 0.85) return "TIGHT";
+  return "OK";
+}
+
+/**
+ * P9.4 capacity analytics — deterministic "is structural over-committed in
+ * September?" outlook. Uses trailing timesheet hours by engagement lead
+ * discipline as a run-rate, allocated against firm weekly capacity (rate card)
+ * weighted by each discipline's share of recent load.
+ *
+ * Pure; no LLM. Forward months without booked hours still get a projection
+ * from the trailing average.
+ */
+export function buildCapacityOutlook(args: {
+  /** Inclusive UTC "today" for the outlook anchor (YYYY-MM-DD). */
+  asOf: string;
+  horizonMonths?: number;
+  firmCapacityHoursWeek: number;
+  /** Trailing sheets used to build the weekly run-rate (and fill past months). */
+  sheets: readonly {
+    date: string;
+    hours: number;
+    engagementId: string;
+  }[];
+  engagements: readonly {
+    id: string;
+    leadDiscipline: string;
+    status?: string;
+  }[];
+}): CapacityOutlookRow[] {
+  const horizon = Math.min(12, Math.max(1, args.horizonMonths ?? 3));
+  const asOf = new Date(`${args.asOf}T00:00:00Z`);
+  if (Number.isNaN(asOf.getTime())) return [];
+  const months = monthKeysFrom(asOf, horizon);
+  const engDisc = new Map(
+    args.engagements.map((e) => [e.id, e.leadDiscipline as EngineeringDiscipline]),
+  );
+
+  // Hours by month × discipline (actuals).
+  const actual = new Map<string, number>(); // `${month}|${discipline}`
+  const trailingByDisc = new Map<EngineeringDiscipline, number>();
+  const trailingFrom = new Date(asOf);
+  trailingFrom.setUTCDate(trailingFrom.getUTCDate() - 28);
+
+  for (const s of args.sheets) {
+    const disc = engDisc.get(s.engagementId);
+    if (!disc || !EngineeringDiscipline.safeParse(disc).success) continue;
+    const month = s.date.slice(0, 7);
+    const key = `${month}|${disc}`;
+    actual.set(key, (actual.get(key) ?? 0) + (s.hours ?? 0));
+    const sheetDay = new Date(`${s.date}T00:00:00Z`);
+    if (sheetDay >= trailingFrom && sheetDay <= asOf) {
+      trailingByDisc.set(disc, (trailingByDisc.get(disc) ?? 0) + (s.hours ?? 0));
+    }
+  }
+
+  const trailingTotal = [...trailingByDisc.values()].reduce((a, b) => a + b, 0);
+  const weeklyByDisc = new Map<EngineeringDiscipline, number>();
+  for (const [d, h] of trailingByDisc) weeklyByDisc.set(d, h / 4);
+
+  // Disciplines in play = those with trailing hours or active engagements.
+  const activeDisc = new Set<EngineeringDiscipline>();
+  for (const d of trailingByDisc.keys()) activeDisc.add(d);
+  for (const e of args.engagements) {
+    if (e.status && e.status !== "ACTIVE") continue;
+    if (EngineeringDiscipline.safeParse(e.leadDiscipline).success) {
+      activeDisc.add(e.leadDiscipline as EngineeringDiscipline);
+    }
+  }
+  if (activeDisc.size === 0) return [];
+
+  const firmWeek = Math.max(0, args.firmCapacityHoursWeek);
+  const rows: CapacityOutlookRow[] = [];
+  const currentMonth = yyyyMm(asOf);
+
+  for (const month of months) {
+    const weeks = weeksInMonth(month);
+    const firmMonthCap = firmWeek * weeks;
+    // Share: trailing hours; equal split when no trailing signal.
+    const shares = new Map<EngineeringDiscipline, number>();
+    if (trailingTotal > 0) {
+      for (const d of activeDisc) {
+        shares.set(d, (trailingByDisc.get(d) ?? 0) / trailingTotal);
+      }
+    } else {
+      const eq = 1 / activeDisc.size;
+      for (const d of activeDisc) shares.set(d, eq);
+    }
+
+    for (const disc of [...activeDisc].sort()) {
+      const actualH = actual.get(`${month}|${disc}`) ?? 0;
+      const projectedH = (weeklyByDisc.get(disc) ?? 0) * weeks;
+      // Past/current month prefer actuals when present; future always projects.
+      const hours = month < currentMonth || (month === currentMonth && actualH > 0)
+        ? actualH
+        : projectedH;
+      const capacityHours = firmMonthCap * (shares.get(disc) ?? 0);
+      const load = capacityHours > 0 ? hours / capacityHours : null;
+      rows.push({
+        month,
+        discipline: disc,
+        hours: Math.round(hours * 10) / 10,
+        capacityHours: Math.round(capacityHours * 10) / 10,
+        load: load == null ? null : Math.round(load * 1000) / 1000,
+        status: loadStatus(load),
+      });
+    }
+  }
+  return rows;
+}
+
+/** Short plain-language alerts for OVER / TIGHT rows (intelligence digest). */
+export function capacityOutlookAlerts(
+  rows: readonly CapacityOutlookRow[],
+  limit = 6,
+): string[] {
+  return rows
+    .filter((r) => r.status === "OVER" || r.status === "TIGHT")
+    .sort((a, b) => (b.load ?? 0) - (a.load ?? 0))
+    .slice(0, limit)
+    .map((r) => {
+      const label = ENGINEERING_DISCIPLINE_LABEL[r.discipline] ?? r.discipline;
+      const pct = r.load != null ? Math.round(r.load * 100) : "?";
+      return r.status === "OVER"
+        ? `${label} looks over-committed in ${r.month} (~${pct}% of allocated capacity)`
+        : `${label} is tight in ${r.month} (~${pct}% of allocated capacity)`;
+    });
+}
+
 // ── Phase 3 — the defensibility layer (risk, PI, input gate) ────────────────
 
 /** Risk register (case study §6.5) — score inherent and residual separately. */

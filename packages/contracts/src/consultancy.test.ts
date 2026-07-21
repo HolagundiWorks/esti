@@ -20,7 +20,9 @@ import {
   canRaiseCheckCategory,
   canTransitionDeliverable,
   computeFeePosition,
+  buildCapacityOutlook,
   buildDeliverableLineage,
+  capacityOutlookAlerts,
   feeStageFinancialsLocked,
   mayIssueDeliverable,
   missingReviewSteps,
@@ -530,5 +532,98 @@ describe("canAdvanceCalcPackage", () => {
     expect(canAdvanceCalcPackage("CURRENT", "SUPERSEDED")).toBe(true);
     expect(canAdvanceCalcPackage("SUPERSEDED", "CURRENT")).toBe(false);
     expect(canAdvanceCalcPackage("CURRENT", "DRAFT")).toBe(false);
+  });
+});
+
+describe("buildCapacityOutlook", () => {
+  const engagements = [
+    { id: "e-struct", leadDiscipline: "STRUCTURAL", status: "ACTIVE" },
+    { id: "e-mep", leadDiscipline: "MEP", status: "ACTIVE" },
+  ];
+
+  it("projects trailing structural load as OVER when firm capacity is thin", () => {
+    // 80h structural in the last 28 days → 20h/week run-rate.
+    // Firm capacity 10h/week; structural owns 100% of trailing → OVER.
+    const sheets = Array.from({ length: 4 }, (_, i) => ({
+      date: `2026-08-${String(10 + i * 4).padStart(2, "0")}`,
+      hours: 20,
+      engagementId: "e-struct",
+    }));
+    const rows = buildCapacityOutlook({
+      asOf: "2026-09-01",
+      horizonMonths: 1,
+      firmCapacityHoursWeek: 10,
+      sheets,
+      engagements: [{ id: "e-struct", leadDiscipline: "STRUCTURAL", status: "ACTIVE" }],
+    });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.discipline).toBe("STRUCTURAL");
+    expect(rows[0]!.status).toBe("OVER");
+    expect(rows[0]!.load!).toBeGreaterThan(1);
+  });
+
+  it("splits firm capacity by trailing discipline share", () => {
+    const sheets = [
+      { date: "2026-08-10", hours: 30, engagementId: "e-struct" },
+      { date: "2026-08-12", hours: 10, engagementId: "e-mep" },
+    ];
+    const rows = buildCapacityOutlook({
+      asOf: "2026-09-01",
+      horizonMonths: 1,
+      firmCapacityHoursWeek: 40,
+      sheets,
+      engagements,
+    });
+    const byDisc = Object.fromEntries(rows.map((r) => [r.discipline, r]));
+    expect(byDisc.STRUCTURAL!.capacityHours).toBeGreaterThan(byDisc.MEP!.capacityHours);
+    expect(byDisc.STRUCTURAL!.status).not.toBe("OVER");
+  });
+
+  it("returns no rows when there is no discipline signal", () => {
+    expect(
+      buildCapacityOutlook({
+        asOf: "2026-09-01",
+        firmCapacityHoursWeek: 40,
+        sheets: [],
+        engagements: [],
+      }),
+    ).toEqual([]);
+  });
+});
+
+describe("capacityOutlookAlerts", () => {
+  it("surfaces OVER before TIGHT and caps the list", () => {
+    const alerts = capacityOutlookAlerts(
+      [
+        {
+          month: "2026-09",
+          discipline: "STRUCTURAL",
+          hours: 100,
+          capacityHours: 80,
+          load: 1.25,
+          status: "OVER",
+        },
+        {
+          month: "2026-09",
+          discipline: "MEP",
+          hours: 40,
+          capacityHours: 45,
+          load: 0.89,
+          status: "TIGHT",
+        },
+        {
+          month: "2026-10",
+          discipline: "CIVIL",
+          hours: 10,
+          capacityHours: 50,
+          load: 0.2,
+          status: "OK",
+        },
+      ],
+      1,
+    );
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0]).toMatch(/Structural/i);
+    expect(alerts[0]).toMatch(/over-committed/i);
   });
 });

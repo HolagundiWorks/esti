@@ -257,7 +257,7 @@ time commercials, and a risk register. Design lives in
 | P9.2 | Commercial — fee agreements/stages, timesheets, rate cards, variations, WIP/realisation | ✅ built — `0186`–`0190`, `esti_cons_fee_stage`/`_timesheet`/`_rate_card`/`_variation` |
 | P9.3 | Risk — register, insurance (PI + reliance), compliance gates | ✅ built — `0191`, `esti_cons_risk`/`_insurance` |
 | P9.3b | Beyond the original plan — typed scope, engagement brief, SOP slices, CRS, field reports | ✅ built — `0192`–`0197` |
-| P9.4 | Intelligence — firm-record Q&A + EOMS input-pack review; precedent search; deliverable lineage | 🔄 **in progress** — `ask` + `eomsReview` + **`precedentSearch`** + **`deliverableLineage`** + **`calcPackages`** + **EOMS compliance UI** (Knowledge Bank portal); capacity analytics still open |
+| P9.4 | Intelligence — firm-record Q&A + EOMS input-pack review; precedent search; deliverable lineage | 🔄 **in progress** — `ask` + `eomsReview` + **`precedentSearch`** + **`deliverableLineage`** + **`calcPackages`** + **EOMS compliance UI** + **`analytics.capacityOutlook`**; remaining polish/ask UX |
 | P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | 🔄 **in progress 2026-07-21** — pure helpers + **mutation wiring tests** (`backend/src/modules/consultancy/router.test.ts`); still open: human fee UX review |
 | P9.M | Marketing/launch surface — `consultancy.aorms.in`, landing copy | 🔄 landing markdown exists; launch gated on P9.V |
 
@@ -335,6 +335,7 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 
 | Date | Change |
 |------|--------|
+| 2026-07-21 | Autopilot: **P9.4 capacity analytics** — `buildCapacityOutlook` / `capacityOutlookAlerts` + `consultancy.analytics.capacityOutlook`; engagement rail shows TIGHT/OVER alerts from trailing timesheets × rate-card capacity. |
 | 2026-07-21 | Autopilot: **P9.4 EOMS compliance UI** — `EomsCompliancePanel` on Knowledge Bank portal (`eoms.status` / sources / resolve / rules); fail-safe offline state. |
 | 2026-07-21 | Autopilot: **P9.4 calc-package lineage** — `esti_cons_calc_package` (migration `0212`), `consultancy.calcPackages` CRUD + status advances, engagement detail + lineage summary, contracts helpers/tests. D4: track only, no in-app engine. |
 | 2026-07-21 | **EOMS local API on main** (other agent): `packages/contracts/src/eoms.ts` + fail-safe `backend/src/lib/eoms/client.ts` + `eoms.*` tRPC (`status`/`resolve`/`rules`/`clause`/`bundle`/`sources`/`versions`/`library`); `EOMS_API_URL` + compose `host.docker.internal`. Docs: [EOMS-INTEGRATION.md](EOMS-INTEGRATION.md). Autopilot PRs rebase onto this. |
