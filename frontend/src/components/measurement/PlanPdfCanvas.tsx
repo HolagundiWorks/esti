@@ -59,7 +59,7 @@ export function PlanPdfCanvas({ base64, pageNo = 0, onPageSize }: Props) {
         if (!ctx) return;
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-        await page.render({ canvasContext: ctx, viewport }).promise;
+        await page.render({ canvasContext: ctx, canvas, viewport }).promise;
         if (!cancelled) setLoading(false);
       } catch (err) {
         if (!cancelled) {
