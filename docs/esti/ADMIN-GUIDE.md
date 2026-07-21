@@ -206,8 +206,8 @@ AORMS is **web-only**. The Lite/Pro/Manager desktop installers and the
 deleted 2026-07-19. `/download` permanently redirects to the landing page.
 
 The planned standalone **AORMS Estimate** desktop app is **cancelled** —
-estimating runs in the browser inside Project › Cost Management. See
-[COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
+estimating runs in the browser inside the project **Estimation** tab, priced by
+firm Rate Books. See [NAVIGATION.md](NAVIGATION.md) § Estimation.
 
 Operators on pre-2026-07 VPS layouts: `deploy/cleanup-vps.sh` removes leftover
 installer files and `VITE_*_DOWNLOAD_URL` entries from a live host.

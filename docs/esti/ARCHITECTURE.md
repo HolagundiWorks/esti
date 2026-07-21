@@ -149,9 +149,8 @@ namespace, device-token bearer auth (`esti_device_session`), the CAD AI draft
 kinds and `ai.generateCad`, drawing scale calibration (`drawings.setScale`), and
 the `esticad://` deep links.
 
-Residue left deliberately: the `esti_measurement` ESTICAD columns and the
-`esti_device_session` table are **not dropped** — inert without their writer, but
-existing rows are preserved until a deliberate cleanup migration.
+Cleanup completed: the legacy `esti_measurement` table and the
+`esti_device_session` table were dropped in migration `0211`.
 
 ## Operational Requirements
 

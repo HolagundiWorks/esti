@@ -75,9 +75,11 @@ event layer:
 
 The dashboard TODAY'S FOCUS tile renders the breathing space engine: OFFICE CALMNESS score + at most 3 immediate actions + safely deferred list + system confidence. The SYSTEM HEALTH quad tile shows live domain health percentages.
 
-The Python worker image carries scikit-learn, XGBoost, MLflow, and Evidently for
-future model-assisted recognition and prediction phases. The current production
-path is TypeScript/PostgreSQL deterministic logic.
+The cognition engine runs entirely as TypeScript/PostgreSQL deterministic logic
+(`backend/src/modules/cognition/`). The Python ML stack (scikit-learn, XGBoost,
+MLflow, Evidently) that had been pre-provisioned for future model-assisted phases
+was removed 2026-07-21 as unused — no cognition worker jobs were ever wired up. It
+can be reintroduced if and when a model-assisted phase is actually built.
 
 ## Event Ingestion
 

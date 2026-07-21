@@ -41,11 +41,13 @@ drawings/PDF/reconciliation. See
 - Architect-side site supervision: site instructions, inspections, snags, and
   progress reports.
 
-The **Cost Management System** (measurement book, plan markup, item library) is
-being rebuilt on the Construction Knowledge Bank foundation — see
-[docs/esti/COST-MANAGEMENT-SYSTEM.md](docs/esti/COST-MANAGEMENT-SYSTEM.md).
-General-purpose ERP, commerce, warehouse, labour,
-subcontractor-accounting, and contractor execution systems are out of scope.
+**Estimation** ships as firm-level, versioned **Rate Books** (Library → Rate
+Books) that price a project's **Estimation** tab — a priced BOQ with a per-item
+measurement book and a contingency/GST rollup — alongside browser-based plan
+measurement/takeoff. The old Estimation OS, Construction Cost spine, and the
+CMS/Knowledge-Bank rebuild were removed (2026-06/07). General-purpose ERP,
+commerce, warehouse, labour, subcontractor-accounting, and contractor execution
+systems are out of scope.
 
 **User guide:** [aorms.in/wiki](https://aorms.in/wiki) · **Licence:** one standard
 cloud workspace ([PLANS-AND-TIERS](docs/esti/PLANS-AND-TIERS.md)) — AORMS is

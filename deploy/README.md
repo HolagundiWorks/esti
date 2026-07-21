@@ -61,8 +61,8 @@ cloud-only at aorms.in; `/download` redirects to the wiki. The script
 only.
 
 The separate **AORMS Estimate** app is **not in this monorepo**. The **ESE**
-subdomain service is also **retired** (no `ese/` package in repo). Active cost work:
-[docs/esti/COST-MANAGEMENT-SYSTEM.md](../docs/esti/COST-MANAGEMENT-SYSTEM.md).
+subdomain service is also **retired** (no `ese/` package in repo). Estimation now
+ships as the project Estimation tab (see [docs/esti/NAVIGATION.md](../docs/esti/NAVIGATION.md) § Estimation).
 
 ## Before a first install
 

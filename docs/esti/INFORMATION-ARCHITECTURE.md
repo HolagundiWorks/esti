@@ -12,9 +12,8 @@
 > spine**, **Rate Books**, and **Rate Analysis** were **removed** in the teardown — the
 > Costing / Measurement / estimation IA below is **historical**. The authoritative record
 > of what exists today is [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md)
-> § "System state"; the active rebuild is
-> [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) +
-> [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md).
+> § "System state". Estimation ships as firm **Rate Books** pricing a project
+> **Estimation** tab — see [NAVIGATION.md](NAVIGATION.md) § Estimation.
 
 > Status: **historical map.** Backend (tRPC namespaces, DB) has since changed — this
 > was a navigation / information-architecture proposal. The goal is one home per
@@ -98,13 +97,11 @@ purely how the work is presented.
 
 > The "single Costing & Measurement window" (rate analysis → estimation → BOQ → costing →
 > site measurement → running bills) described here was part of the Estimation OS +
-> Construction Cost spine **torn down on 2026-06-28**. It is being rebuilt ground-up on a
-> cleaner model: [CONSTRUCTION-KNOWLEDGE-BANK.md](CONSTRUCTION-KNOWLEDGE-BANK.md) (the
-> reference foundation — libraries, specifications, recipes live) →
-> [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) (estimate → derivation → BOQ → cost, planned). The
-> nav-mapping tables below that still reference `estimates`/`bbs`/`dsr`/`runningBills` are
-> historical; current state is authoritative in
-> [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state".
+> Construction Cost spine **torn down on 2026-06-28**. Estimation now ships as the narrower
+> firm **Rate Books** + project **Estimation** tab (priced BOQ + measurement book) — see
+> [NAVIGATION.md](NAVIGATION.md) § Estimation. The nav-mapping tables below that still
+> reference `estimates`/`bbs`/`dsr`/`runningBills` are historical; current state is
+> authoritative in [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) § "System state".
 
 ## What this fixes (current → proposed)
 

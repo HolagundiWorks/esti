@@ -371,9 +371,10 @@ GST rates, SAC codes)
   (all three from `backend/src/modules/consultant/`)
 
 **Knowledge:**
-- `knowledgeBank` — knowledge catalog (Specification and Lessons surfaced in
-  `KnowledgeBank.tsx`)
-- `specCatalog` — specification material catalogue (Knowledge Bank)
+- `specCatalog` — specification material catalogue (Library → Specification).
+  *(The old `knowledgeBank` namespace + `KnowledgeBank.tsx` and the Item Library
+  UI were removed 2026-07-09; only the spec catalogue survives.)*
+- `lessons` — lessons-learned knowledge entries
 
 > The in-product RIE/compliance rule engine, site assessments (`ruleVersions` /
 > `siteAssessments`), and the BBMP bylaw calculator (`bbmpRules`) were removed in the

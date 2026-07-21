@@ -369,7 +369,7 @@ Package README: [`packages/hcw-ui-kit/README.md`](../../packages/hcw-ui-kit/READ
 - Layer 3 via theme: button hover glass; error/warning alerts tinted glass.
 
 **Remaining (incremental):**
-1. Estimate app E1 UI pivot — **N/A** (no `estimate/` tree); active cost UI follows [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) rebuild.
+1. Estimate app E1 UI pivot — **N/A** (no `estimate/` tree); estimation UI is the project Estimation tab (see [NAVIGATION.md](NAVIGATION.md) § Estimation).
 2. Optional: marketing SCSS rail/heads import kit clear-glass tokens instead of
    duplicated rgba recipes.
 3. Optional further shrink of `glass.scss` once orb class aliases fully migrate

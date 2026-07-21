@@ -260,7 +260,7 @@ U0 ✅ ──► U1 shell primitives ──gate──► U2 login rail
 | Health glyph | `frontend/src/components/shell/OfficeHealthGlyph.tsx` |
 | Login (to migrate) | `frontend/src/routes/Login.tsx` · `styles.scss` `.esti-login-*` |
 | Design spec | [HCW-UI-KIT.md](HCW-UI-KIT.md) |
-| Estimate UI queue | N/A — no standalone Estimate app in monorepo; see [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) |
+| Estimate UI queue | N/A — no standalone Estimate app; estimation is the project Estimation tab (see [NAVIGATION.md](NAVIGATION.md) § Estimation) |
 
 ---
 
