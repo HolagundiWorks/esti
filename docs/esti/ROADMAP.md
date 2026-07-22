@@ -37,10 +37,18 @@ are **not** current product state — see system state below.
 
 ## Next (human-gated / deferred)
 
+<<<<<<< HEAD
 1. **P9.V** — human fee UX review (mutation wiring + closeout/pre-con router tests green)
 2. **P4.8** — replace stale LinkedIn/Instagram / campaign desktop copy
 3. **P9.M** — public launch of `consultancy.aorms.in` (gated on P9.V)
 4. **Stripe auto-billing / auto-suspend** — deferred by choice; manual India path is the shipping path
+=======
+1. **P9.V** — human fee UX review (mutation wiring tests landed; pure helpers + router stubs green)
+2. **P9.M** — public launch of `consultancy.aorms.in` (gated on P9.V)
+3. Stripe auto-billing / auto-suspend — deferred by choice (manual India path ships)
+
+**Closed 2026-07-22:** **P4.8** social/campaign copy rewritten — AORMS is **web-only** (no desktop apps).
+>>>>>>> ee30b479 (Close P4.8: web-only social campaigns + retire desktop copy.)
 
 ## Change rule
 

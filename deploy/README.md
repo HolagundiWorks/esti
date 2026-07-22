@@ -55,14 +55,15 @@ See [`docs/esti/SELF-HOST-INSTALL.md`](../docs/esti/SELF-HOST-INSTALL.md).
 
 ## Desktop installers (retired 2026-07)
 
-Full AORMS Lite/Pro/Manager `/download` hosting was **retired**. The product is
-cloud-only at aorms.in; `/download` redirects to the wiki. The script
-`fetch-installers.sh` and workflow `desktop.yml` remain for legacy VPS layouts
-only.
+Full AORMS Lite/Pro/Manager `/download` hosting was **retired**. AORMS is
+**web-only** — browser workspace at aorms.in / studio.aorms.in; `/download`
+redirects to the wiki. `desktop/`, `desktop.yml`, and `fetch-installers.sh`
+were **removed** (2026-07-19); do not restore them.
 
-The separate **AORMS Estimate** app is **not in this monorepo**. The **ESE**
-subdomain service is also **retired** (no `ese/` package in repo). Estimation now
-ships as the project Estimation tab (see [docs/esti/NAVIGATION.md](../docs/esti/NAVIGATION.md) § Estimation).
+The separate **AORMS Estimate** desktop app was **cancelled**. Estimation ships
+as the in-browser project Estimation tab (see
+[docs/esti/NAVIGATION.md](../docs/esti/NAVIGATION.md) § Estimation). The **ESE**
+subdomain service is also **retired** (no `ese/` package in repo).
 
 ## Before a first install
 
