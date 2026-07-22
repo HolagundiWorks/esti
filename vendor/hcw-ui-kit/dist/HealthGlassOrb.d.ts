@@ -5,6 +5,7 @@
  *   triangle = caution (watch / friction)
  *   square   = critical
  *
+ * Flat fills use kit `colors.support*` / `textHelper` (never `--cds-*`).
  * Glass styling uses CSS class `hcw-health-glass-orb` (+ state modifier).
  * Host apps may map these to existing `.esti-zone-glass-orb*` rules until
  * glass.scss is fully shrunk (see HCW-UI-KIT.md).
@@ -19,3 +20,4 @@ export declare function HealthGlassOrb({ state, size, title, variant, className,
     className?: string;
     style?: CSSProperties;
 }): import("react").JSX.Element;
+//# sourceMappingURL=HealthGlassOrb.d.ts.map

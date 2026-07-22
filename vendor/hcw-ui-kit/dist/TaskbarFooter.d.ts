@@ -13,7 +13,7 @@
  */
 import { type BoxProps } from "@mui/material";
 import { type ReactNode } from "react";
-export declare const TASKBAR_HEIGHT = 56;
+export declare const TASKBAR_HEIGHT: 56;
 /** A neumorphic launcher chip for the footer's left cluster. */
 export declare function TaskbarButton({ icon, label, onClick, active, }: {
     icon: ReactNode;
@@ -21,11 +21,14 @@ export declare function TaskbarButton({ icon, label, onClick, active, }: {
     onClick?: () => void;
     active?: boolean;
 }): import("react").JSX.Element;
-export declare function TaskbarFooter({ left, center, right, showClock, sx, ...rest }: {
+export declare function TaskbarFooter({ left, center, right, showClock, locale: localeProp, sx, ...rest }: {
     left?: ReactNode;
     center?: ReactNode;
     /** Tray cluster (alerts, ID, sign-out). Clock prepends when `showClock`. */
     right?: ReactNode;
     showClock?: boolean;
+    /** BCP 47 locale for the clock (defaults to KitRoot locale / en-IN). */
+    locale?: string;
 } & BoxProps): import("react").JSX.Element;
 export default TaskbarFooter;
+//# sourceMappingURL=TaskbarFooter.d.ts.map

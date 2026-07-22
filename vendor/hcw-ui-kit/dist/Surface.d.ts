@@ -20,3 +20,4 @@ export declare function Surface({ layer, sx, ...rest }: {
     layer?: SurfaceLayer;
 } & BoxProps): import("react").JSX.Element;
 export default Surface;
+//# sourceMappingURL=Surface.d.ts.map

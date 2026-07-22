@@ -13,6 +13,10 @@
  * The dock floats bottom-centre, above the taskbar footer, and hides when no screen
  * has published actions.
  *
+ * Capacity: visible actions capped at {@link CAPACITY.dockVisibleActions} (trim + warn).
+ * Telemetry: optional `track` / `outcome` on {@link DockAction} (see KPI instrument).
+ * Zones are **semantic roles** (destroy · create · commit), not physical sides — not remapped under RTL.
+ *
  * **Modal exception:** while a create/edit `Dialog` is open, publish `[]` so the
  * dock does not compete with `DialogActions` (commit stays in the dialog). Re-publish
  * screen actions when the dialog closes.
@@ -22,6 +26,7 @@
  * marketing rail (Hick / Fitts / single CTA locus).
  */
 import { type ReactNode } from "react";
+import { type OutcomeStatus } from "./ActionOutcome.js";
 export type DockZone = "left" | "center" | "right";
 export type DockTone = "default" | "primary" | "danger";
 export interface DockAction {
@@ -34,7 +39,25 @@ export interface DockAction {
     disabled?: boolean;
     /** Show only the icon (label still used as the tooltip / aria-label). */
     iconOnly?: boolean;
+    /**
+     * When set, `publishOutcome` runs after `onClick` (sync success path).
+     * Async flows should call `publishOutcome` themselves.
+     */
+    outcome?: {
+        status: OutcomeStatus;
+        label: string;
+        detail?: string;
+    };
+    /**
+     * Emit `ux.dock` (and `ux.outcome` when `outcome` is set). Defaults to true
+     * when `outcome` is present; otherwise false.
+     */
+    track?: boolean;
 }
+/** Prefer primary/danger, then zone order left→center→right, then original order. */
+export declare function prioritizeDockActions(actions: readonly DockAction[]): DockAction[];
+/** Cap + warn; keeps highest-priority actions when over {@link CAPACITY.dockVisibleActions}. */
+export declare function trimDockActions(actions: readonly DockAction[]): DockAction[];
 export declare function ActionDockProvider({ children }: {
     children: ReactNode;
 }): import("react").JSX.Element;
@@ -47,3 +70,4 @@ export declare function useScreenActions(actions: DockAction[], deps?: unknown[]
 export declare function useDockActions(): DockAction[];
 export declare function ActionDock(): import("react").JSX.Element | null;
 export default ActionDock;
+//# sourceMappingURL=ActionDock.d.ts.map

@@ -10,6 +10,7 @@ import {
   Stack,
   Tooltip,
 } from "@mui/material";
+import { chromeIconSx } from "@hcw/ui-kit";
 import { useCallback, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
@@ -17,6 +18,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
  * Top navigation — firm name (h1) + section buttons. Menus open on hover
  * (pointer) or click / Enter / Space / ArrowDown (keyboard). Focus management
  * is enabled for keyboard/click opens (WCAG 2.1.1).
+ * Chrome icons use kit `chromeIconSx` (COGA calm expands targets).
  */
 export type RibbonLink = { label: string; to: string; icon?: ComponentType<any> };
 export type RibbonNode =
@@ -26,9 +28,6 @@ export type RibbonNode =
 type AdminGroup = { heading: string; items: { label: string; to: string; icon?: ComponentType<any> }[] };
 
 const HOVER_CLOSE_MS = 120;
-
-/** Persistent chrome hit target — WCAG 2.5.8 / Fitts. */
-const chromeIconSx = { width: 44, height: 44 };
 
 function leaves(node: RibbonNode): RibbonLink[] {
   return "items" in node ? node.items.flatMap(leaves) : [node];

@@ -2,7 +2,7 @@
 
 > **⚠️ Live token values now ship from code (2026-07):** the canonical, executable
 > source of truth for colour/type/radius/surfaces is
-> **[`packages/hcw-ui-kit/src/tokens.ts`](../../packages/hcw-ui-kit/src/tokens.ts)**
+> **[`src/tokens.ts`](../../src/tokens.ts)**
 > (the `@hcw/ui-kit` package), and the philosophy/spatial model is
 > **[`HCW-UI-KIT.md`](HCW-UI-KIT.md)**. This document is the brand **heritage** —
 > naming, rationale, and colour/motion detail not yet mirrored in the kit — but
@@ -12,8 +12,7 @@
 >
 > **Product:** **AORMS** (**Accelerated Operational Resources Management System**) —
 > the platform for AEC consulting firms. **AORMS-Studio** — architecture app (`aorms-studio`).
-> **EOMS** — Emergent Object Management System (the knowledge bank);
-> **ESTI** — internal AI agent (live in **AORMS-Studio**).
+> **EmOI** — external AI agent; **ESTI** — internal AI agent (live in **AORMS-Studio**).
 > Code identifiers keep the `esti` codename; the platform mark is **AORMS**.
 
 ---
@@ -25,7 +24,7 @@ panels, Coal-Black ink, with **Radiant Orange** the single signature accent.
 
 | Role | Name | Hex | Notes |
 |---|---|---|---|
-| **Accent / primary** | **Radiant Orange** | `#FF4F18` | THE accent — CTAs, active states, indicators, brand marks. **Carries white text.** Fill only, never body text. |
+| **Accent / primary** | **Radiant Orange** | `#FF4F18` | THE accent — CTA **fills**, active indicators, brand marks, chrome glyph tints. **Fills carry white text.** Never body copy or links. |
 | Accent hover | Deeper Orange | `#DB3E0F` | Hover/pressed state of the accent |
 | Accent wash | Orange 14% | `rgba(255, 79, 24, 0.14)` | Selected rows, subtle highlights |
 | **Canvas** | **Fog Gray** | `#F2F4F7` | App shell / page background |
@@ -47,12 +46,15 @@ panels, Coal-Black ink, with **Radiant Orange** the single signature accent.
 
 **Rules**
 
-- **Orange is a fill, not a text colour.** Buttons, chips, tab indicators, brand
-  marks fill orange with white text/glyphs. Body text and links stay ink/slate.
+- **Orange is scarce, not a body colour.** CTA fills, brand marks, tab/alert
+  rules, and **active/hover chrome glyph tints** (taskbar, docks) may use the
+  accent. Long body text and links stay ink/slate — never orange.
 - **No hard-coded hex outside the token files.** Everywhere else references the
-  theme (`color="primary"`, `sx`, `--cds-*`, the `--esti-*` vars).
+  theme (`color="primary"`, `sx`, kit tokens, the `--esti-*` vars). App
+  `--cds-*` is frozen compat only — never add new call sites.
 - **One accent.** Do not introduce a second brand hue; use the status family for
-  state, the neutral scale for everything else.
+  state, the neutral scale for everything else. `DATA_VIZ.orange` is a chart
+  series hue, not the brand accent.
 
 ---
 
@@ -173,9 +175,9 @@ Autopilot rollout: [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md
 | **`frontend/src/styles.scss`** | Font var, structural helpers, `.esti-brand` mask classes. Colourless except the brand var. | enforced |
 | **`frontend/src/landing.scss`** | Landing editorial `--lp-*` tokens — warm accent = Radiant Orange. | exempt |
 
-Everything else references these — no raw hex, no rounded corners. (The automated
-`check-carbon.mjs`/`carbon-policy.test.ts` guard was removed with `@carbon/react`,
-2026-07; this is enforced by code review now.)
+Everything else references these — no raw hex, no rounded corners. Carbon React
+is gone; density/organisation live in `@hcw/ui-kit` (`LAYOUT` · `DENSITY`).
+Enforced by code review + kit mapping ([10-MUI-MAPPING.md](../hcw-kit/10-MUI-MAPPING.md)).
 
 ---
 

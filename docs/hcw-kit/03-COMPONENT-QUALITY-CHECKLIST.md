@@ -23,7 +23,7 @@ version ships. Reviewer: the Component Reviewer role
 - [ ] Unit tests (behaviour/contract) in the kit suite
 - [ ] Specimen on `/design-system` (the living gallery)
 - [ ] Visual-regression snapshot (once the harness exists)
-- [ ] RTL sanity (once RTL is in scope)
+- [x] **RTL sanity for kit chrome** — logical properties + `KitRoot({ direction })` (1.4.0); product i18n remains esti
 - [ ] Variant matrix documented (sizes · tones · layouts)
 - [ ] Performance note if the component uses blur/filters (GPU budget)
 

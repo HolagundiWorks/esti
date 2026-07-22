@@ -4,6 +4,9 @@ export interface Toast {
     kind: ToastKind;
     title: string;
     subtitle?: string;
+    /** Optional undo (Reason: slip recovery). */
+    undoLabel?: string;
+    onUndo?: () => void;
 }
 export declare function pushToast(t: Omit<Toast, "id">, ttlMs?: number): void;
 export declare function dismissToast(id: number): void;
@@ -13,3 +16,4 @@ export declare function resetToasts(): void;
 export declare function useToasts(): Toast[];
 /** Renders the global toast stack — fixed bottom-right, above dialogs. */
 export declare function ToastHost(): import("react").JSX.Element;
+//# sourceMappingURL=Toast.d.ts.map

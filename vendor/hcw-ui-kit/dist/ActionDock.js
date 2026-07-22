@@ -5,17 +5,18 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
  * the dock renders them in three fixed zones for muscle memory:
  *
  *   LEFT   = exit / destroy   (Delete · Discard · Cancel)      — red tone
- *   CENTER = generate         (Add · Create · New)             — primary (bold ink)
- *   RIGHT  = commit           (Save · Edit · Save changes)     — primary (bold ink)
- *
- * Primary uses coal ink (not Radiant Orange text): accent is fill/active only and
- * orange-on-glass fails WCAG AA (~2.8:1). Hierarchy is fontWeight 700.
+ *   CENTER = generate         (Add · Create · New)             — orange (primary)
+ *   RIGHT  = commit           (Save · Edit · Save changes)     — orange (primary)
  *
  * Buttons are flat pill at rest and lift to liquid-glass capsule on hover (Layer 3) — only
  * text-entry wells use neumorphic inset depth. The dock tray itself is ACTION_DOCK_TRAY
  * (NEU_RAISED capsule, Layer 2).
  * The dock floats bottom-centre, above the taskbar footer, and hides when no screen
  * has published actions.
+ *
+ * Capacity: visible actions capped at {@link CAPACITY.dockVisibleActions} (trim + warn).
+ * Telemetry: optional `track` / `outcome` on {@link DockAction} (see KPI instrument).
+ * Zones are **semantic roles** (destroy · create · commit), not physical sides — not remapped under RTL.
  *
  * **Modal exception:** while a create/edit `Dialog` is open, publish `[]` so the
  * dock does not compete with `DialogActions` (commit stays in the dialog). Re-publish
@@ -28,8 +29,55 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, } from "react";
 import { Box, Button, Tooltip } from "@mui/material";
 import { actionDockButtonSx } from "./chrome-sx.js";
+import { enforceCapacity } from "./capacity.js";
+import { publishOutcome } from "./ActionOutcome.js";
+import { logUxEvent } from "./uxEvents.js";
 import { ACTION_DOCK_TRAY, NEU_GROOVE_VERTICAL, colors } from "./tokens.js";
 const DockContext = createContext(null);
+/** Prefer primary/danger, then zone order left→center→right, then original order. */
+export function prioritizeDockActions(actions) {
+    const zoneRank = { left: 0, center: 1, right: 2 };
+    const toneRank = (t) => (t === "danger" || t === "primary" ? 0 : 1);
+    return [...actions].sort((a, b) => {
+        const tr = toneRank(a.tone) - toneRank(b.tone);
+        if (tr !== 0)
+            return tr;
+        return zoneRank[a.zone] - zoneRank[b.zone];
+    });
+}
+/** Cap + warn; keeps highest-priority actions when over {@link CAPACITY.dockVisibleActions}. */
+export function trimDockActions(actions) {
+    if (actions.length === 0)
+        return [];
+    const ranked = prioritizeDockActions(actions);
+    const kept = enforceCapacity("dock", ranked);
+    // Restore visual zone order for rendering.
+    const zoneRank = { left: 0, center: 1, right: 2 };
+    return [...kept].sort((a, b) => zoneRank[a.zone] - zoneRank[b.zone]);
+}
+function instrumentAction(action) {
+    const shouldTrack = action.track ?? Boolean(action.outcome);
+    if (!shouldTrack && !action.outcome)
+        return action;
+    return {
+        ...action,
+        onClick: () => {
+            if (shouldTrack) {
+                logUxEvent("ux.dock", { zone: action.zone, actionId: action.id });
+            }
+            action.onClick();
+            if (action.outcome) {
+                publishOutcome(action.outcome);
+                const status = action.outcome.status === "error"
+                    ? "failure"
+                    : action.outcome.status === "success"
+                        ? "success"
+                        : "blocked";
+                logUxEvent("ux.outcome", { status, source: action.id });
+            }
+        },
+    };
+}
 export function ActionDockProvider({ children }) {
     const [actions, setActions] = useState([]);
     const value = useMemo(() => ({ actions, publish: setActions, clear: () => setActions([]) }), [actions]);
@@ -45,7 +93,7 @@ export function useScreenActions(actions, deps = []) {
     useEffect(() => {
         if (!ctx)
             return;
-        ctx.publish(actions);
+        ctx.publish(actions.map(instrumentAction));
         return () => ctx.clear();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, deps);
@@ -56,7 +104,8 @@ export function useDockActions() {
 function toneColor(tone = "default") {
     if (tone === "danger")
         return colors.supportError;
-    // Primary + default: bold/regular ink — never accent-as-text (AA on glass tray).
+    if (tone === "primary")
+        return colors.accent;
     return colors.ink;
 }
 function DockButton({ action, tabIndex, innerRef, }) {
@@ -71,7 +120,8 @@ function Divider() {
     return _jsx(Box, { "aria-hidden": true, className: "hcw-action-dock-divider", sx: NEU_GROOVE_VERTICAL });
 }
 export function ActionDock() {
-    const actions = useDockActions();
+    const raw = useDockActions();
+    const actions = useMemo(() => trimDockActions(raw), [raw]);
     const btnRefs = useRef(new Map());
     const [rovingId, setRovingId] = useState(null);
     const left = actions.filter((a) => a.zone === "left");
@@ -156,3 +206,4 @@ export function ActionDock() {
         }, children: zones.map((z, i) => (_jsxs(Box, { sx: { display: "flex", alignItems: "center", gap: 1.5 }, children: [i > 0 && _jsx(Divider, {}), _jsx(Box, { sx: { display: "flex", gap: 1 }, children: z.map((a) => (_jsx(DockButton, { action: a, ...dockProps(a) }, a.id))) })] }, i))) }));
 }
 export default ActionDock;
+//# sourceMappingURL=ActionDock.js.map
