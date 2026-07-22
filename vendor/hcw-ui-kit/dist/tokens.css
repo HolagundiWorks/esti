@@ -1,0 +1,87 @@
+/* Generated from src/tokens.ts — do not edit by hand. */
+/* Import: @hcw/ui-kit/tokens.css · switch scheme via data-hcw-scheme */
+
+:root, [data-hcw-scheme="light"] {
+  --hcw-color-background: #F2F4F7;
+  --hcw-color-layer01: #FFFFFF;
+  --hcw-color-layer02: #E7EAF0;
+  --hcw-color-borderSubtle: rgba(20, 21, 23, 0.10);
+  --hcw-color-borderStrong: rgba(20, 21, 23, 0.20);
+  --hcw-color-textPrimary: #141517;
+  --hcw-color-textSecondary: #5b616b;
+  --hcw-color-textHelper: #667085;
+  --hcw-color-textOnColor: #FFFFFF;
+  --hcw-color-ink: #141517;
+  --hcw-color-onAccent: #FFFFFF;
+  --hcw-color-accent: #FF4F18;
+  --hcw-color-accentSoft: rgba(255, 79, 24, 0.14);
+  --hcw-color-accentDark: #DB3E0F;
+  --hcw-color-hoverSoft: rgba(20, 21, 23, 0.04);
+  --hcw-color-supportSuccess: #1B7F5A;
+  --hcw-color-supportWarning: #FF9932;
+  --hcw-color-supportError: #C8442E;
+  --hcw-color-supportInfo: #3B5568;
+  --hcw-radius: 0px;
+  --hcw-button-radius: 4px;
+  --hcw-dialog-radius: 8px;
+  --hcw-dock-pill-radius: 9999px;
+  --hcw-spacing-unit: 8px;
+  --hcw-touch-target: 44px;
+  --hcw-rail-width: 240px;
+  --hcw-font-family: 'Urbanist', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --hcw-type-micro: 0.65rem;
+  --hcw-type-caption: 0.75rem;
+  --hcw-type-label: 0.8125rem;
+  --hcw-type-body2: 0.875rem;
+  --hcw-type-body: 1rem;
+  --hcw-type-kpi: 1.1rem;
+  --hcw-type-subtitle: 1.25rem;
+  --hcw-type-heading: 1.75rem;
+  --hcw-type-display: 2.625rem;
+  --hcw-accent: #FF4F18;
+  --hcw-accent-glow: rgba(255, 79, 24, 0.14);
+}
+
+[data-hcw-scheme="dark"] {
+  --hcw-color-background: #101215;
+  --hcw-color-layer01: #191C21;
+  --hcw-color-layer02: #232830;
+  --hcw-color-borderSubtle: rgba(255, 255, 255, 0.10);
+  --hcw-color-borderStrong: rgba(255, 255, 255, 0.20);
+  --hcw-color-textPrimary: #EDEFF3;
+  --hcw-color-textSecondary: #9AA2AE;
+  --hcw-color-textHelper: #98A1AD;
+  --hcw-color-textOnColor: #FFFFFF;
+  --hcw-color-ink: #EDEFF3;
+  --hcw-color-onAccent: #FFFFFF;
+  --hcw-color-accent: #FF5C28;
+  --hcw-color-accentSoft: rgba(255, 92, 40, 0.20);
+  --hcw-color-accentDark: #FF7A4D;
+  --hcw-color-hoverSoft: rgba(255, 255, 255, 0.06);
+  --hcw-color-supportSuccess: #4CC29A;
+  --hcw-color-supportWarning: #FFB25C;
+  --hcw-color-supportError: #F07862;
+  --hcw-color-supportInfo: #8FB4CE;
+}
+
+[data-hcw-scheme="highContrast"] {
+  --hcw-color-background: #FFFFFF;
+  --hcw-color-layer01: #FFFFFF;
+  --hcw-color-layer02: #E5E5E5;
+  --hcw-color-borderSubtle: #141517;
+  --hcw-color-borderStrong: #000000;
+  --hcw-color-textPrimary: #000000;
+  --hcw-color-textSecondary: #141517;
+  --hcw-color-textHelper: #333A44;
+  --hcw-color-textOnColor: #FFFFFF;
+  --hcw-color-ink: #000000;
+  --hcw-color-onAccent: #FFFFFF;
+  --hcw-color-accent: #C93A00;
+  --hcw-color-accentSoft: rgba(201, 58, 0, 0.18);
+  --hcw-color-accentDark: #A32F00;
+  --hcw-color-hoverSoft: rgba(0, 0, 0, 0.08);
+  --hcw-color-supportSuccess: #0E5A3C;
+  --hcw-color-supportWarning: #8A4B00;
+  --hcw-color-supportError: #A31226;
+  --hcw-color-supportInfo: #1F4258;
+}
