@@ -36,10 +36,10 @@ are **not** current product state — see system state below.
 ## Next (product autopilot)
 
 1. **P9.V** — human fee UX review (mutation wiring tests landed; pure helpers + router stubs green)
-2. **P9 SOP** — ✅ transmittal ack; ✅ fee-stage invoices; ✅ enquiry go/no-go; next: lessons / NC-CAPA
-3. **P7.2** — billing (blocked on Stripe vs manual invoice decision); P7.1 multi-tenant reports ✅
-4. **P4.8** — human: replace stale social/campaign desktop copy
-5. **P10.8** — ✅ visual suite retargeted + linux baselines regenerated (2026-07-21)
+2. **P9.M** — public launch of `consultancy.aorms.in` (gated on P9.V)
+3. Stripe auto-billing / auto-suspend — deferred by choice (manual India path ships)
+
+**Closed 2026-07-22:** **P4.8** social/campaign copy rewritten — AORMS is **web-only** (no desktop apps).
 
 ## Change rule
 

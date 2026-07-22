@@ -39,7 +39,7 @@
 | [P1](#p1--licence--migration-active) | ACTIVE licence · retire tier enums | P0 | ✅ | autopilot |
 | [P2](#p2--storage-metering-5gb-default) | Storage metering · 5 GB default | P0 | ✅ | autopilot |
 | [P3](#p3--ai-meter--byo-api-key) | AI usage meter · BYO API key | P1 | ✅ | autopilot |
-| [P4](#p4--remove-community--all-desktop-apps) | Remove Community + **all** desktop apps | P1 | ✅ code done; P4.8 marketing copy human-pending | autopilot |
+| [P4](#p4--remove-community--all-desktop-apps) | Remove Community + **all** desktop apps | P1 | ✅ web-only (code + campaign copy) | autopilot |
 | ~~P5~~ | ~~Estimate desktop auth~~ — **cancelled 2026-07-19** (web-only) | — | ❌ | — |
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
 | [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | 🔄 P7.1 multi-tenant reports ✅; P7.2 blocked | autopilot |
@@ -129,7 +129,7 @@
 | P4.5 | Download page | ✅ `/download` redirects to `/` — permanent, nothing to download |
 | P4.6 | Remove `env.DESKTOP` / `IS_DESKTOP` + desktop-token plumbing | ✅ 2026-07-19 — `api-base.ts` collapsed to same-origin; `auth.runtime.desktop`/`mode` kept as deprecated constants so stale clients still parse |
 | P4.7 | Purge desktop install/download plumbing: `deploy/fetch-installers.sh`, `VITE_*_DOWNLOAD_URL`, `INSTALLER_REPO`, `@tauri-apps/api`, `frontend/public/manager.html` | ✅ 2026-07-19 |
-| P4.8 | Correct docs + published marketing copy claiming a desktop app | 🔄 docs done; **LinkedIn/Instagram campaigns bannered STALE, not rewritten** — replacement copy needs a pricing/positioning decision (human) |
+| P4.8 | Correct docs + published marketing copy claiming a desktop app | ✅ 2026-07-22 — LinkedIn/Instagram campaigns rewritten for **web-only** + **AORMS Standard** (no Lite/Pro, no offline desktop, CTA = signup/demo) |
 | P4.9 | **Drop ESTICAD** (native CAD companion) | ✅ 2026-07-19 — companion namespace + device-token auth removed; tables dropped 2026-07-21 (`0211`) |
 
 **✅ Resolved 2026-07-19 — browser takeoff.** The ban is **lifted**: measuring in
@@ -297,7 +297,7 @@ feature — keeps the spine honest before P9.V / P7 continue.
 P0 (human landing) ──► P1 migration ──► P2 storage
                               │
                               ├─► P3 AI key
-                              ├─► P4 remove community + ALL desktop  (✅ code; P4.8 human)
+                              ├─► P4 remove community + ALL desktop  (✅ code + P4.8 campaigns)
                               ├─► P6 SEO content
                               └─► P7 billing (P7.2 blocked on Stripe vs manual)
 
@@ -333,6 +333,7 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 
 | Date | Change |
 |------|--------|
+| 2026-07-22 | **P4.8 closed:** LinkedIn + Instagram campaign docs rewritten for web-only + AORMS Standard licence (removed Lite/Pro/desktop/offline/`/download` claims). Product direction confirmed: **browser apps only**. |
 | 2026-07-21 | Autopilot: **P7 platform usage reporting** — `hlp_usage_report` (migration `0213`), `POST /v1/report-usage`, admin dashboard aggregates current-month reports (local singleton fallback + self-report). |
 | 2026-07-21 | Autopilot: **Enquiry register + go/no-go** — `esti_cons_enquiry` (migration `0216`), scorecard + decide + convert→engagement (job code); `/consultancy/enquiries` intake UI.
 | 2026-07-21 | Autopilot: **Fee-stage ↔ Studio invoice** — `markInvoiced` raises an ISSUED tax invoice via shared `createStudioInvoice` (GST/TDS/POS), links `esti_cons_fee_stage.invoice_id` (migration `0215`); `markPaid` syncs invoice PAID; engagement UI shows ref + PDF cell. |

@@ -7,23 +7,12 @@
 **Companion doc:** [`INSTAGRAM-CAMPAIGN.md`](INSTAGRAM-CAMPAIGN.md) — shared product
 truth, brand voice and content rules apply here too.
 
-> ## ⛔ STALE — DO NOT PUBLISH (flagged 2026-07-19)
+> ## Product law (canonical — 2026-07-22)
 >
-> The product claims below are **factually wrong** and would misrepresent AORMS:
->
-> - **"AORMS-Lite free forever"** — tiers were retired 2026-07-09. There is one
->   **AORMS Standard** licence, **no free tier and no trial workspace**.
-> - **"offline Windows desktop app" / "data on your machine"** — AORMS is
->   **web-only**; all desktop apps were cancelled 2026-07-19.
->
-> Affected copy includes lines ~40–41, 57, 73, 126, 143–144, 180, 213–214, 248,
-> 256, 304, 335, 374, 382, 392, 409. The funnel metric ("Lite signups") also
-> needs rebasing on the real signup flow.
->
-> Rewriting this needs a **pricing/positioning decision**, not just an edit —
-> the current offer is one paid Standard licence with storage + AI usage billing
-> ([PLANS-AND-TIERS.md](../esti/PLANS-AND-TIERS.md)). Treat everything below as
-> historical until that rewrite lands.
+> - **Web-only.** No desktop apps, installers, or offline Manager. Workspace runs in the browser.
+> - **One AORMS Standard licence** — no Lite/Pro split, no free tier, no trial. Unlimited users; **5 GB** included; storage + hosted AI metered (or BYO key).
+> - **CTA:** `aorms.in` signup / demo — never `/download` or “Lite forever”.
+> - Law: [PLANS-AND-TIERS.md](../esti/PLANS-AND-TIERS.md). Companion IG doc shares the same product truth.
 
 ---
 
@@ -55,10 +44,9 @@ operations, because that is what this audience opens LinkedIn for.
    Honest before/after framing only — "what AORMS replaces", never "what client
    X achieved" unless a real, named, consenting user says it themselves.
 2. Product screenshots only from the demo workspace.
-3. Plan claims must match the live pricing band: **AORMS-Lite** free forever
-   (3 staff logins, unlimited projects/clients, offline Windows desktop app);
-   **AORMS-Pro** adds GST invoicing, HR/payroll, revision intelligence,
-   AI Studio, unlimited seats, self-hosting.
+3. Plan claims must match product law: one **AORMS Standard** licence — full
+   browser workspace (GST, HR/payroll, revision intelligence, AI Studio,
+   unlimited seats). **No desktop app. No free tier.**
 4. AI claims stay honest: *deterministic systems create the score; ESTI
    explains it.* No "AI will run your firm" hype.
 
@@ -72,7 +60,7 @@ operations, because that is what this audience opens LinkedIn for.
 |---|---|---|
 | **Principal / Partner** (5–50 staff) — *primary* | Peer visibility, hiring, business development | Fee leakage, revision economics, "stop being the only one who knows everything" |
 | **Studio manager / senior associate** | Career building, operational craft | Practice School: transmittals, registers, approval workflows — they forward it upward |
-| **Freelancer / young practice** | Finding collaborations and clients | Free Lite + the one-identity-across-studios story (AORMS-U) |
+| **Freelancer / young practice** | Finding collaborations and clients | Browser workspace + the one-identity-across-studios story (AORMS-U) |
 | **Adjacent influencers** — architecture educators, COA/IIA voices, AEC-tech commentators | Content and community | Build-in-public posts, India-first product story, collab material |
 
 ### Surfaces
@@ -88,7 +76,7 @@ Founder profile prerequisites before the campaign starts: headline rewritten to
 speak to the audience, not the résumé (e.g. *"Building AORMS — the operating
 system for Indian architecture practices. Stop losing fees to revisions you
 never agreed to."*), About section telling the why-I-built-this story,
-Featured section pinning the Lite signup link + best Practice School document.
+Featured section pinning the aorms.in signup/demo link + best Practice School document.
 
 ---
 
@@ -141,7 +129,7 @@ followed by people who haven't bought anything yet)
   or a ≤60s screen capture.
 - Examples: the revision register with category + source · client approval
   timestamped in the portal · fee stages showing earned-but-uninvoiced ·
-  26AS reconciliation matching · the offline desktop app (data on your machine).
+  26AS reconciliation matching · plan takeoff and estimating in the browser.
 
 **P4 — ESTI / honest AI**
 - "Most 'AI for AEC' is a chatbot wearing a hard hat." Contrast with ESTI:
@@ -158,8 +146,8 @@ followed by people who haven't bought anything yet)
 
 **P6 — Build-in-public / founder notes** (highest-reach pillar on LinkedIn)
 - Why I'm building an OS for Indian architecture practices — the origin post.
-- Design-decision posts: why revisions carry a source field; why Lite is free
-  forever; why the desktop app works offline; why we won't invent testimonials.
+- Design-decision posts: why revisions carry a source field; why we stayed
+  web-only (no desktop installers); why we won't invent testimonials.
 - Monthly changelog: "What shipped in AORMS this month" (company page +
   founder repost).
 - Honest struggle posts perform disproportionately well — "what we got wrong
@@ -195,7 +183,7 @@ but low-competition — good for reflective P6 posts. Test and re-tune monthly.
 - Add **1 LinkedIn Live or Audio event/month**: practice-management conversation
   with a practising principal (same guest sourcing as the Instagram collab Lives).
 - Convert the top newsletter issues into gated-nothing PDF guides featured on
-  the company page (no email-wall — the free Lite signup is the only ask).
+  the company page (no email-wall — the aorms.in signup/demo is the only ask).
 - Milestone cadence: repost every earned AORMS-U/AORMS-C identity (with consent).
 
 **Non-negotiables:**
@@ -228,9 +216,10 @@ but low-competition — good for reflective P6 posts. Test and re-tune monthly.
 > practices actually work: COA fee stages, SAC codes, 26AS reconciliation,
 > client approvals that carry a timestamp instead of a scroll position.
 >
-> The Lite edition is free forever — 3 staff logins, unlimited projects, runs
-> offline on your own machine. Because a two-person studio in its first year
-> needs a real record more than anyone, and can afford it least.
+> Everything runs in the browser — no desktop install, no offline Manager.
+> One standard licence, full workspace, start at aorms.in. A two-person studio
+> in its first year needs a real record more than anyone; we kept the product
+> one licence deep so the offer stays honest.
 >
 > We're early. We won't show you fake testimonials or invented case studies.
 > What I will show you, every week here, is exactly what we're building and why.
@@ -263,7 +252,7 @@ but low-competition — good for reflective P6 posts. Test and re-tune monthly.
 > scope change). Not for bureaucracy. So the leak becomes visible while it can
 > still be billed.
 >
-> Free Lite edition for small practices — link in the first comment.
+> Browser workspace for practices of every size — link in the first comment.
 
 ### 5.3 Document post — "COA fee stages → invoiceable events" (P2, 10 pages)
 
@@ -271,8 +260,8 @@ Page 1 (hook): **"You quoted a lump sum. COA gave you stages. This map is the
 difference between cash flow and hope."** Pages 2–8: each stage, its deliverable,
 and its invoice trigger. Page 9: "Earned but uninvoiced — the number most
 practices can't produce." Page 10: soft CTA — "AORMS tracks fee stages per
-project and shows earned-vs-invoiced per client. Lite is free forever. Link in
-comments."
+project and shows earned-vs-invoiced per client. Web-only workspace at aorms.in.
+Link in comments."
 
 ### 5.4 Text post — the honest-AI contrarian (P4)
 
@@ -319,7 +308,7 @@ comments."
 > • [feature] — [one line]
 > • [fix/improvement] — [one line]
 > Every item exists because a practice hit the problem. Full notes: aorms.in
-> (link in comments). AORMS-Lite is free forever for up to 3 staff.
+> (link in comments). Full AORMS-Studio workspace in the browser — aorms.in.
 
 ### 5.7 Poll posts (1–2/month, founder profile)
 
@@ -350,7 +339,7 @@ comments."
    bypassing feed decay. Repurposes Practice School content.
 5. **Milestone flywheel.** Every earned AORMS-U/AORMS-C (with consent):
    congratulate → repost → tag. Unfakeable proof of real usage, compounding.
-6. **DM discipline.** No cold pitching, ever. Inbound "how does Lite work?"
+6. **DM discipline.** No cold pitching, ever. Inbound "how does signup work?"
    DMs answered by a human within hours; the only link ever sent is aorms.in
    with UTM tags.
 7. **Cross-surface loop.** LinkedIn document post ↔ Instagram carousel ↔
@@ -389,7 +378,7 @@ Do **not** start ads before Month 3; organic content is the message-market-fit
 lab. When ready, smallest viable program:
 
 1. **Retarget only, first.** Sponsored-content retargeting of company-page
-   visitors and video viewers with the best organic P2 document + Lite CTA.
+   visitors and video viewers with the best organic P2 document + signup CTA.
    Budget: ₹15–25k/month test.
 2. **Thought-leader ads** (boosting the founder's best organic posts) beat
    brand ads on CPM and credibility — use the origin post (§5.1) and the
@@ -397,7 +386,7 @@ lab. When ready, smallest viable program:
 3. Audience: India · job titles Principal Architect / Partner / Director /
   Studio Manager · industry Architecture & Planning · company size 2–200.
 4. Objective: traffic to aorms.in with UTM (`utm_source=li&utm_medium=paid`).
-   Judge on Lite signups, never on impressions.
+   Judge on Standard workspace signups, never on impressions.
 
 ---
 
@@ -407,7 +396,7 @@ lab. When ready, smallest viable program:
 |---|---|---|
 | Weeks 1–4 | Founder-post impressions + profile views trend | 3 posts/wk shipped; 100% comment replies |
 | Months 2–3 | Document-post saves & newsletter subscribers | Follower quality (India %, role mix); comment depth |
-| Month 4+ | **Lite signups attributed to LinkedIn** (`utm_source=li`) | 100-hour IDs earned by LI-attributed cohort; Live attendance |
+| Month 4+ | **Standard workspace signups attributed to LinkedIn** (`utm_source=li`) | 100-hour IDs earned by LI-attributed cohort; Live attendance |
 
 Monthly ritual (same as Instagram): top/bottom 3 posts by dwell-proxy
 (comments + saves) and by link clicks → double down / kill; poll answers →
@@ -424,7 +413,7 @@ signs up outweighs 10,000 impressions.
 | Day | Surface | Post |
 |---|---|---|
 | Tue W1, 9 am | Founder | §5.1 origin post (campaign opener) |
-| Wed W1, 12:30 pm | Company | Page launch post: what AORMS is + Lite free forever |
+| Wed W1, 12:30 pm | Company | Page launch post: what AORMS is + web-only Standard licence |
 | Thu W1, 9 am | Founder | §5.3 COA fee-stages document post |
 | Fri W1, 9 am | Company | Repost Thursday's document with added context |
 | Sat W1, 11 am | Founder | §5.5 "Why you can't buy our ID" |

@@ -1495,7 +1495,7 @@ jobs:
 
 **Frontend**
 - [ ] Mobile app (iOS/Android)
-- [ ] Desktop app (Electron/Tauri)
+- [x] ~~Desktop app (Electron/Tauri)~~ — **cancelled**; AORMS is web-only (2026-07-19)
 - [ ] Advanced reporting UI
 
 ### Phase 4: AEC apps & growth (Year 2)
