@@ -4,12 +4,12 @@ metaTitle: Architect Document Approval System for Projects and Clients
 metaDescription: Architect document approval system for drawings, submissions, client decisions, consultant comments and approval evidence in one project record.
 keyword: architect document approval system
 category: moat
-updated: 2026-06-25
+updated: 2026-07-22
 intro: Keep drawing and document approvals traceable so decisions do not disappear into email, chat or folder names.
 ---
 
-An architect document approval system is the difference between ìI think they
-approved itî and a project record that shows what was issued, who saw it, what was
+An architect document approval system is the difference between ‚ÄúI think they
+approved it‚Äù and a project record that shows what was issued, who saw it, what was
 approved and what changed after approval. For architecture firms, this matters
 because drawings and documents are not passive files. They carry decisions.
 
@@ -25,7 +25,7 @@ In a design office, approval can apply to many records:
 - Design options
 - Client decisions
 - Consultant submissions
-- Tender documents
+- Bid / issue packages
 - Site instructions
 - Fee and scope confirmations
 
@@ -82,7 +82,7 @@ email trails. Principals can review risk without entering every folder.
 ## Approvals as part of the office system
 
 Document approvals connect naturally to other AORMS modules. A client approval can
-affect revision history. A consultant comment can create a task. A tender document
+affect revision history. A consultant comment can create a task. An issued package document
 can move to a contractor scope. An approved stage can support fee recovery. This
 is why approvals should not sit in a separate tool.
 
@@ -93,7 +93,7 @@ order exist around decisions.
 
 Document approval also depends on who is allowed to see what. A client may need
 issued drawings and decision requests. A consultant may need an RFI thread and the
-current drawing set. A contractor may need tender documents and nothing beyond
+current drawing set. A contractor may need issued packages and nothing beyond
 that scope. AORMS keeps these views controlled so the office does not expose its
 entire internal record just to move one approval forward.
 

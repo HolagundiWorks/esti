@@ -4,7 +4,7 @@ metaTitle: Architecture Software India � India-Native Billing, Fee Recovery & 
 metaDescription: Architecture software India that is India-native by default � GST, TDS, SAC codes, April�March FY, COA stages, fee recovery signals and MoM-to-approval revision tracking, not bolted on.
 keyword: architecture software india
 category: india
-updated: 2026-07-10
+updated: 2026-07-22
 intro: Most architecture software is built for somewhere else, then patched for India � AORMS starts from how Indian practices actually bill, recover fees, track revisions and design.
 ---
 

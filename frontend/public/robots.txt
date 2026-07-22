@@ -21,8 +21,9 @@ User-agent: CCBot
 Allow: /
 Allow: /sitemap.xml
 
-# Keyword landing pages (/architecture-office-management-software, etc.) are
-# crawlable by default.
+# Marketing consolidation (2026-07): keyword landings and /blog redirect to /
+# in the SPA. Canonical indexed surfaces: / and /login. Content markdown is
+# retained for rebuilds; do not advertise removed paths as live URLs.
 
 # Block authenticated app routes — these require login and must not be indexed
 Disallow: /dashboard

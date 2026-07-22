@@ -44,7 +44,7 @@
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
 | [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | ✅ P7.1–P7.3 manual India path | autopilot |
 | [P8](#p8--browser-takeoff-replaces-esticad) | Browser takeoff (replaces ESTICAD) | P1 | ✅ | autopilot |
-| [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | ✅ P9.0–P9.4 + SOP + R&O; 🔄 P9.V / P9.M human | autopilot |
+| [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | ✅ P9.0–P9.4 + SOP + R&O + fee UX polish; 🔄 P9.V human walkthrough / P9.M | autopilot |
 | [P10](#p10--2026-07-21-hygiene--rebrand--deps) | Hygiene · rebrand · deps (landed) | P0 | ✅ | autopilot |
 
 ---
@@ -300,8 +300,8 @@ P5 (Estimate desktop auth) — CANCELLED 2026-07-19, web-only
 
 P8 browser takeoff — ✅
 
-P9 (AORMS-Consultancy) — P9.0–P9.4 + SOP + R&O ✅;
-   P9.V human fee UX ACTIVE; P9.M launch gated
+P9 (AORMS-Consultancy) — P9.0–P9.4 + SOP + R&O + fee UX polish ✅;
+   P9.V human walkthrough ACTIVE; P9.M launch gated
 
 P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 
@@ -332,6 +332,7 @@ Pre-con R&O — Studio + Consultancy ✅ (0218/0219) — see framework doc
 
 | Date | Change |
 |------|--------|
+| 2026-07-22 | **SEO + blog feed refresh** — `index.html` / `llms.txt` / landing JSON-LD / architecture FAQ / sitemap / robots / investor deck / `blog/feed.xml` aligned to web-only + Consultancy launch-gated; all 30 SEO landing markdowns bumped (no tenders-module claims; R&O note on project page). |
 | 2026-07-22 | **P9.V fee UX polish** — engagement commercial surface: success toasts; ConfirmModal for raise invoice / mark paid / delete / approve variation; hide delete on INVOICED/PAID; fee model + agreed fee on create; **Edit terms** dialog (fee model, total, Studio project link); empty fee-stages CTA. Human walkthrough still the ship gate. |
 | 2026-07-22 | **P4.8 closed:** LinkedIn + Instagram campaign docs rewritten for web-only + AORMS Standard licence (removed Lite/Pro/desktop/offline/`/download` claims). Product direction confirmed: **browser apps only**. |
 | 2026-07-22 | Docs sweep: reconciled **ROADMAP**, **UNIFIED-ARCHITECTURE-V4** System state, nomenclature, PRD Projects (R&O), README, PRODUCT-VISION, REBRANDING, SURFACE-URLS, Consultancy operating-model §9, marketing brief — Consultancy = code-complete / launch-gated; removed stale live claims (`knowledgeBank`, `companion`, PMC). |

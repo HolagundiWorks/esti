@@ -4,7 +4,7 @@ metaTitle: COA Compliant Architecture Billing System
 metaDescription: A COA compliant architecture billing system that structures fees by COA Scale of Charges service stages and bills against phase milestones � with GST and TDS built in.
 keyword: coa compliant architecture billing system
 category: india
-updated: 2026-07-10
+updated: 2026-07-22
 intro: Fees structured by COA service stages, then billed only as each phase is delivered � so what you propose and what you invoice never drift apart.
 ---
 

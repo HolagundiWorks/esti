@@ -4,7 +4,7 @@ metaTitle: Architecture Project Record Software India � Consultancy Delivery
 metaDescription: Architecture project record software for Indian consultancies � phases, drawing registers, revision tracking, fee milestones, approvals and client portal on one auditable record. Not generic construction project management.
 keyword: architecture project management software
 category: solution
-updated: 2026-07-10
+updated: 2026-07-22
 intro: From the project brief through phases, drawings, revisions and delivery, AORMS keeps a single project lifecycle on one auditable record � with fee recovery and revision control built into every stage.
 ---
 
@@ -58,6 +58,10 @@ Because site delivery uses the same record as design phases, a site instruction 
 AORMS is India-native by default. Money is handled in paise, the financial year runs April to March, fee proposals follow the COA Scale of Charges, and GST/TDS workflows stay connected to the project record. The system is cloud SaaS with role-based access, so your project data � drawings, fees, client decisions � stays on infrastructure you control.
 
 If you are evaluating AORMS for the wider practice, the [architecture practice management software](/architecture-practice-management-software) and [software for architecture firms](/software-for-architecture-firms) pages cover the office-level view. To see the project record in motion, [book a demo](/login).
+
+## Pre-construction risk & opportunity
+
+Before issue, AORMS-Studio keeps a project **risk register**, **opportunity scorecard**, and **design phase gates** (concept → schematic → detailed → issue readiness) on Brief → R&O — consultancy delivery, not construction PM.
 
 ## Frequently asked questions
 

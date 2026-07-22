@@ -4,7 +4,7 @@ metaTitle: Architecture Firm Management Software � Fee Recovery & Revision Con
 metaDescription: Architecture firm management software that ties the fee pipeline, invoice recovery, billing due dates, client revision tracking and team utilisation into one principal's view. Cloud-hosted, India-native.
 keyword: architecture firm management software
 category: solution
-updated: 2026-07-10
+updated: 2026-07-22
 intro: One place to see every live project, what is ready to invoice, which fees have been collected, where revision risk is building, and who on the team is over or under-loaded.
 ---
 

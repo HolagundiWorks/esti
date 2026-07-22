@@ -4,7 +4,7 @@ metaTitle: Architecture Workflow Management Software
 metaDescription: Architecture workflow management for Indian practices � approvals, transmittals, tasks, letters and contracts, all on an immutable audit trail.
 keyword: architecture workflow management
 category: solution
-updated: 2026-06-24
+updated: 2026-07-22
 intro: Approvals, transmittals, tasks, letters and contracts � AORMS defines how work moves through an architecture office and records every step on an immutable trail.
 ---
 

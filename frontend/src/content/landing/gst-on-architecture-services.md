@@ -4,7 +4,7 @@ metaTitle: GST on Architecture Services India � Rate, SAC Code & Invoicing
 metaDescription: How GST applies to architecture work in India � the 18% rate, the SAC code for architectural services, when registration is required, TDS under 194J, and how AORMS bills it correctly.
 keyword: gst on architecture work
 category: india
-updated: 2026-06-24
+updated: 2026-07-22
 intro: A plain-language guide to how GST applies to architecture work in India � the rate, the SAC code, registration, and getting each invoice right � and how AORMS handles it by default.
 ---
 
