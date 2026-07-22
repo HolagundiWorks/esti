@@ -24,7 +24,7 @@ are **not** current product state — see system state below.
 | App | Status |
 | --- | --- |
 | **AORMS-Studio** (architecture) | Shipping — this monorepo; pre-con R&O on Brief → R&O |
-| **AORMS-Consultancy** (engineering) | Core + SOP + R&O **code-complete**; **P9.V** human fee UX + **P9.M** launch still gated — see product autopilot |
+| **AORMS-Consultancy** (engineering) | Core + SOP + R&O **code-complete**; fee UX polish landed; **P9.V** human walkthrough + **P9.M** launch still gated |
 
 ## Recent landings (2026-07-21 → 22)
 
@@ -34,21 +34,14 @@ are **not** current product state — see system state below.
 | **P7 billing** | ✅ P7.1 multi-tenant usage · P7.2 CSV + mark-billed · P7.3 suspend-for-non-payment (Stripe auto-billing deferred by choice) |
 | **P9 SOP** | ✅ Transmittal ack · fee-stage Studio invoices · enquiry go/no-go · closeout (lessons · NC/CAPA · MoM · WIP · contract review · litigation hold) — migrations `0214`–`0217` |
 | **Pre-con R&O** | ✅ Shared framework — Consultancy `0218` + Studio `0219` (risk · opportunity · design phase gates) |
+| **P4.8** | ✅ Web-only LinkedIn/Instagram campaign copy |
+| **P9.V polish** | ✅ Fee UX — toasts, confirms, Edit terms, locked delete (human walkthrough remains) |
 
 ## Next (human-gated / deferred)
 
-<<<<<<< HEAD
-1. **P9.V** — human fee UX review (mutation wiring + closeout/pre-con router tests green)
-2. **P4.8** — replace stale LinkedIn/Instagram / campaign desktop copy
-3. **P9.M** — public launch of `consultancy.aorms.in` (gated on P9.V)
-4. **Stripe auto-billing / auto-suspend** — deferred by choice; manual India path is the shipping path
-=======
-1. **P9.V** — human fee UX review (mutation wiring tests landed; pure helpers + router stubs green)
+1. **P9.V** — human fee/variation/WIP walkthrough sign-off (autopilot polish done)
 2. **P9.M** — public launch of `consultancy.aorms.in` (gated on P9.V)
-3. Stripe auto-billing / auto-suspend — deferred by choice (manual India path ships)
-
-**Closed 2026-07-22:** **P4.8** social/campaign copy rewritten — AORMS is **web-only** (no desktop apps).
->>>>>>> ee30b479 (Close P4.8: web-only social campaigns + retire desktop copy.)
+3. **Stripe auto-billing / auto-suspend** — deferred by choice; manual India path is the shipping path
 
 ## Change rule
 

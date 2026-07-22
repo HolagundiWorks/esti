@@ -252,7 +252,7 @@ time commercials, and a risk register. Design lives in
 | P9.3c | SOP closeout + commercial links — transmittal ack, fee-stage invoices, enquiry go/no-go, lessons/NC/MoM/WIP/contract review/litigation hold | ✅ `0214`–`0217` |
 | P9.3d | Pre-con R&O — opportunity register + design phase gates (Consultancy + Studio parity) | ✅ `0218` + `0219` — [framework](AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md) |
 | P9.4 | Intelligence — firm-record Q&A + EOMS input-pack review; precedent search; deliverable lineage | ✅ **code-complete 2026-07-21** — `ask` + `eomsReview` + **`precedentSearch`** + **`deliverableLineage`** + **`calcPackages`** + **EOMS compliance UI** + **`analytics.capacityOutlook`** + Ask digest trust boundary |
-| P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | 🔄 automated tests landed; **still open: human fee UX review** |
+| P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | 🔄 automated tests ✅ · fee UX polish ✅ (toasts, confirms, Edit terms, locked delete) · **still open: human sign-off walkthrough** |
 | P9.M | Marketing/launch surface — `consultancy.aorms.in`, landing copy | 🔄 landing markdown exists; launch gated on P9.V |
 
 **Risk note.** Treat "code-complete" as "implemented + unit-tested", not
@@ -332,11 +332,9 @@ Pre-con R&O — Studio + Consultancy ✅ (0218/0219) — see framework doc
 
 | Date | Change |
 |------|--------|
-<<<<<<< HEAD
-| 2026-07-22 | Docs sweep: reconciled **ROADMAP**, **UNIFIED-ARCHITECTURE-V4** System state, nomenclature, PRD Projects (R&O), README, PRODUCT-VISION, REBRANDING, SURFACE-URLS, Consultancy operating-model §9, marketing brief — Consultancy = code-complete / launch-gated; removed stale live claims (`knowledgeBank`, `companion`, PMC). |
-=======
+| 2026-07-22 | **P9.V fee UX polish** — engagement commercial surface: success toasts; ConfirmModal for raise invoice / mark paid / delete / approve variation; hide delete on INVOICED/PAID; fee model + agreed fee on create; **Edit terms** dialog (fee model, total, Studio project link); empty fee-stages CTA. Human walkthrough still the ship gate. |
 | 2026-07-22 | **P4.8 closed:** LinkedIn + Instagram campaign docs rewritten for web-only + AORMS Standard licence (removed Lite/Pro/desktop/offline/`/download` claims). Product direction confirmed: **browser apps only**. |
->>>>>>> ee30b479 (Close P4.8: web-only social campaigns + retire desktop copy.)
+| 2026-07-22 | Docs sweep: reconciled **ROADMAP**, **UNIFIED-ARCHITECTURE-V4** System state, nomenclature, PRD Projects (R&O), README, PRODUCT-VISION, REBRANDING, SURFACE-URLS, Consultancy operating-model §9, marketing brief — Consultancy = code-complete / launch-gated; removed stale live claims (`knowledgeBank`, `companion`, PMC). |
 | 2026-07-21 | Autopilot: **P7 platform usage reporting** — `hlp_usage_report` (migration `0213`), `POST /v1/report-usage`, admin dashboard aggregates current-month reports (local singleton fallback + self-report). |
 | 2026-07-21 | Autopilot: **Enquiry register + go/no-go** — `esti_cons_enquiry` (migration `0216`), scorecard + decide + convert→engagement (job code); `/consultancy/enquiries` intake UI.
 | 2026-07-21 | Autopilot: **Fee-stage ↔ Studio invoice** — `markInvoiced` raises an ISSUED tax invoice via shared `createStudioInvoice` (GST/TDS/POS), links `esti_cons_fee_stage.invoice_id` (migration `0215`); `markPaid` syncs invoice PAID; engagement UI shows ref + PDF cell. |

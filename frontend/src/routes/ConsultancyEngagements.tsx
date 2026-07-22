@@ -70,6 +70,7 @@ import {
   nextMdrSequence,
 } from "@esti/contracts";
 import { useScreenActions, type DockAction } from "@hcw/ui-kit";
+import { ConfirmModal } from "../components/ConfirmModal.js";
 import { DataState } from "../components/DataState.js";
 import { EngagementCloseoutPanels } from "../components/consultancy/EngagementCloseoutPanels.js";
 import { EngagementPreconPanels } from "../components/consultancy/EngagementPreconPanels.js";
@@ -78,7 +79,16 @@ import { PageBreadcrumb } from "../components/PageBreadcrumb.js";
 import { RailLayout } from "../components/RailLayout.js";
 import { RowActionsMenu } from "../components/RowActionsMenu.js";
 import { StatusDot, StatusTag } from "../components/StatusTag.js";
+import { pushToast } from "../lib/toast.js";
 import { trpc } from "../lib/trpc.js";
+
+type FeeConfirm =
+  | { kind: "invoice"; id: string; label: string }
+  | { kind: "paid"; id: string; label: string }
+  | { kind: "delFee"; id: string; label: string }
+  | { kind: "approveVo"; id: string; label: string }
+  | { kind: "delVo"; id: string; label: string }
+  | null;
 
 const MODELS = EngagementModel.options;
 const DISCIPLINES = EngineeringDiscipline.options;
@@ -124,11 +134,16 @@ export function ConsultancyEngagements() {
       invalidate();
       setSelectedId(row.id);
       setEngOpen(false);
+      pushToast({ kind: "success", title: "Engagement created" });
     },
   });
   const updateEngagement = trpc.consultancy.engagements.update.useMutation({
     meta: { errorTitle: "Couldn't update the engagement" },
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      setFeeTermsOpen(false);
+      pushToast({ kind: "success", title: "Commercial terms saved" });
+    },
   });
   const removeEngagement = trpc.consultancy.engagements.remove.useMutation({
     meta: { errorTitle: "Couldn't delete the engagement" },
@@ -188,19 +203,31 @@ export function ConsultancyEngagements() {
     onSuccess: () => {
       invalidate();
       setVoOpen(false);
+      pushToast({ kind: "success", title: "Variation raised" });
     },
   });
   const approveVariation = trpc.consultancy.variations.approve.useMutation({
     meta: { errorTitle: "Couldn't approve the variation" },
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      setFeeConfirm(null);
+      pushToast({ kind: "success", title: "Variation approved — billable stage added" });
+    },
   });
   const rejectVariation = trpc.consultancy.variations.reject.useMutation({
     meta: { errorTitle: "Couldn't reject the variation" },
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      pushToast({ kind: "success", title: "Variation rejected" });
+    },
   });
   const removeVariation = trpc.consultancy.variations.remove.useMutation({
     meta: { errorTitle: "Couldn't delete the variation" },
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      setFeeConfirm(null);
+      pushToast({ kind: "success", title: "Variation deleted" });
+    },
   });
 
   // Typed project brief — the design-basis parameter set.
@@ -411,15 +438,24 @@ export function ConsultancyEngagements() {
     onSuccess: () => {
       invalidate();
       setFeeOpen(false);
+      pushToast({ kind: "success", title: "Fee stage added" });
     },
   });
   const markInvoiced = trpc.consultancy.feeStages.markInvoiced.useMutation({
-    meta: { errorTitle: "Couldn't mark the stage invoiced" },
-    onSuccess: invalidate,
+    meta: { errorTitle: "Couldn't raise the Studio invoice" },
+    onSuccess: () => {
+      invalidate();
+      setFeeConfirm(null);
+      pushToast({ kind: "success", title: "Studio invoice raised" });
+    },
   });
   const markPaid = trpc.consultancy.feeStages.markPaid.useMutation({
     meta: { errorTitle: "Couldn't mark the stage paid" },
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      setFeeConfirm(null);
+      pushToast({ kind: "success", title: "Fee stage marked paid" });
+    },
   });
   const approveTime = trpc.consultancy.timesheets.approve.useMutation({
     meta: { errorTitle: "Couldn't approve the timesheets" },
@@ -427,7 +463,11 @@ export function ConsultancyEngagements() {
   });
   const removeFeeStage = trpc.consultancy.feeStages.remove.useMutation({
     meta: { errorTitle: "Couldn't delete the fee stage" },
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      setFeeConfirm(null);
+      pushToast({ kind: "success", title: "Fee stage deleted" });
+    },
   });
 
   // New-engagement dialog state.
@@ -436,12 +476,20 @@ export function ConsultancyEngagements() {
   const [engModel, setEngModel] = useState<EngagementModel>("FULL_DESIGN");
   const [engConsType, setEngConsType] = useState<ConsultancyType | "">("STRUCTURAL");
   const [engDiscipline, setEngDiscipline] = useState<EngineeringDiscipline>("STRUCTURAL");
+  const [engFeeModel, setEngFeeModel] = useState<FeeModel | "">("");
+  const [engFeeTotal, setEngFeeTotal] = useState(""); // rupees → paise
   // Custom-phase dialog.
   const [phaseOpen, setPhaseOpen] = useState(false);
   const [phaseName, setPhaseName] = useState("");
   const [phaseScope, setPhaseScope] = useState("");
   const [engStage, setEngStage] = useState("");
   const [engReliance, setEngReliance] = useState("");
+  const [feeConfirm, setFeeConfirm] = useState<FeeConfirm>(null);
+  const [feeTermsOpen, setFeeTermsOpen] = useState(false);
+  const [termsFeeModel, setTermsFeeModel] = useState<FeeModel | "">("");
+  const [termsFeeTotal, setTermsFeeTotal] = useState("");
+  const [termsProjectId, setTermsProjectId] = useState("");
+  const projectsQ = trpc.projectOffice.list.useQuery({ limit: 200, offset: 0 });
 
   // Log-time + rate-card dialogs (Phase 2 slice 2).
   const [timeOpen, setTimeOpen] = useState(false);
@@ -517,6 +565,7 @@ export function ConsultancyEngagements() {
   const anyDialogOpen =
     engOpen || delOpen || tqOpen || feeOpen || timeOpen || ratesOpen || voOpen ||
     packOpen || riskOpen || relOpen || askOpen || phaseOpen || briefOpen || frOpen ||
+    feeTermsOpen || !!feeConfirm ||
     !!crsFor || !!eomsFor || !!tqAnswerFor || !!tqCloseFor;
   useScreenActions(
     anyDialogOpen
@@ -532,6 +581,8 @@ export function ConsultancyEngagements() {
               setEngTitle("");
               setEngStage("");
               setEngReliance("");
+              setEngFeeModel("");
+              setEngFeeTotal("");
               setEngOpen(true);
             },
           },
@@ -1370,21 +1421,46 @@ export function ConsultancyEngagements() {
 
               {/* Fee position — stage billing tied to deliverable issue (Phase 2). */}
               <Box sx={{ pt: 1 }}>
-                <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  Fee position
-                </Typography>
+                <Stack direction="row" spacing={1} sx={{ alignItems: "baseline", mb: 0.5 }}>
+                  <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 600 }} className="esti-grow">
+                    Fee position
+                  </Typography>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => {
+                      setTermsFeeModel((detail.feeModel as FeeModel | null) ?? "");
+                      setTermsFeeTotal(
+                        detail.feeTotalPaise != null
+                          ? String((detail.feeTotalPaise ?? 0) / 100)
+                          : "",
+                      );
+                      setTermsProjectId(detail.projectId ?? "");
+                      setFeeTermsOpen(true);
+                    }}
+                  >
+                    Edit terms
+                  </Button>
+                </Stack>
                 <span className="esti-label esti-label--secondary">
                   {detail.feePosition
                     ? (detail.feeModel
                         ? `${FEE_MODEL_LABEL[detail.feeModel as FeeModel] ?? detail.feeModel} · agreed ${formatINR(detail.feePosition.agreedPaise)}`
-                        : "No fee model recorded") +
+                        : "No fee model recorded — use Edit terms") +
                       ` · staged ${formatINR(detail.feePosition.stagedPaise)} · billable ${formatINR(detail.feePosition.billablePaise)} · invoiced ${formatINR(detail.feePosition.invoicedPaise)} · paid ${formatINR(detail.feePosition.paidPaise)}` +
                       (detail.feePosition.outstandingPaise > 0
                         ? ` · outstanding ${formatINR(detail.feePosition.outstandingPaise)}`
-                        : "")
+                        : "") +
+                      (detail.projectId
+                        ? ""
+                        : " · Studio project not linked (required to raise invoices)")
                     : "Fee position is visible to finance roles only."}
                 </span>
-                {detail.feeStages.length > 0 && (
+                {detail.feeStages.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    No fee stages yet. Use Add fee stage in the dock to schedule billing.
+                  </Typography>
+                ) : (
                   <TableContainer sx={{ mt: 1 }}>
                     <Table size="small" aria-label="Fee stages">
                       <TableHead>
@@ -1400,6 +1476,7 @@ export function ConsultancyEngagements() {
                       <TableBody>
                         {detail.feeStages.map((f) => {
                           const linked = detail.deliverables.find((d) => d.id === f.deliverableId);
+                          const locked = f.status === "INVOICED" || f.status === "PAID";
                           return (
                             <TableRow key={f.id}>
                               <TableCell>{f.label}</TableCell>
@@ -1461,7 +1538,14 @@ export function ConsultancyEngagements() {
                                               : "Raise Studio invoice (link Studio project first)",
                                             disabled:
                                               !detail.projectId || markInvoiced.isPending,
-                                            onClick: () => markInvoiced.mutate({ id: f.id }),
+                                            onClick: () =>
+                                              detail.projectId
+                                                ? setFeeConfirm({
+                                                    kind: "invoice",
+                                                    id: f.id,
+                                                    label: f.label,
+                                                  })
+                                                : setFeeTermsOpen(true),
                                           },
                                         ]
                                       : []),
@@ -1470,16 +1554,30 @@ export function ConsultancyEngagements() {
                                           {
                                             label: "Mark paid",
                                             disabled: markPaid.isPending,
-                                            onClick: () => markPaid.mutate({ id: f.id }),
+                                            onClick: () =>
+                                              setFeeConfirm({
+                                                kind: "paid",
+                                                id: f.id,
+                                                label: f.label,
+                                              }),
                                           },
                                         ]
                                       : []),
-                                    {
-                                      label: "Delete",
-                                      danger: true,
-                                      disabled: removeFeeStage.isPending,
-                                      onClick: () => removeFeeStage.mutate({ id: f.id }),
-                                    },
+                                    ...(!locked
+                                      ? [
+                                          {
+                                            label: "Delete",
+                                            danger: true as const,
+                                            disabled: removeFeeStage.isPending,
+                                            onClick: () =>
+                                              setFeeConfirm({
+                                                kind: "delFee",
+                                                id: f.id,
+                                                label: f.label,
+                                              }),
+                                          },
+                                        ]
+                                      : []),
                                   ]}
                                 />
                               </TableCell>
@@ -1541,21 +1639,31 @@ export function ConsultancyEngagements() {
                                           {
                                             label: "Approve — add billable stage",
                                             disabled: approveVariation.isPending,
-                                            onClick: () => approveVariation.mutate({ id: v.id }),
+                                            onClick: () =>
+                                              setFeeConfirm({
+                                                kind: "approveVo",
+                                                id: v.id,
+                                                label: v.code,
+                                              }),
                                           },
                                           {
                                             label: "Reject",
                                             disabled: rejectVariation.isPending,
                                             onClick: () => rejectVariation.mutate({ id: v.id }),
                                           },
+                                          {
+                                            label: "Delete",
+                                            danger: true as const,
+                                            disabled: removeVariation.isPending,
+                                            onClick: () =>
+                                              setFeeConfirm({
+                                                kind: "delVo",
+                                                id: v.id,
+                                                label: v.code,
+                                              }),
+                                          },
                                         ]
                                       : []),
-                                    {
-                                      label: "Delete",
-                                      danger: true,
-                                      disabled: removeVariation.isPending,
-                                      onClick: () => removeVariation.mutate({ id: v.id }),
-                                    },
                                   ]}
                                 />
                               </TableCell>
@@ -3275,6 +3383,29 @@ export function ConsultancyEngagements() {
               onChange={(e) => setEngStage(e.target.value)}
             />
             <TextField
+              id="cons-eng-fee-model"
+              select
+              label="Fee model (optional)"
+              value={engFeeModel}
+              onChange={(e) => setEngFeeModel(e.target.value as FeeModel | "")}
+              helperText="Commercial structure — can be set later via Edit terms"
+            >
+              <MenuItem value="">Not yet agreed</MenuItem>
+              {FeeModel.options.map((m) => (
+                <MenuItem key={m} value={m}>
+                  {FEE_MODEL_LABEL[m]}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="cons-eng-fee-total"
+              label="Agreed fee (₹, optional)"
+              value={engFeeTotal}
+              onChange={(e) => setEngFeeTotal(e.target.value)}
+              slotProps={{ htmlInput: { inputMode: "decimal" } }}
+              disabled={!engFeeModel}
+            />
+            <TextField
               id="cons-eng-reliance"
               label="Reliance scope (optional)"
               placeholder="What downstream parties may rely on"
@@ -3298,6 +3429,10 @@ export function ConsultancyEngagements() {
                 leadDiscipline: engDiscipline,
                 stage: engStage.trim() || undefined,
                 relianceScope: engReliance.trim() || undefined,
+                feeModel: engFeeModel || undefined,
+                feeTotalPaise: engFeeTotal.trim()
+                  ? Math.round(Number.parseFloat(engFeeTotal) * 100)
+                  : undefined,
               })
             }
           >
@@ -3425,6 +3560,127 @@ export function ConsultancyEngagements() {
             }
           >
             Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <ConfirmModal
+        open={!!feeConfirm}
+        heading={
+          feeConfirm?.kind === "invoice"
+            ? "Raise Studio invoice?"
+            : feeConfirm?.kind === "paid"
+              ? "Mark fee stage paid?"
+              : feeConfirm?.kind === "approveVo"
+                ? "Approve variation?"
+                : feeConfirm?.kind === "delVo"
+                  ? "Delete variation?"
+                  : "Delete fee stage?"
+        }
+        body={
+          feeConfirm?.kind === "invoice"
+            ? `Issues a GST tax invoice for “${feeConfirm.label}” (30-day terms) and links it to this stage.`
+            : feeConfirm?.kind === "paid"
+              ? `Marks “${feeConfirm.label}” paid and syncs the linked Studio invoice.`
+              : feeConfirm?.kind === "approveVo"
+                ? `Approves ${feeConfirm.label} and adds a billable fee stage.`
+                : feeConfirm?.kind === "delVo"
+                  ? `Permanently removes variation ${feeConfirm.label}.`
+                  : feeConfirm
+                    ? `Permanently removes fee stage “${feeConfirm.label}”.`
+                    : ""
+        }
+        confirmText={
+          feeConfirm?.kind === "invoice"
+            ? "Raise invoice"
+            : feeConfirm?.kind === "paid"
+              ? "Mark paid"
+              : feeConfirm?.kind === "approveVo"
+                ? "Approve"
+                : "Delete"
+        }
+        danger={feeConfirm?.kind === "delFee" || feeConfirm?.kind === "delVo"}
+        pending={
+          markInvoiced.isPending ||
+          markPaid.isPending ||
+          removeFeeStage.isPending ||
+          approveVariation.isPending ||
+          removeVariation.isPending
+        }
+        onConfirm={() => {
+          if (!feeConfirm) return;
+          if (feeConfirm.kind === "invoice") markInvoiced.mutate({ id: feeConfirm.id });
+          else if (feeConfirm.kind === "paid") markPaid.mutate({ id: feeConfirm.id });
+          else if (feeConfirm.kind === "delFee") removeFeeStage.mutate({ id: feeConfirm.id });
+          else if (feeConfirm.kind === "approveVo") approveVariation.mutate({ id: feeConfirm.id });
+          else if (feeConfirm.kind === "delVo") removeVariation.mutate({ id: feeConfirm.id });
+        }}
+        onClose={() => setFeeConfirm(null)}
+      />
+
+      <Dialog open={feeTermsOpen} onClose={() => setFeeTermsOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Commercial terms</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              id="cons-terms-fee-model"
+              select
+              label="Fee model"
+              value={termsFeeModel}
+              onChange={(e) => setTermsFeeModel(e.target.value as FeeModel | "")}
+            >
+              <MenuItem value="">Not yet agreed</MenuItem>
+              {FeeModel.options.map((m) => (
+                <MenuItem key={m} value={m}>
+                  {FEE_MODEL_LABEL[m]}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              id="cons-terms-fee-total"
+              label="Agreed fee (₹)"
+              value={termsFeeTotal}
+              onChange={(e) => setTermsFeeTotal(e.target.value)}
+              slotProps={{ htmlInput: { inputMode: "decimal" } }}
+              disabled={!termsFeeModel}
+              helperText="Stored as integer paise"
+            />
+            <TextField
+              id="cons-terms-project"
+              select
+              label="Linked Studio project"
+              value={termsProjectId}
+              onChange={(e) => setTermsProjectId(e.target.value)}
+              helperText="Required to raise Studio invoices from billable stages"
+            >
+              <MenuItem value="">— none —</MenuItem>
+              {(projectsQ.data ?? []).map((p) => (
+                <MenuItem key={p.id} value={p.id}>
+                  {[p.ref, p.title].filter(Boolean).join(" · ")}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setFeeTermsOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={!selectedId || updateEngagement.isPending}
+            onClick={() => {
+              if (!selectedId) return;
+              const total = termsFeeTotal.trim()
+                ? Math.round(Number.parseFloat(termsFeeTotal) * 100)
+                : undefined;
+              updateEngagement.mutate({
+                id: selectedId,
+                feeModel: termsFeeModel || undefined,
+                feeTotalPaise: Number.isFinite(total) ? total : undefined,
+                projectId: termsProjectId || undefined,
+              });
+            }}
+          >
+            Save
           </Button>
         </DialogActions>
       </Dialog>
