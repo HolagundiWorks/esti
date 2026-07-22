@@ -1,0 +1,33 @@
+---
+title: Try AORMS — the live demo and how to explore it
+date: 2026-05-18
+excerpt: A fully seeded AORMS-Studio practice on the public demo site — projects, billing, a team, client portals — sign in with the demo principal account.
+tags: Demo, Getting started, AORMS-Studio
+author: Human Centric Works
+---
+
+The fastest way to understand **AORMS-Studio** is to walk through a real office. The public demo site ships a complete, seeded architecture **consultancy**, not an empty shell.
+
+## Sign in to the demo workspace
+
+Open **[AORMS-Studio sign-in](/login)** and use the demo principal credentials shown on the login page for the hosted demo environment.
+
+You land in a live workspace as the principal architect — no separate signup flow.
+
+## What to look at
+
+- **Studio Intelligence** — the calm office picture: zone KPIs, Today's Focus, and Action Centre.
+- **Projects** — phases, tasks, drawings, decisions, and revisions on a live project set.
+- **The client portal** — switch into the client view to see issued drawings, transmittals, invoices and approvals from the client's side.
+- **The contractor portal** — open the contractor link to see issued drawings, transmittals, and the "raise a query" flow.
+- **Library** — specification catalogues, standard items, compliance reference, and master plans.
+
+A demo switcher in the corner lets you hop between roles — principal, project lead, site coordinator, junior, intern, and client — so you can see exactly how the hierarchy and scoped portals behave.
+
+## Resetting
+
+Explored enough to want a clean slate? The demo can be **reset** from system admin — it wipes the workspace and reseeds the canonical practice, so you always start from the same known state.
+
+Nothing here is a mock-up. Every number on the dashboard is computed from the seeded records — which is the point: it behaves like the real thing because it *is* the real thing, just pre-filled.
+
+For step-by-step onboarding after the demo, see the **[AORMS Wiki](https://wiki.aorms.in/getting-started)**.

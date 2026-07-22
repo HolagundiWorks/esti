@@ -332,6 +332,7 @@ Pre-con R&O — Studio + Consultancy ✅ (0218/0219) — see framework doc
 
 | Date | Change |
 |------|--------|
+| 2026-07-22 | **Blog restored + five new posts** — `/blog` live again (routes, rail, footer); restored markdown archive; EmOI→EOMS copy; new posts on web-only, pre-con R&O, Consultancy same spine, fee stages↔invoices, One Standard licence; `feed.xml` + sitemap + robots updated. |
 | 2026-07-22 | **SEO + blog feed refresh** — `index.html` / `llms.txt` / landing JSON-LD / architecture FAQ / sitemap / robots / investor deck / `blog/feed.xml` aligned to web-only + Consultancy launch-gated; all 30 SEO landing markdowns bumped (no tenders-module claims; R&O note on project page). |
 | 2026-07-22 | **P9.V fee UX polish** — engagement commercial surface: success toasts; ConfirmModal for raise invoice / mark paid / delete / approve variation; hide delete on INVOICED/PAID; fee model + agreed fee on create; **Edit terms** dialog (fee model, total, Studio project link); empty fee-stages CTA. Human walkthrough still the ship gate. |
 | 2026-07-22 | **P4.8 closed:** LinkedIn + Instagram campaign docs rewritten for web-only + AORMS Standard licence (removed Lite/Pro/desktop/offline/`/download` claims). Product direction confirmed: **browser apps only**. |

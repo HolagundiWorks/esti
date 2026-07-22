@@ -145,6 +145,8 @@ const ContractorPortalStub = lazyRoute(
 );
 const Lxos = lazyRoute(() => import("./routes/Lxos.js"), "Lxos");
 const SystemAdmin = lazyRoute(() => import("./routes/SystemAdmin.js"), "SystemAdmin");
+const Blog = lazyRoute(() => import("./routes/Blog.js"), "Blog");
+const BlogPost = lazyRoute(() => import("./routes/BlogPost.js"), "BlogPost");
 
 
 // ─── App ──────────────────────────────────────────────────────────────────────
@@ -270,18 +272,23 @@ function AppWorkspace() {
     }
   }
 
-  // Marketing consolidation (2026-07): the platform now ships a **single** landing at
-  // `/`. Every former marketing sub-page — wiki, blog, SEO keyword landings, the
-  // HCW-UI-Kit design-system showcase, investors, legal, about/contact, download, and
-  // the per-app marketing slugs — has been removed and now redirects to the landing.
-  // (Auth + account routes are handled below and are unaffected.)
+  // Blog is a live public surface again (2026-07-22). Other former marketing
+  // sub-pages — wiki, SEO keyword landings, design-system, investors, legal,
+  // about/contact, download, and per-app marketing slugs — still redirect home.
+  if (publicMarketing && (pathname === "/blog" || pathname.startsWith("/blog/")))
+    return (
+      <Routes>
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
+      </Routes>
+    );
+
   if (publicMarketing && pathname === "/demo")
     return <Navigate to="/login" replace />;
 
   if (publicMarketing) {
     const slug = pathname.replace(/^\/+/, "").replace(/\/+$/, "");
     const isRemovedMarketing =
-      pathname === "/blog" || pathname.startsWith("/blog/") ||
       pathname === WIKI_PATH || pathname.startsWith(`${WIKI_PATH}/`) ||
       pathname === "/design-system" ||
       pathname === "/development" ||

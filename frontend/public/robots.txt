@@ -17,13 +17,14 @@ User-agent: Google-Extended
 User-agent: Applebot-Extended
 User-agent: CCBot
 
-# Allow public landing page and assets
+# Allow public landing page, blog, and assets
 Allow: /
+Allow: /blog
+Allow: /blog/
 Allow: /sitemap.xml
 
-# Marketing consolidation (2026-07): keyword landings and /blog redirect to /
-# in the SPA. Canonical indexed surfaces: / and /login. Content markdown is
-# retained for rebuilds; do not advertise removed paths as live URLs.
+# Live public surfaces: / , /blog , /login .
+# Keyword landings / wiki / about / legal still redirect to / in the SPA.
 
 # Block authenticated app routes — these require login and must not be indexed
 Disallow: /dashboard
