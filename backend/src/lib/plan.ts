@@ -56,7 +56,7 @@ export async function licenseState(db: DB): Promise<LicenseState> {
     hrManagers: PLAN_LIMITS[plan].hrManagers,
   });
 
-  // Accept either the legacy ESTI hub token or a central License Panel token.
+  // Accept either the legacy ESTI hub token or an HCW License Manager token.
   const esti = verifyLicense(row.licenseToken);
   let derived:
     | {

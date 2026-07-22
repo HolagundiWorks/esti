@@ -98,7 +98,7 @@ Executable labels: `AORMS_PORTALS` in `frontend/src/lib/product-nomenclature.ts`
 | **Site portal** | Site portal | site supervisor session | Mobile-first site inspections |
 | **Personal account** | AORMS account | `/account` | Portable identity + licence hub |
 | **Company account** | Company account | `/company-account` | Firm owners: GST, members, admin |
-| **Licensing console** | Licensing console | `admin.aorms.in` · `/platform-admin` | Platform operators only |
+| **Licensing console** | Licensing console (**HCW License Manager**) | `admin.aorms.in` · `/platform-admin` | In-tree operators console — [HCW-LICENSE-MANAGER.md](HCW-LICENSE-MANAGER.md) |
 | **Consultancy marketing** | **AORMS-Consultancy** | `consultancy.aorms.in` · `/aorms-consultancy` | Engineering app (roadmap) |
 
 Frozen host map: [AORMS-SURFACE-URLS.md](AORMS-SURFACE-URLS.md).
@@ -163,6 +163,7 @@ library **ESTI** uses. See [KNOWLEDGE-BANK-PORTAL.md](KNOWLEDGE-BANK-PORTAL.md).
 | **AORMS portal** / **AORMS-Architecture** | **AORMS-Studio** | Staff workspace SPA |
 | **HiveD** | **AORMS-Studio** | Retired display name |
 | Risk / education / auditing as platform scope | **AEC only** — Architecture + Engineering | Retired (2026-07-11) |
+| **Holagundi License Panel** / **License Cloud** / sibling `holagundi-license-panel` | **HCW License Manager** (in-tree) | Merged 2026-06-28 — [HCW-LICENSE-MANAGER.md](HCW-LICENSE-MANAGER.md) |
 
 ---
 

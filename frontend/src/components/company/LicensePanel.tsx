@@ -138,8 +138,8 @@ export function LicensePanel() {
         </Stack>
 
         <Typography component="p" className="esti-label esti-label--helper">
-          Standard AORMS licence — billing and storage add-ons are handled by Holagundi
-          Consulting Works. Keys are issued when you subscribe or renew.
+          Standard AORMS licence — billing and storage add-ons are handled by Human
+          Centric Works. Keys are issued when you subscribe or renew.
         </Typography>
       </Stack>
     </Box>

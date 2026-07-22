@@ -10,11 +10,11 @@ import { createContext } from "./trpc/trpc.js";
 export type PlatformRouter = typeof appRouter;
 
 /**
- * Mount the merged Holagundi licensing platform under `/platform` on the AORMS
- * Fastify app: `/platform/auth/*`, `/platform/onboard`, `/platform/v1/*`, and a
- * separate tRPC at `/platform/trpc`. It uses its own Google session cookie
- * (`hlp_session`), distinct from AORMS's firm session. `@fastify/cookie` must be
- * registered on the app before this runs.
+ * Mount the in-tree HCW License Manager under `/platform` on the AORMS Fastify
+ * app: `/platform/auth/*`, `/platform/onboard`, `/platform/v1/*`, and admin tRPC
+ * at `/platform/trpc`. Uses its own session cookie (`hlp_session`), distinct
+ * from the firm session. `@fastify/cookie` must be registered before this runs.
+ * Docs: docs/esti/HCW-LICENSE-MANAGER.md.
  */
 export async function registerLicensingPlatform(app: FastifyInstance): Promise<void> {
   await app.register(

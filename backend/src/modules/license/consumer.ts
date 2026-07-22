@@ -62,8 +62,8 @@ export async function activate(db: DB, key: string): Promise<LicenseView> {
   const row = await getOrgSettings(db);
 
   if (env.ESTI_LICENSE_API_URL) {
-    // Central License Panel path: activate against /v1 and store the panel token
-    // (licenseState understands both the panel and the legacy hub formats).
+    // HCW License Manager path: activate against /v1 and store the panel token
+    // (licenseState understands both manager and legacy hub formats).
     const licenseToken = await activateViaPanel(key, installId);
     await db
       .update(orgSettings)
@@ -90,8 +90,8 @@ export async function activate(db: DB, key: string): Promise<LicenseView> {
   return toLicenseView(await licenseState(db));
 }
 
-/** Activate a key against the central License Panel `/v1/activate`; returns the
- *  signed panel license token. Throws on a bad key or an unreachable panel. */
+/** Activate a key against the HCW License Manager `/v1/activate`; returns the
+ *  signed panel license token. Throws on a bad key or an unreachable manager. */
 export async function activateViaPanel(key: string, deviceId: string): Promise<string> {
   const base = env.ESTI_LICENSE_API_URL.replace(/\/+$/, "");
   let res: Response;

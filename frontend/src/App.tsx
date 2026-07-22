@@ -119,7 +119,7 @@ const Vendors = lazyRoute(() => import("./routes/Vendors.js"), "Vendors");
 const Payroll = lazyRoute(() => import("./routes/Payroll.js"), "Payroll");
 const Profile = lazyRoute(() => import("./routes/Profile.js"), "Profile");
 const Portal = lazyRoute(() => import("./routes/Portal.js"), "Portal");
-// Merged Holagundi licensing platform admin (its own Google login + tRPC).
+// HCW License Manager console (in-tree; its own session cookie + /platform/trpc).
 const PlatformAdmin = lazyRoute(() => import("./platform-admin/Panel.js"), "default");
 // AORMS account + licence portal (hlp_account) — its own hub destination.
 const AccountPortal = lazyRoute(() => import("./routes/AccountPortal.js"), "AccountPortal");

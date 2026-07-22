@@ -207,7 +207,7 @@ export default function Login({
                 ? "AORMS Company"
                 : portal
                   ? "AORMS Account"
-                  : "Holagundi License Cloud"}
+                  : AORMS_PORTALS.auth.licensingHeadline}
             </Typography>
             <Typography variant="body2">
               {companyPortal

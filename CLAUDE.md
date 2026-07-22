@@ -52,6 +52,7 @@ not hard-code product strings in UI/SEO.
 | `/wiki` | Four-pillar wiki: HCW-UI · AORMS-Studio · AI core · Management |
 | `/access` | Client, consultant, contractor, site portal sign-in |
 | `/account` · `/company-account` | AORMS account & licensing hub |
+| **admin.aorms.in** · `/platform-admin` | **HCW License Manager** console (in-tree — `backend/src/licensing-platform/`, `frontend/src/platform-admin/`) |
 | `/libraries/knowledge-bank-portal` | Knowledge Bank portal (EOMS textbook library) |
 | **studio.aorms.in** · `/login` | **AORMS-Studio** workspace (architecture) |
 | **consultancy.aorms.in** · `/aorms-consultancy` | **AORMS-Consultancy** engineering marketing (roadmap) |

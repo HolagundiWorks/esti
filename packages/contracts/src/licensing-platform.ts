@@ -1,8 +1,8 @@
-// Holagundi licensing platform — central account/org/product/license model,
-// merged into AORMS (2026-06-28). Issues Ed25519-signed entitlement tokens that
-// products verify offline. NOTE: the license-lifecycle enum is `LicenseLifecycle`
-// here (ACTIVE/TRIAL/…) to avoid clashing with the consumer-side `LicenseStatus`
-// (VALID/GRACE/…) in license.ts.
+// HCW License Manager — central account/org/product/license model, internalised
+// into AORMS (2026-06-28). Issues Ed25519-signed entitlement tokens that products
+// verify offline. NOTE: the license-lifecycle enum is `LicenseLifecycle` here
+// (ACTIVE/TRIAL/…) to avoid clashing with the consumer-side `LicenseStatus`
+// (VALID/GRACE/…) in license.ts. Docs: docs/esti/HCW-LICENSE-MANAGER.md.
 import { z } from "zod";
 
 /** A product is either an installable app or a metered API. */

@@ -125,8 +125,9 @@ profile the installer offers it as a `y/N` add-on (non-interactive:
 
 ### Licensing console on its own subdomain (`admin.DOMAIN`)
 
-The **licensing console UI** is its own deployment (separate repo), served at
-`admin.DOMAIN`. When the platform is enabled, the installer defaults
+The **HCW License Manager** console UI ships **in this monorepo**
+(`frontend/src/platform-admin/` → Vite entry `dist/admin.html`). It is commonly
+served at `admin.DOMAIN`. When the platform is enabled, the installer defaults
 `VITE_ADMIN_URL=https://admin.DOMAIN` into `.env`, which does two things:
 
 - `https://DOMAIN/platform-admin` redirects to the console origin, and
@@ -138,10 +139,10 @@ The **licensing console UI** is its own deployment (separate repo), served at
 Deploy the console with `sudo bash deploy/install-admin-console.sh` (after the
 main install + an `admin.DOMAIN` DNS record): it serves the build's
 `dist/admin.html` entry on its own vhost with a same-box `/platform/` proxy and
-provisions TLS. A separate console repo can claim the subdomain instead — this
-script is just the built-in path. Set `VITE_ADMIN_URL=""` (empty) in `.env`
-before installing/updating to keep the embedded console at `/platform-admin`
-(the default for installs without the platform).
+provisions TLS. Set `VITE_ADMIN_URL=""` (empty) in `.env` before
+installing/updating to keep the embedded console at `/platform-admin`
+(the default for installs without the platform). See
+[HCW-LICENSE-MANAGER.md](../docs/esti/HCW-LICENSE-MANAGER.md).
 
 Google sign-in needs an OAuth client — set in `.env` after install (no code change):
 
