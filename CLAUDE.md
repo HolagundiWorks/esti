@@ -56,7 +56,6 @@ not hard-code product strings in UI/SEO.
 | `/libraries/knowledge-bank-portal` | Knowledge Bank portal (EOMS textbook library) |
 | **studio.aorms.in** · `/login` | **AORMS-Studio** workspace (architecture) |
 | **consultancy.aorms.in** · `/aorms-consultancy` | **AORMS-Consultancy** engineering marketing (roadmap) |
-| **admin.aorms.in** | Licensing console (operators only) |
 
 Frozen host map: [`docs/esti/AORMS-SURFACE-URLS.md`](docs/esti/AORMS-SURFACE-URLS.md) ·
 `frontend/src/lib/aorms-surface-urls.ts`.
