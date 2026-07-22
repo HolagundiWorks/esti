@@ -14,6 +14,9 @@ node_modules/
 
 # builds
 dist/
+# Vendored kit packages ship a committed built dist/ — keep them tracked.
+!vendor/*/dist/
+!vendor/*/dist/**
 build/
 *.tsbuildinfo
 
