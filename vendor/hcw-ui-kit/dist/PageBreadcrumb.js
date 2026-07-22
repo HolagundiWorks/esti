@@ -28,3 +28,4 @@ export function PageBreadcrumb({ items, linkComponent = "a", linkPropName = "hre
         }) }));
 }
 export default PageBreadcrumb;
+//# sourceMappingURL=PageBreadcrumb.js.map

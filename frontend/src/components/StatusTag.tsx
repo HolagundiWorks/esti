@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { StatusDot as KitStatusDot } from "@hcw/ui-kit";
+import { StatusDot as KitStatusDot, statusShapeFor, type StatusShape } from "@hcw/ui-kit";
 import type { TagColor } from "@esti/contracts";
 
 /**
@@ -15,29 +15,38 @@ export function StatusDot({
   color = "gray",
   label,
   size = "sm",
+  shape,
 }: {
   color?: TagColor | string;
   label: ReactNode;
   size?: "sm" | "md";
+  /** Preattentive channel — circle / triangle / square (kit STATUS_SHAPE). */
+  shape?: StatusShape;
 }) {
-  return <KitStatusDot color={color} label={label} size={size} />;
+  return <KitStatusDot color={color} label={label} size={size} shape={shape} />;
 }
 
 /**
  * The one status-badge primitive. Every status/enum column renders through this
  * so colour choices live in a single shared map (in `@esti/contracts`). Unknown
- * values fall back to neutral `gray`.
+ * values fall back to neutral `gray`. Optional `severity` maps to kit shape.
  */
 export function StatusTag<T extends string>({
   value,
   map,
   label,
   size = "sm",
+  severity,
 }: {
   value: T;
   map: Record<T, TagColor>;
   label?: ReactNode;
   size?: "sm" | "md";
+  /** Maps to kit STATUS_SHAPE (ok · watch · critical · inactive). */
+  severity?: "ok" | "watch" | "critical" | "inactive";
 }) {
-  return <StatusDot color={map[value] ?? "gray"} label={label ?? value} size={size} />;
+  const shape = severity ? statusShapeFor(severity) : undefined;
+  return (
+    <StatusDot color={map[value] ?? "gray"} label={label ?? value} size={size} shape={shape} />
+  );
 }

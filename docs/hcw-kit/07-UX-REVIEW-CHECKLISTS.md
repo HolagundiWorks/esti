@@ -1,7 +1,8 @@
 # UX review checklists — measurable rules per pattern
 
 Principles live in [HCW-UI-UX-PRINCIPLES.md](../esti/HCW-UI-UX-PRINCIPLES.md);
-these are the **countable** audit items per pattern. Each item is pass/fail with
+these are the **countable** audit items for the process **Evaluate** gate
+([HCW-UX-PROCESS.md](../HCW-UX-PROCESS.md) §3.4). Each item is pass/fail with
 `file:line` evidence. Extend items as audits discover new failure modes.
 
 ## Navigation

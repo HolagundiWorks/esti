@@ -11,6 +11,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import { chromeIconSx } from "@hcw/ui-kit";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ASK_ESTI_EVENT } from "../AiAgentCommand.js";
@@ -36,10 +37,8 @@ import { useOfficeHealth } from "./useOfficeHealth.js";
  *   RIGHT  — clock · alerts · ID · sign out.
  *
  * The top border carries the office-health signal (green/amber/red).
+ * Hit targets use kit `chromeIconSx` so COGA calm expands to 48px.
  */
-
-/** Persistent chrome hit target — WCAG 2.5.8 / Fitts. */
-const chromeIconSx = { width: 44, height: 44 };
 
 function TrayClock() {
   const [now, setNow] = useState(() => new Date());

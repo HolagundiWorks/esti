@@ -1,15 +1,33 @@
 {
   "name": "@hcw/ui-kit",
-  "version": "0.5.2",
+  "version": "1.4.0",
   "private": true,
   "type": "module",
-  "sideEffects": ["*.scss"],
-  "description": "HCW-UI-Kit — vendored BUILT copy of github.com/HolagundiWorks/hcwux. Do not edit here; edit upstream in the hcwux repo and re-vendor its dist/.",
+  "sideEffects": [
+    "*.scss",
+    "*.css"
+  ],
+  "description": "HCW-UI-Kit \u2014 vendored BUILT copy of github.com/HolagundiWorks/hcwux @ 1.4.0. Do not edit here; edit upstream in the hcwux repo and re-vendor its dist/.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
-    "./tokens": { "types": "./dist/tokens.d.ts", "import": "./dist/tokens.js" },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./tokens": {
+      "types": "./dist/tokens.d.ts",
+      "import": "./dist/tokens.js",
+      "default": "./dist/tokens.js"
+    },
+    "./token-export": {
+      "types": "./dist/token-export.d.ts",
+      "import": "./dist/token-export.js",
+      "default": "./dist/token-export.js"
+    },
+    "./tokens.json": "./dist/tokens.json",
+    "./tokens.css": "./dist/tokens.css",
     "./portal-chrome.scss": "./dist/portal-chrome.scss"
   },
   "peerDependencies": {

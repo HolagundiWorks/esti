@@ -37,9 +37,14 @@ documented product exception (marketing atmosphere in `landing.scss` is one).
 
 | Question | Read |
 |----------|------|
+| What is **HCW UX** (framework + process)? | [HCW-UX.md](../HCW-UX.md) |
+| What is the **UX framework** (purpose · KPIs · diagram)? | [HCW-UX-FRAMEWORK.md](../HCW-UX-FRAMEWORK.md) |
+| How do we **run** UX work (Plan → Improve)? | [HCW-UX-PROCESS.md](../HCW-UX-PROCESS.md) |
 | What colour / layer / component? | [HCW-UI-KIT.md](HCW-UI-KIT.md) |
 | What heuristic or law applies? | **This document** |
-| How should an AI surface (ESTI / Ask ESTI) report, ask, and defer? | [HCW-AI-ORCHESTRATION-UX.md](HCW-AI-ORCHESTRATION-UX.md) |
+| How should an AI surface report, ask, and defer? | [HCW-AI-ORCHESTRATION-UX.md](HCW-AI-ORCHESTRATION-UX.md) |
+| Construction stakeholders / lifecycle / field? | [HCW-CONSTRUCTION-UX-OVERLAY.md](HCW-CONSTRUCTION-UX-OVERLAY.md) |
+| How do we measure UX? | [HCW-UX-KPI-INSTRUMENT.md](HCW-UX-KPI-INSTRUMENT.md) |
 | Where does this module live in nav? | [NAVIGATION.md](NAVIGATION.md) |
 | Why Radiant Orange / Urbanist? | [AORMS-BRANDING-KIT.md](AORMS-BRANDING-KIT.md) |
 | Shell rollout status | [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md) |
@@ -55,7 +60,17 @@ Each row ties an established UX principle to a **shipped or required** pattern.
 | **Jakob's Law** | Users expect your product to work like others they know | Ribbon + sidebar IA; footer taskbar metaphor; dock zones (destroy left · create centre · commit right) |
 | **Hick's Law** | More choices → slower decisions | Rail holds nav/filters only; **one** ActionDock for page CTAs; marketing rail expanded by default; admin in hamburger not footer |
 | **Fitts's Law** | Bigger / nearer targets are faster to hit | **≥44px** chrome targets (footer, ribbon, dock); dock bottom-centre; primary CTAs in dock not scattered |
-| **Miller's Law** | ~7±2 chunks in working memory | Hero: logo + h1 + one line; trust strip **≤4** chips; KPI rows capped; section heads before dense grids |
+| **Miller's Law** | ~7±2 chunks in working memory | Historical reference; **Cowan (~4±1) is the kit cap** — see CAPACITY |
+| **Cowan working memory** | ~4±1 chunks under load | `CAPACITY.*` hard caps (KPI ≤4, dock ≤5, toasts ≤2, open loops ≤3); audits reject unbounded strips |
+| **Endsley SA** | Perception → comprehension → projection | `AwarenessStrip`: state · meaning · next (+ judgment flag) |
+| **Bailey / Iqbal interruption cost** | Unwanted alerts tax performance | `INTERRUPTION` budget; `ToastHost` trims stack; errors assert, ambient scarce |
+| **Reason error taxonomy** | Slips ≠ mistakes | `ConfirmModal` `kind="slip"|"mistake"` + `reason` band; toast `onUndo` for slips |
+| **Norman gulf of evaluation** | Did my action work? | `publishOutcome` / `ActionOutcomeBanner` after dock commits |
+| **Treisman / Ware preattentive** | Colour alone is weak | `StatusDot` `shape` + `STATUS_SHAPE`; HealthGlassOrb shape-encodes severity |
+| **Zeigarnik / goal-gradient** | Incomplete work sticks / progress motivates | `AwarenessStrip` `loops` ≤ `CAPACITY.openLoops`; empty when none |
+| **Mayer contiguity** | Related info must be near | `layoutSx.formField`; `DataState` empty action beside the void |
+| **Lee & See trust calibration** | Trust must match reliability | `TRUST` copy tokens; judgment-only interrupt cue; no success theatre |
+| **W3C COGA** | Cognitive a11y beyond AA | `COGA` target floors + calm-mode type/target steps |
 | **Tesler's Law** | Some complexity is irreducible | Project delivery complexity lives in **stage** tables/editors — not hidden, but **chunked** by rail tabs + breadcrumbs |
 | **Doherty threshold** | Responsiveness &lt; ~400ms feels instant | Skeletons on heavy screens; optimistic UI where safe; avoid blocking whole stage for rail telemetry |
 | **Aesthetic-usability** | Pleasing UI feels more usable | Layered materials + calm canvas — but **never** glass on every tile (kills clarity) |
@@ -262,7 +277,7 @@ UX quality is reviewed against this document and:
 - Code + [NAVIGATION.md](NAVIGATION.md) vs shipped chrome
 - [07-UX-REVIEW-CHECKLISTS.md](../hcw-kit/07-UX-REVIEW-CHECKLISTS.md) (measurable pass/fail)
 - [11-audits/README.md](../hcw-kit/11-audits/README.md) — surface audit index
-- Token contrast in `packages/hcw-ui-kit/src/tokens.ts`
+- Token contrast in `src/tokens.ts`
 - Manual keyboard pass on new chrome
 
 When audit findings and code diverge, **code + this doc + the debt register** win.
@@ -273,7 +288,7 @@ When audit findings and code diverge, **code + this doc + the debt register** wi
 
 | Area | Path |
 |------|------|
-| Kit package | `packages/hcw-ui-kit/` |
+| Kit package | this repo — kit at root (`src/`) |
 | Workspace shell | `frontend/src/App.tsx`, `AppRibbon.tsx`, `AppFooterBar.tsx` |
 | Rail layout | `frontend/src/components/RailLayout.tsx` |
 | Marketing shell | `frontend/src/components/landing/MarketingShell.tsx` |

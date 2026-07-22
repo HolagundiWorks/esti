@@ -2,14 +2,16 @@
 
 **The canonical UX authority for every AI surface on the AORMS platform** — how
 **ESTI** (internal agent in AORMS-Studio: *Ask ESTI · Studio Intelligence · ESTI
-Pulse · the cognition engine*) and **EOMS** (external quality gate) present work to
+Pulse · the cognition engine*) and **EmOI** (external quality gate) present work to
 the human. Companion to **[HCW-UI-UX-PRINCIPLES.md](HCW-UI-UX-PRINCIPLES.md)** (general
 UX law): where that governs *chrome and screens*, this governs *how an autonomous
 agent reports, asks, and defers to human judgment*.
 
 **Adopted:** 2026-07-12 · **Applies to:** ESTI (Studio Intelligence, Ask ESTI, ESTI
-Pulse, AI Studio, the Overview AI-recommendation rail), EOMS surfaces, and every
+Pulse, AI Studio, the Overview AI-recommendation rail), EmOI surfaces, and every
 future AI feature built on `@hcw/ui-kit`.
+
+**Parent:** [HCW-UX.md](../HCW-UX.md) — framework [HCW-UX-FRAMEWORK.md](../HCW-UX-FRAMEWORK.md) (principle 6) · process [HCW-UX-PROCESS.md](../HCW-UX-PROCESS.md) (Plan/Design AI gates).
 
 > **Scope boundary.** This document is about the UX of the AI *product* (ESTI) —
 > what the user sees. It is **not** the [12-AI-AGENT-RULEBOOK](../hcw-kit/12-AI-AGENT-RULEBOOK.md),
@@ -48,6 +50,32 @@ mechanism among many.
 
 This is why Studio Intelligence (`/`, `StudioAbstract.tsx`) is a **dashboard**, not a
 chat window — and it is the reference every AI surface clones.
+
+### The spatial model — content · orchestration · command
+
+ESTI does not add a chat panel to the workspace; it routes AI to the three regions the
+shell already has. **Content in the stage, orchestration in the rail, command at the
+bottom bar** — the same building that served a human author now serves a human
+*supervising* an AI author.
+
+- **Stage — the content.** The work artifact ESTI edits, generates, and improves. Still
+  flat information at rest, even while it updates.
+- **Rail — the orchestration.** The rail was always the telemetry surface; AI
+  orchestration is its highest form. For the **current tab** it first frames the work —
+  the **mission and its ≤5 objectives** — then shows what ESTI is orchestrating against
+  that frame: current operation, progress + ETA, what is changing, pending decisions,
+  risk. **Without the mission/objectives a live operation cannot be tracked and
+  orchestration fails** — progress needs a destination. The supervisor's dashboard:
+  always visible, never scrolled.
+- **Command bar (footer) — the conversation as a command line.** Ask ESTI sits on the
+  bottom bar; you issue an instruction and the **answer returns**. The chat **history is
+  kept but hidden** — stored as **session-scoped memory**, one tap away when required,
+  never a column always present. Calm by default, recoverable on demand: structured and
+  low-noise, not a transcript to re-read.
+
+You cannot supervise a scroll. The chat window is not improved here — it is
+**decomposed**, its three jobs sent to the three places they belong. Full argument:
+[Orchestration Lives in the Rail](../whitepapers/orchestration-lives-in-the-rail.md).
 
 ---
 
@@ -247,16 +275,26 @@ Nothing more. This is the L3 view (§3) and the answer to the four questions (§
 
 ## 8. How this maps onto today's AORMS surfaces
 
-Doctrine, grounded in what ships. (Embedding is staged — this doc lands first; ESTI
-and Ask ESTI adopt it next.)
+Doctrine, grounded in what ships. **Embedding is under way** (esti `main`, 2026-07) —
+the command bar and rail orchestration are implemented; see the note below the table.
 
-| Surface | File / route | Orchestration role | Current vs target |
+| Surface | File / route | Orchestration role | Status |
 |---|---|---|---|
-| **Studio Intelligence** | `StudioAbstract.tsx` · `/` | The mission dashboard — L2 default | Already dashboard-first (KPI cards + tables + AI-recommendation rail). Target: add explicit mission line, phase strip, decision queue, risk board. |
-| **Ask ESTI** | AI chat surface | Chat = **transport**, not workspace | Ensure outputs land as artifacts + decision cards, not just transcript. |
+| **Ask ESTI** | `AiAgentCommand.tsx` (bottom-bar command) | The command line — answer + hidden session memory | ✅ **Implemented**: decomposed to answer-first; transcript hidden as on-demand session history (session-scoped); publishes activity to the rail. |
+| **Rail orchestration** | `EstiOrchestrationStatus.tsx` → `RailLayout` | The rail's live window — mission + operation | ✅ **Implemented**: glass panel, mission then live operation; calm when idle; on every standard `RailLayout` screen. |
+| **AI Studio** | `AiStudio.tsx` (PRO-gated) | Draft generation | ✅ **Feeds the rail**: draft generation publishes activity. Target: options + confidence + freeze-on-accept. |
+| **Studio Intelligence** | `StudioAbstract.tsx` · `/` | The mission dashboard — L2 default | ✅ **Rail orchestration adopted** in its bespoke shell. Target: phase strip, decision queue, risk board (needs a multi-step backend). |
 | **ESTI Pulse** | activity/insight feed | §4.5 activity feed | "Currently working on / next", no code. |
-| **AI Studio** | plan+rank pillar (PRO-gated) | Design/Transition mode surface | Options + recommendation + confidence; freeze on accept. |
-| **Overview AI rail** | `StudioAbstract` Overview sidebar | L3 Executive Summary in miniature | Recommendation over Office Log — extend toward the §7 one-screen contract. |
+
+**Shipped so far** (esti `main`): a shared `esti-activity` signal + `EstiOrchestrationStatus`
+(rail, glass — mission + live operation, calm when idle) wired into `RailLayout` so
+*orchestration lives in the rail* on every standard screen; `AiAgentCommand` decomposed
+to the command-bar model; `AiStudio` publishes activity; a brief **completion state**
+("ESTI · finished") before the rail goes calm; adopted in `StudioAbstract`'s rail too.
+The activity lifecycle is **idle → orchestrating (mission · operation) → done → idle**.
+**Next**: a multi-step / streaming AI backend to fill progress · decision-queue · risk
+(the rail shows mission → operation → done today; richer state when the backend supports
+it).
 
 **Reuse, don't invent.** Every block in §4 already has a kit primitive
 ([HCW-UI-KIT.md](HCW-UI-KIT.md)): `StatusDot`, `HealthGlassOrb`, `DataState`,
@@ -315,7 +353,7 @@ The product that wins is not the one with the best model. It is the one with the
 |---|---|
 | General UX law | [HCW-UI-UX-PRINCIPLES.md](HCW-UI-UX-PRINCIPLES.md) |
 | Layers · spatial model · primitives | [HCW-UI-KIT.md](HCW-UI-KIT.md) |
-| Nomenclature (ESTI · EOMS · AORMS) | [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md) |
+| Nomenclature (ESTI · EmOI · AORMS) | [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md) |
 | Navigation / IA | [NAVIGATION.md](NAVIGATION.md) |
 | AI *coding-agent* rules (not this) | [12-AI-AGENT-RULEBOOK.md](../hcw-kit/12-AI-AGENT-RULEBOOK.md) |
 | Measurable UX checklists | [07-UX-REVIEW-CHECKLISTS.md](../hcw-kit/07-UX-REVIEW-CHECKLISTS.md) |

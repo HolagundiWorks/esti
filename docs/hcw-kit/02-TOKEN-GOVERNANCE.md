@@ -1,15 +1,15 @@
 # Token governance
 
-**Scope:** `packages/hcw-ui-kit/src/tokens.ts` — the single executable source of
+**Scope:** `src/tokens.ts` — the single executable source of
 visual values (Constitution II). **Adopted:** 2026-07-11.
 
 ## Tiers
 
 | Tier | Examples | Mutability |
 | --- | --- | --- |
-| **Global** | raw ladders: `SPACING`, `BREAKPOINTS`, `Z_INDEX`, `OPACITY`, `MOTION`, `TYPE_SCALE`, `RADIUS`/`BUTTON_RADIUS`/`DIALOG_RADIUS`, base hues | **Immutable** — values change only by Constitution-level decision |
-| **Semantic** | `colors`/`SCHEMES` roles (`accent`, `textHelper`, `borderSubtle`…), `ELEVATION`, `STATUS_COLORS`, recipe sets (`recipesFor`) | Extend freely; **meanings never silently change** |
-| **Component** | recipe constants a primitive consumes (`ACTION_DOCK_TRAY`, `SECTION_DOCK_CHIP_GLASS`) | Owned by the component's definition; changed with it |
+| **Global** | raw ladders: `SPACING`, `LAYOUT`, `CAPACITY`, `INTERRUPTION`, `COGA`, `TRUST`, `BREAKPOINTS`, `Z_INDEX`, `OPACITY`, `MOTION`, `TYPE_SCALE`, `RADIUS`/`BUTTON_RADIUS`/`DIALOG_RADIUS`, base hues | **Immutable** — values change only by Constitution-level decision |
+| **Semantic** | `colors`/`SCHEMES` roles (`accent`, `textHelper`, `borderSubtle`…), `ELEVATION`, `STATUS_COLORS`, `STATUS_SHAPE`, `DATA_VIZ` / `DATA_VIZ_CATEGORICAL`, `DENSITY`, recipe sets (`recipesFor`) | Extend freely; **meanings never silently change** |
+| **Component** | recipe constants a primitive consumes (`ACTION_DOCK_TRAY`, `SECTION_DOCK_CHIP_GLASS`, `layoutSx.*`, `chromeIconSx`) | Owned by the component's definition; changed with it |
 
 ## Rules
 
@@ -32,6 +32,37 @@ visual values (Constitution II). **Adopted:** 2026-07-11.
    palettes (flagged for token migration), brand-mandated colours (e.g. Google
    sign-in), the `landing.scss`/`glass.scss` editorial recipes, and the frozen
    `--cds-*` compat layer.
+
+## Grid · organisation · hierarchy
+
+HCW owns the productive density contract: 8px base, mid-steps 12/40, a clear type
+ladder, and shell gutters. Visual language is HCW only (Radiant Orange · Urbanist ·
+square surfaces).
+
+| Concern | HCW contract | Token / helper |
+| --- | --- | --- |
+| **Grid** | **12 columns** via `layoutSx.grid` or themed Grid. | `LAYOUT.columns`, `LAYOUT.gutter` |
+| **Organisation** | Rail · Stage · Taskbar · Dock. Kit portals use fixed `LAYOUT.railWidth`; fluid workspace may use `railFraction`/`stageFraction` (20/80). | `LAYOUT.*`, `layoutSx.rail` / `.stage` / `.page` |
+| **Hierarchy** | Depth encodes importance (`ELEVATION` / layers). Type sizes only from `TYPE_SCALE`. Spacing only from `SPACING` (+ `compact`/`section`). | `TYPE_SCALE`, `SPACING`, `ELEVATION` |
+| **Density** | Productive touch/control heights. `KitRoot({ density })` / `createHcwTheme({ density })` — comfortable (default) or compact. Persistent chrome icons use `chromeIconSx` (44) regardless. | `DENSITY`, `densityFor`, `chromeIconSx` |
+| **Charts** | Ordered palettes (categorical · sequential · diverging · semantic); chrome via `chartChromeFor` / `chartRootSx`; markers for WCAG 1.4.1; never brand accent as a default series hue. | `DATA_VIZ_*`, `chartPalette`, `withChartSeriesColors`, `CHART_MARKERS` |
+| **Pictograms / icons** | Kit-owned shapes (`PICTOGRAM`); injected glyphs via `ICON` slots — no icon font in the kit. | `PICTOGRAM`, `ICON`, [14-HCW-CATALOG.md](14-HCW-CATALOG.md) §5–6 |
+
+Call sites must not invent rem font sizes, shell widths, or gutters. Extend the
+ladder in `tokens.ts` first.
+
+## Cognitive contracts (psychology → tokens)
+
+| Research | Token / primitive | Rule |
+| --- | --- | --- |
+| Cowan ~4±1 WM | `CAPACITY` | Do not exceed caps without disclosure |
+| Interruption cost | `INTERRUPTION` + `ToastHost` | Max concurrent toasts; prefer drop ambient over errors |
+| Situation awareness | `AwarenessStrip` | state · meaning · next; idle = null |
+| Error taxonomy | `ConfirmModal` kind/reason · toast undo | Slips undoable; mistakes explained |
+| Evaluation gulf | `publishOutcome` / `ActionOutcomeBanner` | Every commit leaves a visible outcome |
+| Preattentive | `STATUS_SHAPE` / `StatusDot.shape` | Never colour-only urgency |
+| Contiguity | `layoutSx.formField` · `DataState` | Label/control/helper (or empty+CTA) co-located |
+| Trust / COGA | `TRUST` · `COGA` | Judgment interrupts; calm targets ≥48px |
 
 ## Change protocol
 

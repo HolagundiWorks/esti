@@ -14,8 +14,10 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import SaveIcon from "@mui/icons-material/Save";
 import { QRCodeSVG } from "qrcode.react";
 import { type ChangeEvent, useEffect, useState } from "react";
-import type { SchemeName } from "@hcw/ui-kit";
+import type { CogaMode, DensityName, SchemeName } from "@hcw/ui-kit";
 import { setScheme, useScheme } from "../../lib/scheme.js";
+import { setDensity, useDensity } from "../../lib/density.js";
+import { setCoga, useCoga } from "../../lib/coga.js";
 import { useAuth } from "../../lib/auth.js";
 import { StatusDot } from "../StatusTag.js";
 import { useUploadAuth } from "../../lib/uploadAuth.js";
@@ -27,6 +29,8 @@ const HiddenFileInput = styled("input")({ display: "none" });
 export function WorkspaceSettingsPanel() {
   const { user } = useAuth();
   const scheme = useScheme();
+  const density = useDensity();
+  const coga = useCoga();
   const { authorizedFetch } = useUploadAuth();
   const utils = trpc.useUtils();
   const [name, setName] = useState("");
@@ -149,6 +153,40 @@ export function WorkspaceSettingsPanel() {
             <Typography variant="caption" color="text.secondary" className="esti-label esti-label--helper">
               Dark and high-contrast are preview-grade: components follow the scheme; some page
               chrome stays light until the schemes are signed off. Stored on this browser.
+            </Typography>
+
+            <Typography variant="subtitle2" component="h4" sx={{ pt: 1 }}>
+              Density
+            </Typography>
+            <ToggleButtonGroup
+              exclusive
+              size="small"
+              value={density}
+              onChange={(_e, v: DensityName | null) => v && setDensity(v)}
+              aria-label="Control density"
+            >
+              <ToggleButton value="comfortable">Comfortable</ToggleButton>
+              <ToggleButton value="compact">Compact</ToggleButton>
+            </ToggleButtonGroup>
+            <Typography variant="caption" color="text.secondary" className="esti-label esti-label--helper">
+              Compact tightens buttons, tabs, and data rows for dense registers.
+            </Typography>
+
+            <Typography variant="subtitle2" component="h4" sx={{ pt: 1 }}>
+              Reading comfort
+            </Typography>
+            <ToggleButtonGroup
+              exclusive
+              size="small"
+              value={coga}
+              onChange={(_e, v: CogaMode | null) => v && setCoga(v)}
+              aria-label="COGA calm mode"
+            >
+              <ToggleButton value="default">Default</ToggleButton>
+              <ToggleButton value="calm">Calm</ToggleButton>
+            </ToggleButtonGroup>
+            <Typography variant="caption" color="text.secondary" className="esti-label esti-label--helper">
+              Calm enlarges chrome targets and type one step (COGA). Stored on this browser.
             </Typography>
           </Stack>
         </Box>

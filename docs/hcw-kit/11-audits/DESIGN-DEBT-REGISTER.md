@@ -2,32 +2,58 @@
 
 **The single queue of known design debt.** Every audit deposits here; every fix
 withdraws. Agents: update this file in the same change that alters a fact
-(Rulebook §14). Ordered by severity × reach. **Updated:** 2026-07-12.
+(Rulebook §14). Ordered by severity × reach. **Updated:** 2026-07-22.
 
 ## Open
 
-**None.** D18 closed 2026-07-12 (3 raw-`fontSize`-on-text → `TYPE_SCALE`). Remaining
-scope is **roadmap-class** (below) — product/design programmes, not design defects.
+### Kit defects
+
+*None open.*
+
+### Framework gaps
+
+*None open — F1–F5 closed in 1.3.0 (see Retired).*
+
+### Roadmap-class
+
+*Kit halves of D15/D16 shipped in **1.4.0** — see [13-ROADMAPS.md](../13-ROADMAPS.md).*
+Product-only remainders (not kit defects):
+
+- **Product i18n** — message catalogs / locale switcher in consumer apps
+- **Figma component library** — designer-owned `.fig` mirroring primitives
+
+## Roadmap-class (tracked in 13-Roadmaps)
+
+- Product i18n · Figma component library — see [13-ROADMAPS.md](../13-ROADMAPS.md).
 
 *Assessed & sanctioned (no change): `ZonalComplianceCalculator`'s centralised
 9-colour SVG plot palette — canvas/SVG is an explicit token-rule exception; the
 values are bespoke AA-tuned and don't map to categorical `DATA_VIZ`, so forcing
 tokens would regress contrast.*
 
-## Roadmap-class (not debt — tracked in 13-Roadmaps; require product/design programmes)
-
-- **RTL / i18n** (ex-D15) — a product feature programme, not a design defect.
-- **Figma library / variables bridge** (ex-D16) — design-tool deliverable outside agent reach.
-
 ## Component conformance (Quality-checklist §Gate)
 
 | Component | Gate status |
 | --- | --- |
 | Surface, GlassRail, ActionDock, TaskbarFooter, SectionDock, HealthGlassOrb, BrandMark | ✓ shipped pre-checklist; re-audit opportunistically |
-| StatusDot, DataState, ConfirmModal, PageBreadcrumb, ToastHost, Avatar | ✓ gate items met at promotion; render tests + visual-regression shipped (kit suite 51 tests; VR `visual` job in CI) |
+| StatusDot, DataState, ConfirmModal, PageBreadcrumb, ToastHost, Avatar | ✓ gate items met at promotion; render tests + visual-regression shipped |
+| AwarenessStrip, ActionOutcomeBanner | ✓ promoted with psychology suite |
+| MissionHeader, ObjectiveList, PhaseStrip, ConfidenceBand, DecisionQueue, FreezeTable, KpiStrip | ✓ 1.3.0 — token-driven, typed, unit-tested (`gaps.test.tsx`); styleguide specimens |
 
 ## Retired (most recent first)
 
+- 2026-07-22 · **Roadmap kit halves D15/D16 (1.4.0)** — RTL foundation (`direction`/`locale`, logical chrome, Emotion cache recipe); Figma Variables bridge (`tokens.json`/`tokens.css`); [13-ROADMAPS.md](../13-ROADMAPS.md). Product i18n + Figma component library remain DesignOps/esti.
+- 2026-07-22 · **Kit defect sweep (1.3.1)** — COGA calm chrome (`chromeIconSx` + `typeScaleSx`); theme scheme-aware borders/shadows; `CAPACITY.decisionAlternatives`; catalog + HCW-UI-KIT.md sync; ConfirmModal/AwarenessStrip prop types + tests; KB/audit hygiene.
+- 2026-07-21 · **Framework gaps F1–F5 closed (1.3.0)** — orchestration primitives + T10; CAPACITY on dock/KpiStrip; `KitRoot({ coga })`; `logUxEvent` + dock outcome; case studies in `11-audits/case-studies/`.
+- 2026-07-21 · **UX process + framework pairing (1.2.0)** — `HCW-UX.md` index; `HCW-UX-PROCESS.md` (Plan→Improve, RACI, gates); framework charter no longer “framework-only”.
+- 2026-07-21 · **UX Framework Charter (1.1.0)** — `HCW-UX-FRAMEWORK.md` (purpose·scope·lifecycle·KPIs·diagram); construction overlay + KPI instrument; open F1–F5 framework gaps (honest vs “Open: none”).
+- 2026-07-21 · **HCW Catalog 1.0.0** — internalised every element/component/pattern/pictogram/icon with attributes (`14-HCW-CATALOG.md`); `PICTOGRAM`/`ICON` contracts; `KitRoot`/`createHcwTheme` aliases; retired external-system mapping framing.
+- 2026-07-21 · **UX psychology pack** — Cowan capacity caps, interruption budget, AwarenessStrip (Endsley), ActionOutcome (Norman), ConfirmModal slip/mistake (Reason), StatusDot shapes (Treisman/Ware), form/empty contiguity (Mayer), TRUST/COGA tokens.
+- 2026-07-21 · **Density mode + list/search recipes (0.9.0)** — `densityFor` / `MuiRoot({ density })`; Button·Input·List·Table·DataGrid·Chip wired; `searchFieldSx` + `layoutSx.listToolbar`; TaskbarFooter off raw `#ffffff`.
+- 2026-07-21 · **Data-viz enhancement (0.8.0)** — sequential / diverging / semantic palettes; `chartPalette` · `chartChromeFor` · `chartRootSx` · `withChartSeriesColors` · `CHART_MARKERS`; styleguide specimen.
+- 2026-07-21 · **MUI ↔ Carbon marriage gap closure (0.7.0)** — `HealthGlassOrb` off `--cds-*`; Tooltip/Alert-filled/DatePicker popup tokenised; `DENSITY` + `chromeIconSx`; `DATA_VIZ_CATEGORICAL` / `chartSeriesColors`; mapping Pagination/Stepper/Charts/DatePicker → 🟩; narrative docs de-Carbon-strangler.
+- 2026-07-21 · **Layout / hierarchy gap closure (0.6.0)** — Carbon density borrowed into HCW tokens only: `LAYOUT` + `layoutSx`, spacing `compact`/`section`, extended `TYPE_SCALE` wired through theme; 12-col grid contract documented (explicitly not Carbon 16-col / Plex / indigo).
+- 2026-07-21 · **Orchestra dropped** — removed the parallel indigo/Inter exploration (`tokens/orchestra.*`, `styleguide/`, `docs/design-system/`, indigo mission-dashboard prototype). Single visual language: `@hcw/ui-kit` (Radiant Orange · Urbanist). Accent helpers made scheme-aware; styleguide gained high-contrast theme CSS.
 - 2026-07-12 · **Actionable-gap sweep:** D18 closed (3 raw-`fontSize` → `TYPE_SCALE.kpi`/`.body2`; typecheck clean) · **Wizard template T9** documented in [05-TEMPLATES.md](../05-TEMPLATES.md) from `AccountHub.tsx` (catalog now T1–T9) · **perf bundle budget** added to hcwux CI (`scripts/size-budget.mjs`, 40 KB gzip ceiling; current ~29 KB) · ZonalCompliance SVG palette assessed → sanctioned (canvas/SVG exception; no regressioning recolor).
 - 2026-07-12 · **D11 closed** — `Clients.tsx` `TagChip` fork (Carbon `--cds-tag-*` Chip) → kit `StatusDot`; both dialogs (New client · Create client login) gained `aria-labelledby` (WCAG 4.1.2). The last agent-actionable debt item — the Open queue is now empty.
 - 2026-07-12 · **D3s closed** — owner signed off the dark & high-contrast schemes (accepted as shipped; the marketing-page "chrome stays light" label-cascade caveat is documented and accepted). The last human-gated theme item.

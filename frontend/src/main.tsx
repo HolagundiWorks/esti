@@ -5,6 +5,7 @@ import "@fontsource/urbanist/600.css";
 import "@fontsource/urbanist/700.css";
 import "./styles.scss";
 import "@hcw/ui-kit/portal-chrome.scss";
+import "@hcw/ui-kit/tokens.css";
 import "./landing.scss";
 import "./glass.scss";
 import {
@@ -17,6 +18,7 @@ import { httpBatchLink } from "@trpc/client";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { setUxEventSink } from "@hcw/ui-kit";
 import { App } from "./App.js";
 import { MuiRoot } from "./theme/MuiRoot.js";
 import { ErrorBoundary } from "./components/ErrorBoundary.js";
@@ -24,7 +26,7 @@ import { ToastHost } from "./components/ToastHost.js";
 import { pushToast } from "./lib/toast.js";
 import { newRequestId } from "./lib/request-id.js";
 import { apiUrl } from "./lib/api-base.js";
-import { initAnalytics } from "./lib/analytics.js";
+import { initAnalytics, trackEvent } from "./lib/analytics.js";
 import { trpc } from "./lib/trpc.js";
 
 /** Per-call toast context (Nielsen #9 — errors say WHAT failed):
@@ -87,6 +89,16 @@ const trpcClient = trpc.createClient({
 
 initAnalytics();
 
+// HCW UX KPI instrument → Plausible (no-op in dev / when domain unset).
+setUxEventSink((name, payload) => {
+  const props: Record<string, string> = {};
+  for (const [k, v] of Object.entries(payload ?? {})) {
+    if (v == null) continue;
+    props[k] = typeof v === "string" ? v : String(v);
+  }
+  trackEvent(name, props);
+});
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ErrorBoundary>
@@ -95,9 +107,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <BrowserRouter>
             <MuiRoot>
               <App />
+              {/* Inside KitRoot so scheme-aware Alert fills resolve correctly. */}
+              <ToastHost />
             </MuiRoot>
           </BrowserRouter>
-          <ToastHost />
         </QueryClientProvider>
       </trpc.Provider>
     </ErrorBoundary>

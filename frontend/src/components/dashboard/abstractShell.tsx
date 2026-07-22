@@ -1,12 +1,13 @@
 /**
  * AORMS Studio Intelligence — universal screen shell.
  *
- * One structure for every tab: a header, a row of 4 KPI cards, then a data table
- * that fills the rest of the viewport and scrolls *inside its Paper* (the page
- * itself never scrolls). Material UI; status is the ●▲■ glyph in its alert colour
- * (zoneState.ts). Colour only from `--cds-*` tokens.
+ * One structure for every tab: a header, a **KpiStrip** (capacity 4), then a data
+ * table that fills the rest of the viewport and scrolls *inside its Paper* (the
+ * page itself never scrolls). Status is the ●▲■ glyph in its alert colour
+ * (zoneState.ts). Colour only from `--cds-*` tokens / kit STATUS_SHAPE.
  */
 import { Box, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
+import { KpiStrip } from "@hcw/ui-kit";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { GLYPH_CLASS, glyphFor, STATE_WORD } from "./zoneState.js";
@@ -83,14 +84,47 @@ export function AbstractScreenShell({
     <div className="esti-abstract">
       <ScreenHeader title={title} state={state} signal={signal} />
 
-      <div className="esti-kpi-row">
-        {kpis.slice(0, 4).map((k) => (
-          <Box key={k.label} className="esti-kpi-card" sx={{ p: 2, borderBottom: 1, borderColor: "divider", borderTop: 2, borderTopColor: "primary.main" }}>
-            <span className="esti-label--helper">{k.label}</span>
-            <h3 className={k.state ? `esti-state-${k.state}` : undefined}>{k.value}</h3>
-          </Box>
-        ))}
-      </div>
+      <Box
+        className="esti-kpi-row"
+        sx={{
+          // KpiStrip enforces CAPACITY.kpiStrip; keep the Studio 4-up grid chrome.
+          display: "block",
+          "& > ul": {
+            display: "grid",
+            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+            width: "100%",
+            m: 0,
+            p: 0,
+            gap: "var(--cds-spacing-05)",
+            listStyle: "none",
+          },
+          "& > ul > li": {
+            minWidth: 0,
+            p: 2,
+            borderBottom: 1,
+            borderColor: "divider",
+            borderTop: 2,
+            borderTopColor: "primary.main",
+          },
+        }}
+      >
+        <KpiStrip
+          aria-label={`${title} key figures`}
+          items={kpis.slice(0, 4).map((k) => ({
+            id: k.label,
+            label: k.label,
+            value: (
+              <Box
+                component="span"
+                className={k.state ? `esti-state-${k.state}` : undefined}
+                sx={{ fontWeight: 300, lineHeight: 1.05, display: "block" }}
+              >
+                {k.value}
+              </Box>
+            ),
+          }))}
+        />
+      </Box>
 
       <Box className="esti-abstract-table" sx={{ p: 2 }}>
         {tableTitle && <span className="esti-label esti-label--secondary">{tableTitle}</span>}

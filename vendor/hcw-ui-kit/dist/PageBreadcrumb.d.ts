@@ -12,3 +12,4 @@ export declare function PageBreadcrumb({ items, linkComponent, linkPropName, "ar
     "aria-label"?: string;
 }): import("react").JSX.Element | null;
 export default PageBreadcrumb;
+//# sourceMappingURL=PageBreadcrumb.d.ts.map

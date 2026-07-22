@@ -6,16 +6,16 @@ This document is the operating knowledge base for any AI agent auditing, maintai
 or extending the **HCW Design System** (`@hcw/ui-kit`). The agent acts as a combined
 **Design System Architect · UX Lead · Accessibility Specialist · Front-End Architect**.
 
-> **Authority order (2026-07-11 hierarchy):**
+> **Authority order:**
 > [HCW-DESIGN-PLAYBOOK.md](../HCW-DESIGN-PLAYBOOK.md) (why) →
+> [HCW-UX.md](../HCW-UX.md) (framework + process) →
 > [Constitution](../hcw-kit/00-CONSTITUTION.md) (law) →
 > [AI Agent Rulebook](../hcw-kit/12-AI-AGENT-RULEBOOK.md) (permanent behaviour) →
 > this document (recipes + state). Full documentation map:
-> [docs/hcw-kit/README.md](../hcw-kit/README.md) (sections 00–13).
+> [docs/hcw-kit/README.md](../hcw-kit/README.md) (sections 00–14).
 > HCW Kit is the **single source of truth**; Material UI is the **implementation
-> framework only**. External systems (Carbon, Material 3, Fluent 2, Atlassian,
-> Polaris, Primer) are references, never precedent. Where HCW and a reference
-> disagree, **HCW wins**.
+> framework only**. External systems are references, never precedent. Where HCW and a
+> reference disagree, **HCW wins**.
 
 Companion docs — read together, in this order:
 
@@ -36,17 +36,21 @@ HCW-UI-Kit is a **token + MUI-theme + primitives** system, not a bespoke compone
 library. Its thesis — **depth encodes importance** — stacks three material languages:
 FLAT (info at rest, ~90% of pixels), SOFT/neumorphic (objects you work within), GLASS
 (actions/alerts that want you now). One accent (Radiant Orange `#FF4F18`, fills/CTAs
-only — links are slate). Surfaces are **square** (`RADIUS 0`); only buttons (4px),
-dialogs (8px) and the ActionDock capsule are rounded. One spatial model everywhere:
+and active chrome glyph tints; body links stay slate). Surfaces are **square**
+(`RADIUS 0`); only buttons (4px), dialogs (8px) and the ActionDock capsule are
+rounded. One spatial model everywhere:
 **Rail (20%, glass) · Stage (80%, scrolls) · Taskbar footer · ActionDock**
 (LEFT destroy · CENTER create · RIGHT commit). `:focus-visible` receives the same
 Layer-3 glass lift as `:hover` — keyboard parity is a brand behaviour, not a patch.
 
-**Package layout** (`packages/hcw-ui-kit/src/`): `tokens.ts` (all raw values — colour,
-radius, type, **scales**: `SPACING`, `BREAKPOINTS`, `Z_INDEX`, `OPACITY`, `MOTION`,
-`ELEVATION`, plus layer recipes), `theme.ts` (`createAormsTheme()` — every MUI override),
-`chrome-sx.ts`, and primitives `Surface`, `GlassRail`, `ActionDock` (+`useScreenActions`),
-`TaskbarFooter`, `SectionDock`, `HealthGlassOrb`, `BrandMark`, `MuiRoot`.
+**Package layout** (`src/`): `tokens.ts` (colour, type, **scales**: `SPACING`,
+`LAYOUT`, `CAPACITY`, `INTERRUPTION`, `COGA`, `TRUST`, `BREAKPOINTS`, `Z_INDEX`,
+`OPACITY`, `MOTION`, `ELEVATION`, plus layer recipes), `theme.ts`
+(`createHcwTheme({ scheme, density, coga })`), `chrome-sx.ts` (`layoutSx`), and
+primitives `Surface`, `GlassRail`, `ActionDock`, `AwarenessStrip`,
+`ActionOutcomeBanner`, `ToastHost`, `KpiStrip`, T10 orchestration
+(`MissionHeader` · `DecisionQueue` · …), `logUxEvent` / `setUxEventSink`,
+`TaskbarFooter`, `SectionDock`, `HealthGlassOrb`, `BrandMark`, `KitRoot`.
 
 ---
 
@@ -121,13 +125,24 @@ A kit change without a matching update to HCW-UI-KIT.md (and `/design-system` sh
 where visual) is incomplete. Docs and code diverging = a finding against the **change**,
 not the docs.
 
+### R10 — Cognitive contracts (capacity · interruption · awareness · telemetry)
+Do not exceed `CAPACITY` caps (Cowan WM) without progressive disclosure. Toasts obey
+`INTERRUPTION.maxConcurrentToasts` (emits `ux.capacity_warn` on trim). Rail supervision
+uses `AwarenessStrip` (Endsley). Dock commits publish `publishOutcome` / `DockAction.outcome`
+(Norman evaluation). Confirm destroy with `ConfirmModal` slip/mistake kinds (Reason).
+Status never colour-only — use `StatusDot.shape` / `STATUS_SHAPE`. AI surfaces use T10
+orchestration primitives. Attach `setUxEventSink` in the product; prefer `logOrient` /
+`logDecision` / `logMission` / `logInterrupt`.
+- Detect: unbounded KPI strips, toast spam patterns, colour-only urgency in tables,
+  chat-first AI without Mission/Decision anatomy.
+
 ---
 
 ## 3. Reference systems — what to borrow from whom
 
 | System | Borrow | Ignore |
 | --- | --- | --- |
-| IBM Carbon | token governance, data-viz rules, enterprise density | its visual language (we left Carbon 2026-07) |
+| IBM Carbon | token governance, **spacing/type density ladders**, data-viz rules, enterprise shell organisation | its visual language (16-col Grid, IBM Plex, indigo — we left Carbon 2026-07) |
 | Material 3 | motion/easing science, state-layer thinking | dynamic colour, rounded shape language |
 | Fluent 2 | desktop/productivity patterns, keyboarding | acrylic/mica aesthetics |
 | Atlassian | IA + governance process docs, RFC workflow | — |
@@ -173,8 +188,8 @@ without instruction.
 3. **Token audit** — R1 + scale coverage (spacing/motion/elevation/z/opacity/breakpoints).
 4. **Theme audit** — used-MUI vs themed-MUI diff; scheme completeness.
 5. **Component gap analysis** — framework component list vs kit+app canonicals;
-   flag app-level canonicals not yet in the kit (Toast, DataState, StatusTag,
-   PageBreadcrumb, Avatar, Charts).
+   flag app-level forks of kit primitives (prefer kit StatusDot / DataState /
+   ToastHost / PageBreadcrumb / Avatar / charts helpers over local copies).
 6. **A11y audit** — R6 sweep + heuristics 1.3.1/1.4.1/2.1.1/2.4.x/2.5.8/4.1.2.
 7. **IA audit** — nav tree vs NAVIGATION.md; Hick/Miller counts; wayfinding.
 8. **UX audit** — Nielsen + laws scorecard with friction maps.

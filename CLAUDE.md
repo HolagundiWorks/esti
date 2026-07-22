@@ -75,12 +75,13 @@ via the repo’s wiki sync/build step.
 
 ## UI / design system — HCW-UI-KIT
 
-> **⚠️ CANONICAL (2026-07): `@hcw/ui-kit` v0.5.0** (*HCW-UI-Kit — Human Centric Works*,
-> `packages/hcw-ui-kit`) is the centralised, **layered** design system deployed
-> against **every** surface — **AORMS-Studio**, client/consultant portals,
-> licensing console, and the landing page. **`@carbon/react` was removed (2026-07).**
-> Carbon *Sass* colours/type scale survive only as a frozen `--cds-*` compat block in
-> `frontend/src/styles.scss` — no Carbon React components anywhere.
+> **⚠️ CANONICAL (2026-07): `@hcw/ui-kit` v1.4.0** (*HCW-UI-Kit — Human Centric Works*,
+> vendored at `vendor/hcw-ui-kit` from [hcwux](https://github.com/HolagundiWorks/hcwux))
+> is the centralised, **layered** design system deployed against **every** surface —
+> **AORMS-Studio**, client/consultant portals, licensing console, and the landing page.
+> **`@carbon/react` was removed (2026-07).** Carbon *Sass* colours/type scale survive
+> only as a frozen `--cds-*` compat block in `frontend/src/styles.scss` — no Carbon
+> React components anywhere.
 >
 > **Documentation map (read in order):** [`docs/hcw-kit/README.md`](docs/hcw-kit/README.md)
 > (sections 00–13). Agent contract + detection recipes:
@@ -116,11 +117,14 @@ via the repo’s wiki sync/build step.
 > **Brand font: Urbanist** (OFL) — `@fontsource/urbanist` in `main.tsx`, mirrored
 > in the kit theme.
 >
-> **Colour schemes:** `createAormsTheme({ scheme })` — `light` (default) · `dark` ·
-> `highContrast`. `MuiRoot({ scheme })` wires the provider; Settings → Appearance
-> persists choice (preview-labelled). Gallery: `/design-system#schemes`.
+> **Colour / density / COGA:** `createHcwTheme({ scheme, density, coga })` —
+> schemes `light` (default) · `dark` · `highContrast`; density `comfortable` |
+> `compact`; COGA `default` | `calm`. `KitRoot` (app shim `MuiRoot`) wires the
+> provider; Settings → Appearance persists choices. Prefer HCW names over legacy
+> `createAormsTheme` / `MuiRoot` aliases.
 
 **Governance chain:** [`HCW-DESIGN-PLAYBOOK.md`](docs/HCW-DESIGN-PLAYBOOK.md) (why) →
+[`HCW-UX.md`](docs/HCW-UX.md) (framework + process) →
 [`00-CONSTITUTION.md`](docs/hcw-kit/00-CONSTITUTION.md) (law) →
 [`12-AI-AGENT-RULEBOOK.md`](docs/hcw-kit/12-AI-AGENT-RULEBOOK.md) (permanent AI behaviour) →
 [`HCW-KIT-AI-KNOWLEDGE-BASE.md`](docs/esti/HCW-KIT-AI-KNOWLEDGE-BASE.md) (R1–R9 recipes).
@@ -128,32 +132,38 @@ via the repo’s wiki sync/build step.
 | # | Topic | Canonical doc |
 | --- | --- | --- |
 | 01 | Layers · spatial model | [`HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md) |
-| 02 | Tokens (executable) | `packages/hcw-ui-kit/src/tokens.ts` · [`02-TOKEN-GOVERNANCE.md`](docs/hcw-kit/02-TOKEN-GOVERNANCE.md) |
-| 03 | Components | [`CHANGELOG`](packages/hcw-ui-kit/CHANGELOG.md) · [`03-COMPONENT-QUALITY-CHECKLIST.md`](docs/hcw-kit/03-COMPONENT-QUALITY-CHECKLIST.md) |
-| 05 | Page templates (8 anatomies) | [`05-TEMPLATES.md`](docs/hcw-kit/05-TEMPLATES.md) — clone shipped references |
+| 02 | Tokens | `vendor/hcw-ui-kit/dist/tokens.js` · [`02-TOKEN-GOVERNANCE.md`](docs/hcw-kit/02-TOKEN-GOVERNANCE.md) · [`02-TOKEN-EXPORT.md`](docs/hcw-kit/02-TOKEN-EXPORT.md) |
+| 03 | Components | [`CHANGELOG`](vendor/hcw-ui-kit/CHANGELOG.md) · [`03-COMPONENT-QUALITY-CHECKLIST.md`](docs/hcw-kit/03-COMPONENT-QUALITY-CHECKLIST.md) · [`14-HCW-CATALOG.md`](docs/hcw-kit/14-HCW-CATALOG.md) |
+| 05 | Page templates | [`05-TEMPLATES.md`](docs/hcw-kit/05-TEMPLATES.md) — incl. T10 orchestration |
 | 07 | UX checklists | [`HCW-UI-UX-PRINCIPLES.md`](docs/esti/HCW-UI-UX-PRINCIPLES.md) · [`07-UX-REVIEW-CHECKLISTS.md`](docs/hcw-kit/07-UX-REVIEW-CHECKLISTS.md) |
-| 10 | MUI mapping | [`10-MUI-MAPPING.md`](docs/hcw-kit/10-MUI-MAPPING.md) — MUI is implementation only |
+| 10 | Elements | [`10-ELEMENTS.md`](docs/hcw-kit/10-ELEMENTS.md) · [`10-MUI-MAPPING.md`](docs/hcw-kit/10-MUI-MAPPING.md) |
 | 11 | Audits + debt | [`11-audits/README.md`](docs/hcw-kit/11-audits/README.md) · [`DESIGN-DEBT-REGISTER.md`](docs/hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md) |
-| 09 | Kit semver / contribution | [`packages/hcw-ui-kit/GOVERNANCE.md`](packages/hcw-ui-kit/GOVERNANCE.md) |
+| 13 | Kit vs product roadmaps | [`13-ROADMAPS.md`](docs/hcw-kit/13-ROADMAPS.md) |
+| 09 | Kit semver / contribution | Upstream [hcwux GOVERNANCE](https://github.com/HolagundiWorks/hcwux/blob/main/GOVERNANCE.md) · re-vendor via [`KITS.md`](docs/KITS.md) |
 
 **Kit primitives** (`@hcw/ui-kit` — use these, never fork):
 
 | Primitive | Role |
 | --- | --- |
-| `MuiRoot` | Theme provider (`scheme` prop) |
+| `KitRoot` (`MuiRoot` alias) | Theme provider (`scheme` · `density` · `coga` · `locale`) |
 | `Surface` | Layer 1/2/3 material |
 | `GlassRail` | Rail shell (clear/heading glass variants) |
 | `ActionDock` + `useScreenActions` | Global dock contract |
+| `ActionOutcomeBanner` | Dock / publishOutcome feedback |
+| `KpiStrip` | Capacity-capped KPI row |
+| `MissionHeader` · `DecisionQueue` | Orchestration (T10) |
+| `AwarenessStrip` | Open-loop awareness |
 | `TaskbarFooter` | App footer launchers |
 | `SectionDock` | Marketing scroll-spy nav |
 | `HealthGlassOrb` | Zone health (shape + colour) |
 | `BrandMark` | HCW mark |
-| `StatusDot` | Status indicator (never filled Chip) |
+| `StatusDot` | Status indicator (never filled Chip; optional `shape`) |
 | `DataState` | Loading skeleton + empty state |
-| `ConfirmModal` | Destroy confirmation |
+| `ConfirmModal` | Destroy confirmation (`kind` / `reason`) |
 | `PageBreadcrumb` | Wayfinding + `document.title` |
-| `ToastHost` + `pushToast` | Transient feedback |
+| `ToastHost` + `pushToast` | Transient feedback (mount inside KitRoot) |
 | `Avatar` + `getInitials` | Identity mark (colour injected by caller) |
+| `chromeIconSx` | Persistent chrome hit targets (COGA-aware) |
 
 App compat shims re-export kit primitives where noted (`StatusTag` delegates to
 `StatusDot`). Domain colour logic (`StaffAvatar`, `resolveColor`) stays app-side.
@@ -170,14 +180,13 @@ Skill: `.claude/skills/hcw-design-audit`.
 1. Read [`DESIGN-DEBT-REGISTER.md`](docs/hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md) — current state.
 2. Read [`HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md) + [`05-TEMPLATES.md`](docs/hcw-kit/05-TEMPLATES.md) — pick the shipped reference anatomy.
 3. Read [`HCW-UI-UX-PRINCIPLES.md`](docs/esti/HCW-UI-UX-PRINCIPLES.md) + [`07-UX-REVIEW-CHECKLISTS.md`](docs/hcw-kit/07-UX-REVIEW-CHECKLISTS.md) before review.
-4. Build from `@mui/material` (themed/neutral per [`10-MUI-MAPPING.md`](docs/hcw-kit/10-MUI-MAPPING.md)) + `@hcw/ui-kit` — never hard-coded hex;
-   raw colour lives ONLY in `packages/hcw-ui-kit/src/tokens.ts` (+ sanctioned
-   `DATA_VIZ` for canvas/SVG). `frontend/src/theme/` is a thin re-export shim.
-   Prefer kit tokens over `--cds-*` compat; never add new `--cds-*` usage.
-   Marketing atmosphere in `landing.scss`; app-screen CSS in `styles.scss` (structural only).
-5. Kit-first: shared visual changes land in `packages/hcw-ui-kit` once. After kit
-   edits in Docker dev: `docker cp` kit `src/` into `esti-frontend` (Windows bind-mounts
-   lag), then `pnpm test` in the kit and typecheck frontend.
+4. Build from `@mui/material` (themed/neutral per [`10-ELEMENTS.md`](docs/hcw-kit/10-ELEMENTS.md)) + `@hcw/ui-kit` — never hard-coded hex;
+   raw colour lives ONLY in the kit tokens (+ sanctioned `DATA_VIZ` for canvas/SVG).
+   `frontend/src/theme/` is a thin re-export shim. Prefer kit tokens over `--cds-*`
+   compat; never add new `--cds-*` usage. Marketing atmosphere in `landing.scss`;
+   app-screen CSS in `styles.scss` (structural only).
+5. Kit-first: shared visual changes land in **hcwux**, then re-vendor into
+   `vendor/hcw-ui-kit/` (see [`KITS.md`](docs/KITS.md)). Do not edit `dist/` by hand.
 6. Visual regression: `e2e/tests/visual-regression.spec.ts` (Playwright `visual`
    project; baselines under `e2e/tests/visual-regression.spec.ts-snapshots/`).
 

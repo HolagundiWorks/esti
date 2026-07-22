@@ -1,8 +1,7 @@
 /**
  * AORMS Material UI theme — the single source of colour + shape for every MUI
  * portal. Built entirely from the shared design tokens (`tokens.ts`) so the look
- * is identical everywhere it is mounted. (The Carbon landing surface never mounts
- * these components.)
+ * is identical everywhere it is mounted.
  *
  * The HCW-UI-Kit layer rules, encoded here so screens inherit them and never
  * re-specify them inline (full spec: docs/esti/HCW-UI-KIT.md):
@@ -12,21 +11,34 @@
  *     within.
  *  3. Layer 3 GLASS (glassmorphism) — the live layer: BUTTON HOVER takes the
  *     glass slab, and priority alerts (error/warning) read as tinted glass.
+ *
+ * MUI is the rendering engine; HCW owns appearance and patterns
+ * (see `LAYOUT` · `SPACING` · `DENSITY` · catalog).
  */
 import { createTheme } from "@mui/material/styles";
-import { SCHEMES, recipesFor, MOTION, RADIUS as GLASS_RADIUS, BUTTON_RADIUS as BTN_RADIUS, FONT_FAMILY, GLASS_BLUR, GLASS_SHADOW, BTN_LIFT, UNDERLINE_ORANGE, UNDERLINE_RED, GLASS_ORANGE_30, NEU_INPUT_RADIUS, DD_FLAT, REDUCE_MOTION, FOCUS_RING, TAB_ALERT_WIDTH, SPACING_UNIT, BREAKPOINTS, Z_INDEX, OPACITY, } from "./tokens.js";
+import { SCHEMES, recipesFor, densityFor, cogaFor, MOTION, RADIUS as GLASS_RADIUS, BUTTON_RADIUS as BTN_RADIUS, FONT_FAMILY, GLASS_BLUR, GLASS_SHADOW, BTN_LIFT, underlineAccent, glassAccentWash, ddFlatFor, focusRingFor, hexToRgba, NEU_INPUT_RADIUS, REDUCE_MOTION, TAB_ALERT_WIDTH, SPACING_UNIT, BREAKPOINTS, Z_INDEX, OPACITY, } from "./tokens.js";
 /** Build the AORMS MUI theme. Exposed as a factory so a portal can layer small
  *  overrides on top if it must, while sharing 100% of the brand defaults.
  *
  *  `scheme` selects the semantic colour scheme (default `"light"` — the shipped
  *  brand). `"dark"` / `"highContrast"` are palette-complete SCAFFOLDS: the
  *  neumorphic/glass recipes remain light-tuned until they gain scheme variants,
- *  so treat non-light schemes as preview-grade (see tokens.ts § Colour schemes). */
+ *  so treat non-light schemes as preview-grade (see tokens.ts § Colour schemes).
+ *
+ *  `density` selects comfortable (default) or compact control heights.
+ *  `coga: "calm"` raises interactive floors and bumps caption/body type one step.
+ *  `direction` sets MUI `theme.direction` for RTL-ready chrome. */
 export function createAormsTheme(options) {
     const CDS = SCHEMES[options?.scheme ?? "light"];
     // Scheme-matched surface recipes (neu/glass materials) — see tokens.ts.
     const R = recipesFor(options?.scheme ?? "light");
+    const cogaMode = options?.coga ?? "default";
+    const dens = densityFor(options?.density ?? "comfortable", cogaMode);
+    const coga = cogaFor(cogaMode);
+    const type = coga.type;
+    const direction = options?.direction ?? "ltr";
     return createTheme({
+        direction,
         shape: { borderRadius: GLASS_RADIUS },
         // Scale tokens drive the theme (parity with MUI defaults → no layout shift):
         // 8px spacing grid, the shared breakpoint ladder, and one z-index stack so
@@ -54,16 +66,43 @@ export function createAormsTheme(options) {
         },
         typography: {
             fontFamily: FONT_FAMILY,
-            button: { textTransform: "capitalize", fontWeight: 600 },
-            h1: { fontWeight: 300, letterSpacing: "0.01em", textTransform: "uppercase" },
-            h2: { fontWeight: 300, letterSpacing: "0.01em", textTransform: "uppercase" },
-            h3: { fontWeight: 400, letterSpacing: "0.01em", textTransform: "uppercase" },
-            h4: { fontWeight: 500, letterSpacing: "0.01em", textTransform: "uppercase" },
-            h5: { fontWeight: 600, textTransform: "none" },
-            h6: { fontWeight: 600, textTransform: "none" },
-            subtitle1: { textTransform: "none" },
-            subtitle2: { textTransform: "none" },
-            overline: { letterSpacing: "0.08em", fontWeight: 600 },
+            button: { textTransform: "capitalize", fontWeight: 600, fontSize: type.body2 },
+            h1: {
+                fontWeight: 300,
+                letterSpacing: "0.01em",
+                textTransform: "uppercase",
+                fontSize: type.display,
+            },
+            h2: {
+                fontWeight: 300,
+                letterSpacing: "0.01em",
+                textTransform: "uppercase",
+                fontSize: type.heading,
+            },
+            h3: {
+                fontWeight: 400,
+                letterSpacing: "0.01em",
+                textTransform: "uppercase",
+                fontSize: type.subtitle,
+            },
+            h4: {
+                fontWeight: 500,
+                letterSpacing: "0.01em",
+                textTransform: "uppercase",
+                fontSize: type.kpi,
+            },
+            h5: { fontWeight: 600, textTransform: "none", fontSize: type.body },
+            h6: { fontWeight: 600, textTransform: "none", fontSize: type.body2 },
+            subtitle1: { textTransform: "none", fontSize: type.body },
+            subtitle2: { textTransform: "none", fontSize: type.body2 },
+            body1: { fontSize: type.body },
+            body2: { fontSize: type.body2 },
+            caption: { fontSize: type.caption },
+            overline: {
+                letterSpacing: "0.08em",
+                fontWeight: 600,
+                fontSize: type.micro,
+            },
         },
         components: {
             MuiPaper: {
@@ -127,9 +166,10 @@ export function createAormsTheme(options) {
                         const isError = ownerState.color === "error";
                         const isCta = ownerState.variant === "contained" && !isError;
                         const ink = isError ? CDS.supportError : isCta ? CDS.accent : CDS.ink;
-                        const underline = isError ? UNDERLINE_RED : UNDERLINE_ORANGE;
+                        const underline = underlineAccent(isError ? CDS.supportError : CDS.accent);
                         return {
                             borderRadius: BTN_RADIUS,
+                            minHeight: dens.button,
                             fontWeight: isCta ? 700 : 600,
                             textTransform: "capitalize",
                             color: ink,
@@ -147,19 +187,19 @@ export function createAormsTheme(options) {
                                 WebkitBackdropFilter: R.GLASS_SURFACE.WebkitBackdropFilter,
                                 color: isError ? CDS.supportError : CDS.accentDark,
                                 transform: BTN_LIFT,
-                                boxShadow: `0 8px 24px rgba(20, 21, 23, 0.14), ${underline}`,
+                                boxShadow: `0 8px 24px ${hexToRgba(CDS.ink, 0.14)}, ${underline}`,
                             },
                             // Keyboard parity: a :focus-visible control lifts to the same Layer-3
                             // glass slab as hover AND shows the accent focus ring, so keyboard
                             // users see what's actionable (mouse-only :hover left them blind).
                             "&:focus-visible": {
-                                ...FOCUS_RING,
+                                ...focusRingFor(CDS.accent),
                                 background: R.GLASS_SURFACE.background,
                                 backdropFilter: R.GLASS_SURFACE.backdropFilter,
                                 WebkitBackdropFilter: R.GLASS_SURFACE.WebkitBackdropFilter,
                                 color: isError ? CDS.supportError : CDS.accentDark,
                                 transform: BTN_LIFT,
-                                boxShadow: `0 8px 24px rgba(20, 21, 23, 0.14), ${underline}`,
+                                boxShadow: `0 8px 24px ${hexToRgba(CDS.ink, 0.14)}, ${underline}`,
                             },
                             "&:active": {
                                 transform: "none",
@@ -188,40 +228,69 @@ export function createAormsTheme(options) {
                 defaultProps: { underline: "hover" },
                 styleOverrides: { root: { color: CDS.supportInfo } },
             },
-            // Priority notifications (Layer 3) — error/warning alerts read as TINTED
-            // GLASS so they visibly float above the calm flat canvas; info/success stay
-            // quiet (Layer 1).
+            // Priority notifications (Layer 3) — error/warning *standard* alerts read as
+            // TINTED GLASS so they float above the calm flat canvas; info/success stay
+            // quiet (Layer 1). *Filled* (ToastHost) uses solid support fills so transient
+            // feedback stays high-contrast and scheme-aware.
             MuiAlert: {
                 styleOverrides: {
                     root: ({ ownerState }) => {
+                        const sev = ownerState.severity;
+                        if (ownerState.variant === "filled") {
+                            const fill = sev === "error"
+                                ? CDS.supportError
+                                : sev === "warning"
+                                    ? CDS.supportWarning
+                                    : sev === "success"
+                                        ? CDS.supportSuccess
+                                        : CDS.supportInfo;
+                            // Saffron warning needs dark ink for AA; other support fills take on-color.
+                            const ink = sev === "warning" ? CDS.ink : CDS.textOnColor;
+                            return {
+                                borderRadius: 0,
+                                backgroundColor: fill,
+                                color: ink,
+                                border: `1px solid ${hexToRgba(fill, 0.35)}`,
+                            };
+                        }
                         if (ownerState.variant && ownerState.variant !== "standard")
                             return {};
-                        if (ownerState.severity === "error")
+                        if (sev === "error")
                             return {
                                 ...R.GLASS_SURFACE,
-                                background: "rgba(200, 68, 46, 0.10)",
-                                border: "1px solid rgba(200, 68, 46, 0.25)",
+                                background: hexToRgba(CDS.supportError, 0.1),
+                                border: `1px solid ${hexToRgba(CDS.supportError, 0.25)}`,
                             };
-                        if (ownerState.severity === "warning")
+                        if (sev === "warning")
                             return {
                                 ...R.GLASS_SURFACE,
-                                background: "rgba(255, 153, 50, 0.12)",
-                                border: "1px solid rgba(255, 153, 50, 0.30)",
+                                background: hexToRgba(CDS.supportWarning, 0.12),
+                                border: `1px solid ${hexToRgba(CDS.supportWarning, 0.3)}`,
                             };
                         return {};
                     },
                 },
             },
+            MuiIconButton: {
+                styleOverrides: {
+                    root: {
+                        borderRadius: BTN_RADIUS,
+                        width: dens.iconButton,
+                        height: dens.iconButton,
+                        "&.Mui-focusVisible": focusRingFor(CDS.accent),
+                    },
+                },
+            },
             MuiChip: {
                 styleOverrides: {
-                    root: { borderRadius: 0 },
+                    root: { borderRadius: 0, height: dens.chip },
                     colorPrimary: { backgroundColor: CDS.accent, color: CDS.onAccent },
                 },
             },
             MuiTabs: {
                 styleOverrides: {
                     root: {
-                        minHeight: 40,
+                        minHeight: dens.tab,
                         "&.MuiTabs-vertical .MuiTab-root": {
                             alignItems: "flex-start",
                             justifyContent: "flex-start",
@@ -239,7 +308,7 @@ export function createAormsTheme(options) {
                     root: {
                         textTransform: "none",
                         borderRadius: 0,
-                        minHeight: 40,
+                        minHeight: dens.tab,
                         minWidth: 0,
                         px: 1.5,
                         py: 1,
@@ -258,20 +327,49 @@ export function createAormsTheme(options) {
                             backgroundColor: "transparent",
                             boxShadow: `inset 0 ${TAB_ALERT_WIDTH}px 0 0 ${CDS.accent}`,
                         },
-                        "&.Mui-focusVisible": FOCUS_RING,
+                        "&.Mui-focusVisible": focusRingFor(CDS.accent),
+                    },
+                },
+            },
+            MuiListSubheader: {
+                styleOverrides: {
+                    root: {
+                        backgroundColor: "transparent",
+                        color: CDS.textSecondary,
+                        fontSize: type.micro,
+                        fontWeight: 600,
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                        lineHeight: 1.4,
+                        py: 1,
                     },
                 },
             },
             MuiListItemButton: {
                 styleOverrides: {
                     root: {
+                        minHeight: dens.listItem,
+                        borderRadius: 0,
                         "&.Mui-selected": { backgroundColor: CDS.layer02, "&:hover": { backgroundColor: CDS.layer02 } },
+                        "&.Mui-focusVisible": focusRingFor(CDS.accent),
                     },
+                },
+            },
+            MuiListItemIcon: {
+                styleOverrides: {
+                    root: { minWidth: dens.iconButton, color: CDS.textSecondary },
+                },
+            },
+            MuiListItemText: {
+                styleOverrides: {
+                    primary: { fontSize: type.body2, fontWeight: 500 },
+                    secondary: { fontSize: type.caption, color: CDS.textHelper },
                 },
             },
             MuiMenuItem: {
                 styleOverrides: {
                     root: {
+                        minHeight: dens.menuItem,
                         "&.Mui-selected": { backgroundColor: CDS.layer02, "&:hover": { backgroundColor: CDS.layer02 } },
                     },
                 },
@@ -284,6 +382,7 @@ export function createAormsTheme(options) {
                 styleOverrides: {
                     root: {
                         borderRadius: NEU_INPUT_RADIUS,
+                        minHeight: dens.input,
                         backgroundColor: R.NEU_FILL,
                         boxShadow: R.NEU_INSET,
                         "& .MuiOutlinedInput-notchedOutline": { border: "none" },
@@ -292,14 +391,16 @@ export function createAormsTheme(options) {
                         "&.Mui-focused": { boxShadow: R.NEU_INSET_FOCUS },
                         "&.Mui-error": { boxShadow: R.NEU_INSET_ERROR },
                         "&.Mui-disabled": { boxShadow: R.NEU_INSET, opacity: 0.6 },
-                        "&:has(.MuiSelect-select)": { ...DD_FLAT },
+                        "&:has(.MuiSelect-select)": { ...ddFlatFor(CDS) },
                     },
+                    input: { py: dens.mode === "compact" ? 0.75 : 1 },
                 },
             },
             MuiFilledInput: {
                 styleOverrides: {
                     root: {
                         borderRadius: NEU_INPUT_RADIUS,
+                        minHeight: dens.input,
                         backgroundColor: R.NEU_FILL,
                         boxShadow: R.NEU_INSET,
                         "&:before": { display: "none" },
@@ -307,7 +408,7 @@ export function createAormsTheme(options) {
                         "&:hover": { backgroundColor: R.NEU_FILL },
                         "&.Mui-focused": { backgroundColor: R.NEU_FILL, boxShadow: R.NEU_INSET_FOCUS },
                         "&.Mui-error": { boxShadow: R.NEU_INSET_ERROR },
-                        "&:has(.MuiSelect-select)": { ...DD_FLAT },
+                        "&:has(.MuiSelect-select)": { ...ddFlatFor(CDS) },
                     },
                 },
             },
@@ -315,10 +416,11 @@ export function createAormsTheme(options) {
                 styleOverrides: {
                     root: {
                         borderRadius: BTN_RADIUS,
+                        minHeight: dens.button,
                         "&.Mui-selected": {
                             color: CDS.accent,
-                            backgroundColor: GLASS_ORANGE_30,
-                            "&:hover": { backgroundColor: GLASS_ORANGE_30 },
+                            backgroundColor: glassAccentWash(CDS.accent, 0.3),
+                            "&:hover": { backgroundColor: glassAccentWash(CDS.accent, 0.3) },
                         },
                     },
                 },
@@ -331,7 +433,7 @@ export function createAormsTheme(options) {
                     root: {
                         color: CDS.textSecondary,
                         "&.Mui-checked": { color: CDS.accent },
-                        "&.Mui-focusVisible": FOCUS_RING,
+                        "&.Mui-focusVisible": focusRingFor(CDS.accent),
                     },
                 },
             },
@@ -340,7 +442,7 @@ export function createAormsTheme(options) {
                     root: {
                         color: CDS.textSecondary,
                         "&.Mui-checked": { color: CDS.accent },
-                        "&.Mui-focusVisible": FOCUS_RING,
+                        "&.Mui-focusVisible": focusRingFor(CDS.accent),
                     },
                 },
             },
@@ -349,7 +451,7 @@ export function createAormsTheme(options) {
                     switchBase: {
                         "&.Mui-checked": { color: CDS.onAccent },
                         "&.Mui-checked + .MuiSwitch-track": { backgroundColor: CDS.accent, opacity: 1 },
-                        "&.Mui-focusVisible": FOCUS_RING,
+                        "&.Mui-focusVisible": focusRingFor(CDS.accent),
                     },
                     track: { backgroundColor: CDS.textSecondary, opacity: OPACITY.muted },
                 },
@@ -374,7 +476,7 @@ export function createAormsTheme(options) {
             },
             MuiSkeleton: {
                 styleOverrides: {
-                    root: { borderRadius: 0, backgroundColor: "rgba(20, 21, 23, 0.06)" },
+                    root: { borderRadius: 0, backgroundColor: hexToRgba(CDS.ink, 0.06) },
                 },
             },
             MuiBadge: {
@@ -395,7 +497,7 @@ export function createAormsTheme(options) {
                             color: CDS.onAccent,
                             "&:hover": { backgroundColor: CDS.accentDark },
                         },
-                        "&.Mui-focusVisible": FOCUS_RING,
+                        "&.Mui-focusVisible": focusRingFor(CDS.accent),
                     },
                 },
             },
@@ -421,18 +523,47 @@ export function createAormsTheme(options) {
                             color: CDS.onAccent,
                             "&:hover, &:focus": { backgroundColor: CDS.accentDark },
                         },
-                        "&.Mui-focusVisible": FOCUS_RING,
+                        "&.Mui-focusVisible": focusRingFor(CDS.accent),
                     },
                     today: { border: `1px solid ${CDS.accent}` },
                 },
             },
+            // DatePicker popup shell — flat pop + hairline (inherits input theming on the field).
+            MuiPickerPopper: {
+                styleOverrides: {
+                    paper: {
+                        ...R.FLAT_POP,
+                        borderRadius: 0,
+                        backgroundColor: CDS.layer01,
+                        border: `1px solid ${CDS.borderSubtle}`,
+                    },
+                },
+            },
+            MuiDateCalendar: {
+                styleOverrides: {
+                    root: {
+                        backgroundColor: CDS.layer01,
+                        color: CDS.textPrimary,
+                        maxHeight: "none",
+                    },
+                },
+            },
+            MuiPickersCalendarHeader: {
+                styleOverrides: {
+                    root: { color: CDS.textPrimary, paddingInline: SPACING_UNIT },
+                    label: { fontWeight: 600, fontSize: type.body2 },
+                },
+            },
             MuiTableCell: {
                 styleOverrides: {
-                    root: { borderColor: "rgba(20, 21, 23, 0.08)" },
+                    root: {
+                        borderColor: hexToRgba(CDS.ink, 0.08),
+                        py: dens.tableCellPy,
+                    },
                     head: {
                         textTransform: "uppercase",
                         letterSpacing: "0.08em",
-                        fontSize: "0.6875rem",
+                        fontSize: type.micro,
                         fontWeight: 600,
                         color: CDS.textSecondary,
                     },
@@ -442,9 +573,10 @@ export function createAormsTheme(options) {
                 styleOverrides: {
                     tooltip: {
                         borderRadius: 0,
-                        backgroundColor: "#141517",
-                        color: "#FFFFFF",
-                        border: "1px solid rgba(20, 21, 23, 0.20)",
+                        backgroundColor: CDS.ink,
+                        color: CDS.textOnColor,
+                        border: `1px solid ${CDS.borderStrong}`,
+                        fontSize: type.micro,
                     },
                 },
             },
@@ -454,24 +586,32 @@ export function createAormsTheme(options) {
                         borderRadius: 0,
                         backgroundColor: "transparent",
                         border: 0,
-                        "--DataGrid-rowBorderColor": "rgba(20,21,23,0.07)",
+                        "--DataGrid-rowBorderColor": hexToRgba(CDS.ink, 0.07),
+                        "--DataGrid-rowHeight": `${dens.dataGridRow}px`,
+                        "--DataGrid-headerHeight": `${dens.dataGridRow}px`,
                     },
-                    columnHeaders: { backgroundColor: "transparent" },
+                    columnHeaders: {
+                        backgroundColor: "transparent",
+                        minHeight: dens.dataGridRow,
+                        maxHeight: dens.dataGridRow,
+                    },
                     columnHeader: { backgroundColor: "transparent" },
                     columnHeaderTitle: {
                         textTransform: "uppercase",
                         letterSpacing: "0.08em",
-                        fontSize: "0.6875rem",
+                        fontSize: type.micro,
                         fontWeight: 600,
                         color: CDS.textSecondary,
                     },
-                    cell: { borderColor: "rgba(20,21,23,0.07)" },
-                    footerContainer: { borderColor: "rgba(20,21,23,0.08)" },
+                    cell: { borderColor: hexToRgba(CDS.ink, 0.07) },
+                    footerContainer: { borderColor: hexToRgba(CDS.ink, 0.08) },
                     row: {
+                        minHeight: dens.dataGridRow,
+                        maxHeight: dens.dataGridRow,
                         "&:hover": { backgroundColor: CDS.hoverSoft },
                         "&.Mui-selected": {
                             backgroundColor: CDS.accentSoft,
-                            "&:hover": { backgroundColor: "rgba(255,79,24,0.20)" },
+                            "&:hover": { backgroundColor: glassAccentWash(CDS.accent, 0.2) },
                         },
                     },
                 },
@@ -481,4 +621,9 @@ export function createAormsTheme(options) {
 }
 /** The shared, ready-to-use AORMS theme instance. */
 export const aormsTheme = createAormsTheme();
+/** HCW name for {@link aormsTheme}. Prefer this in new code. */
+export const hcwTheme = aormsTheme;
+/** HCW name for {@link createAormsTheme}. Prefer this in new code. */
+export const createHcwTheme = createAormsTheme;
 export default aormsTheme;
+//# sourceMappingURL=theme.js.map

@@ -53,7 +53,7 @@ findings ranked severity × reach × confidence.
 
 | Role | Prompt core |
 | --- | --- |
-| **Design Architect** | Own tokens/theme/primitives. Kit-first. Any shared visual change lands once in `packages/hcw-ui-kit`. Guard the layer thesis. |
+| **Design Architect** | Own tokens/theme/primitives. Kit-first. Any shared visual change lands once in `src/` (this repo). Guard the layer thesis. |
 | **UX Architect** | Audit flows against Playbook §4/§6 and [07-UX-REVIEW-CHECKLISTS](07-UX-REVIEW-CHECKLISTS.md); map friction with concrete step diagrams. |
 | **Accessibility Expert** | Enforce the WCAG 2.2 AA gate (KB R6): landmarks, names, focus, targets, contrast, motion. Block on regressions. |
 | **DesignOps Manager** | Semver, CHANGELOG, deprecation cycles, GOVERNANCE conformance; audits scheduled and recorded under 11-audits. |

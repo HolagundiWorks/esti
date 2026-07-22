@@ -49,7 +49,7 @@ import { useAuth } from "./lib/auth.js";
 import { trpc } from "./lib/trpc.js";
 import { LegacyModuleRedirect } from "./components/LegacyModuleRedirect.js";
 import { AiAgentCommand } from "./components/AiAgentCommand.js";
-import { ActionDock, ActionDockProvider } from "@hcw/ui-kit";
+import { ActionDock, ActionDockProvider, ActionOutcomeBanner } from "@hcw/ui-kit";
 import { AppRibbon } from "./components/shell/AppRibbon.js";
 import { AppFooterBar } from "./components/shell/AppFooterBar.js";
 import { AormsLogo } from "./components/AormsLogo.js";
@@ -725,6 +725,8 @@ function AppWorkspace() {
           {/* HCW-UI-Kit global action dock — screens publish CTAs via useScreenActions;
               renders nothing until they do (zero regression until adopted). */}
           <ActionDock />
+          {/* Outcome channel — publishes from DockAction.outcome / publishOutcome. */}
+          <ActionOutcomeBanner />
           {/* Taskbar footer (HCW-UI-Kit) — launchers CENTRE (Studio · Tasks · Search ·
               Ask ESTI · Wellness · Pomodoro), tray RIGHT. */}
           <AppFooterBar

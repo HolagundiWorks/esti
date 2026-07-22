@@ -23,9 +23,13 @@ Rules: ≤4 KPIs visible (Miller); health = shape + colour; numbers drill throug
 ```
 RailLayout(title, description, aside: search/filters)
 ├ PageBreadcrumb
+├ Box sx={layoutSx.listToolbar}
+│   ├ TextField sx={searchFieldSx} + Search InputAdornment
+│   └ filters (Select / ToggleButtonGroup)
 ├ optional success Alert (dismissible)
 └ DataState(loading, isEmpty, empty:{one sentence + one action})
     └ DataGrid (≤8 columns · StatusDot for status · RowActionsMenu per row)
+       — prefer KitRoot density="compact" on dense registers
 Dock: CENTER "New <object>" · dialog publishes [] while open
 Create/edit = Dialog (aria-labelledby) — never an always-visible form
 ```
@@ -97,7 +101,35 @@ step = one decision (Miller); "Next" disabled until the step validates (error
 prevention); completed steps stay reachable to edit. Kit theming: `MuiStepper` /
 `MuiStepIcon` / `MuiStepConnector` (governed in `theme.ts`).
 
+## T10 — AI / mission orchestration (reference: kit primitives)
+
+Mission-first supervision surface (Framework principle 6). Domain-agnostic kit
+primitives — product supplies copy and phase enums.
+
+```
+RailLayout (GlassRail)
+├ RAIL
+│  ├ MissionHeader          — one-sentence mission + status
+│  ├ AwarenessStrip         — state · meaning · next (judgment = interrupt)
+│  ├ ObjectiveList          — ≤ CAPACITY.railObjectives (5)
+│  └ ConfidenceBand         — low|medium|high (never lone false-precision %)
+├ STAGE
+│  ├ PhaseStrip             — phase · progress · eta
+│  ├ DecisionQueue          — Pending Decisions first (DecisionCard)
+│  ├ FreezeTable            — locked decisions (read-only)
+│  ├ risks / artifacts      — StatusDot · HealthGlassOrb · soft Surface
+│  └ optional implementation detail (collapsed by default)
+└ DOCK
+   LEFT reject / defer · CENTER choose alternative · RIGHT approve / freeze
+   publish [] while a decision Dialog is open
+   RIGHT commits: DockAction.outcome + track → publishOutcome + ux.dock/ux.outcome
+```
+
+Four questions above the fold (≤30s): What is the mission? What is done? What needs
+judgment? What happens next? Ambient progress never interrupts. Compose only from
+`@hcw/ui-kit` — do not invent a fifth chrome region.
+
 ---
 
-*Template catalog complete (T1–T9). Register a D-item only if a new pattern is
+*Template catalog complete (T1–T10). Register a D-item only if a new pattern is
 needed without a shipped reference to clone.*

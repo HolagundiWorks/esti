@@ -12,8 +12,10 @@
  * (capsule tray + dock buttons), dialogs `DIALOG_RADIUS` (8px).
  * Full spec: docs/esti/AORMS-BRANDING-KIT.md.
  */
-/** Brand palette. Orange is a FILL/active accent only (carries white text); links
- *  use slate, never the accent. */
+/** Brand palette. Radiant Orange is the single accent: **fills** (CTAs, chips,
+ *  brand marks — with `onAccent` ink) and **active/hover tints** on chrome glyphs
+ *  (taskbar, docks, tab rules). Body copy and links use slate (`supportInfo`),
+ *  never the accent. */
 export const colors = {
     background: "#F2F4F7", // Fog Gray — clean cool canvas
     layer01: "#FFFFFF", // Pure White — card surface
@@ -90,7 +92,9 @@ export const SCHEMES = {
 };
 /** Categorical data-viz hues — canvas/SVG marker + series colours (CAD takeoff
  *  markers, chart series). Kit-owned so diagram palettes stop hardcoding hex
- *  (Token Governance §7). Values match the shipped marker palette. */
+ *  (Token Governance §7). Values match the shipped marker palette.
+ *  `orange` here is a **series** hue (`#FF832B`), not the brand accent
+ *  (`colors.accent` / Radiant Orange `#FF4F18`). Never use `DATA_VIZ` for CTAs. */
 export const DATA_VIZ = {
     blue: "#0F62FE",
     cyan: "#1192E8",
@@ -100,6 +104,159 @@ export const DATA_VIZ = {
     orange: "#FF832B",
     gray: "#525252",
 };
+/**
+ * Ordered categorical series for charts. Prefer this over
+ * `Object.values(DATA_VIZ)` so series order stays stable across builds.
+ * Viz hues are never CTAs — brand accent stays Radiant Orange.
+ */
+export const DATA_VIZ_CATEGORICAL = [
+    DATA_VIZ.blue,
+    DATA_VIZ.cyan,
+    DATA_VIZ.green,
+    DATA_VIZ.orange,
+    DATA_VIZ.purple,
+    DATA_VIZ.violet,
+    DATA_VIZ.gray,
+];
+/**
+ * Sequential intensity ramp (single-hue) — heatmaps, choropleths, continuous
+ * magnitudes. Low → high. Never use brand accent as the ramp.
+ */
+export const DATA_VIZ_SEQUENTIAL = [
+    "#D0E2FF",
+    "#A6C8FF",
+    "#78A9FF",
+    "#4589FF",
+    DATA_VIZ.blue,
+    "#0043CE",
+    "#002D9C",
+];
+/**
+ * Diverging ramp — polarity / delta charts (negative ← neutral → positive).
+ * Ends align with support error/success; mid is categorical gray. Not CTAs.
+ */
+export const DATA_VIZ_DIVERGING = [
+    "#A2191F",
+    "#FA4D56",
+    "#FFB3B8",
+    DATA_VIZ.gray,
+    "#A7F0BA",
+    DATA_VIZ.green,
+    "#0E6027",
+];
+/**
+ * Semantic roles for KPI deltas, sparkline polarity, and alert series — map
+ * meaning first, then colour (pair with {@link CHART_MARKERS} for WCAG 1.4.1).
+ */
+export const DATA_VIZ_SEMANTIC = {
+    positive: colors.supportSuccess,
+    negative: colors.supportError,
+    caution: colors.supportWarning,
+    neutral: DATA_VIZ.gray,
+    info: colors.supportInfo,
+};
+/** Evenly sample a closed ramp into `n` colours (n=1 → mid step). */
+export function sampleColorRamp(ramp, n) {
+    if (n <= 0)
+        return [];
+    if (n === 1)
+        return [ramp[Math.floor(ramp.length / 2)]];
+    if (n >= ramp.length) {
+        const out = [];
+        for (let i = 0; i < n; i++)
+            out.push(ramp[i % ramp.length]);
+        return out;
+    }
+    const out = [];
+    for (let i = 0; i < n; i++) {
+        const t = i / (n - 1);
+        out.push(ramp[Math.round(t * (ramp.length - 1))]);
+    }
+    return out;
+}
+/** First `n` chart series colours, cycling the categorical ladder. */
+export function chartSeriesColors(n) {
+    if (n <= 0)
+        return [];
+    const out = [];
+    for (let i = 0; i < n; i++) {
+        out.push(DATA_VIZ_CATEGORICAL[i % DATA_VIZ_CATEGORICAL.length]);
+    }
+    return out;
+}
+/** Categorical colour at index (stable, wraps). */
+export function chartColorAt(index) {
+    const i = ((index % DATA_VIZ_CATEGORICAL.length) + DATA_VIZ_CATEGORICAL.length) % DATA_VIZ_CATEGORICAL.length;
+    return DATA_VIZ_CATEGORICAL[i];
+}
+/** Sequential intensity colours for `n` bins. */
+export function sequentialColors(n) {
+    return sampleColorRamp(DATA_VIZ_SEQUENTIAL, n);
+}
+/** Diverging polarity colours for `n` bins (odd n keeps a true mid). */
+export function divergingColors(n) {
+    return sampleColorRamp(DATA_VIZ_DIVERGING, n);
+}
+/** Palette picker — categorical cycles; sequential/diverging sample their ramps. */
+export function chartPalette(kind, n) {
+    if (kind === "categorical")
+        return chartSeriesColors(n);
+    if (kind === "sequential")
+        return sequentialColors(n);
+    return divergingColors(n);
+}
+/** Area / band fill from a series stroke — translucent, scheme-safe via hex. */
+export function chartAreaFill(stroke, alpha = 0.16) {
+    return hexToRgba(stroke, alpha);
+}
+/**
+ * Enterprise density targets — WCAG touch targets and compact chrome heights.
+ *
+ * Prefer {@link densityFor} when wiring theme/control heights; use
+ * {@link chromeIconSx} for persistent-chrome icons (44 default; 48 under
+ * `[data-hcw-coga="calm"]`).
+ */
+export const DENSITY = {
+    /** Minimum interactive target (WCAG 2.5.5 / persistent chrome). */
+    touchTarget: 44,
+    /** Compact control (taskbar chips, dense toolbars, `density="compact"`). */
+    controlCompact: 38,
+    /** Default / comfortable control · tab row height. */
+    control: 40,
+};
+/**
+ * Resolved control metrics for a density mode. `createAormsTheme({ density })`
+ * and list/table chrome consume these — do not invent px heights at call sites.
+ * Pass `coga: "calm"` to raise interactive floors to {@link COGA.calmTargetMinPx}.
+ */
+export function densityFor(mode = "comfortable", coga = "default") {
+    const compact = mode === "compact";
+    const floor = coga === "calm" ? COGA.calmTargetMinPx : 0;
+    const lift = (n) => Math.max(n, floor);
+    return {
+        mode,
+        /** Generic control / tab height. */
+        control: lift(compact ? 32 : DENSITY.control),
+        /** Contained/text button min-height. */
+        button: lift(compact ? 32 : 36),
+        /** Text field / outlined input min-height. */
+        input: lift(compact ? 32 : DENSITY.control),
+        /** List item / menu item min-height. */
+        listItem: lift(compact ? 32 : DENSITY.control),
+        tab: lift(compact ? 32 : DENSITY.control),
+        menuItem: lift(compact ? 32 : DENSITY.control),
+        /** Table cell vertical padding (`theme.spacing` units). */
+        tableCellPy: compact ? 0.5 : 1,
+        chip: compact && coga !== "calm" ? 22 : coga === "calm" ? 32 : 28,
+        dataGridRow: lift(compact ? 36 : 48),
+        /**
+         * In-content IconButton size. Persistent chrome (taskbar/ribbon) uses
+         * {@link chromeIconSx} — 44 by default, 48 under COGA calm via
+         * `[data-hcw-coga="calm"]`.
+         */
+        iconButton: lift(compact ? 32 : DENSITY.controlCompact),
+    };
+}
 /** Status hues for StatusDot/StatusTag — canonical kit-owned values (supersede the
  *  frozen `--cds-tag-*` compat layer for new code). */
 export const STATUS_COLORS = {
@@ -128,14 +285,113 @@ export const MARKETING_DOCK_RADIUS = 12;
 export const TAB_ALERT_WIDTH = 3;
 // ── Scale tokens (the numeric ladders the theme + components build on) ─────────
 /** Spacing base — 8px, matching MUI's default grid so existing layouts are
- *  unaffected. `theme.spacing(1)` = 8px. Use `SPACING.*` instead of magic px. */
+ *  unaffected. `theme.spacing(1)` = 8px. Use `SPACING.*` instead of magic px.
+ *  Ladder aligns with productive enterprise density steps
+ *  (2/4/8/12/16/24/32/40/48/64) while keeping HCW names. */
 export const SPACING_UNIT = 8;
 export const SPACING = {
-    none: 0, xxs: 2, xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48, xxxl: 64,
+    none: 0,
+    xxs: 2,
+    xs: 4,
+    sm: 8,
+    /** Dense stack / chip gap — Carbon `$spacing-04`. */
+    compact: 12,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    /** Section separation — Carbon `$spacing-08`. */
+    section: 40,
+    xxl: 48,
+    xxxl: 64,
 };
 /** Responsive breakpoints (px). Mirror MUI defaults; `md: 900` is the rail
  *  stack/unstack line used across the workspace + marketing shells. */
 export const BREAKPOINTS = { xs: 0, sm: 600, md: 900, lg: 1200, xl: 1536 };
+/**
+ * Layout / grid organisation — shell gutters, margins, and proportions as HCW
+ * tokens. **Grid is 12-column.** Fluid workspace rails may use `railFraction`;
+ * kit `GlassRail` uses fixed `railWidth` for portal/auth shells.
+ */
+export const LAYOUT = {
+    columns: 12,
+    gutter: SPACING.md,
+    margin: SPACING.md,
+    railWidth: 240,
+    railWidthCollapsed: 56,
+    railFraction: 0.2,
+    stageFraction: 0.8,
+    /** theme.spacing multipliers for GlassRail / stage padding. */
+    railPadding: 2,
+    stagePaddingXs: 2,
+    stagePaddingMd: 3,
+    stagePaddingBottomXs: 4,
+    stagePaddingBottomMd: 6,
+    contentMaxWidth: 1280,
+    taskbarHeight: 56,
+    dockClearance: SPACING.md,
+};
+/**
+ * Working-memory capacity caps (Cowan ~4±1 chunks — tighter than Miller 7±2).
+ * UI surfaces must not exceed these without progressive disclosure. Audits and
+ * primitives (`ToastHost`, `AwarenessStrip`, dock, `KpiStrip`, DecisionCard) enforce
+ * where possible.
+ */
+export const CAPACITY = {
+    workingMemoryChunks: 4,
+    railObjectives: 5,
+    dockVisibleActions: 5,
+    kpiStrip: 4,
+    trustChips: 4,
+    openLoops: 3,
+    toastStack: 2,
+    /** Endsley SA lines: state · meaning · next. */
+    awarenessLines: 3,
+    /** DecisionCard alternatives (Hick) — progressive disclosure beyond this. */
+    decisionAlternatives: 3,
+};
+/**
+ * Interruption budget (Bailey / Iqbal notification-cost research).
+ * Glass/alerts are scarce; toasts never flood. Error toasts may assert; ambient
+ * motion is capped at one “needs you” signal.
+ */
+export const INTERRUPTION = {
+    maxConcurrentToasts: CAPACITY.toastStack,
+    dedupeMs: 4000,
+    defaultTtlMs: 6000,
+    errorTtlMs: 8000,
+    maxAmbientMotion: 1,
+};
+/**
+ * Cognitive accessibility extras (W3C COGA) beyond WCAG 2.2 AA.
+ * `calm` mode: larger targets, one type step up, reduced secondary chrome.
+ * Wire via `KitRoot({ coga: "calm" })` / `createHcwTheme({ coga: "calm" })`.
+ */
+export const COGA = {
+    targetMinPx: 44,
+    calmTargetMinPx: 48,
+    /** Bump dense type one step when calm mode is on (caption→label, etc.). */
+    calmTypeStep: 1,
+};
+/**
+ * AI trust calibration (Lee & See) — ESTI / orchestration copy grammar.
+ * Overconfident success theatre is banned; judgment is the only interrupt cue.
+ */
+export const TRUST = {
+    assumptionChipLabel: "Assumption",
+    judgmentNeedsLabel: "Needs your judgment",
+    /** Confidence is shown as a band/word, never a false-precision percent alone. */
+    preferConfidenceBand: true,
+};
+/**
+ * Preattentive status shapes (Treisman / Ware) — colour alone is never enough
+ * for urgency (WCAG 1.4.1). Pair with {@link StatusDot} `shape` or HealthGlassOrb.
+ */
+export const STATUS_SHAPE = {
+    ok: "circle",
+    watch: "triangle",
+    critical: "square",
+    inactive: "circle",
+};
 /** Z-index ladder — one stack order for every floating surface, mirroring MUI's
  *  ladder so themed MUI overlays and HCW chrome (rail · dock · footer) never fight. */
 export const Z_INDEX = {
@@ -146,17 +402,66 @@ export const Z_INDEX = {
 export const OPACITY = {
     disabled: 0.45, muted: 0.6, hoverWash: 0.04, selectedWash: 0.14,
 };
-/** Type scale — the sanctioned font sizes BELOW/BESIDE the MUI variants, for the
- *  dense-telemetry cases (rail micro-labels, KPI values) that variants don't cover.
- *  Icon sizing via `fontSize` on icon components is geometry, not typography — it
- *  is exempt from this scale (see HCW-KIT-AI-KNOWLEDGE-BASE.md R1). */
+/**
+ * Type scale — productive hierarchy (Carbon density inspiration) in HCW names.
+ * Dense telemetry (`micro`/`caption`/`label`) sits beside body; `kpi`/`subtitle`/
+ * `heading`/`display` cover stage readouts and page titles. Theme typography
+ * sizes are wired from this ladder — do not invent rem sizes at call sites.
+ * Icon `fontSize` on icon components is geometry, not typography (KB R1).
+ */
 export const TYPE_SCALE = {
-    micro: "0.65rem", // rail telemetry micro-labels (below caption)
-    caption: "0.75rem", // = MUI caption; here for completeness of the ladder
+    micro: "0.65rem",
+    caption: "0.75rem",
+    /** Compact UI label (taskbar, dense controls) — ~13px. */
+    label: "0.8125rem",
     body2: "0.875rem",
     body: "1rem",
-    kpi: "1.1rem", // stage-head / rail KPI values (light weight)
+    kpi: "1.1rem",
+    subtitle: "1.25rem",
+    heading: "1.75rem",
+    display: "2.625rem",
 };
+const TYPE_LADDER = [
+    "micro",
+    "caption",
+    "label",
+    "body2",
+    "body",
+    "kpi",
+    "subtitle",
+    "heading",
+    "display",
+];
+/**
+ * Resolved COGA metrics. Calm raises interactive floors and bumps type one step
+ * on the {@link TYPE_SCALE} ladder.
+ */
+export function cogaFor(mode = "default") {
+    const calm = mode === "calm";
+    const bump = (key) => {
+        if (!calm)
+            return TYPE_SCALE[key];
+        const i = TYPE_LADDER.indexOf(key);
+        const nextIdx = Math.min(i + COGA.calmTypeStep, TYPE_LADDER.length - 1);
+        const next = TYPE_LADDER[nextIdx] ?? key;
+        return TYPE_SCALE[next];
+    };
+    return {
+        mode,
+        targetMinPx: calm ? COGA.calmTargetMinPx : COGA.targetMinPx,
+        type: {
+            micro: bump("micro"),
+            caption: bump("caption"),
+            label: bump("label"),
+            body2: bump("body2"),
+            body: bump("body"),
+            kpi: bump("kpi"),
+            subtitle: bump("subtitle"),
+            heading: bump("heading"),
+            display: bump("display"),
+        },
+    };
+}
 /** Motion tokens — durations (ms) + easings. `fast`/`base` match the 130–200ms
  *  used across the theme. Always gate transforms behind {@link REDUCE_MOTION}. */
 export const MOTION = {
@@ -195,47 +500,75 @@ export const FLAT_POP = {
 };
 // ── Flat text buttons ─────────────────────────────────────────────────────────
 export const BTN_LIFT = "translateY(-2px)"; // hover float
-export const UNDERLINE_ORANGE = "inset 0 -2px 0 0 #ff4f18"; // hover bottom line
-export const UNDERLINE_RED = "inset 0 -2px 0 0 #c8442e";
-export const GLASS_ORANGE_30 = "rgba(255, 79, 24, 0.30)"; // selected toggle wash
+/** Parse `#RGB` / `#RRGGBB` into `rgba(r,g,b,alpha)`. Used so accent washes follow
+ *  the active scheme instead of baking light-scheme hex into recipes. */
+export function hexToRgba(hex, alpha) {
+    const raw = hex.replace("#", "").trim();
+    const full = raw.length === 3 ? raw.split("").map((c) => c + c).join("") : raw;
+    const n = Number.parseInt(full, 16);
+    if (!Number.isFinite(n) || full.length !== 6) {
+        throw new Error(`hexToRgba: expected #RRGGBB, got ${hex}`);
+    }
+    return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+/** Hover bottom underline in the given accent (scheme-aware). */
+export function underlineAccent(accent = colors.accent) {
+    return `inset 0 -2px 0 0 ${accent}`;
+}
+/** Translucent accent wash (selected toggles, etc.) — scheme-aware. */
+export function glassAccentWash(accent = colors.accent, alpha = 0.3) {
+    return hexToRgba(accent, alpha);
+}
+/** Light-scheme defaults — prefer `underlineAccent(scheme.accent)` when scheme-aware. */
+export const UNDERLINE_ORANGE = underlineAccent(colors.accent);
+export const UNDERLINE_RED = underlineAccent(colors.supportError);
+export const GLASS_ORANGE_30 = glassAccentWash(colors.accent, 0.3);
 // ── Motion & focus (accessibility) ─────────────────────────────────────────────
 /** Media-query key that matches when the OS "reduce motion" preference is on.
  *  Gate every transform/lift behind it so users who ask for calm keep the colour +
  *  shadow cues but lose the movement (WCAG 2.3.3). Usable as an sx / styleOverride
  *  object key: `{ [REDUCE_MOTION]: { transition: "none" } }`. */
 export const REDUCE_MOTION = "@media (prefers-reduced-motion: reduce)";
-/** Keyboard focus ring — the Radiant-Orange accent, offset off the control. Applied
- *  on `:focus-visible` so keyboard users get the same "this is actionable" signal a
- *  mouse user gets on hover, without showing a ring on plain mouse clicks. */
-export const FOCUS_RING = {
-    outline: `2px solid ${colors.accent}`,
-    outlineOffset: "2px",
-};
+/** Keyboard focus ring — scheme-aware. Applied on `:focus-visible` so keyboard
+ *  users get the same "this is actionable" signal a mouse user gets on hover,
+ *  without showing a ring on plain mouse clicks. */
+export function focusRingFor(accent = colors.accent) {
+    return {
+        outline: `2px solid ${accent}`,
+        outlineOffset: "2px",
+    };
+}
+/** Light-scheme default — prefer `focusRingFor(scheme.accent)` when scheme-aware. */
+export const FOCUS_RING = focusRingFor(colors.accent);
 // ── Neumorphic recessed inputs (text-entry wells) ──────────────────────────────
 export const NEU_FILL = "#eceef2";
 export const NEU_INSET = "inset 2px 2px 4.5px rgba(20, 21, 23, 0.16), inset -2px -2px 4.5px rgba(255, 255, 255, 0.92)";
-export const NEU_INSET_FOCUS = "inset 2.5px 2.5px 5.5px rgba(20, 21, 23, 0.20), inset -2.5px -2.5px 5.5px rgba(255, 255, 255, 0.95), inset 0 0 0 1.5px rgba(255, 79, 24, 0.45)";
-export const NEU_INSET_ERROR = "inset 2px 2px 4.5px rgba(20, 21, 23, 0.16), inset -2px -2px 4.5px rgba(255, 255, 255, 0.92), inset 0 0 0 1.5px rgba(200, 68, 46, 0.55)";
+export const NEU_INSET_FOCUS = `inset 2.5px 2.5px 5.5px rgba(20, 21, 23, 0.20), inset -2.5px -2.5px 5.5px rgba(255, 255, 255, 0.95), inset 0 0 0 1.5px ${hexToRgba(colors.accent, 0.45)}`;
+export const NEU_INSET_ERROR = `inset 2px 2px 4.5px rgba(20, 21, 23, 0.16), inset -2px -2px 4.5px rgba(255, 255, 255, 0.92), inset 0 0 0 1.5px ${hexToRgba(colors.supportError, 0.55)}`;
 export const NEU_INPUT_RADIUS = 0;
-/** Dropdowns (Select) — FLAT at rest, button-like on hover (white box + orange line). */
-export const DD_FLAT = {
-    backgroundColor: "transparent",
-    boxShadow: "none",
-    border: "1px solid transparent",
-    transition: "background 130ms ease, box-shadow 130ms ease, border-color 130ms ease",
-    "&:hover": {
-        backgroundColor: "#ffffff",
-        borderColor: colors.borderSubtle,
-        boxShadow: UNDERLINE_ORANGE,
-    },
-    "&.Mui-focused": {
-        backgroundColor: "#ffffff",
-        border: `1px solid ${colors.accent}`,
+/** Dropdowns (Select) — FLAT at rest, button-like on hover (white box + accent line). */
+export function ddFlatFor(scheme = colors) {
+    return {
+        backgroundColor: "transparent",
         boxShadow: "none",
-    },
-    "&.Mui-error": { borderColor: "rgba(200, 68, 46, 0.7)" },
-    "&.Mui-disabled": { boxShadow: "none", opacity: 0.6 },
-};
+        border: "1px solid transparent",
+        transition: "background 130ms ease, box-shadow 130ms ease, border-color 130ms ease",
+        "&:hover": {
+            backgroundColor: scheme.layer01,
+            borderColor: scheme.borderSubtle,
+            boxShadow: underlineAccent(scheme.accent),
+        },
+        "&.Mui-focused": {
+            backgroundColor: scheme.layer01,
+            border: `1px solid ${scheme.accent}`,
+            boxShadow: "none",
+        },
+        "&.Mui-error": { borderColor: hexToRgba(scheme.supportError, 0.7) },
+        "&.Mui-disabled": { boxShadow: "none", opacity: 0.6 },
+    };
+}
+/** Light-scheme default — prefer `ddFlatFor(scheme)` when scheme-aware. */
+export const DD_FLAT = ddFlatFor(colors);
 // ── The three depth layers (HCW-UI-Kit thesis: depth encodes importance) ───────
 // Layer 1 FLAT (hyperminimalist) — the resting plane: tables, text, inputs at
 // rest. No recipe: it IS the canvas + hairlines (see the theme's Paper/DataGrid).
@@ -287,15 +620,20 @@ export const GLASS_SURFACE = {
  * Layer 3 variant — **liquid glass** for ActionDock buttons on hover/focus.
  * Crystal-clear frosted pill: gradient wash, high saturate blur, specular inset edges.
  * Flat pill at rest; liquid-glass capsule on hover/focus (`DOCK_PILL_RADIUS`).
+ * Accent glow tracks the scheme accent (not a baked light-scheme hex).
  */
-export const LIQUID_GLASS_BUTTON = {
-    background: "linear-gradient(165deg, rgba(255, 255, 255, 0.58) 0%, rgba(255, 255, 255, 0.18) 45%, rgba(255, 255, 255, 0.42) 100%)",
-    backdropFilter: "blur(36px) saturate(2.25) brightness(1.14)",
-    WebkitBackdropFilter: "blur(36px) saturate(2.25) brightness(1.14)",
-    border: "1px solid rgba(255, 255, 255, 0.72)",
-    borderRadius: DOCK_PILL_RADIUS,
-    boxShadow: "0 12px 36px rgba(20, 21, 23, 0.11), 0 2px 10px rgba(255, 79, 24, 0.07), inset 0 1.5px 0 rgba(255, 255, 255, 0.92), inset 0 -1px 0 rgba(255, 255, 255, 0.28)",
-};
+export function liquidGlassButtonFor(accent = colors.accent) {
+    return {
+        background: "linear-gradient(165deg, rgba(255, 255, 255, 0.58) 0%, rgba(255, 255, 255, 0.18) 45%, rgba(255, 255, 255, 0.42) 100%)",
+        backdropFilter: "blur(36px) saturate(2.25) brightness(1.14)",
+        WebkitBackdropFilter: "blur(36px) saturate(2.25) brightness(1.14)",
+        border: "1px solid rgba(255, 255, 255, 0.72)",
+        borderRadius: DOCK_PILL_RADIUS,
+        boxShadow: `0 12px 36px rgba(20, 21, 23, 0.11), 0 2px 10px ${hexToRgba(accent, 0.07)}, inset 0 1.5px 0 rgba(255, 255, 255, 0.92), inset 0 -1px 0 rgba(255, 255, 255, 0.28)`,
+    };
+}
+/** Light-scheme default — prefer `liquidGlassButtonFor(scheme.accent)` when scheme-aware. */
+export const LIQUID_GLASS_BUTTON = liquidGlassButtonFor(colors.accent);
 /** ActionDock button hover/focus lift. */
 export const DOCK_BUTTON_LIFT = "translateY(-3px)";
 /**
@@ -375,8 +713,8 @@ export const DARK_RECIPES = {
         boxShadow: "6px 6px 14px rgba(0, 0, 0, 0.55), -6px -6px 14px rgba(255, 255, 255, 0.045)",
     },
     NEU_INSET: "inset 2px 2px 4.5px rgba(0, 0, 0, 0.55), inset -2px -2px 4.5px rgba(255, 255, 255, 0.05)",
-    NEU_INSET_FOCUS: "inset 2.5px 2.5px 5.5px rgba(0, 0, 0, 0.62), inset -2.5px -2.5px 5.5px rgba(255, 255, 255, 0.06), inset 0 0 0 1.5px rgba(255, 92, 40, 0.5)",
-    NEU_INSET_ERROR: "inset 2px 2px 4.5px rgba(0, 0, 0, 0.55), inset -2px -2px 4.5px rgba(255, 255, 255, 0.05), inset 0 0 0 1.5px rgba(240, 120, 98, 0.55)",
+    NEU_INSET_FOCUS: `inset 2.5px 2.5px 5.5px rgba(0, 0, 0, 0.62), inset -2.5px -2.5px 5.5px rgba(255, 255, 255, 0.06), inset 0 0 0 1.5px ${hexToRgba(DARK_SCHEME.accent, 0.5)}`,
+    NEU_INSET_ERROR: `inset 2px 2px 4.5px rgba(0, 0, 0, 0.55), inset -2px -2px 4.5px rgba(255, 255, 255, 0.05), inset 0 0 0 1.5px ${hexToRgba(DARK_SCHEME.supportError, 0.55)}`,
     GLASS_SURFACE: {
         background: "rgba(25, 28, 33, 0.5)",
         backdropFilter: "blur(28px) saturate(1.6)",
@@ -412,8 +750,8 @@ export const HIGH_CONTRAST_RECIPES = {
         boxShadow: "none",
     },
     NEU_INSET: "inset 0 0 0 2px #000000",
-    NEU_INSET_FOCUS: "inset 0 0 0 3px #C93A00",
-    NEU_INSET_ERROR: "inset 0 0 0 3px #A31226",
+    NEU_INSET_FOCUS: `inset 0 0 0 3px ${HIGH_CONTRAST_SCHEME.accent}`,
+    NEU_INSET_ERROR: `inset 0 0 0 3px ${HIGH_CONTRAST_SCHEME.supportError}`,
     GLASS_SURFACE: {
         background: "#FFFFFF",
         backdropFilter: "none",
@@ -457,9 +795,23 @@ export const tokens = {
     FONT_FAMILY,
     SPACING,
     SPACING_UNIT,
+    LAYOUT,
+    DENSITY,
+    DATA_VIZ,
+    DATA_VIZ_CATEGORICAL,
+    DATA_VIZ_SEQUENTIAL,
+    DATA_VIZ_DIVERGING,
+    DATA_VIZ_SEMANTIC,
+    CAPACITY,
+    INTERRUPTION,
+    COGA,
+    TRUST,
+    STATUS_SHAPE,
     BREAKPOINTS,
     Z_INDEX,
     OPACITY,
+    TYPE_SCALE,
     MOTION,
     ELEVATION,
 };
+//# sourceMappingURL=tokens.js.map

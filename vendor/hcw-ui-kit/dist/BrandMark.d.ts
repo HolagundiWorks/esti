@@ -37,3 +37,4 @@ export declare function BrandMark({ label, size, accent, accentShape, sx, }: {
     sx?: SxProps<Theme>;
 }): import("react").JSX.Element;
 export default BrandMark;
+//# sourceMappingURL=BrandMark.d.ts.map

@@ -1,25 +1,38 @@
 /**
- * MuiRoot — mounts the shared AORMS Material UI theme for a portal.
+ * KitRoot — mounts the shared HCW theme for a portal.
  *
- * Wrap a portal's tree in this once and every MUI surface inherits the brand
+ * Wrap a portal's tree in this once and every themed surface inherits the brand
  * (colour, shape, surfaces, type). It supplies the theme *context* only and
- * injects no page-level background, so surfaces still on Carbon are untouched and
- * a mixed Carbon/MUI shell keeps working (strangler-friendly).
+ * injects no page-level background.
  *
- * `StyledEngineProvider injectFirst` puts MUI/emotion styles at the top of <head>
- * so app CSS still wins on the cascade. `LocalizationProvider` (dayjs) is mounted
- * here so MUI X Date Pickers work anywhere with no per-screen setup.
+ * `scheme` + `density` + `coga` + `direction` feed `createHcwTheme` when `theme`
+ * is omitted. Export aliases: `KitRoot` (preferred) · `MuiRoot` (legacy name).
  *
- * Pass a `theme` to layer portal-specific overrides on top of the brand defaults.
+ * RTL: set `direction="rtl"` and wrap with Emotion CacheProvider using
+ * {@link createHcwRtlCacheOptions} (see docs/hcw-kit/13-ROADMAPS.md).
  */
 import { type Theme } from "@mui/material/styles";
 import { type ReactNode } from "react";
-import type { SchemeName } from "./tokens.js";
-export declare function MuiRoot({ children, theme, scheme, }: {
+import { type TextDirection } from "./rtl.js";
+import type { CogaMode, DensityName, SchemeName } from "./tokens.js";
+export declare const HcwLocaleContext: import("react").Context<string>;
+export declare function useHcwLocale(): string;
+export declare function KitRoot({ children, theme, scheme, density, coga, direction, locale, }: {
     children: ReactNode;
-    /** Full theme override — wins over `scheme`. */
+    /** Full theme override — wins over scheme / density / coga / direction. */
     theme?: Theme;
     /** Colour scheme (light default; dark/highContrast are preview-grade). */
     scheme?: SchemeName;
+    /** Control density — comfortable (default) or compact. */
+    density?: DensityName;
+    /** COGA calm mode — larger targets + one type step (default: `"default"`). */
+    coga?: CogaMode;
+    /** Text direction — sets `theme.direction` + `dir` on the kit wrapper. */
+    direction?: TextDirection;
+    /** BCP 47 locale for clock / consumer i18n (default `en-IN`). */
+    locale?: string;
 }): import("react").JSX.Element;
-export default MuiRoot;
+/** @deprecated Prefer {@link KitRoot}. */
+export declare const MuiRoot: typeof KitRoot;
+export default KitRoot;
+//# sourceMappingURL=MuiRoot.d.ts.map

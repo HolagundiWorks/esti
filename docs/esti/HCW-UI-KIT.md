@@ -19,15 +19,15 @@ every portal inherit the change. Do **not** fork rgba/blur/radius recipes in
 
 | Step | Where | What |
 |------|--------|------|
-| 1 | `packages/hcw-ui-kit/src/tokens.ts` | Colours, radii (`BUTTON_RADIUS`, `DOCK_PILL_RADIUS`, `DIALOG_RADIUS`), layer recipes (`ACTION_DOCK_TRAY`, `LIQUID_GLASS_BUTTON`, `SECTION_DOCK_CHIP_GLASS`, …) |
-| 2 | `packages/hcw-ui-kit/src/chrome-sx.ts` | Shared MUI `sx` helpers (`actionDockButtonSx`, `sectionDockChipSx`, …) |
+| 1 | `src/tokens.ts` | Colours, radii (`BUTTON_RADIUS`, `DOCK_PILL_RADIUS`, `DIALOG_RADIUS`), layer recipes (`ACTION_DOCK_TRAY`, `LIQUID_GLASS_BUTTON`, `SECTION_DOCK_CHIP_GLASS`, …) |
+| 2 | `src/chrome-sx.ts` | Shared MUI `sx` helpers (`actionDockButtonSx`, `sectionDockChipSx`, …) |
 | 3 | Kit component | `ActionDock.tsx`, `SectionDock.tsx`, `theme.ts` (`MuiDialog`, `MuiButton`, …) |
-| 4 | `packages/hcw-ui-kit/src/portal-chrome.scss` | Portal-wide class enforcement (imported once in `frontend/src/main.tsx`) |
+| 4 | `src/portal-chrome.scss` | Portal-wide class enforcement (imported once in `frontend/src/main.tsx`) |
 | 5 | `/design-system` | Specimens must use **real kit components** or import `*Sx` helpers — not hand-rolled CSS |
 | 6 | `landing.scss` | **Layout/editorial only** (contours, marketing atmosphere, hero grid). No duplicate glass recipes |
 
 After editing the kit in Docker dev, sync or restart `esti-frontend` so the bind
-mount picks up `packages/hcw-ui-kit/src` (Windows mounts can lag).
+mount picks up `src` (Windows mounts can lag).
 
 ## Thesis — *depth encodes importance*
 
@@ -101,10 +101,10 @@ glows, nothing does (Von Restorff / depth-encodes-importance).
 
 | Region | Width | Layer | Role |
 |--------|-------|-------|------|
-| **Rail** | 20% | **Glass (L3)** — frosted panel, full viewport height on desktop | Fixed **instruments**: identity/greeting, telemetry, health summaries, vertical section tabs, filters, module toggles (`mt: auto` at bottom). Scrolls internally (hidden scrollbar). **Auth panels (login, signup, recovery) live here — never on the stage.** |
-| **Stage** | 80% | Flat (L1) + soft cards (L2) | **Working surface**: stage-head metrics (e.g. zone health row), DataGrids, editors, tab bodies. **Scrolls independently** on desktop; the page shell does not scroll. |
-| **TaskbarFooter** | full width | Glass (L3) | **Calculator LEFT**; launcher cluster **CENTRE** (Studio Intelligence · Tasks · Ask ESTI · Wellbeing · Pomodoro); **system tray RIGHT** (due count · alerts · ID card · office health when not stable · clock · sign out). Admin menu lives in the **header ribbon**, not the footer. |
-| **ActionDock** | floats bottom-centre | Soft capsule tray → glass pill buttons on hover | The one **global, context-aware** action bar. **All page-level CTAs live here, not inline.** Tray uses `ACTION_DOCK_TRAY`; buttons are capsule pills. |
+| **Rail** | 20% fluid (`LAYOUT.railFraction`) · kit portals **240px** (`LAYOUT.railWidth`) | **Glass (L3)** — frosted panel, full viewport height on desktop | Fixed **instruments**: identity/greeting, telemetry, health summaries, vertical section tabs, filters, module toggles (`mt: auto` at bottom). Scrolls internally (hidden scrollbar). **Auth panels (login, signup, recovery) live here — never on the stage.** |
+| **Stage** | 80% (`LAYOUT.stageFraction`) | Flat (L1) + soft cards (L2) | **Working surface**: stage-head metrics (e.g. zone health row), DataGrids, editors, tab bodies. **Scrolls independently** on desktop; the page shell does not scroll. Padding from `LAYOUT.stagePadding*`. Content grids use **12 columns** (`LAYOUT.columns` / `layoutSx.grid`) — not Carbon 16-col. |
+| **TaskbarFooter** | full width · height `LAYOUT.taskbarHeight` | Glass (L3) | **Calculator LEFT**; launcher cluster **CENTRE** (Studio Intelligence · Tasks · Ask ESTI · Wellbeing · Pomodoro); **system tray RIGHT** (due count · alerts · ID card · office health when not stable · clock · sign out). Admin menu lives in the **header ribbon**, not the footer. |
+| **ActionDock** | floats bottom-centre · clearance `LAYOUT.dockClearance` | Soft capsule tray → glass pill buttons on hover | The one **global, context-aware** action bar. **All page-level CTAs live here, not inline.** Tray uses `ACTION_DOCK_TRAY`; buttons are capsule pills. |
 
 **Rollout queue:** [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md) — clone the
 Studio Intelligence rail to every `RailLayout` screen and move login into the rail.
@@ -299,11 +299,13 @@ useScreenActions(
 
 ```tsx
 import {
-  MuiRoot, ActionDockProvider, ActionDock, SectionDock, TaskbarFooter, TaskbarButton,
-  GlassRail, Surface, useScreenActions, HealthGlassOrb,
+  KitRoot, ActionDockProvider, ActionDock, SectionDock, TaskbarFooter, TaskbarButton,
+  GlassRail, Surface, useScreenActions, HealthGlassOrb, setUxEventSink,
 } from "@hcw/ui-kit";
 
-<MuiRoot>
+setUxEventSink((name, payload) => analytics.track(name, payload));
+
+<KitRoot density="comfortable" coga="default">
   <ActionDockProvider>
     <GlassRail glass="frost" rail={<>…</>}>
       <Routes />
@@ -311,8 +313,10 @@ import {
     <ActionDock />
     <TaskbarFooter left={…} center={…} right={…} />
   </ActionDockProvider>
-</MuiRoot>
+</KitRoot>
 ```
+
+(`MuiRoot` / `createAormsTheme` remain as deprecated aliases of `KitRoot` / `createHcwTheme`.)
 
 Add `"@hcw/ui-kit": "workspace:*"` to the portal's `package.json`, and import the
 brand font once (`@fontsource/urbanist` weights 400/500/600/700).
@@ -320,35 +324,33 @@ brand font once (`@fontsource/urbanist` weights 400/500/600/700).
 ## What's in the package
 
 ```
-packages/hcw-ui-kit/src/
-├─ tokens.ts          colour SCHEMES (light · dark/HC scaffolds), radius,
-│                     TYPE_SCALE, LAYER recipes + scale tokens: SPACING ·
-│                     BREAKPOINTS · Z_INDEX · OPACITY · MOTION · ELEVATION ·
-│                     STATUS_COLORS
-├─ theme.ts           shared MUI theme — createAormsTheme({ scheme? })
-├─ chrome-sx.ts       shared sx helpers (actionDockButtonSx, sectionDockChipSx…)
-├─ portal-chrome.scss portal-wide class enforcement (imported once in main.tsx)
-├─ MuiRoot.tsx        provider (theme + dayjs)
-├─ Surface.tsx        <Surface layer="…">
-├─ GlassRail.tsx      rail · stage (`glass="frost|clear"`)
-├─ HealthGlassOrb.tsx zone / office-health (flat | glass)
-├─ ActionDock.tsx     provider · useScreenActions · <ActionDock/>
-├─ SectionDock.tsx    marketing scroll-spy section carousel
-├─ TaskbarFooter.tsx  left · center · right + TaskbarButton
-├─ StatusDot.tsx      canonical status indicator (dot + ink label)
-├─ DataState.tsx      loading-skeleton / empty-state grammar
-├─ ConfirmModal.tsx   the one destroy-confirm dialog
-└─ BrandMark.tsx      asset-free wordmark
+src/
+├─ tokens.ts           SCHEMES · TYPE_SCALE · LAYERS · CAPACITY · INTERRUPTION ·
+│                      COGA · TRUST · STATUS_SHAPE · DENSITY · LAYOUT · DATA_VIZ*
+├─ theme.ts            createHcwTheme({ scheme?, density?, coga? }) · hcwTheme
+├─ chrome-sx.ts        layoutSx · chromeIconSx · chromeIconSxFor · typeScaleSx ·
+│                      searchFieldSx · actionDockButtonSx …
+├─ charts.ts · pictograms.ts
+├─ capacity.ts · uxEvents.ts
+├─ portal-chrome.scss
+├─ KitRoot.tsx         (alias MuiRoot) — scheme · density · coga
+├─ Surface · GlassRail · HealthGlassOrb · BrandMark
+├─ ActionDock · SectionDock · TaskbarFooter
+├─ StatusDot · DataState · ConfirmModal · PageBreadcrumb · Avatar · Toast
+├─ AwarenessStrip · ActionOutcome* · KpiStrip
+└─ orchestration.tsx   MissionHeader · ObjectiveList · PhaseStrip ·
+                       ConfidenceBand · DecisionQueue · FreezeTable (T10)
 ```
 
-Versioned from **0.1.0** — [`CHANGELOG.md`](../../packages/hcw-ui-kit/CHANGELOG.md).
+Full attribute tables: [14-HCW-CATALOG.md](../hcw-kit/14-HCW-CATALOG.md).
+Versioned from **0.1.0** — [`CHANGELOG.md`](../../CHANGELOG.md).
 AI audit contract: [HCW-KIT-AI-KNOWLEDGE-BASE.md](HCW-KIT-AI-KNOWLEDGE-BASE.md).
 
 Source-only (like `@esti/contracts`); the consuming portal's bundler compiles it.
 Colour + shape live ONLY here (and, for the landing page's editorial type scale /
 contour atmosphere, in `landing.scss`).
 
-Package README: [`packages/hcw-ui-kit/README.md`](../../packages/hcw-ui-kit/README.md).
+Package README: [`README.md`](../../README.md).
 
 ## Adoption status & path
 
@@ -361,17 +363,18 @@ Package README: [`packages/hcw-ui-kit/README.md`](../../packages/hcw-ui-kit/READ
   glass · flat sub-cards · hero logo · contour z-depth 3× · full-page scroll depth ·
   dock-only CTAs · FAQ 3-up. Spec:
   [§ Marketing shell](#marketing-shell--public-site-marketingshell).
-- **Kit exports:** `GlassRail`, `HealthGlassOrb`, `Surface` (+ clear/heading glass),
-  `ActionDock`, `TaskbarFooter` (`left` · `center` · `right`), `CLEAR_GLASS_SURFACE`,
-  `HEADING_GLASS_SURFACE`.
+- **Kit exports (1.3+):** spatial chrome, psychology pack, T10 orchestration, density,
+  COGA calm, `logUxEvent` telemetry, charts/pictograms, catalog.
 - Workspace + marketing mount `ActionDockProvider` + `ActionDock`.
 - **Taskbar footer** live (`AppFooterBar`); FloatingDock retired.
 - Layer 3 via theme: button hover glass; error/warning alerts tinted glass.
 
 **Remaining (incremental):**
-1. Estimate app E1 UI pivot — **N/A** (no `estimate/` tree); estimation UI is the project Estimation tab (see [NAVIGATION.md](NAVIGATION.md) § Estimation).
+1. Estimate app E1 UI pivot — **N/A** (no `estimate/` tree); active cost UI follows [COST-MANAGEMENT-SYSTEM.md](COST-MANAGEMENT-SYSTEM.md) rebuild.
 2. Optional: marketing SCSS rail/heads import kit clear-glass tokens instead of
    duplicated rgba recipes.
 3. Optional further shrink of `glass.scss` once orb class aliases fully migrate
    (`hcw-health-glass-orb*`).
 4. `Projects.tsx` / `Clients.tsx` remain parallel-WIP — do not edit unless asked.
+5. Roadmap remainders (product/DesignOps only): full i18n catalogs · Figma
+   **component** library — kit halves shipped in 1.4.0 ([13-ROADMAPS.md](../hcw-kit/13-ROADMAPS.md)).
