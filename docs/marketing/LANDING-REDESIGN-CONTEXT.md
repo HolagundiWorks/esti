@@ -1,6 +1,6 @@
 # Landing page redesign — agent context
 
-**Status:** Canonical brief · **Updated:** 2026-07-11 · **Owner:** HCW
+**Status:** Canonical brief · **Updated:** 2026-07-22 · **Owner:** HCW
 
 Another agent or designer may own visual/layout work on the public landing. This
 file captures **product and documentation context** so copy, IA, and SEO stay
@@ -14,7 +14,7 @@ aligned with the platform rebrand.
 | --- | --- |
 | AORMS = *Architecture Office Resource Management System* | AORMS = **Accelerated Operational Resources Management System** (platform) |
 | Landing = architecture-practice marketing | Landing = **pre-release platform development documentation** |
-| Single product story | Platform story + **two AEC apps**: **AORMS-Studio** (architecture, shipping) and **AORMS-Consultancy** (engineering, roadmap) |
+| Single product story | Platform story + **two AEC apps**: **AORMS-Studio** (architecture, shipping) and **AORMS-Consultancy** (engineering, code-complete; launch gated) |
 
 Full naming rules: [AORMS-PLATFORM-NOMENCLATURE.md](../esti/AORMS-PLATFORM-NOMENCLATURE.md).
 
@@ -74,7 +74,7 @@ These belong to **AORMS-Studio** (vertical), not the platform doc landing:
 | --- | --- |
 | `/` | **Platform marketing landing** (implemented) |
 | `/login`, `/demo` | **AORMS-Studio** staff sign-in (marketing + workspace entry; legacy slugs redirect here) |
-| `/aorms-consultancy` | **AORMS-Consultancy** engineering app marketing (roadmap) |
+| `/aorms-consultancy` | **AORMS-Consultancy** engineering app marketing (launch gated on P9.M) |
 | `/access` | **External portals** — client, consultant, contractor, site (`AORMS_PORTALS.external`) |
 | `/account`, `/company-account` | **AORMS account** + **Company account** |
 | `/platform-admin` | **Licensing console** (operators) |

@@ -4,8 +4,9 @@
 engineering practices that advise clients — workflow consolidation, collaboration,
 audit-first AI). The **shipped app** in this repo is **AORMS-Studio** (`aorms-studio`)
 — software to run an Indian architecture consultancy. **AORMS-Consultancy** for
-engineering consultancies is on the roadmap. **ESTI** (Embedded Studio Intelligence)
-is the intelligence layer in **AORMS-Studio** only. Developed by **Human Centric Works (HCW)**.
+engineering consultancies is **code-complete** in this monorepo (public launch gated).
+**ESTI** (Embedded Studio Intelligence) is the intelligence layer in **AORMS-Studio**
+only. Developed by **Human Centric Works (HCW)**.
 *(The repo, `@esti/*` packages and `esti_*` tables keep the `esti` codename.)*
 
 Nomenclature: [docs/esti/AORMS-PLATFORM-NOMENCLATURE.md](docs/esti/AORMS-PLATFORM-NOMENCLATURE.md).

@@ -1,11 +1,11 @@
 # AORMS Documentation
 
-**Status:** Canonical index · **Owner:** Human Centric Works (HCW) · **Reviewed:** 2026-07-11
+**Status:** Canonical index · **Owner:** Human Centric Works (HCW) · **Reviewed:** 2026-07-22
 
-> **Nomenclature (2026-07-11):** **AORMS** = **Accelerated Operational Resources
+> **Nomenclature (2026-07-22):** **AORMS** = **Accelerated Operational Resources
 > Management System** (platform for **AEC consulting firms**). **AORMS-Studio** = architecture app
 > in this repo (slug `aorms-studio`, Indian architecture practices). **AORMS-Consultancy** =
-> engineering app (slug `aorms-consultancy`, roadmap).
+> engineering app (slug `aorms-consultancy`, **code-complete**; launch gated on P9.V / P9.M).
 > **EOMS** = Emergent Object Management System (knowledge bank); **ESTI** = internal AI agent (live in **AORMS-Studio**).
 > **Portals:** staff workspace = **AORMS-Studio**; external = client / consultant / contractor / site portals; account hub = **AORMS account** + licensing console. Constants: `AORMS_PORTALS` in `frontend/src/lib/product-nomenclature.ts`.
 > Full rules: [AORMS-PLATFORM-NOMENCLATURE](AORMS-PLATFORM-NOMENCLATURE.md).
@@ -49,8 +49,10 @@ Repo agent entry file: [`CLAUDE.md`](../../CLAUDE.md) (module map + conventions)
 | [HCW-UI-UX-PRINCIPLES](HCW-UI-UX-PRINCIPLES.md) | **UX audit checklist** — marketing + product surfaces |
 | [11-audits/README](../hcw-kit/11-audits/README.md) | **Audit index** — Studio · public · security · kit snapshots |
 | [PLANS-AND-TIERS](PLANS-AND-TIERS.md) | **Standard licence** — ACTIVE workspace, 5 GB included, storage + AI usage |
-| [AORMS-PRODUCT-AUTOPILOT-ROADMAP](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md) | Product pivot implementation queue |
-| [AORMS-UI-AUTOPILOT-ROADMAP](AORMS-UI-AUTOPILOT-ROADMAP.md) | Glass-rail + marketing shell rollout |
+| [AORMS-PRODUCT-AUTOPILOT-ROADMAP](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md) | **Active product implementation queue** |
+| [AORMS-PRECONSTRUCTION-RO-FRAMEWORK](AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md) | Pre-con R&O law — Studio + Consultancy |
+| [AORMS-CONSULTANCY-SOP-CASE-STUDY](AORMS-CONSULTANCY-SOP-CASE-STUDY.md) | Consultancy SOP ↔ product map |
+| [AORMS-UI-AUTOPILOT-ROADMAP](AORMS-UI-AUTOPILOT-ROADMAP.md) | Glass-rail + marketing shell rollout (U0–U6 ✅) |
 | [HCW-UI-KIT](HCW-UI-KIT.md) | **Canonical layered design system** (`@hcw/ui-kit`) |
 | [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) | L1–L5 access ladder and capability matrices |
 | [PRODUCT-VISION](PRODUCT-VISION.md) | Product purpose, users, and boundaries |

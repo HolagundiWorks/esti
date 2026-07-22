@@ -1,6 +1,6 @@
 # AORMS surface URLs (frozen)
 
-**Status:** Canonical · **Frozen:** 2026-07-11 · **Revised:** 2026-07-11 (pages model) · **Owner:** HCW
+**Status:** Canonical · **Frozen:** 2026-07-11 · **Revised:** 2026-07-22 · **Owner:** HCW
 
 Executable constants: `frontend/src/lib/aorms-surface-urls.ts` and
 `frontend/src/lib/product-nomenclature.ts`.
@@ -15,7 +15,7 @@ Only **three subdomains** remain. Everything else is a **path on aorms.in**.
 | --- | --- | --- | --- |
 | **[aorms.in](https://aorms.in)** | Platform | Public + authenticated pages | Marketing, wiki, blog, auth, account, external portals |
 | **[studio.aorms.in](https://studio.aorms.in)** | **AORMS-Studio** | Firm staff | Architecture consultancy workspace |
-| **[consultancy.aorms.in](https://consultancy.aorms.in)** | **AORMS-Consultancy** | Public / prospects | Engineering consultancy marketing (roadmap) |
+| **[consultancy.aorms.in](https://consultancy.aorms.in)** | **AORMS-Consultancy** | Public / prospects + firm staff (post-launch) | Engineering consultancy marketing + product entry (launch gated on P9.V / P9.M) |
 | **[admin.aorms.in](https://admin.aorms.in)** | Licensing console | HCW operators | Platform administration |
 
 ---

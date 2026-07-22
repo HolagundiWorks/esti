@@ -1,7 +1,9 @@
 # AORMS-Consultancy — engineering consultancy operating model & system architecture
 
-> **Status:** Phases 0–3 built (unverified); Phase 4 + verify/review outstanding —
-> see [autopilot roadmap P9](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md#p9--aorms-consultancy-engineering-app)
+> **Status:** Phases 0–4 + SOP closeout + pre-con R&O **code-complete** (migrations
+> `0183`–`0218`); automated mutation/wiring tests landed. Remaining gates are **human**:
+> P9.V fee UX review and P9.M public launch — see
+> [autopilot roadmap P9](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md#p9--aorms-consultancy-engineering-app)
 > and the §9 audit. **App:** **AORMS-Consultancy** (slug `aorms-consultancy`, host
 > `consultancy.aorms.in`, discipline **Engineering**).
 >
@@ -153,7 +155,7 @@ verbatim — engineering only adds the *fee-model + timesheet* front end.
 - **EOMS (knowledge bank)** — the external catalog and intake path: codes, standards,
   architect packs, geotech reports, and third-party models are recorded and validated
   before they enter the firm knowledge base or become `InputPack` assumptions.
-- **Internal agent (ESTI-equivalent, roadmap)** — answers only from validated firm
+- **Internal agent (ESTI-equivalent, code-complete Ask surface)** — answers only from validated firm
   repositories: **precedent search** (past engagements as governed patterns), **calc-lineage
   Q&A**, **TQ history**, and **capacity analytics** ("structural is over-committed in
   September"). Uses the same on-server Ollama posture as ESTI — no external API keys.
@@ -180,23 +182,22 @@ verbatim — engineering only adds the *fee-model + timesheet* front end.
 
 ## 9. Phased rollout
 
-> **Status audit 2026-07-20 (code, not aspiration).** An earlier revision of
-> this section claimed all five phases shipped; that was wrong. Phases 0–3 are
-> **built** (migrations `0183`–`0197`, the `consultancy` router, engagement UI +
-> PDF, workspace-type routing). Phase 4 is **not built** — no precedent-search,
-> calc-lineage, or capacity-analytics code exists. And the built surface has
-> **no tests and no review**, which for the fee/variation/WIP money paths is the
-> real risk. See the [autopilot roadmap P9](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md#p9--aorms-consultancy-engineering-app),
-> where **P9.V (verify + review)** is the gate before this workspace ships to a
-> paying firm.
+> **Status audit 2026-07-22 (code, not aspiration).** Phases 0–4 are **code-complete**
+> (migrations `0183`–`0212` core + intelligence; `0214`–`0218` SOP links + closeout +
+> pre-con R&O). Automated coverage: contracts helpers + stubbed-DB mutation wiring
+> (fees, issue gates, closeout, pre-con). Remaining gate before offering Consultancy
+> to a paying firm is **human P9.V fee UX review** (+ **P9.M** launch). See
+> [autopilot roadmap P9](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md#p9--aorms-consultancy-engineering-app).
 
 | Phase | Theme | Ships | State |
 | --- | --- | --- | --- |
-| **0 — Living record** | The engagement spine | `engagements`, `disciplines`, `deliverables` register, transmittals (reuse), client portal (scoped) | ✅ built, unverified |
-| **1 — Reliance engine** | Governance | `reviewChains` (named serial sign-off + check categories + EoR), `technicalQueries`, issue gating | ✅ built, unverified |
-| **2 — Commercial** | Fee & time | `feeAgreements`/`feeStages`, `timesheets`/`rateCards`, `variations`, WIP/utilisation/realisation, stage invoicing | ✅ built, unverified |
-| **3 — Risk** | Defensibility | `riskRegister`, `insurance` (PI + reliance), compliance gates, EOMS input validation | ✅ built, unverified |
-| **4 — Intelligence** | Internal agent | precedent search, calc-lineage Q&A, capacity analytics | ⬜ not built |
+| **0 — Living record** | The engagement spine | `engagements`, `disciplines`, `deliverables` register, transmittals (reuse), client portal (scoped) | ✅ code-complete |
+| **1 — Reliance engine** | Governance | `reviewChains` (named serial sign-off + check categories + EoR), `technicalQueries`, issue gating | ✅ code-complete |
+| **2 — Commercial** | Fee & time | `feeAgreements`/`feeStages`, `timesheets`/`rateCards`, `variations`, WIP/utilisation/realisation, stage invoicing | ✅ code-complete |
+| **3 — Risk** | Defensibility | `riskRegister`, opportunities, phase gates, `insurance` (PI + reliance), compliance gates, EOMS input validation | ✅ code-complete |
+| **4 — Intelligence** | Internal agent | Ask + EOMS pack review, precedent search, deliverable/calc lineage, capacity outlook | ✅ code-complete |
+| **SOP / closeout** | QMS registers | Lessons, NC/CAPA, MoM, WIP review, contract review, litigation hold, enquiry go/no-go | ✅ `0214`–`0217` |
+| **Gate** | Ship to paying firm | Human fee UX review + marketing launch | 🔄 P9.V / P9.M |
 
 ## 10. Decisions (resolved 2026-07-12 — Phase 0 unblocked)
 
@@ -213,14 +214,13 @@ revisitable at the phase where it next bites.
 | **D5** | Market order | **India-first** — RSE/NBC/IS statutory path, GST/SAC/TDS money spine; FIDIC/IStructE vocabulary kept compatible (check categories map to both) | Mirrors AORMS-Studio's India-first correctness; the check-category model is international-portable by design. |
 | **D6** | BIM/model depth | **Reference-only** — deliverables reference model issues/extracts; no model-hosted data | Aligns with "report → model" as a *direction*, not a Phase-0 dependency. Revisit at Phase 4. |
 
-**Gate status:** all six resolved. Phases 0–3 were subsequently built on the
-shared spine (see the §9 audit); the next gate is verification/review, not more
-decisions.
+**Gate status:** all six resolved. Phases 0–4 + SOP + R&O are built on the shared
+spine (see the §9 audit); the next gate is **human P9.V / P9.M**, not more
+architecture decisions.
 
 ---
 
 *Owner: platform. Update alongside
 [`AORMS-CONSULTING-FRAMEWORKS.md`](AORMS-CONSULTING-FRAMEWORKS.md) and the nomenclature
-canon. Phases 0–3 of this design are built and migrated (see §9); Phase 4 and the
-verify/review gate are outstanding. Where a table or namespace below is not yet in
-the schema, treat it as a proposal.*
+canon. Phases 0–4 of this design are code-complete (see §9); launch remains gated
+on human fee UX review and marketing.*

@@ -44,7 +44,7 @@
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
 | [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | ✅ P7.1–P7.3 manual India path | autopilot |
 | [P8](#p8--browser-takeoff-replaces-esticad) | Browser takeoff (replaces ESTICAD) | P1 | ✅ | autopilot |
-| [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | 🔄 P9.V human fee UX; P9.4 ✅ | autopilot |
+| [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | ✅ P9.0–P9.4 + SOP + R&O; 🔄 P9.V / P9.M human | autopilot |
 | [P10](#p10--2026-07-21-hygiene--rebrand--deps) | Hygiene · rebrand · deps (landed) | P0 | ✅ | autopilot |
 
 ---
@@ -236,16 +236,11 @@ time commercials, and a risk register. Design lives in
 (sourced operating model). One spine, app-scoped by `hlp_organization.workspace_type`
 (**STUDIO** | **CONSULTANCY**).
 
-> **Status audit 2026-07-20 — the design doc is wrong in both directions.** Its
-> header claims "all five phases shipped"; its footer calls itself "a design
-> draft… every table a proposal until built." Neither matches the code. What is
-> actually on `main`: **Phases 0–3 are built** (15 migrations `0183`–`0197`, a
-> ~1,200-line `consultancy` router with ~56 procedures, `ConsultancyEngagements.tsx`
-> / `ProjectEngagements.tsx`, engagement-register PDF, workspace-type routing in
-> the licensing platform). **Phase 4 does not exist** — no precedent search,
-> calc-lineage, or capacity-analytics code. And **none of it has a test or a
-> review**, in a module with fee stages, variations, WIP and rate cards — exactly
-> the money-critical surface where this session's reviews kept finding HIGH bugs.
+> **Status audit 2026-07-22.** **P9.0–P9.4 are code-complete**, with SOP closeout
+> (`0214`–`0217`) and pre-con R&O (`0218` consultancy · `0219` Studio). Automated
+> coverage: contracts helpers + stubbed-DB mutation wiring (fees, issue gates,
+> closeout, pre-con). Remaining gates are **human**: **P9.V** fee UX review and
+> **P9.M** public launch. Stripe auto-billing stays deferred (manual India path ✅).
 
 | # | Task | Status |
 |---|------|--------|
@@ -254,21 +249,22 @@ time commercials, and a risk register. Design lives in
 | P9.2 | Commercial — fee agreements/stages, timesheets, rate cards, variations, WIP/realisation | ✅ built — `0186`–`0190`, `esti_cons_fee_stage`/`_timesheet`/`_rate_card`/`_variation` |
 | P9.3 | Risk — register, insurance (PI + reliance), compliance gates | ✅ built — `0191`, `esti_cons_risk`/`_insurance` |
 | P9.3b | Beyond the original plan — typed scope, engagement brief, SOP slices, CRS, field reports | ✅ built — `0192`–`0197` |
-| P9.4 | Intelligence — firm-record Q&A + EOMS input-pack review; precedent search; deliverable lineage | ✅ **code-complete 2026-07-21** — `ask` + `eomsReview` + **`precedentSearch`** + **`deliverableLineage`** + **`calcPackages`** + **EOMS compliance UI** + **`analytics.capacityOutlook`** + Ask digest trust boundary (validated packs + capacity alerts) |
-| P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | 🔄 **in progress 2026-07-21** — pure helpers + **mutation wiring tests** (incl. issue gates for open CRS + RECEIVED input packs); still open: human fee UX review |
+| P9.3c | SOP closeout + commercial links — transmittal ack, fee-stage invoices, enquiry go/no-go, lessons/NC/MoM/WIP/contract review/litigation hold | ✅ `0214`–`0217` |
+| P9.3d | Pre-con R&O — opportunity register + design phase gates (Consultancy + Studio parity) | ✅ `0218` + `0219` — [framework](AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md) |
+| P9.4 | Intelligence — firm-record Q&A + EOMS input-pack review; precedent search; deliverable lineage | ✅ **code-complete 2026-07-21** — `ask` + `eomsReview` + **`precedentSearch`** + **`deliverableLineage`** + **`calcPackages`** + **EOMS compliance UI** + **`analytics.capacityOutlook`** + Ask digest trust boundary |
+| P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | 🔄 automated tests landed; **still open: human fee UX review** |
 | P9.M | Marketing/launch surface — `consultancy.aorms.in`, landing copy | 🔄 landing markdown exists; launch gated on P9.V |
 
-**Risk note.** Phases 0–3 shipping without a test or review is the same setup
-that produced the invoice/GST and estimation defects this session. Treat "built"
-as "code exists", not "correct" — **P9.V (verify + review) is the real gate**
-before this workspace is offered to a paying firm, above finishing P9.4.
+**Risk note.** Treat "code-complete" as "implemented + unit-tested", not
+"production-signed-off" — **P9.V human fee UX review** remains the gate before
+offering Consultancy to a paying firm.
 
 **Verify:** create a CONSULTANCY company → open an engagement → run a deliverable
 through its sign-off chain → raise a fee stage and a variation → issue is gated
 until the chain completes. Automated coverage: pure money/sign-off helpers
 (contracts) **and** stubbed-DB mutation wiring (fee advances/locks, issue→BILLABLE,
-variation approve race, timesheet rate gate, portal/money redaction). Remaining
-gate is human fee UX review (no live-DB Vitest harness in CI).
+variation approve race, timesheet rate gate, portal/money redaction, closeout,
+pre-con). Remaining gate is human fee UX review (no live-DB Vitest harness in CI).
 
 ---
 
@@ -304,10 +300,12 @@ P5 (Estimate desktop auth) — CANCELLED 2026-07-19, web-only
 
 P8 browser takeoff — ✅
 
-P9 (AORMS-Consultancy) — Phases 0–3 built; **P9.V verify+review ACTIVE**;
-   P9.4 intelligence after P9.V
+P9 (AORMS-Consultancy) — P9.0–P9.4 + SOP + R&O ✅;
+   P9.V human fee UX ACTIVE; P9.M launch gated
 
 P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
+
+Pre-con R&O — Studio + Consultancy ✅ (0218/0219) — see framework doc
 ```
 
 ---
@@ -317,11 +315,13 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 | Area | Path |
 |------|------|
 | Product law | `docs/esti/PLANS-AND-TIERS.md` |
+| Pre-con R&O law | `docs/esti/AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md` |
 | Plans (legacy code) | `packages/contracts/src/plans.ts` |
 | Landing shell | `frontend/src/components/landing/MarketingShell.tsx` |
 | Landing route | `frontend/src/routes/Landing.tsx` |
 | In-browser estimating | `backend/src/modules/estimate/`, `backend/src/modules/rateBook/`, `frontend/src/components/ProjectEstimates.tsx` |
-| Consultancy spine | `backend/src/modules/consultancy/router.ts`, `packages/contracts/src/consultancy.ts` (+ `.test.ts`) |
+| Consultancy spine | `backend/src/modules/consultancy/` (`router.ts`, `closeout.ts`, `precon.ts`), `packages/contracts/src/consultancy.ts` |
+| Studio pre-con R&O | `backend/src/modules/project-precon/`, `packages/contracts/src/project-precon.ts`, Brief → R&O |
 | Firm AI settings | `backend/src/modules/firm/`, `Company.tsx` |
 | Rebrand canon | [AORMS-REBRANDING.md](AORMS-REBRANDING.md) |
 | UI rail/stage autopilot | [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md) |
@@ -332,6 +332,7 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 
 | Date | Change |
 |------|--------|
+| 2026-07-22 | Docs sweep: reconciled **ROADMAP**, **UNIFIED-ARCHITECTURE-V4** System state, nomenclature, PRD Projects (R&O), README, PRODUCT-VISION, REBRANDING, SURFACE-URLS, Consultancy operating-model §9, marketing brief — Consultancy = code-complete / launch-gated; removed stale live claims (`knowledgeBank`, `companion`, PMC). |
 | 2026-07-21 | Autopilot: **P7 platform usage reporting** — `hlp_usage_report` (migration `0213`), `POST /v1/report-usage`, admin dashboard aggregates current-month reports (local singleton fallback + self-report). |
 | 2026-07-21 | Autopilot: **Enquiry register + go/no-go** — `esti_cons_enquiry` (migration `0216`), scorecard + decide + convert→engagement (job code); `/consultancy/enquiries` intake UI.
 | 2026-07-21 | Autopilot: **Fee-stage ↔ Studio invoice** — `markInvoiced` raises an ISSUED tax invoice via shared `createStudioInvoice` (GST/TDS/POS), links `esti_cons_fee_stage.invoice_id` (migration `0215`); `markPaid` syncs invoice PAID; engagement UI shows ref + PDF cell. |
@@ -340,7 +341,7 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 | 2026-07-21 | Autopilot: **Pre-con R&O on Studio + Consultancy** — Studio `0219` (`esti_project_risk` / opportunity / phase_gate, Brief → R&O tab); Consultancy `0218` engagement registers; shared checklist + response enums. |
 | 2026-07-21 | Autopilot: **Pre-con R&O (consultancy)** — opportunity register + design phase gates (`0218`); framework doc maps stakeholder pre-construction brief to adopt/adapt/refuse (no construction PM). |
 | 2026-07-21 | Autopilot: **P7.3 manual suspend-for-non-payment** — `admin.usageReports.suspendForNonPayment`; product node `licenseState` blocks on `licence_status=SUSPENDED`; refresh/activate stamp ACTIVE/SUSPENDED from panel; panel refresh interval when `ESTI_LICENSE_API_URL` set. Closeout router tests (contract review gate, lessons, NC/CAPA, MoM). Stripe auto-suspend still deferred. |
-| 2026-07-21 | Autopilot: **P9 SOP closeout + P7.2 manual billing** — migration `0217` (lessons · NC/CAPA · MoM · WIP review · contract review · litigation hold; `hlp_usage_report.billed_*`); `consultancy.lessons|ncs|moms|wipReviews|contractReviews`; engagement UI panels; `admin.usageReports` CSV export + mark-billed + Usage billing tab. Stripe deferred; P7.3 still follows payment events. |
+| 2026-07-21 | Autopilot: **P9 SOP closeout + P7.2 manual billing** — migration `0217` (lessons · NC/CAPA · MoM · WIP review · contract review · litigation hold; `hlp_usage_report.billed_*`); `consultancy.lessons|ncs|moms|wipReviews|contractReviews`; engagement UI panels; `admin.usageReports` CSV export + mark-billed + Usage billing tab. Stripe auto-billing deferred by choice. |
 | 2026-07-21 | Autopilot: **P9.V issue-gate coverage** — router tests for open CRS comments and RECEIVED input packs blocking ISSUED (sign-off chain already covered). |
 | 2026-07-21 | Autopilot: **P9.4 Ask digest trust boundary** — `formatConsultancyDigest` (pure): VALIDATED packs only as working assumptions, RECEIVED as holds (no source text), REJECTED omitted; capacity alerts folded into Ask grounding; unit tests. |
 | 2026-07-21 | Autopilot: **P9.4 capacity analytics** — `buildCapacityOutlook` / `capacityOutlookAlerts` + `consultancy.analytics.capacityOutlook`; engagement rail shows TIGHT/OVER alerts from trailing timesheets × rate-card capacity. |

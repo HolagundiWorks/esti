@@ -29,6 +29,7 @@ import {
   PLATFORM_FRAMEWORKS,
   PLATFORM_APPS,
   AORMS_STUDIO,
+  AORMS_CONSULTANCY,
   EOMS,
   ESTI,
   HUMAN_CENTRIC_WORKS,
@@ -94,7 +95,7 @@ const FAQ = [
   },
   {
     q: "Which app ships today?",
-    a: `${AORMS_STUDIO.title} — the architecture consultancy workspace — is live. The engineering consultancy app is on the roadmap.`,
+    a: `${AORMS_STUDIO.title} — the architecture consultancy workspace — is live. ${AORMS_CONSULTANCY.title} is built on the same spine; public launch is forthcoming.`,
   },
 ] as const;
 
@@ -381,7 +382,11 @@ export function Landing() {
                             `1px solid ${app.status === "live" ? t.palette.primary.main : t.palette.divider}`,
                         }}
                       >
-                        {app.status === "live" ? "Live" : "Roadmap"}
+                        {app.status === "live"
+                          ? "Live"
+                          : app.status === "launch_gated"
+                            ? "Coming soon"
+                            : "Roadmap"}
                       </Typography>
                     </Stack>
                     <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 0.5 }}>

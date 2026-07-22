@@ -7,7 +7,7 @@
 
 > **Platform vs shipped code:** This document describes the **AORMS platform**
 > north-star. The monorepo in `holagundiworks/esti` implements the
-> **AORMS-Studio** architecture app (Indian architecture practices) and **AORMS-Consultancy** engineering app (roadmap).
+> **AORMS-Studio** architecture app (Indian architecture practices) and **AORMS-Consultancy** engineering app (code-complete; launch gated).
 > Canonical naming: [`docs/esti/AORMS-PLATFORM-NOMENCLATURE.md`](../../../docs/esti/AORMS-PLATFORM-NOMENCLATURE.md).
 > Live system state: [`docs/esti/UNIFIED-ARCHITECTURE-V4.md`](../../../docs/esti/UNIFIED-ARCHITECTURE-V4.md).
 
@@ -36,7 +36,7 @@ AORMS consolidates fragmented consulting workflows into a single, AI-enhanced pl
 ### Key Differentiators
 - **Custom Framework Deployment** ù Analysis of existing office workflows ? tailored process frameworks in days
 - **Two AI tiers** ù **EOMS** (knowledge bank) for codes & compliance; **ESTI** (internal AI agent) answers from firm repositories ù prevents hallucination and compliance drift
-- **Two AEC apps** ù **AORMS-Studio** (architecture, shipping) and **AORMS-Consultancy** (engineering, roadmap) on one platform spine
+- **Two AEC apps** ó **AORMS-Studio** (architecture, shipping) and **AORMS-Consultancy** (engineering, code-complete; launch gated) on one platform spine
 - **Unified Collaboration Surface** ù Communication, revision, review, audit logs in one system
 
 ### Target User
@@ -1500,10 +1500,10 @@ jobs:
 
 ### Phase 4: AEC apps & growth (Year 2)
 
-**AORMS-Consultancy (engineering app)**
-- [ ] Structural, MEP, civil, and multidisciplinary engagement templates
-- [ ] Serial peer review and checker sign-off chains
-- [ ] Deliverable register (calculations, reports, technical submissions)
+**AORMS-Consultancy (engineering app)** ó core + SOP + R&O **code-complete** in monorepo; launch gated (P9.V / P9.M)
+- [x] Structural, MEP, civil, and multidisciplinary engagement spine
+- [x] Serial peer review and checker sign-off chains
+- [x] Deliverable register (calculations, reports, technical submissions)
 
 **Platform growth**
 - [ ] Framework marketplace (community-built AEC templates)

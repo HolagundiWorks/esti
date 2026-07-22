@@ -8,11 +8,12 @@
 > estimation surface is firm **Rate Books** pricing a project **Estimation** tab (priced
 > BOQ + measurement book) — see [NAVIGATION.md](NAVIGATION.md) § Estimation.
 
-**Status:** Approved implementation baseline · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-07-10
+**Status:** Approved implementation baseline · **Owner:** Holagundi Consulting Works (HCW) · **Reviewed:** 2026-07-22
 
-> **Nomenclature (2026-07-11):** **AORMS** = **Accelerated Operational Resources
+> **Nomenclature (2026-07-22):** **AORMS** = **Accelerated Operational Resources
 > Management System** (platform for **AEC consulting firms**). Requirements below describe **AORMS-Studio**
-> (architecture app, slug `aorms-studio`) unless noted. **AORMS-Consultancy** (engineering app) is roadmap.
+> (architecture app, slug `aorms-studio`) unless noted. **AORMS-Consultancy** (engineering app) is
+> **code-complete** in this monorepo; public launch gated on P9.V / P9.M.
 > [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md).
 
 This PRD aligns the supplied ESI-AORMS requirements with AORMS's agreed product
@@ -88,6 +89,11 @@ team, consultants, contractors, and settings.
 - Revision entries capture change, actor, time, impact, and affected objects.
 - Major/critical revisions require acknowledgement states: seen, acknowledged,
   or needs clarification.
+- **Pre-construction R&O** (Brief → **R&O**): project risk register, opportunity
+  scorecard, and design phase gates (CONCEPT → SCHEMATIC → DETAILED → ISSUE_READINESS).
+  Same adopt/adapt/refuse law as Consultancy — see
+  [AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md](AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md).
+  Does **not** include construction PM, CPM, or tender workflows.
 - Archive is the default removal path. Permanent purge is owner-only and must
   preserve legally retained financial/audit records or produce an export.
 - Project lifecycle is Enquiry, Proposal, Active, On hold, Completed, or

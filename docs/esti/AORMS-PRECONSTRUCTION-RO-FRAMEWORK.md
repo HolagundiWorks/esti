@@ -1,6 +1,6 @@
-# Pre-construction risk & opportunity — AORMS consultancy scope
+# Pre-construction risk & opportunity — AORMS-Studio + AORMS-Consultancy
 
-**Status:** Product law · **Updated:** 2026-07-21  
+**Status:** Product law · **Updated:** 2026-07-22  
 **Source brief:** Pre-Construction (Planning & Design) R&O framework (stakeholder input).
 
 AORMS serves **AEC consulting firms** (architecture + engineering) across
