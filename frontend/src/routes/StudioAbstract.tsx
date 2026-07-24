@@ -458,7 +458,7 @@ export function StudioAbstract() {
           { label: "Tasks Overdue", value: String(tasksOverdue), sub: "Past due", danger: tasksOverdue > 0 ? "Behind" : null },
         ];
 
-  // Stage header KPIs — Pipeline · Outstanding · Collected · Ready to bill (or ops fallback).
+  // Stage header KPIs — Pipeline · Outstanding · Fee recovery · Ready to bill (or ops fallback).
   const kpiTiles: { id: string; label: string; value: ReactNode; sub?: ReactNode }[] =
     homeLoading
       ? Array.from({ length: 4 }, (_, i) => ({

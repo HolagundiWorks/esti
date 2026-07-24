@@ -2,7 +2,7 @@
 
 **Status:** Active · **Updated:** 2026-07-24  
 **Platform build:** COMPLETE (P0–P10 · P9.V · P9.M)  
-**Current queue:** **Market fit** — see [MARKET-FIT.md](MARKET-FIT.md)
+**Current queue:** **Market fit Wave 2** — see [MARKET-FIT.md](MARKET-FIT.md)
 
 Phases 0–28 are **engineering-complete** for **AORMS-Studio**. **AORMS-Consultancy**
 is **live**. Stripe auto-billing remains **deferred by choice**.
@@ -38,7 +38,7 @@ docs were removed 2026-07-24 (Git history retains them).
 
 Canonical brief: **[MARKET-FIT.md](MARKET-FIT.md)**.
 
-### Wave 1 — 🔄 in progress (2026-07-24)
+### Wave 1 — ✅ shipped (2026-07-24)
 
 | # | Item | Track | Status |
 |---|---|---|---|
