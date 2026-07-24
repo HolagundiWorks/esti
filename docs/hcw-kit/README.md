@@ -13,8 +13,8 @@
 | **03** | **Components** | [CHANGELOG](../../vendor/hcw-ui-kit/CHANGELOG.md) · [03-COMPONENT-QUALITY-CHECKLIST.md](03-COMPONENT-QUALITY-CHECKLIST.md) · [14-HCW-CATALOG.md](14-HCW-CATALOG.md) |
 | **04** | **Patterns** | [HCW-UI-KIT.md](../esti/HCW-UI-KIT.md) §ActionDock/§Rail · [HCW-UI-UX-PRINCIPLES.md](../esti/HCW-UI-UX-PRINCIPLES.md) §6–7 |
 | **05** | **Templates** | [05-TEMPLATES.md](05-TEMPLATES.md) — canonical page anatomies |
-| **06** | **Portal layouts** | [MONOREPO-AND-SURFACES.md](../esti/MONOREPO-AND-SURFACES.md) · [NAVIGATION.md](../esti/NAVIGATION.md) · [AORMS-SURFACE-URLS.md](../esti/AORMS-SURFACE-URLS.md) |
-| **07** | **UX rules** | [HCW-UI-UX-PRINCIPLES.md](../esti/HCW-UI-UX-PRINCIPLES.md) · [07-UX-REVIEW-CHECKLISTS.md](07-UX-REVIEW-CHECKLISTS.md) · process: [HCW-UX-PROCESS.md](../HCW-UX-PROCESS.md) · AI: [HCW-AI-ORCHESTRATION-UX.md](../esti/HCW-AI-ORCHESTRATION-UX.md) · Construction: [HCW-CONSTRUCTION-UX-OVERLAY.md](../esti/HCW-CONSTRUCTION-UX-OVERLAY.md) · KPIs: [HCW-UX-KPI-INSTRUMENT.md](../esti/HCW-UX-KPI-INSTRUMENT.md) |
+| **06** | **Portal layouts** | [AORMS-SURFACE-URLS.md](../esti/AORMS-SURFACE-URLS.md) · [NAVIGATION.md](../esti/NAVIGATION.md) |
+| **07** | **UX rules** | [HCW-UI-UX-PRINCIPLES.md](../esti/HCW-UI-UX-PRINCIPLES.md) · [07-UX-REVIEW-CHECKLISTS.md](07-UX-REVIEW-CHECKLISTS.md) · process: [HCW-UX-PROCESS.md](../HCW-UX-PROCESS.md) · AI: [HCW-AI-ORCHESTRATION-UX.md](../esti/HCW-AI-ORCHESTRATION-UX.md) · KPIs: [HCW-UX-KPI-INSTRUMENT.md](../esti/HCW-UX-KPI-INSTRUMENT.md) |
 | **08** | **Accessibility** | [HCW-UI-UX-PRINCIPLES.md](../esti/HCW-UI-UX-PRINCIPLES.md) §8 · R6 in [AI knowledge base](../esti/HCW-KIT-AI-KNOWLEDGE-BASE.md) |
 | **09** | **DesignOps** | Upstream [hcwux GOVERNANCE](https://github.com/HolagundiWorks/hcwux/blob/main/GOVERNANCE.md) · esti re-vendor: [KITS.md](../KITS.md) |
 | **10** | **Elements** | [10-ELEMENTS.md](10-ELEMENTS.md) · **full:** [14-HCW-CATALOG.md](14-HCW-CATALOG.md) |

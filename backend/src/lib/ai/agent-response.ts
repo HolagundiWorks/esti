@@ -52,22 +52,19 @@ export function buildAgentMockAnswer(snapshot: OperatorSnapshot, question: strin
       parts.push(`No open CRIF decisions on ${p.ref}. Check Project → Overview.`);
     }
     if (o) parts.push("", `Office revision risk band: **${o.revisionRiskBand}**.`);
-  } else if (/tender|bid|contractor/.test(q) && o) {
-    if (o.openTenders.length) {
-      parts.push(
-        "**Open tenders:**",
-        ...o.openTenders.map(
-          (t) => `- ${t.projectRef}: ${t.title}${t.dueDate ? ` (due ${t.dueDate})` : ""}`,
-        ),
-      );
-    } else parts.push("No open tender packages. See **Office → Tenders**.");
+  } else if (/site|snag|instruction|visit|progress/.test(q) && o) {
     if (o.openConstruction.length) {
       parts.push(
-        "",
         "**Site coordination inbox:**",
         ...o.openConstruction.slice(0, 4).map((c) => `- ${c.projectRef} ${c.kind}: ${c.subject}`),
       );
+    } else {
+      parts.push("No open site coordination items. See **Projects → Site Progress**.");
     }
+  } else if (/tender|bid/.test(q)) {
+    parts.push(
+      "Tenders are not part of AORMS (consultancy-only). Use **Projects → Site Progress** for site supervision, or **Third Parties → Contractors** for the directory.",
+    );
   } else if (/project|status|overview/.test(q)) {
     if (p) {
       parts.push(
@@ -88,12 +85,12 @@ export function buildAgentMockAnswer(snapshot: OperatorSnapshot, question: strin
     parts.push(
       "Hello! I'm **ESTI**, your AORMS assistant.",
       "",
-      "Ask about billing, tasks, projects, CRIF decisions, tenders, or site coordination — I'll use live data from your dashboard.",
+      "Ask about billing, tasks, projects, CRIF decisions, or site progress — I'll use live data from your dashboard.",
     );
   } else if (/search|find|where/.test(q)) {
     parts.push(
       "Use **Search** (`/search`) with type filters for projects, drawings, clients, specs, and lessons.",
-      "Dashboard **Action Center** surfaces billing, approvals, tenders, and site items needing attention.",
+      "Dashboard **Action Center** surfaces billing, approvals, and site items needing attention.",
     );
   }
 
@@ -101,7 +98,7 @@ export function buildAgentMockAnswer(snapshot: OperatorSnapshot, question: strin
     parts.push(
       p
         ? `You're on project **${p.ref}**. I can help with CRIF, tasks, drawings/BOQ, and invoices (if your role allows).`
-        : "Ask about billing, tasks, projects, CRIF, tenders, or site coordination — I'll use live Action Center data.",
+        : "Ask about billing, tasks, projects, CRIF, or site coordination — I'll use live Action Center data.",
     );
     if (o?.activeProjects.length) {
       parts.push(

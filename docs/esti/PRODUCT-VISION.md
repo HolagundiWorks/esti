@@ -140,5 +140,5 @@ scope discipline in [Stability Charter](STABILITY-CHARTER.md).
 
 **AORMS-Studio** phases **0–28** are engineering-complete. Active product queue and
 Consultancy launch gates: [ROADMAP.md](ROADMAP.md) and
-[AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md).
+[ROADMAP.md](ROADMAP.md).
 Operator restore-drill sign-off for a live firm instance remains in [PRODUCTION-OPS](PRODUCTION-OPS.md).

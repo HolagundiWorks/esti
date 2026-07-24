@@ -11,7 +11,7 @@ comes after — must follow. It changes rarely and deliberately; implementations
 > **[HCW-UX.md](HCW-UX.md)** (index) · **[HCW-UX-FRAMEWORK.md](HCW-UX-FRAMEWORK.md)**
 > (model: purpose · principles · KPIs) · **[HCW-UX-PROCESS.md](HCW-UX-PROCESS.md)**
 > (Plan → Design → Build → Evaluate → Improve). Construction specialization:
-> [esti/HCW-CONSTRUCTION-UX-OVERLAY.md](esti/HCW-CONSTRUCTION-UX-OVERLAY.md).
+> [esti/HCW-UI-UX-PRINCIPLES.md](esti/HCW-UI-UX-PRINCIPLES.md).
 
 > **Why this document exists:** an agent (human or AI) should be able to reason about
 > **why** a rule exists before deciding **how** to implement it. The Playbook holds

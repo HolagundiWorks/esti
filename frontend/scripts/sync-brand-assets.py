@@ -194,8 +194,7 @@ def main() -> None:
         )
     PUB.mkdir(parents=True, exist_ok=True)
     make_esti_badge(512, ESTI_BLUE, WHITE).save(PUB / "esti-logo.png")
-    make_esti_badge(512, WHITE, ESTI_BLUE).save(PUB / "esti-logo-inverted.png")
-    trim_alpha(drop_near_black(Image.open(LR / "etsi white colour.png"))).save(
+        trim_alpha(drop_near_black(Image.open(LR / "etsi white colour.png"))).save(
         PUB / "esti-mark-white.png"
     )
     trim_alpha(drop_near_white(Image.open(LR / "etsi wb.png"))).save(
@@ -207,8 +206,7 @@ def main() -> None:
     aorms_wordmark.save(PUB / "aorms-logo.png")
     extract_aorms_mark(aorms_wordmark).save(PUB / AORMS_MARK)
     aorms_white_wordmark(LR / "aorms white.png", PUB / "aorms-logo-white.png")
-    trim_alpha(Image.open(LR / "esticad logo.png")).save(PUB / "esticad-logo.png")
-    shutil.copy2(LR / "hcw black.png", PUB / "hcw-black.png")
+        shutil.copy2(LR / "hcw black.png", PUB / "hcw-black.png")
     shutil.copy2(LR / "HCW white.png", PUB / "hcw-white.png")
     favicon_sizes()
     print(f"Synced brand assets to {PUB}")

@@ -69,5 +69,5 @@ Local dev: use path aliases on `localhost:5173`; optional `/etc/hosts` for subdo
 ## Related
 
 - [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md)
-- [MONOREPO-AND-SURFACES.md](MONOREPO-AND-SURFACES.md)
+- [AORMS-SURFACE-URLS.md](AORMS-SURFACE-URLS.md)
 - [KNOWLEDGE-BANK-PORTAL.md](KNOWLEDGE-BANK-PORTAL.md)

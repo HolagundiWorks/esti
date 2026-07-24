@@ -3,7 +3,7 @@
 **Purpose:** Sign off the money-critical Consultancy surface before **P9.M** public
 launch. Autopilot has shipped automated tests + fee UX polish; this checklist is
 the remaining human gate on
-[AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md).
+[ROADMAP.md](ROADMAP.md).
 
 **Environment:** CONSULTANCY workspace company · staff with `fees:manage` · demo
 or staging with migrations through `0219`.

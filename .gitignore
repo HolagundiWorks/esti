@@ -50,13 +50,10 @@ dump.rdb
 .vscode/
 .claude/
 
-# Desktop edition installers (build output)
-desktop/dist-installers/
-
-# VPS installer staging (legacy fetch-installers.sh)
+# VPS installer staging (legacy)
 deploy/.installers/
 
-# Locally-staged desktop installers for the /download page (large binaries)
+# Locally-staged download binaries (if any)
 frontend/public/downloads/
 
 # Editor / agent metadata

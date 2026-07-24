@@ -12,7 +12,7 @@ slugs `hived` and `aorms-architecture`, Indian architecture practices). **AORMS-
 **EOMS** (Emergent Object Management System) is the **external knowledge bank** —
 a standalone API cataloging standard codebooks and building/compliance codes.
 Code identifiers (`@esti/*` packages, `esti_*` tables, repo name) keep the
-`esti` codename. See [`docs/esti/AORMS-REBRANDING.md`](docs/esti/AORMS-REBRANDING.md).
+`esti` codename. See [`docs/esti/AORMS-PLATFORM-NOMENCLATURE.md`](docs/esti/AORMS-PLATFORM-NOMENCLATURE.md).
 
 Monorepo (pnpm workspaces): `packages/contracts`, `backend` (Fastify + tRPC +
 Drizzle), `frontend` (React + Vite), plus a Python `worker`. Services run via
@@ -63,12 +63,8 @@ Frozen host map: [`docs/esti/AORMS-SURFACE-URLS.md`](docs/esti/AORMS-SURFACE-URL
 
 **Operator:** **Human Centric Works (HCW)** — design studio behind `@hcw/ui-kit` and AORMS.
 - [`docs/marketing/LANDING-REDESIGN-CONTEXT.md`](docs/marketing/LANDING-REDESIGN-CONTEXT.md) — landing/marketing brief.
-- [`docs/hcw-kit/11-audits/README.md`](docs/hcw-kit/11-audits/README.md) — audit index (kit + surfaces).
-- [`docs/marketing/PUBLIC-PAGES-AUDIT-2026-07-11.md`](docs/marketing/PUBLIC-PAGES-AUDIT-2026-07-11.md) — public URL audit & tracked issues.
-- [`docs/marketing/PUBLIC-PAGES-UX-AUDIT-2026-07-11.md`](docs/marketing/PUBLIC-PAGES-UX-AUDIT-2026-07-11.md) — public pages UI/UX audit (2026-07-11).
-- [`docs/marketing/PUBLIC-PAGES-UX-FIX-PLAN-2026-07-11.md`](docs/marketing/PUBLIC-PAGES-UX-FIX-PLAN-2026-07-11.md) — UX fix plan + changelog.
-- [`docs/esti/SECURITY-AUDIT-2026-07-11.md`](docs/esti/SECURITY-AUDIT-2026-07-11.md) — application security audit (2026-07-11).
-- [`docs/esti/AORMS-STUDIO-INTERFACE-AUDIT-2026-07-11.md`](docs/esti/AORMS-STUDIO-INTERFACE-AUDIT-2026-07-11.md) — authenticated workspace UI audit (2026-07-11).
+- [`docs/hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md`](docs/hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md) — living design debt.
+- [`docs/esti/ROADMAP.md`](docs/esti/ROADMAP.md) — single delivery roadmap (autopilot complete).
 
 When editing wiki markdown under `frontend/src/content/wiki/`, rebuild the AI wiki
 index if Ask ESTI should see changes: regenerate `backend/src/lib/ai/wiki-knowledge.generated.ts`
@@ -111,7 +107,7 @@ via the repo’s wiki sync/build step.
 > `AppFooterBar`), and a **global ActionDock** (LEFT destroy · CENTER create ·
 > RIGHT commit). Studio Intelligence (`/`) is the canonical glass-rail reference;
 > marketing uses the same model without a taskbar (dock-only CTAs). Rollout U0–U6 ✅:
-> [`AORMS-UI-AUTOPILOT-ROADMAP.md`](docs/esti/AORMS-UI-AUTOPILOT-ROADMAP.md).
+> [`ROADMAP.md`](docs/esti/ROADMAP.md).
 > **Login/auth forms sit in the rail, not on the stage.** Screen CTAs via
 > `useScreenActions` (publish `[]` while dialogs open).
 >
@@ -170,10 +166,9 @@ App compat shims re-export kit primitives where noted (`StatusTag` delegates to
 `StatusDot`). Domain colour logic (`StaffAvatar`, `resolveColor`) stays app-side.
 
 Brand heritage: [`AORMS-BRANDING-KIT.md`](docs/esti/AORMS-BRANDING-KIT.md).
-Historical Carbon→MUI migration: [`MATERIAL-UI-DIRECTION.md`](docs/esti/MATERIAL-UI-DIRECTION.md).
+Historical Carbon→MUI migration: [`HCW-UI-KIT.md`](docs/esti/HCW-UI-KIT.md).
 
-**Open design debt (2026-07-11):** D3s dark/HC owner sign-off · D2e wire Playwright
-`visual` project into CI · D11 `Clients.tsx` parallel-WIP (TagChip + dialog a11y).
+**Open design debt:** see [`DESIGN-DEBT-REGISTER.md`](docs/hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md).
 Skill: `.claude/skills/hcw-design-audit`.
 
 ### UI task order
@@ -366,7 +361,7 @@ GST rates, SAC codes)
 > price a project's **Estimation** tab (priced BOQ + per-item measurement book +
 > contingency/GST rollup), both gated to `fees:manage`. No Contracts, Running/RA
 > Bills, tenders, or BBS — those stay out per the consultancy-only pivot below.
-> See `packages/contracts/src/estimation.ts` and `docs/esti/DOC-CODE-DRIFT-2026-07.md`.
+> See `packages/contracts/src/estimation.ts` and `docs/esti/UNIFIED-ARCHITECTURE-V4.md`.
 
 **Team / HR / Performance:**
 - `team` / `assignments` — roster and project-staff assignments
@@ -445,7 +440,7 @@ Key routes by area:
 
 | File | Purpose |
 |---|---|
-| `StudioAbstract.tsx` | **Studio Intelligence** home screen (route `/`; component/file name kept as StudioAbstract) — tabs Overview · Lead · Project · Financial · Team · Work · Approval, each one shell: header + **4 KPI cards** + a **DataTable** that scrolls inside its Tile (page never scrolls, 100% width). Overview merges Studio + Summary and carries the right **sidebar** (AI recommendation over last-10 Office Log). Shell + zone-state vocab in `components/dashboard/abstractShell.tsx` + `zoneState.ts`; uses `dashboard.home`. |
+| `StudioAbstract.tsx` | **Studio Intelligence** home screen (route `/`; component/file name kept as StudioAbstract) — tabs Overview · Lead · Project · Financial · Team · Work · Approval, each one shell: header + **4 KPI cards** + a **DataTable** that scrolls inside its Tile (page never scrolls, 100% width). Overview merges Studio + Summary and carries the right **sidebar** (AI recommendation over last-10 Office Log). Zone-state vocab in `components/dashboard/zoneState.ts`; uses `dashboard.home`. |
 | `Projects.tsx` ⚠️ | Project list (parallel WIP — avoid editing unless asked) |
 | `ProjectDetail.tsx` | Single project — phases, tasks, drawings, decisions, Estimation (BOQ, `fees:manage` gated) |
 | `ArchivedProjects.tsx` | Archived project browser |
@@ -472,9 +467,9 @@ Key routes by area:
 | `Alerts.tsx` | Notification/alert center (header bell) |
 | `Portal.tsx` | Client portal — `/` and `/projects/:projectId` |
 | `CollaboratorPortal.tsx` | Consultant portal — `/` and `/projects/:projectId` |
-| `Company.tsx` | Firm profile (firm:admin) |
+| `Company.tsx` | Removed — `/company` redirects to `/company-account` |
 | `Users.tsx` | User management (firm:admin) |
-| `Settings.tsx` | Preferences & password (Profile › Preferences links here) |
+| `Settings.tsx` | Removed — `/settings` redirects to `/account#settings` |
 | `Landing.tsx` / `Login.tsx` | Unauthenticated pages |
 
 ## Domain conventions

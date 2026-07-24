@@ -18,7 +18,7 @@ import {
 
 /**
  * Project OS — the lead → active-project acquisition pipeline.
- * See docs/esti/PROJECT-OS-ARCHITECTURE.md. Money is integer paise.
+ * See docs/esti/UNIFIED-ARCHITECTURE-V4.md. Money is integer paise.
  */
 
 /** Slice A — inbound enquiry recorded before a client/project exists. */

@@ -5,7 +5,7 @@
 Single reference for who can see and change what in ESTI. Implementation source:
 [`packages/contracts/src/permissions.ts`](../../packages/contracts/src/permissions.ts).
 
-Related: [PRD](PRD.md) · [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md) · [ARCHITECTURE](ARCHITECTURE.md) · [ORG-MODE-AND-HR-ARCHIVE](ORG-MODE-AND-HR-ARCHIVE.md)
+Related: [PRD](PRD.md) · [ARCHITECT-PROFILE](ARCHITECT-PROFILE.md) · [ARCHITECTURE](ARCHITECTURE.md) · [ORG-MODE-AND-HR](ORG-MODE-AND-HR.md)
 
 ---
 

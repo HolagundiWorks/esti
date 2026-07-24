@@ -1,6 +1,6 @@
 /**
  * Paste-and-parse helpers for vendor quotes / rate schedules.
- * See docs/esti/IMPORT_SPEC.md — canonical units + line parser.
+ * See docs/esti/UNIFIED-ARCHITECTURE-V4.md — canonical units + line parser.
  */
 
 export type ParsedRateRow = {

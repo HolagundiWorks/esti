@@ -5,7 +5,7 @@
 > the full workspace and **5 GB** storage included. You pay for **extra storage** and
 > **hosted AI usage** (or bring your own API key).
 >
-> Implementation queue: [AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md).
+> Implementation queue: [ROADMAP.md](ROADMAP.md).
 
 ## One standard licence
 
@@ -82,7 +82,7 @@ Tier enums in code are **deprecated shims** only.
 
 ## Related docs
 
-- [AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md)
+- [ROADMAP.md](ROADMAP.md)
 - Community edition — **retired** (2026-07-09); one **AORMS Standard** licence only
-- [MONOREPO-AND-SURFACES.md](MONOREPO-AND-SURFACES.md)
+- [AORMS-SURFACE-URLS.md](AORMS-SURFACE-URLS.md)
 - [NAVIGATION.md](NAVIGATION.md) § Estimation — shipped estimation (Rate Books + project Estimation tab; supersedes the retired Estimation OS / standalone Estimate app)

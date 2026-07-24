@@ -1,7 +1,7 @@
 # Consulting-firm SOPs — how the office actually runs (grounded case study)
 
 > **Status:** Research-grounded case study (2026-07-12). Companion to
-> [`AORMS-CONSULTANCY-CASE-STUDY.md`](AORMS-CONSULTANCY-CASE-STUDY.md) (the operating
+> [`AORMS-CONSULTANCY-SOP-CASE-STUDY.md`](AORMS-CONSULTANCY-SOP-CASE-STUDY.md) (the operating
 > model: hierarchy, sign-off, billing, risk). **This document covers the procedural
 > layer** — the standard operating procedures a consulting firm runs day-to-day: QMS,
 > document control, checking workflows, intake, communication, site visits, the
