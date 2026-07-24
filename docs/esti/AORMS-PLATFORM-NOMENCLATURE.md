@@ -32,7 +32,7 @@ AORMS targets **AEC consulting firms only**. There are exactly **two apps**:
 | Discipline | App name | Slug | Status |
 | --- | --- | --- | --- |
 | Architecture | **AORMS-Studio** | `aorms-studio` | **Shipping** (this repo) |
-| Engineering | **AORMS-Consultancy** | `aorms-consultancy` | Code-complete; live (P9.V ✅ · P9.M ✅) |
+| Engineering | **AORMS-Consultancy** | `aorms-consultancy` | Live (P9.V ✅ · P9.M ✅) |
 
 Legacy slugs for **AORMS-Studio** redirect to canonical URLs: `hived`, `aorms-architecture`.
 
@@ -140,9 +140,9 @@ only from **validated firm repositories** inside the tenant boundary:
 - Cognition engine & Studio Intelligence home
 - ESTI Pulse
 
-**AORMS-Studio** ships ESTI today. **AORMS-Consultancy** will ship its own internal-agent
-profile when the engineering app launches — do not describe ESTI as spanning both apps
-in marketing copy until that ships.
+**AORMS-Studio** ships ESTI today. **AORMS-Consultancy** ships Ask / EOMS review on the
+same spine — keep marketing honest that ESTI branding remains Studio-first until a
+distinct Consultancy agent profile lands.
 
 ### Agent split (governing rule)
 

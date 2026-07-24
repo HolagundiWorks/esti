@@ -29,7 +29,7 @@ not hard-code product strings in UI/SEO.
 | --- | --- |
 | **AORMS** | Platform — *Accelerated Operational Resources Management System*; **AEC consulting firms only** (architecture + engineering); **not** solution delivery or construction PM |
 | **AORMS-Studio** | Shipped **architecture** app from this repo — Indian architecture consultancies; SPA at **`studio.aorms.in`** |
-| **AORMS-Consultancy** | **Engineering** consultancy app — code-complete; structural, MEP, civil, multidisciplinary firms; live |
+| **AORMS-Consultancy** | **Engineering** consultancy app — live; structural, MEP, civil, multidisciplinary firms |
 | **EOMS** | **Knowledge bank** (standalone API) — standard codebooks & compliance codes; apps query it |
 | **ESTI** | **Internal AI agent** in **AORMS-Studio** — Ask ESTI, Studio Intelligence, ESTI Pulse |
 | **`AORMS_PORTALS`** | Portal/surface UI labels — staff workspace, external portals, account hub |
