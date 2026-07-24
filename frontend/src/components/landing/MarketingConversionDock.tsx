@@ -20,14 +20,18 @@ export function MarketingConversionDock({
             label: AORMS_STUDIO.title,
             zone: "center",
             tone: "primary",
-            onClick: () => navigate(AORMS_STUDIO.marketingPath),
+            onClick: () => {
+              window.location.href = AORMS_STUDIO.appUrl;
+            },
           },
           {
             id: "aorms-consultancy",
             label: AORMS_CONSULTANCY.title,
             zone: "center",
             tone: "primary",
-            onClick: () => navigate(AORMS_CONSULTANCY.landingHref),
+            onClick: () => {
+              window.location.href = AORMS_CONSULTANCY.appUrl;
+            },
           },
         ]
       : [

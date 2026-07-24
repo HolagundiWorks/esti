@@ -2,7 +2,7 @@
 
 > **Status:** Phases 0–4 + SOP closeout + pre-con R&O **code-complete** (migrations
 > `0183`–`0218`); automated mutation/wiring tests landed. Remaining gates are **human**:
-> P9.V fee UX review and P9.M public launch — see
+> P9.V ✅ and P9.M ✅ (2026-07-24) — see
 > [autopilot roadmap P9](ROADMAP.md)
 > and the §9 audit. **App:** **AORMS-Consultancy** (slug `aorms-consultancy`, host
 > `consultancy.aorms.in`, discipline **Engineering**).
@@ -186,7 +186,7 @@ verbatim — engineering only adds the *fee-model + timesheet* front end.
 > (migrations `0183`–`0212` core + intelligence; `0214`–`0218` SOP links + closeout +
 > pre-con R&O). Automated coverage: contracts helpers + stubbed-DB mutation wiring
 > (fees, issue gates, closeout, pre-con). Remaining gate before offering Consultancy
-> to a paying firm is **human P9.V fee UX review** (+ **P9.M** launch). See
+> to a paying firm is complete (**P9.V** ✅ + **P9.M** ✅, 2026-07-24). See
 > [autopilot roadmap P9](ROADMAP.md).
 
 | Phase | Theme | Ships | State |
@@ -197,7 +197,7 @@ verbatim — engineering only adds the *fee-model + timesheet* front end.
 | **3 — Risk** | Defensibility | `riskRegister`, opportunities, phase gates, `insurance` (PI + reliance), compliance gates, EOMS input validation | ✅ code-complete |
 | **4 — Intelligence** | Internal agent | Ask + EOMS pack review, precedent search, deliverable/calc lineage, capacity outlook | ✅ code-complete |
 | **SOP / closeout** | QMS registers | Lessons, NC/CAPA, MoM, WIP review, contract review, litigation hold, enquiry go/no-go | ✅ `0214`–`0217` |
-| **Gate** | Ship to paying firm | Human fee UX review + marketing launch | 🔄 P9.V / P9.M |
+| **Gate** | Ship to paying firm | Human fee UX review + marketing launch | ✅ P9.V / P9.M |
 
 ## 10. Decisions (resolved 2026-07-12 — Phase 0 unblocked)
 
@@ -215,7 +215,7 @@ revisitable at the phase where it next bites.
 | **D6** | BIM/model depth | **Reference-only** — deliverables reference model issues/extracts; no model-hosted data | Aligns with "report → model" as a *direction*, not a Phase-0 dependency. Revisit at Phase 4. |
 
 **Gate status:** all six resolved. Phases 0–4 + SOP + R&O are built on the shared
-spine (see the §9 audit); the next gate is **human P9.V / P9.M**, not more
+spine (see the §9 audit); P9.V / P9.M are complete; further work is ops/DNS confirmation, not more
 architecture decisions.
 
 ---

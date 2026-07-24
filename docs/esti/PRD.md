@@ -13,7 +13,7 @@
 > **Nomenclature (2026-07-22):** **AORMS** = **Accelerated Operational Resources
 > Management System** (platform for **AEC consulting firms**). Requirements below describe **AORMS-Studio**
 > (architecture app, slug `aorms-studio`) unless noted. **AORMS-Consultancy** (engineering app) is
-> **code-complete** in this monorepo; public launch gated on P9.V / P9.M.
+> **code-complete** in this monorepo; public live (P9.V ✅ · P9.M ✅).
 > [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md).
 
 This PRD aligns the supplied ESI-AORMS requirements with AORMS's agreed product

@@ -18,7 +18,7 @@ export const LANDING_SEO = {
     "Accelerated Operational Resources Management System: operational and design frameworks for AEC consulting firms. Two apps — AORMS-Studio (architecture) and AORMS-Consultancy (engineering). One spine.",
   twitterTitle: "AORMS — frameworks for AEC consultancies",
   twitterDescription:
-    `Operational + design frameworks for architecture and engineering consultancies. EOMS dual-tier intelligence. ${AORMS_STUDIO.title} shipping for Indian architecture practices; ${AORMS_CONSULTANCY.title} built — public launch forthcoming.`,
+    `Operational + design frameworks for architecture and engineering consultancies. EOMS dual-tier intelligence. ${AORMS_STUDIO.title} and ${AORMS_CONSULTANCY.title} are both live.`,
   headline: `${AORMS_PLATFORM.heroHeadline[0]} ${AORMS_PLATFORM.heroHeadline[1]}`,
   footerBlurb: `${AORMS_PLATFORM.name} (${AORMS_PLATFORM.expansion}).`,
   canonical: "https://aorms.in/",
@@ -35,12 +35,12 @@ export const LANDING_FAQ = [
   {
     question: "Who is the platform for?",
     answer:
-      "AEC consulting firms — architecture and engineering practices of 5–500 people replacing scattered messaging, advisory workflows, documentation, email, sheets, and file sharing. AORMS-Studio ships for architecture consultancies; AORMS-Consultancy for engineering consultancies is built — public launch forthcoming.",
+      "AEC consulting firms — architecture and engineering practices of 5–500 people replacing scattered messaging, advisory workflows, documentation, email, sheets, and file sharing. AORMS-Studio ships for architecture consultancies; AORMS-Consultancy ships for engineering consultancies.",
   },
   {
     question: "What are AORMS-Studio and AORMS-Consultancy?",
     answer:
-      `${AORMS_STUDIO.title} is the architecture consultancy app — Indian architecture and design practices (live at ${AORMS_STUDIO.appUrl.replace(/^https:\/\//, "")}). ${AORMS_CONSULTANCY.title} is the engineering consultancy app — structural, MEP, civil, and multidisciplinary firms (built; public launch forthcoming). Both share the same AORMS platform spine, ${EOMS.name} (${EOMS.role.toLowerCase()}), and an internal-agent profile per app.`,
+      `${AORMS_STUDIO.title} is the architecture consultancy app — Indian architecture and design practices (live at ${AORMS_STUDIO.appUrl.replace(/^https:\/\//, "")}). ${AORMS_CONSULTANCY.title} is the engineering consultancy app — structural, MEP, civil, and multidisciplinary firms (live at ${AORMS_CONSULTANCY.appUrl.replace(/^https:\/\//, "")}). Both share the same AORMS platform spine, ${EOMS.name} (${EOMS.role.toLowerCase()}), and an internal-agent profile per app.`,
   },
   {
     question: "What are the operational and design frameworks?",
@@ -65,12 +65,12 @@ export const LANDING_FAQ = [
   {
     question: "What is ESTI?",
     answer:
-      `${ESTI.name} (${ESTI.expansion}) is the ${ESTI.role.toLowerCase()} — ${ESTI.summary} Live today in ${AORMS_STUDIO.title}; ${AORMS_CONSULTANCY.title} ships Ask / EOMS review on the same spine, with a distinct brand profile at public launch.`,
+      `${ESTI.name} (${ESTI.expansion}) is the ${ESTI.role.toLowerCase()} — ${ESTI.summary} Live in ${AORMS_STUDIO.title} and ${AORMS_CONSULTANCY.title} on the same spine.`,
   },
   {
     question: "Is this documentation the shipped product?",
     answer:
-      `This page is the platform north-star (v1.0 pre-release). The live browser workspace at ${AORMS_STUDIO.appUrl.replace(/^https:\/\//, "")} implements ${AORMS_STUDIO.title}; stack details differ in places (Fastify + tRPC today vs REST/GraphQL in the north-star spec).`,
+      `This page is the platform north-star (v1.0 pre-release). Live browser workspaces at ${AORMS_STUDIO.appUrl.replace(/^https:\/\//, "")} and ${AORMS_CONSULTANCY.appUrl.replace(/^https:\/\//, "")} implement the apps; stack details differ in places (Fastify + tRPC today vs REST/GraphQL in the north-star spec).`,
   },
 ] as const;
 
@@ -157,7 +157,7 @@ export function injectLandingJsonLd(): void {
         offers: {
           "@type": "Offer",
           name: `${AORMS_PLATFORM.name} platform`,
-          description: `Pre-release platform. ${AORMS_STUDIO.title} shipping with standard licence (web-only); ${AORMS_CONSULTANCY.title} built — public launch forthcoming.`,
+          description: `Pre-release platform. ${AORMS_STUDIO.title} and ${AORMS_CONSULTANCY.title} shipping with the standard licence (web-only).`,
           url: `https://aorms.in/login`,
         },
         publisher: { "@id": "https://aorms.in/#organization" },

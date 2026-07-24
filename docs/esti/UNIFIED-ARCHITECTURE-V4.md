@@ -51,7 +51,7 @@
   (enquiry register + go/no-go), `billing`
 - **AORMS-Consultancy** — `consultancy.*` (engagements, deliverables, RACI, HLP,
   timesheets, WIP, contract review, lessons, NC/CAPA, MoM, opportunities, phase gates,
-  Ask / EOMS review / precedent / lineage / capacity) — code-complete; launch gated on
+  Ask / EOMS review / precedent / lineage / capacity) — live on
   P9.V / P9.M
 - **AI** — `ai` (Ask ESTI / AI Studio); ESTICAD `companion` **removed**
 - **Portals** — `portal`, `collab`, contractor portal
@@ -95,7 +95,7 @@ for AEC consulting firms. **AORMS-Studio** is the shipped **architecture app**
 (this monorepo): one operating system for an Indian architecture practice, from
 first client conversation to final account on site. **AORMS-Consultancy** is the
 **engineering app** — **code-complete** on the same spine (structural, MEP, civil,
-multidisciplinary); public launch gated on P9.V / P9.M.
+multidisciplinary); public live (P9.V ✅ · P9.M ✅).
 
 **ESTI = Embedded Studio Intelligence** — the **internal AI agent** in
 **AORMS-Studio** (ESTI AI, Ask ESTI, the cognition engine, ESTI Pulse).
@@ -175,4 +175,4 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 |---|---|---|
 | 4.0 | 2026-06-25 | Initial unified north-star — six pillars, status against live router, reading order |
 | 4.1 | 2026-06-28 | Reconciled to the 2026-06-28 teardown — added the **System state** source-of-truth section; rewrote pillar 4; fixed reading order. |
-| 4.2 | 2026-07-22 | Reconciled System state to post-P9/P10 reality — removed stale `knowledgeBank`/`companion`/`pmc` live claims; added `projectPrecon`, `consultancy.*`, fee-stage invoices, enquiry go/no-go; Project OS = consultancy delivery (not construction PM); Consultancy marked code-complete / launch-gated. |
+| 4.2 | 2026-07-22 | Reconciled System state to post-P9/P10 reality — removed stale `knowledgeBank`/`companion`/`pmc` live claims; added `projectPrecon`, `consultancy.*`, fee-stage invoices, enquiry go/no-go; Project OS = consultancy delivery (not construction PM); Consultancy marked code-complete / live. |

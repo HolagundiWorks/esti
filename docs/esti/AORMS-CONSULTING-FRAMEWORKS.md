@@ -264,7 +264,7 @@ the same system — because Indian practices lose money when those drift apart.
 ## 4. Engineering consultancy operational framework
 
 **App:** **AORMS-Consultancy** · **Audience:** Structural, MEP, civil, and multidisciplinary
-engineering consultancies · **Status:** Code-complete; launch gated (shares platform spine)
+engineering consultancies · **Status:** Code-complete; live (shares platform spine)
 
 > **Deep dive:** the **grounded, sourced case study** of how engineering consultancies
 > operate (org hierarchy, sign-off chain, workflow, billing, risk — with citations) is in

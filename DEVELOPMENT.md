@@ -2,7 +2,7 @@
 
 Greenfield monorepo for **AORMS-Studio** (`aorms-studio`) — the **architecture app** on the AORMS platform
 (**Accelerated Operational Resources Management System** for AEC consulting firms) by Human Centric Works.
-**AORMS-Consultancy** (engineering app) is code-complete; public launch gated on P9.V / P9.M. Nomenclature:
+**AORMS-Consultancy** (engineering app) is live at `consultancy.aorms.in`. Nomenclature:
 [docs/esti/AORMS-PLATFORM-NOMENCLATURE.md](docs/esti/AORMS-PLATFORM-NOMENCLATURE.md).
 See [docs/esti/ARCHITECTURE.md](docs/esti/ARCHITECTURE.md).
 

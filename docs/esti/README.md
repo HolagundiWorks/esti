@@ -4,7 +4,7 @@
 
 > **Nomenclature:** **AORMS** = platform (AEC consulting firms). **AORMS-Studio** =
 > architecture app (this repo). **AORMS-Consultancy** = engineering app (code-complete;
-> launch gated on P9.V / P9.M). **EOMS** = knowledge bank; **ESTI** = internal AI agent.
+> live (P9.V ✅ · P9.M ✅)). **EOMS** = knowledge bank; **ESTI** = internal AI agent.
 > Full rules: [AORMS-PLATFORM-NOMENCLATURE](AORMS-PLATFORM-NOMENCLATURE.md).
 
 This directory is the **single source of truth**. Superseded specs are **removed** —
@@ -21,7 +21,7 @@ use Git history for old versions.
 3. [NAVIGATION](NAVIGATION.md) — sidebar IA (Canonical V3)
 4. [PLANS-AND-TIERS](PLANS-AND-TIERS.md) + [ACCESS-HIERARCHY](ACCESS-HIERARCHY.md) — licence + roles
 5. [HCW-UI-KIT](HCW-UI-KIT.md) + [HCW-UI-UX-PRINCIPLES](HCW-UI-UX-PRINCIPLES.md) — design system
-6. [ROADMAP](ROADMAP.md) — delivery status (autopilot complete; human P9.V / P9.M)
+6. [ROADMAP](ROADMAP.md) — delivery status (COMPLETE — Studio + Consultancy live)
 7. [PRD](PRD.md) — requirements
 
 Repo agent entry: [`CLAUDE.md`](../../CLAUDE.md).
@@ -43,7 +43,7 @@ Repo agent entry: [`CLAUDE.md`](../../CLAUDE.md).
 | Consultancy design | [AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE](AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md) |
 | Consultancy SOP map | [AORMS-CONSULTANCY-SOP-CASE-STUDY](AORMS-CONSULTANCY-SOP-CASE-STUDY.md) |
 | Pre-con R&O | [AORMS-PRECONSTRUCTION-RO-FRAMEWORK](AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md) |
-| P9.V gate | [P9V-CONSULTANCY-WALKTHROUGH](P9V-CONSULTANCY-WALKTHROUGH.md) |
+| P9.V record | [P9V-CONSULTANCY-WALKTHROUGH](P9V-CONSULTANCY-WALKTHROUGH.md) |
 | Philosophy | [AORMS-CONSULTING-FRAMEWORKS](AORMS-CONSULTING-FRAMEWORKS.md) |
 | Product boundary | [PRODUCT-VISION](PRODUCT-VISION.md) · [STABILITY-CHARTER](STABILITY-CHARTER.md) |
 | Requirements | [PRD](PRD.md) |

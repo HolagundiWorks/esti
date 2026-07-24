@@ -43,6 +43,7 @@ export async function ensureDemoPlatformAccount(plainPassword?: string): Promise
         loginDomain: "demo.aorms.in",
         billingEmail: DEMO_PRINCIPAL,
         ownerAccountId: account.id,
+        workspaceType: "STUDIO",
       })
       .returning();
   } else {
@@ -51,6 +52,7 @@ export async function ensureDemoPlatformAccount(plainPassword?: string): Promise
       .set({
         name: DEMO_STUDIO_FIRM.companyName,
         loginDomain: org.loginDomain ?? "demo.aorms.in",
+        workspaceType: "STUDIO",
         updatedAt: new Date(),
       })
       .where(eq(schema.organizations.id, org.id));
@@ -83,4 +85,71 @@ export async function ensureDemoPlatformAccount(plainPassword?: string): Promise
   }
 
   await provisionTrial(account);
+}
+
+const DEMO_CONSULTANCY_SLUG = "engineering-demo";
+const DEMO_CONSULTANCY_NAME = "AORMS Engineering Demo";
+
+/**
+ * Second platform org for P9.V / Consultancy demos — same principal credentials,
+ * workspace_type CONSULTANCY so Account Hub can open consultancy.aorms.in.
+ */
+export async function ensureDemoConsultancyPlatformOrg(): Promise<void> {
+  const [account] = await db
+    .select()
+    .from(schema.accounts)
+    .where(eq(schema.accounts.email, DEMO_PRINCIPAL))
+    .limit(1);
+  if (!account) return;
+
+  let [org] = await db
+    .select()
+    .from(schema.organizations)
+    .where(eq(schema.organizations.slug, DEMO_CONSULTANCY_SLUG))
+    .limit(1);
+
+  if (!org) {
+    const orgId = newId("org");
+    [org] = await db
+      .insert(schema.organizations)
+      .values({
+        id: orgId,
+        name: DEMO_CONSULTANCY_NAME,
+        slug: DEMO_CONSULTANCY_SLUG,
+        loginDomain: "eng-demo.aorms.in",
+        billingEmail: DEMO_PRINCIPAL,
+        ownerAccountId: account.id,
+        workspaceType: "CONSULTANCY",
+      })
+      .returning();
+  } else {
+    await db
+      .update(schema.organizations)
+      .set({
+        name: DEMO_CONSULTANCY_NAME,
+        workspaceType: "CONSULTANCY",
+        ownerAccountId: account.id,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.organizations.id, org.id));
+  }
+
+  if (!org) return;
+
+  const [member] = await db
+    .select()
+    .from(schema.orgMembers)
+    .where(and(eq(schema.orgMembers.orgId, org.id), eq(schema.orgMembers.accountId, account.id)))
+    .limit(1);
+
+  if (!member) {
+    await db.insert(schema.orgMembers).values({
+      id: newId("mem"),
+      orgId: org.id,
+      accountId: account.id,
+      role: "OWNER",
+      status: "ACTIVE",
+      activatedAt: new Date(),
+    });
+  }
 }

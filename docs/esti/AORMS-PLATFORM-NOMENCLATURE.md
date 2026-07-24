@@ -16,7 +16,7 @@ Executable constants: `frontend/src/lib/product-nomenclature.ts`.
 | --- | --- | --- |
 | **AORMS** | **Accelerated Operational Resources Management System** — the **platform** | **AEC consulting firms** — architecture and engineering practices that advise clients; not solution delivery or construction PM |
 | **AORMS-Studio** | **Architecture app** — shipped workspace (slug `aorms-studio`) | Indian architecture & interior design consultancies |
-| **AORMS-Consultancy** | **Engineering app** — code-complete in monorepo; launch gated (slug `aorms-consultancy`) | Structural, MEP, civil, and multidisciplinary engineering consultancies |
+| **AORMS-Consultancy** | **Engineering app** — live at `consultancy.aorms.in` (slug `aorms-consultancy`) | Structural, MEP, civil, and multidisciplinary engineering consultancies |
 | **EOMS** | **Knowledge bank** (standalone API, separate repo) — *Emergent Object Management System* | The continuously-learning catalog of standard codebooks, building & compliance codes; AORMS apps query its API to retrieve authoritative code/data |
 | **ESTI** | **Internal AI agent** — *Embedded Studio Intelligence* | Answers only from **validated firm repositories** — Ask ESTI, Studio Intelligence, ESTI Pulse (live in **AORMS-Studio**) |
 | **`esti` (codename)** | Repo name, `@esti/*` packages, `esti_*` DB tables | Engineering only — do not expose in marketing |
@@ -32,7 +32,7 @@ AORMS targets **AEC consulting firms only**. There are exactly **two apps**:
 | Discipline | App name | Slug | Status |
 | --- | --- | --- | --- |
 | Architecture | **AORMS-Studio** | `aorms-studio` | **Shipping** (this repo) |
-| Engineering | **AORMS-Consultancy** | `aorms-consultancy` | Code-complete; launch gated on P9.V / P9.M |
+| Engineering | **AORMS-Consultancy** | `aorms-consultancy` | Code-complete; live (P9.V ✅ · P9.M ✅) |
 
 Legacy slugs for **AORMS-Studio** redirect to canonical URLs: `hived`, `aorms-architecture`.
 
@@ -74,14 +74,13 @@ called “AORMS portal”, **AORMS-Architecture**, or **HiveD**.
 | **Typical URL** | `studio.aorms.in` (legacy `app.aorms.in` → 301) |
 | **Public wiki** | [aorms.in/wiki](https://aorms.in/wiki) |
 
-### AORMS-Consultancy (engineering app — code-complete; launch gated)
+### AORMS-Consultancy (engineering app — live)
 
 The **engineering consultancy app** — structural, MEP, civil, and multidisciplinary firms
 advising on built-environment projects. Shares the same AORMS platform primitives (tenant,
 permissions, workflow engine, EOMS) as a separate workspace profile
-(`hlp_organization.workspace_type = CONSULTANCY`). Core + SOP + R&O are **built** in this
-monorepo; public launch is gated on human fee UX review (P9.V) and marketing (P9.M) —
-see [ROADMAP.md](ROADMAP.md) § P9.
+(`hlp_organization.workspace_type = CONSULTANCY`). Core + SOP + R&O + fee UX are
+**live** (P9.V ✅ · P9.M ✅, 2026-07-24) — see [ROADMAP.md](ROADMAP.md).
 
 ---
 
@@ -102,7 +101,7 @@ Executable labels: `AORMS_PORTALS` in `frontend/src/lib/product-nomenclature.ts`
 | **Personal account** | AORMS account | `/account` | Portable identity + licence hub |
 | **Company account** | Company account | `/company-account` | Firm owners: GST, members, admin |
 | **Licensing console** | Licensing console (**HCW License Manager**) | `admin.aorms.in` · `/platform-admin` | In-tree operators console — [HCW-LICENSE-MANAGER.md](HCW-LICENSE-MANAGER.md) |
-| **Consultancy marketing** | **AORMS-Consultancy** | `consultancy.aorms.in` · `/aorms-consultancy` | Engineering app (launch gated) |
+| **Consultancy marketing** | **AORMS-Consultancy** | `consultancy.aorms.in` · `/aorms-consultancy` | Engineering app (live) |
 | **Blog** | Blog | `/blog` | Platform + practice notes |
 
 Frozen host map: [AORMS-SURFACE-URLS.md](AORMS-SURFACE-URLS.md).
@@ -174,7 +173,7 @@ library **ESTI** uses. See [KNOWLEDGE-BANK-PORTAL.md](KNOWLEDGE-BANK-PORTAL.md).
 ## Migration notes for authors
 
 1. **Expand AORMS** as *Accelerated Operational Resources Management System* — platform for **AEC consulting firms only**.
-2. Two apps: **AORMS-Studio** (architecture, shipping) and **AORMS-Consultancy** (engineering, code-complete; launch gated).
+2. Two apps: **AORMS-Studio** (architecture, shipping) and **AORMS-Consultancy** (engineering, live).
 3. Import **`AORMS_APPS`**, **`AORMS_STUDIO`**, **`AORMS_CONSULTANCY`**, **`PLATFORM_APPS`** from `product-nomenclature.ts`.
 4. Do **not** rename the repo, packages, or tables to `aorms_*` — the `esti` codename is stable.
 5. Staff workspace today = **AORMS-Studio** at `studio.aorms.in`; never “AORMS portal”.

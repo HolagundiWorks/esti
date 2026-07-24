@@ -72,15 +72,15 @@ export const AORMS_APPS = {
     /** Unified landing section on `aorms.in`. */
     landingHref: "/#consultancy",
     wikiPath: "/wiki/aorms-consultancy",
-    /** Built in monorepo; public launch gated on P9.V / P9.M. */
-    status: "launch_gated" as const,
+    /** Live at consultancy.aorms.in (P9.M 2026-07-24). */
+    status: "live" as const,
   },
 } as const;
 
 /** Shipped architecture app — this monorepo (Indian architecture consultancies). */
 export const AORMS_STUDIO = AORMS_APPS.studio;
 
-/** Engineering consultancy app — code-complete; launch gated. */
+/** Engineering consultancy app — live on the same spine. */
 export const AORMS_CONSULTANCY = AORMS_APPS.consultancy;
 
 /** Legacy single slug — prefer {@link AORMS_STUDIO.legacySlugs}. */
@@ -106,8 +106,8 @@ export const PLATFORM_APPS = [
       "ESTI · internal AI agent · Ask ESTI",
     ],
     workspaceSlug: AORMS_STUDIO.slug,
-    href: AORMS_STUDIO.landingHref,
-    cta: `Explore ${AORMS_STUDIO.title}`,
+    href: AORMS_STUDIO.appUrl,
+    cta: `Open ${AORMS_STUDIO.title}`,
   },
   {
     id: "engineering",
@@ -123,8 +123,8 @@ export const PLATFORM_APPS = [
       "EOMS · knowledge bank · codes & compliance on tap",
     ],
     workspaceSlug: AORMS_CONSULTANCY.slug,
-    href: AORMS_CONSULTANCY.landingHref,
-    cta: `Learn about ${AORMS_CONSULTANCY.title}`,
+    href: AORMS_CONSULTANCY.appUrl,
+    cta: `Open ${AORMS_CONSULTANCY.title}`,
   },
 ] as const;
 

@@ -297,10 +297,11 @@ function AppWorkspace() {
       pathname === "/contact" ||
       pathname === "/about" ||
       pathname === "/download" ||
-      pathname === AORMS_CONSULTANCY.marketingPath ||
       isLandingSlug(pathname) ||
       slug === AORMS_STUDIO.slug ||
       isAormsStudioLegacySlug(slug);
+    if (pathname === AORMS_CONSULTANCY.marketingPath || slug === AORMS_CONSULTANCY.slug)
+      return <Navigate to="/#consultancy" replace />;
     if (isRemovedMarketing) return <Navigate to="/" replace />;
   }
 

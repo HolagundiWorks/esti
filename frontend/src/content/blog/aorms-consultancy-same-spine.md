@@ -1,7 +1,7 @@
 ---
 title: AORMS-Consultancy — engineering on the same operational spine
 date: 2026-07-22
-excerpt: AORMS-Consultancy is built for structural, MEP, and multidisciplinary engineering consultancies on the same AORMS spine as Studio — code-complete, launch-gated after human walkthrough.
+excerpt: AORMS-Consultancy is live for structural, MEP, and multidisciplinary engineering consultancies on the same AORMS spine as Studio.
 tags: Platform, Product, Practice
 author: Human Centric Works
 ---
@@ -29,14 +29,9 @@ fee stages and Studio-linked invoicing — not a parallel ERP.
 
 ## Launch status
 
-The engineering app is **code-complete**. Public launch is gated on human
-walkthrough sign-off (fee UX and operational acceptance), not on another greenfield
-build. Marketing at `consultancy.aorms.in` stays honest about that: built, not
-quietly half-shipped.
-
-Architecture practices stay on **AORMS-Studio** today. Engineering firms that
-want the same spine watch the consultancy launch — same platform, discipline-fit
-shell.
+**AORMS-Consultancy is live** at `consultancy.aorms.in`. Architecture practices
+stay on **AORMS-Studio**; engineering firms open the same platform with a
+discipline-fit shell.
 
 ## Read next
 

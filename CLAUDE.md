@@ -4,7 +4,7 @@
 **platform** — operational consolidation for **AEC consulting firms** with dual-tier AI.
 The **shipped app** in this monorepo is **AORMS-Studio** (slug `aorms-studio`, legacy
 slugs `hived` and `aorms-architecture`, Indian architecture practices). **AORMS-Consultancy**
-(slug `aorms-consultancy`) is the engineering consultancy app — **code-complete** in this monorepo; public launch gated on P9.M. Nomenclature:
+(slug `aorms-consultancy`) is the engineering consultancy app — **code-complete** in this monorepo; live. Nomenclature:
 [`docs/esti/AORMS-PLATFORM-NOMENCLATURE.md`](docs/esti/AORMS-PLATFORM-NOMENCLATURE.md).
 
 **ESTI** (Embedded Studio Intelligence) is the **internal AI agent** in
@@ -29,12 +29,12 @@ not hard-code product strings in UI/SEO.
 | --- | --- |
 | **AORMS** | Platform — *Accelerated Operational Resources Management System*; **AEC consulting firms only** (architecture + engineering); **not** solution delivery or construction PM |
 | **AORMS-Studio** | Shipped **architecture** app from this repo — Indian architecture consultancies; SPA at **`studio.aorms.in`** |
-| **AORMS-Consultancy** | **Engineering** consultancy app — code-complete; structural, MEP, civil, multidisciplinary firms; launch gated on P9.M |
+| **AORMS-Consultancy** | **Engineering** consultancy app — code-complete; structural, MEP, civil, multidisciplinary firms; live |
 | **EOMS** | **Knowledge bank** (standalone API) — standard codebooks & compliance codes; apps query it |
 | **ESTI** | **Internal AI agent** in **AORMS-Studio** — Ask ESTI, Studio Intelligence, ESTI Pulse |
 | **`AORMS_PORTALS`** | Portal/surface UI labels — staff workspace, external portals, account hub |
 | **`aorms-studio`** | URL/wiki **slug** — legacy slugs `hived`, `aorms-architecture` redirect |
-| **`aorms-consultancy`** | Engineering app **slug** (code-complete; launch gated) |
+| **`aorms-consultancy`** | Engineering app **slug** (live) |
 | **`esti`** | Repo codename — `@esti/*`, `esti_*` tables; never in marketing |
 
 **Retired terms (do not use in new copy):**
@@ -55,7 +55,7 @@ not hard-code product strings in UI/SEO.
 | **admin.aorms.in** · `/platform-admin` | **HCW License Manager** console (in-tree — `backend/src/licensing-platform/`, `frontend/src/platform-admin/`) |
 | `/libraries/knowledge-bank-portal` | Knowledge Bank portal (EOMS textbook library) |
 | **studio.aorms.in** · `/login` | **AORMS-Studio** workspace (architecture) |
-| **consultancy.aorms.in** · `/aorms-consultancy` | **AORMS-Consultancy** engineering marketing + product entry (launch gated) |
+| **consultancy.aorms.in** · `/aorms-consultancy` | **AORMS-Consultancy** engineering marketing + product entry (live) |
 | `/blog` | Platform blog (practice + product notes) |
 
 Frozen host map: [`docs/esti/AORMS-SURFACE-URLS.md`](docs/esti/AORMS-SURFACE-URLS.md) ·

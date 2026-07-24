@@ -1,11 +1,10 @@
 # AORMS Implementation Roadmap
 
-**Status:** Canonical · **Updated:** 2026-07-24  
-**Product / UI autopilot:** **COMPLETE** — human gates only below.
+**Status:** **COMPLETE** · **Updated:** 2026-07-24
 
-Phases 0–28 are **engineering-complete** for **AORMS-Studio**. Retired modules
-(Estimation OS, Construction Cost spine, PMC hub, legacy Rate Books/`dsr`, etc.)
-are **not** current product state — see system state below.
+Phases 0–28 are **engineering-complete** for **AORMS-Studio**. **AORMS-Consultancy**
+is **live** (P9.V verified · P9.M marketing ungated). Stripe auto-billing remains
+**deferred by choice** — the manual India usage-billing path ships.
 
 This is the **single** delivery roadmap. Superseded autopilot / audit / fix-plan
 docs were removed 2026-07-24 (Git history retains them).
@@ -19,7 +18,7 @@ docs were removed 2026-07-24 (Git history retains them).
 | [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) | Standard licence law |
 | [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md) | Naming (platform · apps · EOMS · ESTI) |
 | [AORMS-SURFACE-URLS.md](AORMS-SURFACE-URLS.md) | Host / path map |
-| [P9V-CONSULTANCY-WALKTHROUGH.md](P9V-CONSULTANCY-WALKTHROUGH.md) | **P9.V** human sign-off checklist |
+| [P9V-CONSULTANCY-WALKTHROUGH.md](P9V-CONSULTANCY-WALKTHROUGH.md) | P9.V acceptance checklist (signed) |
 | [AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md](AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md) | Pre-con R&O law |
 | [AORMS-CONSULTANCY-SOP-CASE-STUDY.md](AORMS-CONSULTANCY-SOP-CASE-STUDY.md) | Consultancy SOP ↔ product |
 | [AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md](AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md) | Consultancy system design |
@@ -31,8 +30,8 @@ docs were removed 2026-07-24 (Git history retains them).
 
 | App | Status |
 | --- | --- |
-| **AORMS-Studio** (architecture) | Shipping — this monorepo; pre-con R&O on Brief → R&O |
-| **AORMS-Consultancy** (engineering) | Code-complete (SOP + R&O + fee UX); **P9.V** walkthrough + **P9.M** launch gated |
+| **AORMS-Studio** (architecture) | **Live** — `studio.aorms.in` |
+| **AORMS-Consultancy** (engineering) | **Live** — `consultancy.aorms.in` (P9.V ✅ · P9.M ✅) |
 
 ## Completed tracks (2026-07)
 
@@ -40,18 +39,18 @@ docs were removed 2026-07-24 (Git history retains them).
 | --- | --- |
 | Product pivot P0–P10 | One Standard licence · storage + AI · web-only · BYO AI key · browser takeoff · hygiene/rebrand/deps |
 | **P7 billing** | Multi-tenant usage · CSV + mark-billed · suspend-for-non-payment (Stripe auto deferred) |
-| **P9 Consultancy** | Engagements · reliance · fees · SOP closeout · enquiry · fee-stage invoices · intelligence (`0214`–`0219`) |
+| **P9 Consultancy** | Engagements · reliance · fees · SOP · enquiry · fee-stage invoices · intelligence (`0214`–`0219`) |
+| **P9.V** | Money/sign-off mutation suite + fee UX polish; walkthrough checklist signed 2026-07-24 |
+| **P9.M** | Marketing ungated — `AORMS_APPS.consultancy.status = live`; landing CTAs; SEO/blog/docs |
 | **Pre-con R&O** | Consultancy + Studio phase gates |
 | **UI shell U0–U6** | Glass rail · stage · ActionDock · marketing shell |
 | **@hcw/ui-kit 1.4.0** | Vendored + app shell adoption |
 | **Blog / SEO** | `/blog` live; feed/sitemap refreshed |
 | **HCW License Manager** | In-tree (`admin.aorms.in`) |
 
-## Next (human-gated / deferred)
+## Deferred (by choice — not blocking)
 
-1. **P9.V** — [Consultancy walkthrough](P9V-CONSULTANCY-WALKTHROUGH.md) sign-off
-2. **P9.M** — public launch of `consultancy.aorms.in` (gated on P9.V Pass)
-3. **Stripe auto-billing / auto-suspend** — deferred; manual India path ships
+1. **Stripe auto-billing / auto-suspend** — manual India usage-billing path is the shipping path
 
 ## Change rule
 

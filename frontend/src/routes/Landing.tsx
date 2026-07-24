@@ -94,8 +94,8 @@ const FAQ = [
     a: `${EOMS.name} is the external knowledge bank — standard codebooks and compliance codes on tap via its API. ${ESTI.name} is the internal agent that answers only from your firm's validated repositories.`,
   },
   {
-    q: "Which app ships today?",
-    a: `${AORMS_STUDIO.title} — the architecture consultancy workspace — is live. ${AORMS_CONSULTANCY.title} is built on the same spine; public launch is forthcoming.`,
+    q: "Which apps ship today?",
+    a: `${AORMS_STUDIO.title} (architecture) and ${AORMS_CONSULTANCY.title} (engineering) are both live on the same spine — ${AORMS_STUDIO.appUrl.replace(/^https:\/\//, "")} and ${AORMS_CONSULTANCY.appUrl.replace(/^https:\/\//, "")}.`,
   },
 ] as const;
 
@@ -358,13 +358,17 @@ export function Landing() {
           <Box id="apps" component="section" sx={{ py: { xs: 6, md: 9 } }}>
             <SectionHead
               eyebrow="Two apps, one spine"
-              title="Architecture today. Engineering next."
+              title="Architecture and engineering, live."
               lead="Both AEC disciplines run on the same operational spine — deployed as focused apps."
             />
             <Grid container spacing={3}>
               {PLATFORM_APPS.map((app) => (
                 <Grid key={app.id} size={{ xs: 12, md: 6 }}>
-                  <Surface layer="soft" sx={{ p: 3, height: "100%" }}>
+                  <Surface
+                    layer="soft"
+                    id={app.id === "architecture" ? "studio" : "consultancy"}
+                    sx={{ p: 3, height: "100%" }}
+                  >
                     <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between" }}>
                       <Typography variant="h6" component="h3" sx={{ fontWeight: 700 }}>
                         {app.workspace}
@@ -405,6 +409,16 @@ export function Landing() {
                         </Typography>
                       ))}
                     </Stack>
+                    <Button
+                      component="a"
+                      href={app.href}
+                      variant="contained"
+                      size="medium"
+                      endIcon={<ArrowForward />}
+                      sx={{ mt: 3 }}
+                    >
+                      {app.cta}
+                    </Button>
                   </Surface>
                 </Grid>
               ))}
@@ -417,20 +431,29 @@ export function Landing() {
               Bring your practice onto one system.
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mt: 2, maxWidth: 560, mx: "auto" }}>
-              Sign in to {AORMS_STUDIO.title}, or reach out to Human Centric Works to bring
-              your consultancy onboard.
+              Sign in to {AORMS_STUDIO.title} or {AORMS_CONSULTANCY.title} — same platform,
+              discipline-fit workspace.
             </Typography>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ justifyContent: "center", mt: 4 }}>
               <Button component={RouterLink} to="/login" variant="contained" size="large" endIcon={<ArrowForward />}>
-                Sign in
+                {AORMS_STUDIO.title}
+              </Button>
+              <Button
+                component="a"
+                href={AORMS_CONSULTANCY.appUrl}
+                variant="outlined"
+                size="large"
+                endIcon={<ArrowForward />}
+              >
+                {AORMS_CONSULTANCY.title}
               </Button>
               <Button
                 component="a"
                 href={`mailto:${HUMAN_CENTRIC_WORKS.email}`}
-                variant="outlined"
+                variant="text"
                 size="large"
               >
-                Talk to us
+                Talk to HCW
               </Button>
             </Stack>
           </Surface>
