@@ -501,9 +501,16 @@ export function Portal() {
                 respond to approvals, raise change requests or leave feedback.
               </Typography>
             </Stack>
-            {(projectsQ.data ?? []).length === 0 && (
-              <Typography variant="body1">No projects yet.</Typography>
-            )}
+            <DataState
+              loading={projectsQ.isLoading}
+              isEmpty={!projectsQ.isLoading && (projectsQ.data ?? []).length === 0}
+              columnCount={3}
+              empty={{
+                title: "No projects yet",
+                description:
+                  "Ask your architect to invite you to a project. Once shared, you will see status, invoices, approvals, and drawings here.",
+              }}
+            >
             <Grid container spacing={2}>
               {(projectsQ.data ?? []).map((p) => (
                 <Grid key={p.id} size={{ xs: 12, md: 6, lg: 3 }}>
@@ -521,6 +528,7 @@ export function Portal() {
                 </Grid>
               ))}
             </Grid>
+            </DataState>
 
             {/* Issued engineering packages — shown only when the firm has issued
                 consultancy deliverables to this client (Phase 0 portal scoping). */}
@@ -621,31 +629,107 @@ export function Portal() {
             </Section>
 
             <Section title="Invoices">
-              <DataGrid
-                rows={d.invoices}
-                getRowId={(r) => r.ref}
-                columns={invoiceCols}
-                disableRowSelectionOnClick
-                autoHeight
-              />
+              <DataState
+                loading={false}
+                isEmpty={d.invoices.length === 0}
+                columnCount={4}
+                empty={{
+                  title: "No invoices yet",
+                  description: "Tax invoices your architect issues for this project will appear here with PDF download when ready.",
+                }}
+              >
+                <DataGrid
+                  rows={d.invoices}
+                  getRowId={(r) => r.ref}
+                  columns={invoiceCols}
+                  disableRowSelectionOnClick
+                  autoHeight
+                />
+              </DataState>
             </Section>
 
+            {(() => {
+              const pending = d.approvals.filter((a) => RESPONDABLE.includes(a.status));
+              return pending.length > 0 ? (
+                <Alert severity="warning" sx={{ alignItems: "center" }}>
+                  <AlertTitle>
+                    {pending.length} approval{pending.length === 1 ? "" : "s"} awaiting your decision
+                  </AlertTitle>
+                  <Typography variant="body2" sx={{ mb: 1.5 }}>
+                    Respond below so drawings and site work are not blocked waiting on email.
+                  </Typography>
+                  <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() =>
+                        setDecision({
+                          approvalId: pending[0]!.id,
+                          title: pending[0]!.title,
+                          decision: "APPROVED",
+                          remarks: "",
+                          revisionCategory: "",
+                        })
+                      }
+                    >
+                      Approve “{pending[0]!.title}”
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() =>
+                        setDecision({
+                          approvalId: pending[0]!.id,
+                          title: pending[0]!.title,
+                          decision: "REVISIONS",
+                          remarks: "",
+                          revisionCategory: "MINOR",
+                        })
+                      }
+                    >
+                      Request revisions
+                    </Button>
+                  </Stack>
+                </Alert>
+              ) : null;
+            })()}
+
             <Section title="Approvals">
-              <DataGrid
-                rows={d.approvals}
-                columns={approvalCols}
-                disableRowSelectionOnClick
-                autoHeight
-              />
+              <DataState
+                loading={false}
+                isEmpty={d.approvals.length === 0}
+                columnCount={4}
+                empty={{
+                  title: "No approvals yet",
+                  description: "When the office sends drawings or packages for your sign-off, they will appear here to Approve or request revisions.",
+                }}
+              >
+                <DataGrid
+                  rows={d.approvals}
+                  columns={approvalCols}
+                  disableRowSelectionOnClick
+                  autoHeight
+                />
+              </DataState>
             </Section>
 
             <Section title="Issued drawings">
-              <DataGrid
-                rows={d.drawings}
-                columns={drawingCols}
-                disableRowSelectionOnClick
-                autoHeight
-              />
+              <DataState
+                loading={false}
+                isEmpty={d.drawings.length === 0}
+                columnCount={3}
+                empty={{
+                  title: "No issued drawings yet",
+                  description: "Issued drawing packages for this project will list here for acknowledgement.",
+                }}
+              >
+                <DataGrid
+                  rows={d.drawings}
+                  columns={drawingCols}
+                  disableRowSelectionOnClick
+                  autoHeight
+                />
+              </DataState>
             </Section>
 
             {d.transmittals.length > 0 && (

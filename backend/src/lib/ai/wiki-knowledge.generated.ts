@@ -3,8 +3,8 @@
  *
  * Originally auto-generated from frontend/src/content/wiki/*.md by
  * frontend/scripts/sync-wiki-knowledge.mjs — **that generator no longer exists**,
- * so this file is now maintained by hand. Keep it in step with the wiki content
- * and with PLANS-AND-TIERS.md; wrong answers here are shown to prospects.
+ * so this file is now maintained by hand. Keep it in step with MARKET-FIT.md,
+ * NAVIGATION.md, and PLANS-AND-TIERS.md; wrong answers here are shown to prospects.
  */
 
 export const WIKI_PRODUCT_KNOWLEDGE = `\
@@ -547,18 +547,21 @@ See **[Finance and billing](finance-and-billing)** for detail.
 
 ---
 
-## Library � knowledge your office reuses
+## Library — knowledge your office reuses
 
-**Route:** \`/knowledge-bank\` and \`/libraries/*\`
+**Routes:** \`/libraries/*\` (\`/knowledge-bank\` redirects to the specification catalogue)
 
 | Library | Purpose |
 |---------|---------|
-| **Item library** | Materials, labour, items, brands, specifications, recipes |
+| **Specification catalogue** | Versioned category / item / make / spec / finish rows |
+| **Standard items** | Item codes for measurement / plan markup (\`/libraries/items\`) |
+| **Rate books** | Firm rate sets that price a project's Estimation tab (\`fees:manage\`) |
 | **Compliance** | NBC, FAR, setbacks, fire, regulations |
 | **Master plans** | PDF/DWG reference uploads |
 | **Standards** | Discipline standards with attached files |
+| **Knowledge Bank portal** | EOMS textbook intake (\`/libraries/knowledge-bank-portal\`) |
 
-Use the library when writing specs, estimates, and compliance checks � one catalogue for the whole firm.
+Use the library when writing specs, estimates, and compliance checks — one catalogue for the whole firm.
 
 ---
 
@@ -566,22 +569,29 @@ Use the library when writing specs, estimates, and compliance checks � one cat
 
 ### Ask ESTI
 
-- Available from the header AI entry � asks over **your project and office record**.
+- Available from the header AI entry — asks over **your project and office record**.
 - Explains risk across fees, revisions, and site progress.
-- Configure **BYO API key** in Company ? AI for your own OpenAI-compatible endpoint.
+- Configure **BYO API key** in Company account → AI for your own OpenAI-compatible endpoint.
 
 ### AI Studio
 
-- Plan-gated module for heavier AI workflows (rank and firm settings apply).
+- Available to senior+ staff (rank ≥ 60); not licence-edition gated.
 - Uses the same BYO-or-hosted model policy.
 
 **Metering:** Hosted AI is billed per usage. With a valid BYO key, hosted inference is not metered for that firm.
 
 ---
 
-## Project measurement (roadmap)
+## Estimation and takeoff (shipped)
 
-The in-browser **Estimation OS** (BOQ, rate books, parametric takeoff) was retired in 2026-06 and is being rebuilt. Today, open a project and use the **Measurement** tab for quantity records tied to the project file. Watch the wiki and release notes for the next cost-management wave.
+The old Estimation OS / Construction Cost spine (tenders, RA bills, BBS) was removed.
+**Today:**
+
+- **Library → Rate Books** — firm item code / unit / rate sets (\`fees:manage\`)
+- **Project → Estimation** — priced BOQ against a rate book + measurement book + contingency/GST
+- **Project → Measurement / plan markup** — calibrate and measure on drawings; send quantities to an estimate item
+
+AORMS does **not** run contractor tenders, running bills, or BBS.
 
 ---
 
@@ -589,11 +599,11 @@ The in-browser **Estimation OS** (BOQ, rate books, parametric takeoff) was retir
 
 | Task | Where |
 |------|--------|
-| Firm profile, logo, GST | **Company** (\`/company\`) |
-| Users and roles | **Admin ? Users** (firm admin) |
-| Storage usage | **Company ? settings** |
-| Audit trail | **Admin ? Audit log** |
-| Preferences, password | **Profile ? Settings** |
+| Firm profile, logo, GST | **Company account** (\`/company-account\`) |
+| Users and roles | **Company account → Users** (firm admin) |
+| Storage / licence | **Company account** |
+| Audit trail | **Company account → Audit** |
+| Preferences, password | **Account** (\`/account#settings\`) |
 
 Account-level licence and members: **[Company account](/company-account)** portal.
 

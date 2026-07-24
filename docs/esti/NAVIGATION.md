@@ -53,7 +53,7 @@ Four sections (capability-gated):
 | Group | Destinations |
 |---|---|
 | **Third Parties** | Consultants · Contractors · Vendors (Clients promoted to ribbon) |
-| **Library** | Spec catalogue · Standard items · Compliance · Master Plans · Standards · Knowledge Bank portal |
+| **Library** | Spec catalogue · Standard items · Rate Books · Compliance · Master Plans · Standards · Knowledge Bank portal |
 | **Admin** | Archived projects · System (system admin) |
 
 ### Taskbar footer (centre launchers)
@@ -66,7 +66,7 @@ Studio Intelligence (`/`) · Tasks (`/tasks`) · **Search** (`/search`, Ctrl/Cmd
 | Tasks | Footer launcher or `/tasks` |
 | Search | Footer Search or Ctrl/Cmd+K |
 | LXOS | Direct `/lxos` (Lessons live; other layers Coming soon) |
-| AI Studio | `/office/ai-studio` (plan + rank ≥ 60) |
+| AI Studio | `/office/ai-studio` (rank ≥ 60) |
 | Estimation workspace | **Removed from nav** — `/estimation*` redirects to `/projects`. Measurement lives under Project → Measurement |
 
 ---
@@ -88,7 +88,7 @@ Active Projects ✅ (`/projects`) → Project Details ✅ (`/projects/:id`).
 
 Legacy `?tab=` deep links (`info`, `pipeline`, `site-visits`, `approvals`, `invoices`, …) redirect to the new parent slug while preserving `approvalId` / `invoiceId` when present.
 
-**Cost Management / Estimation:** `/estimation` → `/projects`; `/estimation/:id` → `/projects/:id?tab=measurement`. CMS modules in `components/cms/` are not project tabs. Measurement is the live quantity surface.
+**Estimation / takeoff:** `/estimation` → `/projects`; `/estimation/:id` → `/projects/:id?tab=measurement`. Live surfaces are Project → **Estimation** (priced BOQ, `fees:manage`) and Project → **Measurement** / plan markup. The old CMS rebuild path is gone.
 
 ## 3. Tasks ✅
 Work hub (`/tasks`). Tabs (2026-07-11, Miller — max 7 for a full-permission user):
@@ -124,7 +124,7 @@ Route `/office/ai-studio` — plan-gated, rank ≥ 60. Not a ribbon item.
 | Clients | ✅ | `/clients` |
 | Consultants | ✅ | `/consultants` |
 | Contractors | ✅ | `/contractors` |
-| Vendors | 🚧 | `/vendors` |
+| Vendors | ✅ | `/vendors` (rank ≥ 60) |
 
 ## 8–9. Office + Finance (Office ribbon menu)
 One trigger, **two labelled ListSubheader groups** (2026-07-11, Hick/Miller — the

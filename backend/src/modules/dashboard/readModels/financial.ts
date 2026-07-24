@@ -47,15 +47,26 @@ export async function getFinancialHealth(db: DB) {
     collected_fy_paise: number; invoiced_total_paise: number;
   }];
 
+  const pipelinePaise = Number(pipeline?.total_paise ?? 0);
+  const activePipelinePaise = Number(pipeline?.active_paise ?? 0);
+  const invoicedTotalPaise = Number(inv?.invoiced_total_paise ?? 0);
+  // Fee recovery vs active commissions — market-fit M1 (no new schema).
+  const recoveryBasePaise = activePipelinePaise > 0 ? activePipelinePaise : pipelinePaise;
+  const feeRecoveryPct =
+    recoveryBasePaise > 0
+      ? Math.min(100, Math.round((invoicedTotalPaise / recoveryBasePaise) * 100))
+      : 0;
+
   return {
-    pipelinePaise: Number(pipeline?.total_paise ?? 0),
-    activePipelinePaise: Number(pipeline?.active_paise ?? 0),
+    pipelinePaise,
+    activePipelinePaise,
     proposalPipelinePaise: Number(pipeline?.proposal_paise ?? 0),
     readyToBillPaise: Number(readyToBill?.ready_paise ?? 0),
     outstandingPaise: Number(inv?.outstanding_paise ?? 0),
     overdue30dPaise: Number(inv?.overdue30_paise ?? 0),
     collectedFyPaise: Number(inv?.collected_fy_paise ?? 0),
-    invoicedTotalPaise: Number(inv?.invoiced_total_paise ?? 0),
+    invoicedTotalPaise,
+    feeRecoveryPct,
     fyStart,
   };
 }

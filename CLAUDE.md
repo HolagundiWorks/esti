@@ -64,7 +64,8 @@ Frozen host map: [`docs/esti/AORMS-SURFACE-URLS.md`](docs/esti/AORMS-SURFACE-URL
 **Operator:** **Human Centric Works (HCW)** — design studio behind `@hcw/ui-kit` and AORMS.
 - [`docs/marketing/LANDING-REDESIGN-CONTEXT.md`](docs/marketing/LANDING-REDESIGN-CONTEXT.md) — landing/marketing brief.
 - [`docs/hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md`](docs/hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md) — living design debt.
-- [`docs/esti/ROADMAP.md`](docs/esti/ROADMAP.md) — single delivery roadmap (autopilot complete).
+- [`docs/esti/ROADMAP.md`](docs/esti/ROADMAP.md) — single delivery roadmap (market-fit waves).
+- [`docs/esti/MARKET-FIT.md`](docs/esti/MARKET-FIT.md) — ICP, gaps closed, viability, GTM backlog.
 
 When editing wiki markdown under `frontend/src/content/wiki/`, rebuild the AI wiki
 index if Ask ESTI should see changes: regenerate `backend/src/lib/ai/wiki-knowledge.generated.ts`

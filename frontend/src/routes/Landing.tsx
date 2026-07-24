@@ -44,6 +44,7 @@ const SECTIONS: readonly SectionDockLink[] = [
   { href: "#ai", label: "Dual-AI" },
   { href: "#inside", label: "Inside" },
   { href: "#apps", label: "Apps" },
+  { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
 ];
 
@@ -96,6 +97,14 @@ const FAQ = [
   {
     q: "Which apps ship today?",
     a: `${AORMS_STUDIO.title} (architecture) and ${AORMS_CONSULTANCY.title} (engineering) are both live on the same spine — ${AORMS_STUDIO.appUrl.replace(/^https:\/\//, "")} and ${AORMS_CONSULTANCY.appUrl.replace(/^https:\/\//, "")}.`,
+  },
+  {
+    q: "How much does it cost?",
+    a: `One Standard licence — unlimited users, full workspace, 5 GB storage included. You pay only for extra storage and hosted AI usage (or bring your own API key). No Lite/Pro tiers, no desktop SKU. See Pricing below.`,
+  },
+  {
+    q: "Who should start with AORMS first?",
+    a: `Architecture studios of about 5–25 people in India who lose fee recovery to revisions and site chaos — COA proposals, GST invoices, drawings, and a client portal on one record. Engineering consultancies use ${AORMS_CONSULTANCY.title} on the same spine.`,
   },
 ] as const;
 
@@ -423,6 +432,68 @@ export function Landing() {
                 </Grid>
               ))}
             </Grid>
+          </Box>
+
+          {/* Pricing — one Standard licence (PLANS-AND-TIERS). */}
+          <Box id="pricing" component="section" sx={{ py: { xs: 6, md: 9 } }}>
+            <SectionHead
+              eyebrow="Pricing"
+              title="One Standard licence."
+              lead="No tiers. Unlimited users. Pay for storage overage and hosted AI — or bring your own key."
+            />
+            <Grid container spacing={3}>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <Surface layer="soft" sx={{ p: 3, height: "100%" }}>
+                  <Typography variant="overline" color="primary">Included</Typography>
+                  <Typography variant="h6" component="h3" sx={{ mt: 1, fontWeight: 700 }}>
+                    Full workspace
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+                    ACTIVE licence from signup — projects, fees, GST invoices, drawings,
+                    portals, Studio Intelligence, and {AORMS_CONSULTANCY.title} on the same spine.
+                    Unlimited staff logins.
+                  </Typography>
+                </Surface>
+              </Grid>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <Surface layer="soft" sx={{ p: 3, height: "100%" }}>
+                  <Typography variant="overline" color="primary">Storage</Typography>
+                  <Typography variant="h6" component="h3" sx={{ mt: 1, fontWeight: 700 }}>
+                    5 GB included
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+                    Drawings and firm files. Extra storage billed per GB-month when you grow —
+                    no surprise edition upgrades.
+                  </Typography>
+                </Surface>
+              </Grid>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <Surface layer="soft" sx={{ p: 3, height: "100%" }}>
+                  <Typography variant="overline" color="primary">AI</Typography>
+                  <Typography variant="h6" component="h3" sx={{ mt: 1, fontWeight: 700 }}>
+                    Hosted or BYO key
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+                    Hosted {ESTI.name} is metered. Bring an OpenAI-compatible API key and hosted
+                    inference is not billed for that firm.
+                  </Typography>
+                </Surface>
+              </Grid>
+            </Grid>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 4 }}>
+              <Button
+                component={RouterLink}
+                to="/account?mode=create"
+                variant="contained"
+                size="large"
+                endIcon={<ArrowForward />}
+              >
+                Create account
+              </Button>
+              <Button component={RouterLink} to="/login" variant="outlined" size="large">
+                Sign in
+              </Button>
+            </Stack>
           </Box>
 
           {/* CTA band — the live (glass) layer. */}

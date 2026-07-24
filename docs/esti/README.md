@@ -35,6 +35,7 @@ Repo agent entry: [`CLAUDE.md`](../../CLAUDE.md).
 | System state | [UNIFIED-ARCHITECTURE-V4](UNIFIED-ARCHITECTURE-V4.md) |
 | Navigation IA | [NAVIGATION](NAVIGATION.md) |
 | Roadmap | [ROADMAP](ROADMAP.md) |
+| Market fit / GTM | [MARKET-FIT](MARKET-FIT.md) |
 | Licence | [PLANS-AND-TIERS](PLANS-AND-TIERS.md) |
 | Design system | [HCW-UI-KIT](HCW-UI-KIT.md) |
 | UX laws | [HCW-UI-UX-PRINCIPLES](HCW-UI-UX-PRINCIPLES.md) |
