@@ -26,7 +26,8 @@
 ## Shipped chrome (source of truth: `frontend/src/App.tsx`)
 
 ### Ribbon (top) — `nav` tree
-Four sections (capability-gated):
+
+**Studio host** (`studio.aorms.in`) — four sections (capability-gated):
 
 | Item | Kind | Destinations |
 |---|---|---|
@@ -34,6 +35,18 @@ Four sections (capability-gated):
 | **Clients** | link | `/clients` (write capability) |
 | **Teams** | menu | Teams · Performance · HR |
 | **Office** | menu (2 labelled groups — Hick/Miller) | **Office:** Leads · Proposals · Documents · Contracts · Letters · **Finance:** Invoices · Reconcile · Cashbook · Expenses · Payroll · Financial Reports |
+
+**Consultancy host** (`consultancy.aorms.in`) — engineering workspace chrome:
+
+| Item | Kind | Destinations |
+|---|---|---|
+| **Enquiries** | link | `/consultancy/enquiries` |
+| **Engagements** | link | `/consultancy/engagements` |
+| **Clients** | link | `/clients` (write) |
+| **Teams** | menu | same as Studio |
+| **Office** | menu | **Finance:** Invoices · Reconcile · Cashbook · Reports · **Studio link:** Projects · Proposals · Standards |
+
+Footer home launcher on consultancy host opens Enquiries (not Studio Intelligence).
 
 **Capability gates (ribbon pruning — source: `App.tsx`):**
 

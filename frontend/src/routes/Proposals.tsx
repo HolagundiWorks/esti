@@ -221,7 +221,12 @@ export function Proposals() {
           columnCount={6}
           empty={{
             title: "No proposals",
-            description: "Prepare a COA-benchmarked proposal for a project.",
+            description: "Prepare a COA fee or scope agreement for a project, then raise the first invoice.",
+            action: (
+              <Button component={Link} to="/projects" size="small" variant="outlined">
+                Open a project
+              </Button>
+            ),
           }}
         >
           <DataGrid

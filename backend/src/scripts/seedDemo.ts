@@ -64,6 +64,7 @@ import {
   sweepDanglingReferences,
   upsertDemoFirm,
 } from "./demoStudioSeed.js";
+import { clearDemoConsultancyRows, seedDemoConsultancy } from "./demoConsultancySeed.js";
 
 const DEMO_PASSWORD = process.env.SEED_DEMO_PASSWORD ?? "demo1234";
 
@@ -93,6 +94,7 @@ async function clearDemoWorkspace(principalId: string) {
   let repaired = { total: 0, tables: 0 };
   await db.execute(rawSql`SET session_replication_role = 'replica'`);
   try {
+    await clearDemoConsultancyRows(db);
     await clearStudioDemoRows(db, principalId);
     await db.delete(projectOffices).where(eq(projectOffices.createdById, principalId));
     await db.delete(contractors).where(eq(contractors.createdById, principalId));
@@ -139,6 +141,7 @@ async function backfillStudioDemo(principalId: string, pwHash: string): Promise<
   await patchDemoApprovalSignals(db, projectIds, principalId);
   await rebalanceDemoTaskAssignees(db);
   if (projectIds[0]) await seedDemoTakeoff(db, projectIds[0]);
+  await seedDemoConsultancy(db, principalId);
 }
 
 /**
@@ -586,12 +589,14 @@ async function main() {
   await seedStudioGlanceAndLeads(db, principal.id, allProjectIds, memberIds);
   await rebalanceDemoTaskAssignees(db);
   if (allProjectIds[0]) await seedDemoTakeoff(db, allProjectIds[0]);
+  await seedDemoConsultancy(db, principal.id);
 
   console.log("✓ seeded demo workspace (Studio Intelligence tuned)");
   console.log(`    principal: ${principalEmail} / ${DEMO_PASSWORD}`);
   console.log(`    team logins: lead@ · site@ · junior@ · accounts@demo.aorms.in (same password)`);
   console.log(`    client portal: client@demo.aorms.in / ${DEMO_PASSWORD} (sign in at /access)`);
   console.log(`    ${projectDefs.length} projects · ${clientRows.length} clients · ${DEMO_LEADS.length} leads`);
+  console.log(`    consultancy: EQ-DEMO-001 → C-DEMO-001 (BILLABLE fee stage)`);
 }
 
 main()
