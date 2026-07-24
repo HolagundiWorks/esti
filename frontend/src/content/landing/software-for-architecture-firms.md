@@ -4,7 +4,7 @@ metaTitle: Software for Architecture Firms: Buyer's Guide
 metaDescription: A practical buyer's guide to software for architecture firms � the must-have checklist and why purpose-built beats generic tools plus spreadsheets in India.
 keyword: software for architecture firms
 category: solution
-updated: 2026-06-24
+updated: 2026-07-22
 intro: A clear-eyed checklist for choosing software for your firm � what actually matters, and why a purpose-built system beats a stack of generic tools and spreadsheets.
 ---
 
@@ -14,7 +14,7 @@ Most firms do not choose software so much as accumulate it. A drawing folder her
 
 A project management app, an accounting tool and a shared drive can each do their narrow job. The problem is the seams between them. No tool knows that this invoice belongs to that phase, that this revision was client-driven, or that this designer is already on three jobs. So those facts live in people's heads, and the firm pays for it in missed billing, untracked scope creep and capacity surprises.
 
-Generic tools also assume a generic business. Architecture in India is not generic: it runs on the COA Scale of Charges, GST with SAC codes, TDS under section 194J, the April�March financial year, tenders, site records and authority-driven approvals. A tool that does not know any of this leaves you doing the hard parts by hand.
+Generic tools also assume a generic business. Architecture in India is not generic: it runs on the COA Scale of Charges, GST with SAC codes, TDS under section 194J, the April�March financial year, site records and authority-driven approvals. A tool that does not know any of this leaves you doing the hard parts by hand.
 
 ## The must-have checklist
 
@@ -34,7 +34,7 @@ This is where generic foreign tools fail hardest. Insist on COA-aligned fee prop
 
 ### 4. Statutory and site records
 
-A firm carries real risk when statutory assumptions, permit notes, site instructions and approval evidence live outside the project record. A good system keeps those records beside drawings, client decisions, tenders and bills so the office can defend what it issued and why.
+A firm carries real risk when statutory assumptions, permit notes, site instructions and approval evidence live outside the project record. A good system keeps those records beside drawings, client decisions, transmittals and bills so the office can defend what it issued and why.
 
 ### 5. People and capacity
 
@@ -50,7 +50,7 @@ An immutable audit log, an activity timeline, threaded comments and critical not
 
 ### 8. Data ownership
 
-For a firm, client drawings and fee data are sensitive. Self-hosting on your own server with role-based access keeps that data inside the firm. It is worth weighing heavily against any tool that insists your data live on its cloud.
+For a firm, client drawings and fee data are sensitive. AORMS is a **web-only browser workspace** (no desktop apps) at aorms.in / studio.aorms.in, with role-based access. Firms that need on-prem ops can self-host the same web stack on a VPS — there is no offline desktop install.
 
 ## Why purpose-built wins
 
@@ -83,7 +83,7 @@ AORMS produces COA-aligned fee proposals and GST-correct invoices with the right
 
 ### Can I keep my firm's data private?
 
-Yes. AORMS is cloud workspace at aorms.in with role-based access, so client drawings and fee data stay inside the firm. This is worth weighing carefully against tools that require your data to live on their cloud.
+Yes. AORMS is a **web-only** cloud workspace at aorms.in / studio.aorms.in — no desktop apps. Role-based access keeps drawings and fee data inside the firm; optional VPS self-host is available for ops teams that need it.
 
 ### How do I evaluate it against my current tools?
 

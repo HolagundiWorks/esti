@@ -1,11 +1,11 @@
 ---
 title: Architecture Office Management Software
-metaTitle: Architecture Office Management Software — Fee Recovery, Revision Control & Project Record
-metaDescription: Architecture office management software for Indian practices — projects, drawings, revisions, COA fee recovery, GST billing, client revision approval chain and client portals in one connected record.
+metaTitle: Architecture Office Management Software â€” Fee Recovery, Revision Control & Project Record
+metaDescription: Architecture office management software for Indian practices â€” projects, drawings, revisions, COA fee recovery, GST billing, client revision approval chain and client portals in one connected record.
 keyword: architecture office management software
 category: solution
-updated: 2026-07-10
-intro: One system for the whole architecture office — fee recovery signals, the MoM-to-approval revision sequence, projects, drawings, billing, approvals and client portals — built for how Indian practices actually work.
+updated: 2026-07-22
+intro: One system for the whole architecture office â€” fee recovery signals, the MoM-to-approval revision sequence, projects, drawings, billing, approvals and client portals â€” built for how Indian practices actually work.
 ---
 
 Most architecture offices do not run on one system. They run on a folder of
@@ -15,7 +15,7 @@ office management software** replaces that scatter with a single record of the
 office: every project, drawing, revision, fee, invoice, approval and client
 portal interaction in one place, connected.
 
-**AORMS-Studio** — **AORMS-Studio** on the **AORMS** platform — is that record,
+**AORMS-Studio** â€” **AORMS-Studio** on the **AORMS** platform â€” is that record,
 built specifically for Indian architecture practices rather than adapted from a
 generic project tool.
 
@@ -29,16 +29,16 @@ but the real objects an office produces and depends on:
 - **Drawings** with revision history, current versions, approval state, and a
   transmittal record of every issue.
 - **Fee proposals** built on the COA Scale of Charges, with billing tied to
-  delivery milestones and fee recovery signals — what is ready to invoice, what is
+  delivery milestones and fee recovery signals â€” what is ready to invoice, what is
   due next, what is incoming, what is overdue.
-- **GST-correct invoices** — the right CGST/SGST or IGST split, TDS under section
+- **GST-correct invoices** â€” the right CGST/SGST or IGST split, TDS under section
   194J, the professional-services SAC code, and gap-free FY-sequential numbering.
-- **Client revision approval chain** — minutes issued to the portal, ESTI drafts
+- **Client revision approval chain** â€” minutes issued to the portal, ESTI drafts
   revision requests, client submits, architect marks criticality and implications,
   client approves before site or drawing work proceeds.
-- **Authority and permit records** — statutory notes and project evidence kept
+- **Authority and permit records** â€” statutory notes and project evidence kept
   beside drawings, approvals and site movement.
-- **People** — assignments, workload, attendance, leave and payroll, with
+- **People** â€” assignments, workload, attendance, leave and payroll, with
   performance understood, not guessed.
 - **Clients and consultants** on scoped, read-only portals that show only what you
   choose to share.
@@ -51,7 +51,7 @@ real work lives inside the system instead of around it.
 Generic task boards and generic trackers were built for generic task tracking. They have
 no idea what a drawing revision is, what a COA fee curve looks like, what a GST
 split requires, or how the MoM-to-approval revision sequence should work. So a
-practice either flattens its real work into cards — losing all the meaning — or
+practice either flattens its real work into cards â€” losing all the meaning â€” or
 keeps the real work elsewhere and lets the tool go stale. Both paths end in
 abandonment, and the firm wrongly concludes "software doesn't work for us."
 
@@ -64,8 +64,8 @@ needs a system shaped like an architecture office.
 
 Every project carries its phases, its drawing register, and the people assigned to
 it. Each drawing holds its revisions, its current version, and a transmittal log.
-Every revision records *why* it happened — client-driven, internal error, technical
-query or scope change — and whether it was minor, major or critical. And critically,
+Every revision records *why* it happened â€” client-driven, internal error, technical
+query or scope change â€” and whether it was minor, major or critical. And critically,
 every client-driven change goes through the full sequence: minutes issued ? ESTI
 extracts ? client submits ? architect marks criticality ? client approves ? change
 proceeds. The cost of change becomes visible instead of invisible.
@@ -74,9 +74,9 @@ proceeds. The cost of change becomes visible instead of invisible.
 
 Fee proposals follow COA logic; invoices are GST-correct by construction. The
 office can see what is ready to invoice, what stage is due next, what is incoming
-and what is overdue — so fee recovery is a weekly discipline rather than a
+and what is overdue â€” so fee recovery is a weekly discipline rather than a
 month-end rescue. Bank, 26AS, AIS and GSTR imports reconcile against what you
-raised, and GSTR-1, GSTR-3B and TDS filing abstracts are built in — so the
+raised, and GSTR-1, GSTR-3B and TDS filing abstracts are built in â€” so the
 financial heart of the practice is connected to the work, not stranded in a
 spreadsheet.
 
@@ -91,15 +91,15 @@ instructions and progress reports keep delivery on the same record as design.
 Team assignments and workload show who is carrying what. Attendance, leave and
 payroll live in the same system. The ASPRF model turns delivery into a fair,
 multi-dimensional performance picture. Clients and consultants each get a scoped
-portal — they see only what you share, and approvals happen on the record rather
+portal â€” they see only what you share, and approvals happen on the record rather
 than in a chat thread.
 
 ## Built for India, cloud-hosted by default
 
 AORMS speaks the language of an Indian practice out of the box: GST and SAC codes,
-the April–March financial year, TDS, COA service stages and the Scale of Charges,
-and site/authority context for Indian projects. It is cloud-hosted — your
-drawings, invoices and client data stay on your own infrastructure — with
+the Aprilâ€“March financial year, TDS, COA service stages and the Scale of Charges,
+and site/authority context for Indian projects. It is cloud-hosted â€” your
+drawings, invoices and client data stay on your own infrastructure â€” with
 role-based access and separate client and consultant portals controlling exactly
 what outsiders see.
 
@@ -108,8 +108,8 @@ what outsiders see.
 ### What is architecture office management software?
 
 Architecture office management software is a system that connects everything an
-architecture practice runs on — projects, drawings, revisions, COA fees, GST
-billing, the MoM-to-approval revision chain, and client portals — into one office
+architecture practice runs on â€” projects, drawings, revisions, COA fees, GST
+billing, the MoM-to-approval revision chain, and client portals â€” into one office
 record. AORMS is built for this specifically, rather than adapted from a generic
 project tool.
 
@@ -130,9 +130,9 @@ fifty-person firm.
 
 ### Is it built for Indian architecture firms?
 
-Yes. GST and SAC codes, the April–March financial year, TDS under 194J, the COA
+Yes. GST and SAC codes, the Aprilâ€“March financial year, TDS under 194J, the COA
 Scale of Charges, site work and authority records for Indian projects are built in
-— not bolted on.
+â€” not bolted on.
 
 ### Can the office data stay private?
 

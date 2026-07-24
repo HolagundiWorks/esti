@@ -4,7 +4,7 @@ metaTitle: Construction Client Management Software for Architects
 metaDescription: Keep clients informed and accountable through construction � drawings, transmittals, RFIs, approvals, running bills and progress in one scoped client portal. AORMS manages the client relationship through the build, not just design.
 keyword: construction client management
 category: solution
-updated: 2026-06-24
+updated: 2026-07-22
 intro: The client relationship does not end at GFC � it gets harder during construction. AORMS keeps the client informed, the approvals on record, and the site coordination connected through the entire build.
 ---
 
@@ -20,7 +20,7 @@ During construction the client should see progress without being able to wander 
 
 ## Approvals and RFIs that don't stall the site
 
-Construction stalls when a decision sits in someone's inbox. AORMS keeps approvals on record � what was sent, the drawing revision, the date and the client's response � so a delayed sign-off is visible, not invisible. Contractors get their own scoped portal for tenders, documents and site coordination (RFIs, submittals, snags, NCRs), so queries route to the firm and answers route back with a trail. You are coordinating client and contractor from one place.
+Construction stalls when a decision sits in someone's inbox. AORMS keeps approvals on record � what was sent, the drawing revision, the date and the client's response � so a delayed sign-off is visible, not invisible. Contractors get their own scoped portal for documents and site coordination (RFIs, submittals, snags, NCRs), so queries route to the firm and answers route back with a trail. You are coordinating client and contractor from one place.
 
 ## Running bills and site instructions, with the client in the loop
 

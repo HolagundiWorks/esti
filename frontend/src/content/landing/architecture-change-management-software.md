@@ -4,7 +4,7 @@ metaTitle: Architecture Change Management Software � Contract Events, Not Favo
 metaDescription: Architecture change management software that treats scope change as a contract event � MoM to ESTI extract to client request to architect assessment to client approval to site � so every change is categorised, agreed and billable.
 keyword: architecture change management software
 category: moat
-updated: 2026-07-10
+updated: 2026-07-22
 intro: Every change is a contract event � separated by source and category, assessed by the architect, approved by the client before site work proceeds, and traceable back to the meeting where it was agreed.
 ---
 

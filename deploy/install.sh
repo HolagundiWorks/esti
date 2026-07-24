@@ -76,7 +76,7 @@ fi
 # accounts in-process (Phase 34). Explicit ESTI_UNIFIED_ACCOUNTS wins.
 [[ -z "${ESTI_UNIFIED_ACCOUNTS:-}" && "$PLATFORM_ENABLED" == "true" ]] && ESTI_UNIFIED_ACCOUNTS="true"
 export PROFILE PUBLIC_SITE SEED_DEMO FIRM_PLAN PLATFORM_ADMIN_EMAILS PLATFORM_ENABLED ESTI_UNIFIED_ACCOUNTS
-# The licensing console is its own deployment (separate repo) at admin.DOMAIN:
+# HCW License Manager console (in-tree admin.html) commonly on admin.DOMAIN:
 # default the console origin whenever the platform runs on this box, so
 # /platform-admin hands off there and the console's origin may call the
 # /platform API. Explicit VITE_ADMIN_URL wins; VITE_ADMIN_URL="" (set-empty)

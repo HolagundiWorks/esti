@@ -4,7 +4,7 @@
 **platform** — operational consolidation for **AEC consulting firms** with dual-tier AI.
 The **shipped app** in this monorepo is **AORMS-Studio** (slug `aorms-studio`, legacy
 slugs `hived` and `aorms-architecture`, Indian architecture practices). **AORMS-Consultancy**
-(slug `aorms-consultancy`) is the engineering consultancy app on the roadmap. Nomenclature:
+(slug `aorms-consultancy`) is the engineering consultancy app — **code-complete** in this monorepo; public launch gated on P9.M. Nomenclature:
 [`docs/esti/AORMS-PLATFORM-NOMENCLATURE.md`](docs/esti/AORMS-PLATFORM-NOMENCLATURE.md).
 
 **ESTI** (Embedded Studio Intelligence) is the **internal AI agent** in
@@ -29,12 +29,12 @@ not hard-code product strings in UI/SEO.
 | --- | --- |
 | **AORMS** | Platform — *Accelerated Operational Resources Management System*; **AEC consulting firms only** (architecture + engineering); **not** solution delivery or construction PM |
 | **AORMS-Studio** | Shipped **architecture** app from this repo — Indian architecture consultancies; SPA at **`studio.aorms.in`** |
-| **AORMS-Consultancy** | **Engineering** consultancy app (roadmap) — structural, MEP, civil, multidisciplinary firms |
+| **AORMS-Consultancy** | **Engineering** consultancy app — code-complete; structural, MEP, civil, multidisciplinary firms; launch gated on P9.M |
 | **EOMS** | **Knowledge bank** (standalone API) — standard codebooks & compliance codes; apps query it |
 | **ESTI** | **Internal AI agent** in **AORMS-Studio** — Ask ESTI, Studio Intelligence, ESTI Pulse |
 | **`AORMS_PORTALS`** | Portal/surface UI labels — staff workspace, external portals, account hub |
 | **`aorms-studio`** | URL/wiki **slug** — legacy slugs `hived`, `aorms-architecture` redirect |
-| **`aorms-consultancy`** | Engineering app **slug** (roadmap) |
+| **`aorms-consultancy`** | Engineering app **slug** (code-complete; launch gated) |
 | **`esti`** | Repo codename — `@esti/*`, `esti_*` tables; never in marketing |
 
 **Retired terms (do not use in new copy):**
@@ -52,10 +52,11 @@ not hard-code product strings in UI/SEO.
 | `/wiki` | Four-pillar wiki: HCW-UI · AORMS-Studio · AI core · Management |
 | `/access` | Client, consultant, contractor, site portal sign-in |
 | `/account` · `/company-account` | AORMS account & licensing hub |
+| **admin.aorms.in** · `/platform-admin` | **HCW License Manager** console (in-tree — `backend/src/licensing-platform/`, `frontend/src/platform-admin/`) |
 | `/libraries/knowledge-bank-portal` | Knowledge Bank portal (EOMS textbook library) |
 | **studio.aorms.in** · `/login` | **AORMS-Studio** workspace (architecture) |
-| **consultancy.aorms.in** · `/aorms-consultancy` | **AORMS-Consultancy** engineering marketing (roadmap) |
-| **admin.aorms.in** | Licensing console (operators only) |
+| **consultancy.aorms.in** · `/aorms-consultancy` | **AORMS-Consultancy** engineering marketing + product entry (launch gated) |
+| `/blog` | Platform blog (practice + product notes) |
 
 Frozen host map: [`docs/esti/AORMS-SURFACE-URLS.md`](docs/esti/AORMS-SURFACE-URLS.md) ·
 `frontend/src/lib/aorms-surface-urls.ts`.
@@ -418,10 +419,14 @@ computed KPIs, Action Center, health modules (`dashboard.home` bundles the offic
 
 **Project brief, expenses, and system (Phases 17–20):**
 - `projectBrief` — Project Info questionnaire sections
+- `projectPrecon` — Studio pre-construction R&O: risks, opportunities, phase gates (Brief → R&O)
 - `accounts` / `expenses` — office cash book and project costing expenses
 - `system` — release metadata (owner-only)
 - `marketing` — landing visit counter
 - `specCatalog` — specification material catalogue (Knowledge Bank)
+- `consultancy` — AORMS-Consultancy engineering OS (engagements, deliverables, RACI, HLP, timesheets, WIP, contract review, lessons, NC/CAPA, MoM, opportunities, phase gates)
+- `office` — includes enquiry register + go/no-go (`office.enquiries`)
+- `admin.usageReports` — HLP usage billing export + suspend-for-non-payment (P7.2 / P7.3)
 
 ## Frontend routes (`frontend/src/routes/`)
 

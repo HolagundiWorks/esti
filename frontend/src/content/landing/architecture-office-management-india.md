@@ -4,7 +4,7 @@ metaTitle: Architecture Office Management India � Fee Recovery, Revision Contr
 metaDescription: Architecture office management India � GST, COA fee recovery, client revision tracking with MoM-to-approval sequence, projects, teams and client portals in one cloud-hosted system built for Indian practices.
 keyword: architecture office management india
 category: india
-updated: 2026-07-10
+updated: 2026-07-22
 intro: One system for the whole Indian office � GST billing, COA fee recovery, client revision tracking from MoM to client approval, and the projects, teams and client portals that run on top.
 ---
 

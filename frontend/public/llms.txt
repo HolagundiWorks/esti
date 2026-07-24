@@ -6,7 +6,7 @@ AORMS is NOT solution delivery software and NOT construction project management.
 
 Two apps on one platform:
 - **AORMS-Studio** — architecture consultancy app for Indian architecture and design consultancies (shipping)
-- **AORMS-Consultancy** — engineering consultancy app for structural, MEP, civil, and multidisciplinary firms (roadmap)
+- **AORMS-Consultancy** — engineering consultancy app for structural, MEP, civil, and multidisciplinary firms (built; public launch forthcoming)
 
 Platform home: https://aorms.in/
 Architecture app (sign in): https://aorms.in/login
@@ -17,11 +17,12 @@ AORMS-Studio capabilities:
 - Client revision management — MoM → ESTI extracts → client request → architect marks criticality → client approves → then site
 - Meeting minutes on the project record with ESTI-drafted revision requests
 - Drawing register, transmittals and client approval workflows
+- Pre-construction R&O — project risks, opportunities, design phase gates (Brief → R&O)
 - COA fee proposals and GST invoicing with reconciliation
 - Studio Intelligence dashboard and Ask ESTI (BYO API key supported)
 - **EOMS** — Emergent Object Management System (knowledge bank of codes & compliance); **ESTI** — internal AI agent (answers from firm repositories)
 - Official user documentation at aorms.in/wiki
-- Cloud browser workspace at studio.aorms.in — one standard licence, unlimited users, 5 GB included storage
+- **Web-only** browser workspace at studio.aorms.in — one standard licence, unlimited users, 5 GB included storage; no desktop apps
 
 Website:
 https://aorms.in
@@ -29,5 +30,5 @@ https://aorms.in
 ## Public Pages
 - [AORMS platform home](https://aorms.in/)
 - [AORMS-Studio — sign in](https://aorms.in/login)
-- [AORMS-Consultancy — roadmap](https://aorms.in/aorms-consultancy)
+- [AORMS-Consultancy — engineering app](https://aorms.in/aorms-consultancy)
 - [AORMS Wiki — central documentation](https://aorms.in/wiki/)

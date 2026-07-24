@@ -15,11 +15,11 @@ export type MarketingPageLink = {
   icon: MarketingRailIcon;
 };
 
-// Marketing consolidation (2026-07): AORMS ships a single landing at `/`; the former
-// wiki / blog / about / legal / per-app marketing pages were removed. The marketing rail
-// (still used as the shell for the public auth pages) links back to the landing only.
+// Platform landing + blog are the live public marketing surfaces. Wiki / about /
+// legal / per-app marketing pages remain consolidated to `/`.
 export const MARKETING_RAIL_PAGES: readonly MarketingPageLink[] = [
   { href: "/", label: "Home", icon: "platform" },
+  { href: "/blog", label: "Blog", icon: "blog" },
 ] as const;
 
 export const MARKETING_WIKI_RAIL_PAGES: readonly MarketingPageLink[] = MARKETING_RAIL_PAGES;
@@ -29,6 +29,7 @@ export function railPageLinkIsActive(href: string, pathname: string, hash = ""):
   const path = url.pathname || "/";
   const linkHash = url.hash.replace(/^#/, "");
 
+  if (path === "/blog") return pathname === "/blog" || pathname.startsWith("/blog/");
   if (path === "/wiki") return pathname === "/wiki" || pathname.startsWith("/wiki/");
   if (path === "/" && linkHash) {
     if (pathname !== "/") return false;

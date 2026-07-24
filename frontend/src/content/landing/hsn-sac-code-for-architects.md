@@ -4,7 +4,7 @@ metaTitle: HSN / SAC Code for Architecture Services in India
 metaDescription: Architecture is a service, so invoices use a SAC code (9983 family) � not an HSN code. What the architectural-services SAC code is, where it goes on a GST invoice, and how AORMS adds it automatically.
 keyword: hsn code for architecture
 category: india
-updated: 2026-06-24
+updated: 2026-07-22
 intro: "HSN for architecture" is a common search with a short answer: architects bill services under a SAC code, not an HSN. Here is what to use, where it goes, and how AORMS handles it.
 ---
 

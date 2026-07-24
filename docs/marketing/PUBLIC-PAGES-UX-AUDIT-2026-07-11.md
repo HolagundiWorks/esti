@@ -147,7 +147,7 @@ Status: `open` · `done` · `accepted` · `deferred` · `wontfix`
 - **`/`** — Strong hero, SectionDock, FAQ `<details>`. Friction: UX5 trust strip, UX4 glass tiles.
 - **`/login`** — T5 auth split correct; studio marketing on stage with SEO. SectionDock without
   marketing rail. Tenant picker dense on small viewports.
-- **`/aorms-consultancy`** — Full story; roadmap badge clear. No conversion dock (UX8).
+- **`/aorms-consultancy`** — Full story; status badge should read Coming soon / launch-gated (not “roadmap”). No conversion dock (UX8).
 - **`/about`, `/legal`** — Solid prose; accessibility statement in legal §10. About library link (UX6).
 - **`/investors`** — Orphan page; broken deck (UX1); no dock (UX8).
 - **`/design-system`** — Living kit gallery; dock off acceptable for reference (UX17).

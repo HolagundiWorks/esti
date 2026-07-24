@@ -72,14 +72,15 @@ export const AORMS_APPS = {
     /** Unified landing section on `aorms.in`. */
     landingHref: "/#consultancy",
     wikiPath: "/wiki/aorms-consultancy",
-    status: "roadmap" as const,
+    /** Built in monorepo; public launch gated on P9.V / P9.M. */
+    status: "launch_gated" as const,
   },
 } as const;
 
 /** Shipped architecture app — this monorepo (Indian architecture consultancies). */
 export const AORMS_STUDIO = AORMS_APPS.studio;
 
-/** Engineering consultancy app — roadmap. */
+/** Engineering consultancy app — code-complete; launch gated. */
 export const AORMS_CONSULTANCY = AORMS_APPS.consultancy;
 
 /** Legacy single slug — prefer {@link AORMS_STUDIO.legacySlugs}. */
@@ -176,6 +177,26 @@ export const AORMS_PORTALS = {
     licensingHeadline: "Licensing console",
     licensingSubline: "Platform administration for Human Centric Works.",
   },
+} as const;
+
+/**
+ * HCW License Manager — in-tree licensing authority (formerly the separate
+ * `holagundi-license-panel` repo). Backend: `backend/src/licensing-platform/`
+ * (`/platform`); UI: `frontend/src/platform-admin/` + `admin.html`.
+ * Tables keep the `hlp_*` prefix. See docs/esti/HCW-LICENSE-MANAGER.md.
+ */
+export const HCW_LICENSE_MANAGER = {
+  name: "HCW License Manager",
+  shortName: "License Manager",
+  /** Operator-facing console label (same as AORMS_PORTALS.account.licensing). */
+  consoleTitle: AORMS_PORTALS.account.licensing,
+  apiPrefix: "/platform",
+  consolePath: "/platform-admin",
+  consoleHost: "admin.aorms.in",
+  /** Schema / session codename — do not rename tables or cookies. */
+  codename: "hlp",
+  summary:
+    "In-monorepo licence authority for AORMS — accounts, organisations, products, plans, keys, and the Product License API (/platform/v1).",
 } as const;
 
 /** External portal labels — lists, SEO, marketing tiles. */

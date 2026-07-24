@@ -19,12 +19,14 @@ export type AdminSectionKey =
   | "accounts"
   | "orgs"
   | "products"
-  | "apikeys";
+  | "apikeys"
+  | "usage";
 
 const SECTIONS: { key: AdminSectionKey; label: string }[] = [
   { key: "dashboard", label: "Dashboard" },
   { key: "requests", label: "Requests" },
   { key: "licenses", label: "Licences" },
+  { key: "usage", label: "Usage billing" },
   { key: "accounts", label: "Accounts" },
   { key: "orgs", label: "Organizations" },
   { key: "products", label: "Products & plans" },

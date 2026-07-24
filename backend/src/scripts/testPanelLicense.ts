@@ -2,17 +2,17 @@ import { panelDerived, verifyPanelToken } from "../lib/panelLicense.js";
 import { activateViaPanel } from "../modules/license/consumer.js";
 
 /**
- * Manual end-to-end check of the central License Panel integration. Requires a
- * running panel and these env vars:
- *   ESTI_LICENSE_API_URL  e.g. http://127.0.0.1:4100
- *   ESTI_PRODUCT_API_KEY  an AORMS product API key (panel admin → API keys)
- *   TEST_LICENSE_KEY      an AORMS license key (panel admin → Licenses)
+ * Manual end-to-end check of the in-tree HCW License Manager integration.
+ * Requires a running manager (`/platform`) and these env vars:
+ *   ESTI_LICENSE_API_URL  e.g. http://127.0.0.1:4000/platform
+ *   ESTI_PRODUCT_API_KEY  an AORMS product API key (console → API keys)
+ *   TEST_LICENSE_KEY      an AORMS license key (console → Licenses)
  *
  * Run:  pnpm tsx src/scripts/testPanelLicense.ts
  */
 async function main(): Promise<void> {
   const key = process.env.TEST_LICENSE_KEY;
-  if (!key) throw new Error("set TEST_LICENSE_KEY to an AORMS license key from the panel");
+  if (!key) throw new Error("set TEST_LICENSE_KEY to an AORMS license key from the licensing console");
 
   const token = await activateViaPanel(key, "test-install-001");
   const v = verifyPanelToken(token);

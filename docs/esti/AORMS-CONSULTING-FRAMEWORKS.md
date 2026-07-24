@@ -264,7 +264,7 @@ the same system — because Indian practices lose money when those drift apart.
 ## 4. Engineering consultancy operational framework
 
 **App:** **AORMS-Consultancy** · **Audience:** Structural, MEP, civil, and multidisciplinary
-engineering consultancies · **Status:** Roadmap (shares platform spine)
+engineering consultancies · **Status:** Code-complete; launch gated (shares platform spine)
 
 > **Deep dive:** the **grounded, sourced case study** of how engineering consultancies
 > operate (org hierarchy, sign-off chain, workflow, billing, risk — with citations) is in
@@ -377,7 +377,7 @@ consultancies defend professional duty — not slide decks and email threads.
 | **Review idiom** | Partner / client approval | Peer → checker → principal ladder |
 | **Commercial spine** | COA stages, GST invoices (India) | Lump / % / capped hours on engagement |
 | **External gate** | Client briefs, consultant packs | Codes, standards, third-party models |
-| **Internal agent** | **ESTI** (live) | Internal agent profile (roadmap) |
+| **Internal agent** | **ESTI** (live) | Consultancy Ask / EOMS review / precedent (code-complete; distinct brand profile at launch) |
 | **Site role** | Architect supervision | Technical site support (scoped) |
 | **Out of scope** | Construction PM, tendering | Contractor execution, fabrication PM |
 

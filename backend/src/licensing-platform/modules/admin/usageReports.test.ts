@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   aggregateUsageReports,
+  csvEscape,
   usagePeriodStart,
+  usageReportsToCsv,
   type UsageReportRow,
 } from "./usageReports.js";
 
@@ -71,5 +73,33 @@ describe("aggregateUsageReports", () => {
       reportedOrgCount: 0,
       reports: [],
     });
+  });
+});
+
+describe("usageReportsToCsv (P7.2 manual India export)", () => {
+  it("escapes commas and quotes", () => {
+    expect(csvEscape('Acme, "Inc"')).toBe('"Acme, ""Inc"""');
+    expect(csvEscape(42)).toBe("42");
+  });
+
+  it("emits a header + billed columns", () => {
+    const csv = usageReportsToCsv([
+      {
+        periodStart: "2026-07-01",
+        orgName: "Alpha",
+        productCode: "AORMS",
+        storageUsedBytes: 100,
+        storageQuotaBytes: 1000,
+        storagePurchasedBytes: 0,
+        aiTokensThisMonth: 5,
+        reportedAt: "2026-07-21T10:00:00.000Z",
+        billedAt: null,
+        billedBy: null,
+        billingNote: null,
+      },
+    ]);
+    expect(csv.split("\n")[0]).toContain("billed_at");
+    expect(csv).toContain("Alpha");
+    expect(csv).toContain("AORMS");
   });
 });

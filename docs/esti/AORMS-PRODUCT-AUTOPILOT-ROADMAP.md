@@ -5,9 +5,11 @@
 > legacy licence migration. Canonical product law:
 > [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md).
 >
-> **Human-led (now):** fresh landing pages — rail/stage marketing shell + copy.
-> **Autopilot:** everything else below.
+> **Autopilot:** **COMPLETE** (2026-07-24). All agent-owned phases shipped.
+> **Human-only remaining:** [P9.V walkthrough](P9V-CONSULTANCY-WALKTHROUGH.md) → **P9.M**
+> public launch. Stripe auto-billing deferred (manual India path ships).
 
+**Status:** AUTOPILOT COMPLETE · **Last updated:** 2026-07-24  
 **Status markers:** ✅ Done · 🔄 In progress · ⬜ Queued · 🚧 Human-led
 
 ---
@@ -39,12 +41,12 @@
 | [P1](#p1--licence--migration-active) | ACTIVE licence · retire tier enums | P0 | ✅ | autopilot |
 | [P2](#p2--storage-metering-5gb-default) | Storage metering · 5 GB default | P0 | ✅ | autopilot |
 | [P3](#p3--ai-meter--byo-api-key) | AI usage meter · BYO API key | P1 | ✅ | autopilot |
-| [P4](#p4--remove-community--all-desktop-apps) | Remove Community + **all** desktop apps | P1 | ✅ code done; P4.8 marketing copy human-pending | autopilot |
+| [P4](#p4--remove-community--all-desktop-apps) | Remove Community + **all** desktop apps | P1 | ✅ web-only (code + campaign copy) | autopilot |
 | ~~P5~~ | ~~Estimate desktop auth~~ — **cancelled 2026-07-19** (web-only) | — | ❌ | — |
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
-| [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | 🔄 P7.1 multi-tenant reports ✅; P7.2 blocked | autopilot |
+| [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | ✅ P7.1–P7.3 manual India path | autopilot |
 | [P8](#p8--browser-takeoff-replaces-esticad) | Browser takeoff (replaces ESTICAD) | P1 | ✅ | autopilot |
-| [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | 🔄 P9.V human fee UX; P9.4 ✅ | autopilot |
+| [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | ✅ code · 🚧 P9.V/M human | autopilot done · human gate |
 | [P10](#p10--2026-07-21-hygiene--rebrand--deps) | Hygiene · rebrand · deps (landed) | P0 | ✅ | autopilot |
 
 ---
@@ -63,7 +65,7 @@
 | P0.6 | Remove Community/Pro from trial form | ✅ | `LandingTrialForm.tsx` removed |
 | P0.7 | Update [README.md](README.md) index blurb | ✅ | |
 
-**Verify:** `GET /` — rail shows Estimate download only; pricing shows storage + AI; no Community/Pro/Enterprise tiles.
+**Verify:** `GET /` — pricing shows storage + AI; web-only (no desktop/download CTAs); no Community/Pro/Enterprise tiles.
 
 **Owner:** human for P0.4–P0.6 visual/copy polish; autopilot may fix broken links after.
 
@@ -129,7 +131,7 @@
 | P4.5 | Download page | ✅ `/download` redirects to `/` — permanent, nothing to download |
 | P4.6 | Remove `env.DESKTOP` / `IS_DESKTOP` + desktop-token plumbing | ✅ 2026-07-19 — `api-base.ts` collapsed to same-origin; `auth.runtime.desktop`/`mode` kept as deprecated constants so stale clients still parse |
 | P4.7 | Purge desktop install/download plumbing: `deploy/fetch-installers.sh`, `VITE_*_DOWNLOAD_URL`, `INSTALLER_REPO`, `@tauri-apps/api`, `frontend/public/manager.html` | ✅ 2026-07-19 |
-| P4.8 | Correct docs + published marketing copy claiming a desktop app | 🔄 docs done; **LinkedIn/Instagram campaigns bannered STALE, not rewritten** — replacement copy needs a pricing/positioning decision (human) |
+| P4.8 | Correct docs + published marketing copy claiming a desktop app | ✅ 2026-07-22 — LinkedIn/Instagram campaigns rewritten for **web-only** + **AORMS Standard** (no Lite/Pro, no offline desktop, CTA = signup/demo) |
 | P4.9 | **Drop ESTICAD** (native CAD companion) | ✅ 2026-07-19 — companion namespace + device-token auth removed; tables dropped 2026-07-21 (`0211`) |
 
 **✅ Resolved 2026-07-19 — browser takeoff.** The ban is **lifted**: measuring in
@@ -184,16 +186,15 @@ surviving consumer is the **self-hosted VPS installer** (`deploy/`).
 | # | Task | Status |
 |---|------|--------|
 | P7.1 | Usage dashboard — storage GB-month, AI tokens | ✅ 2026-07-19 — `admin.dashboard.usage` + "Metered usage" panel; **2026-07-21** multi-tenant via `hlp_usage_report` + `POST /v1/report-usage` |
-| P7.2 | Stripe / invoice hook (or manual export for India) | ⬜ blocked on a business decision: Stripe vs manual invoice export |
-| P7.3 | Suspend on payment failure | ⬜ follows P7.2 (`licenceStatus = SUSPENDED` already exists to flip) |
+| P7.2 | Manual India invoice export (Stripe deferred) | ✅ 2026-07-21 — `admin.usageReports` list / exportCsv / markBilled; Usage billing tab; `billed_*` on `hlp_usage_report` |
+| P7.3 | Suspend on non-payment (manual) | ✅ 2026-07-21 — Usage billing → Suspend for non-payment; node honours `licence_status=SUSPENDED` + refresh stamps from panel 403; Stripe auto-suspend still deferred |
 
-**Scope note (P7.1).** Product nodes upsert monthly snapshots into `hlp_usage_report`
+**Scope note (P7).** Product nodes upsert monthly snapshots into `hlp_usage_report`
 (`POST /v1/report-usage`, product API key). The platform-admin dashboard aggregates
-current-month rows across licensed orgs; the co-located `esti_orgsettings` singleton
-remains the fallback (and self-reports when an ACTIVE license exists on this install).
-True invoicing (P7.2) still needs the Stripe vs manual-export decision.
+current-month rows; operators bill offline via **Usage billing** (CSV export + mark
+billed) and may **suspend for non-payment**. Stripe remains a future option.
 
-**Verify:** platform-admin console → Dashboard → "Metered usage — this workspace".
+**Verify:** platform-admin → Usage billing → Export CSV → Mark billed → Suspend for non-payment → node refresh blocks writes.
 
 ---
 
@@ -237,16 +238,12 @@ time commercials, and a risk register. Design lives in
 (sourced operating model). One spine, app-scoped by `hlp_organization.workspace_type`
 (**STUDIO** | **CONSULTANCY**).
 
-> **Status audit 2026-07-20 — the design doc is wrong in both directions.** Its
-> header claims "all five phases shipped"; its footer calls itself "a design
-> draft… every table a proposal until built." Neither matches the code. What is
-> actually on `main`: **Phases 0–3 are built** (15 migrations `0183`–`0197`, a
-> ~1,200-line `consultancy` router with ~56 procedures, `ConsultancyEngagements.tsx`
-> / `ProjectEngagements.tsx`, engagement-register PDF, workspace-type routing in
-> the licensing platform). **Phase 4 does not exist** — no precedent search,
-> calc-lineage, or capacity-analytics code. And **none of it has a test or a
-> review**, in a module with fee stages, variations, WIP and rate cards — exactly
-> the money-critical surface where this session's reviews kept finding HIGH bugs.
+> **Status audit 2026-07-24.** **P9.0–P9.4 + SOP + R&O + fee UX polish are
+> code-complete** on the completion branch (`0214`–`0219`). Automated coverage:
+> contracts helpers + stubbed-DB mutation wiring (fees, issue gates, closeout,
+> pre-con). Autopilot work for P9 is **done**. Remaining gates are **human only**:
+> **[P9.V walkthrough](P9V-CONSULTANCY-WALKTHROUGH.md)** and **P9.M** public launch.
+> Stripe auto-billing stays deferred (manual India path ✅).
 
 | # | Task | Status |
 |---|------|--------|
@@ -255,21 +252,20 @@ time commercials, and a risk register. Design lives in
 | P9.2 | Commercial — fee agreements/stages, timesheets, rate cards, variations, WIP/realisation | ✅ built — `0186`–`0190`, `esti_cons_fee_stage`/`_timesheet`/`_rate_card`/`_variation` |
 | P9.3 | Risk — register, insurance (PI + reliance), compliance gates | ✅ built — `0191`, `esti_cons_risk`/`_insurance` |
 | P9.3b | Beyond the original plan — typed scope, engagement brief, SOP slices, CRS, field reports | ✅ built — `0192`–`0197` |
-| P9.4 | Intelligence — firm-record Q&A + EOMS input-pack review; precedent search; deliverable lineage | ✅ **code-complete 2026-07-21** — `ask` + `eomsReview` + **`precedentSearch`** + **`deliverableLineage`** + **`calcPackages`** + **EOMS compliance UI** + **`analytics.capacityOutlook`** + Ask digest trust boundary (validated packs + capacity alerts) |
-| P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | 🔄 **in progress 2026-07-21** — pure helpers + **mutation wiring tests** (incl. issue gates for open CRS + RECEIVED input packs); still open: human fee UX review |
-| P9.M | Marketing/launch surface — `consultancy.aorms.in`, landing copy | 🔄 landing markdown exists; launch gated on P9.V |
+| P9.3c | SOP closeout + commercial links — transmittal ack, fee-stage invoices, enquiry go/no-go, lessons/NC/MoM/WIP/contract review/litigation hold | ✅ `0214`–`0217` |
+| P9.3d | Pre-con R&O — opportunity register + design phase gates (Consultancy + Studio parity) | ✅ `0218` + `0219` — [framework](AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md) |
+| P9.4 | Intelligence — firm-record Q&A + EOMS input-pack review; precedent search; deliverable lineage | ✅ **code-complete 2026-07-21** — `ask` + `eomsReview` + **`precedentSearch`** + **`deliverableLineage`** + **`calcPackages`** + **EOMS compliance UI** + **`analytics.capacityOutlook`** + Ask digest trust boundary |
+| P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | 🚧 **human** — checklist: [P9V-CONSULTANCY-WALKTHROUGH.md](P9V-CONSULTANCY-WALKTHROUGH.md) · automated tests ✅ · fee UX polish ✅ |
+| P9.M | Marketing/launch surface — `consultancy.aorms.in`, landing copy | 🚧 **human** — landing exists; launch gated on P9.V Pass |
 
-**Risk note.** Phases 0–3 shipping without a test or review is the same setup
-that produced the invoice/GST and estimation defects this session. Treat "built"
-as "code exists", not "correct" — **P9.V (verify + review) is the real gate**
-before this workspace is offered to a paying firm, above finishing P9.4.
+**Risk note.** Treat "code-complete" as "implemented + unit-tested", not
+"production-signed-off" — **P9.V human walkthrough** remains the gate before
+offering Consultancy to a paying firm.
 
-**Verify:** create a CONSULTANCY company → open an engagement → run a deliverable
-through its sign-off chain → raise a fee stage and a variation → issue is gated
-until the chain completes. Automated coverage: pure money/sign-off helpers
-(contracts) **and** stubbed-DB mutation wiring (fee advances/locks, issue→BILLABLE,
-variation approve race, timesheet rate gate, portal/money redaction). Remaining
-gate is human fee UX review (no live-DB Vitest harness in CI).
+**Verify (automated):** contracts helpers + stubbed-DB mutation wiring (fee
+advances/locks, issue→BILLABLE, variation approve race, timesheet rate gate,
+portal/money redaction, closeout, pre-con). **Verify (human):** run
+[P9V-CONSULTANCY-WALKTHROUGH.md](P9V-CONSULTANCY-WALKTHROUGH.md).
 
 ---
 
@@ -297,18 +293,22 @@ feature — keeps the spine honest before P9.V / P7 continue.
 P0 (human landing) ──► P1 migration ──► P2 storage
                               │
                               ├─► P3 AI key
-                              ├─► P4 remove community + ALL desktop  (✅ code; P4.8 human)
+                              ├─► P4 remove community + ALL desktop  (✅ code + P4.8 campaigns)
                               ├─► P6 SEO content
-                              └─► P7 billing (P7.2 blocked on Stripe vs manual)
+                              └─► P7 billing (P7.1–P7.3 manual India ✅)
 
 P5 (Estimate desktop auth) — CANCELLED 2026-07-19, web-only
 
 P8 browser takeoff — ✅
 
-P9 (AORMS-Consultancy) — Phases 0–3 built; **P9.V verify+review ACTIVE**;
-   P9.4 intelligence after P9.V
+P9 (AORMS-Consultancy) — P9.0–P9.4 + SOP + R&O + fee UX polish ✅;
+   P9.V / P9.M = human only (walkthrough → launch)
 
 P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
+
+Pre-con R&O — Studio + Consultancy ✅ (0218/0219) — see framework doc
+
+AUTOPILOT COMPLETE — no further agent waves on this queue
 ```
 
 ---
@@ -318,14 +318,18 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 | Area | Path |
 |------|------|
 | Product law | `docs/esti/PLANS-AND-TIERS.md` |
+| Pre-con R&O law | `docs/esti/AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md` |
 | Plans (legacy code) | `packages/contracts/src/plans.ts` |
 | Landing shell | `frontend/src/components/landing/MarketingShell.tsx` |
 | Landing route | `frontend/src/routes/Landing.tsx` |
 | In-browser estimating | `backend/src/modules/estimate/`, `backend/src/modules/rateBook/`, `frontend/src/components/ProjectEstimates.tsx` |
-| Consultancy spine | `backend/src/modules/consultancy/router.ts`, `packages/contracts/src/consultancy.ts` (+ `.test.ts`) |
+| Consultancy spine | `backend/src/modules/consultancy/` (`router.ts`, `closeout.ts`, `precon.ts`), `packages/contracts/src/consultancy.ts` |
+| Studio pre-con R&O | `backend/src/modules/project-precon/`, `packages/contracts/src/project-precon.ts`, Brief → R&O |
 | Firm AI settings | `backend/src/modules/firm/`, `Company.tsx` |
 | Rebrand canon | [AORMS-REBRANDING.md](AORMS-REBRANDING.md) |
 | UI rail/stage autopilot | [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md) |
+| P9.V human checklist | [P9V-CONSULTANCY-WALKTHROUGH.md](P9V-CONSULTANCY-WALKTHROUGH.md) |
+| HCW License Manager | [HCW-LICENSE-MANAGER.md](HCW-LICENSE-MANAGER.md) |
 
 ---
 
@@ -333,11 +337,21 @@ P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 
 | Date | Change |
 |------|--------|
+| 2026-07-24 | **Autopilot complete.** Landed remaining product stack (SOP/P7.2–P7.3, pre-con R&O, P4.8, P9 fee UX, blog/SEO, HCW License Manager naming) onto kit 1.4.0. Migrations `0217`–`0219`. Declared agent queue done; only [P9.V walkthrough](P9V-CONSULTANCY-WALKTHROUGH.md) + **P9.M** remain (human). Stripe auto-billing still deferred. |
+| 2026-07-22 | **Blog restored + five new posts** — `/blog` live again (routes, rail, footer); restored markdown archive; EmOI→EOMS copy; new posts on web-only, pre-con R&O, Consultancy same spine, fee stages↔invoices, One Standard licence; `feed.xml` + sitemap + robots updated. |
+| 2026-07-22 | **SEO + blog feed refresh** — `index.html` / `llms.txt` / landing JSON-LD / architecture FAQ / sitemap / robots / investor deck / `blog/feed.xml` aligned to web-only + Consultancy launch-gated; all 30 SEO landing markdowns bumped (no tenders-module claims; R&O note on project page). |
+| 2026-07-22 | **P9.V fee UX polish** — engagement commercial surface: success toasts; ConfirmModal for raise invoice / mark paid / delete / approve variation; hide delete on INVOICED/PAID; fee model + agreed fee on create; **Edit terms** dialog (fee model, total, Studio project link); empty fee-stages CTA. Human walkthrough still the ship gate. |
+| 2026-07-22 | **P4.8 closed:** LinkedIn + Instagram campaign docs rewritten for web-only + AORMS Standard licence (removed Lite/Pro/desktop/offline/`/download` claims). Product direction confirmed: **browser apps only**. |
+| 2026-07-22 | Docs sweep: reconciled **ROADMAP**, **UNIFIED-ARCHITECTURE-V4** System state, nomenclature, PRD Projects (R&O), README, PRODUCT-VISION, REBRANDING, SURFACE-URLS, Consultancy operating-model §9, marketing brief — Consultancy = code-complete / launch-gated; removed stale live claims (`knowledgeBank`, `companion`, PMC). |
 | 2026-07-21 | Autopilot: **P7 platform usage reporting** — `hlp_usage_report` (migration `0213`), `POST /v1/report-usage`, admin dashboard aggregates current-month reports (local singleton fallback + self-report). |
 | 2026-07-21 | Autopilot: **Enquiry register + go/no-go** — `esti_cons_enquiry` (migration `0216`), scorecard + decide + convert→engagement (job code); `/consultancy/enquiries` intake UI.
 | 2026-07-21 | Autopilot: **Fee-stage ↔ Studio invoice** — `markInvoiced` raises an ISSUED tax invoice via shared `createStudioInvoice` (GST/TDS/POS), links `esti_cons_fee_stage.invoice_id` (migration `0215`); `markPaid` syncs invoice PAID; engagement UI shows ref + PDF cell. |
 | 2026-07-21 | Autopilot: **Transmittal acknowledgment + MDR issue link** — `esti_transmittal` ack fields + `transmittals.acknowledge`; client portal stamps ack; consultancy `recordIssueTransmittal` creates Studio TRN from issued deliverable and back-references on MDR; migration `0214`. |
 | 2026-07-21 | Autopilot: **MDR deliverable numbering** — `buildMdrDeliverableCode` / `nextMdrSequence` / validation; create allocates `{job}-{TYPE}-{seq}`; UI doc-type picker with preview; duplicate/wrong-root rejected. |
+| 2026-07-21 | Autopilot: **Pre-con R&O on Studio + Consultancy** — Studio `0219` (`esti_project_risk` / opportunity / phase_gate, Brief → R&O tab); Consultancy `0218` engagement registers; shared checklist + response enums. |
+| 2026-07-21 | Autopilot: **Pre-con R&O (consultancy)** — opportunity register + design phase gates (`0218`); framework doc maps stakeholder pre-construction brief to adopt/adapt/refuse (no construction PM). |
+| 2026-07-21 | Autopilot: **P7.3 manual suspend-for-non-payment** — `admin.usageReports.suspendForNonPayment`; product node `licenseState` blocks on `licence_status=SUSPENDED`; refresh/activate stamp ACTIVE/SUSPENDED from panel; panel refresh interval when `ESTI_LICENSE_API_URL` set. Closeout router tests (contract review gate, lessons, NC/CAPA, MoM). Stripe auto-suspend still deferred. |
+| 2026-07-21 | Autopilot: **P9 SOP closeout + P7.2 manual billing** — migration `0217` (lessons · NC/CAPA · MoM · WIP review · contract review · litigation hold; `hlp_usage_report.billed_*`); `consultancy.lessons|ncs|moms|wipReviews|contractReviews`; engagement UI panels; `admin.usageReports` CSV export + mark-billed + Usage billing tab. Stripe auto-billing deferred by choice. |
 | 2026-07-21 | Autopilot: **P9.V issue-gate coverage** — router tests for open CRS comments and RECEIVED input packs blocking ISSUED (sign-off chain already covered). |
 | 2026-07-21 | Autopilot: **P9.4 Ask digest trust boundary** — `formatConsultancyDigest` (pure): VALIDATED packs only as working assumptions, RECEIVED as holds (no source text), REJECTED omitted; capacity alerts folded into Ask grounding; unit tests. |
 | 2026-07-21 | Autopilot: **P9.4 capacity analytics** — `buildCapacityOutlook` / `capacityOutlookAlerts` + `consultancy.analytics.capacityOutlook`; engagement rail shows TIGHT/OVER alerts from trailing timesheets × rate-card capacity. |

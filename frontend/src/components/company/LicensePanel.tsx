@@ -18,6 +18,7 @@ const STATUS_TAG: Record<LicenseStatus, "green" | "teal" | "red" | "gray"> = {
   GRACE: "teal",
   EXPIRED: "red",
   UNLICENSED: "gray",
+  SUSPENDED: "red",
 };
 
 const STATUS_LABEL: Record<LicenseStatus, string> = {
@@ -25,6 +26,7 @@ const STATUS_LABEL: Record<LicenseStatus, string> = {
   GRACE: "Grace period",
   EXPIRED: "Expired",
   UNLICENSED: "Not activated",
+  SUSPENDED: "Suspended",
 };
 
 const cap = (n: number | null) => (n === null ? "Unlimited" : String(n));
@@ -103,6 +105,13 @@ export function LicensePanel() {
             Writes are blocked until the licence is renewed. Activate a current key below.
           </Alert>
         )}
+        {status === "SUSPENDED" && (
+          <Alert severity="error">
+            <AlertTitle>Licence suspended</AlertTitle>
+            Billing hold — writes are blocked until the operator reinstates the licence.
+            Refresh after payment clears, or contact support.
+          </Alert>
+        )}
 
         <Stack spacing={1}>
           <TextField
@@ -138,8 +147,8 @@ export function LicensePanel() {
         </Stack>
 
         <Typography component="p" className="esti-label esti-label--helper">
-          Standard AORMS licence — billing and storage add-ons are handled by Holagundi
-          Consulting Works. Keys are issued when you subscribe or renew.
+          Standard AORMS licence — billing and storage add-ons are handled by Human
+          Centric Works. Keys are issued when you subscribe or renew.
         </Typography>
       </Stack>
     </Box>

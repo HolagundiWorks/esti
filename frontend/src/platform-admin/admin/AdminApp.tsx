@@ -6,6 +6,7 @@ import LicensesTab from "./LicensesTab";
 import OrgsTab from "./OrgsTab";
 import ProductsTab from "./ProductsTab";
 import RequestsTab from "./RequestsTab";
+import UsageReportsTab from "./UsageReportsTab";
 import {
   AdminConsoleShell,
   type AdminSectionKey,
@@ -28,6 +29,11 @@ const SECTION_COPY: Record<
   licenses: {
     title: "Licences",
     description: "Issue, extend, suspend, and revoke product licences.",
+  },
+  usage: {
+    title: "Usage billing",
+    description:
+      "Metered usage reports — export CSV for manual India invoices and mark periods billed.",
   },
   accounts: {
     title: "Accounts",
@@ -75,6 +81,7 @@ export default function AdminApp({
         {section === "dashboard" && <DashboardTab onGoTo={setSection} />}
         {section === "requests" && <RequestsTab />}
         {section === "licenses" && <LicensesTab />}
+        {section === "usage" && <UsageReportsTab />}
         {section === "accounts" && <AccountsTab />}
         {section === "orgs" && <OrgsTab />}
         {section === "products" && <ProductsTab />}

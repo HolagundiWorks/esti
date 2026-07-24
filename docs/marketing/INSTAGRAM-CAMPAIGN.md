@@ -5,20 +5,12 @@
 **Audience geography:** India (primary: Bengaluru, then metro + tier-2 practice hubs)
 **Prepared:** July 2026
 
-> ## ⛔ STALE — DO NOT PUBLISH (flagged 2026-07-19)
+> ## Product law (canonical — 2026-07-22)
 >
-> The "product truth" section below is **no longer true**:
->
-> - **"native Windows desktop app that runs offline"** (~line 19, and ~105) —
->   AORMS is **web-only**; all desktop apps were cancelled 2026-07-19.
-> - **"Lite free forever / Pro"** (~lines 35, 44) — tiers retired 2026-07-09;
->   one **AORMS Standard** licence, no free tier, no trial.
-> - **funnel destination "download"** (~line 313) — there is nothing to
->   download; `/download` redirects to the landing page.
->
-> Correcting this is a **pricing/positioning decision**, not a copy edit. Current
-> product law: [PLANS-AND-TIERS.md](../esti/PLANS-AND-TIERS.md). Treat everything
-> below as historical until rewritten.
+> - **Web-only.** No desktop apps, installers, or offline Manager. Workspace runs in the browser at `studio.aorms.in`.
+> - **One AORMS Standard licence** — no Lite/Pro/Enterprise, no free tier, no trial. Unlimited users; **5 GB** storage included; pay for storage overage + hosted AI (or BYO key).
+> - **CTA destination:** `aorms.in` / signup / demo — **never** `/download`.
+> - Law: [PLANS-AND-TIERS.md](../esti/PLANS-AND-TIERS.md).
 
 ---
 
@@ -30,10 +22,10 @@
   practices**. Not a generic ERP, not a construction PM tool.
 - Core promise: *"Run every project the same way — and stop losing fees to revisions
   you never agreed to."*
-- **AORMS-Lite** — free forever, up to 3 staff logins, unlimited clients/projects,
-  no credit card, native Windows desktop app that runs offline.
-- **AORMS-Pro** — GST invoicing, HR & payroll, revision intelligence, AI Studio,
-  unlimited seats, cloud-hosted or self-hosted.
+- **AORMS Standard** — one paid licence, full **AORMS-Studio** browser workspace:
+  GST invoicing, HR & payroll, revision intelligence, AI Studio, client/consultant
+  portals, unlimited seats. **5 GB** storage included; storage + hosted AI metered
+  (or bring your own API key). **No desktop app.**
 - **ESTI** (Embedded Studio Intelligence) — the AI layer that reads the workspace:
   Ask ESTI, the deterministic office-health score (ESTI Pulse), the cognition engine.
 - India-native financial logic: GST, TDS, 26AS / AIS / GSTR reconciliation, Indian FY.
@@ -47,7 +39,7 @@
    *"AORMS is early. Rather than invent testimonials, here is honestly what it
    replaces."* Instagram follows the same rule. Honest before/after framing only.
 2. No screenshots containing real client data — use the demo workspace.
-3. Price/plan claims must match the live pricing band (Lite free forever / Pro).
+3. Price/plan claims must match product law: one **AORMS Standard** licence, web-only, no free tier.
 4. Tone: a senior architect talking to another architect. Never "SaaS growth-bro."
    Dry wit is fine; hype is not.
 
@@ -56,7 +48,7 @@
 | Persona | Reality | What stops them sleeping | Hook that lands |
 |---|---|---|---|
 | **The Principal** (35–55, 5–25 staff firm) | Runs the office from memory + WhatsApp + Excel | Unpaid revisions, fee leakage, "only I know everything" | "Never absorb a free revision again" |
-| **The Freelancer / young practice** (25–35, 1–3 people) | Freelances *and* collaborates with other firms | Looking unprofessional to clients; chaos at zero budget | "Free forever, offline, no credit card" + one identity across every studio you work with |
+| **The Freelancer / young practice** (25–35, 1–3 people) | Freelances *and* collaborates with other firms | Looking unprofessional to clients; chaos without a shared record | "One browser workspace + one identity across every studio you work with" |
 | **The Studio Manager / senior architect** | Chases approvals, drawings, timesheets | Nothing is findable; every status question comes to them | "One numbered, dated register for everything issued" |
 
 ### 1.4 Positioning against the feed
@@ -117,7 +109,7 @@ awareness phase: educate and empathise first, sell second.
 - One reel = one pain = one feature. Never a feature tour.
 - Examples: raise a GST invoice in 60 seconds · the revision register ·
   client approves inside the portal (timestamped) · the drawing register ·
-  works offline on the desktop app · reconcile against 26AS.
+  plan takeoff in the browser · reconcile against 26AS.
 
 **P4 — ESTI** (accent: purple)
 - "Your office has a pulse. Can you read it?" — the deterministic pressure score.
@@ -187,12 +179,12 @@ every comment within 24h for the first 6 months; every reel gets captions
 files: `FINAL_rev6_ACTUAL-FINAL_v2.dwg` → voiceover: "No revision record. No
 approval trail. No extra fee. Sound familiar?"
 **Close:** "AORMS keeps a numbered, dated register of every revision — and whether
-you agreed to absorb it." → *Link in bio. Free for small practices.*
+you agreed to absorb it." → *Link in bio. Browser workspace — aorms.in.*
 **Caption:**
 > Architects don't lose money because they can't design. They lose it because the
 > office runs on memory. Every revision in AORMS carries a category and a source —
 > client-driven or internal — so 'one small change' is never invisible again.
-> AORMS-Lite is free forever for up to 3 staff. No credit card. Link in bio.
+> Full AORMS-Studio workspace in the browser — start at aorms.in. Link in bio.
 
 ### 4.2 Carousel — "The COA fee stages, actually explained" (P2, 8 slides)
 
@@ -205,14 +197,14 @@ you agreed to absorb it." → *Link in bio. Free for small practices.*
 7. Completion. Slide text: "Each stage = an invoiceable event. Are you invoicing
    by stage or by mood?"
 8. **CTA:** "AORMS tracks fee stages per project and tells you what's earned but
-   uninvoiced. Free Lite edition — link in bio."
+   uninvoiced. Browser workspace — link in bio."
 
 ### 4.3 Reel — "Raise a GST invoice in 60 seconds" (P3)
 
 Screen-capture from demo workspace: pick project → fee stage → SAC code and GST
 auto-applied → PDF out. Voiceover: "From 'we should bill them' to a GST-compliant
-PDF, before your chai gets cold." Caption notes Lite = simple non-GST invoicing,
-GST invoicing on Pro — say it straight, the honesty *is* the brand.
+PDF, before your chai gets cold." Caption: GST invoicing is in the standard
+workspace — say it straight, the honesty *is* the brand.
 
 ### 4.4 Static — "The 100-hour rule" (P5)
 
@@ -233,8 +225,8 @@ with (freelancers rejoice). This is the most screenshot-able brand asset we have
   a drawing folder nobody can find · approvals in someone's memory.
 - Slide 4–5 (AFTER): one project record · a numbered drawing register ·
   client approvals timestamped in a portal · fees tied to stages.
-- Slide 6: "AORMS is early. That's exactly why the free Lite edition exists —
-  grow with us." → CTA.
+- Slide 6: "AORMS is early. We're building in public — join the browser
+  workspace at aorms.in." → CTA.
 
 ### 4.6 Reel — "Your office has a pulse" (P4)
 
@@ -319,13 +311,13 @@ Exception: allowed on P5 brand-mythology posts where aesthetic spillover is fine
 3. **The 100-hour flywheel:** when a user earns AORMS-U, offer (never require) a
    congratulation collab post. Earned IDs are shareable achievements — this is
    organic UGC that cannot be faked, perfectly aligned with the no-testimonial rule.
-4. **DM automation kept human:** auto-reply keyword "LITE" on launch posts → DM
-   with the aorms.in signup link. Everything else answered by a human.
+4. **DM automation kept human:** auto-reply keyword "SIGNUP" / "DEMO" on launch
+   posts → DM with the aorms.in signup or demo link. Everything else answered by a human.
 5. **Cross-surface:** every Practice School carousel becomes a blog post on
    aorms.in (SEO) and a LinkedIn document post (principals live there too).
 6. **Bio:** `India's OS for architecture practices · Projects, fees, GST, revisions
-   — one record · Lite: free forever ↓` + link to aorms.in (later a link-in-bio
-   page: signup / download / Practice School index).
+   — one browser record · Web-only ↓` + link to aorms.in (later a link-in-bio
+   page: signup / demo / Practice School index — never download).
 
 ---
 
@@ -335,7 +327,7 @@ Exception: allowed on P5 brand-mythology posts where aesthetic spillover is fine
 |---|---|---|
 | Weeks 1–4 | Profile visits → link clicks | ≥3 posts/wk shipped; reply rate 100% |
 | Months 2–3 | Saves on P2 carousels (save rate ≥5%) | Reel reach trend; follower quality (India %, role) |
-| Month 4+ | **Lite signups attributed to Instagram** (UTM `?utm_source=ig`) | 100-hour IDs earned by IG-attributed cohort |
+| Month 4+ | **Standard workspace signups attributed to Instagram** (UTM `?utm_source=ig`) | 100-hour IDs earned by IG-attributed cohort |
 
 Monthly review ritual: top 3 / bottom 3 posts by save-rate and by link clicks →
 double down / kill format. Hashtag set pruning (§5). Story poll answers → next

@@ -9,6 +9,7 @@ const STATUS_TAG: Record<LicenseStatus, "green" | "teal" | "red" | "gray"> = {
   GRACE: "teal",
   EXPIRED: "red",
   UNLICENSED: "gray",
+  SUSPENDED: "red",
 };
 
 const STATUS_LABEL: Record<LicenseStatus, string> = {
@@ -16,6 +17,7 @@ const STATUS_LABEL: Record<LicenseStatus, string> = {
   GRACE: "Grace period",
   EXPIRED: "Expired",
   UNLICENSED: "Not activated",
+  SUSPENDED: "Suspended",
 };
 
 /** Standard AORMS licence summary — one product, no upgrade funnel. */

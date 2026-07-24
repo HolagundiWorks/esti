@@ -4,7 +4,7 @@ metaTitle: Architecture Practice Operations Software � Consultancy Record Indi
 metaDescription: Architecture practice operations software that holds standards, knowledge, people and clients together as a consultancy grows. India-native advisory workspace � not generic project management.
 keyword: architecture practice management software
 category: solution
-updated: 2026-06-24
+updated: 2026-07-22
 intro: As a practice grows past the point where one partner can hold it in their head, you need a system that carries the standards, the knowledge and the institutional memory.
 ---
 
@@ -54,7 +54,7 @@ Financial discipline is part of practice maturity. Fees follow the COA Scale of 
 
 ## Built for the Indian practice, on your own server
 
-AORMS is India-native � GST, SAC, COA, the April�March financial year, tenders, site records and client approval habits � and cloud workspace at aorms.in with role-based access. For a practice that intends to last, owning its own system and its own data is part of being a serious institution.
+AORMS is India-native � GST, SAC, COA, the April�March financial year, site records and client approval habits � and cloud workspace at aorms.in with role-based access. For a practice that intends to last, owning its own system and its own data is part of being a serious institution.
 
 To see how AORMS would carry your practice's standards, [book a demo](/login).
 
@@ -78,4 +78,4 @@ Every project uses the same structure, so a new joiner learns one way of working
 
 ### Is it suitable for an Indian practice specifically?
 
-Yes. AORMS is built India-native with GST, SAC codes, the COA Scale of Charges, the April�March financial year, tenders, site work and contractor records. It is cloud workspace at aorms.in, so the practice owns its data and its standards rather than renting them.
+Yes. AORMS is built India-native with GST, SAC codes, the COA Scale of Charges, the April�March financial year, site supervision and contractor portal records. It is cloud workspace at aorms.in, so the practice owns its data and its standards rather than renting them.

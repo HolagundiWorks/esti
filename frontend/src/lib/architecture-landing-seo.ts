@@ -60,6 +60,11 @@ export const ARCHITECTURE_LANDING_FAQ = [
       "Yes. In Company → AI you can set an OpenAI-compatible endpoint and API key. ESTI also extracts revision items from minutes of meeting.",
   },
   {
+    question: "Does it cover pre-construction risk and opportunity?",
+    answer:
+      "Yes. On each project, Brief → R&O holds a risk register, opportunity scorecard, and design phase gates (concept through issue readiness). It is consultancy delivery — not construction project management.",
+  },
+  {
     question: "What is the relationship to AORMS platform?",
     answer:
       `AORMS (${AORMS_PLATFORM.expansion}) is the platform for AEC consulting firms — ${EOMS.name} (${EOMS.role.toLowerCase()}) and ${ESTI.name} (${ESTI.role.toLowerCase()} in ${AORMS_STUDIO.title}). ${AORMS_STUDIO.title} is the shipping architecture app for Indian architecture practices.`,

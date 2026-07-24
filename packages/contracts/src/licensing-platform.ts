@@ -1,8 +1,8 @@
-// Holagundi licensing platform — central account/org/product/license model,
-// merged into AORMS (2026-06-28). Issues Ed25519-signed entitlement tokens that
-// products verify offline. NOTE: the license-lifecycle enum is `LicenseLifecycle`
-// here (ACTIVE/TRIAL/…) to avoid clashing with the consumer-side `LicenseStatus`
-// (VALID/GRACE/…) in license.ts.
+// HCW License Manager — central account/org/product/license model, internalised
+// into AORMS (2026-06-28). Issues Ed25519-signed entitlement tokens that products
+// verify offline. NOTE: the license-lifecycle enum is `LicenseLifecycle` here
+// (ACTIVE/TRIAL/…) to avoid clashing with the consumer-side `LicenseStatus`
+// (VALID/GRACE/…) in license.ts. Docs: docs/esti/HCW-LICENSE-MANAGER.md.
 import { z } from "zod";
 
 /** A product is either an installable app or a metered API. */
@@ -216,14 +216,11 @@ export const ReportUsageInput = z.object({
 });
 export type ReportUsageInput = z.infer<typeof ReportUsageInput>;
 
-// --- Desktop component manifest (Manager ⇄ hub) ---
+// --- Component manifest (legacy desktop Manager ⇄ hub — retired 2026-07-19) ---
 //
-// The desktop Manager ships as a thin bootstrapper; the actual app is pulled
-// online as versioned "components". A signed manifest tells the Manager exactly
-// what to download for its edition and how to verify each artifact. It is signed
-// with the same Ed25519 key that signs licence tokens, so the Manager verifies
-// it offline against the embedded public key — downloaded code is never trusted
-// without a signature + per-artifact hash check.
+// Kept as schema for historical signed manifests / admin tooling. AORMS is
+// **web-only** — there is no desktop Manager bootstrapper. New product surfaces
+// must not depend on these types for install/update flows.
 
 /** Which dependency layer a component belongs to. LITE pulls only `core`. */
 export const ComponentKind = z.enum(["core", "ai", "worker"]);

@@ -55,14 +55,15 @@ See [`docs/esti/SELF-HOST-INSTALL.md`](../docs/esti/SELF-HOST-INSTALL.md).
 
 ## Desktop installers (retired 2026-07)
 
-Full AORMS Lite/Pro/Manager `/download` hosting was **retired**. The product is
-cloud-only at aorms.in; `/download` redirects to the wiki. The script
-`fetch-installers.sh` and workflow `desktop.yml` remain for legacy VPS layouts
-only.
+Full AORMS Lite/Pro/Manager `/download` hosting was **retired**. AORMS is
+**web-only** — browser workspace at aorms.in / studio.aorms.in; `/download`
+redirects to the wiki. `desktop/`, `desktop.yml`, and `fetch-installers.sh`
+were **removed** (2026-07-19); do not restore them.
 
-The separate **AORMS Estimate** app is **not in this monorepo**. The **ESE**
-subdomain service is also **retired** (no `ese/` package in repo). Estimation now
-ships as the project Estimation tab (see [docs/esti/NAVIGATION.md](../docs/esti/NAVIGATION.md) § Estimation).
+The separate **AORMS Estimate** desktop app was **cancelled**. Estimation ships
+as the in-browser project Estimation tab (see
+[docs/esti/NAVIGATION.md](../docs/esti/NAVIGATION.md) § Estimation). The **ESE**
+subdomain service is also **retired** (no `ese/` package in repo).
 
 ## Before a first install
 
@@ -125,8 +126,9 @@ profile the installer offers it as a `y/N` add-on (non-interactive:
 
 ### Licensing console on its own subdomain (`admin.DOMAIN`)
 
-The **licensing console UI** is its own deployment (separate repo), served at
-`admin.DOMAIN`. When the platform is enabled, the installer defaults
+The **HCW License Manager** console UI ships **in this monorepo**
+(`frontend/src/platform-admin/` → Vite entry `dist/admin.html`). It is commonly
+served at `admin.DOMAIN`. When the platform is enabled, the installer defaults
 `VITE_ADMIN_URL=https://admin.DOMAIN` into `.env`, which does two things:
 
 - `https://DOMAIN/platform-admin` redirects to the console origin, and
@@ -138,10 +140,10 @@ The **licensing console UI** is its own deployment (separate repo), served at
 Deploy the console with `sudo bash deploy/install-admin-console.sh` (after the
 main install + an `admin.DOMAIN` DNS record): it serves the build's
 `dist/admin.html` entry on its own vhost with a same-box `/platform/` proxy and
-provisions TLS. A separate console repo can claim the subdomain instead — this
-script is just the built-in path. Set `VITE_ADMIN_URL=""` (empty) in `.env`
-before installing/updating to keep the embedded console at `/platform-admin`
-(the default for installs without the platform).
+provisions TLS. Set `VITE_ADMIN_URL=""` (empty) in `.env` before
+installing/updating to keep the embedded console at `/platform-admin`
+(the default for installs without the platform). See
+[HCW-LICENSE-MANAGER.md](../docs/esti/HCW-LICENSE-MANAGER.md).
 
 Google sign-in needs an OAuth client — set in `.env` after install (no code change):
 
