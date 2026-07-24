@@ -6,7 +6,7 @@ AORMS is NOT solution delivery software and NOT construction project management.
 
 Two apps on one platform:
 - **AORMS-Studio** — architecture consultancy app for Indian architecture and design consultancies (shipping)
-- **AORMS-Consultancy** — engineering consultancy app for structural, MEP, civil, and multidisciplinary firms (built; public launch forthcoming)
+- **AORMS-Consultancy** — engineering consultancy app for structural, MEP, civil, and multidisciplinary firms (live at consultancy.aorms.in)
 
 Platform home: https://aorms.in/
 Architecture app (sign in): https://aorms.in/login
@@ -30,5 +30,5 @@ https://aorms.in
 ## Public Pages
 - [AORMS platform home](https://aorms.in/)
 - [AORMS-Studio — sign in](https://aorms.in/login)
-- [AORMS-Consultancy — engineering app](https://aorms.in/aorms-consultancy)
+- [AORMS-Consultancy — engineering app](https://consultancy.aorms.in/)
 - [AORMS Wiki — central documentation](https://aorms.in/wiki/)

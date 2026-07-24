@@ -124,7 +124,7 @@ signals must not become covert surveillance or punitive monitoring.
 
 - Product name: **AORMS** (**Accelerated Operational Resources Management System**, platform for AEC consulting firms).
 - Shipped app: **AORMS-Studio** (slug `aorms-studio`, architecture / Indian architecture consultancies).
-- Engineering app: **AORMS-Consultancy** (slug `aorms-consultancy`) — code-complete; launch gated on P9.V / P9.M.
+- Engineering app: **AORMS-Consultancy** (slug `aorms-consultancy`) — live (P9.V ✅ · P9.M ✅).
 - **EOMS** (Emergent Object Management System) — **knowledge bank** (standalone API).
 - **ESTI** (Embedded Studio Intelligence) — **internal AI agent** (live in **AORMS-Studio**).
 - Company: **Holagundi Consulting Works (HCW)**.

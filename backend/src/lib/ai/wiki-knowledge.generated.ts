@@ -120,7 +120,7 @@ Both apps run on the same AORMS platform spine:
 | Discipline | App |
 | --- | --- |
 | Architecture | **[AORMS-Studio](aorms-studio)** (shipping) |
-| Engineering | **AORMS-Consultancy** (this page — code-complete; launch gated) |
+| Engineering | **AORMS-Consultancy** (this page — live) |
 
 - [AORMS platform home](/)
 - [AORMS-Studio sign in](/login)
@@ -171,11 +171,11 @@ AORMS (**Accelerated Operational Resources Management System**) is the wider pla
 | Discipline | App |
 | --- | --- |
 | Architecture | **AORMS-Studio** (this app — shipping) |
-| Engineering | **AORMS-Consultancy** (code-complete; launch gated) |
+| Engineering | **AORMS-Consultancy** (live) |
 
 - [AORMS platform home](/)
 - [AORMS-Studio marketing + sign in](/login)
-- [AORMS-Consultancy (launch gated)](/aorms-consultancy)
+- [AORMS-Consultancy (live)](/aorms-consultancy)
 - [Wiki documentation](/wiki/aorms-studio)
 
 ## Frequently asked questions
@@ -380,7 +380,7 @@ See [Finance and billing](finance-and-billing) for step-by-step guides.
 
 | Layer | Management scope |
 | --- | --- |
-| **AORMS platform** | Frameworks, EOMS + ESTI agents, **AORMS-Consultancy** engineering app (code-complete; launch gated) |
+| **AORMS platform** | Frameworks, EOMS + ESTI agents, **AORMS-Consultancy** engineering app (live) |
 | **AORMS-Studio** | Indian consultancy finance, HR, team, and office modules listed above |
 
 ## Frequently asked questions
@@ -870,7 +870,7 @@ This wiki is organised in **four domains**:
 | **[AI core](ai-core)** | **EOMS** knowledge bank + **ESTI** internal AI agent — cognition engine, Ask ESTI |
 | **[Management](management)** | Finance, billing, HR, licensing, team performance, operational framework |
 
-**AORMS** (**Accelerated Operational Resources Management System**) is the platform for **AEC consulting firms**. Two apps share one spine: **AORMS-Studio** (architecture — shipping from this repository) and **AORMS-Consultancy** (engineering — code-complete; launch gated).
+**AORMS** (**Accelerated Operational Resources Management System**) is the platform for **AEC consulting firms**. Two apps share one spine: **AORMS-Studio** (architecture — shipping from this repository) and **AORMS-Consultancy** (engineering — live).
 
 Sign in at [aorms.in/login](https://aorms.in/login). One standard licence ? unlimited users, **5 GB** included storage, no desktop installs.
 `;

@@ -249,7 +249,7 @@ Procedural artifacts:
 **Reading of the map:** the *governance core* the SOPs exist to protect — the register,
 the named chain, gated issue, stage billing, WIP, closeout — is built. Remaining
 optional slices: **resource forecast**, formal PEP/PQP, IDC step. Human gates outside
-the app: **P9.V** fee UX review, **P4.8** marketing rewrite, **P9.M** launch.
+the app: **P9.V** ✅, **P4.8** ✅, **P9.M** ✅.
 (Document numbering, two-track revisions, TQ due-dates, timesheet approval, CRS,
 field reports, **transmittal acknowledgment**, **milestone Studio invoices**,
 **enquiry go/no-go**, and **SOP closeout registers** are already in.)

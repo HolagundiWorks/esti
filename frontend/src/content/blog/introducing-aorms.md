@@ -1,21 +1,21 @@
 ---
-title: Introducing AORMS — fee recovery and revision control for the Indian architecture practice
+title: Introducing AORMS Â— fee recovery and revision control for the Indian architecture practice
 date: 2026-07-10
-excerpt: AORMS-Studio connects what a practice has delivered with what it has billed, and gives every client-driven revision a dated, approved record before site or drawings move — the first workspace on the AORMS platform.
+excerpt: AORMS-Studio connects what a practice has delivered with what it has billed, and gives every client-driven revision a dated, approved record before site or drawings move Â— the first workspace on the AORMS platform.
 tags: Product, Vision
 author: Human Centric Works
 coverImage: /esti-logo.png
 ---
 
-**AORMS** is the platform — operational and design frameworks for **AEC consulting
+**AORMS** is the platform Â— operational and design frameworks for **AEC consulting
 firms** (architecture and engineering practices that advise clients), with **EOMS**
 as the knowledge bank and **ESTI** as the internal agent. **AORMS-Studio** is the
 live architecture app (web-only); **AORMS-Consultancy** for engineering consultancies
-shares the same spine and is launch-gated. This post is about what **AORMS-Studio**
+shares the same spine and is live. This post is about what **AORMS-Studio**
 does best for Indian architecture practices.
 
 Most architecture practices do not fail on design. They fail on the quiet
-operational drift between projects — a fee stage completed but never invoiced, a
+operational drift between projects Â— a fee stage completed but never invoiced, a
 client-driven change absorbed without a record, an approval that sat too long and
 delayed the payment tied to it.
 
@@ -25,7 +25,7 @@ AORMS was built to close those two gaps: **fee recovery** and **revision control
 
 A practice's fee recovery picture tells you, at a glance, which stages are complete
 but unbilled, which invoices are overdue, what GST is outstanding, and what payment
-is due next. In AORMS, every COA fee stage on a project is a structured record —
+is due next. In AORMS, every COA fee stage on a project is a structured record Â—
 when it is marked complete, the invoice it should trigger becomes visible. The
 practice stops financing delivered work for the client, interest-free.
 
@@ -39,12 +39,12 @@ stages were agreed against.
 Every client-driven change that arrives in the portal follows a structured path.
 ESTI extracts revision drafts from issued meeting minutes; the client reviews and
 submits the ones that are real; the architect marks criticality and records the
-implications — fee, programme, structural, statutory; the client approves the
+implications Â— fee, programme, structural, statutory; the client approves the
 implications; only then do site instructions, drawing updates, and consultant
 coordination proceed.
 
 The result is a project where every change has a source, a category, a client
-sign-off on scope, and a link to the fee stage it should move — not a trail
+sign-off on scope, and a link to the fee stage it should move Â— not a trail
 reconstructed from memory at the end of the project when the moment to bill
 has already passed.
 
@@ -53,9 +53,9 @@ has already passed.
 AORMS reads the office as a single system: clients, projects, billing, approvals,
 revisions, drawings, and team load. Studio Intelligence reasons across them,
 predicts where pressure is building, and surfaces the highest-leverage action for
-the day — without requiring a dashboard you have to monitor.
+the day Â— without requiring a dashboard you have to monitor.
 
 > The goal is not more data. The goal is **useful guidance despite imperfect
-> office data** — so the practice can do the work instead of chasing the record.
+> office data** Â— so the practice can do the work instead of chasing the record.
 
 That is AORMS.

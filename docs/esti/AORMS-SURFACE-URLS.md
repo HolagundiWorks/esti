@@ -15,7 +15,7 @@ Only **three subdomains** remain. Everything else is a **path on aorms.in**.
 | --- | --- | --- | --- |
 | **[aorms.in](https://aorms.in)** | Platform | Public + authenticated pages | Marketing, wiki, blog, auth, account, external portals |
 | **[studio.aorms.in](https://studio.aorms.in)** | **AORMS-Studio** | Firm staff | Architecture consultancy workspace |
-| **[consultancy.aorms.in](https://consultancy.aorms.in)** | **AORMS-Consultancy** | Public / prospects + firm staff (post-launch) | Engineering consultancy marketing + product entry (launch gated on P9.V / P9.M) |
+| **[consultancy.aorms.in](https://consultancy.aorms.in)** | **AORMS-Consultancy** | Public / prospects + firm staff (post-launch) | Engineering consultancy marketing + product entry (live (P9.V ✅ · P9.M ✅)) |
 | **[admin.aorms.in](https://admin.aorms.in)** | Licensing console | HCW operators | Platform administration |
 
 ---
