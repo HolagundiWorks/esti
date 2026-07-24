@@ -278,7 +278,7 @@ await app.register(fastifyTRPCPlugin, {
   trpcOptions: { router: appRouter, createContext },
 });
 
-// Merged Holagundi licensing platform: /platform/auth/*, /platform/onboard,
+// HCW License Manager (in-tree): /platform/auth/*, /platform/onboard,
 // /platform/v1/*, and its own tRPC at /platform/trpc (separate Google session).
 await registerLicensingPlatform(app);
 

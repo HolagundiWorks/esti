@@ -40,12 +40,13 @@ const Env = z.object({
    */
   EOMS_API_URL: z.string().default(""),
   /**
-   * NODE — base URL of the central Holagundi License Panel (e.g.
-   * https://license.holagundi.com). When set, license activation/refresh use the
-   * panel's `/v1` Product License API instead of the legacy hub. Empty = use the hub.
+   * NODE — base URL of the HCW License Manager Product License API
+   * (e.g. https://aorms.in/platform). When set with ESTI_PRODUCT_API_KEY,
+   * activate/refresh call `/v1` instead of the legacy hub. Empty = use the hub
+   * (or same-process manager on the hub itself). See HCW-LICENSE-MANAGER.md.
    */
   ESTI_LICENSE_API_URL: z.string().default(""),
-  /** NODE — AORMS product API key for the License Panel `/v1` API (Bearer). */
+  /** NODE — AORMS product API key for the License Manager `/v1` API (Bearer). */
   ESTI_PRODUCT_API_KEY: z.string().default(""),
   /**
    * NODE — when true, firm login is verified against the central identity platform

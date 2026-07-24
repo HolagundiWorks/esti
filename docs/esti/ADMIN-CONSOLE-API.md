@@ -1,22 +1,25 @@
-# Licensing Console — standalone API integration (`admin.DOMAIN`)
+# Licensing Console — HCW License Manager API (`admin.DOMAIN`)
 
-The licensing console is a **standalone deployment** at `admin.DOMAIN`
-(e.g. `https://admin.aorms.in`) holding **no data of its own** — every account,
-company, licence, and request lives in this backend's `hlp_` tables, reached
-through the `/platform` API. Two ways to ship it:
+The **HCW License Manager** is internalised in this monorepo (see
+[HCW-LICENSE-MANAGER.md](HCW-LICENSE-MANAGER.md)). The console is a **UI
+deployment** at `admin.DOMAIN` (e.g. `https://admin.aorms.in`) holding **no data
+of its own** — every account, company, licence, and request lives in this
+backend's `hlp_` tables, reached through the `/platform` API.
 
-- **From this repo (default):** the frontend build emits a second entry,
-  `dist/admin.html` (the same Panel client as the embedded fallback).
-  `sudo bash deploy/install-admin-console.sh` serves it on an `admin.DOMAIN`
-  vhost that **proxies `/platform/` to the local backend** — every call is
-  same-origin, so none of the CORS notes below even come into play.
-- **From a separate repo:** build any client against this document's contract;
-  the CORS + cookie mechanics in §1–2 apply.
+**Canonical ship path (this repo):** the frontend build emits a second entry,
+`dist/admin.html` (the same Panel client as the embedded `/platform-admin`
+fallback). `sudo bash deploy/install-admin-console.sh` serves it on an
+`admin.DOMAIN` vhost that **proxies `/platform/` to the local backend** — every
+call is same-origin, so none of the CORS notes below even come into play.
+
+Optional: a third-party static client may implement this document's contract;
+then the CORS + cookie mechanics in §1–2 apply. That is **not** a second
+license-manager source tree.
 
 ## 1. Topology & configuration
 
 ```
-Browser ── https://admin.aorms.in          (console repo: static SPA / its own server)
+Browser ── https://admin.aorms.in          (in-tree admin.html / install-admin-console.sh)
    │
    └─ fetch, credentials:"include" ──► https://aorms.in/platform/…   (this backend)
 ```

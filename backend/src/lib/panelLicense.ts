@@ -3,14 +3,15 @@ import { asPlan, PLAN_LIMITS, type Plan as PlanT, type ResolvedSeats } from "@es
 import { z } from "zod";
 
 /**
- * Verifier for license tokens issued by the central **Holagundi License Panel**
- * (separate repo `holagundi-license-panel`). The panel signs entitlement tokens
- * with its own Ed25519 key; the matching **public key is embedded here** so this
- * install verifies them offline — exactly as {@link verifyLicense} does for the
- * legacy ESTI hub format. AORMS plan codes (LITE/CORE/ENTERPRISE) map 1:1 onto
- * ESTI's {@link Plan}.
+ * Verifier for license tokens issued by the in-tree **HCW License Manager**
+ * (`backend/src/licensing-platform/` — Product License API `/platform/v1`).
+ * The manager signs entitlement tokens with its Ed25519 key; the matching
+ * **public key is embedded here** so firm nodes verify offline — exactly as
+ * {@link verifyLicense} does for the legacy ESTI hub format.
  *
- * Keep this constant in sync with the panel's `backend/src/lib/license.ts`.
+ * Keep this constant in sync with
+ * `backend/src/licensing-platform/lib/license.ts`. Docs:
+ * `docs/esti/HCW-LICENSE-MANAGER.md`.
  */
 const PANEL_PUBLIC_KEY_SPKI_DER_B64 =
   "MCowBQYDK2VwAyEA66A1kjGLoHXX6TWOgyUlQPv394xT9SJ+bjDSNsoxenk=";

@@ -1,6 +1,7 @@
-// Holagundi licensing platform schema (merged into AORMS 2026-06-28). Tables are
-// hlp_-prefixed. Kept OUT of the schema/index.ts barrel — its `accounts`/`licenses`
-// const names collide with ESTI's; the licensing modules import tables from here directly.
+// HCW License Manager schema (internalised into AORMS 2026-06-28 from the former
+// holagundi-license-panel sibling). Tables are hlp_-prefixed. Kept OUT of the
+// schema/index.ts barrel — its `accounts`/`licenses` const names collide with
+// ESTI's; the licensing modules import tables from here directly.
 import {
   bigint,
   boolean,
@@ -15,8 +16,9 @@ import {
 } from "drizzle-orm/pg-core";
 
 /**
- * Holagundi License Panel schema. Multi-product, multi-org licensing.
+ * HCW License Manager schema. Multi-product, multi-org licensing.
  * Tables are prefixed `hlp_`. Ids are app-generated opaque strings (see ids.ts).
+ * See docs/esti/HCW-LICENSE-MANAGER.md.
  */
 
 const createdAt = timestamp("created_at", { withTimezone: true }).defaultNow().notNull();

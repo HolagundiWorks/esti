@@ -178,6 +178,26 @@ export const AORMS_PORTALS = {
   },
 } as const;
 
+/**
+ * HCW License Manager — in-tree licensing authority (formerly the separate
+ * `holagundi-license-panel` repo). Backend: `backend/src/licensing-platform/`
+ * (`/platform`); UI: `frontend/src/platform-admin/` + `admin.html`.
+ * Tables keep the `hlp_*` prefix. See docs/esti/HCW-LICENSE-MANAGER.md.
+ */
+export const HCW_LICENSE_MANAGER = {
+  name: "HCW License Manager",
+  shortName: "License Manager",
+  /** Operator-facing console label (same as AORMS_PORTALS.account.licensing). */
+  consoleTitle: AORMS_PORTALS.account.licensing,
+  apiPrefix: "/platform",
+  consolePath: "/platform-admin",
+  consoleHost: "admin.aorms.in",
+  /** Schema / session codename — do not rename tables or cookies. */
+  codename: "hlp",
+  summary:
+    "In-monorepo licence authority for AORMS — accounts, organisations, products, plans, keys, and the Product License API (/platform/v1).",
+} as const;
+
 /** External portal labels — lists, SEO, marketing tiles. */
 export const EXTERNAL_PORTAL_LABELS = [
   AORMS_PORTALS.client.label,

@@ -22,7 +22,7 @@ certs/growth belong to the *person*, not the firm — change firms, keep the ID.
 
 | Account | Who | Where they act | Unique ID |
 |---|---|---|---|
-| **Platform admin** | Holagundi/AORMS team | `/platform-admin` (products, plans, licences, orgs) | — (internal) |
+| **Platform admin** | HCW / AORMS operators | `/platform-admin` (HCW License Manager — products, plans, licences, orgs) | — (internal) |
 | **Company** | a firm/tenant | owns the workspace, holds the licence | `AORMS-C-XXXX` |
 | **Personal** | an individual professional | activates into a company; owns certs/growth | `AORMS-U-XXXX` |
 
@@ -47,7 +47,7 @@ All on your one domain (`https://<domain>`), TLS-terminated by nginx.
 | `/account`, `/company-account` | **AORMS account** (personal) and **Company account** (firm owners) | platform session |
 | `/wiki` | Official documentation (canonical) | public |
 | `/demo` | One-click auto-login into the seeded demo (profile 2 only) | baked demo creds |
-| `/platform-admin` | **Licensing console** — Holagundi platform admins **only**; simple email + password, no company step | platform session (admin) |
+| `/platform-admin` | **Licensing console** (HCW License Manager, in-tree) — platform admins **only**; simple email + password, no company step | platform session (admin) |
 | `/platform` | Platform backend root (not a page) | — |
 | `/platform/trpc` | Platform API (tRPC) | platform session |
 | `/platform/auth/*` | Platform auth: `resolve-company`, `login`, `switch-company`, `create/join/leave-company`, `request-plan`, `my-request`, `my-credentials` | — |
@@ -87,7 +87,7 @@ cookie from the workspace's own session) to link it for that browser, same as an
 password, no company step, no "Create account" flow for customers. "Create account" only
 appears **before the first admin exists** (one-time bootstrap — closes itself afterward);
 after that, this URL is sign-in only. A non-admin account that signs in here is redirected
-to `/login`. This is where Holagundi issues/edits licences, approves plan requests, and
+to `/login`. This is where HCW operators issue/edit licences, approve plan requests, and
 manually resets a customer's password.
 
 The tenant-first, company-scoped login (name/email/AORMS-C ID → verifies ACTIVE membership)
@@ -168,7 +168,7 @@ Written by the installer; edit + `bash deploy/update.sh` to apply. Key groups:
 |---|---|---|
 | `ESTI_ROLE` | `node` | a firm install is a licence *consumer* (node), not the hub |
 | `ESTI_LICENSE_API_URL` | `https://aorms.in/platform` | where the node activates/refreshes its licence (`/platform/v1`). Override **only** if you self-host the platform |
-| `ESTI_PRODUCT_API_KEY` | *(empty)* | **empty = node stays unmanaged on `FIRM_PLAN`** (cannot brick a running install). Set the key from Holagundi to activate a real licence |
+| `ESTI_PRODUCT_API_KEY` | *(empty)* | **empty = node stays unmanaged on `FIRM_PLAN`** (cannot brick a running install). Set the key from the HCW License Manager to activate a real licence |
 | `ESTI_IDENTITY_DELEGATE` | `false` | **opt-in.** `true` = firm login is verified against the central platform, then falls back to the cached local password if it's unreachable. Default off = local login only |
 | `ESTI_IDENTITY_URL` | *(empty → uses `ESTI_LICENSE_API_URL`)* | base URL of the identity platform for delegated login |
 | `ESTI_COMPANY` | *(empty)* | this firm's `AORMS-C-` handle — membership in it is enforced on delegated login |
@@ -220,21 +220,21 @@ installer files and `VITE_*_DOWNLOAD_URL` entries from a live host.
 1. Firm install defaults `ESTI_LICENSE_API_URL=https://aorms.in/platform`, `ESTI_ROLE=node`.
 2. With **no** `ESTI_PRODUCT_API_KEY`, the node runs **unmanaged** on its `FIRM_PLAN`
    (safe — nothing to break).
-3. To license it: set `ESTI_PRODUCT_API_KEY=<key from Holagundi>` in `.env`, then
+3. To license it: set `ESTI_PRODUCT_API_KEY=<key from HCW License Manager>` in `.env`, then
    `bash deploy/update.sh`. The node activates against `/platform/v1` and derives its plan
    + seats from the signed licence.
 
 **How a customer gets licensed (self-serve → admin fulfils):**
 1. Customer opens `/login` → **Create account** → creates a platform account and requests
    a workspace licence (the merged account portal — see §3).
-2. Holagundi admin sees it in `/platform-admin` → **Requests** (tab badge shows the pending
+2. Platform admin sees it in `/platform-admin` → **Requests** (tab badge shows the pending
    count) → **Approve & email**. This creates a perpetual `ACTIVE` licence on the requested
    plan and emails the key to the customer via SMTP (§5 mail config), with a link back to
    `/login`. If SMTP isn't configured, the key is shown on screen to send manually — nothing
    is blocked.
 3. Admin can later **upgrade/downgrade** the licence from **Licenses** → "Change plan…".
 
-**Issuing/editing licences directly (Holagundi platform admin):** `/platform-admin` →
+**Issuing/editing licences directly (HCW License Manager / platform admin):** `/platform-admin` →
 **Licenses** (create, change plan, extend/suspend/revoke, manage devices) · **Organizations**
 · **Products & plans** · **API keys** · **Accounts** (search any customer account, manually
 reset their password — for support/lockout, not a self-serve "forgot password" flow). A
