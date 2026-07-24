@@ -29,6 +29,12 @@ export function AlertsBell() {
     retry: 2,
     meta: { silent: true },
   });
+  const digestQ = trpc.notifications.digest.useQuery(undefined, {
+    refetchInterval: 300_000,
+    refetchIntervalInBackground: false,
+    retry: 2,
+    meta: { silent: true },
+  });
 
   const persist = (next: string[]) => {
     localStorage.setItem(KEY, JSON.stringify(next));
@@ -36,6 +42,7 @@ export function AlertsBell() {
   };
   const all = alertsQ.data ?? [];
   const alerts = all.filter((a) => !dismissed.includes(a.id));
+  const digestItems = (digestQ.data?.items ?? []).slice(0, 3);
   const dismiss = (id: string) => persist([...new Set([...dismissed, id])]);
   const clearAll = () => persist([...new Set([...dismissed, ...alerts.map((a) => a.id)])]);
 
@@ -98,6 +105,24 @@ export function AlertsBell() {
               </Stack>
             </Box>
           ))}
+
+          {digestItems.length > 0 && (
+            <Box sx={{ borderTop: 1, borderColor: "divider", pt: 1 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.5 }}>
+                Digest · {digestQ.data?.date ?? "today"}
+              </Typography>
+              {digestItems.map((a) => (
+                <Box key={`digest-${a.id}`} sx={{ py: 0.75 }}>
+                  <Link to={`/projects/${a.projectId}`} onClick={() => setAnchor(null)}>
+                    <Typography variant="body2">{a.title}</Typography>
+                  </Link>
+                  <Typography variant="caption" color="text.secondary">
+                    {a.detail}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          )}
 
           <Button
             component={Link}

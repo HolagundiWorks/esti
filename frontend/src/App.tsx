@@ -12,6 +12,7 @@ import {
   Description as Document,
   Email,
   Apartment as Enterprise,
+  Engineering,
   Event as Events,
   Badge as Identification,
   CardMembership as License,
@@ -253,7 +254,7 @@ function AppWorkspace() {
     return <PlatformAdmin />;
 
   // consultancy.aorms.in — AORMS-Consultancy. Authenticated staff enter the
-  // engineering workspace (Phase 0/1 preview home); everyone else sees the
+  // engineering workspace (Enquiries home); everyone else sees the
   // unified platform landing. One login window — the workspace type only
   // routes where a company works.
   if (surface === "consultancy") {
@@ -403,10 +404,10 @@ function AppWorkspace() {
       )
       .filter((n) => !("items" in n) || n.items.length > 0);
 
-  // Ribbon: Projects · Clients · Teams · Office. Remaining Third Parties + Library
-  // + Admin live in the hamburger. Studio · Tasks · Search live in the footer.
+  // Ribbon: Projects · Clients · Teams · Office (Studio host).
+  // Consultancy host: Enquiries · Engagements first — engineering workspace chrome.
   // Spec: docs/esti/NAVIGATION.md.
-  const nav: NavNode[] = prune([
+  const studioNav: NavNode[] = [
     { label: "Projects", to: "/projects", icon: Building },
     ...(can(user.role, "write")
       ? [{ label: "Clients", to: "/clients", icon: User }]
@@ -474,7 +475,67 @@ function AppWorkspace() {
         },
       ],
     },
-  ]);
+  ];
+
+  const consultancyNav: NavNode[] = [
+    { label: "Enquiries", to: "/consultancy/enquiries", icon: ContactPage },
+    { label: "Engagements", to: "/consultancy/engagements", icon: Engineering },
+    ...(can(user.role, "write")
+      ? [{ label: "Clients", to: "/clients", icon: User }]
+      : []),
+    {
+      kind: "menu",
+      label: "Teams",
+      icon: UserMultiple,
+      items: [
+        ...(hrEnabled
+          ? [
+              { label: "Teams", to: "/team", icon: Events },
+              ...(atLeast(60)
+                ? [{ label: "Performance", to: "/performance", icon: Analytics }]
+                : []),
+              ...(can(user.role, "hr:manage") ? [{ label: "HR", to: "/hr", icon: Identification }] : []),
+            ]
+          : []),
+      ],
+    },
+    {
+      kind: "menu",
+      label: "Office",
+      icon: Enterprise,
+      items: [
+        {
+          kind: "menu",
+          label: "Finance",
+          items: [
+            ...(can(user.role, "invoice:manage")
+              ? [
+                  { label: "Invoices", to: "/invoices", icon: Receipt },
+                  { label: "Reconcile", to: "/reconcile", icon: CompareArrows },
+                  { label: "Cashbook", to: "/accounting/cash-book", icon: Wallet },
+                ]
+              : []),
+            ...(can(user.role, "reports:view")
+              ? [{ label: "Financial Reports", to: "/filing", icon: Report }]
+              : []),
+          ],
+        },
+        {
+          kind: "menu",
+          label: "Studio link",
+          items: [
+            { label: "Projects", to: "/projects", icon: Building },
+            ...(can(user.role, "fees:manage")
+              ? [{ label: "Proposals", to: "/office/proposals", icon: Document }]
+              : []),
+            { label: "Standards", to: "/libraries/standards", icon: Book },
+          ],
+        },
+      ],
+    },
+  ];
+
+  const nav: NavNode[] = prune(surface === "consultancy" ? consultancyNav : studioNav);
 
   // Admin hamburger: remaining Third Parties, Library, system.
   const adminGroups: { heading: string; items: NavLink[] }[] = [
@@ -581,9 +642,8 @@ function AppWorkspace() {
                 <Route path="/libraries/knowledge-bank-portal" element={<KnowledgeBankPortal />} />
                 <Route path="/libraries/repository" element={<Navigate to="/libraries/knowledge-bank-portal" replace />} />
                 {atLeast(60) && <Route path="/vendors" element={<Vendors />} />}
-                {/* AORMS-Consultancy Phase 0 preview — engineering engagement spine
-                    (not in the Studio sidebar; direct URL until the consultancy
-                    surface ships its own workspace shell). */}
+                {/* AORMS-Consultancy — ribbon swaps to Enquiries · Engagements on
+                    consultancy.aorms.in (see consultancyNav above). */}
                 <Route path="/consultancy" element={<Navigate to="/consultancy/enquiries" replace />} />
                 <Route path="/consultancy/enquiries" element={<ConsultancyEnquiries />} />
                 <Route path="/consultancy/engagements" element={<ConsultancyEngagements />} />

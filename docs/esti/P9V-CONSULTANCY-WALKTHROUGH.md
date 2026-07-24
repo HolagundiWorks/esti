@@ -5,7 +5,8 @@
 issue→BILLABLE, CRS/input-pack gates, variations, timesheets, portal redaction) +
 fee UX polish (toasts, ConfirmModal, Edit terms, locked delete) + pre-con/closeout
 panels. Demo seed provisions a **CONSULTANCY** platform org (`engineering-demo`)
-alongside Studio for Account Hub routing.
+alongside Studio for Account Hub routing, plus enquiry `EQ-DEMO-001` → engagement
+`C-DEMO-001` with a **BILLABLE** fee stage (`demoConsultancySeed.ts`).
 
 **Purpose:** Acceptance record for the money-critical Consultancy surface before
 **P9.M** public launch. P9.M shipped the same day.

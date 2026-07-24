@@ -399,6 +399,10 @@ export function StudioAbstract() {
   const watchProjects = ph.filter((p: any) => p.health === "YELLOW");
   const atRiskProjects = [...riskProjects, ...watchProjects];
   const overloaded   = ti.filter((m: any) => m.capacity === "OVERLOADED");
+  const busy         = ti.filter((m: any) => m.capacity === "BUSY");
+  /** Empty firm (non-demo) — guide to first invoice without a seeded workspace. */
+  const showFirstInvoiceGuide =
+    !user?.isDemo && !homeLoading && ph.length === 0;
 
   const cs = clientState(pendingCount, maxWaitDays);
   const fs = financeState(fh?.outstandingPaise ?? 0, overduePaise, canInvoice);
@@ -620,6 +624,36 @@ export function StudioAbstract() {
           ))}
         </Box>
       </Box>
+
+      {hrEnabled && (
+        <Box
+          sx={{
+            borderBottom: 1,
+            borderColor: "divider",
+            py: 1,
+            display: "flex",
+            alignItems: "center",
+            gap: { xs: 1, md: 2 },
+            flexWrap: "wrap",
+          }}
+        >
+          <Typography
+            variant="overline"
+            color="text.secondary"
+            sx={{ flexShrink: 0, lineHeight: 1, whiteSpace: "nowrap" }}
+          >
+            Capacity
+          </Typography>
+          <Typography variant="caption" color="text.secondary" noWrap>
+            {overloaded.length} overloaded · {busy.length} busy
+            {att ? ` · ${att.present}/${att.headcount} present` : ti.length ? ` · ${ti.length} on roster` : ""}
+          </Typography>
+          <Box sx={{ flex: 1 }} />
+          <Button size="small" variant="text" onClick={() => setTab("team")}>
+            Team
+          </Button>
+        </Box>
+      )}
 
       <Accordion className="esti-dash-kpi-accordion" disableGutters elevation={0} defaultExpanded={false}>
         <AccordionSummary expandIcon={<ExpandMore fontSize="small" />} aria-controls="dash-kpi-panel" id="dash-kpi-header">
@@ -861,6 +895,41 @@ export function StudioAbstract() {
                 gap: 1.5,
               }}
             >
+              {showFirstInvoiceGuide && (
+                <SectionCard title="Get to your first invoice">
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                    Empty office — follow this path once to raise a GST invoice against a project.
+                  </Typography>
+                  <Stack spacing={1}>
+                    {[
+                      { step: "1", label: "Add a client", to: "/clients", hint: "CRM row the project hangs off" },
+                      { step: "2", label: "Open a project", to: "/projects", hint: "Phases and fee spine" },
+                      { step: "3", label: "Prepare a proposal", to: "/office/proposals", hint: "COA fee or scope agreement" },
+                      { step: "4", label: "Raise an invoice", to: "/invoices", hint: "GST / TDS tax invoice" },
+                    ].map((s) => (
+                      <Stack
+                        key={s.to}
+                        direction="row"
+                        spacing={1}
+                        sx={{ alignItems: "center" }}
+                      >
+                        <Typography variant="caption" color="text.secondary" sx={{ minWidth: 16, fontWeight: 600 }}>
+                          {s.step}
+                        </Typography>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Button size="small" variant="text" onClick={() => navigate(s.to)} sx={{ px: 0, minWidth: 0 }}>
+                            {s.label}
+                          </Button>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
+                            {s.hint}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    ))}
+                  </Stack>
+                </SectionCard>
+              )}
+
               {estiSignalsPanel}
 
               <Box className="esti-priorities-focus" sx={{ flexShrink: 0 }}>

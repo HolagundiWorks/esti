@@ -231,7 +231,17 @@ export function Invoices() {
           columnCount={8}
           empty={{
             title: "No invoices yet",
-            description: "Raise an invoice against any project.",
+            description: "Raise a GST invoice against a project — usually after a proposal is agreed.",
+            action: (
+              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                <Button component={Link} to="/office/proposals" size="small" variant="outlined">
+                  Prepare a proposal
+                </Button>
+                <Button component={Link} to="/projects" size="small" variant="text">
+                  Open projects
+                </Button>
+              </Stack>
+            ),
           }}
         >
           <DataGrid

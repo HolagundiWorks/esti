@@ -7,6 +7,8 @@ Companion to [ROADMAP.md](ROADMAP.md) (delivery queue) and
 [PRODUCT-VISION.md](PRODUCT-VISION.md) (boundary). This file records **market
 research conclusions** and what we must ship for paying firms.
 
+**Delivery status:** Market-fit Waves **W1–W3 shipped**; **W4 integrations deferred**.
+
 ---
 
 ## 1. ICP & category
@@ -70,16 +72,16 @@ Implementation status lives on [ROADMAP.md](ROADMAP.md) § Market fit.
 
 ### M1 — Trust & money (must-have)
 1. Flawless invoice / GST / fee-stage path for first paying firms  
-2. **Project fee recovery** visibility (fee vs invoiced vs outstanding) — Studio KPIs  
-3. Onboarding: first invoice in ~30 minutes (demo seed + guided empty states)
+2. **Project fee recovery** visibility (fee vs invoiced vs outstanding) — Studio KPIs ✅  
+3. Onboarding: first invoice in ~30 minutes (demo seed + guided empty states) ✅  
 
 ### M2 — Time & capacity
 1. Staff time → WIP → fee stages (Consultancy already stronger; Studio light)  
-2. Capacity / overload on Studio Intelligence (reuse capacity outlook patterns)
+2. Capacity / overload on Studio Intelligence ✅  
 
 ### M3 — Client-facing proof
-1. Polished **client portal** empty states + pending-approval CTAs  
-2. Digests / notifications that pull decisions back into the record (not replace WhatsApp)
+1. Polished **client portal** empty states + pending-approval CTAs ✅  
+2. Digests / notifications that pull decisions back into the record ✅  
 
 ### M4 — India differentiation
 1. COA fee + GST as default excellence  
@@ -87,34 +89,31 @@ Implementation status lives on [ROADMAP.md](ROADMAP.md) § Market fit.
 3. Dense EOMS packs later — do not lead with bylaw-AI until catalog depth exists
 
 ### M5 — GTM packaging
-1. Consistent public story (no BBS / PMC / tenders / “launch gated” leftovers)  
-2. Landing **#pricing** from [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md)  
-3. ICP one-pager + Holagundi SOP as proof  
-4. Ask ESTI / wiki-knowledge scrub for removed modules
+1. Consistent public story (no BBS / PMC / tenders / “launch gated” leftovers) ✅  
+2. Landing **#pricing** from [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) ✅  
+3. ICP one-pager + Holagundi SOP as proof ✅  
+4. Ask ESTI / wiki-knowledge scrub for removed modules ✅  
 
 ### M6 — Consultancy go-to-market
-1. Reference eng firms + 15-minute engagement→invoice demo  
-2. Workspace chrome that does not feel like “Studio with extra URLs”
+1. Reference eng firms + 15-minute engagement→invoice demo ✅  
+2. Workspace chrome that does not feel like “Studio with extra URLs” ✅  
 
-### M7 — Integrations (phase 2)
+### M7 — Integrations (phase 2) — deferred
 Tally / Zoho Books deepen · Drive for drawings · WhatsApp capture — not day-one.
 
 ### Explicitly defer
 Desktop app · raw cloud DB clients · construction tenders / RA bills / BBS ·
-“AI that designs the building.”
+“AI that designs the building.” · W4 integrations.
 
 ---
 
-## 6. Wave 1 (ship now)
+## 6. Waves (shipped)
 
-| # | Item | Track |
+| Wave | Items | Status |
 |---|---|---|
-| W1.1 | Align Vendors nav gate with route (`atLeast(60)`) | Hygiene | ✅ |
-| W1.2 | Scrub SEO landings that claim PMC / running bills as product | M5 | ✅ |
-| W1.3 | Scrub `wiki-knowledge.generated.ts` Estimation OS / Item library / plan-gated AI | M5 | ✅ |
-| W1.4 | Landing `#pricing` + FAQ from Standard licence law | M5 | ✅ |
-| W1.5 | Client portal empty states + pending-approval strip | M3 | ✅ |
-| W1.6 | Studio Financial KPIs: fee recovery % / unbilled signal | M1 | ✅ |
+| **W1** | Vendors gate · SEO scrub · wiki-knowledge · landing pricing · portal empty · fee recovery % | ✅ |
+| **W2** | First-invoice checklist · capacity strip · Alerts digests | ✅ |
+| **W3** | Consultancy chrome · demo seed · DEMO-SCRIPT + ICP-ONE-PAGER | ✅ |
+| **W4** | Tally / Drive / WhatsApp | **Deferred** |
 
-Later waves: Studio time valuation, consultancy chrome, notification digests,
-integrations.
+See [ROADMAP.md](ROADMAP.md) for per-item checklists.

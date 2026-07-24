@@ -8,7 +8,7 @@ podman exec esti-backend sh -c "cd /app/esti/backend && pnpm seed:demo"
 
 Force wipe + rebuild: `SEED_DEMO_FORCE=1 pnpm seed:demo`
 
-Implementation: `backend/src/scripts/seedDemo.ts` + `backend/src/scripts/demoStudioSeed.ts`
+Implementation: `backend/src/scripts/seedDemo.ts` + `backend/src/scripts/demoStudioSeed.ts` + `backend/src/scripts/demoConsultancySeed.ts`
 
 ---
 
@@ -186,11 +186,28 @@ Some tasks carry `interventionRequired: true` for ESTI Pulse demos.
 
 | Scenario | Behaviour |
 |----------|-----------|
-| First run | Full seed |
-| Re-run (demo exists) | Backfill: team roster, firm profile, leads, MOMs, visits, attendance, activities, approval patches, task rebalance |
-| `SEED_DEMO_FORCE=1` | Wipe demo users/projects + full re-seed |
+| First run | Full seed (Studio + Consultancy spine) |
+| Re-run (demo exists) | Backfill: team roster, firm profile, leads, MOMs, visits, attendance, activities, approval patches, task rebalance, consultancy demo |
+| `SEED_DEMO_FORCE=1` | Wipe demo users/projects + consultancy demo rows + full re-seed |
 
 Phase-linked billing is written on **fresh** seed only. To refresh billing signals on an old demo DB, use `SEED_DEMO_FORCE=1`.
+
+---
+
+## Consultancy spine (AORMS-Consultancy)
+
+| Record | Value |
+|--------|-------|
+| Enquiry | `EQ-DEMO-001` — Apex PEB warehouse (WON) |
+| Engagement | `C-DEMO-001` — Apex PEB warehouse — Whitefield structural |
+| Client | Apex Precast Structures Pvt Ltd |
+| Fee | Lump sum ₹18,00,000 · stages: INVOICED kickoff · **BILLABLE** schematic · PENDING GFC |
+| Deliverable | `STR-CAL-001` Foundation & column schedule (DRAFT) |
+| Rate card | PRINCIPAL · SENIOR_ENGINEER · ENGINEER grades |
+
+Platform org: `engineering-demo` (CONSULTANCY) via `ensureDemoConsultancyPlatformOrg()`.
+
+Walkthrough: [docs/holagundi/DEMO-SCRIPT.md](../holagundi/DEMO-SCRIPT.md) · [P9V-CONSULTANCY-WALKTHROUGH.md](P9V-CONSULTANCY-WALKTHROUGH.md)
 
 ---
 

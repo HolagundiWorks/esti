@@ -1,5 +1,6 @@
 import AutoAwesome from "@mui/icons-material/AutoAwesome";
 import CalculateOutlined from "@mui/icons-material/CalculateOutlined";
+import Engineering from "@mui/icons-material/Engineering";
 import PowerSettingsNew from "@mui/icons-material/PowerSettingsNew";
 import SearchOutlined from "@mui/icons-material/SearchOutlined";
 import SelfImprovement from "@mui/icons-material/SelfImprovement";
@@ -25,6 +26,8 @@ import { WellnessReminderBanner } from "../wellness/WellnessReminderBanner.js";
 import { useWellnessReminders } from "../wellness/useWellnessReminders.js";
 import type { WellnessSection } from "../wellness/wellnessExercises.js";
 import { WELLNESS_OPEN_EVENT } from "../wellness/wellnessExercises.js";
+import { detectSurface } from "../../lib/aorms-surface-urls.js";
+import { AORMS_CONSULTANCY } from "../../lib/product-nomenclature.js";
 import { OfficeHealthGlyph } from "./OfficeHealthGlyph.js";
 import { useOfficeHealth } from "./useOfficeHealth.js";
 
@@ -33,7 +36,7 @@ import { useOfficeHealth } from "./useOfficeHealth.js";
  * icons are round neumorphic chips on the frosted surface:
  *
  *   LEFT   — calculator · office health · task due.
- *   CENTER — Studio Intelligence · tasks · Search · **Ask ESTI** · wellbeing · pomodoro.
+ *   CENTER — home (Studio Intelligence or Consultancy Enquiries) · tasks · Search · **Ask ESTI** · wellbeing · pomodoro.
  *   RIGHT  — clock · alerts · ID · sign out.
  *
  * The top border carries the office-health signal (green/amber/red).
@@ -69,6 +72,13 @@ export function AppFooterBar({
 }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const surface = detectSurface(window.location.hostname);
+  const isConsultancy = surface === "consultancy";
+  const homePath = isConsultancy ? "/consultancy/enquiries" : "/";
+  const homeLabel = isConsultancy ? `${AORMS_CONSULTANCY.title} enquiries` : "Studio Intelligence";
+  const homeActive = isConsultancy
+    ? pathname.startsWith("/consultancy")
+    : pathname === "/";
   const [showCalc, setShowCalc] = useState(false);
   const [showWellness, setShowWellness] = useState(false);
   const [wellnessSection, setWellnessSection] = useState<WellnessSection>("breathe");
@@ -141,16 +151,16 @@ export function AppFooterBar({
             direction="row"
             spacing={0.5}
             sx={{ alignItems: "center", cursor: "pointer", pl: 0.5, minHeight: 44 }}
-            onClick={() => navigate("/")}
+            onClick={() => navigate(homePath)}
             role="link"
             tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                navigate("/");
+                navigate(homePath);
               }
             }}
-            aria-label={`Office health: ${state}. Go to Studio Intelligence`}
+            aria-label={`Office health: ${state}. Go to ${homeLabel}`}
           >
             <OfficeHealthGlyph state={state} variant="glass" title={state} />
             <Typography variant="caption" sx={{ textTransform: "capitalize" }} noWrap>{state}</Typography>
@@ -178,22 +188,22 @@ export function AppFooterBar({
         )}
       </Box>
 
-      {/* CENTER — Studio · Tasks · Search · Ask ESTI · Wellness · Pomodoro */}
+      {/* CENTER — home · Tasks · Search · Ask ESTI · Wellness · Pomodoro */}
       <Stack
         direction="row"
         spacing={0.5}
         className="esti-app-footer__launcher-anchor"
         sx={{ alignItems: "center" }}
       >
-        <Tooltip title="Studio Intelligence">
+        <Tooltip title={homeLabel}>
           <IconButton
-            onClick={() => navigate("/")}
-            aria-label="Studio Intelligence"
-            aria-current={pathname === "/" ? "page" : undefined}
-            color={pathname === "/" ? "primary" : "default"}
+            onClick={() => navigate(homePath)}
+            aria-label={homeLabel}
+            aria-current={homeActive ? "page" : undefined}
+            color={homeActive ? "primary" : "default"}
             sx={chromeIconSx}
           >
-            <AutoAwesome />
+            {isConsultancy ? <Engineering /> : <AutoAwesome />}
           </IconButton>
         </Tooltip>
         <Tooltip title="Tasks">
