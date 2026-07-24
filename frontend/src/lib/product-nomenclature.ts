@@ -72,14 +72,15 @@ export const AORMS_APPS = {
     /** Unified landing section on `aorms.in`. */
     landingHref: "/#consultancy",
     wikiPath: "/wiki/aorms-consultancy",
-    status: "roadmap" as const,
+    /** Built in monorepo; public launch gated on P9.V / P9.M. */
+    status: "launch_gated" as const,
   },
 } as const;
 
 /** Shipped architecture app — this monorepo (Indian architecture consultancies). */
 export const AORMS_STUDIO = AORMS_APPS.studio;
 
-/** Engineering consultancy app — roadmap. */
+/** Engineering consultancy app — code-complete; launch gated. */
 export const AORMS_CONSULTANCY = AORMS_APPS.consultancy;
 
 /** Legacy single slug — prefer {@link AORMS_STUDIO.legacySlugs}. */

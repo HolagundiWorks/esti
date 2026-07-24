@@ -222,7 +222,7 @@ Procedural artifacts:
 | --- | --- | --- |
 | Job number as the spine | ✅ | Job codes auto-allocated at creation (C-YY-serial, backfilled); shown across the workspace *(2026-07-12)* |
 | Enquiry register + go/no-go | ✅ | `esti_cons_enquiry` register (`EQ-YY-NNN`); scorecard + conflict check gate GO/NO_GO; convert allocates job `C-YY-NNN` and opens engagement *(2026-07-21)* |
-| Contract review checkpoint | 🔶 | Reliance scope + fee model recorded; **no §8.2.3-style review checklist gate** |
+| Contract review checkpoint | ✅ | §8.2.3 checklist on engagement (`esti_cons_contract_review`); APPROVED gated on all four boxes *(2026-07-21)* |
 | PEP/PQP at setup | 🔶 | Typed scope phases + brief cover much of it; no formal per-engagement quality plan |
 | Field-based doc numbering | ✅ | MDR `{job}-{TYPE}-{seq}` (e.g. `C-26-001-CAL-001`); doc type on create; revision/status stay metadata *(2026-07-21)* |
 | Two-track revisions (P/C) | ✅ | P01/C01 convention; new deliverables default P01; **Start revision** bumps the track and resets the sign-off chain *(2026-07-12)* |
@@ -231,25 +231,28 @@ Procedural artifacts:
 | Self-check → IDC → check → approve | 🔶 | CHECK/APPROVE/VERIFY chain enforced (checker ≠ author); **no IDC/squad-check step or check-print/CRS records** |
 | Comment resolution sheet | ✅ | Reviewer comments per deliverable+revision; response required to close; **open lines block issue** *(2026-07-12)* |
 | Status codes on issue | 🔶 | FI/FA/FC issue classes; not the full S1–S4/A-code ladder |
-| MoM procedure | 🔲 | Studio has `moms` (reusable); not wired to consultancy engagements |
+| MoM procedure | ✅ | Engagement MoM register (`esti_cons_mom`, MOM-NNN); draft → issued *(2026-07-21)* |
 | RFI/TQ register + SLA | ✅ | Due date on raise (default +14d); register flags overdue in red *(2026-07-12)* |
 | Site visit reports (G711-style) | ✅ | Numbered field reports per engagement: weather, personnel, work observed, observations, NCs, instructions, next visit; author snapshotted *(2026-07-12)* |
 | Timesheets weekly + approval | ✅ | SUBMITTED→APPROVED, named approver, approve-all per engagement *(2026-07-12)* |
-| Monthly WIP review | 🔶 | WIP computed live in analytics; the *meeting cadence* + bill/hold/write-off decisions unrecorded |
+| Monthly WIP review | ✅ | Bill / hold / write-off decisions recorded on `esti_cons_wip_review` (fees:manage); live WIP still in analytics *(2026-07-21)* |
+| Opportunity register | ✅ | Pre-con R&O — `esti_cons_opportunity` (Exploit/Enhance/Share/Accept); score + priority *(2026-07-21)* — [framework](AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md) |
+| Design phase gates | ✅ | Concept → Schematic → Detailed → Issue readiness checklists; GO gated on complete checklist *(2026-07-21)* |
 | Milestone invoicing | ✅ | BILLABLE on issue → **Raise Studio invoice** (ISSUED tax doc + PDF) → PAID syncs linked `esti_invoice`; payment terms + overdue on the fee position *(2026-07-21)* |
 | Dunning ladder | ✅ | Payment terms on invoicing (default 30d); overdue days flagged red; outstanding tracked on the fee position *(2026-07-12)* |
 | Resource forecast meeting | 🔲 | Capacity per grade exists (utilisation); no forward staffing forecast |
-| Retention policy + litigation hold | 🔲 | Records are immutable in DB; no retention/archival policy layer |
-| Lessons learned + client feedback | 🔲 | Not built (Studio patterns exist to reuse) |
-| NC/CAPA register | 🔲 | Audit trail exists; no NC/CAPA workflow |
+| Retention policy + litigation hold | ✅ | `litigation_hold` + retention note on engagement (thin hold flag; archival destruction policy still ops) *(2026-07-21)* |
+| Lessons learned + client feedback | ✅ | Lessons register (`esti_cons_lesson` draft→published); client feedback still informal *(2026-07-21)* |
+| NC/CAPA register | ✅ | NC register with severity + CAPA close (`esti_cons_nc`) *(2026-07-21)* |
 | Internal audit / management review | 🔲 | Out of app scope for now (the registers above are their evidence base) |
 
 **Reading of the map:** the *governance core* the SOPs exist to protect — the register,
-the named chain, gated issue, stage billing, WIP — is built. Highest-value remaining
-slices, in rough order: **lessons / NC-CAPA**.
+the named chain, gated issue, stage billing, WIP, closeout — is built. Remaining
+optional slices: **resource forecast**, formal PEP/PQP, IDC step. Human gates outside
+the app: **P9.V** fee UX review, **P4.8** marketing rewrite, **P9.M** launch.
 (Document numbering, two-track revisions, TQ due-dates, timesheet approval, CRS,
-field reports, **transmittal acknowledgment**, **milestone Studio invoices**, and
-**enquiry go/no-go** are already in.)
+field reports, **transmittal acknowledgment**, **milestone Studio invoices**,
+**enquiry go/no-go**, and **SOP closeout registers** are already in.)
 
 ---
 

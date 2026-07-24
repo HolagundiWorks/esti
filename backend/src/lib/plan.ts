@@ -49,7 +49,10 @@ export async function licenseState(db: DB): Promise<LicenseState> {
   // Fold legacy plan codes (CORE/ENTERPRISE → PRO) — PLAN_LIMITS only has
   // current editions, so an unfolded legacy value crashes seat resolution.
   const fallbackPlan = asPlan(row.plan);
-  const managed = Boolean(row.licenseToken) || Boolean(env.ESTI_HUB_URL);
+  const managed =
+    Boolean(row.licenseToken) ||
+    Boolean(env.ESTI_HUB_URL) ||
+    Boolean(env.ESTI_LICENSE_API_URL);
   const seatsFor = (plan: Plan): ResolvedSeats => ({
     staff: PLAN_LIMITS[plan].staff,
     accountants: PLAN_LIMITS[plan].accountants,
@@ -83,6 +86,23 @@ export async function licenseState(db: DB): Promise<LicenseState> {
       const d = panelDerived(panel.payload);
       if (d) derived = d;
     }
+  }
+
+  // P7.3 — billing / admin suspend stamps `licence_status` on the node; honour
+  // it ahead of token expiry so writes stop even while a cached token is still
+  // within its offline window.
+  if (row.licenceStatus === "SUSPENDED") {
+    return {
+      status: "SUSPENDED",
+      plan: derived?.plan ?? fallbackPlan,
+      seats: derived?.seats ?? seatsFor(fallbackPlan),
+      managed: true,
+      blocked: true,
+      firmId: derived?.firmId ?? null,
+      issuedAt: derived?.issuedAtIso ?? null,
+      expiresAt: derived?.expiresAtIso ?? null,
+      graceDaysLeft: null,
+    };
   }
 
   if (!derived) {

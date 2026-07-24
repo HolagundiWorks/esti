@@ -25,7 +25,7 @@ to them:
 |---|---|---|---|
 | **AORMS** | **Platform** | **Accelerated Operational Resources Management System** | The product mark. AEC consulting firms only. |
 | **AORMS-Studio** | App | **Architecture** app (slug `aorms-studio`) | Shipping — this repo's primary app. |
-| **AORMS-Consultancy** | App | **Engineering** app (slug `aorms-consultancy`) | Roadmap workspace. |
+| **AORMS-Consultancy** | App | **Engineering** app (slug `aorms-consultancy`) | Code-complete; launch gated on P9.V / P9.M. |
 | **ESTI** | Internal AI agent | *Embedded Studio Intelligence* | Answers **only** from the firm's **validated** repositories (Ask ESTI, Studio Intelligence, ESTI Pulse). Tenant-bound. |
 | **EOMS** | External knowledge bank | *Emergent Object Management System* | The continuously-learning catalog of **standard codebooks, building compliance, and other compliance codes** — a standalone **API in its own `eoms` repo**; AORMS apps and native tools query it. |
 | **`esti`** | **Codename** | Repo name, `@esti/*` packages, `esti_*` DB tables | Internal only — **never surface in marketing**. Distinct from **ESTI** the agent. |

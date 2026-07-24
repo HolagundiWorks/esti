@@ -4,7 +4,7 @@ metaTitle: Drawing Revision Tracking Software for Architects
 metaDescription: Drawing revision tracking software with a live drawing register � current vs superseded versions, approval state and a transmittal log of every issue.
 keyword: drawing revision tracking software
 category: moat
-updated: 2026-06-24
+updated: 2026-07-22
 intro: A live drawing register where every sheet carries its current version, its superseded history, its approval state, and the transmittal log of who received which revision and when.
 ---
 

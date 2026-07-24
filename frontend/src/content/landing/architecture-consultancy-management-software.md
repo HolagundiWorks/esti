@@ -4,7 +4,7 @@ metaTitle: Architecture Consultancy Management Software � AORMS
 metaDescription: Run an architecture consultancy end to end � clients, proposals, projects, consultants, drawings, revisions, COA fees and GST billing � in one cloud-hosted, India-native system.
 keyword: architecture consultancy management
 category: solution
-updated: 2026-06-24
+updated: 2026-07-22
 intro: An architecture consultancy lives or dies on coordination � clients, in-house teams, external consultants and deliverables all moving at once. AORMS keeps the whole engagement in one traceable record.
 ---
 
@@ -12,7 +12,7 @@ intro: An architecture consultancy lives or dies on coordination � clients, in
 
 An architecture consultancy is a coordination business. On any given project you are managing the client relationship, your in-house team, a structural and an MEP consultant, a contractor's queries, a stack of drawings under revision, the fee that all of it is billed against, and the GST and TDS on every invoice. **Architecture consultancy management** software has to hold that whole engagement as one connected record � not as a folder of spreadsheets, a billing app and a WhatsApp thread that no one can audit later.
 
-AORMS, powered by ESTI, does exactly that, and it is built India-native: COA fees, GST/SAC codes, the April�March year, tenders, site records and project documentation are assumed from the ground up.
+AORMS, powered by ESTI, does exactly that, and it is built India-native: COA fees, GST/SAC codes, the April�March year, site supervision, project documentation and client portals are assumed from the ground up.
 
 ## The client and the engagement in one place
 
@@ -20,7 +20,7 @@ Every consultancy engagement starts with a client and a scope. AORMS keeps the c
 
 ## External consultants, coordinated � not chased
 
-The thing that makes a consultancy different from an in-house team is the external consultants. AORMS gives structural, MEP and other consultants their own scoped collaborator portal: they see only their engagement, exchange queries and submittals, and respond to approvals � without access to the rest of the office. The same applies to contractors, who log in to a scoped portal for tenders, documents and site coordination. You coordinate the cast of a project from one place instead of chasing email.
+The thing that makes a consultancy different from an in-house team is the external consultants. AORMS gives structural, MEP and other consultants their own scoped collaborator portal: they see only their engagement, exchange queries and submittals, and respond to approvals � without access to the rest of the office. The same applies to contractors, who log in to a scoped portal for documents and site coordination. You coordinate the cast of a project from one place instead of chasing email.
 
 ## Revisions and approvals you can defend
 
@@ -44,7 +44,7 @@ It holds a whole consultancy engagement � client, proposal, project, in-house 
 
 ### How does AORMS handle external consultants?
 
-Structural, MEP and other consultants get a scoped collaborator portal showing only their engagement, where they exchange queries and submittals and respond to approvals � with no access to the rest of the office. Contractors get a similar scoped portal for tenders and site coordination.
+Structural, MEP and other consultants get a scoped collaborator portal showing only their engagement, where they exchange queries and submittals and respond to approvals � with no access to the rest of the office. Contractors get a similar scoped portal for documents and site coordination.
 
 ### Can it keep an audit trail for disputes?
 

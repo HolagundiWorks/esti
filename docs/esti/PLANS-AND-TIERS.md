@@ -49,7 +49,7 @@ as part of the workspace. Capability gates are **role-based**
 | Status | Meaning |
 |--------|---------|
 | **`ACTIVE`** | Full workspace; storage + AI meters apply |
-| `SUSPENDED` | Blocked (billing or admin action) |
+| `SUSPENDED` | Blocked (billing or admin action) — platform-admin **Suspend for non-payment** (Usage billing) or Licences → Suspend; product node stamps `licence_status` on refresh 403 |
 | `EXPIRED` / `GRACE` | Legacy token lifecycle — renew to ACTIVE |
 
 ### Legacy migration
@@ -60,11 +60,12 @@ Tier enums in code are **deprecated shims** only.
 
 ## Enforcement
 
-1. **`licenceStatus`** → `ACTIVE | SUSPENDED` (not LITE/PRO).
+1. **`licenceStatus`** → `ACTIVE | SUSPENDED` (not LITE/PRO). `SUSPENDED` blocks writes even if a cached signed token is still within offline TTL.
 2. **Storage** — `withinStorage(usedBytes, quotaBytes)`; default 5 GB + purchased add-ons.
 3. **AI** — meter hosted calls unless firm BYO key is set.
 4. **Roles** — `permissions.ts` / `can()` for feature access.
 5. **UI** — show "AORMS Standard" + storage/AI meters; no edition chips or upgrade funnels.
+6. **Billing (P7)** — manual India path: Usage billing CSV → mark billed → suspend for non-payment. Stripe auto-suspend is not wired.
 
 ## Retired (do not reference)
 

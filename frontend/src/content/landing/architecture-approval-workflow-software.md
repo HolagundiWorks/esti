@@ -4,7 +4,7 @@ metaTitle: Architecture Approval Workflow Software � Internal Sign-offs & Port
 metaDescription: Architecture approval workflow software � internal sign-offs, client portal decisions, and the revision-approval chain where clients approve the architect's criticality assessment before site changes proceed.
 keyword: architecture approval workflow software
 category: moat
-updated: 2026-07-10
+updated: 2026-07-22
 intro: Internal approval chains and client sign-offs in one record � including the revision approval where the client confirms the architect's criticality and implications assessment before any site or drawing work proceeds.
 ---
 

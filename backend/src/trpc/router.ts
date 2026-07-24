@@ -85,6 +85,7 @@ import { phaseProgressRouter } from "../modules/pmc/phaseProgress.js";
 import { siteVisitRouter } from "../modules/siteVisit/router.js";
 import { cpiRouter } from "../modules/cpi/router.js";
 import { projectBriefRouter } from "../modules/project-brief/router.js";
+import { projectPreconRouter } from "../modules/project-precon/router.js";
 import { accountsRouter } from "../modules/expense/accounts.js";
 import { expensesRouter } from "../modules/expense/expenses.js";
 import { systemRouter } from "../modules/system/router.js";
@@ -205,6 +206,7 @@ export const appRouter = router({
   onboarding: onboardingRouter,
   program: programRouter,
   projectBrief: projectBriefRouter,
+  projectPrecon: projectPreconRouter,
   cpi: cpiRouter,
   accounts: accountsRouter,
   expenses: expensesRouter,

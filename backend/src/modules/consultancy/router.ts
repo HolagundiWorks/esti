@@ -84,6 +84,7 @@ import { and, asc, desc, eq, gte, inArray, isNull, lte, ne } from "drizzle-orm";
 import { z } from "zod";
 import {
   clients,
+  consContractReviews,
   consDeliverables,
   consEngagements,
   consEnquiries,
@@ -92,7 +93,12 @@ import {
   consInputPacks,
   consCalcPackages,
   consInsurance,
+  consLessons,
+  consMoms,
+  consNcs,
+  consOpportunities,
   consPhases,
+  consPhaseGates,
   consRateCards,
   consRelianceLetters,
   consReviewComments,
@@ -101,6 +107,7 @@ import {
   consTimesheets,
   consTqs,
   consVariations,
+  consWipReviews,
   invoices,
   transmittalItems,
   transmittals,
@@ -118,6 +125,14 @@ import { enqueueJob } from "../../lib/redis.js";
 import { publishEntity } from "../../lib/sync/publish.js";
 import { presignedGet } from "../../lib/storage.js";
 import { capabilityProcedure, protectedProcedure, router } from "../../trpc/trpc.js";
+import {
+  contractReviewsRouter,
+  lessonsRouter,
+  momsRouter,
+  ncsRouter,
+  wipReviewsRouter,
+} from "./closeout.js";
+import { opportunitiesRouter, phaseGatesRouter } from "./precon.js";
 
 const manage = capabilityProcedure("write");
 // Money is L2+ in this firm's permission model ("ASSOCIATE: no invoices/fees").
@@ -256,6 +271,46 @@ const engagementsRouter = router({
         .from(consTimesheets)
         .where(eq(consTimesheets.engagementId, input.id))
         .orderBy(desc(consTimesheets.date), desc(consTimesheets.createdAt));
+      const [lessons, ncs, moms, wipReviews, contractReviews, opportunities, phaseGates] =
+        await Promise.all([
+        ctx.db
+          .select()
+          .from(consLessons)
+          .where(eq(consLessons.engagementId, input.id))
+          .orderBy(desc(consLessons.createdAt)),
+        ctx.db
+          .select()
+          .from(consNcs)
+          .where(eq(consNcs.engagementId, input.id))
+          .orderBy(asc(consNcs.code)),
+        ctx.db
+          .select()
+          .from(consMoms)
+          .where(eq(consMoms.engagementId, input.id))
+          .orderBy(desc(consMoms.meetingDate), desc(consMoms.createdAt)),
+        money
+          ? ctx.db
+              .select()
+              .from(consWipReviews)
+              .where(eq(consWipReviews.engagementId, input.id))
+              .orderBy(desc(consWipReviews.reviewedAt))
+          : Promise.resolve([]),
+        ctx.db
+          .select()
+          .from(consContractReviews)
+          .where(eq(consContractReviews.engagementId, input.id))
+          .orderBy(desc(consContractReviews.reviewDate)),
+        ctx.db
+          .select()
+          .from(consOpportunities)
+          .where(eq(consOpportunities.engagementId, input.id))
+          .orderBy(desc(consOpportunities.createdAt)),
+        ctx.db
+          .select()
+          .from(consPhaseGates)
+          .where(eq(consPhaseGates.engagementId, input.id))
+          .orderBy(asc(consPhaseGates.gateKey)),
+      ]);
       // Fee position — agreed vs staged vs billable vs invoiced, plus time
       // booked and WIP (time value performed but not yet invoiced; case study §5.2).
       // Pure helper lives in @esti/contracts so P9.V can unit-test the money math.
@@ -346,6 +401,13 @@ const engagementsRouter = router({
           ? timesheets
           : timesheets.map((t) => ({ ...t, valuePaise: null })),
         feePosition: money ? feePosition : null,
+        lessons,
+        ncs,
+        moms,
+        wipReviews: money ? wipReviews : [],
+        contractReviews,
+        opportunities,
+        phaseGates,
         // Built-in PDF export — download URL once the worker has rendered it.
         pdfUrl:
           row.pdfStatus === "READY" && row.pdfKey
@@ -2349,4 +2411,11 @@ export const consultancyRouter = router({
   crs: crsRouter,
   fieldReports: fieldReportsRouter,
   intelligence: intelligenceRouter,
+  lessons: lessonsRouter,
+  ncs: ncsRouter,
+  moms: momsRouter,
+  wipReviews: wipReviewsRouter,
+  contractReviews: contractReviewsRouter,
+  opportunities: opportunitiesRouter,
+  phaseGates: phaseGatesRouter,
 });

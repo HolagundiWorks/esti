@@ -29,6 +29,11 @@ import {
   canDecideGoNoGo,
   canRecordIssueTransmittal,
   canRaiseFeeStageStudioInvoice,
+  canApproveContractReview,
+  canDecidePhaseGate,
+  CONSULTANCY_PHASE_GATE_CHECKLIST,
+  opportunityPriority,
+  opportunityScore,
   feeStageFinancialsLocked,
   goNoGoRecommendation,
   isValidMdrDeliverableCode,
@@ -807,5 +812,49 @@ describe("enquiry go/no-go (SOP §2)", () => {
       ok: false,
     });
     expect(canConvertEnquiry({ status: "GO", convertedEngagementId: null })).toEqual({ ok: true });
+  });
+});
+
+describe("contract review gate (SOP §8.2.3)", () => {
+  it("blocks APPROVED until every checklist box is set", () => {
+    expect(
+      canApproveContractReview({
+        requirementsDefined: true,
+        capabilityConfirmed: true,
+        conflictChecked: true,
+        proposalVsContractOk: false,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(
+      canApproveContractReview({
+        requirementsDefined: true,
+        capabilityConfirmed: true,
+        conflictChecked: true,
+        proposalVsContractOk: true,
+      }),
+    ).toEqual({ ok: true });
+  });
+});
+
+describe("pre-construction R&O (consultancy scope)", () => {
+  it("scores and prioritizes opportunities", () => {
+    expect(opportunityScore(5, 5)).toBe(25);
+    expect(opportunityPriority(5, 5)).toBe("CRITICAL");
+    expect(opportunityPriority(3, 3)).toBe("MEDIUM");
+    expect(opportunityPriority(1, 2)).toBe("LOW");
+  });
+
+  it("blocks GO on a phase gate until the checklist is complete", () => {
+    expect(
+      canDecidePhaseGate({
+        decision: "GO",
+        checklist: { scopeDefined: true },
+      }),
+    ).toMatchObject({ ok: false });
+    const full = Object.fromEntries(
+      CONSULTANCY_PHASE_GATE_CHECKLIST.map((c) => [c.key, true]),
+    );
+    expect(canDecidePhaseGate({ decision: "GO", checklist: full })).toEqual({ ok: true });
+    expect(canDecidePhaseGate({ decision: "HOLD", checklist: {} })).toEqual({ ok: true });
   });
 });

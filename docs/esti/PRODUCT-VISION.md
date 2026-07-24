@@ -124,7 +124,7 @@ signals must not become covert surveillance or punitive monitoring.
 
 - Product name: **AORMS** (**Accelerated Operational Resources Management System**, platform for AEC consulting firms).
 - Shipped app: **AORMS-Studio** (slug `aorms-studio`, architecture / Indian architecture consultancies).
-- Roadmap app: **AORMS-Consultancy** (slug `aorms-consultancy`, engineering consultancies).
+- Engineering app: **AORMS-Consultancy** (slug `aorms-consultancy`) — code-complete; launch gated on P9.V / P9.M.
 - **EOMS** (Emergent Object Management System) — **knowledge bank** (standalone API).
 - **ESTI** (Embedded Studio Intelligence) — **internal AI agent** (live in **AORMS-Studio**).
 - Company: **Holagundi Consulting Works (HCW)**.
@@ -138,5 +138,7 @@ Detailed requirements are in [PRD](PRD.md), current/future module boundaries in
 production operations in [PRODUCTION-OPS](PRODUCTION-OPS.md), and long-term
 scope discipline in [Stability Charter](STABILITY-CHARTER.md).
 
-Phases **0–27** are engineering-complete — see the [roadmap status table](ROADMAP.md#status-at-a-glance).
+**AORMS-Studio** phases **0–28** are engineering-complete. Active product queue and
+Consultancy launch gates: [ROADMAP.md](ROADMAP.md) and
+[AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md).
 Operator restore-drill sign-off for a live firm instance remains in [PRODUCTION-OPS](PRODUCTION-OPS.md).

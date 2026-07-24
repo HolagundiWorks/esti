@@ -3,10 +3,10 @@ import { LANDING_SEO } from "../../lib/landing-seo.js";
 import { formatVisitCount } from "../../lib/landing-visit.js";
 import { HcwAttribution } from "../brand/HcwAttribution.js";
 
-// Marketing consolidation (2026-07): single landing at `/`; the wiki / blog / about /
-// legal pages were removed. Only the landing, sign-in, and contact links remain.
+// Landing + blog are live; wiki / about / legal stay consolidated to `/`.
 const PLATFORM_LINKS = [
   { href: "/", label: "Home" },
+  { href: "/blog", label: "Blog" },
   { href: "/login", label: "Sign in" },
   { href: "mailto:hi@aorms.in", label: "hi@aorms.in" },
 ] as const;

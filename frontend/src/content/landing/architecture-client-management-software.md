@@ -4,7 +4,7 @@ metaTitle: Architect Client Management Software � Proposals, Approvals & Revis
 metaDescription: Architect client management software for Indian practices � CRM, client log, COA proposals, GST invoices, and a portal where revision requests, approvals and decisions go on the permanent record.
 keyword: architect client management software
 category: solution
-updated: 2026-07-10
+updated: 2026-07-22
 intro: From first enquiry to signed decisions � and through every revision request in between � AORMS keeps the client relationship on one record so nothing important is lost in email or memory.
 ---
 

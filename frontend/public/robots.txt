@@ -17,12 +17,14 @@ User-agent: Google-Extended
 User-agent: Applebot-Extended
 User-agent: CCBot
 
-# Allow public landing page and assets
+# Allow public landing page, blog, and assets
 Allow: /
+Allow: /blog
+Allow: /blog/
 Allow: /sitemap.xml
 
-# Keyword landing pages (/architecture-office-management-software, etc.) are
-# crawlable by default.
+# Live public surfaces: / , /blog , /login .
+# Keyword landings / wiki / about / legal still redirect to / in the SPA.
 
 # Block authenticated app routes — these require login and must not be indexed
 Disallow: /dashboard

@@ -34,6 +34,9 @@ export const consEngagements = pgTable("esti_cons_engagement", {
   pdfStatus: text("pdf_status"), // PENDING | PROCESSING | READY | FAILED
   pdfKey: text("pdf_key"),
   notes: text("notes"),
+  /** Retention / litigation hold — suspends archival destruction (SOP §9). */
+  litigationHold: boolean("litigation_hold").notNull().default(false),
+  retentionNote: text("retention_note"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
@@ -391,3 +394,154 @@ export const consTqs = pgTable("esti_cons_tq", {
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
+
+
+/** SOP closeout — lessons learned (feeds go/no-go and fee benchmarks). */
+export const consLessons = pgTable("esti_cons_lesson", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  category: text("category").notNull().default("GENERAL"),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  recommendation: text("recommendation"),
+  status: text("status").notNull().default("DRAFT"),
+  authorId: uuid("author_id").references(() => users.id, { onDelete: "set null" }),
+  authorName: text("author_name").notNull(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** SOP closeout — NC/CAPA register (nonconformity + corrective/preventive action). */
+export const consNcs = pgTable("esti_cons_nc", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  fieldReportId: uuid("field_report_id").references(() => consFieldReports.id, {
+    onDelete: "set null",
+  }),
+  code: text("code").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  severity: text("severity").notNull().default("MINOR"),
+  responsibleParty: text("responsible_party"),
+  correctiveAction: text("corrective_action"),
+  preventiveAction: text("preventive_action"),
+  dueDate: date("due_date"),
+  status: text("status").notNull().default("OPEN"),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** SOP closeout — engagement MoM register (consultancy-native minutes). */
+export const consMoms = pgTable("esti_cons_mom", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  ref: text("ref").notNull(),
+  title: text("title").notNull(),
+  meetingDate: date("meeting_date").notNull(),
+  attendees: text("attendees"),
+  minutes: text("minutes"),
+  status: text("status").notNull().default("DRAFT"),
+  authorId: uuid("author_id").references(() => users.id, { onDelete: "set null" }),
+  authorName: text("author_name").notNull(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** SOP closeout — monthly WIP review decision (bill / hold / write-off). */
+export const consWipReviews = pgTable("esti_cons_wip_review", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  periodStart: date("period_start").notNull(),
+  periodEnd: date("period_end").notNull(),
+  wipPaise: bigint("wip_paise", { mode: "number" }).notNull().default(0),
+  decision: text("decision").notNull().default("HOLD"),
+  notes: text("notes"),
+  reviewedBy: uuid("reviewed_by").references(() => users.id, { onDelete: "set null" }),
+  reviewedByName: text("reviewed_by_name").notNull(),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: createdAt(),
+});
+
+/** SOP §8.2.3 — contract review checklist before signature / LOA. */
+export const consContractReviews = pgTable("esti_cons_contract_review", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  reviewDate: date("review_date").notNull(),
+  requirementsDefined: boolean("requirements_defined").notNull().default(false),
+  capabilityConfirmed: boolean("capability_confirmed").notNull().default(false),
+  conflictChecked: boolean("conflict_checked").notNull().default(false),
+  proposalVsContractOk: boolean("proposal_vs_contract_ok").notNull().default(false),
+  decision: text("decision").notNull().default("PENDING"),
+  notes: text("notes"),
+  reviewerId: uuid("reviewer_id").references(() => users.id, { onDelete: "set null" }),
+  reviewerName: text("reviewer_name").notNull(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/**
+ * Pre-construction R&O — opportunity register (consultancy scope).
+ * Pair with `consRisks`; see docs/esti/AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md.
+ */
+export const consOpportunities = pgTable("esti_cons_opportunity", {
+  id: id(),
+  engagementId: uuid("engagement_id")
+    .notNull()
+    .references(() => consEngagements.id, { onDelete: "cascade" }),
+  linkedRiskId: uuid("linked_risk_id").references(() => consRisks.id, { onDelete: "set null" }),
+  title: text("title").notNull(),
+  source: text("source").notNull().default("WORKSHOP"),
+  area: text("area").notNull().default("DESIGN"),
+  probability: integer("probability").notNull().default(3),
+  impact: integer("impact").notNull().default(3),
+  response: text("response").notNull().default("ENHANCE"),
+  owner: text("owner"),
+  actionPlan: text("action_plan"),
+  dueDate: date("due_date"),
+  valueNote: text("value_note"),
+  estimatedValuePaise: bigint("estimated_value_paise", { mode: "number" }),
+  status: text("status").notNull().default("OPEN"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/**
+ * Design-stage phase gates (go / hold / no-go) — not construction readiness.
+ * Checklist keys from CONSULTANCY_PHASE_GATE_CHECKLIST in contracts.
+ */
+export const consPhaseGates = pgTable(
+  "esti_cons_phase_gate",
+  {
+    id: id(),
+    engagementId: uuid("engagement_id")
+      .notNull()
+      .references(() => consEngagements.id, { onDelete: "cascade" }),
+    phaseId: uuid("phase_id").references(() => consPhases.id, { onDelete: "set null" }),
+    gateKey: text("gate_key").notNull(),
+    checklist: jsonb("checklist").$type<Record<string, boolean>>().notNull().default({}),
+    decision: text("decision").notNull().default("PENDING"),
+    notes: text("notes"),
+    decidedBy: uuid("decided_by").references(() => users.id, { onDelete: "set null" }),
+    decidedByName: text("decided_by_name"),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => ({
+    engagementGateUidx: uniqueIndex("esti_cons_phase_gate_engagement_gate_uidx").on(
+      t.engagementId,
+      t.gateKey,
+    ),
+  }),
+);

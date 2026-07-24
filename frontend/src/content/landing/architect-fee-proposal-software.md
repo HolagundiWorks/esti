@@ -1,11 +1,11 @@
 ---
 title: Architect Fee Proposal Software
 metaTitle: Fee Recovery & Proposal Software for Architects India
-metaDescription: Architect fee proposal software that shows what needs invoicing, the next billing stage due, incoming receipts and GST reminders — so fee recovery is a weekly discipline, not a month-end scramble.
+metaDescription: Architect fee proposal software that shows what needs invoicing, the next billing stage due, incoming receipts and GST reminders â€” so fee recovery is a weekly discipline, not a month-end scramble.
 keyword: architect fee proposal software
 category: india
-updated: 2026-07-10
-intro: Know what is ready to invoice, which stage comes next and what remains unpaid — fee proposals that stay connected to billing recovery for every project in the office.
+updated: 2026-07-22
+intro: Know what is ready to invoice, which stage comes next and what remains unpaid â€” fee proposals that stay connected to billing recovery for every project in the office.
 ---
 
 Architect fee proposal software should help a practice do more than prepare a
@@ -39,7 +39,7 @@ project can move through delivery while fee recovery remains visible. Completed 
 approved stages can become billing prompts instead of hidden spreadsheet rows.
 
 In Pro workflows, fee proposals connect to invoicing, GST handling,
-reconciliation and owner review. Every account uses the same standard AORMS licence —
+reconciliation and owner review. Every account uses the same standard AORMS licence â€”
 full workspace from day one.
 
 ## Why architects need a specific tool
@@ -99,13 +99,13 @@ discipline together.
 When proposals, delivery and billing share one record, the office gains the
 commercial signals that matter most:
 
-- **What needs invoicing now** — stages delivered but not yet billed, surface as
+- **What needs invoicing now** â€” stages delivered but not yet billed, surface as
   actionable items rather than buried spreadsheet rows.
-- **What is due next** — the upcoming billing stage for each project, so the team
+- **What is due next** â€” the upcoming billing stage for each project, so the team
   can plan outreach before the milestone rather than after.
-- **Incoming receipts** — payments expected from approved invoices, visible against
+- **Incoming receipts** â€” payments expected from approved invoices, visible against
   outstanding amounts so cash flow is readable.
-- **GST reminders** — upcoming GSTR filing dates and TDS deductions tracked
+- **GST reminders** â€” upcoming GSTR filing dates and TDS deductions tracked
   alongside the invoices they belong to, so nothing falls silent between quarters.
 
 ## What owners can review
@@ -142,4 +142,4 @@ deeper billing and reconciliation workflows as the office grows.
 Spreadsheets calculate fees, but they do not know project status, approval state,
 invoice history, or whether a completed stage has become billable work. They also
 cannot surface what is due next, flag incoming receipts, or remind the office
-about GST filing dates — the signals that make fee recovery a weekly habit.
+about GST filing dates â€” the signals that make fee recovery a weekly habit.

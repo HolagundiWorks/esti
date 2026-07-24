@@ -116,7 +116,7 @@ When the north-star and shipped stack differ, **ARCHITECTURE.md** and
 | **1 — MVP** | Multi-tenant foundation; project/task; documents; basic approval; AI foundation; audit log |
 | **2** | Collaboration (messaging, co-editing); audit reports; analytics |
 | **3** | Enterprise workflows, SSO, advanced RBAC, integrations |
-| **4** | **AORMS-Consultancy** engineering app; AEC framework marketplace |
+| **4** | **AORMS-Consultancy** engineering app (code-complete; launch gated); AEC framework marketplace |
 
 Checklist detail: [full content file](../../frontend/src/content/aorms-development-spec.md) § Development Roadmap.
 

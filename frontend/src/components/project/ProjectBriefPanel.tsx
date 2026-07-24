@@ -4,8 +4,9 @@ import { ProjectCpi } from "../ProjectCpi.js";
 import { ProjectInfo } from "../ProjectInfo.js";
 import { ProjectPipeline } from "../ProjectPipeline.js";
 import { ProjectProgram } from "../ProjectProgram.js";
+import { ProjectPreconPanel } from "./ProjectPreconPanel.js";
 
-/** Progressive disclosure for Setup: Info · Pipeline · Program · CPI. */
+/** Progressive disclosure for Setup: Info · Pipeline · Program · R&O · CPI. */
 export function ProjectBriefPanel({
   projectId,
   showCpi,
@@ -18,6 +19,7 @@ export function ProjectBriefPanel({
     { label: "Project Info", panel: <ProjectInfo projectId={projectId} /> },
     { label: "Pipeline", panel: <ProjectPipeline projectId={projectId} /> },
     { label: "Program", panel: <ProjectProgram projectId={projectId} /> },
+    { label: "R&O", panel: <ProjectPreconPanel projectId={projectId} /> },
     ...(showCpi
       ? [{ label: "CPI", panel: <ProjectCpi projectId={projectId} /> }]
       : []),

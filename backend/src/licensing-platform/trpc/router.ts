@@ -7,6 +7,7 @@ import { licensesRouter } from "../modules/admin/licenses.js";
 import { orgsRouter } from "../modules/admin/orgs.js";
 import { productsRouter } from "../modules/admin/products.js";
 import { requestsRouter } from "../modules/admin/requests.js";
+import { usageReportsRouter } from "../modules/admin/usageReportsAdmin.js";
 import { publicProcedure, router } from "./trpc.js";
 
 /** Root tRPC router. The `admin` namespaces are platform-admin gated. */
@@ -24,6 +25,7 @@ export const appRouter = router({
     certifications: certificationsRouter,
     requests: requestsRouter,
     components: componentsRouter,
+    usageReports: usageReportsRouter,
   }),
 });
 

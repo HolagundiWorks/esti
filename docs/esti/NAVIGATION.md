@@ -83,7 +83,7 @@ Active Projects ✅ (`/projects`) → Project Details ✅ (`/projects/:id`).
 
 | Group | Primary tabs | Nested (in-panel) |
 |---|---|---|
-| Setup | Overview · Brief · Settings | Brief → Project Info \| Pipeline \| Program \| CPI |
+| Setup | Overview · Brief · Settings | Brief → Project Info \| Pipeline \| Program \| **R&O** \| CPI |
 | Project workspace | Measurement · Drawings & approvals · Documents · Invoices · Team · Delivery · Lessons | Drawings → Drawings \| Transmittals \| Approvals; Documents → Documents \| Specs; Delivery → Site \| Comms \| Minutes |
 
 Legacy `?tab=` deep links (`info`, `pipeline`, `site-visits`, `approvals`, `invoices`, …) redirect to the new parent slug while preserving `approvalId` / `invoiceId` when present.

@@ -1,7 +1,8 @@
 # AORMS-Consultancy — how engineering consultancy firms operate (grounded case study)
 
-> **Status:** Research-grounded case study (2026-07-12) for the **AORMS-Consultancy**
-> roadmap app (engineering consultancies — structural, MEP, civil, multidisciplinary).
+> **Status:** Research-grounded case study (2026-07-12; status note 2026-07-22) for the
+> **AORMS-Consultancy** engineering app (structural, MEP, civil, multidisciplinary) —
+> product is **code-complete**; launch gated on P9.V / P9.M.
 > **Method:** synthesised from industry sources (IStructE, RIBA, FIDIC, CEAI, Council of
 > Architecture, NSPE/ASCE, ISO 19650, HSE CDM, Indian municipal/RERA/NBC material) — see
 > **Sources** at the end. Every non-obvious claim is citable.

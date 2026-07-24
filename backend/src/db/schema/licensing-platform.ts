@@ -347,6 +347,10 @@ export const usageReports = pgTable(
       .default(0),
     aiTokensThisMonth: integer("ai_tokens_this_month").notNull().default(0),
     reportedAt: timestamp("reported_at", { withTimezone: true }).defaultNow().notNull(),
+    /** P7.2 manual India invoice export — stamped when usage is billed offline. */
+    billedAt: timestamp("billed_at", { withTimezone: true }),
+    billedBy: text("billed_by"),
+    billingNote: text("billing_note"),
   },
   (t) => ({
     orgProductPeriodIdx: uniqueIndex("hlp_usage_report_org_product_period_idx").on(

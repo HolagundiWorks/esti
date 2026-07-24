@@ -1,10 +1,10 @@
 ---
 title: Contractor Billing Software for Architects
 metaTitle: Contractor Billing Software for Architects
-metaDescription: Contractor billing software for architects — track measurements, bills, approvals, reconciliation and project evidence between site, office and contractor.
+metaDescription: Contractor billing software for architects â€” track measurements, bills, approvals, reconciliation and project evidence between site, office and contractor.
 keyword: contractor billing software for architects
 category: solution
-updated: 2026-06-25
+updated: 2026-07-22
 intro: Bring contractor bills, measurements and approvals into the same project record as drawings, site evidence and office review.
 ---
 
@@ -65,10 +65,10 @@ and what remains unresolved.
 Many Indian architecture firms do more than design. They coordinate site work,
 review contractor bills, support clients during execution and carry responsibility
 for clarity even when they are not the contractor. The system must therefore hold
-site evidence, contractor scope, tender records and billing movement together.
+site evidence, contractor scope, issued documents and billing movement together.
 
 In AORMS, the contractor does not need full office access. A contractor can see
-only the tender, bid or billing scope shared with them. The office keeps the wider
+only the documents and billing scope shared with them. The office keeps the wider
 project record private while still allowing movement to be recorded.
 
 ## Reconciliation is not an afterthought
