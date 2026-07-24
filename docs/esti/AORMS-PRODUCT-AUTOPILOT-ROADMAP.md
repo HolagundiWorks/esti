@@ -5,9 +5,11 @@
 > legacy licence migration. Canonical product law:
 > [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md).
 >
-> **Human-led (now):** fresh landing pages — rail/stage marketing shell + copy.
-> **Autopilot:** everything else below.
+> **Autopilot:** **COMPLETE** (2026-07-24). All agent-owned phases shipped.
+> **Human-only remaining:** [P9.V walkthrough](P9V-CONSULTANCY-WALKTHROUGH.md) → **P9.M**
+> public launch. Stripe auto-billing deferred (manual India path ships).
 
+**Status:** AUTOPILOT COMPLETE · **Last updated:** 2026-07-24  
 **Status markers:** ✅ Done · 🔄 In progress · ⬜ Queued · 🚧 Human-led
 
 ---
@@ -44,7 +46,7 @@
 | [P6](#p6--seo-landing-content-refresh) | SEO markdown landing pages | P2 | ✅ | autopilot |
 | [P7](#p7--billing-console--platform-admin) | Platform admin · usage invoices | P2 | ✅ P7.1–P7.3 manual India path | autopilot |
 | [P8](#p8--browser-takeoff-replaces-esticad) | Browser takeoff (replaces ESTICAD) | P1 | ✅ | autopilot |
-| [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | ✅ P9.0–P9.4 + SOP + R&O + fee UX polish; 🔄 P9.V human walkthrough / P9.M | autopilot |
+| [P9](#p9--aorms-consultancy-engineering-app) | AORMS-Consultancy (engineering app) | P1 | ✅ code · 🚧 P9.V/M human | autopilot done · human gate |
 | [P10](#p10--2026-07-21-hygiene--rebrand--deps) | Hygiene · rebrand · deps (landed) | P0 | ✅ | autopilot |
 
 ---
@@ -63,7 +65,7 @@
 | P0.6 | Remove Community/Pro from trial form | ✅ | `LandingTrialForm.tsx` removed |
 | P0.7 | Update [README.md](README.md) index blurb | ✅ | |
 
-**Verify:** `GET /` — rail shows Estimate download only; pricing shows storage + AI; no Community/Pro/Enterprise tiles.
+**Verify:** `GET /` — pricing shows storage + AI; web-only (no desktop/download CTAs); no Community/Pro/Enterprise tiles.
 
 **Owner:** human for P0.4–P0.6 visual/copy polish; autopilot may fix broken links after.
 
@@ -236,11 +238,12 @@ time commercials, and a risk register. Design lives in
 (sourced operating model). One spine, app-scoped by `hlp_organization.workspace_type`
 (**STUDIO** | **CONSULTANCY**).
 
-> **Status audit 2026-07-22.** **P9.0–P9.4 are code-complete**, with SOP closeout
-> (`0214`–`0217`) and pre-con R&O (`0218` consultancy · `0219` Studio). Automated
-> coverage: contracts helpers + stubbed-DB mutation wiring (fees, issue gates,
-> closeout, pre-con). Remaining gates are **human**: **P9.V** fee UX review and
-> **P9.M** public launch. Stripe auto-billing stays deferred (manual India path ✅).
+> **Status audit 2026-07-24.** **P9.0–P9.4 + SOP + R&O + fee UX polish are
+> code-complete** on the completion branch (`0214`–`0219`). Automated coverage:
+> contracts helpers + stubbed-DB mutation wiring (fees, issue gates, closeout,
+> pre-con). Autopilot work for P9 is **done**. Remaining gates are **human only**:
+> **[P9.V walkthrough](P9V-CONSULTANCY-WALKTHROUGH.md)** and **P9.M** public launch.
+> Stripe auto-billing stays deferred (manual India path ✅).
 
 | # | Task | Status |
 |---|------|--------|
@@ -252,19 +255,17 @@ time commercials, and a risk register. Design lives in
 | P9.3c | SOP closeout + commercial links — transmittal ack, fee-stage invoices, enquiry go/no-go, lessons/NC/MoM/WIP/contract review/litigation hold | ✅ `0214`–`0217` |
 | P9.3d | Pre-con R&O — opportunity register + design phase gates (Consultancy + Studio parity) | ✅ `0218` + `0219` — [framework](AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md) |
 | P9.4 | Intelligence — firm-record Q&A + EOMS input-pack review; precedent search; deliverable lineage | ✅ **code-complete 2026-07-21** — `ask` + `eomsReview` + **`precedentSearch`** + **`deliverableLineage`** + **`calcPackages`** + **EOMS compliance UI** + **`analytics.capacityOutlook`** + Ask digest trust boundary |
-| P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | 🔄 automated tests ✅ · fee UX polish ✅ (toasts, confirms, Edit terms, locked delete) · **still open: human sign-off walkthrough** |
-| P9.M | Marketing/launch surface — `consultancy.aorms.in`, landing copy | 🔄 landing markdown exists; launch gated on P9.V |
+| P9.V | **Verify + review the built surface** — money paths (fees/variations/WIP), the sign-off chain's immutability, portal/tenant scoping | 🚧 **human** — checklist: [P9V-CONSULTANCY-WALKTHROUGH.md](P9V-CONSULTANCY-WALKTHROUGH.md) · automated tests ✅ · fee UX polish ✅ |
+| P9.M | Marketing/launch surface — `consultancy.aorms.in`, landing copy | 🚧 **human** — landing exists; launch gated on P9.V Pass |
 
 **Risk note.** Treat "code-complete" as "implemented + unit-tested", not
-"production-signed-off" — **P9.V human fee UX review** remains the gate before
+"production-signed-off" — **P9.V human walkthrough** remains the gate before
 offering Consultancy to a paying firm.
 
-**Verify:** create a CONSULTANCY company → open an engagement → run a deliverable
-through its sign-off chain → raise a fee stage and a variation → issue is gated
-until the chain completes. Automated coverage: pure money/sign-off helpers
-(contracts) **and** stubbed-DB mutation wiring (fee advances/locks, issue→BILLABLE,
-variation approve race, timesheet rate gate, portal/money redaction, closeout,
-pre-con). Remaining gate is human fee UX review (no live-DB Vitest harness in CI).
+**Verify (automated):** contracts helpers + stubbed-DB mutation wiring (fee
+advances/locks, issue→BILLABLE, variation approve race, timesheet rate gate,
+portal/money redaction, closeout, pre-con). **Verify (human):** run
+[P9V-CONSULTANCY-WALKTHROUGH.md](P9V-CONSULTANCY-WALKTHROUGH.md).
 
 ---
 
@@ -301,11 +302,13 @@ P5 (Estimate desktop auth) — CANCELLED 2026-07-19, web-only
 P8 browser takeoff — ✅
 
 P9 (AORMS-Consultancy) — P9.0–P9.4 + SOP + R&O + fee UX polish ✅;
-   P9.V human walkthrough ACTIVE; P9.M launch gated
+   P9.V / P9.M = human only (walkthrough → launch)
 
 P10 hygiene/rebrand/deps — ✅ landed 2026-07-21 (P10.8 visual baselines ✅)
 
 Pre-con R&O — Studio + Consultancy ✅ (0218/0219) — see framework doc
+
+AUTOPILOT COMPLETE — no further agent waves on this queue
 ```
 
 ---
@@ -325,6 +328,8 @@ Pre-con R&O — Studio + Consultancy ✅ (0218/0219) — see framework doc
 | Firm AI settings | `backend/src/modules/firm/`, `Company.tsx` |
 | Rebrand canon | [AORMS-REBRANDING.md](AORMS-REBRANDING.md) |
 | UI rail/stage autopilot | [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md) |
+| P9.V human checklist | [P9V-CONSULTANCY-WALKTHROUGH.md](P9V-CONSULTANCY-WALKTHROUGH.md) |
+| HCW License Manager | [HCW-LICENSE-MANAGER.md](HCW-LICENSE-MANAGER.md) |
 
 ---
 
@@ -332,6 +337,7 @@ Pre-con R&O — Studio + Consultancy ✅ (0218/0219) — see framework doc
 
 | Date | Change |
 |------|--------|
+| 2026-07-24 | **Autopilot complete.** Landed remaining product stack (SOP/P7.2–P7.3, pre-con R&O, P4.8, P9 fee UX, blog/SEO, HCW License Manager naming) onto kit 1.4.0. Migrations `0217`–`0219`. Declared agent queue done; only [P9.V walkthrough](P9V-CONSULTANCY-WALKTHROUGH.md) + **P9.M** remain (human). Stripe auto-billing still deferred. |
 | 2026-07-22 | **Blog restored + five new posts** — `/blog` live again (routes, rail, footer); restored markdown archive; EmOI→EOMS copy; new posts on web-only, pre-con R&O, Consultancy same spine, fee stages↔invoices, One Standard licence; `feed.xml` + sitemap + robots updated. |
 | 2026-07-22 | **SEO + blog feed refresh** — `index.html` / `llms.txt` / landing JSON-LD / architecture FAQ / sitemap / robots / investor deck / `blog/feed.xml` aligned to web-only + Consultancy launch-gated; all 30 SEO landing markdowns bumped (no tenders-module claims; R&O note on project page). |
 | 2026-07-22 | **P9.V fee UX polish** — engagement commercial surface: success toasts; ConfirmModal for raise invoice / mark paid / delete / approve variation; hide delete on INVOICED/PAID; fee model + agreed fee on create; **Edit terms** dialog (fee model, total, Studio project link); empty fee-stages CTA. Human walkthrough still the ship gate. |
