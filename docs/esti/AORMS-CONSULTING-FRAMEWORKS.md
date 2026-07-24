@@ -268,7 +268,7 @@ engineering consultancies · **Status:** Code-complete; launch gated (shares pla
 
 > **Deep dive:** the **grounded, sourced case study** of how engineering consultancies
 > operate (org hierarchy, sign-off chain, workflow, billing, risk — with citations) is in
-> [`AORMS-CONSULTANCY-CASE-STUDY.md`](AORMS-CONSULTANCY-CASE-STUDY.md); the
+> [`AORMS-CONSULTANCY-SOP-CASE-STUDY.md`](AORMS-CONSULTANCY-SOP-CASE-STUDY.md); the
 > **system-architecture draft** that maps it onto the `esti` codebase is in
 > [`AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md`](AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md).
 > This section is the framework-level summary those documents expand.

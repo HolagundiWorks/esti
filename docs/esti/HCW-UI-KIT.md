@@ -106,7 +106,7 @@ glows, nothing does (Von Restorff / depth-encodes-importance).
 | **TaskbarFooter** | full width · height `LAYOUT.taskbarHeight` | Glass (L3) | **Calculator LEFT**; launcher cluster **CENTRE** (Studio Intelligence · Tasks · Ask ESTI · Wellbeing · Pomodoro); **system tray RIGHT** (due count · alerts · ID card · office health when not stable · clock · sign out). Admin menu lives in the **header ribbon**, not the footer. |
 | **ActionDock** | floats bottom-centre · clearance `LAYOUT.dockClearance` | Soft capsule tray → glass pill buttons on hover | The one **global, context-aware** action bar. **All page-level CTAs live here, not inline.** Tray uses `ACTION_DOCK_TRAY`; buttons are capsule pills. |
 
-**Rollout queue:** [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md) — clone the
+**Rollout queue:** [ROADMAP.md](ROADMAP.md) — clone the
 Studio Intelligence rail to every `RailLayout` screen and move login into the rail.
 
 ### Marketing shell — public site (`MarketingShell`)
@@ -257,7 +257,7 @@ Unauthenticated surfaces use the same 20/80 split. The **form panel** (email,
 password, Google, tenant picker, recovery links) is rendered inside the **glass rail**.
 The **stage** holds editorial/brand content only — product visual, tagline, or calm
 empty canvas. **Never** centre a `max-width: 24rem` card on the page. See
-[AORMS-UI-AUTOPILOT-ROADMAP.md U2](AORMS-UI-AUTOPILOT-ROADMAP.md#u2--login--auth-rail).
+[ROADMAP.md U2](ROADMAP.md).
 
 #### Shared shell for other screens
 
@@ -358,7 +358,7 @@ Package README: [`README.md`](../../README.md).
 - **Glass Rail reference complete** on Studio Intelligence (`/`): full-viewport-height
   frosted rail, independent stage scroll, stage-head zone health, glass taskbar footer.
   Canonical spec: [§ Glass Rail](#glass-rail--canonical-reference-studio-intelligence).
-  Rollout: [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md) **U0–U6 ✅**.
+  Rollout: [ROADMAP.md](ROADMAP.md) **U0–U6 ✅**.
 - **Marketing shell complete** on public site: clear-glass rail · full-width heading
   glass · flat sub-cards · hero logo · contour z-depth 3× · full-page scroll depth ·
   dock-only CTAs · FAQ 3-up. Spec:

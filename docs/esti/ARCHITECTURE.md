@@ -62,7 +62,7 @@ checksummed seam. **Estimating itself runs in the browser** as part of Cost
 Management (rate books + BOQ estimates) — there is no desktop estimator and no
 `.aormsest` interchange file. Full topology, the
 subdomain-vs-extension test, and the shared seams:
-[MONOREPO-AND-SURFACES](MONOREPO-AND-SURFACES.md).
+Host / surface map: [AORMS-SURFACE-URLS](AORMS-SURFACE-URLS.md).
 
 ## Architecture Decisions
 

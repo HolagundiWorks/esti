@@ -12,5 +12,5 @@ complement the product docs in [`docs/esti/`](../esti/README.md).
 **Lifecycle placement:** Phase 0 (Appointment) through Initiation & Brief — before Concept Design sign-off (CLIENT-ONBOARDING/PROJECT-BRIEFING); SOP.md covers the full lifecycle end to end.
 
 > The in-browser Estimation OS this section used to point to was retired
-> 2026-07-09 (see [`docs/esti/DOC-CODE-DRIFT-2026-07.md`](../esti/DOC-CODE-DRIFT-2026-07.md));
+> 2026-07-09 (see [`docs/esti/UNIFIED-ARCHITECTURE-V4.md`](../esti/UNIFIED-ARCHITECTURE-V4.md));
 > there is no design-stage estimate module live today.

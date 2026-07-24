@@ -81,7 +81,7 @@ advising on built-environment projects. Shares the same AORMS platform primitive
 permissions, workflow engine, EOMS) as a separate workspace profile
 (`hlp_organization.workspace_type = CONSULTANCY`). Core + SOP + R&O are **built** in this
 monorepo; public launch is gated on human fee UX review (P9.V) and marketing (P9.M) —
-see [AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md) § P9.
+see [ROADMAP.md](ROADMAP.md) § P9.
 
 ---
 

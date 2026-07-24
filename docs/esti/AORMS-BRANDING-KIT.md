@@ -123,7 +123,7 @@ Intelligence, now everywhere):
 
 Every screen splits into two regions. **Always refer to them by these names.**
 Canonical glass-rail spec: [HCW-UI-KIT.md § Glass Rail](HCW-UI-KIT.md#glass-rail--canonical-reference-studio-intelligence).
-Autopilot rollout: [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md).
+Autopilot rollout: [ROADMAP.md](ROADMAP.md).
 
 | Term | Width | Class | Holds |
 |---|---|---|---|
@@ -193,10 +193,10 @@ decoration) are listed in `CLAUDE.md`: `esti-pom-pulse`, `esti-zone-pulse`,
 ## 8. Linked references
 
 **Design docs**
-- [`MATERIAL-UI-DIRECTION.md`](MATERIAL-UI-DIRECTION.md) — historical Carbon→MUI
+- [`HCW-UI-KIT.md`](HCW-UI-KIT.md) — historical Carbon→MUI
   migration playbook, Rail/Stage, square-corner + palette-lock rules (app + portals).
 - [`NAVIGATION.md`](NAVIGATION.md) — Canonical V3 information architecture / sidebar.
-- [`INFORMATION-ARCHITECTURE.md`](INFORMATION-ARCHITECTURE.md) — module map.
+- [`NAVIGATION.md`](NAVIGATION.md) — module map.
 
 **Code**
 - Theme: `frontend/src/theme/muiTheme.ts` · `frontend/src/theme/MuiRoot.tsx`

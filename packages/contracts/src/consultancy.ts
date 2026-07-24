@@ -3,7 +3,7 @@ import type { TagColor } from "./schemas.js";
 
 /**
  * AORMS-Consultancy — Phase 0 "Living record" contracts (engagements + the
- * deliverable register). Grounded in docs/esti/AORMS-CONSULTANCY-CASE-STUDY.md;
+ * deliverable register). Grounded in docs/esti/AORMS-CONSULTANCY-SOP-CASE-STUDY.md;
  * system shape in docs/esti/AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md.
  *
  * Naming note: `engagements` / `esti_engagement` belong to AORMS-Studio's

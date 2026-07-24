@@ -44,7 +44,7 @@ Fits **Agile** (one loop ≈ story/sprint), **Waterfall** (phases sequential), *
 | KPI review | C | C | **A** | R | I |
 | Debt triage | C | C | **A** | R | I |
 
-Construction stakeholder modes: [HCW-CONSTRUCTION-UX-OVERLAY.md](esti/HCW-CONSTRUCTION-UX-OVERLAY.md).
+Construction stakeholder modes: [HCW-UI-UX-PRINCIPLES.md](esti/HCW-UI-UX-PRINCIPLES.md).
 
 ---
 
@@ -191,5 +191,5 @@ Still framework-bound: no new geography, no second accent, no capacity overrun.
 | Heuristic table | [esti/HCW-UI-UX-PRINCIPLES.md](esti/HCW-UI-UX-PRINCIPLES.md) |
 | Countable checks | [hcw-kit/07-UX-REVIEW-CHECKLISTS.md](hcw-kit/07-UX-REVIEW-CHECKLISTS.md) |
 | AI surfaces | [esti/HCW-AI-ORCHESTRATION-UX.md](esti/HCW-AI-ORCHESTRATION-UX.md) |
-| Construction | [esti/HCW-CONSTRUCTION-UX-OVERLAY.md](esti/HCW-CONSTRUCTION-UX-OVERLAY.md) |
+| Construction | [esti/HCW-UI-UX-PRINCIPLES.md](esti/HCW-UI-UX-PRINCIPLES.md) |
 | Index | [HCW-UX.md](HCW-UX.md) |

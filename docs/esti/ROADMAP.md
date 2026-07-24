@@ -1,11 +1,14 @@
 # AORMS Implementation Roadmap
 
-**Status:** Canonical pointer · **Updated:** 2026-07-24  
-**Product autopilot:** **COMPLETE** — human gates only below.
+**Status:** Canonical · **Updated:** 2026-07-24  
+**Product / UI autopilot:** **COMPLETE** — human gates only below.
 
 Phases 0–28 are **engineering-complete** for **AORMS-Studio**. Retired modules
 (Estimation OS, Construction Cost spine, PMC hub, legacy Rate Books/`dsr`, etc.)
 are **not** current product state — see system state below.
+
+This is the **single** delivery roadmap. Superseded autopilot / audit / fix-plan
+docs were removed 2026-07-24 (Git history retains them).
 
 ## Authoritative for what exists today
 
@@ -13,46 +16,45 @@ are **not** current product state — see system state below.
 | --- | --- |
 | [UNIFIED-ARCHITECTURE-V4.md](UNIFIED-ARCHITECTURE-V4.md) | **System state** — modules live vs removed |
 | [NAVIGATION.md](NAVIGATION.md) | Canonical sidebar IA |
-| [AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md) | Product pivot queue — **autopilot complete** |
+| [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) | Standard licence law |
+| [AORMS-PLATFORM-NOMENCLATURE.md](AORMS-PLATFORM-NOMENCLATURE.md) | Naming (platform · apps · EOMS · ESTI) |
+| [AORMS-SURFACE-URLS.md](AORMS-SURFACE-URLS.md) | Host / path map |
 | [P9V-CONSULTANCY-WALKTHROUGH.md](P9V-CONSULTANCY-WALKTHROUGH.md) | **P9.V** human sign-off checklist |
-| [AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md](AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md) | Pre-con R&O — Studio + Consultancy (adopt / adapt / refuse) |
-| [AORMS-CONSULTANCY-SOP-CASE-STUDY.md](AORMS-CONSULTANCY-SOP-CASE-STUDY.md) | Consultancy SOP product map |
-| [AORMS-UI-AUTOPILOT-ROADMAP.md](AORMS-UI-AUTOPILOT-ROADMAP.md) | Glass-rail + marketing shell (U0–U6 ✅) |
+| [AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md](AORMS-PRECONSTRUCTION-RO-FRAMEWORK.md) | Pre-con R&O law |
+| [AORMS-CONSULTANCY-SOP-CASE-STUDY.md](AORMS-CONSULTANCY-SOP-CASE-STUDY.md) | Consultancy SOP ↔ product |
+| [AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md](AORMS-CONSULTANCY-OPERATING-MODEL-AND-ARCHITECTURE.md) | Consultancy system design |
 | [HCW-LICENSE-MANAGER.md](HCW-LICENSE-MANAGER.md) | In-tree licensing authority |
-| [AORMS-REBRANDING.md](AORMS-REBRANDING.md) | EmOI → EOMS / knowledge-bank nomenclature |
-| [PRD.md](PRD.md) | Requirements (cross-check against System state above) |
+| [DESIGN-DEBT-REGISTER.md](../hcw-kit/11-audits/DESIGN-DEBT-REGISTER.md) | Living design debt |
+| [PRD.md](PRD.md) | Requirements |
 
-## Platform apps (2026-07-24)
+## Platform apps
 
 | App | Status |
 | --- | --- |
 | **AORMS-Studio** (architecture) | Shipping — this monorepo; pre-con R&O on Brief → R&O |
-| **AORMS-Consultancy** (engineering) | Core + SOP + R&O + fee UX **code-complete**; **P9.V** human walkthrough + **P9.M** launch still gated |
+| **AORMS-Consultancy** (engineering) | Code-complete (SOP + R&O + fee UX); **P9.V** walkthrough + **P9.M** launch gated |
 
-## Recent landings (2026-07-21 → 24)
+## Completed tracks (2026-07)
 
 | Track | Outcome |
 | --- | --- |
-| Legacy cleanup / deps / rebrand | `WORKER_MODE=inproc` + PMC flag + schema drift removed; major deps; EmOI→EOMS; EOMS API; P10.8 visual baselines |
-| **P7 billing** | ✅ P7.1 multi-tenant usage · P7.2 CSV + mark-billed · P7.3 suspend-for-non-payment (Stripe auto-billing deferred by choice) |
-| **P9 SOP** | ✅ Transmittal ack · fee-stage Studio invoices · enquiry go/no-go · closeout (lessons · NC/CAPA · MoM · WIP · contract review · litigation hold) — migrations `0214`–`0217` |
-| **Pre-con R&O** | ✅ Shared framework — Consultancy `0218` + Studio `0219` (risk · opportunity · design phase gates) |
-| **P4.8** | ✅ Web-only LinkedIn/Instagram campaign copy |
-| **P9.V polish** | ✅ Fee UX — toasts, confirms, Edit terms, locked delete (human walkthrough remains) |
-| **Blog / SEO** | ✅ `/blog` restored; five posts; feed/sitemap/robots refreshed |
-| **@hcw/ui-kit 1.4.0** | ✅ Re-vendored + app shell (KitRoot density/COGA, KpiStrip, ActionOutcomeBanner) |
-| **HCW License Manager** | ✅ In-tree naming + docs (`admin.aorms.in`) |
+| Product pivot P0–P10 | One Standard licence · storage + AI · web-only · BYO AI key · browser takeoff · hygiene/rebrand/deps |
+| **P7 billing** | Multi-tenant usage · CSV + mark-billed · suspend-for-non-payment (Stripe auto deferred) |
+| **P9 Consultancy** | Engagements · reliance · fees · SOP closeout · enquiry · fee-stage invoices · intelligence (`0214`–`0219`) |
+| **Pre-con R&O** | Consultancy + Studio phase gates |
+| **UI shell U0–U6** | Glass rail · stage · ActionDock · marketing shell |
+| **@hcw/ui-kit 1.4.0** | Vendored + app shell adoption |
+| **Blog / SEO** | `/blog` live; feed/sitemap refreshed |
+| **HCW License Manager** | In-tree (`admin.aorms.in`) |
 
 ## Next (human-gated / deferred)
 
 1. **P9.V** — [Consultancy walkthrough](P9V-CONSULTANCY-WALKTHROUGH.md) sign-off
 2. **P9.M** — public launch of `consultancy.aorms.in` (gated on P9.V Pass)
-3. **Stripe auto-billing / auto-suspend** — deferred by choice; manual India path is the shipping path
-
-**Autopilot:** complete as of 2026-07-24 — no further agent waves required on the product queue.
+3. **Stripe auto-billing / auto-suspend** — deferred; manual India path ships
 
 ## Change rule
 
-Material feature changes update **PRD**, **NAVIGATION** (if IA moves), and the
-relevant autopilot roadmap in the same pull request. **Do not** keep superseded
-specs in the tree — delete them; Git history is the archive.
+Material feature changes update **PRD**, **NAVIGATION** (if IA moves), and **this
+file** in the same pull request. **Do not** keep superseded specs in the tree —
+delete them; Git history is the archive.

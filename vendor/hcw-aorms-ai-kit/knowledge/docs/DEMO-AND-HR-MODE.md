@@ -2,7 +2,7 @@
 
 Quick reference for demo logins and how they relate to production org mode.
 
-**Full design:** [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md)
+**Full design:** [ORG-MODE-AND-HR.md](ORG-MODE-AND-HR.md)
 
 ---
 
@@ -78,5 +78,5 @@ Tasks remain; assignee resolves to the principal architect.
 
 ## See also
 
-- [ORG-MODE-AND-HR-ARCHIVE.md](ORG-MODE-AND-HR-ARCHIVE.md) — lock rules, snapshot schema, API
+- [ORG-MODE-AND-HR.md](ORG-MODE-AND-HR.md) — lock rules, snapshot schema, API
 - [ROADMAP.md](ROADMAP.md) — delivery status

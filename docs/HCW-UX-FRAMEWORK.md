@@ -3,7 +3,7 @@
 **Status:** Canonical UX **framework** (model) · **Adopted:** 2026-07-21 · **Version:** 1.2  
 **Type:** UX **framework** — principles, scope, diagram, KPIs  
 **Run it with:** [HCW-UX-PROCESS.md](HCW-UX-PROCESS.md) (the **process**) · **Index:** [HCW-UX.md](HCW-UX.md)  
-**Executable layer:** `@hcw/ui-kit` · **Laws:** [HCW-UI-UX-PRINCIPLES.md](esti/HCW-UI-UX-PRINCIPLES.md) · **AI module:** [HCW-AI-ORCHESTRATION-UX.md](esti/HCW-AI-ORCHESTRATION-UX.md) · **Construction overlay:** [HCW-CONSTRUCTION-UX-OVERLAY.md](esti/HCW-CONSTRUCTION-UX-OVERLAY.md)
+**Executable layer:** `@hcw/ui-kit` · **Laws:** [HCW-UI-UX-PRINCIPLES.md](esti/HCW-UI-UX-PRINCIPLES.md) · **AI module:** [HCW-AI-ORCHESTRATION-UX.md](esti/HCW-AI-ORCHESTRATION-UX.md) · **Construction overlay:** [HCW-UI-UX-PRINCIPLES.md](esti/HCW-UI-UX-PRINCIPLES.md)
 
 | Framework (this doc) | Process |
 | --- | --- |
@@ -214,7 +214,7 @@ Detail: [HCW-UX-KPI-INSTRUMENT.md](esti/HCW-UX-KPI-INSTRUMENT.md).
 | **How to run (process)** | [HCW-UX-PROCESS.md](HCW-UX-PROCESS.md) |
 | Heuristic → pattern | [esti/HCW-UI-UX-PRINCIPLES.md](esti/HCW-UI-UX-PRINCIPLES.md) |
 | AI module | [esti/HCW-AI-ORCHESTRATION-UX.md](esti/HCW-AI-ORCHESTRATION-UX.md) · [ai-orchestration-ux-framework.md](ai-orchestration-ux-framework.md) |
-| Construction | [esti/HCW-CONSTRUCTION-UX-OVERLAY.md](esti/HCW-CONSTRUCTION-UX-OVERLAY.md) |
+| Construction | [esti/HCW-UI-UX-PRINCIPLES.md](esti/HCW-UI-UX-PRINCIPLES.md) |
 | KPIs | [esti/HCW-UX-KPI-INSTRUMENT.md](esti/HCW-UX-KPI-INSTRUMENT.md) |
 | Kit catalog | [hcw-kit/14-HCW-CATALOG.md](hcw-kit/14-HCW-CATALOG.md) |
 

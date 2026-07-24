@@ -12,11 +12,11 @@
 > **Reconciled 2026-07-22:** Knowledge Bank (`kb.*`) / CMS (`cms.*`) removed earlier;
 > estimation is Rate Books + project Estimation + plan takeoff; Consultancy SOP closeout
 > + pre-con R&O (Studio + Consultancy) landed (`0214`–`0219`). Active queue:
-> [AORMS-PRODUCT-AUTOPILOT-ROADMAP.md](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md).
+> [ROADMAP.md](ROADMAP.md).
 >
 > Future agents read this **first**. The "System state" section below is the
 > **authoritative record of what exists today** — where any other doc (ROADMAP, PRD,
-> INFORMATION-ARCHITECTURE, ARCHITECT-PROFILE, PRODUCT-VISION) disagrees about what is
+> If older prose (ARCHITECT-PROFILE, PRODUCT-VISION) disagrees about what is
 > built, **this doc wins**. Access control:
 > [ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md). UI law:
 > [HCW-UI-KIT.md](HCW-UI-KIT.md). Stack:
@@ -167,7 +167,7 @@ Status legend — **✅ Implemented** (shipped, in the live router) ·
 4. [ACCESS-HIERARCHY.md](ACCESS-HIERARCHY.md) + [PLANS-AND-TIERS.md](PLANS-AND-TIERS.md) — the two gates.
 5. [HCW-UI-KIT.md](HCW-UI-KIT.md) — the UI law for the whole product, including the landing page.
 6. [ARCHITECTURE.md](ARCHITECTURE.md) — stack/system; `CLAUDE.md` — the module map + conventions.
-7. [INFORMATION-ARCHITECTURE.md](INFORMATION-ARCHITECTURE.md), [ROADMAP.md](ROADMAP.md), [PRD.md](PRD.md) — module rationale/history/requirements; **defer to NAVIGATION.md for the sidebar and to the System state above where they describe the removed estimation/cost stack.**
+7. [NAVIGATION.md](NAVIGATION.md), [ROADMAP.md](ROADMAP.md), [PRD.md](PRD.md) — module rationale/history/requirements; **defer to NAVIGATION.md for the sidebar and to the System state above where they describe the removed estimation/cost stack.**
 
 ## Document control
 

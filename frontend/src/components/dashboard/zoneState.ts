@@ -1,9 +1,5 @@
 /**
  * Studio Intelligence — zone-state vocabulary (spec §5/§6).
- *
- * Constants + types live here, apart from the React components in
- * `abstractShell.tsx`, so that file exports only components and React Fast
- * Refresh can hot-update it (mixing component + constant exports disables HMR).
  */
 
 export type ZoneState = "stable" | "watch" | "friction" | "critical" | "inactive";

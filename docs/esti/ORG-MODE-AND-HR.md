@@ -128,7 +128,7 @@ All team-module write paths remain guarded by `requireHrEnabled`.
 | Lock / snapshot / archive | `backend/src/lib/hrMode.ts` |
 | Settings API | `backend/src/modules/settings/router.ts` |
 | Shared types | `packages/contracts/src/org-mode.ts` |
-| Company UI | `frontend/src/routes/Company.tsx` |
+| Company UI | `/company-account` (firm admin hub) |
 | Attendance API + UI | `backend/src/modules/attendance/router.ts`, `frontend/src/components/work/AttendanceTab.tsx` |
 | Demo seed | `backend/src/scripts/seedDemo.ts` |
 | Landing personas | `frontend/src/routes/Landing.tsx` |

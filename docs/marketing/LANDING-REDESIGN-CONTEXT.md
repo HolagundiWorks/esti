@@ -61,7 +61,7 @@ These belong to **AORMS-Studio** (vertical), not the platform doc landing:
 | Design system page | `/design-system` — `DesignSystemPage.tsx` |
 | Tokens / layers | `@hcw/ui-kit` — flat · soft · glass |
 | Marketing rail | `MarketingShell.tsx` + `MarketingRailNav.tsx` — glass floating rail (open / collapsed); `landing.scss` |
-| Brand mark | `AormsLogo`, `HcwWordmark` in rail |
+| Brand mark | `AormsLogo`, `HcwAttribution` in rail |
 | Contours / atmosphere | `landing.scss`, `LandingContours.tsx` |
 
 **`@carbon/react` is removed.** MUI + `@hcw/ui-kit` only.

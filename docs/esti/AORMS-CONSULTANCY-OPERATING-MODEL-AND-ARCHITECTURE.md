@@ -3,21 +3,21 @@
 > **Status:** Phases 0–4 + SOP closeout + pre-con R&O **code-complete** (migrations
 > `0183`–`0218`); automated mutation/wiring tests landed. Remaining gates are **human**:
 > P9.V fee UX review and P9.M public launch — see
-> [autopilot roadmap P9](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md#p9--aorms-consultancy-engineering-app)
+> [autopilot roadmap P9](ROADMAP.md)
 > and the §9 audit. **App:** **AORMS-Consultancy** (slug `aorms-consultancy`, host
 > `consultancy.aorms.in`, discipline **Engineering**).
 >
 > **This document is the system-architecture draft.** The grounded, sourced operating
 > model it rests on — org hierarchy, sign-off chain, workflow, billing, risk, with
 > citations — lives in
-> **[`AORMS-CONSULTANCY-CASE-STUDY.md`](AORMS-CONSULTANCY-CASE-STUDY.md)** (read that first).
+> **[`AORMS-CONSULTANCY-SOP-CASE-STUDY.md`](AORMS-CONSULTANCY-SOP-CASE-STUDY.md)** (read that first).
 > Framework/philosophy is in
 > [`AORMS-CONSULTING-FRAMEWORKS.md`](AORMS-CONSULTING-FRAMEWORKS.md); naming in
 > [`AORMS-PLATFORM-NOMENCLATURE.md`](AORMS-PLATFORM-NOMENCLATURE.md); surfaces in
 > [`AORMS-SURFACE-URLS.md`](AORMS-SURFACE-URLS.md).
 >
 > Section §-references below (e.g. "case study §3") point into
-> [`AORMS-CONSULTANCY-CASE-STUDY.md`](AORMS-CONSULTANCY-CASE-STUDY.md).
+> [`AORMS-CONSULTANCY-SOP-CASE-STUDY.md`](AORMS-CONSULTANCY-SOP-CASE-STUDY.md).
 
 ---
 
@@ -187,7 +187,7 @@ verbatim — engineering only adds the *fee-model + timesheet* front end.
 > pre-con R&O). Automated coverage: contracts helpers + stubbed-DB mutation wiring
 > (fees, issue gates, closeout, pre-con). Remaining gate before offering Consultancy
 > to a paying firm is **human P9.V fee UX review** (+ **P9.M** launch). See
-> [autopilot roadmap P9](AORMS-PRODUCT-AUTOPILOT-ROADMAP.md#p9--aorms-consultancy-engineering-app).
+> [autopilot roadmap P9](ROADMAP.md).
 
 | Phase | Theme | Ships | State |
 | --- | --- | --- | --- |
