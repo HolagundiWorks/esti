@@ -443,7 +443,12 @@ export function StudioAbstract() {
       ? [
           { label: "Pipeline", value: formatINRShort(fh.pipelinePaise), sub: `Active ${formatINRShort(fh.activePipelinePaise)}`, danger: null },
           { label: "Outstanding", value: formatINRShort(fh.outstandingPaise), sub: "Receivable", danger: fh.overdue30dPaise > 0 ? `${formatINRShort(fh.overdue30dPaise)} overdue` : null },
-          { label: "Collected", value: formatINRShort(fh.collectedFyPaise), sub: `FY ${String(fh.fyStart).slice(0, 4)}`, danger: null },
+          {
+            label: "Fee recovery",
+            value: `${fh.feeRecoveryPct ?? 0}%`,
+            sub: `Invoiced ${formatINRShort(fh.invoicedTotalPaise)}`,
+            danger: (fh.feeRecoveryPct ?? 0) < 40 && fh.activePipelinePaise > 0 ? "Below 40%" : null,
+          },
           { label: "Ready to bill", value: formatINRShort(fh.readyToBillPaise), sub: `${billingReady.length} phase${billingReady.length === 1 ? "" : "s"}`, danger: null },
         ]
       : [

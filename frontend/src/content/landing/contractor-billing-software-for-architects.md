@@ -1,136 +1,73 @@
 ---
 title: Contractor Billing Software for Architects
-metaTitle: Contractor Billing Software for Architects
-metaDescription: Contractor billing software for architects — track measurements, bills, approvals, reconciliation and project evidence between site, office and contractor.
+metaTitle: Site Coordination & Evidence for Architects — AORMS
+metaDescription: Architect-side site coordination — measurements on the project record, contractor portals, approvals, and evidence — without contractor RA-bill ERP. AORMS for advisory practices.
 keyword: contractor billing software for architects
 category: solution
-updated: 2026-07-22
-intro: Bring contractor bills, measurements and approvals into the same project record as drawings, site evidence and office review.
+updated: 2026-07-24
+intro: Connect site evidence, contractor queries, and office review to the same project record as drawings and client approvals — without turning AORMS into contractor billing ERP.
 ---
 
-Contractor billing software for architects must respect how construction
-coordination actually moves. A site in-charge records measurement, the contractor
-verifies it, the office reviews it, corrections move back and an approved bill
-eventually becomes part of the client-facing project record.
+Architects often search for “contractor billing software” when what they need is
+**visibility**: site measurements and queries on the project record, contractor
+verification trails, office review, and client-facing evidence — not a second
+ERP for contractor RA bills.
 
-AORMS is designed to connect this flow to the architecture office. Contractor
-billing should not sit in a disconnected spreadsheet while drawings, site notes
-and client approvals live somewhere else.
+AORMS is built for **architecture consultancies advising clients**. It connects
+site supervision and contractor coordination to drawings, approvals, and fee
+invoices. Contractor ledgers, sealed tenders, and RA-bill accounting stay out of
+scope (consultancy-only product boundary).
 
-## What the workflow needs
+## What the advisory workflow needs
 
-A practical contractor billing workflow needs:
+A practical architect-side coordination workflow needs:
 
-- Measurement records from site
-- Contractor verification
-- Office review and correction
-- Item-wise bill approval
-- Reconciliation against project scope
+- Site visit and measurement evidence on the project
+- Contractor portal for RFIs, submittals, snags, and NCRs
+- Office review and response trails
+- Client approvals when a decision needs their sign-off
+- Fee implications tied to COA stages and GST invoices
 - Evidence for client review
 
 Each step should leave a trace. That trace matters when quantities are disputed,
-work is rejected or a client asks why a bill is being recommended.
+work is rejected, or a client asks why a change was recommended.
 
 ## Why architects need visibility
 
-Architects and PMC teams often sit between client intent, site execution and
-contractor claims. If measurement and billing records are unclear, the office
-absorbs coordination risk. AORMS helps keep the chain visible: who measured, who
-verified, who approved and what remains pending.
+Architects sit between client intent, site execution and contractor claims. If
+measurement and coordination records are unclear, the office absorbs risk. AORMS
+keeps the chain visible: who raised, who verified, who approved, and what remains
+pending — without becoming PMC portfolio or contractor finance software.
 
-## Connected to the project record
+## How AORMS helps
 
-Contractor billing is not only finance. It affects project health, site progress,
-client communication and team workload. AORMS connects contractor workflows to the
-same project record used for phases, documents, approvals and dashboard signals.
+- **Contractor portal** — scoped access for documents and site coordination
+- **Site Progress** — visits, snags, instructions, progress reports
+- **Client portal** — invoices, approvals, issued drawings
+- **Revision intelligence** — client-driven changes stay billable against fee proposals
+- **Browser estimation** — rate books and project BOQ when you price advisory scope
 
-For broader workflow context, see [architecture project record software](/architecture-project-management-software)
-and [architecture ERP India](/architecture-erp-india).
-
-## The office needs a measured trail
-
-Contractor billing becomes difficult when the trail is unclear. A measurement may
-come from site, but the contractor may dispute it. The office may correct it, but
-the correction may not be visible to the client. An item may be approved, but the
-invoice may not match the approved quantity. These are not only accounting
-problems. They are project-record problems.
-
-AORMS treats contractor billing as part of project movement. Measurement, review,
-approval, invoice and reconciliation should sit in a chain. When the chain is
-visible, the office can explain why an item was approved, why another was held,
-and what remains unresolved.
-
-## Useful for PMC and architecture-led construction
-
-Many Indian architecture firms do more than design. They coordinate site work,
-review contractor bills, support clients during execution and carry responsibility
-for clarity even when they are not the contractor. The system must therefore hold
-site evidence, contractor scope, issued documents and billing movement together.
-
-In AORMS, the contractor does not need full office access. A contractor can see
-only the documents and billing scope shared with them. The office keeps the wider
-project record private while still allowing movement to be recorded.
-
-## Reconciliation is not an afterthought
-
-Reconciliation matters because the client ultimately wants to know what was
-claimed, what was checked, what was approved and what was paid. If this chain is
-managed in separate files, the principal has to rely on staff memory. If the chain
-is managed in AORMS, contractor billing becomes part of office review.
-
-That gives the architecture practice a calmer way to manage construction-phase
-responsibility: measured work, recorded review, controlled visibility and a clear
-project trail.
-
-## What the client sees
-
-Clients rarely want every internal discussion behind a contractor bill. They want
-confidence that the office has reviewed the measurement, checked the claim and can
-explain the recommendation. AORMS helps the practice preserve that confidence by
-keeping the working record structured before anything is sent outward.
-
-The office can review items internally, hold back disputed quantities, approve
-clear work and maintain the trail that supports the final recommendation. This is
-especially useful when the architect or PMC team is protecting the client from
-unclear site claims while also keeping the contractor workflow moving.
-
-## Why this belongs beside drawings
-
-Contractor bills are connected to drawings, site instructions, specifications and
-approved scope. If billing is reviewed away from those records, the office loses
-context. AORMS keeps billing near the project evidence, so the team can connect
-what was drawn, what was executed, what was measured and what was approved.
-
-## A calmer review rhythm
-
-The value is not only in producing a bill. It is in making review predictable.
-Site teams know where to enter measurements. Contractors know where the scope
-stands. The office knows what has been verified. Principals can see what needs
-approval before it becomes an argument.
-
-That rhythm is especially useful on projects where the architect is expected to
-protect both design intent and client money. Contractor billing becomes part of
-practice discipline, not a separate firefight.
+For GST fee invoices to the client, see [GST billing for architects](/gst-billing-software-architects-india)
+and [COA-compliant billing](/coa-compliant-billing-software).
 
 ## Frequently asked questions
 
-### What is contractor billing software for architects?
+### Is AORMS contractor billing / RA-bill software?
 
-It is software that helps architecture and PMC teams track contractor
-measurements, verification, bill approval and reconciliation against project
-records.
+No. AORMS does not run contractor running bills, sealed tenders, or subcontractor
+ledgers. It supports architect-side coordination and client fee billing.
 
-### Does AORMS support measurement review?
+### Can contractors submit RFIs and snags?
 
-AORMS is structured for site-to-contractor-to-office workflows where measurements
-can be reviewed, corrected and approved before billing proceeds.
+Yes — through the contractor portal, scoped to invited projects, with a trail
+back to the office.
 
-### Why should this connect to the project record?
+### Where do client fee invoices live?
 
-Because contractor billing depends on drawings, scope, site progress and client
-approval. Keeping it separate creates disputes and weak evidence.
+In the project invoices tab and the client portal — GST invoices against COA fee
+stages, not contractor payment certificates.
 
-### Can owners see billing risk?
+### Who is this for?
 
-Yes. Once contractor billing is connected to the office record, pending approvals
-and unresolved billing exposure can become dashboard signals.
+Indian architecture consultancies that advise clients and supervise site — not
+construction companies running their own billing ERP.

@@ -487,7 +487,7 @@ function AppWorkspace() {
               { label: "Contractors", to: "/contractors", icon: Tools },
             ]
           : []),
-        ...(can(user.role, "write") ? [{ label: "Vendors", to: "/vendors", icon: Store }] : []),
+        ...(atLeast(60) ? [{ label: "Vendors", to: "/vendors", icon: Store }] : []),
       ],
     },
     {
